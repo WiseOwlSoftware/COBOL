@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'Report-name-1 is the highest permissible qualifier that may be specified for LINE-COUNTER, PAGE-COUNTER, and all data-names defined within the Report Section.' 2023: report counters take only 'IN/OF report-name-1' (§2023:8.4.3.15.2); a qualified data-name is 'data-name-1 [ data-qualifier ] ... [ file-report-qualifier ]' (§2023:8.4.2.2.2), the data-qualifiers being successively more inclusive levels (§2023:8.4.2.2.3 SR4) and the single report-name last. Same ceiling, same refusals. SR9 and SR10 say when qualification is required, not this ceiling.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "FMT-8.4.2.2.2": "3f817a52f31f",
+   "FMT-8.4.3.15.2": "0563f5b836af",
+   "SR-8.4.2.2.3-4": "605a18790ec2"
+  }
  }
 }

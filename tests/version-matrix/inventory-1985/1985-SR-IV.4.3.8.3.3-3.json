@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§1985:IV.4.3.8.3.3 SR3 (added by Amendment 1, X3.23a-1989; Errata C95): a function-identifier for an alphanumeric function \"may be specified anywhere in the general formats that an identifier is permitted and where the rules associated with the general formats do not specifically prohibit reference to functions\", except (a) \"As a receiving operand of any statement\" and (b) where the rules require characteristics the function's value \"would not have\". 2023 states the same in substance. The leave: a function-identifier IS a format of identifier, \"Format 1 (function-identifier)\" (§2023:8.4.3.1.2), so it stands wherever a format says identifier, and the prose of §2023:15.2 (no catalog row) adds \"the function so described may be used anywhere a sending data item of that class and category may be specified\". Exception (a): §2023:8.4.3.2.3 SR1 \"A function-identifier shall not be specified as a receiving operand\". Exception (b) has no 2023 rule of its own; the same §2023:15.2 prose (\"of that class and category\") and each format's own rules on its operand carry it, so a function whose value lacks a required characteristic is refused under both.",
-  "source": "classify-unrecorded-1985/slice-01"
+  "source": "classify-unrecorded-1985/slice-01",
+  "digests": {
+   "FMT-8.4.3.1.2": "866d69f98ec7",
+   "SR-8.4.3.2.3-1": "77b9dde860c8"
+  }
  }
 }

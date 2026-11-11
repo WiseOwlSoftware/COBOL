@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"Data-name-1 must reference a data item whose usage is DISPLAY.\"; 2023: \"— a boolean data item, — a national data item, … that is not subordinate to a strongly-typed group item\". 1985 allows only usage DISPLAY items. 2023 adds boolean and national items, and refuses some display items: those under strongly-typed groups, and strongly-typed or variable-length groups.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-8.4.3.3.3-1": "ed9cdbae5482"
+  }
  }
 }

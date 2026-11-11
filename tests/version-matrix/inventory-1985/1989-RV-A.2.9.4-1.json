@@ -10,6 +10,10 @@
   "reason": "1985: on a tie, CHAR returns 'the first literal specified for that character position in the ALPHABET clause'. §2023:15.15.4 RV2 returns 'the first character defined for that character position'. For an ALPHABET clause, §2023:12.3.7.4 GR7 says of the ALSO phrase 'Literal-1 is the first character in the sequence of multiple characters defined at that ordinal position', so it is the same first literal. The implementor-defined case in §2023:15.15.4 RV2 covers an undefined order, never an ALPHABET-clause tie, and corresponds to 1985 RV2, which is a separate record. A 1985 program gets the same result.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-36"
+  "source": "adjudicate-712/slice-36",
+  "digests": {
+   "RV-15.15.4-2": "0d528dce6a2b",
+   "GR-12.3.7.4-7": "2c3f94325c9c"
+  }
  }
 }

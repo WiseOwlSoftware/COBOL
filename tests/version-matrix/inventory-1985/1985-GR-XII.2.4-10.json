@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"text words after replacement are placed in the source program according to the rules for reference format\"; 2023: \"The resultant text after replacement shall be in logical free-form reference format.\". 1985 places replaced words by (fixed) reference format rules, spacing limit for pseudo-text-2 only. 2023 mandates logical free-form and applies the spacing rule to all copied words.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-7.2.3.4-11": "cfa3b6e1e7e0"
+  }
  }
 }

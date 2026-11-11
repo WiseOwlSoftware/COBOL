@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Form YYYYMMDD, the calculation and the MM/DD limits are identical, but 1989 bounds the year only below ('an integer greater than 1600') while §2023:15.46.3 AR1 says 'greater than 1600 and less than 10000'. The 1989 value is defined by the calculation (YYYY * 10,000) + ..., which is valid for YYYY >= 10000, and no 1989 rule caps it; such an argument is now out of range (EC-ARGUMENT-FUNCTION per §2023:15.3 AR14). Stricter.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "AR-15.46.3-1": "f16c5e5f30a0"
+  }
  }
 }

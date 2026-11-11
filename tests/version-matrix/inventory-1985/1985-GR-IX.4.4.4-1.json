@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "The first sentences and Table 1 survive as §2023:14.9.27.4 GR4 and its Table 18 (same rows). But 1985 Table 1 gives every available file a 'Normal open', while 2023 Table 18 'shows the results of opening available and unavailable files that are not currently open by another file connector' (§2023:14.9.27.4 GR4); a file already open through another connector follows Table 19, where many opens are 'Unsuccessful open' (status 61, §2023:9.1.13.9 GR1 'that physical file is already open by another file connector in a manner that conflicts with this request'). With no SHARING clause or phrase (every 1985 program) 'the implementor shall define the sharing mode that is established for each file connector' (§2023:14.9.27.4 GR23), so a 1985 program opening one physical file through two connectors can now fail. Run-time result, no compile-time refusal.",
-  "source": "adjudicate-712/slice-06"
+  "source": "adjudicate-712/slice-06",
+  "digests": {
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-14.9.27.4-23": "14b4d331e670",
+   "GR-9.1.13.9-1": "f64fd809705f"
+  }
  }
 }

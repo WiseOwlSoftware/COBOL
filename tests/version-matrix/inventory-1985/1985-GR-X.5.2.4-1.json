@@ -13,6 +13,12 @@
   ],
   "reason": "1985: 'Literal-1 or the content of the data item referenced by identifier-1 is the name of the called program', which for a COBOL program 'must contain the program-name contained in the PROGRAM-ID paragraph'; non-COBOL naming is implementor-defined. §2023:14.9.4.4 GR3b keeps 'the value of literal-1 or the content of the data item referenced by identifier-1 is the program-name of the program being called' (mapped to the externalized name per §2023:8.3.2.2) and implementor-defined non-COBOL naming (documented per §2023:A.1 13); §2023:14.9.4.4 GR1 makes the caller the activating runtime element. Added case: 'If identifier-1 references a program-pointer data item, the data item referenced by identifier-1 contains the location of the program being called' (§2023:14.9.4.3 SR1 now allows it; 1985 SR2 refused it), and a prototype-name may name the program.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "GR-14.9.4.4-1": "cfb396b1a16c",
+   "GR-14.9.4.4-3": "04fde73bf906",
+   "GR-8.3.2.2-L5.2": "bf57ac71393f",
+   "DOC-A.1-13": "90379881f43d"
+  }
  }
 }

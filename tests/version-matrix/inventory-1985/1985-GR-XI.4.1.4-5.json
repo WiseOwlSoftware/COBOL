@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.24.4 GR5 keeps the order (COLLATING SEQUENCE phrase first, then program collating sequence) for alphanumeric keys and adds a separate national sequence ('alphabet-name-2 applies to key data items of class national'). §2023:12.3.6.4 GR13 adds a level: the program sequences apply 'unless the sort or merge collating sequence has been modified by execution of a SET statement'. A 1985 program means the same, but the 2023 precedence is not the 1985 two-level rule.",
-  "source": "adjudicate-712/slice-22"
+  "source": "adjudicate-712/slice-22",
+  "digests": {
+   "GR-14.9.24.4-5": "7f4db54205c6",
+   "GR-12.3.6.4-13": "1c7611a27461"
+  }
  }
 }

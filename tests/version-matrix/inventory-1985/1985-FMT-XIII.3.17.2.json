@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"[SIGN IS] {LEADING|TRAILING} SEPARATE CHARACTER\"; 2023: \"[ SIGN IS ] {LEADING|TRAILING} [ SEPARATE CHARACTER ]\". The 1985 Report Writer format requires SEPARATE CHARACTER. The 2023 format makes it optional and allows SIGN in report group entries, with no candidate requiring SEPARATE there.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-13.18.52.2": "f2585a3f548d",
+   "SR-13.18.52.3-1": "0439a5039410"
+  }
  }
 }

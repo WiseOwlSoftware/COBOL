@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both require the REWRITE file to be open in I-O mode. A relative file is a mass storage file by nature, so that part is moot. Status '49' only spells out the violation's result.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.35.4-3": "fec731aa697c",
+   "GR-14.9.35.4-2": "ad43e8e283bf"
+  }
  }
 }

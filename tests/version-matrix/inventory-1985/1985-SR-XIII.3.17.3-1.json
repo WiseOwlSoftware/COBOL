@@ -11,6 +11,10 @@
   "reason": "§1985:XIII.3.17.3 SR1 allows SIGN in a report group description entry only for 'a numeric data description entry whose PICTURE contains the character 'S'' (1985 format 3 alone carries SIGN; formats 1 and 2 have no SIGN clause). 2023 puts [ sign-clause ] in every report group entry (§2023:13.15.2) and §2023:13.18.52.3 SR1 adds 'an alphanumeric group item, national group item, or strongly-typed group item' beside 'a numeric report group description entry whose picture character-string contains the symbol 'S''. SIGN on a report group (non-elementary) entry, refused in 1985, is accepted: looser. Numeric 'S' entries mean the same.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "source": "adjudicate-712/slice-34",
+  "digests": {
+   "SR-13.18.52.3-1": "0439a5039410",
+   "FMT-13.15.2": "d2104b4e3f18"
+  }
  }
 }

@@ -13,6 +13,12 @@
   ],
   "bridge": true,
   "reason": "1985 report-writer SIGN: 'The SIGN clause applies only to numeric data description entries whose PICTURE contains the character S' (with §1985:XIII.3.17.3 SR1), so a group report entry may not carry it. 2023 §2023:13.18.52.4 GR1 adds 'or for each numeric item subordinate to the group to which it applies'; §2023:13.18.52.3 SR1 allows 'an alphanumeric group item, national group item, or strongly-typed group item', and §2023:13.15.3 SR11 does not confine SIGN to elementary report entries. A report group entry with SIGN over numeric 'S' items, refused by 1985, is accepted: a case added. Kept: position and mode of the sign, and §2023:13.18.52.4 GR4 / §2023:13.18.40.4 GR14 'S' 'indicates the presence, but neither the representation nor, necessarily, the position of an operational sign'.",
-  "source": "adjudicate-712-r2/slice-11"
+  "source": "adjudicate-712-r2/slice-11",
+  "digests": {
+   "GR-13.18.52.4-1": "e2f672522328",
+   "SR-13.18.52.3-1": "0439a5039410",
+   "GR-13.18.52.4-4": "3e8fb4513ae3",
+   "GR-13.18.40.4-14": "afd0f88fdb6d"
+  }
  }
 }

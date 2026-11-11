@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 still allows EXTEND only for sequential access mode. The added LINAGE condition is a sequential-file rule, presumed moot for indexed files; the level-2 box is no difference.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.27.3-2": "547ccec7c52f"
+  }
  }
 }

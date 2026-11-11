@@ -348,10 +348,17 @@ AUDITS = (
     ("EVIDENCE SUPERSESSION", ["scripts/spec/audit_evidence_supersession.py", "--check"]),
     ("RENDERED VIEWS", ["scripts/rendered_views.py", "--check"]),
     ("WITNESS LOSS", ["scripts/spec/audit_witness_loss.py", "--check"]),
-    ("RULE CATALOG", ["scripts/spec/extract_rule_catalog.py", "--check"]),
-    # kb/Work PB4886: the 1985 catalog is complete (no finding) and the committed one is this run's, so a later repair of
-    # specs/ANSI_COBOL_1985.md cannot reopen a gap in the 1985 audit's denominator.
-    ("RULE CATALOG 1985", ["scripts/spec/extract_rule_catalog.py", "--edition", "1985", "--check"]),
+    # kb/Work PB4886, PB5256: every HELD edition's catalog (inventory_schema.HELD, the schema's list, so a newly held
+    # edition needs no line here) is this run's, and a reconciled edition's is complete (no finding), so a repair of a
+    # transcription that is not regenerated cannot leave a stale denominator; an unreconciled edition's findings are its
+    # catalog's, and a change of them is stale too.
+    ("RULE CATALOGS", ["scripts/spec/extract_rule_catalog.py", "--held", "--check"]),
+    # kb/Work PB5256: every older held edition's candidate pairing with its next edition is this run's, so the
+    # adjudication of its change records starts from the catalogs as they are.
+    ("LINEAGE CANDIDATES", ["scripts/spec/lineage.py", "--candidates", "--check"]),
+    # kb/Work PB689, PB5256: the independent count critic, every held ISO edition: each rule block holds exactly the
+    # ordinals its transcription prints, but where the catalog records a finding that explains the difference.
+    ("CATALOG COVERAGE", ["scripts/spec/audit_catalog_coverage.py", "--held", "--check"]),
     # kb/Work PB4992: each held edition's inventory is a VIEW (its catalog joined with its store of adjudications), and
     # what the view refuses (an adjudication of a dropped rule, a copied catalog field or state, an adjudication decided
     # against other text) and an older edition's illegal change record are refused here, in every lane.

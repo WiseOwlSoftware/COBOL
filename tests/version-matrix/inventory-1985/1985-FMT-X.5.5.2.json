@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"<u>USE</u> [ <u>GLOBAL</u> ] <u>AFTER</u> STANDARD ... <u>PROCEDURE</u> ON\"; 2023: \"`AFTER`, `STANDARD`, `PROCEDURE`, and `ON` are printed without underlining.\". Same Format 1 syntax otherwise, but 1985 underlines AFTER and PROCEDURE as required words. In 2023 they are not underlined, so they are optional and programs omitting them are now accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.49.2": "84ee6f5417ad"
+  }
  }
 }

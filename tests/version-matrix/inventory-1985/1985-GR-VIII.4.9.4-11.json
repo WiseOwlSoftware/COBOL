@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985 output mode: sequential WRITEs number records 1, 2, 3 and move the number to the relative key per MOVE; random/dynamic: the key 'must be initialized by the program with the relative record number', no result given for a key below 1. §2023:14.9.51.4 GR29 restates both ('the first record released after the OPEN is 1') and adds: 'If the relative key data item contains a value that is less than 1 or greater than the highest relative record number permitted for the file, the execution of the WRITE statement is unsuccessful' with '34'. A case added.",
-  "source": "adjudicate-712-r2/slice-09"
+  "source": "adjudicate-712-r2/slice-09",
+  "digests": {
+   "GR-14.9.51.4-29": "e43570544df4"
+  }
  }
 }

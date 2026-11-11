@@ -11,6 +11,10 @@
   ],
   "reason": "1985: 'each record-name of the associated record description entries must be the same and the records must define the same number of standard data format characters', with a complete REDEFINES allowed. §2023:13.18.22.4 GR6: 'each name that is externalized to the operating environment for the record description entries shall be the same; the VALUE clause specification, if any, ... shall be identical; and the records shall define the same number of bytes', and the complete REDEFINES only for a record 'that is not strongly typed'. By §2023:13.18.22.4 GR5 the externalized name is the data-name unless AS literal-1 is given, so with AS the record-names may differ (looser); the VALUE rule exists because 1985 X.4.5.3 SR3's VALUE ban was lifted. A conforming 1985 program means the same, but the requirement differs.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "GR-13.18.22.4-6": "603599f7b6af",
+   "GR-13.18.22.4-5": "5338d2d582e7"
+  }
  }
 }

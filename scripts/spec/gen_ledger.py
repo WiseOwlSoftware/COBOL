@@ -249,7 +249,8 @@ def measure_inventory() -> dict:
 
     return {
         "rows": len(rows), "closed": closed, "gap": inventory_view.gaps(rows),
-        "editions": [(year, len(view), inventory_view.gaps(view)) for year, view in views.items()],
+        "editions": [(year, len(view), inventory_view.gaps(view),
+                      inventory_view.lower_bound(inventory_schema.edition(year))) for year, view in views.items()],
         "adjudicated": sum(1 for r in rows if r["verdict"]),
         "kind": kind, "verdict": verdict,
         "conforms_closed": cell("CONFORMS", "OK"), "conforms_owed": cell("CONFORMS", "GAP"),
@@ -1036,12 +1037,13 @@ def defective_rows(verdict: collections.Counter) -> str:
     return NL.join(out)
 
 
-def editions_text(editions: list[tuple[int, int, int]]) -> str:
+def editions_text(editions: list[tuple[int, int, int, str]]) -> str:
     """Each OLDER held edition's GAP beside the newest's (the tile's own number): an older rule's state is its KEPT chain's,
-    evaluated at its own edition (DESIGN-spec-conformance-review.md section 10.2, kb/Work PB4994)."""
+    evaluated at its own edition (DESIGN-spec-conformance-review.md section 10.2, kb/Work PB4994), its rule count with the
+    note that says it is a lower bound while it is one (`inventory_view.lower_bound`, kb/Work PB5256)."""
     older = editions[1:]
-    return ("Older editions: " + " · ".join(f"{year} {n(gap)} GAP of {n(rules)} rules" for year, rules, gap in older)
-            + ".") if older else ""
+    return ("Older editions: " + " · ".join(f"{year} {n(gap)} GAP of {n(rules)} rules{note}"
+                                            for year, rules, gap, note in older) + ".") if older else ""
 
 
 def render(ctx: dict) -> str:
@@ -1375,12 +1377,14 @@ def self_test() -> int:
     check("the harm line counts every class of work.HARM_LABELS and the silent qualifier (R1-1: no second table)",
           all(f'<span class="num">{n(count)}</span>' in shown for count in planted.values())
           and all(label in shown for label in work.HARM_LABELS.values()), shown[:300])
-    two = [(2023, 4214, 0), (1985, 2253, 1087)]
+    two = [(2023, 4214, 0, ""), (1985, 2253, 1087, "")]
     check("the page names each older edition's GAP beside the newest's, and nothing when one edition is held",
-          editions_text(two) == "Older editions: 1985 1,087 GAP of 2,253 rules." and editions_text(two[:1]) == "")
+          editions_text(two) == "Older editions: 1985 1,087 GAP of 2,253 rules." and editions_text(two[:1]) == ""
+          and editions_text([*two, (2002, 3290, 3290, " (a lower bound: 92 clauses pending adjudication)")])
+          .endswith("2002 3,290 GAP of 3,290 rules (a lower bound: 92 clauses pending adjudication)."))
     held = measure_inventory()["editions"]
     check("the inventory's numbers carry every held edition, newest first, each with its rules and GAP (kb/Work PB4994)",
-          [y for y, *_ in held] == sorted(inventory_schema.HELD, reverse=True) and all(r > 0 and 0 <= g <= r for _, r, g in held))
+          [y for y, *_ in held] == sorted(inventory_schema.HELD, reverse=True) and all(r > 0 and 0 <= g <= r for _, r, g, _note in held))
     check("a GAP holder outside the GAP campaign is flagged loudly",
           any("outside the GAP campaign" in f and "PB9004" in f for f in flags), str(flags)[:300])
     check("an open compiler note no lane plans is flagged loudly",

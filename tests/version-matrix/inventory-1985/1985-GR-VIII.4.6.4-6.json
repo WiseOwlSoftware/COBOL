@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985 GR6 unconditionally: 'the information in the area referenced by identifier-1 is available'. §2023:14.9.35.4 GR10 adds 'provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description'. 1985 SR1 refused identifier-1 sharing storage with record-name-1 (every record of the FD shares the record area); 2023 lifts that (§2023:14.9.35.4 GR7 NOTE 2 treats sharing as overlap), so a program 1985 refused is accepted and gets no availability guarantee: a case removed.",
-  "source": "adjudicate-712-r2/slice-09"
+  "source": "adjudicate-712-r2/slice-09",
+  "digests": {
+   "GR-14.9.35.4-10": "41691922df5f"
+  }
  }
 }

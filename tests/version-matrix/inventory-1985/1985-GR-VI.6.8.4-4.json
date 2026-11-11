@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "A pointer rule: 'Additional rules and explanations relative to this statement are given under the appropriate paragraphs' (§1985:VI.6.8.4 GR4), naming Scope of Statements, the ROUNDED and ON SIZE ERROR phrases, The Arithmetic Statements, Overlapping Operands and Multiple Results in Arithmetic Statements. 2023 states each rule it points to, the arithmetic statements' common rules through 'The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements' (§2023:14.7.7) and the overlapping operands in §2023:14.6.10. GR-14.7.7-3 is not one of them (band-85, 2026-11-10): 'When standard-decimal or standard-binary arithmetic is in effect, each arithmetic statement is defined in terms of one or more arithmetic expressions' (§2023:14.7.7 GR3) is conditioned on modes of the ARITHMETIC clause, which 1985 lacks; §1985:VI.6.4.4 states only '(1) The data descriptions of the operands need not be the same' and '(2) The maximum size of each operand is 18 decimal digits', and a 1985 program runs under native arithmetic (§2023:11.9.5.2 GR4). A pointer rule of the COMPUTE statement: 'Additional rules and explanations relative to this statement are given under the appropriate paragraphs' (§1985:VI.6.8.4 GR4). 2023 states each rule it points to that binds COMPUTE: the arithmetic statements' common rules ('The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements', §2023:14.7.7) and the overlapping operands in §2023:14.6.10. SR-14.7.7-2 is removed from 'to' (band-85 adjudication 2026-11-10): it binds only 'ADD, DIVIDE, MULTIPLY, and SUBTRACT statements when native arithmetic is in effect' with 'the composite of operands shall not contain more than 31 digits' (§2023:14.7.7 SR2), where 1985 caps the composite at 18 ('must not contain more than 18 decimal digits', §1985:VI.6.4.4) and exempts COMPUTE from it ('without the restrictions on composite of operands and/or receiving data items imposed by the arithmetic statements ADD, SUBTRACT, MULTIPLY, and DIVIDE', §1985:VI.6.8.4 GR3), so the pointer carries no composite rule for COMPUTE and the other targets carry it in full.",
-  "source": "band-85/slice-14"
+  "source": "band-85/slice-14",
+  "digests": {
+   "GR-14.9.8.4-2": "2ff197fb1905",
+   "GR-14.7.7-1": "70b771d75a91",
+   "GR-14.7.7-4": "cfc34ed7e634",
+   "GR-14.6.10-1": "8cc8e0c0fea9",
+   "GR-14.6.10-2": "04289221248e"
+  }
  }
 }

@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"[ ON OVERFLOW imperative-statement-1 ] [ NOT ON OVERFLOW imperative-statement-2 ]\"; 2023: \"brackets with choice indicators: zero or more ... each at most once, in any order\". Format otherwise identical. 1985 fixes ON OVERFLOW before NOT ON OVERFLOW; 2023 choice indicators also accept NOT ON OVERFLOW first, so more programs are accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.48.2": "21ad0933d607"
+  }
  }
 }

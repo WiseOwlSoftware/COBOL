@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'Literal-1 or the content of the data item referenced by identifier-1 identifies the program to be cancelled.' §2023:14.9.5.4 GR1 keeps both and adds 'c) program-prototype-name-1', and sends the literal/identifier value through 8.3.2.2, where under the COBOL call convention 'the program-name is treated as a COBOL word that maps to the externalized name of the program' (§2023:8.3.2.2). A 1985 CANCEL means the same; the rule is looser (a third operand kind, national identifiers).",
-  "source": "adjudicate-712/slice-22"
+  "source": "adjudicate-712/slice-22",
+  "digests": {
+   "GR-14.9.5.4-1": "02d55b723178",
+   "GR-8.3.2.2-L5.2": "bf57ac71393f"
+  }
  }
 }

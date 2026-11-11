@@ -17,6 +17,13 @@
   ],
   "bridge": true,
   "reason": "Amendment 1 (X3.23a-1989) added function-identifiers to 'Subscripting associated with any identifier is evaluated only once'; Amendment 2 renumbered the rule (old GR4). §1985:VI.6.18.4 GR5: 'the subscript or function-identifier is evaluated only once as the first operation'. §2023:14.9.22.4 GR6: 'Item identification for any identifier is done only once as the first operation', and §2023:14.6.4 lists its steps: 'function evaluation' and 'subscript evaluation' (kept), 'reference modification' (no change: §1985:IV.4.3.8 already has 'any subscripting and reference modification are evaluated only once as the first operation of the execution of that statement') and 'length evaluation for an occurs-depending group item', the case added. 1985 takes that length 'at the start of the operation' (§1985:VI.5.8.4 GR3) and runs format 3 'as though two successive INSPECT statements', fixing before the first only 'Subscripting associated with any identifier in the format 2 statement' (§1985:VI.6.18.4 GR17). So INSPECT G TALLYING N FOR ... REPLACING ..., N the DEPENDING ON item of G, replaces over G's new length in 1985 and over its first length in 2023 (§2023:14.9.22.4 GR19: 'Item identification of any identifier in the format 2 statement is done only once').",
-  "source": "readjudicate-amended-1985/slice-04"
+  "source": "readjudicate-amended-1985/slice-04",
+  "digests": {
+   "GR-14.9.22.4-6": "e551214d1284",
+   "GR-14.6.4-2": "a7d41fc3d413",
+   "GR-14.6.4-4": "4e598b8c3d07",
+   "GR-14.6.4-6": "c15bbc7b9e31",
+   "GR-14.6.4-7": "17a73a7aeeba"
+  }
  }
 }

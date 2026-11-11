@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "2023 adds FROM literal-1 (§2023:14.9.51.4 GR5: \"MOVE literal-1 TO record-name-1\"), which the 1985 format refuses; the FROM identifier-1 case is unchanged. 1985: WRITE FROM = 'MOVE identifier-1 TO record-name-1' per MOVE rules, then the WRITE without FROM. §2023:14.9.51.4 GR5 keeps the same equivalence ('MOVE identifier-1 TO record-name-1'); §2023:14.9.51.3 SR6 requires the MOVE to be valid. FROM literal-1 is a different operand the 1985 format lacks; an overlapping identifier-1 (refused by 1985 SR1) still gets MOVE-then-WRITE, as GR3 states. Same.",
-  "source": "adjudicate-712-r2/slice-09"
+  "source": "adjudicate-712-r2/slice-09",
+  "digests": {
+   "GR-14.9.51.4-5": "c530e019a3e1",
+   "SR-14.9.51.3-6": "9b663a6699cb"
+  }
  }
 }

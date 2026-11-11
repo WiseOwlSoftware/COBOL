@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "1985: \"Every report that is in an initiated condition must be terminated before a CLOSE statement is executed for the associated file.\"; 2023: \"If any report is in the active state, the CLOSE statement for that file is completed and the EC-REPORT-NOT-TERMINATED exception condition is set\". Both keep that TERMINATE does not close the file and that a report must be terminated before CLOSE. 1985 states no result for a violation; 2023 completes the CLOSE and sets an exception.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.46.4-6": "08b8d0342275",
+   "GR-13.18.46.4-2": "c96f77fb34c9",
+   "GR-14.9.6.4-5": "d655c06a30f0"
+  }
  }
 }

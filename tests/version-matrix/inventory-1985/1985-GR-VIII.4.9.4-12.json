@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "1985 GR12, extend mode: the first record gets one more than the highest existing number, 'Subsequent records ... have consecutively higher relative record numbers', the number moved to the relative key. §2023:14.9.51.4 GR30 repeats this ('Subsequent records released to the operating environment have consecutively higher relative record numbers'), but §2023:14.9.51.4 GR29 adds 'If the physical file is shared and the open mode is extend, the record numbers are not necessarily consecutive' and §2023:14.9.51.4 GR31 'the relative key values returned are ascending, but not necessarily consecutive'. A 1985 program states no sharing, yet 2023 lets the implementor choose its sharing mode ('the implementor defines the sharing mode in which the file is opened', §2023:9.1.15), so its extend-mode numbers may skip where 1985 required consecutive ones. Looser.",
-  "source": "adjudicate-712/slice-20"
+  "source": "adjudicate-712/slice-20",
+  "digests": {
+   "GR-14.9.51.4-30": "84b1c8f17dbb",
+   "GR-14.9.51.4-29": "e43570544df4",
+   "GR-14.9.51.4-31": "c45a4855de19"
+  }
  }
 }

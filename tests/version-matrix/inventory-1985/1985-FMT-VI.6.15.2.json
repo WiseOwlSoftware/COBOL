@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"GO TO ║ [ ║ procedure-name-1 ║ ] ║\"; 2023: \"GO TO procedure-name-1\". 1985 lets format 1 omit procedure-name-1 (the boxed optional brackets, for ALTER). 2023 makes procedure-name-1 required, so GO TO alone is refused. Format 2 is unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.17.2": "39b7f82878e4"
+  }
  }
 }

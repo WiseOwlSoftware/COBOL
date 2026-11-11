@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both require alphanumeric (nonnumeric) literals and bar ALL figurative constants. National and zero-length literals do not exist in 1985, so no 1985 program is treated differently.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.48.3-1": "92c9368e4a99"
+  }
  }
 }

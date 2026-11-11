@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 GR1 holds literal-1/identifier-1 in a temporary, multiplies each identifier-2 by it left to right and stores the product in that identifier-2. §2023:14.9.26.4 GR1: 'The product of the multiplier and the multiplicand is stored as the new value of the data item referenced by identifier-2', the multiplier determined once in the initial evaluation; §2023:14.7.7 GR4 stores 'in the left-to-right order in which the receiving data items are specified in the statement'. The multiplier/multiplicand naming swap is terminology. 2023 GR3 is the standard-arithmetic variant, which no 1985 program selects; it states no part of this rule.",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "adjudicate-712-r2/slice-05",
+  "digests": {
+   "GR-14.9.26.4-1": "c23478290ae3",
+   "GR-14.7.7-4": "cfc34ed7e634"
+  }
  }
 }

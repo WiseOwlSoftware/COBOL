@@ -39,7 +39,7 @@ import pathlib
 import re
 import subprocess
 import sys
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from typing import Any, NamedTuple
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -149,6 +149,13 @@ class Edition:
         """The adjudicated fields of a rule nobody has adjudicated: each empty (the change record an empty object)."""
         return {f: {} if f == "next" else "" for f in self.adjudicated}
 
+    def outside(self, tree: Tree = WORKING_TREE) -> dict[str, list[str]]:
+        """What this edition's rule count leaves out (kb/Work PB5256, branch review R1-5): the catalog's
+        `outside-denominator`, the content-keyed manifest's clauses awaiting a disposition (`pending-clauses`) and the
+        rule-shaped headings no kind types (`untyped-headings`); empty when the count is the whole denominator."""
+        doc = tree.json(self.catalog) or {}
+        return doc.get("outside-denominator", {})
+
     def rules(self, tree: Tree = WORKING_TREE) -> list[dict[str, Any]]:
         """This edition's catalog rules, as `tree` has them."""
         doc = tree.json(self.catalog)
@@ -180,6 +187,16 @@ def editions_of(raw: dict[str, Any]) -> tuple[Edition, ...]:
                            e.get("legacy-file"), tuple(e.get("adjudicated", ())), nxt,
                            nxt is not None and any(e["year"] < y < nxt for y in years), e.get("linked", True)))
     return tuple(out)
+
+
+def link_errors(editions: Iterable[Edition], reconciled: Callable[[int], bool]) -> list[str]:
+    """Why the schema may not LINK a held edition into the lineage (kb/Work PB5256, branch review R1-4): a change record
+    names a rule by its id, and an unreconciled transcription's ids still move (a rule its reconciliation restores
+    renumbers the rest of its block), so a held edition is linked only once `reconciled(year)` holds, the ledger's fact
+    (`verify_publishable.reconciled`). The INVENTORY VIEW audit asks it of the schema."""
+    return [f"{SCHEMA_REL}: the held edition {e.year} is linked into the lineage, but its transcription is not reconciled "
+            f"(verify_publishable.reconciled): its rule ids may still move under a change record; set `linked: false`"
+            for e in editions if e.held and e.linked and not reconciled(e.year)]
 
 
 def held_edition(editions: Iterable[Edition], year: int) -> Edition:

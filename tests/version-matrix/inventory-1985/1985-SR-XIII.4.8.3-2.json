@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both define USE as stating the conditions for executing the USE procedures. 2023 drops 'never executed', but no rule makes USE executable, so programs and effects are the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.49.4-1": "5fa8a62bd318"
+  }
  }
 }

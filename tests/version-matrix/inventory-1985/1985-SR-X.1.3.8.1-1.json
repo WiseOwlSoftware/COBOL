@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985: a non-common directly contained program-name 'may be referenced only by statements included in that containing program'. 2023 §2023:8.4.6.3 SR1 keeps that and adds 'or, if the program possesses the recursive attribute, in the program itself'; §2023:11.10.4 GR4: a recursive program 'may call itself'. Looser: a new permitted reference (RECURSIVE did not exist in 1985, so conforming 1985 programs are unaffected).",
-  "source": "adjudicate-712/slice-32"
+  "source": "adjudicate-712/slice-32",
+  "digests": {
+   "SR-8.4.6.3-1": "8217603f4909",
+   "GR-11.10.4-4": "cc081ffc7e8d"
+  }
  }
 }

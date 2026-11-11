@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1989: with no lowercase letters in the character set 'no changes take place'. 2023 returns argument-1's content 'with any uppercase letters replaced by their corresponding lowercase letters' (§2023:15.57.4 RV1) and 'If there is no corresponding lowercase letter for a given uppercase letter, that letter is unchanged' (§2023:15.57.4 RV6), so the string is unchanged. Same.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "RV-15.57.4-1": "60643c1ac2cf",
+   "RV-15.57.4-6": "21c6152b7f2f"
+  }
  }
 }

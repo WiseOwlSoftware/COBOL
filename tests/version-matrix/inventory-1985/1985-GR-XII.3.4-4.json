@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "REPLACE acts on the conditionally-processed group and its result may not contain a COPY statement. That presupposes COPY was already processed, so the order is kept, if only implicitly.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-7.2.4.4-1": "570ba4eaaa0b",
+   "GR-7.2.4.4-9": "dd64d9a5e61c"
+  }
  }
 }

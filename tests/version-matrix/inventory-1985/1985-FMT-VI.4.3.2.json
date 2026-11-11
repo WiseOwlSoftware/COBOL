@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"SOURCE-COMPUTER. [ computer-name [ WITH DEBUGGING MODE ] . ]\"; 2023: \"SOURCE-COMPUTER. [ computer-name-1 ] .\". 2023 keeps the paragraph and the optional computer-name, but its format no longer has WITH DEBUGGING MODE, so 1985 programs using that phrase are refused.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-12.3.5.2": "f4e91fe1a6b6",
+   "SR-12.3.5.3-1": "dc6c81b3eb7f"
+  }
  }
 }

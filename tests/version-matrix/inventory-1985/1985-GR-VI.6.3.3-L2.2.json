@@ -10,6 +10,10 @@
   "reason": "1985: otherwise 'The NOT is interpreted as a logical operator and, therefore, the implied insertion of subject or relational operator results in a negated relation condition', under the format '[NOT] [relational-operator] object' (§1985:VI.6.3.3), so a logical NOT may precede a stated operator that does not begin with the six words, e.g. 'a > b AND NOT >= c' (>= is a 1985 operator, §1985:VI.6.3.1.1 'IS NOT LESS THAN is equivalent to IS GREATER THAN OR EQUAL TO') meaning NOT (a >= c). 2023 keeps logical NOT before a bare object with the same five expansions (§2023:8.8.4.12.4 GR1), but the format makes NOT an alternative to the relational operator, not a prefix to it (§2023:8.8.4.12.2, rendered page 233), and the note states 'However, NOT cannot immediately precede an extended-relational operator'. A valid 1985 abbreviation with a logical NOT followed by a stated operator is refused in 2023.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "source": "adjudicate-712/slice-13",
+  "digests": {
+   "FMT-8.8.4.12.2": "d9c5b85cd264",
+   "GR-8.8.4.12.4-1": "023d3da2b3cc"
+  }
  }
 }

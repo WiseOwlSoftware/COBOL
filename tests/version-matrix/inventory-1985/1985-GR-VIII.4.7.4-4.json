@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985: the FPI is set to 'the first logical record in the file whose key satisfies the comparison', with only EQUAL, GREATER, NOT LESS, GREATER OR EQUAL writable (§1985:VIII.4.7.2). §2023:14.9.41.4 GR9 a) keeps that for those operators, but b) adds a case: 'If the relational operator is LESS, NOT GREATER, or LESS OR EQUAL, ... searching the file in reverse order'; §2023:14.9.41.3 SR3 admits them. A program 1985 refuses is accepted with a new positioning result.",
-  "source": "adjudicate-712-r2/slice-09"
+  "source": "adjudicate-712-r2/slice-09",
+  "digests": {
+   "GR-14.9.41.4-9": "8bb5dd8b7579",
+   "GR-14.9.41.4-10": "848ba4760f80"
+  }
  }
 }

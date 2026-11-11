@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both bar a sort/merge file from the plain (file-area) SAME clause and allow it in RECORD and SORT/SORT-MERGE AREA forms. The count limit belongs to other 1985 rules, not this one.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.4.6.4.3-6": "427eadbf4e4f"
+  }
  }
 }

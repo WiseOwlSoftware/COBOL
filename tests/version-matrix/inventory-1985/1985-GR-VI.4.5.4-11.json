@@ -17,6 +17,13 @@
   ],
   "bridge": true,
   "reason": "1985 excludes 'uppercase letters A, B, C, D, P, R, S, V, X, Z; the lowercase letters a through z; or the space'. §2023:12.3.7.3 SR22 excludes 'alphabetic characters A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents', with equivalence per §2023:12.3.7.3 SR20. Stricter: CURRENCY SIGN 'E' or 'N' (legal in 1985) is refused. Looser: lowercase letters other than the listed ones (e.g. 'm') are accepted. 1985 'only the currency sign ... may be used' without the clause becomes §2023:12.3.7.3 SR25 (CURRENCY SIGN '$' implied unless some clause names '$', so '$' stays usable beside another currency sign). Literal class per §2023:12.3.7.3 SR18; PICTURE use per §2023:12.3.7.4 GR13. All compile-time.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "SR-12.3.7.3-18": "a775211240be",
+   "SR-12.3.7.3-20": "926e79c8ba65",
+   "SR-12.3.7.3-22": "74d67063ff7b",
+   "SR-12.3.7.3-25": "fb19834b1617",
+   "GR-12.3.7.4-13": "9eaf42d62e6c"
+  }
  }
 }

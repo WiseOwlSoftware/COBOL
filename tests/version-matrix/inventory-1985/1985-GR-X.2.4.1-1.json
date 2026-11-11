@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "1985 X.2.4.1 (1): in the initial state 'The program's internal data contained in the Working-Storage Section and the Communication Section are initialized', VALUE items to their value, others undefined. 2023 keeps the working-storage half: 'The internal data described in the working-storage section and local-storage section is initialized as described in 13.18.63, VALUE clause' (§2023:14.6.2.3.2, initial-state item 2); at initial state 'data items with a VALUE clause are initialized to the specified value' and other values are undefined (§2023:13.18.63.4 GR4); §2023:13.5.4 GR3 points working-storage to the same rules. The Communication Section half has no 2023 rule: the 2023 text has no communication section at all, so a 1985 program with a Communication Section is not a 2023 program. Different.",
-  "source": "adjudicate-712/slice-20"
+  "source": "adjudicate-712/slice-20",
+  "digests": {
+   "GR-14.6.2.3.2-L2.2": "85961573e833",
+   "GR-13.18.63.4-4": "b0dddcb3933f",
+   "GR-13.5.4-3": "08b8f41e3655"
+  }
  }
 }

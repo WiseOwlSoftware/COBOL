@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "§2023:8.4.2.2.3 SR4: 'Each data-name-2 shall be the name associated with a level number to which the item being qualified is subordinate' and 'Qualifiers shall be specified in the order of successively more inclusive levels in the hierarchy', with level 88 rising through its conditional variable. SR5 restates the conditional-variable qualifier. The level-indicator qualifier is the file-report-qualifier of §2023:8.4.2.2.2. Only the cd-name went, with the communication module, which those rules record.",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "SR-8.4.2.2.3-4": "605a18790ec2",
+   "SR-8.4.2.2.3-5": "fba689f934e6",
+   "FMT-8.4.2.2.2": "3f817a52f31f"
+  }
  }
 }

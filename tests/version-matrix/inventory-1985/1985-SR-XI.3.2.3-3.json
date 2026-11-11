@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "2023 still requires record descriptions for an SD and bars I/O statements on the sort file. As a syntax rule, 1985 'executed' acts at compile time; the FROM/INTO rule spells this out.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.4.6.3-2": "138822ef79d7",
+   "SR-13.4.6.3-3": "a7e3f467a863",
+   "SR-13.4.6.3-4": "7fe715b3407d"
+  }
  }
 }

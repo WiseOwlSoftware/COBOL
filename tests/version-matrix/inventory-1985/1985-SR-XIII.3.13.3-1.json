@@ -10,6 +10,10 @@
   "reason": "1985: GROUP INDICATE 'must only be specified in a detail report group entry that defines a printable item' (an elementary entry with COLUMN and SOURCE or VALUE, since SUM is confined to control footings by 1985 XIII.3.9.3 SR10b). §2023:13.18.28.3 SR1: 'only within a detail report group description, in an elementary entry that also contains a COLUMN clause and a SOURCE or VALUE clause'; §2023:13.15.3 SR11 restates elementary-only. Same programs accepted and refused.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-33"
+  "source": "adjudicate-712/slice-33",
+  "digests": {
+   "SR-13.18.28.3-1": "d6996b354b57",
+   "SR-13.15.3-11": "a3961a741d10"
+  }
  }
 }

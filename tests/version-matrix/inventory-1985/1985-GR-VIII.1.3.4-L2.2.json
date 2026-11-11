@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 status 10 (end of file; first sequential READ of an absent optional input file) and 14 (relative record number too large). §2023:9.1.13.4 GR1 keeps 10 for 'the end of the physical file has been reached' and 'a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present'; §2023:9.1.13.4 GR2 states 14 verbatim; §2023:14.9.30.4 GR21 and §2023:14.9.30.4 GR24 set '10' at end. The PREVIOUS case needs 2023-only syntax; run-time only, no refusal differs.",
-  "source": "adjudicate-712-r2/slice-08"
+  "source": "adjudicate-712-r2/slice-08",
+  "digests": {
+   "GR-9.1.13.4-1": "490fead5c8fb",
+   "GR-9.1.13.4-2": "1996553a1757",
+   "GR-14.9.30.4-21": "7fba2331b7f5",
+   "GR-14.9.30.4-24": "fc6732e2c178"
+  }
  }
 }

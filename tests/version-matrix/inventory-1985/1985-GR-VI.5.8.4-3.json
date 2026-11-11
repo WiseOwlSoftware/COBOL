@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Cases a and b match in substance. The zero-length sentence follows from case a: a count of zero with no other items leaves zero area. The added group kinds are new terms only.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.38.4-8": "ec2f8b1a65ab"
+  }
  }
 }

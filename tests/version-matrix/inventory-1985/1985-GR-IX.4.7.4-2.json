@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both editions imply EQUAL when an indexed START omits the KEY phrase. The 2023 prime-key wording restates which key is used, and record-key-name is a separate split-key feature.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.41.4-15": "d5349cb6bf04"
+  }
  }
 }

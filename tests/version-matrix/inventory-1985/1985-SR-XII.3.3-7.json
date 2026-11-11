@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both refuse a REPLACE pseudo-text-1 made only of separator commas or semicolons. Read in substance, 'consist entirely of' covers mixed runs; the empty case is a separate 1985 rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-7.2.4.3-3": "46507fd49e62"
+  }
  }
 }

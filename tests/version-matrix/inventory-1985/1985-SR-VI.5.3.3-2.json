@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Same order: name/FILLER right after the level-number, then REDEFINES, rest in any order. TYPEDEF placement concerns a new clause; the implied-FILLER default changes no ordering for 1985 programs.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.16.3-4": "2d891dac76cc",
+   "SR-13.18.44.3-1": "b6043fe653e1"
+  }
  }
 }

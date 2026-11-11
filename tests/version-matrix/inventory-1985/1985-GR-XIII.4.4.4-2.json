@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "Both require OPEN OUTPUT or EXTEND before INITIATE; 1985 states no result for a violation ('an OPEN statement with either the OUTPUT phrase or the EXTEND phrase for the file must be executed prior'). 2023 §2023:14.9.21.4 GR3 defines one: 'If the file connector is not open in the output or extend mode, the EC-REPORT-FILE-MODE exception condition is set to exist and no action is taken on the report'; §2023:14.9.27.4 GR7 restates the order. Undefined run-time result became a defined exception condition.",
-  "source": "adjudicate-712/slice-26"
+  "source": "adjudicate-712/slice-26",
+  "digests": {
+   "GR-14.9.21.4-3": "a43bbf5551f2",
+   "GR-14.9.27.4-7": "cfc5135f13a0"
+  }
  }
 }

@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "1985 WRITE GR1: file of record-name-1 'must be open in the output or extend mode' (run-time, status 48). §2023:14.9.51.4 GR3 'If the access mode of the write file is sequential, the open mode of the write file connector shall be extend or output' ('48', §2023:9.1.13.7 GR8); the write file is record-name-1's file (§2023:14.9.51.3 SR1); §2023:14.9.27.4 GR4, §2023:14.9.27.4 GR6 and Table 20 (§2023:14.9.27.4 GR8) restate it. Same.",
-  "source": "adjudicate-712-r2/slice-07"
+  "source": "adjudicate-712-r2/slice-07",
+  "digests": {
+   "GR-14.9.51.4-3": "89606a4a9a76",
+   "GR-9.1.13.7-8": "a5329a57a0ea",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-14.9.27.4-6": "b7ae208757f4",
+   "GR-14.9.27.4-8": "85b040d1dbe8",
+   "SR-14.9.51.3-1": "a76cedc3ac31"
+  }
  }
 }

@@ -16,6 +16,15 @@
   ],
   "reason": "1985: a BY CONTENT value is 'placed into a system-defined storage item possessing the attributes declared in the Linkage Section', and each BY CONTENT parameter's description 'must be the same, meaning no conversion or extension or truncation'. §2023:14.2.3 GR9: for a plain CALL the allocated record 'is of the same length as the argument' and 'moved to this allocated record without conversion'; for a prototyped or NESTED call it has the formal parameter's description and is filled by COMPUTE, SET or MOVE. Conformance is looser: §2023:14.8.2.3.3 asks only that 'the formal parameter shall be of the same length as the corresponding argument' for an elementary item in a plain CALL (MOVE/COMPUTE rules otherwise), and §2023:14.8.2.2 SR2 applies MOVE rules to a group. §2023:13.7.3 SR3 and §2023:14.9.4.3 SR25 bind both sides to these rules, and §2023:14.9.4.4 GR3d makes a detected violation set EC-PROGRAM-ARG-MISMATCH (1985 stated only the requirement).",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "GR-14.2.3-9": "152f8d685dc4",
+   "SR-14.8.2.2-2": "51e6191068ae",
+   "GR-14.8.2.3.3-L2.1": "f85b0fa7919a",
+   "GR-14.8.2.3.3-L2.2": "f2ff548e9561",
+   "SR-13.7.3-3": "2f4a35f5a87c",
+   "SR-14.9.4.3-25": "541649622300",
+   "GR-14.9.4.4-3": "04fde73bf906"
+  }
  }
 }

@@ -18,9 +18,16 @@ heading (or an annex heading), and the count is the longest ascending column-0 r
 share the extractor's segmentation stack — a critic that reuses the code it audits cannot see that code's bug.
 
 Usage:
-    python scripts/spec/audit_catalog_coverage.py            # full report
-    python scripts/spec/audit_catalog_coverage.py --check     # non-zero exit if any clause disagrees
+    python scripts/spec/audit_catalog_coverage.py                  # full report, the 2023 edition
+    python scripts/spec/audit_catalog_coverage.py --edition 2002   # another ISO edition (extract_rule_catalog.ISO)
+    python scripts/spec/audit_catalog_coverage.py --held --check   # every held ISO edition: the gate's CATALOG COVERAGE
     python scripts/spec/audit_catalog_coverage.py --json      # machine-readable, for the drift test
+
+EDITION-DRIVEN (kb/Work PB5256, branch review R1-7): an ISO edition's clause headings, its furniture and its page markers
+are its own (`IsoEdition`), and `--held` reads every edition the inventory schema holds that the ISO reader reads (1985
+is read by rule_catalog_1985.py, whose completeness checks are its own). Where an unreconciled edition's catalog records a
+finding at a clause (an ordinal no list explains, a nested tail at column 0), the difference that finding explains is
+named, not failed: the finding is the reconciliation's.
 """
 from __future__ import annotations
 
@@ -33,15 +40,15 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from extract_rule_catalog import (  # noqa: E402
-    HEADING,
     ISO,
     ORDINAL,
+    PAGE,
     PARAGRAPH_BLOCKS,
+    IsoEdition,
     kind_of,
 )
-#: The edition this critic reads: the 2023 text, its manifest and its catalog (extract_rule_catalog's ISO table).
-EDITION = ISO[2023]
-FURNITURE = EDITION.furniture
+import inventory_schema  # noqa: E402  (the held editions: the schema's `editions.of`)
+import spec_pdf  # noqa: E402  (the one edition option)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -59,11 +66,20 @@ ANY_HEADING = re.compile(r"^#{1,6}\s+\S")
 #: `HEADING` (which requires a title) does not match them. They are numbered clauses all the same, and a critic
 #: that calls them "interior headings" reports 187 findings of which 185 are itself.
 NUMBERED_HEADING = re.compile(r"^#{1,6}\s+(?P<num>\d+(?:\.\d+)*)\s*(?P<title>.*?)\s*$")
+
+
+def numbered_heading(ed: IsoEdition) -> re.Pattern[str]:
+    """`NUMBERED_HEADING` of `ed`: a rule-bearing annex's clauses (2002's `A.1.2.3`) are numbered clauses too."""
+    if not ed.rule_annexes:
+        return NUMBERED_HEADING
+    return re.compile(rf"^#{{1,6}}\s+(?P<num>[{ed.rule_annexes}](?:\.\d+)+|\d+(?:\.\d+)*)\s*(?P<title>.*?)\s*$")
 #: A heading that legitimately ENDS a numbered clause without carrying a clause number of its own: the annexes,
 #: the bibliography and the index. Everything else unnumbered is INTERIOR to whatever clause encloses it.
 STRUCTURAL_HEADING = re.compile(
     r"^#{1,6}\s+\*{0,2}(?:Annex\s+[A-Z]\b|Bibliography\b|Index\b|INTERNATIONAL\s+STANDARD\b|"
-    r"Information\s+technology\b|BIBLIOGRAPHY\b|Preface\b|Foreword\b|Introduction\b|Tables\b|Figures\b)",
+    r"Information\s+technology\b|BIBLIOGRAPHY\b|Preface\b|Foreword\b|Introduction\b|Tables\b|Figures\b|"
+    # the transcription's own parts (verify_publishable.PARTS: 2002's `# Clauses 1 to 16`, `# Annexes A to H`)
+    r"Clauses\s+\d|Annexes\s+[A-Z]\b|Front\s+matter\b)",
     re.I)
 
 #: Clauses whose printed ordinals legitimately exceed what the catalog files as top-level rules, with the reason.
@@ -73,7 +89,7 @@ STRUCTURAL_HEADING = re.compile(
 EXPECTED_SUBLIST_CLAUSES: dict[str, str] = {}
 
 
-def clause_bodies(lines: list[str]) -> tuple[dict[str, list[str]], dict[str, str], list[dict]]:
+def clause_bodies(lines: list[str], ed: IsoEdition = ISO[2023]) -> tuple[dict[str, list[str]], dict[str, str], list[dict]]:
     """Split the spec into numbered-clause bodies; also return every interior unnumbered heading.
 
     A clause's body runs to the next NUMBERED heading or the next structural (annex/bibliography) heading —
@@ -83,11 +99,12 @@ def clause_bodies(lines: list[str]) -> tuple[dict[str, list[str]], dict[str, str
     titles: dict[str, str] = {}
     interior: list[dict] = []
     cur: str | None = None
+    furniture, numbered = ed.furniture, numbered_heading(ed)
     for i, line in enumerate(lines, start=1):
-        if FURNITURE.match(line):
+        if furniture.match(line) or PAGE.match(line):
             continue
         if ANY_HEADING.match(line):
-            if (m := NUMBERED_HEADING.match(line)) and not line.lstrip().startswith("["):
+            if (m := numbered.match(line)) and not line.lstrip().startswith("["):
                 cur = m.group("num")
                 if m.group("title"):
                     titles.setdefault(cur, m.group("title"))
@@ -127,10 +144,24 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="non-zero exit if any clause disagrees")
     ap.add_argument("--json", action="store_true", help="machine-readable report")
+    ap.add_argument("--held", action="store_true", help="every held edition the ISO reader reads (the gate's audit)")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
+    if not args.held:
+        return audit(spec_pdf.edition_data(ISO, args.edition, "ISO rule catalog arm"), args)
+    years = [y for y in inventory_schema.HELD if y in ISO]
+    print(f"held editions {list(inventory_schema.HELD)}; the ISO reader's {years} (1985's completeness is rule_catalog_1985.py's)")
+    verdicts = {y: audit(ISO[y], args) for y in years}
+    print(f"=== CATALOG COVERAGE: {'GREEN' if not any(verdicts.values()) else 'RED'} — "
+          + " · ".join(f"{y} {'ok' if v == 0 else 'RED'}" for y, v in verdicts.items()) + " ===")
+    return 1 if any(verdicts.values()) else 0
 
+
+def audit(ed: IsoEdition, args: argparse.Namespace) -> int:
+    """The critic over one ISO edition `ed`: its report, and its verdict under `--check`."""
+    EDITION = ed
     lines = EDITION.spec.read_text(encoding="utf-8", errors="replace").splitlines()
-    bodies, titles, interior = clause_bodies(lines)
+    bodies, titles, interior = clause_bodies(lines, ed)
 
     admitted: dict[str, object] = {}
     if EDITION.unharvested.exists():
@@ -144,6 +175,13 @@ def main() -> int:
                         if not sec.startswith("_")}
 
     catalog = json.loads(EDITION.catalog.read_text(encoding="utf-8"))
+    # The clauses where the catalog itself records a finding that changes the count: kept in the rule it interrupts
+    # (an ordinal no list explains) or folded into its parent (a nested tail at column 0), each one printed ordinal line
+    # and no row. An unreconciled edition's findings are its reconciliation's (extract_rule_catalog.Finding).
+    recorded: dict[str, list[str]] = {}
+    for f in catalog.get("findings", []):
+        if f["kind"] in ("unexplained-ordinal", "flattened-tail"):
+            recorded.setdefault(f["clause"].split(":", 1)[-1], []).append(f"{f['kind']} line {f['line']}")
     held: dict[str, list[dict]] = {}
     for r in catalog["rules"]:
         if r["kind"] in ("FMT", "DOC"):
@@ -167,7 +205,9 @@ def main() -> int:
             "catalog_rows": len(rows),
             "catalog_top_count": sum(1 for r in rows if r.get("sublist", 1) == 1),
             "interior_headings": [h["text"] for h in interior if h["clause"] == sec],
-            "declared": EXPECTED_SUBLIST_CLAUSES.get(sec),
+            "declared": EXPECTED_SUBLIST_CLAUSES.get(sec) or (
+                f"the catalog records {', '.join(recorded[sec])}"
+                if sec in recorded and len(printed) - len(rows) == len(recorded[sec]) else None),
         })
     mismatches.sort(key=lambda m: -(m["printed_count"] - m["catalog_rows"]))
 
@@ -201,19 +241,20 @@ def main() -> int:
             "unattached_headings": [h for h in interior if h["clause"] is None],
         }, indent=1, ensure_ascii=False))
     else:
-        print(f"spec: {EDITION.spec.relative_to(REPO)} ({len(lines):,} lines)   catalog: {catalog['rule_count']:,} rules")
+        print(f"\n════ {ed.year} ════\nspec: {EDITION.spec.relative_to(REPO)} ({len(lines):,} lines)   "
+              f"catalog: {catalog['rule_count']:,} rules")
         print()
         print(f"⛔ {len(interior_in_clause)} UNNUMBERED INTERIOR HEADING(S) inside a numbered clause's text")
         print("   (each one TRUNCATES its clause's rule block in extract_rule_catalog.py's block scan):")
         for h in interior_in_clause:
-            print(f"      line {h['line']:>6}  §{h['clause']:<12} {h['text']}")
+            print(f"      line {h['line']:>6}  {ed.label(h['clause']):<18} {h['text']}")
         if not interior_in_clause:
             print("      (none)")
         print()
         print(f"⛔ {len(mismatches)} RULE-BLOCK CLAUSE(S) where the printed ordinals and the catalog rows disagree:")
         for m in mismatches:
             note = f"   [declared: {m['declared']}]" if m["declared"] else ""
-            print(f"      §{m['clause']:<14} printed {m['printed_count']:>3} ordinal line(s) (max {m['printed_max']})"
+            print(f"      {ed.label(m['clause']):<20} printed {m['printed_count']:>3} ordinal line(s) (max {m['printed_max']})"
                   f"   catalog {m['catalog_rows']:>3} row(s)"
                   f"   [{m['printed_count'] - m['catalog_rows']:+d}]{note}")
             for t in m["interior_headings"]:
@@ -223,7 +264,7 @@ def main() -> int:
         print()
         print(f"⛔ {len(prose_mismatches)} PROSE CLAUSE(S) admitted as paragraph rows whose rows are not the clause:")
         for m in prose_mismatches:
-            print(f"      §{m['clause']:<14} {m['rows']:>3} row(s)   {m['why']}")
+            print(f"      {ed.label(m['clause']):<20} {m['rows']:>3} row(s)   {m['why']}")
         if not prose_mismatches:
             print(f"      ✓ all {len(prose_blocks)} admitted prose clauses are held sentence for sentence")
 

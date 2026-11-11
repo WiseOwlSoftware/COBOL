@@ -27,7 +27,9 @@ DIR = REPO / "docs" / "rearchitecture" / "spec-reconciliation"
 # the top level buried LEDGER/REPORT/REPAIR-PLAN — the three things a human actually opens — and forced an
 # note-viewer exclusion that hid the report too.
 AGENTS = DIR / "agents"
-LEDGER = DIR / "LEDGER.json"
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from verify_publishable import RECONCILIATION  # noqa: E402  (every edition's ledger, and the fact it is complete)
+LEDGER = REPO / RECONCILIATION[2023]
 REPORT = DIR / "REPORT.md"
 
 SEV_ORDER = {"normative": 0, "structural": 1, "cosmetic": 2}

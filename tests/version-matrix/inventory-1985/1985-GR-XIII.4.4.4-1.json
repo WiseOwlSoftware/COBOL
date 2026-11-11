@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "2023 INITIATE still zeroes sum counters and LINE-COUNTER and sets PAGE-COUNTER to 1. The size error indicator reset only initializes a 2023 SUM overflow mechanism that 1985 lacks.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.21.4-1": "87891f7e9b5f",
+   "GR-8.4.3.15.4-2": "60f15f61ddfe",
+   "GR-8.4.3.15.4-3": "b939257bb3d9",
+   "GR-13.18.54.4-2": "5c2c5e2ba47c"
+  }
  }
 }

@@ -15,6 +15,14 @@
   ],
   "bridge": true,
   "reason": "Availability, open mode and the connector association match, and Table 18 repeats 1985 Table 1 entry for entry (§2023:14.9.27.4 GR4, with GR13, GR17, GR18 restating the optional-input, creation and empty-output entries). But 1985 Table 1 gives 'Normal open' for every available file (§1985:VIII.4.4.4 GR1), while 2023 limits Table 18 to files not open elsewhere and adds Table 19, which 'shows the results of opening available files that are currently open by another file connector' with many 'Unsuccessful open' cells; with no SHARING phrase 'the implementor shall define the sharing mode' (§2023:14.9.27.4 GR23). An available file with insufficient authority also fails ('37', §2023:14.9.27.4 GR3). A 1985 program opening a file already open through another connector can now fail.",
-  "source": "adjudicate-712/slice-18"
+  "source": "adjudicate-712/slice-18",
+  "digests": {
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-14.9.27.4-3": "7ae3dcb1b17a",
+   "GR-14.9.27.4-13": "5bec9cc51d29",
+   "GR-14.9.27.4-17": "c29782e39335",
+   "GR-14.9.27.4-18": "f152580b4f96",
+   "GR-14.9.27.4-23": "14b4d331e670"
+  }
  }
 }

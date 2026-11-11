@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "X3.23b-1993 added to general rule 11 the sentence 'the size of any record written to file-name-4 is the size of that record when it was read from file-name-1', the words 'any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-4 is executed' and the last paragraph, ending 'is undefined upon completion of the MERGE statement for which the GIVING phrase is specified' (errata C295 to C297, kb/Work PB5045). §2023:14.9.24.4 GR12 carries all three, so the variable-length write size the withdrawn record counted as a difference is one no longer. What still differs: 1985 'At the start of execution of the MERGE statement, the file referenced by file-name-4 must not be in the open mode' (§1985:XI.4.1.4 GR11) states no result, and 2023 adds 'If the file is in an open mode, the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the execution of the MERGE statement terminates'; 1985 'The initiation is performed as if an OPEN statement with the OUTPUT phrase had been executed', 2023 'as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed'; and 2023 defines the outcome of exceptions on the implicit statements: 'If a fatal exception condition exists as a result of this implicit OPEN statement and there is an applicable USE procedure that completes normally, processing for the file connector that caused the exception condition is bypassed' and 'If an exception condition exists as a result of this implicit WRITE statement and there is an applicable USE procedure that completes normally, the MERGE continues execution, otherwise the MERGE statement is terminated'. §2023:14.9.24.4 GR11 restates the 1985 ban 'the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-4' as 'no statement may be executed manipulating the file referenced by or accessing the record area associated with file-name-2, file-name-3, or file-name-4'.",
-  "source": "readjudicate-amended-1985/slice-07"
+  "source": "readjudicate-amended-1985/slice-07",
+  "digests": {
+   "GR-14.9.24.4-12": "35599ecced8e",
+   "GR-14.9.24.4-11": "f89a6eb9ed0a"
+  }
  }
 }

@@ -543,11 +543,16 @@ class IsoEdition:
     #: (`2002-SR-14.8.25.2-1`), the rule's `citation` (`§2002:14.8.25.2 SR1`) and its PDF `page`? 2023's rows predate
     #: the form; its ids are the 4,214-row store's file names and the key every reader of it uses.
     edition_rows: bool
-    #: Has the transcription been reconciled page by page against the printed standard? A reconciled edition's
-    #: catalog holds no finding (`--check` fails on any). An unreconciled one's findings are FACTS ABOUT ITS
-    #: TRANSCRIPTION, written into the catalog for the reconciliation to resolve (kb/Work PB4813), and `--check` fails
-    #: when they differ from the committed ones: a finding is never skipped silently and never guessed past.
-    reconciled: bool
+
+    @property
+    def reconciled(self) -> bool:
+        """Has the transcription been reconciled page by page against the printed standard? The fact is the ledger's
+        (`verify_publishable.reconciled`: the reconciliation ledger records every page of the PDF), never a flag here.
+        A reconciled edition's catalog holds no finding (`--check` fails on any). An unreconciled one's findings are
+        FACTS ABOUT ITS TRANSCRIPTION, written into the catalog for the reconciliation to resolve (kb/Work PB4813), and
+        `--check` fails when they differ from the committed ones: a finding is never skipped silently or guessed past."""
+        import verify_publishable  # noqa: PLC0415  (the owner of the reconciliation ledgers)
+        return verify_publishable.reconciled(self.year)
 
     @property
     def spec(self) -> pathlib.Path:
@@ -649,7 +654,7 @@ ISO: dict[int, IsoEdition] = {
                           "by §2023:5.3.2 so the heading resolves; it contributes no rows. Owner decision 2026-07-30.",
         },
         conventions=frozenset({"5.3.2", "5.3.3", "5.3.4", "5.3.5"}),
-        toc=toc_pattern("linked"), toc_lists="rule blocks", edition_rows=False, reconciled=True),
+        toc=toc_pattern("linked"), toc_lists="rule blocks", edition_rows=False),
     2002: IsoEdition(
         year=2002, rule_annexes="A", doc_list="B.1",
         excluded_blocks={
@@ -667,7 +672,7 @@ ISO: dict[int, IsoEdition] = {
                           "Precedence rules, are syntax rules\") so the heading resolves, with no row.",
         },
         conventions=frozenset({"5.2.1", "5.2.2", "5.2.3", "5.2.4"}),
-        toc=toc_pattern("dotted"), toc_lists="clauses", edition_rows=True, reconciled=False),
+        toc=toc_pattern("dotted"), toc_lists="clauses", edition_rows=True),
 }
 
 
@@ -733,7 +738,8 @@ class IsoCatalog:
     parse_gaps: list[dict[str, str]]
     findings: list[Finding]
     report: list[str]
-    pending: int = 0
+    #: The content-keyed manifest's clauses that await a disposition: their rules are outside the denominator.
+    pending: list[str] = dataclasses.field(default_factory=list)
 
 
 def manifest_of(ed: IsoEdition) -> tuple[dict[str, dict], dict[str, dict]]:
@@ -1399,8 +1405,12 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
     say("✓ the archaic and obsolete lists' data agree with the text" if not standing_findings else
         f"⛔ {len(standing_findings)} disagreement(s) of the standing lists' data with the text "
         "(element_standing.findings):\n      " + "\n      ".join(standing_findings))
-    pending = sum(1 for v in declared.values() if v.get("disposition") == "pending")
+    pending = [s for s, v in declared.items() if v.get("disposition") == "pending"]
     return IsoCatalog(rules, len(blocks_seen), [{"section": s, "kind": k} for s, k in gaps], findings, say_lines, pending)
+
+
+#: The catalog key that names what its count leaves out (`catalog_document`; read by `inventory_schema.Edition.outside`).
+OUTSIDE = "outside-denominator"
 
 
 #: Text inside the standard that is not the standard (the integrity critic in `extract`): the shapes a model's refusal or
@@ -1429,6 +1439,12 @@ def catalog_document(ed: IsoEdition, cat: IsoCatalog) -> dict[str, Any]:
                            "blocks": cat.blocks, "parse_gaps": cat.parse_gaps}
     if not ed.reconciled:
         doc["findings"] = [f.as_json() for f in cat.findings]
+    # WHAT THE COUNT LEAVES OUT (kb/Work PB5256, branch review R1-5): the manifest's clauses awaiting a disposition and the
+    # rule-shaped headings no kind types hold rules the denominator does not count yet, so `rule_count` is a lower bound
+    # while either is non-empty, and every reader that prints the count prints this beside it (`Edition.outside`).
+    untyped = [f.clause for f in cat.findings if f.kind == "unrecognised-heading"]
+    if cat.pending or untyped:
+        doc[OUTSIDE] = {"pending-clauses": [ed.label(s) for s in cat.pending], "untyped-headings": untyped}
     doc["rules"] = cat.rules
     return doc
 
@@ -1514,12 +1530,23 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="parse only; exit non-zero if the committed catalog is stale "
                                                          "or a reconciled edition's text yields a finding")
     ap.add_argument("--self-test", action="store_true", help="the ISO arm on planted text, a correction applied")
+    ap.add_argument("--held", action="store_true",
+                    help="every edition the inventory schema HOLDS (inventory_schema.HELD), oldest first: the gate's "
+                         "RULE CATALOGS audit, so a newly held edition needs no new audit line")
     spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
     if args.self_test:
         return self_test()
     arms = {year: functools.partial(main_iso, ed) for year, ed in ISO.items()} | {1985: main_1985}
-    return spec_pdf.edition_data(arms, args.edition, "rule catalog arm")(args)
+    if not args.held:
+        return spec_pdf.edition_data(arms, args.edition, "rule catalog arm")(args)
+    verdicts = {}
+    for year in inventory_schema.HELD:
+        print(f"\n════ the {year} rule catalog ════")
+        verdicts[year] = spec_pdf.edition_data(arms, year, "rule catalog arm")(args)
+    print(f"\n=== RULE CATALOGS: {'GREEN' if not any(verdicts.values()) else 'RED'} — "
+          + " · ".join(f"{y} {'ok' if v == 0 else 'RED'}" for y, v in verdicts.items()) + " ===")
+    return 1 if any(verdicts.values()) else 0
 
 
 # ── SELF-TEST: the ISO arm on planted text, and the stability rule under a planted correction ────────────────────────

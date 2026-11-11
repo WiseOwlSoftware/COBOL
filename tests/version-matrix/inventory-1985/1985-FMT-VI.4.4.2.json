@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: OBJECT-COMPUTER. [ computer-name [MEMORY SIZE integer-1 {WORDS|CHARACTERS|MODULES}] [PROGRAM COLLATING SEQUENCE IS alphabet-name-1] . ]: the clauses need computer-name. §2023:12.3.6.2 writes [ computer-name-1 ] and the CHARACTER CLASSIFICATION and PROGRAM COLLATING SEQUENCE clauses (with FOR ALPHANUMERIC / FOR NATIONAL) as independent options, and has no MEMORY SIZE clause; §2023:12.3.6.3 SR4: \"If neither computer-name-1 nor any of the optional clauses is specified, the second period in the General format may be omitted.\" A 1985 program with MEMORY SIZE is refused; clauses without computer-name are newly accepted. Compile-time only.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-12.3.6.2": "b5c873f1ac75",
+   "SR-12.3.6.3-4": "c9c504f8f247"
+  }
  }
 }

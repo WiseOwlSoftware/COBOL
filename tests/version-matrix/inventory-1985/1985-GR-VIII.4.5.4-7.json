@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"a. If only one record description is subordinate to the file description entry\"; 2023: \"a) If no record description entry or only one record description is subordinate to the file description entry\". Same INTO permission rule, but 2023 adds the case of no record description entry (see GR-6) and extends condition b to category national items.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.30.3-1": "78ec508507d7"
+  }
  }
 }

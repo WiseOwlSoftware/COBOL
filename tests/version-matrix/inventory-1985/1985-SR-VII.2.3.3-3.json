@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both require a non-figurative alphanumeric (nonnumeric) literal-1 and leave device/implementor-name-1 and literal-1 implementor-defined. The zero-length ban only bounds a newer literal form.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.4.5.2-4": "6ca222e2d0a1",
+   "SR-12.4.5.2-5": "9f65daeef717"
+  }
  }
 }

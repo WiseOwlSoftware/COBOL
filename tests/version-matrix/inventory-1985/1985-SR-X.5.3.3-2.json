@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"Identifier-1 must reference an alphanumeric data item.\"; 2023: \"Identifier-1 shall be defined as an alphanumeric or national data item.\". Same CANCEL identifier-1 rule, but 2023 adds national data items as allowed, so it accepts programs the 1985 rule refuses.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.5.3-1": "e8a87016deaa"
+  }
  }
 }

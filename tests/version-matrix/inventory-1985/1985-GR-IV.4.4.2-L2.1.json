@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"The last statement in a declarative section when the paragraph in which it appears is not being executed under the control of some other\"; 2023: \"In the declarative section for a fatal exception condition, there is no next executable statement after either the last statement\". 2023 keeps the no-next-statement case only for declaratives of fatal exception conditions, and adds abnormal run unit termination unless the exception occurs in SORT, MERGE or certain I-O.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.6.3-3": "77338b907c95"
+  }
  }
 }

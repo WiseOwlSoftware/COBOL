@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: a figurative constant as literal-1 or literal-2 'refers to an implicit one character data item whose usage is DISPLAY'. §2023:14.9.43.4 GR2: 'it refers to an implicit one character data item whose usage shall be the same as the usage of identifier-3, either display or national'; 1985 SR2 forces identifier-3 to DISPLAY, so every 1985 program gets the same one-character DISPLAY item. §2023:8.3.3.6.4 GR3 restates the one-character length.",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "adjudicate-712-r2/slice-05",
+  "digests": {
+   "GR-14.9.43.4-2": "67bcb1449751",
+   "GR-8.3.3.6.4-3": "0ee983e61ad4"
+  }
  }
 }

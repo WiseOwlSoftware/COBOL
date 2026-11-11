@@ -12,6 +12,11 @@
   "reason": "Both add the value of each addend into the sum counter by arithmetic-statement rules (§2023:13.18.54.4 GR6 'the value added is that of the corresponding sum counter' for a sum-counter operand; §2023:13.18.54.4 GR9 multiple addends summed separately). The size-error result differs: 1985 says only 'This addition is consistent with the rules for arithmetic statements', i.e. an addition with no SIZE ERROR phrase, where per §1985:VI.6.4.2 'the values of the affected resultant identifiers are undefined'. §2023:13.18.54.4 GR3 makes it 'consistent with the general rules of the ADD statement with the ON SIZE ERROR phrase' and 'Each addition is tested for size error; if a size error occurs, the EC-REPORT-SUM-SIZE exception condition is set to exist' (sum counter left unchanged, size error indicator set). An undefined run-time result became a defined one; no compile-time refusal is involved.",
   "source": "adjudicate-712/slice-25",
   "edition": 2023,
-  "bridge": true
+  "bridge": true,
+  "digests": {
+   "GR-13.18.54.4-3": "d9bd5edd96db",
+   "GR-13.18.54.4-6": "879741da53ad",
+   "GR-13.18.54.4-9": "c63a6c52a2a9"
+  }
  }
 }

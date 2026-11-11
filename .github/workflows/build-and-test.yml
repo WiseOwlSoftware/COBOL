@@ -446,12 +446,15 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/devlog.py check --base "$MG_BASE" --rev HEAD
-      - name: Rule catalog — the unharvested-rule manifest agrees with the transcription (extract_rule_catalog.py --check)
+      - name: Rule catalogs — every held edition's committed catalog is this run's, a reconciled one complete (extract_rule_catalog.py --held --check)
         if: ${{ !cancelled() }}
-        run: python3 scripts/spec/extract_rule_catalog.py --check
-      - name: Rule catalog 1985 — complete, and the committed catalog is this run's (extract_rule_catalog.py --edition 1985 --check)
+        run: python3 scripts/spec/extract_rule_catalog.py --held --check
+      - name: Lineage candidates — every older held edition's pairing is this run's (lineage.py --candidates --check)
         if: ${{ !cancelled() }}
-        run: python3 scripts/spec/extract_rule_catalog.py --edition 1985 --check
+        run: python3 scripts/spec/lineage.py --candidates --check
+      - name: Catalog coverage — each held ISO edition's rule blocks hold the ordinals the transcription prints (audit_catalog_coverage.py --held --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/audit_catalog_coverage.py --held --check
       - name: Inventory view — every held edition's catalog joined with its store, nothing refused (inventory_view.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/inventory_view.py --check

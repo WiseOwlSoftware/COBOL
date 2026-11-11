@@ -17,6 +17,17 @@
   ],
   "bridge": true,
   "reason": "1985 Logic Error: unsuccessful 'as a result of an improper sequence of input-output operations ... or as a result of violating a limit defined by the user'. §2023:9.1.13.1 repeats the definition (prose, no catalog row). The 4x values carry the class: §2023:9.1.13.7 GR1-GR4 and GR6-GR9 (41-44, 46-49), with the REWRITE sequence case stated at the statement (§2023:14.9.35.4 GR5 'the I-O status in the rewrite file connector is set to '43''). Status 45 (§2023:9.1.13.7 GR5) needs record selection 1985 lacks and is a per-value change recorded under 1985-GR-VII.1.3.5-L2.4. The definition of the class is the same.",
-  "source": "adjudicate-712-r2/slice-06"
+  "source": "adjudicate-712-r2/slice-06",
+  "digests": {
+   "GR-9.1.13.7-1": "7ba098ac3665",
+   "GR-9.1.13.7-2": "6ad5edf369fc",
+   "GR-9.1.13.7-3": "c92c8b4cbc0d",
+   "GR-9.1.13.7-4": "8cb702a5a928",
+   "GR-9.1.13.7-6": "31e6a5079953",
+   "GR-9.1.13.7-7": "33e8e795f04b",
+   "GR-9.1.13.7-8": "a5329a57a0ea",
+   "GR-9.1.13.7-9": "30ab59018127",
+   "GR-14.9.35.4-5": "417f233188c4"
+  }
  }
 }

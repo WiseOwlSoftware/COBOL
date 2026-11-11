@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "1985 report-writer I-O-CONTROL: '[SAME AREA FOR file-name-1 {file-name-2} ...] ... [MULTIPLE FILE TAPE CONTAINS {file-name-3 [POSITION integer-1]} ...] ...'. §2023:12.4.6.2 keeps I-O-CONTROL with the same-clause (and adds apply-commit-clause); the file-area format 'SAME AREA FOR' of §2023:12.4.6.4.2 still takes a report file (§2023:12.4.6.4.3 SR5). The MULTIPLE FILE TAPE clause appears nowhere in the 2023 standard, so a 1985 paragraph using it is refused. CHANGED (stricter).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-12.4.6.2": "bea3f5dbe52a",
+   "FMT-12.4.6.4.2": "ef1242cdad87",
+   "SR-12.4.6.4.3-5": "6d3deb9a964c"
+  }
  }
 }

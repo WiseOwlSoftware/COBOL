@@ -14,6 +14,13 @@
   ],
   "bridge": true,
   "reason": "1985: EXIT PROGRAM in a non-initial called program 'causes execution to continue with the next executable statement following the CALL', caller state unaltered save shared data/files, called state unaltered but PERFORM ranges ended. 2023 routes it to GOBACK (§2023:14.9.14.4 GR3); §2023:14.9.18.4 GR2 keeps the return and 'The state of the calling runtime element is not altered', §2023:13.5.4 GR1 keeps static data. But the 2023 EXIT PROGRAM accepts a RAISING phrase: §2023:14.9.18.4 GR1 b) 'If the RAISING phrase is specified, an exception condition is raised in the activating runtime element', and a) a non-COBOL activator continues 'in an implementor-defined fashion'. A case added to this statement's effect.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-14.9.14.4-3": "2f3fb75a6e6f",
+   "GR-14.9.18.4-1": "6dd950fbceaa",
+   "GR-14.9.18.4-2": "de14422ab9a7",
+   "GR-14.9.4.4-3": "04fde73bf906",
+   "GR-13.5.4-1": "5d88c01b9978"
+  }
  }
 }

@@ -10,6 +10,10 @@
   "reason": "1985 (report writer USAGE): 'If the USAGE clause is not specified for an elementary item, or for any group to which the item belongs, the usage is implicitly DISPLAY.' 2023: §2023:13.18.60.3 SR13, applied to report items by §2023:13.15.4 GR2 ('the USAGE, PICTURE, BLANK WHEN ZERO and JUSTIFIED clauses are the same clauses as those that are described under the general format for a data description entry'): 'if the explicit or implicit picture character-string contains the symbol 'N', a USAGE NATIONAL clause is implied', otherwise DISPLAY. The 'N' branch never reaches a conforming 1985 program that 2023 accepts: 1985 has no picture symbol N (§1985:VI.5.9.3 lists the letter symbols 'A, B, P, S, V, X, Z, CR, and DB') and no national literal to imply one; the only 1985 way to put an N in a picture, CURRENCY SIGN IS 'N' (permitted by §1985:p.VI-17, whose exclusions are 'uppercase letters A, B, C, D, P, R, S, V, X, Z'), is refused by the 2023 CURRENCY SIGN rule (§2023:12.3.7.3 SR22 excludes 'alphabetic characters A, B, C, D, E, N, P, R, S, V, X, Z'), a change that belongs to the CURRENCY record. Every 1985 report item without USAGE is still DISPLAY.",
   "source": "adjudicate-712/slice-25",
   "edition": 2023,
-  "bridge": true
+  "bridge": true,
+  "digests": {
+   "SR-13.18.60.3-13": "fbcaf116bf53",
+   "GR-13.15.4-2": "adfcec9cace3"
+  }
  }
 }

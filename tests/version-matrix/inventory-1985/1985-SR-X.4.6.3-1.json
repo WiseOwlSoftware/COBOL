@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985: GLOBAL only in level-01 entries 'in the File Section or the Working-Storage Section', file description entries, or report description entries. 2023 §2023:13.18.27.3 SR1 adds b) level-1 entries in the 'local-storage, or linkage section', a) constant entries and c) level-1 screen entries; §2023:13.16.3 SR6 keeps level 1. Linkage-section level-01 GLOBAL, refused in 1985, is accepted: looser. No exception condition.",
-  "source": "adjudicate-712/slice-32"
+  "source": "adjudicate-712/slice-32",
+  "digests": {
+   "SR-13.18.27.3-1": "fe6994220d8e",
+   "SR-13.16.3-6": "b725ba4b10bc"
+  }
  }
 }

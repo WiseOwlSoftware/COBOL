@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text.\"; 2023: \"The length of a text-word within pseudo-text shall be from 1 through 65,535 characters.\". Same subject, REPLACE pseudo-text text-word length, but the bound rises from 322 to 65,535 characters, so longer text-words are now within the allowed range.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-7.2.4.3-9": "e82bd5cb8473"
+  }
  }
 }

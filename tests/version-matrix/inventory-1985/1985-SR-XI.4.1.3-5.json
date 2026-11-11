@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"must be described in a file description entry, not in a sort-merge description entry\"; 2023: \"shall be described in a file description entry that is not for a report file and is not a sort-merge file description entry\". 2023 also excludes report files as USING/GIVING files. The 1985 rule refuses only sort-merge entries, so 2023 refuses programs this rule alone accepts.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.24.3-9": "1a8a5fcba024"
+  }
  }
 }

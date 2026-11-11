@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"b. If data-name-1 is not specified, by the value that would have been moved into the data item referenced by data-name-1\"; 2023: \"If the number of bytes determined as above is zero, the record is a zero-length item.\". Conditions a and b match; bytes vs character positions is terminology. 2023 adds a case 1985 lacks: a size of zero makes the sending record a zero-length item.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.43.4-16": "49f6bbfd2769"
+  }
  }
 }

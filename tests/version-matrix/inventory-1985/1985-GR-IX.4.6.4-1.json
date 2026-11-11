@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both require the REWRITE file to be open in I-O mode at execution. Status '49' just states the consequence of the same violation. An indexed file is necessarily mass storage.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.35.4-3": "fec731aa697c",
+   "GR-14.9.35.4-2": "ad43e8e283bf"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-54, kb/Work PB4952). An addend named twice is added twice, and a detail named twice in UPON adds twice per GENERATE; the paragraph that closes 2023 GR7 states the same.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "GR-13.18.54.4-7": "0090a48bcc09"
+  }
  }
 }

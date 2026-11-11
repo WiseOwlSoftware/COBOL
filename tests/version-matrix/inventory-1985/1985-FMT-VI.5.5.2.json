@@ -15,6 +15,11 @@
   "reason": "§1985:VI.5.5.2 offers the data description entry 'data-name-1 | FILLER'. §2023:13.18.20.2 keeps that choice as the entry-name clause's 'Format 1 (data-name)' and 'Format 3 (filler)' but adds 'Format 2 (screen-name)', and §2023:13.18.20.3 SR3 states which alternatives apply ('either data-name-1 or FILLER shall be specified' in a data description or report group description entry, screen-name-1 or FILLER in a screen description entry); §2023:13.16.3 SR4 restates it for the data description entry ('either the data-name format or the filler format may be specified'). A 1985 data entry means the same, but the general format is wider (screen-name, and the report-group use), so the diagram's edge is CHANGED, as PB4996 already recorded. GR-13.18.20.4-1 carries 1985 GR2 (FILLER naming), not this format.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-13.18.20.2": "68e170c93da0",
+   "SR-13.18.20.3-3": "b83b36b6555d",
+   "SR-13.16.3-4": "2d891dac76cc"
+  }
  }
 }

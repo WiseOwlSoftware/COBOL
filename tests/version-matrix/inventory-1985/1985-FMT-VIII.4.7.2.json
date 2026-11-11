@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "1985 relative START allows KEY {EQUAL|=|GREATER|>|NOT LESS|NOT <|GREATER OR EQUAL|>=} data-name-1 and INVALID KEY before NOT INVALID KEY. §2023:14.9.41.2 adds FIRST and LAST, and §2023:14.9.41.3 SR3 admits every general-relation operator except 'IS NOT EQUAL TO' (adding LESS, NOT GREATER, LESS OR EQUAL with a reverse search); the INVALID KEY pair is in choice indicators. WITH LENGTH is not available to relative files (§2023:14.9.41.3 SR8 'file-name-1 shall reference a file with indexed organization'). CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-14.9.41.2": "241210dd3c57",
+   "SR-14.9.41.3-3": "6880d5273bca",
+   "SR-14.9.41.3-8": "d176754ff112"
+  }
  }
 }

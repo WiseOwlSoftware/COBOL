@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "Both forbid INITIATE of a report already initiated and not terminated; 1985 states no result for a violation. 2023 §2023:14.9.21.4 GR2: 'An INITIATE statement shall not be executed if report-name-1 is in the active state. If it is in the active state, the EC-REPORT-ACTIVE exception condition is set to exist and the execution of the INITIATE statement has no other effect'; §2023:14.9.21.4 GR4 makes INITIATE set the active state, and the report section prose §2023:13.8.4 (no catalog rule) ends it at TERMINATE. Undefined run-time result became a defined exception condition.",
-  "source": "adjudicate-712/slice-26"
+  "source": "adjudicate-712/slice-26",
+  "digests": {
+   "GR-14.9.21.4-2": "1b379aad4c5f",
+   "GR-14.9.21.4-4": "fd644e9523b7"
+  }
  }
 }

@@ -328,6 +328,27 @@ def check_corrections(text: str, edition: int) -> list[str]:
 #: batch claim with its decision, every repair, and every level-2 box. 2023 dropped its pages; its reconciliation is
 #: LEDGER.json (merge_reconciliation.py) and its corrections the Addendum (check_corrections).
 LEDGER: dict[int, str] = {1985: "docs/rearchitecture/spec-reconciliation/LEDGER-1985.json"}
+#: EVERY edition's reconciliation ledger: the page-keeping ledgers above, and 2023's merged LEDGER.json.
+RECONCILIATION: dict[int, str] = {**LEDGER, 2023: "docs/rearchitecture/spec-reconciliation/LEDGER.json"}
+
+
+def ledger_pages(ledger: dict) -> set[int]:
+    """The PDF pages a reconciliation ledger records as compared: 2023's merge lists them (`pages_swept`); a page-keeping
+    batch ledger compared every page of its book and records how many (`pages`, LEDGER-1985.json's `about`)."""
+    if "pages_swept" in ledger:
+        return set(ledger["pages_swept"])
+    return set(range(1, int(ledger.get("pages", 0)) + 1))
+
+
+def reconciled(edition: int, repo: pathlib.Path = REPO) -> bool:
+    """THE FACT that `edition`'s transcription is reconciled (kb/Work PB5256, branch review R1-4): its reconciliation ledger
+    exists and records every page of the PDF (`spec_pdf.EDITIONS[edition].pages`) as compared. The ISO rule catalog
+    records an unreconciled edition's findings instead of failing on them, and the inventory refuses to LINK an
+    unreconciled edition into the lineage (`inventory_schema.link_errors`): its rule ids may still move."""
+    path = repo / RECONCILIATION[edition] if edition in RECONCILIATION else None
+    if path is None or not path.is_file():
+        return False
+    return ledger_pages(json.loads(path.read_text(encoding="utf-8"))) == set(range(1, spec_pdf.EDITIONS[edition].pages + 1))
 #: What a claim's decision may be; each but APPLIED states its reason.
 DECISIONS = {"APPLIED", "REFUTED", "ALREADY", "FORMAT", "BOX", "FIGURE", "KEPT"}
 BOX_SIDE = spec_pdf.BOX_SIDE
@@ -579,6 +600,22 @@ def self_test() -> int:
         with contextlib.redirect_stdout(io.StringIO()):
             return fn(*args)
 
+    # kb/Work PB5256, branch review R1-4: an edition is reconciled when its ledger records every page of its PDF compared.
+    import tempfile  # noqa: PLC0415
+    with tempfile.TemporaryDirectory() as tmp:
+        root = pathlib.Path(tmp)
+        (root / RECONCILIATION[2023]).parent.mkdir(parents=True)
+        pages23 = spec_pdf.EDITIONS[2023].pages
+        (root / RECONCILIATION[2023]).write_text(json.dumps({"pages_swept": list(range(1, pages23))}), encoding="utf-8",
+                                                 newline="\n")
+        short = reconciled(2023, root)
+        (root / RECONCILIATION[2023]).write_text(json.dumps({"pages_swept": list(range(1, pages23 + 1))}),
+                                                 encoding="utf-8", newline="\n")
+        (root / RECONCILIATION[1985]).write_text(json.dumps({"pages": spec_pdf.EDITIONS[1985].pages}), encoding="utf-8",
+                                                 newline="\n")
+        check("an edition is reconciled when its ledger records every page compared, in either ledger's shape, and not "
+              "with a page short or with no ledger (2002)",
+              not short and reconciled(2023, root) and reconciled(1985, root) and not reconciled(2002, root))
     good = ("# Preface\n\nCOBOL is an industry language and is not the property of any company\n"
             "No warranty, expressed or implied, is made by any contributor\n"
             "have specifically authorized the use of this material in whole or in part\n"

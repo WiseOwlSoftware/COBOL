@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:12.3.6.4 GR2 keeps 'computer-name-1 and its implied configuration are specified by each implementor' (documented per §2023:A.1, DOC-A.1-127). 1985's 'The configuration definition contains specific information concerning the memory size' and 'The implementor defines what is to be done if the subset specified by the user is less than the minimum configuration' belong to the MEMORY SIZE clause (obsolete in 1985), which §2023:12.3.6.2 no longer has; no 2023 rule carries those sentences.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "GR-12.3.6.4-2": "c9c6817cd5ca",
+   "DOC-A.1-127": "5f4e4dad2451"
+  }
  }
 }

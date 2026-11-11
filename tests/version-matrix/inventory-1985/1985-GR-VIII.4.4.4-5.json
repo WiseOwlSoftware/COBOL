@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "Reopening in any mode after a CLOSE is kept: §2023:14.9.27.4 GR2 'The file connector referenced by file-name-1 shall not be open' (else status 41), GR4 sets the mode per INPUT/OUTPUT/I-O/EXTEND, and §2023:14.9.6.4 GR8 leaves the connector 'no longer in an open mode'. The 1985 qualifier 'CLOSE statement, without the LOCK phrase' and its status 38 (§1985:VIII.1.3.4) have no 2023 carrier: the 2023 CLOSE format (§2023:14.9.6.2) has no WITH LOCK, so the bar on reopening a file closed with lock is gone.",
-  "source": "adjudicate-712/slice-19"
+  "source": "adjudicate-712/slice-19",
+  "digests": {
+   "GR-14.9.27.4-2": "0caffb8d51d0",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-14.9.6.4-8": "cd4697dd2324"
+  }
  }
 }

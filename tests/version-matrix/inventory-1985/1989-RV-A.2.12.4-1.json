@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both return the date equivalent of the integer in argument-1. Dropping 'ISO' is wording only. 2023 RV-2 fixes the form as Gregorian YYYYMMDD, so the same programs give the same result.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "RV-15.22.4-1": "dcb1cdbca63f",
+   "RV-15.22.4-2": "490073a7d50f"
+  }
  }
 }

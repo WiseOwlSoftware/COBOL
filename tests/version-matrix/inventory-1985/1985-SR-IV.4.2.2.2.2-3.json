@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "§2023:8.3.3.3.2 SR3 repeats 'shall not contain more than one decimal point ... may appear anywhere within the literal except as the rightmost character'; §2023:8.3.3.3.2 GR4 'An integer literal is a fixed-point numeric literal that contains no decimal point'; quoted digits form an alphanumeric literal, §2023:8.3.3.2.4 GR2 'Alphanumeric literals are of the class and category alphanumeric' (1985 'nonnumeric'). Floating-point literals are a separate format. Same programs, same meaning.",
-  "source": "adjudicate-712-r2/slice-13"
+  "source": "adjudicate-712-r2/slice-13",
+  "digests": {
+   "SR-8.3.3.3.2-3": "8a917fe23278",
+   "GR-8.3.3.3.2-4": "a83fee6e0e06",
+   "GR-8.3.3.2.4-2": "d6ddf594546b"
+  }
  }
 }

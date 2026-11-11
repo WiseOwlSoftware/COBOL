@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'Class-name-1 can be referenced only in a class condition'; literal values are ordinals or characters 'within the native character set'. §2023:12.3.7.4 GR12 keeps the exclusive set, ordinal/character meaning, multi-character literals and THROUGH in either order, but drops the class-condition-only restriction (§2023:13.18.11.4 GR1 references a class-name in the data-division CLASS clause) and adds 'or, when the IN phrase is specified, within the character set referenced by alphabet-name-4' (§2023:12.3.7.3 SR17 also adds the NATIONAL phrase). Programs 1985 refuses are accepted: CHANGED.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-12.3.7.4-12": "59771e7c597f",
+   "SR-12.3.7.3-17": "d8b340d04b94"
+  }
  }
 }

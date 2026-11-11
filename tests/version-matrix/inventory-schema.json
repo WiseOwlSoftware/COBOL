@@ -54,9 +54,11 @@
       "must state its `reason`, and whether its verdict is its CHAIN's (`chained`: held once, on the chain's newest row,",
       "so the row carries none of the `verdict-fields`) or its own. A rule of the next edition no record's `to` names is",
       "NEW: derived, never written. lineage.py (`next_errors`, `state_of`) reads this through inventory_schema.ChangeRecord;",
-      "no code spells a kind."
+      "no code spells a kind. `digests` (kb/Work PB5256, branch review R1-4) maps each `to` rule to the `rule-digest` of",
+      "the text the record was decided against; the writer stamps it, and a target whose text has since changed under its",
+      "id makes the record STALE (`lineage.stale_targets`), as a store record's own `rule-digest` does for its rule."
     ],
-    "keys": ["kind", "edition", "to", "bridge", "reason", "source"],
+    "keys": ["kind", "edition", "to", "digests", "bridge", "reason", "source"],
     "verdict-fields": ["verdict", "code-location", "test-ref", "derivation"],
     "kinds": {
       "KEPT": {"meaning": "the next edition states the same requirement", "to": true, "reason": false, "chained": true},

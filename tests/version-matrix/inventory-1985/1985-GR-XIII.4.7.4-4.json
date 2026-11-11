@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "Both require an initiated, not yet terminated report: 1985 'cannot be executed ... unless ... chronologically preceded by an INITIATE statement for that report and for which no TERMINATE statement has yet been executed'; 2023 'may be executed only for a report that is in the active state' (§2023:14.9.46.4 GR1), set by INITIATE (§2023:14.9.21.4 GR4) and ended by TERMINATE (§2023:14.9.46.4 GR2; §2023:13.8.4 prose defines the state). 1985 states no result for the violation, a run-time rule; 2023 defines one: 'the EC-REPORT-INACTIVE exception condition is set to exist and the execution of the statement has no other effect'. Different (now defined) result.",
-  "source": "adjudicate-712/slice-27"
+  "source": "adjudicate-712/slice-27",
+  "digests": {
+   "GR-14.9.46.4-1": "11dd57160a66",
+   "GR-14.9.21.4-4": "fd644e9523b7",
+   "GR-14.9.46.4-2": "8b2f5f52e559"
+  }
  }
 }

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'S' with no SIGN clause has an operational sign, 'the implementor will define the position and representation', 'General rules 5 through 7 do not apply'. §2023:13.18.52.4 GR4: 'The implementor shall specify the position and representation of the operational sign. General rules 5 and 6 do not apply'; documented per DOC-A.1-177. Not exempting GR7 is inert: its first sentence (signed item) agrees and its conversion sentence needs a SIGN clause. Same programs, same effect.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-13.18.52.4-4": "3e8fb4513ae3",
+   "DOC-A.1-177": "6f46a56e211c"
+  }
  }
 }

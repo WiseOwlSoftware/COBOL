@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'PROGRAM-ID. program-name [IS {COMMON INITIAL} PROGRAM].' with COMMON and INITIAL in choice indicators. §2023:11.10.2 Format 1 (definition), restated in the program-definition of §2023:10.6.1, keeps COMMON and INITIAL in any order but adds '[AS literal-1]' and the RECURSIVE alternative. No other 1985 rule allows AS or RECURSIVE. Every 1985 paragraph keeps its meaning; more are accepted. CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-11.10.2": "56acb8fe4e7c",
+   "FMT-10.6.1": "985639fb1dfa"
+  }
  }
 }

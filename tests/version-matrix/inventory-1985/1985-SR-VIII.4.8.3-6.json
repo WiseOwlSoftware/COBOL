@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "SR-14.9.49.3-7 states the same once-only limit on INPUT, OUTPUT, I-O and EXTEND in the declaratives. The 1985 level-2 box around EXTEND is no difference.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.49.3-7": "1e513aa6367f"
+  }
  }
 }

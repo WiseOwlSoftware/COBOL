@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "1985 RH lower limit: a) FIRST DETAIL - 1; b) page limit (NEXT GROUP NEXT PAGE). 2023 §2023:13.18.57.4 GR8 a) page limit when alone (also §2023:13.18.39.4 GR4), b) 'the line preceding the first line of the page heading', FIRST DETAIL - 1 only if no page heading is defined (§2023:13.18.39.4 GR2 d keeps 'terminates before this line'). With a page heading defined the RH bound is tighter than the 1985 rule's FD-1. The 1985 page heading presentation rules (printed XIII-30/31) are absent from the scan, so no visible 1985 rule supplies the same bound; measured against the visible 1985 text this is stricter.",
-  "source": "adjudicate-712/slice-24"
+  "source": "adjudicate-712/slice-24",
+  "digests": {
+   "GR-13.18.57.4-8": "ae3e5dd98aca",
+   "GR-13.18.39.4-2": "e848559fd8d9",
+   "GR-13.18.39.4-4": "82ef257ca4e1"
+  }
  }
 }

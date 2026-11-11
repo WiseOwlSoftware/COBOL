@@ -14,6 +14,13 @@
   ],
   "bridge": true,
   "reason": "1985 lists exhaustively: a called program 'is cancelled either by' a CANCEL operand, run-unit termination, or EXIT PROGRAM in an initial program. 2023 keeps all three (§2023:14.9.5.4 GR1, GR3; §2023:14.9.14.4 GR3 to GOBACK; §2023:14.6.2.3.2 rule 1) and adds a case: §2023:14.9.18.4 GR2 'If the program in which the GOBACK statement is specified is an initial program, an implicit CANCEL statement referencing that program is executed upon return'. GOBACK is accepted by 2023 and refused by 1985, so a case is added (PB5021).",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-14.9.5.4-1": "02d55b723178",
+   "GR-14.9.5.4-3": "0ff029035f01",
+   "GR-14.9.14.4-3": "2f3fb75a6e6f",
+   "GR-14.9.18.4-2": "de14422ab9a7",
+   "GR-14.6.2.3.2-1": "c89f05de4930"
+  }
  }
 }

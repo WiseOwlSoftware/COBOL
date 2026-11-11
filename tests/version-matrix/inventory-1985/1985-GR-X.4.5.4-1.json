@@ -11,6 +11,11 @@
   ],
   "reason": "1985: 'The data contained in the record named by the data-name clause is external and may be accessed and processed by any program in the run unit which describes and, optionally, redefines it'. §2023:13.18.22.4 GR1: 'the data contained in the record is external and may be accessed within the run unit by any runtime element that describes the same record as external'; §2023:8.6.7 GR1: 'The data content of an external data record may be referenced from any runtime element provided that the runtime element has described that record'; §2023:13.18.22.4 GR6 keeps the optional complete REDEFINES ('need not occur identically'), limited to records 'not strongly typed', which no 1985 program has. Same meaning for every conforming 1985 program.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "GR-13.18.22.4-1": "f22995e86889",
+   "GR-13.18.22.4-6": "603599f7b6af",
+   "GR-8.6.7-1": "8ea08b64ff47"
+  }
  }
 }

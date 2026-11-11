@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "Availability definition and the OUTPUT, EXTEND and optional EXTEND rows are kept (§2023:14.9.27.4 GR4 Table 18; creation per §2023:14.9.27.4 GR17 and §2023:14.9.27.4 GR18). But 2023 restricts Table 18 to files not currently open by another connector and adds Table 19, which 'shows the results of opening available files that are currently open by another file connector': OUTPUT then always unsuccessful, EXTEND sharing-dependent, with the default sharing mode implementor-defined (§2023:14.9.27.4 GR23). 1985 Table 1 says an available file always opens normally. Run-time only; no refusal.",
-  "source": "adjudicate-712/slice-26"
+  "source": "adjudicate-712/slice-26",
+  "digests": {
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-14.9.27.4-17": "c29782e39335",
+   "GR-14.9.27.4-18": "f152580b4f96"
+  }
  }
 }

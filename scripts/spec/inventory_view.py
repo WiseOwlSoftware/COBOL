@@ -47,7 +47,7 @@ from typing import Any, NamedTuple
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import lineage  # noqa: E402  (an older edition's change record and its state)
 from inventory_schema import (HELD, NEWEST, REGISTER_EXTRACT_REL, REPO, SCHEMA_REL, WORKING_TREE, Edition,  # noqa: E402
-                              Schema, Tree, edition, load_schema)
+                              Schema, Tree, edition, link_errors, load_schema)
 from inventory_store import STORE_KEYS, inventory_dir, read_store, store_at  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -226,10 +226,12 @@ def inventory_at(rev: str, year: int | None = None, repo: pathlib.Path = REPO) -
 # -- the audit, the summary, the parity witness ---------------------------------------------------------------------------
 
 def check() -> int:
-    """THE GATE AUDIT: every held edition's view, and each older edition's change records (`lineage.next_errors`).
+    """THE GATE AUDIT: every held edition's view, each older edition's change records (`lineage.next_errors`), and that
+    no held edition is linked into the lineage before its transcription is reconciled (`inventory_schema.link_errors`).
     Prints one line per edition; returns 1 on a finding."""
+    import verify_publishable  # noqa: PLC0415  (the reconciliation ledgers' owner: the fact an edition is reconciled)
     schema = load_schema()
-    findings: list[str] = []
+    findings: list[str] = link_errors(schema.all_editions, verify_publishable.reconciled)
     for year in sorted(HELD, reverse=True):
         ed = schema.edition(year)
         v = view(year, schema)
@@ -270,12 +272,23 @@ def edition_views(schema: Schema | None = None) -> dict[int, list[Row]]:
     return {year: inventory(year, schema) for year in sorted(HELD, reverse=True)}
 
 
+def lower_bound(ed: Edition, tree: Tree = WORKING_TREE) -> str:
+    """The note every printed rule count of `ed` carries while its count is a lower bound (kb/Work PB5256, branch review
+    R1-5): the clauses its content-keyed manifest holds pending and the rule-shaped headings no kind types
+    (`Edition.outside`), whose rules are not counted yet; "" when the count is the whole denominator."""
+    out = ed.outside(tree)
+    parts = [f"{len(v)} {what}" for v, what in ((out.get("pending-clauses", []), "clauses pending adjudication"),
+                                                (out.get("untyped-headings", []), "rule-shaped headings untyped")) if v]
+    return f" (a lower bound: {', '.join(parts)})" if parts else ""
+
+
 def summary() -> list[str]:
     """The session probe's lines: each held edition's rules and GAP count side by side (the burn-down metric), then each
     edition's adjudicated verdicts, and the CONFORMS rows a spec-derived test would close."""
     views = edition_views()
-    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules · {gaps(rows)} GAP" for year, rows in views.items())
-             + " (v1.0 = zero GAP)"]
+    schema = load_schema()
+    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules{lower_bound(schema.edition(year))} · {gaps(rows)} GAP"
+                                      for year, rows in views.items()) + " (v1.0 = zero GAP)"]
     for year, rows in views.items():
         adjudicated = [r for r in rows if r["verdict"]]
         if adjudicated:

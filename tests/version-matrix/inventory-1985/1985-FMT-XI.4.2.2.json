@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"RELEASE record-name-1 [ FROM identifier-1 ]\"; 2023: \"RELEASE record-name-1 [ FROM { identifier-1 | literal-1 } ]\". 2023 adds literal-1 as an alternative FROM operand. RELEASE ... FROM literal, refused under the 1985 format, is now accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.32.2": "3a48207c6387"
+  }
  }
 }

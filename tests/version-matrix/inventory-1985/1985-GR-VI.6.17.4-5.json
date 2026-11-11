@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985 without REPLACING: alphabetic, alphanumeric, alphanumeric edited 'set to spaces', numeric and numeric edited 'set to zeros', as an elementary MOVE. §2023:14.9.20.4 GR5 c)4 ('Neither the REPLACING phrase nor the VALUE phrase is specified'), §2023:14.9.20.4 GR6 c) (same categories to 'Figurative constant alphanumeric SPACES' / ZEROES), §2023:14.9.20.4 GR4 (implicit MOVE). The added table rows are for categories 1985 cannot declare; FILLER/VALUE/DEFAULT phrases belong to other rules.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-14.9.20.4-4": "3a8f6c193726",
+   "GR-14.9.20.4-5": "e8d825852f8e",
+   "GR-14.9.20.4-6": "b4d6cbec2efb"
+  }
  }
 }

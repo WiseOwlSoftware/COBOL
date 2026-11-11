@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both keep class and category alphanumeric and implicit usage display. Size still comes from the function definition in Clause 15. The coded character set sentence only clarifies representation.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-15.2-1": "d4cbc7c9f2e6",
+   "GR-8.4.3.2.4-1": "9467205b4218"
+  }
  }
 }

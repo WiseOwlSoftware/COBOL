@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1989: a group containing a variable occurrence item is sized 'according to the rules in the OCCURS clause dealing with the data item as a sending data item'. §2023:15.50.4 RV4 b) sizes it 'in accordance with the rules of the OCCURS clause for a sending data item' and §2023:15.50.4 RV3 returns that integer length; RV4 a) covers only based items and type declarations, absent from 1985. Same.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "RV-15.50.4-4": "a286b7ad1a02",
+   "RV-15.50.4-3": "d7db5e4003c7"
+  }
  }
 }

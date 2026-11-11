@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'Two operands connected by a THROUGH phrase must be of the same class. The two operands thus connected constitute a single selection object.' §2023:14.9.13.3 SR4: 'The two operands in a range-expression shall be of the same class'; its added bar on boolean, message-tag, object and pointer names classes no 1985 operand has. §2023:14.9.13.2 makes '[ NOT ] range-expression' one selection-object alternative, and §2023:14.9.13.4 GR4 a) 5. evaluates the pair as one conditional expression. Same programs refused at compile time. Table 15 (SR10) states operand combinations, not this rule, so it is not in 'to'.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "SR-14.9.13.3-4": "b50495adecf4",
+   "FMT-14.9.13.2": "af8f075b02f7",
+   "GR-14.9.13.4-4": "c1a80f2c0f29"
+  }
  }
 }
