@@ -1,4 +1,4 @@
-## PB5231: the conformance suite's generator is a target of its own, and Conformance is keyed on the suite it generates
+## Entry 3473 — 2026-11-11 05:35 PST — PB5231: the conformance suite's generator is a target of its own, and Conformance is keyed on the suite it generates
 
 Stage 1 of the build redesign (PB5218) found that every Conformance host first ran `conformance-suite/harness/generate.py`,
 which reads the traceability inventory. So a change that only recorded verdicts in the inventory re-ran all ~23,700
@@ -42,3 +42,4 @@ hand-off and the after-host check stubbed out, those two arms FAIL. `buildgraph.
 **Left.** CI is unchanged: its `dotnet test` gets no hand-off and generates as before. When PB5235 makes CI compute keys, its
 Conformance shards must take the suite from the graph the same way. A declared time bound for a generated target belongs to
 PB5232's per-target seconds.
+
