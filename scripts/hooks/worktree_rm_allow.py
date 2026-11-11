@@ -2,6 +2,12 @@
 """PreToolUse (Bash | PowerShell): GRANT `git rm -r` inside a git worktree under `.claude/worktrees/` (owner decision
 2026-10-07, kb/Work PB2142: "A scoped permission rule allows git rm -r under .claude/worktrees/").
 
+REGISTERED ONLY FOR A CALL THAT RUNS `git … rm` (`.claude/settings.json`: `"if": "Bash(git *rm *)"` and
+`"PowerShell(git *rm *)"`; the harness checks each subcommand of a compound line against it, and runs the hook anyway
+when it cannot tell what a line runs). Registered on every call it cost 0.457 s each (median, the slowest hook),
+and 2 of 42,411 shell calls in three days named `git rm -r` (kb/Work PB5234). A call the pattern misses only loses the
+grant: it falls back to the ordinary permission decision, never to an allow.
+
 Why a hook and not a settings rule: a `permissions.allow` entry sees only the command text, never the working
 directory, so `Bash(git rm -r:*)` would allow the removal in the main checkout too. The auto-mode classifier refused
 wave 1025's Cut 2 (`git rm -r` of the five legacy trees) as "Irreversible Local Destruction", correctly for an

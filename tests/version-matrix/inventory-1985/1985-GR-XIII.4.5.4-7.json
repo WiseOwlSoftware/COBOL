@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.5.4-7",
  "rule-digest": "5f7395a258a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenTapePhrase; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#OpenTapePhraseRule; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#NoRewindPhraseEffect",
  "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/1985-GR-XIII_4_5_4-7",
+ "notes": "§1985:XIII.4.5.4 GR7: 'The NO REWIND phrase must only be used with' sequential single reel/unit files or files on one reel of a multiple file tape, and GR8 ignores it where it 'does not apply to the storage medium'. A report file is sequential; CheckOpenTapePhrase and OpenTapePhraseRule admit NO REWIND only with OUTPUT (EXTEND is COBOL1803, REVERSED COBOL2211, a doubled phrase COBOL2269), and FileRegistry.NoRewindPhraseEffect overlays 07, the 1985 status for a non-reel/unit medium. Probes at 85: NO REWIND with and without WITH, and on a multiple-file-tape member, give 07, and an unphrased sibling 00; OPEN WITH LOCK and SHARING are refused. Witness: OPEN SUCCESSFUL, GENERATED, CLOSE 00.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

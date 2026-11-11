@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.15.3-4",
  "rule-digest": "594488fda49b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#DifferentPresentWhen",
  "test-ref": "conformance:cases/XIII.3.15@1985-LINE-NUMBER-CLAUSE/1985-SR-XIII_3_15_3-4",
+ "notes": "§1985:XIII.3.15.3 SR4: \"Within a given report group description entry, successive absolute LINE NUMBER clauses must specify integers that are in ascending order. The integers need not be consecutive.\" ReportSectionBinder.ScreenReportGroupLines refuses (COBOL2199) a later absolute line with a smaller number (§2023:13.18.35.3 SR6 a)) or the same number (SR6 b)) within one group, over every pair of written entries, and the PRESENT WHEN excuse cannot arise at 85 (the clause is refused with COBOL0900); lines of different groups are not compared. Probes at 85 (work-slice-54/c8*; classes b, c): LINE 5 then 3, LINE 5 then 5, LINE 5 ON NEXT PAGE then 3, and 5, 9, 7 (the third out of order) each print COBOL2199; 3, 7, 20 (not consecutive) runs; a DETAIL at LINE 12 and a second DETAIL at LINE 11 run. The witness (LINE 5 then LINE 3) is refused with COBOL2199.",
  "next": {
   "kind": "CHANGED",
   "to": [

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.21.3-3",
  "rule-digest": "dc19e3e54320",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportUsage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#DescribeReportItem; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateDataItem",
  "test-ref": "conformance:cases/XIII.3.21@1985-USAGE-CLAUSE/1985-SR-XIII_3_21_3-3",
+ "notes": "§1985:XIII.3.21.3 SR3: 'The USAGE clause for a report group item can specify only USAGE IS DISPLAY.' DescribeReportItem screens every written report USAGE clause, group or elementary, through ScreenReportUsage, which admits only DISPLAY and NATIONAL (COBOL2198), and at 85 the NATIONAL half is withheld by the national-data-2002 introduction gate in VersionConformancePass.GateDataItem (COBOL0900), so only DISPLAY survives. The witness refuses USAGE COMPUTATIONAL on an elementary SOURCE entry. Probes (std 85): b) USAGE COMP, COMPUTATIONAL, BINARY, PACKED-DECIMAL and INDEX on elementary entries, COMP on a level-01 group, on a level-05 LINE group, on a SUM entry and on a column-less SOURCE entry each refused COBOL2198; USAGE DISPLAY written twice COBOL2423; c) USAGE NATIONAL with PIC 9(3) refused COBOL0900 (requires COBOL-2002), PIC N(3) refused COBOL0900; d) USAGE IS DISPLAY, the bare DISPLAY phrase and a level-01 USAGE DISPLAY group each compiled and printed -005 for a signed -5 under PIC -9(3); a, e, f: not reachable by a usage rule (no length, file or value arm).",
  "next": {
   "kind": "CHANGED",
   "to": [

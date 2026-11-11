@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.4.4-14",
  "rule-digest": "8458e3b98636",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#labelRecordsClause",
  "test-ref": "conformance:cases/VIII.4.4@1985-OPEN-STATEMENT/1985-GR-VIII_4_4_4-14",
+ "notes": "§1985:VIII.4.4.4 GR14: with I-O and label records present, 'The labels are checked in accordance with the implementor's specific conventions for input-output label checking' and the new labels written by the implementor's conventions; GR7 makes an OPEN whose label records 'are specified but not present' undefined, and GR13 places the file in the open mode for input and output. WiseOwl COBOL's mass-storage relative files carry no label records, so steps a and b have nothing to check or write (LABEL RECORDS STANDARD is GR7's undefined case and OMITTED takes GR14 out of play); the open itself is FileConnector.Open into KeyedConnector.OpenCore's IO arm (existing store attached, 35 for an absent mandatory file, an optional absent one created with 05), and the labelRecordsClause grammar rule accepts the clause at 85. Probes at --std 85 (classes e, d): a DYNAMIC relative file with LABEL RECORDS ARE STANDARD opened I-O gives 00, then REWRITE, DELETE, WRITE, START and READ NEXT all succeed (0002 BBBB, 0003 cccc, then at end 10); a RANDOM file with LABEL RECORDS ARE OMITTED absent from disk gives 35 on OPEN I-O and the WRITE after that failed OPEN 48. The implementor's label convention is not written in docs/CONFORMANCE.md (an observation, not a breach of this rule). The witness opens a sequential relative file with LABEL RECORDS ARE STANDARD in I-O mode (00) and reads its record.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
