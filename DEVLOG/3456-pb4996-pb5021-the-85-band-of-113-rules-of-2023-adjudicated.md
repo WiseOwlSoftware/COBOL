@@ -1,4 +1,4 @@
-## PB4996, PB5021: the 85 band of 113 rules of 2023 adjudicated, and the first refuted code-read verdicts (1985 GAP 1,046 to 882)
+## Entry 3456 — 2026-11-10 19:47 PST — PB4996, PB5021: the 85 band of 113 rules of 2023 adjudicated, and the first refuted code-read verdicts (1985 GAP 1,046 to 882)
 
 **What was wrong.** 148 rows of the 1985 inventory were KEPT (2023 states the same requirement) and still open, because
 the 2023 rule each names stored an edition band that began after 85. Those bands were written before the 1985 text was
@@ -26,3 +26,4 @@ check or the DRAFTED kind's check is removed; `audit_witness_loss.py`'s self-tes
 1985.
 
 **Counts.** 1985 inventory: 1,046 GAP before, 882 after; no KEPT row is open. 2023 inventory: 0 GAP before and after.
+
