@@ -1,0 +1,9 @@
+## Decision: a file's vertical-positioning capability is decided by the program, at compile time (2026-11-11, PB5201 implementer, under the standing delegation)
+
+kb/Work PB1027 left one question open and recorded it for the owner: whether the capability "supports vertical positioning" (§2023:14.9.51.4 GR25, Annex A.3 item 37, implementor-defined) should be read from the history of the run or be a compile-time property of the file. The 1985 code read (this note) showed the history reading breaks §1985:VII.4.7.4 GR16: the plain WRITEs before a file's first ADVANCING write are bare records, so `AAA` `BBB` share a line, where the same program with the phrase spelled out writes LF AAA LF BBB.
+
+**Decided.** The capability is a property of the PROGRAM: a file supports vertical positioning when its FD carries a LINAGE clause, or when ANY WRITE of it in the program names an ADVANCING phrase (`FileModel.WrittenWithAdvancing`, set by `SequentialIoBinder.BindWrite`, registered as `SequentialConnector.AdvancingDeclared`). The run-time latch `_printControl` stays for the EXTERNAL file that another describer positions. A file no WRITE of which names the phrase is unchanged: its plain WRITE is the bare record, the shape GnuCOBOL writes by default (docs/CONFORMANCE.md section 4, which carries the revised determination).
+
+**Why not "every sequential file is positioned".** That is the wave-1033 reading PB1027 declined: it would put a leading empty line in every text file written with plain WRITEs, and default `cobc` does not (its `-fwrite-after` is not the default). The ISO text leaves the choice to the implementor and GnuCOBOL's default settles it.
+
+**Cost.** One bool on `FileModel`, one registration argument, one connector property; the compile-time fact reaches the runtime through the registration every file already has.

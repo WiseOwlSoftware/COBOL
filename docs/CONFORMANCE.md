@@ -103,7 +103,7 @@ of an unsupported facility.
 | 28–30 | CLOSE REEL/UNIT, FOR REMOVAL, WITH NO REWIND | 14.9.6 | Partial | **No reel/unit device is provided**, so every physical file is §2023:14.9.6.4 GR2 category (a) Non-unit (sequential) or (d) Non-sequential — the determination and the closing operations it settles are §7's A.1 item 24 row. All three phrases are ACCEPTED and execute their Non-unit Table 14 cell exactly: REEL/UNIT [FOR REMOVAL] is symbol e (successful, the file stays open, `'07'`), WITH NO REWIND is c,g (the file IS closed and a successful close reports `'07'`). What is not provided is the unit-media behaviour of columns (b)/(c) — unit swaps, volume pointers, rewind |
 | 31 | DELETE statement | 14.9.10 | **Claimed** | Mass-storage DELETE (record) + DELETE FILE (2023) |
 | 32 | OPEN I-O phrase | 14.9.27 | **Claimed** | Mass-storage I-O open |
-| 33–34 | OPEN WITH NO REWIND / EXTEND | 14.9.27 | Partial | EXTEND claimed; WITH NO REWIND has no reel to rewind — the same category (a) Non-unit determination as rows 28–30 (§7's A.1 item 24 row), which is what makes §2023:9.1.13.2 item 6's `'07'` the right status for the phrase rather than a silent `'00'`. The phrase is **ACCEPTED and executes §2023:14.9.27.4 GR11 exactly**: it is ignored (the OPEN behaves as though it were not written — GR14 still sets the file position indicator to 1, GR18 still creates an empty file) and the successful open reports `'07'`. GR12, the complement for a medium that permits rewinding, is unreachable here for the same reason Table 14's (b)/(c) columns are. §2023:14.9.27.3 SR5 (sequential files only) and SR6 (INPUT or OUTPUT only) are enforced — COBOL1802 / COBOL1803. What is not provided is the unit-media behaviour: an actual reel to leave unrewound. Witnesses `conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind`; `conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind_85`; `conformance:cases/14.9.27-OPEN/pb317-open-norewind-relative`; `conformance:cases/14.9.27-OPEN/pb317-open-norewind-extend`; `unit:CloseTable14Tests.OpenNoRewind_IsTheCloseArmsTwinOnTheSameMedium`. *(The phrase was parsed and DROPPED until 2026-09-05, so an `OPEN … WITH NO REWIND` reported `'00'` while its CLOSE spelling reported `'07'` — kb/Work PB317.)* |
+| 33–34 | OPEN WITH NO REWIND / EXTEND | 14.9.27 | Partial | EXTEND claimed; WITH NO REWIND has no reel to rewind — the same category (a) Non-unit determination as rows 28–30 (§7's A.1 item 24 row), which is what makes §2023:9.1.13.2 item 6's `'07'` the right status for the phrase rather than a silent `'00'`. The phrase is **ACCEPTED and executes §2023:14.9.27.4 GR11 exactly**: it is ignored (the OPEN behaves as though it were not written — GR14 still sets the file position indicator to 1, GR18 still creates an empty file) and the successful open reports `'07'`. GR12, the complement for a medium that permits rewinding, is unreachable here for the same reason Table 14's (b)/(c) columns are. §2023:14.9.27.3 SR5 (sequential files only) and SR6 (INPUT or OUTPUT only) are enforced — COBOL1802 / COBOL1803. What is not provided is the unit-media behaviour: an actual reel to leave unrewound. **REVERSED (COBOL-85, COBOL0902 from 2002)** is honoured on a record sequential file whose medium can be positioned (the file is read last record first) and IGNORED, per §1985:VII.4.3.4 GR10 ("The NO REWIND and REVERSED phrases will be ignored if they do not apply to the storage medium on which the file resides"), on one that cannot (a FIFO or pipe, whose handle cannot seek): the file reads forward, as without the phrase (`SequentialConnector._reversedInapplicable`, kb/Work PB5199; witness `unit:ReversedUnpositionableMediumTests`). Witnesses `conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind`; `conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind_85`; `conformance:cases/14.9.27-OPEN/pb317-open-norewind-relative`; `conformance:cases/14.9.27-OPEN/pb317-open-norewind-extend`; `unit:CloseTable14Tests.OpenNoRewind_IsTheCloseArmsTwinOnTheSameMedium`. *(The phrase was parsed and DROPPED until 2026-09-05, so an `OPEN … WITH NO REWIND` reported `'00'` while its CLOSE spelling reported `'07'` — kb/Work PB317.)* |
 | 35 | REWRITE statement | 14.9.35 | **Claimed** | Mass-storage rewrite |
 | 36 | USE … I-O phrase | 14.9.49 | **Claimed** | Declarative on the mass-storage I-O mode |
 | 37 | WRITE BEFORE / AFTER ADVANCING (each separately) | 14.9.51 | **Claimed** | Print-control advancing incl. the 2023 combined BEFORE AND AFTER form |
@@ -4177,8 +4177,8 @@ reallocated).
 > write), the blank lines and the end-of-page conditions of a write that overprints.
 
 > ⚖ **DETERMINATION — a WRITE without the ADVANCING phrase is an explicit `AFTER ADVANCING 1 LINE` in every state
-> of the device, and a file supports vertical positioning when its description carries a LINAGE clause or once an
-> ADVANCING phrase has been written to it** (2026-10-07; kb/Work PB1027, adjudicated in wave 1033, implemented in
+> of the device, and a file supports vertical positioning when its description carries a LINAGE clause or the program
+> names an ADVANCING phrase on any WRITE of it** (2026-10-07, revised 2026-11-11 by kb/Work PB5201; kb/Work PB1027, adjudicated in wave 1033, implemented in
 > wave 1037). §2023:14.9.51.4 GR25: "If the ADVANCING phrase is not used, automatic advancing shall be provided by the
 > implementor to act as if the user has specified AFTER ADVANCING 1 LINE" (`cite.py --check 14.9.51.4` OK, 25). The
 > standard names no implementor choice of PLACEMENT, so the two spellings are ONE path (`SequentialConnector.WriteRecord`
@@ -4197,22 +4197,25 @@ reallocated).
 > ignored" — leave to the implementor which physical files support it (Annex A.3 item 37 is claimed in §2, but the
 > claim is that the PHRASES work; a text file on disk that no program ever asked to position is not a device that
 > has a page). WiseOwl COBOL's determination: a file supports vertical positioning when (a) its description has a
-> LINAGE clause (positioned from OPEN: GR7 d), or (b) a WRITE to it has carried an ADVANCING phrase since the OPEN
-> (`SequentialConnector.SupportsVerticalPositioning`; a report file reaches the medium only through such a WRITE).
-> A file for which neither holds — an ordinary text file or fixed-block data file written with plain WRITEs only —
+> LINAGE clause (positioned from OPEN: GR7 d), or (b) any WRITE of it in the program names an ADVANCING phrase
+> (`FileModel.WrittenWithAdvancing`, told to the connector at registration as `AdvancingDeclared`; a report file reaches
+> the medium only through such a WRITE), or (c) an ADVANCING phrase has been written to it since the OPEN
+> (`SequentialConnector.SupportsVerticalPositioning`; the EXTERNAL file another program positions).
+> A file for which none holds — an ordinary text file or fixed-block data file written with plain WRITEs only —
 > has nothing to position, so its plain WRITE is the record and its own line end (a line sequential delimiter, or
 > nothing for a record sequential block): NO leading empty line, the shape GnuCOBOL 3.2 writes by default. The
 > wave-1033 decision read every sequential file as positioned and would have given such a file a leading empty line,
 > citing GnuCOBOL's `-fwrite-after`; that flag is NOT the default (default `cobc` writes `AAAAA` LF `BBBBB` LF for two
 > plain WRITEs and treats a plain WRITE as a BEFORE write on every file), so the precedence ISO, then GnuCOBOL does
 > not select it, and the operator's caveat of 2026-10-07 asked for the default probe before any output moved. No
-> output of a plain-only file changes. **Two consequences stated openly:** a plain WRITE that PRECEDES the first
-> ADVANCING write of a non-LINAGE file was written before the file was known to be positioned and is a complete line
-> (a plain `A` followed by `AFTER ADVANCING 1 LINE` `B` is `A` LF LF `B` LF, where a file positioned from OPEN would
-> be LF `A` LF `B` LF: the same number of empty lines, one position apart); and the capability is read at run time,
-> so an EXTERNAL file shared by programs inherits it from whichever wrote an ADVANCING phrase first. Whether the
-> capability should instead be a compile-time property of the file (any ADVANCING write in the compilation unit) is
-> an owner question recorded with the PB1027 note, not decided here.
+> output of a plain-only file changes. **The capability is a property of the program, decided at compile time**
+> (kb/Work PB5201, 2026-11-11, which closed the owner question PB1027 left open: the capability read from the run's
+> history put a plain WRITE that preceded a file's first ADVANCING write on a line of its own, where §1985:VII.4.7.4
+> GR16 and §2023:14.9.51.4 GR25 make it AFTER ADVANCING 1 LINE whichever WRITE of the file runs first): a plain `A`
+> followed by `AFTER ADVANCING 1 LINE` `B` is LF `A` LF `B` LF, the file the all-spelled-out program writes
+> (`1985-GR-VII_4_7_4-16-plain-first`). An EXTERNAL file shared by programs is a print file when ANY describing program writes an ADVANCING phrase to
+> it (`FileRegistry.Register` ORs the declaration into the one connector), and one whose describers register after its
+> first plain WRITE has run still inherits the capability at run time from the first ADVANCING write (`_printControl`).)
 
 > ⚖ **DETERMINATION — an unchecked out-of-range reference modification ends the run unit** (2026-09-30; owner
 > decision kb/Work R60; kb/Work PB1707). §2023:8.4.3.3.4 5) b)/c) (cite-checked) make the position ranges a `shall`
