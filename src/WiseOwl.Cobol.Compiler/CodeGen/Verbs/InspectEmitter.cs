@@ -109,13 +109,31 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         // sequence; kb/Work PB442 — the one projection, so a numeric-edited USAGE NATIONAL one is national too).
         var cat = IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOf(ins.Target));
 
+        // ⛔ EVERY FUNCTION-IDENTIFIER OPERAND IS EVALUATED ONCE, AS THE FIRST OPERATION, IN SOURCE ORDER — IN WHICHEVER PHRASE
+        // IT STANDS (§2023:14.9.22.4 GR6, §2023:8.4.3.2.4 GR1; §1985:VI.6.18.4 GR5; kb/Work PB5184). The TALLYING operands, then
+        // the REPLACING operands, then CONVERTING's: each is evaluated into a local HERE, before any counter is stored, so a
+        // format 3's REPLACING function and the subscripts of its arguments read the state the statement began with (GR19:
+        // the second pass shares the first's identification) and no counter store can reach them. A data item stays inline
+        // (D-INS1 / D-INS3 re-read it where a counter may overlap it); a literal and a figurative read nothing.
+        int onceCount = 0;
+        string Once(BoundOperand? op)
+        {
+            string text = OperandTextOf(op, cat);
+            if (op is null or BoundFieldOperand || !PlaceIdentification.IdentifiesAtRunTime(op)) return text;
+            string local = $"__insOp{id}_{onceCount++}";
+            w.Line($"var {local} = {text};");
+            return local;
+        }
+        var (tallyPats, tallyBefs, tallyAfts) = TallyOperandTexts(ins.Tallying, Once);
+        var (replPats, replReps, replBefs, replAfts) = ReplaceOperandTexts(ins.Replacing, Once);
+        var (convFrom, convTo, convBef, convAft) = ins.Converting is { } c0
+            ? (Once(c0.From), Once(c0.To), Once(c0.Before), Once(c0.After)) : default;
+
         if (ins.Tallying.Count > 0)
         {
             var t = ins.Tallying;
             string kinds = string.Join(", ", t.Select(x => RuntimeApi.InspectTallyKindText(x.Kind)));
-            // Each operand's text, in source order: a function-identifier's value is evaluated HERE, once (see TallyOperandTexts).
-            var (pats, befs, afts) = TallyOperandTexts(t, id, cat);
-            string tally = RuntimeApi.InspectTally(img, kinds, pats, befs, afts, back);
+            string tally = RuntimeApi.InspectTally(img, kinds, tallyPats, tallyBefs, tallyAfts, back);
             w.Line($"long[] __cnt{id} = {tally};");
             // One add per operand, in source order — the same counter may appear under several operands and
             // accumulates each count (GR11 — INSPECT adds, it never initializes).
@@ -139,7 +157,9 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             }
             // ⛔ GR19: a format 3 is TWO SUCCESSIVE STATEMENTS, so the REPLACING half takes identifier-1 as the
             // tallying half left it (D-INS2). The one snapshot is exact only while no counter overlaps identifier-1.
-            if (ins.Replacing.Count > 0 && ins.Tallying.Any(x => CounterMayOverlapTarget(ins, x.Counter)))
+            // At --std 85 the second statement also takes an occurs-depending identifier-1's LENGTH at its own start
+            // (ReplacingTakesLengthAnew, kb/Work PB5119; from 2002 the binder pinned the DEPENDING ON object instead).
+            if (ins.Replacing.Count > 0 && (ins.ReplacingTakesLengthAnew || ins.Tallying.Any(x => CounterMayOverlapTarget(ins, x.Counter))))
                 w.Line($"{img} = {readImage};");
         }
 
@@ -152,22 +172,18 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         {
             var r = ins.Replacing;
             string kinds = string.Join(", ", r.Select(x => RuntimeApi.InspectReplaceKindText(x.Kind)));
-            string pats = string.Join(", ", r.Select(x => OperandTextOf(x.Pattern, cat)));
-            string reps = string.Join(", ", r.Select(x => OperandTextOf(x.Replacement, cat)));
-            string befs = string.Join(", ", r.Select(x => OperandTextOf(x.Before, cat)));
-            string afts = string.Join(", ", r.Select(x => OperandTextOf(x.After, cat)));
             // GR14: a figurative literal-3 takes the size of ITS pattern, which the runtime knows and the binder may
             // not (kb/Work PB1126) — so the flags travel, and the runtime fills.
             string? figs = r.Any(x => x.ReplacementIsFigurative)
                 ? string.Join(", ", r.Select(x => x.ReplacementIsFigurative ? "true" : "false"))
                 : null;
-            w.Line($"{img} = {RuntimeApi.InspectReplace(img, kinds, pats, reps, befs, afts, back, figs)};");
+            w.Line($"{img} = {RuntimeApi.InspectReplace(img, kinds, replPats, replReps, replBefs, replAfts, back, figs)};");
             mutated = true;
         }
 
         if (ins.Converting is { } cv)
         {
-            w.Line($"{img} = {RuntimeApi.InspectConvert(img, OperandTextOf(cv.From, cat), OperandTextOf(cv.To, cat), OperandTextOf(cv.Before, cat), OperandTextOf(cv.After, cat), back, cv.ToIsFigurative)};");
+            w.Line($"{img} = {RuntimeApi.InspectConvert(img, convFrom, convTo, convBef, convAft, back, cv.ToIsFigurative)};");
             mutated = true;
         }
 
@@ -207,7 +223,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
     /// figurative reads no storage. ⛔ A FUNCTION-IDENTIFIER NEVER DOES, WHATEVER ITS ARGUMENTS (kb/Work PB4115): it
     /// "references a temporary data item whose value is determined when the function is referenced at runtime"
     /// (§2023:8.4.3.2.4 GR1), and INSPECT references each identifier once (§2023:14.9.22.4 GR6) — identifier-1 into the
-    /// statement's image, a TALLYING operand into its own local (<see cref="TallyOperandTexts"/>) — so no counter can
+    /// statement's image, any other operand into its own local (<c>EmitBody</c>'s <c>Once</c>, kb/Work PB5184) — so no counter can
     /// occupy that temporary item and GR13's overlap cannot arise. Re-evaluating it after a counter store (the former
     /// answer, "may" for every function) evaluated one reference twice: <c>INSPECT FUNCTION UPPER-CASE(G) TALLYING T
     /// ...</c> with T inside G counted the counter's new digit, and <c>INSPECT FUNCTION CURRENT-DATE</c> read the clock
@@ -216,31 +232,43 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         op is BoundFieldOperand f && StorageOverlap.MayShareStorage(counter, f.Place);
 
     /// <summary>The TALLYING operands' texts for <see cref="RuntimeApi.InspectTally"/>, as the three array element lists
-    /// (patterns, BEFORE delimiters, AFTER delimiters). Every operand that is evaluated at run time but is not a
-    /// data-item reference — a function-identifier — is evaluated HERE, once, in source order, into a local
-    /// (§2023:8.4.3.2.4 GR1, §2023:14.9.22.4 GR6), so the D-INS1 re-run of the cycle re-reads only the data items a
-    /// counter may overlap (<see cref="MayReadStorageOf"/>); a data item and a literal stay inline.</summary>
-    private (string Patterns, string Befores, string Afters) TallyOperandTexts(IReadOnlyList<BoundInspectTally> tallying, int id, PicCategory? cat)
+    /// (patterns, BEFORE delimiters, AFTER delimiters), each operand taken through <paramref name="once"/> in source order
+    /// (§2023:8.4.3.2.4 GR1, §2023:14.9.22.4 GR6): a function-identifier is evaluated into a local, so the D-INS1 re-run of
+    /// the cycle re-reads only the data items a counter may overlap (<see cref="MayReadStorageOf"/>).</summary>
+    private static (string Patterns, string Befores, string Afters) TallyOperandTexts(
+        IReadOnlyList<BoundInspectTally> tallying, Func<BoundOperand?, string> once)
     {
         var pats = new string[tallying.Count];
         var befs = new string[tallying.Count];
         var afts = new string[tallying.Count];
-        int n = 0;
-        string Once(BoundOperand? op)
-        {
-            string text = OperandTextOf(op, cat);
-            if (op is null or BoundFieldOperand || !PlaceIdentification.IdentifiesAtRunTime(op)) return text;
-            string local = $"__insOp{id}_{n++}";
-            ctx.Writer.Line($"var {local} = {text};");
-            return local;
-        }
         for (int k = 0; k < tallying.Count; k++)
         {
-            pats[k] = Once(tallying[k].Pattern);
-            befs[k] = Once(tallying[k].Before);
-            afts[k] = Once(tallying[k].After);
+            pats[k] = once(tallying[k].Pattern);
+            befs[k] = once(tallying[k].Before);
+            afts[k] = once(tallying[k].After);
         }
         return (string.Join(", ", pats), string.Join(", ", befs), string.Join(", ", afts));
+    }
+
+    /// <summary>The REPLACING operands' texts for <see cref="RuntimeApi.InspectReplace"/> (patterns, replacements, BEFORE
+    /// and AFTER delimiters), each operand taken through <paramref name="once"/> in source order, phrase by phrase — the
+    /// twin of <see cref="TallyOperandTexts"/>, so a format 3's REPLACING function is evaluated with the TALLYING half's
+    /// (kb/Work PB5184).</summary>
+    private static (string Patterns, string Replacements, string Befores, string Afters) ReplaceOperandTexts(
+        IReadOnlyList<BoundInspectReplace> replacing, Func<BoundOperand?, string> once)
+    {
+        var pats = new string[replacing.Count];
+        var reps = new string[replacing.Count];
+        var befs = new string[replacing.Count];
+        var afts = new string[replacing.Count];
+        for (int k = 0; k < replacing.Count; k++)
+        {
+            pats[k] = once(replacing[k].Pattern);
+            reps[k] = once(replacing[k].Replacement);
+            befs[k] = once(replacing[k].Before);
+            afts[k] = once(replacing[k].After);
+        }
+        return (string.Join(", ", pats), string.Join(", ", reps), string.Join(", ", befs), string.Join(", ", afts));
     }
 
     /// <summary>Store the replaced/converted image back into identifier-1 by its storage shape: a group through the
