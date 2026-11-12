@@ -1,4 +1,4 @@
-## PB5447: the grammar-diagram generator hands rr's output over a pipe, not a file in %TEMP%
+## Entry 3549 — 2026-11-12 15:02 PST — PB5447: the grammar-diagram generator hands rr's output over a pipe, not a file in %TEMP%
 
 A full gate of witnesses-85m went RED on one Unit test, `GrammarDiagramGeneratorDriftTests.Generator_RunsClean`.
 `gen-grammar-diagrams.ps1` could not read `E:\Temp\ccf-<guid>\CobolWords.md`, "being used by another process". The
@@ -16,3 +16,4 @@ directory (`TMP` and `TEMP` for Windows, `TMPDIR` for Linux, where .NET reads no
 there for writing. Main's script fails it with the gate's message; the fixed
 script passes. The sibling sweep found no other instance: `orchestrate.ps1#Take-Lock`'s identical catch clause works,
 and the ANTLR `.tokens` copy and the tar self-test hand off files by design.
+
