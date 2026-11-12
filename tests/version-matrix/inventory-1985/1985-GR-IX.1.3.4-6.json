@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-IX.1.3.4-6",
  "rule-digest": "df5db18671dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordHasCharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#CharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb690_file_character_set_85; unit:CodeSetConversionTests.IndexedWrite_RefusesAnUnrepresentableRecord_AtTheStatement_AndTheCloseSucceeds",
+ "notes": "kb/Work PB5373 class 4, decided 2026-11-12. §1985:IX.1.3.4 GR6 (Implementor Defined): \"The input-output statement was unsuccessfully executed as the result of a condition that is specified by the implementor\", with \"If more than one value applies, the implementor determines which of the applicable values to place in the I-O status\". The antecedent is the implementor's to define and WiseOwl defines it: docs/CONFORMANCE.md DOC-A.1-110 specifies the 9x values ('90' the LINAGE value violation, which no indexed file reaches, and '91' a record character with no byte image in the file's coded character set, which an indexed WRITE or REWRITE reaches) and DOC-A.1-104 the order in which the applicable values are chosen. The witness is an 85 program that WRITEs to an INDEXED file a record holding U+20AC (IX-EURO=91, the record is not stored: a READ of its key is 23) and then U+00E9 (IX-E=00, READ gives the data), expected from the determination, not copied from a run; the unit test drives the same indexed refusal at the connector. IndexedConnector's write path asks FileConnector.RecordHasCharacterWithoutByteImage before the key rules and answers FileStatusCode.CharacterWithoutByteImage.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

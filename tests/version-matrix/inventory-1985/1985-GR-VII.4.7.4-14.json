@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-VII.4.7.4-14",
  "rule-digest": "fd455bcc2849",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#ForWriteFailure; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsMediumBoundary; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook",
+ "test-ref": "conformance-test:SequentialWriteBoundaryTests.AWriteBeyondTheBoundary_SetsTheBoundaryStatus_RunsTheUseDeclarative_AndLeavesTheRecordAreaAlone; unit:FileBoundaryTests.SequentialWrite_OnAFullMedium_Is34_AtTheWrite; unit:FileBoundaryTests.WriteFailure_MediumExhaustionIs34_AnyOtherFailureIs30",
+ "notes": "kb/Work PB5373 class 4, decided 2026-11-12. §1985:VII.4.7.4 GR14: a WRITE beyond \"the externally defined boundaries of a sequential file\" is an exception condition, the record area is unaffected, (a) the I-O status indicates a boundary violation and (b) the file's USE AFTER STANDARD EXCEPTION declarative runs; (c) with no declarative \"the result is undefined\" and nothing is asserted for it. The boundary is the implementor's (§1985:VII.1.3.5 GRL2.3 b: \"The implementor specifies the manner in which these boundaries are defined\"), and docs/CONFORMANCE.md DOC-A.1-108 states it: the capacity of the host medium, answered at the WRITE with status 34 (FileStatusCode.ForWriteFailure classifies the host's refusal by HostFile.IsMediumBoundary). The witness SequentialWriteBoundaryTests runs an 85 program that writes a sequential file ASSIGNed to Linux's /dev/full (full by construction) with FILE STATUS and a USE procedure: FS=34, USE=1, and the record area still holds what the program set. The device exists on Linux only, so the test returns on a host that is not Linux (and fails if Linux lacks the device), the shape of FileBoundaryTests and ReportLineRefusalConformanceTests; the unit tests drive the connector the same way.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

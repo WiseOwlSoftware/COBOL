@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// §1985:VII.4.7.4 GR14 (kb/Work PB5373 class 4): "When an attempt is made to write beyond the externally defined boundaries of a sequential file, an exception condition exists and the contents of the
 /// record area are unaffected": (a) the I-O status is set "to a value indicating a boundary violation" and (b) "If a USE AFTER STANDARD EXCEPTION declarative is explicitly or implicitly specified for the
 /// file-name ..., that declarative procedure will then be executed." Clause (c), no declarative: "the result is undefined", so nothing is asserted for it.
-/// <para>What the boundary IS belongs to the implementor, and docs/CONFORMANCE.md DOC-A.1-108 states it: the capacity of the host medium, answered at the WRITE with status 34 (the boundary violation of
-/// §1985:VII.1.3.5, which the 2023 text calls the permanent error '34'). The one host medium that is full by construction is Linux's <c>/dev/full</c>, as in
+/// <para>What the boundary IS belongs to the implementor, and docs/CONFORMANCE.md DOC-A.1-108 states it: the capacity of the host medium, answered at the WRITE with status 34 (§1985:VII.1.3.5 GRL2.3 b: "A permanent error exists because of a boundary violation; an attempt is made to
+/// write beyond the externally defined boundaries of a sequential file"). The one host medium that is full by construction is Linux's <c>/dev/full</c>, as in
 /// <see cref="ReportLineRefusalConformanceTests"/>; a host without the device must not be Linux, so this cannot pass on the CI host by not running.</para>
 /// </summary>
 public sealed class SequentialWriteBoundaryTests

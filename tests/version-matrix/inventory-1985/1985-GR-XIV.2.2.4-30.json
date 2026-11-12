@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-30",
  "rule-digest": "0df7724dfaf0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Dialogue.LockedTerminalChanged; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#InitialArea; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
+ "test-ref": "conformance-test:ScheduledProgramTests.TheScheduledProgram_FirstReceiveReturnsTheSchedulingMessage_AndAChangedTerminalMakesTheStatementUnsuccessful; unit:MessageControlTests.ScheduledTerminal_ChangedBeforeTheFirstStatement_IsUnknown",
+ "notes": "kb/Work PB5373 class 4, decided 2026-11-12. §1985:XIV.2.2.4 GR30: when the INITIAL clause is specified for an input-output CD and the MCS scheduled the program, the content of data-name-3 \"must not be changed by the program. If this content is changed, the execution of any statement referencing cd-name-1 is unsuccessful, and the data item referenced by data-name-6 is set to indicate unknown source or destination\", and the status table of the same clause gives 21, \"Symbolic source is unknown. No action taken.\" InitialArea locks the scheduled terminal for the run unit's main program and Dialogue.LockedTerminalChanged compares it at every statement of the CD (RECEIVE, SEND, ENABLE, DISABLE, PURGE). The harness test ScheduledProgramTests runs an 85 program scheduled as T1 that MOVEs T2 to data-name-3 and RECEIVEs: status 21 and the buffer unchanged; it restores T1 and the RECEIVE succeeds (00, BETA). MessageControlTests drives the same rule at the session. The scheduled-program determination is docs/CONFORMANCE.md section 3, 'A program scheduled by the MCS'.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
