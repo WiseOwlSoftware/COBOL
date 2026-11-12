@@ -437,6 +437,8 @@ CLASSIFICATION = Classification(inert={
        "scripts/live_tools.py": "imported by scripts/standard_streams.py, scratch_repo.py and test_population.py",
        "scripts/scratch_repo.py": "imported by conformance-suite/harness/generate.py (SuiteManifest) and "
                                   "test_population.py",
+       "scripts/selftest_layout.py": "imported by scripts/scratch_repo.py (its audit reads a file under a selftests/ tree as "
+                                     "self-test code by the path rule, kb/Work PB5428)",
        "scripts/ci_workflow.py": "imported by scripts/test_population.py",
        "scripts/git_batch.py": "imported by scripts/spec/inventory_schema.py and inventory_store.py (the inventory view "
                                "conformance-suite/harness/generate.py reads, SuiteManifest; a partial clone's batched "

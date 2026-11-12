@@ -2,7 +2,9 @@
 """selftest_layout.py — THE CASE LAYOUT RULE: where a script's tests live, and what a tests directory may hold
 (docs/rearchitecture/DESIGN-orchestrator-loop.md section 16.2; kb/Work PB5428, PB3726).
 
-    python scripts/selftest_layout.py          # the layout rule over this tree, as scripts/self_tests.py runs it first
+`scripts/self_tests.py` calls `check_repo` first on every run: this module has no entry point of its own, and imports no
+runner (scratch_repo.py and inert_lane.py import it for the path rule, and a runner import would put the whole runner in
+the build targets' import closure, scripts/build_targets.json).
 
 WHERE A TEST LIVES. The tests of a script `<root>/<path>/<name>.<ext>`, for each live-tools root (`live_tools.ROOTS`),
 live in the directory `<root>/selftests/<path>/<name>/`; `subject_of` is the ONE function of that rule (a test file's
@@ -30,7 +32,6 @@ THE REFUSALS (`check` returns each as a line; scripts/self_tests.py turns the fi
 from __future__ import annotations
 
 import ast
-import sys
 from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 
@@ -426,17 +427,3 @@ def check_repo(handles_flag: Callable[[str], bool], repo: Path = REPO, env: Mapp
     files = live_tools.tracked(repo, None, env)
     sources = {f: (repo / f).read_text(encoding="utf-8") for f in files if f.endswith(".py")}
     return check(sources, files, lambda p: (repo / p).is_file(), handles_flag)
-
-
-def main() -> int:
-    import self_tests  # noqa: PLC0415 — this entry point only; self_tests imports this module
-
-    found = check_repo(self_tests.py_handles_flag)
-    for line in found:
-        print(f"FAIL     {line}")
-    print(f"=== SELFTEST LAYOUT: {'FAIL' if found else 'PASS'} ({len(found)} refusal(s)) ===")
-    return 1 if found else 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
