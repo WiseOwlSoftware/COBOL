@@ -584,7 +584,6 @@
       "WiseOwl.Cobol.Binding.ReferenceResolver"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::QualifierWalk": [
-      "WiseOwl.Cobol.Binding.CounterResolver",
       "WiseOwl.Cobol.Binding.ReportScope",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
@@ -790,6 +789,12 @@
       "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Procedure.SortBinder"
+    ],
+    "WiseOwl.Cobol.Binding.DataBinder::SumCounterRegisters": [
+      "WiseOwl.Cobol.Binding.Passes.PlaceTablePass"
+    ],
+    "WiseOwl.Cobol.Binding.DataBinder::SumCounterReportOf": [
+      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::SwitchConditionCompetes": [
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder"
@@ -1136,6 +1141,10 @@
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ScreenReportUsage": [
       "WiseOwl.Cobol.Binding.DataBinder"
+    ],
+    "WiseOwl.Cobol.Binding.ReportSectionBinder::SumCounterOperand85": [
+      "WiseOwl.Cobol.Binding.DataBinder",
+      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::BindSpecialNames": [
       "WiseOwl.Cobol.Binding.DataBinder"

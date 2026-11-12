@@ -36,6 +36,7 @@ public static class Constructs
     public const string CallAsPhrase2002 = "call-as-phrase-2002";
     public const string CallByValue2002 = "call-by-value-2002";
     public const string CallConventionDirective2002 = "call-convention-directive-2002";
+    public const string CallFunctionIdentifierArgument2002 = "call-function-identifier-argument-2002";
     public const string CallLiteralExpressionArgument2002 = "call-literal-expression-argument-2002";
     public const string CallOnOverflowRemoved2023 = "call-on-overflow-removed-2023";
     public const string CallReturning2002 = "call-returning-2002";

@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Expressions;
 
 using WiseOwl.Cobol.Binding.Model;
 
@@ -387,7 +388,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (Edition.DialectLevel >= 2002 || group.Kind is not (ReportGroupKindModel.ControlFooting or ReportGroupKindModel.PageHeading
                 or ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting)) return;
-        var (name, qualifiers) = DataBinder.KeyReference(source.Ref);
+        // A function-identifier or method invocation references a temporary, never control data (kb/Work PB5240).
+        if (source.Ref is not Core.DataReferenceContext sourceRef) return;
+        var (name, qualifiers) = DataBinder.KeyReference(sourceRef);
         if (_d.QualifiedCandidates(name, qualifiers, Model.Scope.Program).Single is not { } item) return;
         bool pageGroup = group.Kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting;
         foreach (var control in model.Controls)
@@ -1550,7 +1553,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + "clause shall also be specified (ISO §2023:13.15.3 SR15)");
             if (Edition.DialectLevel < 2002)
                 ScreenReportEntryFormats(entries, i, level, where, usage, line, column,
-                    picture, formatThreeOnly: source || value || sum || groupIndicate || justifiedOrBwz || sign, hasName: ge.dataName().NameOrNull() is not null);
+                    picture, formatThreeOnly: source || value || sum || groupIndicate || justifiedOrBwz || sign, hasName: ge.dataName().NameOrNull() is not null,
+                    written);
             if (groupIndicate)
             {
                 // §2023:13.18.28.3 SR1 — the three placement conditions the elementary rule (§2023:13.15.3 SR11, above)
@@ -1600,12 +1604,34 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <item>SR8 — "the USAGE clause is used only to declare the usage of printable items": a. in a format 3 entry the entry
     /// must define a printable item (one with a COLUMN NUMBER clause, §1985:XIII.3.11.4 GR1); b. in a format 1 or format 2
     /// entry at least one subordinate entry must define one.</item>
+    /// <item>SR3 — "In format 2 the level-number may be any integer from 02 to 48 inclusive. In format 3 the level-number may
+    /// be any integer from 02 to 49 inclusive.", with SR4a — "The first entry that describes a report group must be a format 1
+    /// entry": a level 01 entry is format 1, which prints none of the clauses only format 3 has (PICTURE, SIGN, JUSTIFIED,
+    /// BLANK WHEN ZERO, COLUMN, SOURCE, VALUE, SUM, GROUP INDICATE), and a level 49 entry is format 3, so it has a PICTURE
+    /// (kb/Work PB5316: `01 DL TYPE DETAIL LINE PLUS 1 COLUMN 1 PIC S99 … SOURCE WS-A` compiled and printed).</item>
     /// </list>
     /// COBOL-2002 and later have one entry format, whose rules the screens above already ask.</summary>
     private void ScreenReportEntryFormats(Core.ReportGroupEntryContext[] entries, int self, int level, string where,
-        bool usage, bool line, bool column, bool picture, bool formatThreeOnly, bool hasName)
+        bool usage, bool line, bool column, bool picture, bool formatThreeOnly, bool hasName, ReportEntryClause written)
     {
+        const ReportEntryClause FormatThreeClauses = ReportEntryClause.Picture | ReportEntryClause.Sign | ReportEntryClause.Justified
+            | ReportEntryClause.BlankWhenZero | ReportEntryClause.Column | ReportEntryClause.Source | ReportEntryClause.Value
+            | ReportEntryClause.Sum | ReportEntryClause.GroupIndicate;
+        if (level == 1 && (written & FormatThreeClauses) is var levelOneFormatThree and not ReportEntryClause.None)
+            Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a level 01 entry and writes "
+                + $"{ReportEntryClauseTable.Words(levelOneFormatThree)}; the first entry of a report group is a format 1 entry, which "
+                + "has none of them, and a format 3 entry's level-number is an integer from 02 to 49 (ISO §1985:XIII.3.9.3 SR3, "
+                + "SR4a)");
         bool formatTwo = level > 1 && !picture && !formatThreeOnly && !column;
+        // A level 49 entry can have no subordinate entry, so SR4 c and SR8 b would refuse it too: SR3 is the rule it breaks,
+        // and it is reported alone.
+        if (formatTwo && level == 49)
+        {
+            Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a level 49 entry with no PICTURE clause and "
+                + "none of the clauses of a format 3 entry, so it is a format 2 entry, whose level-number is an integer from 02 "
+                + "to 48 (ISO §1985:XIII.3.9.3 SR3)");
+            return;
+        }
         if (formatTwo)
         {
             if (!hasName && !line && !usage)
@@ -2268,7 +2294,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     // ENTRY to define a numeric or numeric-edited item. The entry's PICTURE is analyzed below
                     // (it needs the COLUMN block's usage/editing context), so the obligation is recorded here
                     // and discharged there, where `pic` exists.
-                    if (sc.roundedPhrase() is not null || sops.Any(o => IdentifierOperandOf(o) is null))
+                    if (sc.roundedPhrase() is not null || sops.Any(o => SourceIdentifierOf(o) is null))
                         sourceNeedsNumericEntry = true;
                     foreach (var op in sops) sourceOps.Add(BindSourceOperand(op, sc.roundedPhrase()));
                 }
@@ -2969,7 +2995,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private void ScreenSourceOperandParens(Core.ReportValueOperandContext[] ops, string where)
     {
         if (ops.Length <= 1) return;
-        if (!ops.Any(o => IdentifierOperandOf(o) is null)) return;   // every operand is identifier-1 — SR7 is silent
+        if (!ops.Any(o => SourceIdentifierOf(o) is null)) return;   // every operand is identifier-1 — SR7 is silent
         foreach (var o in ops.Where(o => !IsParenthesized(o)))
             Edition.Error(DiagnosticCatalog.ReportSourceOperandParens, $"{where}: the SOURCE clause has "
                 + $"{ops.Length} operands of which at least one is an arithmetic-expression, so each operand "
@@ -2988,6 +3014,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private Core.DataReferenceContext? IdentifierOperandOf(Core.ReportValueOperandContext op) =>
         BareReferenceOf(op) is { } dref && _d.Constants.ConstantOf(dref) is null ? dref : null;
 
+    /// <summary>⛔ THE SOURCE CLAUSE'S identifier-1 (kb/Work PB5240): the identifier a SOURCE operand IS when it is written
+    /// as one — the bare data reference <see cref="IdentifierOperandOf"/> answers, or a function-identifier, inline method
+    /// invocation, object-view or SELF / SUPER written as the whole operand (<see cref="SoleOperand.TemporaryIdentifier"/>)
+    /// — else null, meaning arithmetic-expression-1. A function-identifier is an identifier (§2023:8.4.3.1.2 Format 1), and
+    /// §2023:15.2 lets a function "be used anywhere a sending data item of that class and category may be specified", so
+    /// `SOURCE FUNCTION UPPER-CASE(T)` is identifier-1, the sending operand of §2023:13.18.53.4 GR1's implicit MOVE, and SR3's
+    /// numeric entry is not asked of it (§1985:IV.4.3.8.3.3 SR3 says the same of an alphanumeric function at 85). SUM keeps
+    /// <see cref="IdentifierOperandOf"/>: its addend is added, so a sole function is arithmetic-expression-1 there.</summary>
+    private Antlr4.Runtime.ParserRuleContext? SourceIdentifierOf(Core.ReportValueOperandContext op) =>
+        (Antlr4.Runtime.ParserRuleContext?)IdentifierOperandOf(op) ?? SoleOperand.TemporaryIdentifier(op.arithmeticExpression());
+
     /// <summary>Bind ONE SOURCE clause operand (ISO §2023:13.18.53.2 — the clause writes
     /// `{ identifier-1 | arithmetic-expression-1 } …`). identifier-1 is §2023:13.18.53.4 GR1's implicit MOVE sender; an
     /// arithmetic-expression-1 operand, an identifier under the clause's ROUNDED phrase (SR5) and a constant-name
@@ -3000,9 +3037,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         // §2023:13.18.53.3 SR5 makes an identifier-1 written WITH the ROUNDED phrase an arithmetic-expression, so the
         // two forms merge here and GR2's COMPUTE governs both (kb/Work PB852).
-        if (IdentifierOperandOf(op) is not { } dref || rounded is not null)
+        if (SourceIdentifierOf(op) is not { } identifier || rounded is not null)
             return new FieldComputeSource(op, DataBinder.WrittenText(op)) { Rounded = rounded };
-        return new FieldReferenceSource(dref, DataBinder.WrittenText(op));
+        return new FieldReferenceSource(identifier, DataBinder.WrittenText(op));
     }
 
     /// <summary>⛔ ISO §2023:13.18.54.4 GR1 — the sum counter's digit count, "derived from the corresponding number of
@@ -4393,6 +4430,34 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             : 0;
     }
 
+    /// <summary>⛔ THE COBOL-85 ARM OF THE REPORT-ITEM REFERENCE RULE (kb/Work PB5310): a sum counter named by a clause of another
+    /// section of the data division. §1985:XIII.3.9.3 SR10d — "Data-name-1 may be referenced only if the entry defines a sum
+    /// counter" — restricts which report entries a reference may name and says nothing of where it may be written, so at
+    /// COBOL-85 a sum counter is a data-name of the program wherever a clause prints one (an OCCURS DEPENDING ON object that
+    /// "must describe an integer", §1985:VI.5.8.3 SR6, may be one). The section rule <see cref="ReportEntryReferenceRefused"/>
+    /// applies, §2023:13.8.6.2.3 ("Report items shall not be accessed or referred to by any clauses in any other section of
+    /// the data division"), is ISO/IEC 1989:2002's (§2002:13.7.5.1.3) and has no 1985 counterpart. Returns the counter's
+    /// register (<see cref="ReportSumFamily.Register"/>, which the place builder answers with the counter's place) when the
+    /// edition is COBOL-85 and the written reference names exactly one sum counter of a non-repeating entry, found by the ONE
+    /// lookup a procedure-division reference uses (<see cref="ReportScope.SumCountersNamed"/>: the qualifier walk, then the
+    /// nearest declaring program, §1985:X.1.3.8.2 GR3a "the object in program B is the referenced object", so a nested
+    /// program's own counter hides its container's GLOBAL one); null otherwise, leaving the caller's own verdict. Two counters
+    /// of one program the qualifiers do not tell apart are §2023:8.4.2.2.3 SR1's ambiguity, reported here.
+    /// Asked only where the ordinary lookup found no data item, so a data item of the same name keeps its reference.</summary>
+    internal DataItem? SumCounterOperand85(string name, IReadOnlyList<string> qualifiers, string subject)
+    {
+        if (Edition.DialectLevel >= 2002 || _scope.SumCountersNamed(name, qualifiers) is not { } matches) return null;
+        if (matches.Count > 1)
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"{subject}: the reference is ambiguous — {matches.Count} "
+                + $"entries establish a sum counter named '{name}'. A reference shall uniquely identify one resource (ISO "
+                + "§2023:8.4.2.2.1, §2023:8.4.2.2.3 SR1); qualify it by report group entry or report-name.");
+            return null;
+        }
+        // A COBOL-85 report entry has no OCCURS clause, so a counter is never a table there; the guard keeps the 2002 shapes out.
+        return matches is [var (_, family)] && family.Register.SubscriptArity == 0 ? family.Register : null;
+    }
+
     /// <summary>⛔ THE ONE REFUSAL OF A REFERENCE TO A REPORT SECTION ENTRY WHERE NONE IS ADMITTED (kb/Work PB1046) — a
     /// procedure division statement, a clause of any section of the data division other than the report section, or a
     /// report section clause whose operand §2023:13.15.3 SR7 does not list (<paramref name="inReportSection"/>). ISO §2023:13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
@@ -4429,7 +4494,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         Edition.Error(DiagnosticCatalog.ReportItemReference,
             $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "
             + "here may not name. "
-            + (inReportSection
+            + (!entry.IsSumCounter && Edition.DialectLevel < 2002
+                // COBOL-85 has no section rule (SumCounterOperand85); its rule is the entry's: "Data-name-1 may be referenced only
+                // if the entry defines a sum counter" (kb/Work PB5310), and this entry defines none.
+                ? "ISO §1985:XIII.3.9.3 SR10d: \"Data-name-1 may be referenced only if the entry defines a sum counter\", and the "
+                  + "entry defines none."
+                : inReportSection
                 ? sr7 + (entry.IsSumCounter
                     ? " A sum counter is admitted in the report section only by a SOURCE clause (ISO §2023:13.18.53.3 SR4) or a "
                       + "SUM clause."
