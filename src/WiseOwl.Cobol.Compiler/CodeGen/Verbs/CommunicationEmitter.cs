@@ -90,7 +90,7 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
         // before the MCS updates the CD (a subscript may read TEXT LENGTH), so the receipt lands in the place the statement identified (kb/Work PB5279).
         var into = PlaceIdentification.Freeze(n.Into!, PlaceIdentification.Hoister(ctx));
         string receipt = $"__receipt{ctx.Names.NextEc()}";
-        w.Line($"var {receipt} = {RuntimeApi.McsReceive(cd, format, image, n.Segment, OperandText.RecordAreaImage(into), n.NoData is not null)};");
+        w.Line($"var {receipt} = {RuntimeApi.McsReceive(cd, format, image, n.Segment, OperandText.RecordAreaImage(into, use: OperandText.AreaUse.Receiving), n.NoData is not null)};");
         seqIo.EmitImageInto(n.Area, $"{receipt}.Area", storesIntoOwnItem: false);
         // A reference-modified receiver is a window, whose write splices; the image store is for an item's whole storage.
         if (into is RefModPlace) w.Line(PlaceRenderer.Write(into, $"{receipt}.Into"));
