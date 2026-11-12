@@ -2315,7 +2315,8 @@ of an unsupported facility.
   with none, before its Data or Procedure Division) and "The content of a debugging line must be such that a syntactically
   correct program is formed with or without the debugging lines being considered as comment lines" (COBOL7061: a program that
   parses with its debugging lines as source is parsed again with them hidden, and reported at the last debugging line before the
-  first syntax error of that parse). Both are 1985 rules and bind below COBOL-2002 only: the later editions carry the facility as
+  first syntax error of that parse; the converse direction, a unit without the mode whose debugging lines would not parse as source, is
+  not asked). Both are 1985 rules and bind below COBOL-2002 only: the later editions carry the facility as
   obsolete or removed (the edition windows above). Witnesses:
   `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-no-mode`,
   `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-mode`,
