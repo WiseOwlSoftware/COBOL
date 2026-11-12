@@ -128,7 +128,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         if (s is IBoundTransfersControl) _debug.LandBeforeTransfer();
         // §1985:XV.3.2.4 GR21 a: the DEBUG-LINE of a USE procedure's debugging section is the statement that causes the procedure to run.
         if (_dispatchState.DebugActive && _dispatchState.DebugUseProcedure && s.DebugLine > 0)
-            _ctx.Writer.Line($"__dbgLine = {s.DebugLine};");
+            _ctx.Writer.Line($"__dbgLine = {s.DebugLine}; __dbgRaisedInSection = {(_dispatchState.InDebugSection ? "true" : "false")};");
         if (!s.OperandEvaluation || _dispatchState.InOperandEvaluation) return s.Accept(this);
         bool saved = _dispatchState.EnterOperandEvaluation();
         try { return s.Accept(this); }

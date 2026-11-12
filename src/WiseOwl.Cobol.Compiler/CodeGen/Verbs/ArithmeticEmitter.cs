@@ -559,7 +559,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             if (earlier is not null) w.Line($"bool {earlier} = {flag}; {flag} = false;");
             using (w.Block("try")) emitOne();
             WriteSizeCatches(flag, ecState.SizeErrEcVar);
-            if (earlier is not null) w.Line($"if ({flag}) {stored} = false; {flag} |= {earlier};");
+            // "{stored}Ok" is whether an earlier receiver store of the same item succeeded: an item named as a receiver twice has changed, whatever the later store did.
+            if (earlier is not null) w.Line($"if ({flag}) {{ if (!{stored}Ok) {stored} = false; }} else {stored} = {stored}Ok = true; {flag} |= {earlier};");
         });
 
     /// <summary>⛔ §2023:14.7.4.3 RULE 7 IN A STATEMENT WITH NO SIZE ERROR PHRASE AND CHECKING OFF (kb/Work PB3990). "If the

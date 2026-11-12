@@ -69,6 +69,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 w.Line($"private static readonly NumProfile {sub.ProfileName} = {sub.Pic!.ProfileInitializer(ctx.SignEncoding)};   // {sub.CobolName}");
             w.Line("private DebugCause __dbgCause;   // the transfer-of-control cause of the next debug trigger (default Transfer → SPACES)");
             w.Line("private int __dbgLine;   // the CAUSING statement's source line — DEBUG-LINE for a non-START-PROGRAM trigger");
+            w.Line("private bool __dbgRaisedInSection;   // the statement last begun lies in a debugging section (recorded with __dbgLine where a debugging section monitors a USE procedure)");
             w.Line("private bool __dbgInSection;   // the transfer of control that set __dbgCause was written in a debugging section, which causes no debugging section (§1985:XV.3.2.4 GR1)");
         }
         w.Line();
@@ -432,7 +433,9 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         if (dispatchState.DebugActive)
         {
             string useTest = dispatchState.F3HandlerBasePc is not null ? $"if (__id < {dispatchState.DeclCount}) " : "";
-            w.Line($"{useTest}__dbgCause = DebugCause.UseProcedure;");
+            // The statement that raised the procedure is a debugging section's or not (§1985:XV.3.2.4 GR1): StatementEmitter records it with the line
+            // in a program with a debugging section on a USE procedure, the only one that can run for this cause.
+            w.Line($"{useTest}{{ __dbgCause = DebugCause.UseProcedure; __dbgInSection = __dbgRaisedInSection; }}");
         }
         if (ecModel)
         {

@@ -88,7 +88,7 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
         // (StoreFlagFor: a receiver whose ON SIZE ERROR path kept its content), so a verb with no such path needs no cooperation (kb/Work PB5296).
         var stored = new Dictionary<DebugFire, string>(ReferenceEqualityComparer.Instance);
         foreach (var f in fires.Where(f => f.WhenStored)) stored[f] = $"__dbgStored{ctx.Names.NextDebugPhrases()}";
-        foreach (var name in stored.Values) ctx.Writer.Line($"bool {name} = true;");
+        foreach (var name in stored.Values) ctx.Writer.Line($"bool {name} = true, {name}Ok = false;");
         _stored = stored;
         if (stored.Count > 0) flags = flags.WithStored(stored);
         _beforeIo = Of(fires, DebugWhen.BeforeIo);
