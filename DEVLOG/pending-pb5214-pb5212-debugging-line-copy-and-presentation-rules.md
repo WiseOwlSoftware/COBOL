@@ -9,3 +9,5 @@ PB5212. `DebuggingLineRewriter.Rewrite` also names the lines that begin before t
 Review finding R1-1 on PB5382 (a multi-line match crossing between a debugging line and a source line gave the rest of the end line the begin line's indicator): `ApplyReplacements` now compares the line the replacement ends on with the line the match ends on and starts a line of its own for the rest, carrier included, when they differ. Golden `pb5382-replace-match-crossing-debugging-lines`; `FixedFormDebuggingLine_TextWordsTakePartInMatching` now expects the period on its debugging line.
 
 Rows: 1985-GR-VI.4.3.4-4 PARTIAL to CONFORMS and 1985-GR-VI.4.3.4-5 DIVERGES to CONFORMS (GAP 313 to 311).
+
+Review round 1 (finisher): a contained program inherits its container's OBJECT-COMPUTER position for COBOL7060 (kb/Work/PB5212/2026-11-12-review-r1-nested-programs.md), and the golden XII.3@1985-REPLACE-STATEMENT/pb5382-replace-match-crossing-debugging-lines (S0, S1, R2, S2) now exists to witness the end-line indicator rule.

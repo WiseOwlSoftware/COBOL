@@ -76,7 +76,9 @@ public static class DebuggingLineRewriter
             {
                 case CobolLexer.PROGRAM_ID or CobolLexer.FUNCTION_ID or CobolLexer.CLASS_ID
                     or CobolLexer.INTERFACE_ID or CobolLexer.METHOD_ID:
-                    units.Push(new UnitFrame(units.Count > 0 && units.Peek().Mode));
+                    units.Push(units.Count > 0
+                        ? new UnitFrame(units.Peek().Mode) { PermittedFrom = units.Peek().PermittedFrom }   // a contained program is in the same separately compiled program (§1985:VI.7.3): the container's OBJECT-COMPUTER already precedes it
+                        : new UnitFrame(inheritedMode: false));
                     break;
                 case CobolLexer.END when v + 1 < visible.Count && IsUnitKind(tokens[visible[v + 1]].Type):
                     if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced);

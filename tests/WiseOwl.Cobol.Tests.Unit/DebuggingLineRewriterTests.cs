@@ -172,6 +172,8 @@ public sealed class DebuggingLineRewriterTests
     [InlineData("PROGRAM-ID. P.|SOURCE-COMPUTER. X.|OBJECT-COMPUTER. X.|{D}|DATA DIVISION.|{D}|PROCEDURE DIVISION.|{D}", 0)]
     [InlineData("PROGRAM-ID. P.|SOURCE-COMPUTER. X.|{D}|PROCEDURE DIVISION.|{D}", 1)]
     [InlineData("{D}|PROGRAM-ID. P.|OBJECT-COMPUTER. X.|{D}", 1)]
+    [InlineData("PROGRAM-ID. O.|OBJECT-COMPUTER. X.|PROCEDURE DIVISION.|PROGRAM-ID. I.|{D}|PROCEDURE DIVISION.|END PROGRAM I.|END PROGRAM O.", 0)]   // review R1-1: a contained program follows its container's OBJECT-COMPUTER
+    [InlineData("PROGRAM-ID. O.|PROCEDURE DIVISION.|PROGRAM-ID. I.|OBJECT-COMPUTER. X.|{D}|END PROGRAM I.|END PROGRAM O.", 0)]
     public void Rewrite_NamesTheDebuggingLinesBeforeTheEndOfObjectComputer(string program, int expected)
     {
         var stream = new CommonTokenStream(new CobolLexer(new AntlrInputStream(
