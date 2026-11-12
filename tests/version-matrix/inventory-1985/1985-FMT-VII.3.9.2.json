@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.3.9.2",
  "rule-digest": "6ae4ee5011a3",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueOfEntry; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#CaptureValueOf",
  "test-ref": "conformance:cases/VII.3.9@1985-VALUE-OF-CLAUSE/1985-FMT-VII_3_9_2",
+ "notes": "Overturn confirmed for the national and boolean literals; rejected for the 19-digit literal. literal-1 of the 1985 format is a 1985 literal, and 'Every literal belongs to one of two types: nonnumeric or numeric' (IV.4.2.2.2); N\"AB\", NX\"0041\" and B\"1\" are neither, so a program using them is not 1985 COBOL. The standard requires a conforming implementation to flag nonstandard extensions that are syntactically distinguishable (I.1.5.2.5.2), and the --std 85 compiler's mechanism for a later edition's construct is the introduction gate COBOL0900 (docs/VERSION_TEST_MATRIX_DESIGN.md). Here the clause accepts the three with no diagnostic at all (v11, v12, v16 compile and run FS=00), while the same position does gate a hexadecimal literal (own probe f1.cob: VALUE OF ID IS X\"4142\" is COBOL0900) and MOVE N\"AB\" is COBOL0900 (c01). CaptureValueOf records literal-1 with no screen ('a literal-1 has no rule beyond its format', line 41), so the national and boolean gates, which sit at use sites, never see it. The 19-digit literal (v15) is not a 1985 nonconformity: IV.4.2.2.2.2 sets 18 digits as the minimum an implementor must allow, so a longer literal is implementor latitude; it contradicts only the compiler's own 85 limit (COBOL0802 on MOVE), a consistency point. Note PB5416 is right in its mechanism, sites and harm flags (under_rejects, silent, MINOR); its Expected lists v15's refusal as from the 1985 text, which it is not: that arm should be stated as consistency with the implementation's chosen 18-digit limit (or dropped). kb/Work PB5416 holds the defect (adjudication: held-85/set7/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

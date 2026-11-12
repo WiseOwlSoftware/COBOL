@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.3.3.2-L2.2",
  "rule-digest": "aefec18a1a96",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed",
  "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_2-L2_2",
+ "notes": "The 1985-SR-XVI.3.3.2-1 answer, stated there once. For this rule the witness of the over-refusal is s3 (from 70, executed range 70 only). kb/Work PB5442 holds the defect (adjudication: held-85/set6/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-17",
  "rule-digest": "dfd675027278",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitDebugTriggers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-17",
+ "notes": "GR3b runs the section after an ALTER 'which references procedure-name-1', and GR17 says what DEBUG-ITEM then holds: DEBUG-NAME is procedure-name-1 and DEBUG-CONTENTS is 'the applicable procedure-name associated with the TO phrase'. GR17c only makes sense when procedure-name-1 is the ALTERED operand: 'applicable' picks, among an ALTER's several 'x TO PROCEED TO y' entries, the TO name paired with procedure-name-1; for a subject that is itself a TO operand there is no TO phrase 'associated' with it other than itself, and GR17 would be vacuous. Read together, GR3b and GR17 trigger on the altered name only, so the refuter's p17a (USE FOR DEBUGGING ON PC, 'ALTER PA TO PROCEED TO PC') rightly runs no section at the ALTER; PC's section runs when PC is entered (GR3a, p17a line 28). Precedence confirms it: GnuCOBOL 3.2 (cobc/codegen.c output_alter) fires the debugging section for the altered label only, with DEBUG-NAME the altered name and DEBUG-CONTENTS the TO name. My a1 (ALL PROCEDURES, 'ALTER PA TO PC PB TO PD') prints [PA][PC] and [PB][PD] at the ALTER and nothing for PC or PD, the same rule under GR4. Implementor choice: Does an ALTER whose TO operand is procedure-name-1 cause the debugging section to run (§1985:XV.3.2.4 GR3b)? Decided by the text (GR17b-c describe the subject as the altered name paired with its TO name), confirmed by GnuCOBOL 3.2 (codegen.c output_alter triggers on the altered label only); documented in docs/CONFORMANCE.md section 3, determination D-DEBUG-PROCEDURE (the ALTER trigger).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
