@@ -25,7 +25,7 @@ internal static class Segmentation
 {
     /// <summary>The value a written segment-number literal denotes: 0 when it is omitted (§1985:XVI.3.2.3 SR2), and
     /// <see cref="int.MaxValue"/> for more than two significant digits (out of every range of the module, so the range
-    /// screen refuses it and no larger number is parsed). It is a section header's segment-number at every edition: from
+    /// screen refuses it, no larger number is parsed, and the flow rules skip it, <see cref="SegmentNumber.HasMeaning"/>). It is a section header's segment-number at every edition: from
     /// 2002 a written number is refused (COBOL0902), and under --permissive the removed construct keeps the meaning COBOL-85
     /// gives it (the migration mode), as ALTER does.</summary>
     public static int ValueOf(CobolParserCore.IntegerLiteralContext? number)
@@ -61,6 +61,8 @@ internal static class Segmentation
     public static bool CheckAlter(BinderContext ctx, ResolvedProcedure target, Antlr4.Runtime.ParserRuleContext written, string asWritten)
     {
         int goTo = target.Section?.Segment ?? 0, alter = ctx.CurrentSection?.Segment ?? 0;
+        // A number out of the module's range is already COBOL6819 and classifies neither segment (SegmentNumber.HasMeaning).
+        if (!SegmentNumber.HasMeaning(goTo) || !SegmentNumber.HasMeaning(alter)) return true;
         if (!SegmentNumber.IsIndependent(goTo) || goTo == alter || !MeaningKept(ctx.Edition.Edition)) return true;
         using (ctx.Edition.At(written))
             ctx.Edition.Error(DiagnosticCatalog.SegmentationFlowRestriction,
@@ -85,9 +87,10 @@ internal static class Segmentation
         var sections = ctx.Table.ParaSections;
         var spanned = range.SpannedPcs()
             .Select(pc => (uint)pc < (uint)sections.Count ? sections[pc]?.Segment ?? 0 : 0)
+            .Where(SegmentNumber.HasMeaning)   // a number out of range is already COBOL6819 and lies in no segment
             .Distinct().Order().ToList();
         int from = ctx.CurrentSection?.Segment ?? 0;
-        if (RangeAllowed(from, spanned)) return;
+        if (!SegmentNumber.HasMeaning(from) || RangeAllowed(from, spanned)) return;
         ctx.Edition.Error(DiagnosticCatalog.SegmentationFlowRestriction,
             $"the procedures this {verb} statement in segment {from} names lie in segments {string.Join(", ", spanned)}: they "
             + "shall lie wholly in non-independent segments or wholly in one independent segment"

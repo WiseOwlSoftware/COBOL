@@ -9333,7 +9333,8 @@ public static class DiagnosticCatalog
     /// <summary>COBOL6819 — an X3.23-1985 segment-number outside the range the Segmentation module gives it (kb/Work PB5084):
     /// SEGMENT-LIMIT 1 through 49, a section 0 through 99, a declarative section less than 50. Emitted by
     /// VersionConformancePass.ParseArm.ScreenSegmentNumber where the module's constructs exist (COBOL-85; from 2002 they are
-    /// COBOL0902, removed).</summary>
+    /// COBOL0902, removed), and for a section's number also where --permissive keeps its COBOL-85 meaning at a later edition
+    /// (<c>Segmentation.MeaningKept</c>, kb/Work PB5223).</summary>
     public static readonly DiagnosticDescriptor SegmentNumberOutOfRange = new(
         "COBOL6819", "segment-number-out-of-range", EditionSeverity.Error,
         "An X3.23-1985 segment-number is outside the range its syntax rule allows. §1985:XVI.2.3.3 SR1 (SEGMENT-LIMIT): "
@@ -9468,7 +9469,9 @@ public static class DiagnosticCatalog
     /// PERFORM, SORT or MERGE names span the fixed portion and an independent segment, two independent segments, or an
     /// independent segment other than the statement's own (§1985:XVI.3.3.2, XVI.3.3.3, XVI.3.3.4). One descriptor for the
     /// module's four restrictions, as COBOL6819 holds its three ranges. Emitted by
-    /// <c>Segmentation.CheckAlter</c> and <c>Segmentation.CheckProcedures</c> at COBOL-85, the one edition with segment-numbers.</summary>
+    /// <c>Segmentation.CheckAlter</c> and <c>Segmentation.CheckProcedures</c> at COBOL-85, the one edition with segment-numbers,
+    /// and by <c>CheckAlter</c> also where --permissive keeps the number's COBOL-85 meaning at a later edition
+    /// (<c>Segmentation.MeaningKept</c>, kb/Work PB5224).</summary>
     public static readonly DiagnosticDescriptor SegmentationFlowRestriction = new(
         "COBOL6877", "segmentation-flow-restriction", EditionSeverity.Error,
         "A statement breaks a restriction on program flow in a segmented program. §1985:XVI.3.3.1: \"A GO TO statement in a "

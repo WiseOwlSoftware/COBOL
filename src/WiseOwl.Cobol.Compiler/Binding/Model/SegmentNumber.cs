@@ -11,6 +11,16 @@ internal static class SegmentNumber
     /// <summary>The lowest independent segment-number (§1985:XVI.3.2.4 GR3).</summary>
     public const int FirstIndependent = 50;
 
+    /// <summary>The highest segment-number a section may carry (§1985:XVI.3.2.3 SR1: "The segment-number must be an integer
+    /// ranging in value from 0 through 99.").</summary>
+    public const int Last = 99;
+
+    /// <summary>Is <paramref name="segment"/> a number the module gives a meaning (0 through <see cref="Last"/>,
+    /// §1985:XVI.3.2.3 SR1)? A number outside it is refused by the range screen (COBOL6819), so a rule that asks about a
+    /// segment's place in the program (fixed or independent) skips it rather than report a cascade about a number that
+    /// classifies nothing (kb/Work PB5223).</summary>
+    public static bool HasMeaning(int segment) => segment is >= 0 and <= Last;
+
     /// <summary>Is <paramref name="segment"/> an independent segment (§1985:XVI.3.2.4 GR3)?</summary>
     public static bool IsIndependent(int segment) => segment >= FirstIndependent;
 }

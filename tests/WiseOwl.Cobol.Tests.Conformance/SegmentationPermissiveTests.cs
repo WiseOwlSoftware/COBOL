@@ -102,6 +102,24 @@ public sealed class SegmentationPermissiveTests
         Assert.Equal(new[] { "M", "A ALTERED" }, stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
     }
 
+    // The PERFORM names IND-A (160, out of range) through IND-B (60). 160 classifies no segment, so the one segment the range
+    // lies in is 60, a single independent segment, which §1985:XVI.3.3.2 allows from segment 0: only COBOL6819 is reported.
+    private const string PerformOverAThreeDigitSegment = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB5223P.
+       PROCEDURE DIVISION.
+       MAIN-SEC SECTION.
+       M-1.
+           PERFORM IND-A THRU IND-B.
+           STOP RUN.
+       IND-A SECTION 160.
+       A-1.
+           DISPLAY "A".
+       IND-B SECTION 60.
+       B-1.
+           DISPLAY "B".
+       """;
+
     [Theory]
     [InlineData(2002)]
     [InlineData(2014)]
@@ -113,6 +131,25 @@ public sealed class SegmentationPermissiveTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL6819");
         EditionHarness.AssertNoDiagnostic(errors, "CS0029");
         EditionHarness.AssertEveryDiagnosticPositioned(errors, "COBOL6819 under --permissive");
+    }
+
+    /// <summary>A number outside 0 through 99 is COBOL6819 and classifies no segment (SegmentNumber.HasMeaning), so neither flow
+    /// rule reports a cascade COBOL6877 about it — formerly "independent segment 2147483647", a number never written (branch
+    /// review R1-3 of PB5223). Asked at COBOL-85 (both rules) and under --permissive (the ALTER rule).</summary>
+    [Theory]
+    [InlineData(85, false)]
+    [InlineData(85, true)]
+    [InlineData(2014, true)]
+    public void AnOutOfRangeSegmentNumber_ReportsNoCascadeFlowRestriction(int edition, bool permissive)
+    {
+        foreach (string source in new[] { ThreeDigitSegment, PerformOverAThreeDigitSegment })
+        {
+            var (ok, errors, _) = EditionHarness.CompileFull(source, edition, permissive);
+            Assert.False(ok);
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL6819");
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL6877");
+            EditionHarness.AssertNoDiagnostic(errors, "2147483647");
+        }
     }
 
     [Theory]
