@@ -1,4 +1,4 @@
-## PB5373: how the 21 no-witness rows of the 1985 edition close; the account 1 hold lifted
+## Entry 3526 — 2026-11-12 10:36 PST — PB5373: how the 21 no-witness rows of the 1985 edition close; the account 1 hold lifted
 
 Notes only; no code changed.
 
@@ -27,3 +27,4 @@ its refuter requirement, and section 8 rows checked against their own edition's 
 
 **The hold (kb/Work PB5357, dated file).** The owner lifted the account 1 hold for this week and announced a reset; his
 three messages are quoted. A Mythos or Fable dispatch still needs his approval per dispatch.
+
