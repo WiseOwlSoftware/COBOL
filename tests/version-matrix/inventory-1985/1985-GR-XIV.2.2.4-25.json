@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-25",
  "rule-digest": "95f3f8b75ac4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#InitialArea; src/WiseOwl.Cobol.Runtime/Communication/MessageStore.cs#Scheduled; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
+ "test-ref": "conformance-test:ScheduledProgramTests.TheScheduledProgram_FirstReceiveReturnsTheSchedulingMessage_AndAChangedTerminalMakesTheStatementUnsuccessful; conformance-test:ScheduledProgramTests.ACalledProgramsInitialCd_IsSpaces_AndTheScheduledProgramKeepsTheMessage",
+ "notes": "kb/Work PB5373 class 4, decided 2026-11-12. §1985:XIV.2.2.4 GR25: \"When a program is scheduled by the MCS to process a message, the first RECEIVE statement referencing the input-output CD with the INITIAL clause returns the actual message that caused the program to be scheduled.\" Which program the MCS scheduled is the implementor's: a process acting for the MCS sets WISEOWL_COBOL_MCS_SCHEDULED before the run unit starts (docs/CONFORMANCE.md section 3, 'A program scheduled by the MCS', which now also states which message caused the scheduling: the head message of that terminal or queue structure). A conformance-suite case cannot set the environment, so the witness is a harness test in the draft shape's place: ScheduledProgramTests runs an 85 program with the variable set to T1 over an mcs.json whose T1 holds ALPHA then BETA and T2 holds OTHER, and the first RECEIVE of its INITIAL CD returns ALPHA with status 00 and T1 in data-name-3, never T2's OTHER. The CALLed-program test of kb/Work PB5282 shows the message stays for the scheduled program.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

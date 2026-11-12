@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-VI.4.4.4-1",
  "rule-digest": "bcb6b2c7fdee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#memorySizeClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMemorySizeClause",
+ "test-ref": "conformance:cases/VI.4.4@1985-OBJECT-COMPUTER-PARAGRAPH/1985-GR-VI_4_4_4-1",
+ "notes": "kb/Work PB5373 class 5, decided 2026-11-12. §1985:VI.4.4.4 GR1: the computer-name \"may provide a means for identifying equipment configuration, in which case the computer-name and its implied configuration are specified by each implementor\"; the configuration \"contains specific information concerning the memory size\"; \"The implementor defines what is to be done if the subset specified by the user is less than the minimum configuration required for running the object program.\" The rule asks nothing a compiler could fail: it leaves the names, the configuration and the undersized-subset action to the implementor. WiseOwl names no equipment configuration (docs/CONFORMANCE.md DOC-A.1-127: any computer-name is accepted and identifies nothing, one object computer), so the observable obligation is acceptance, tested: an 85 program names an arbitrary computer-name (NO-SUCH-MACHINE-0) with MEMORY SIZE 1 WORDS, far below any minimum configuration, compiles and runs as written (the expected line is derived from the program's ADD, not from a run). A compiler that refused the name or the size would fail it.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
