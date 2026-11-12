@@ -23,13 +23,15 @@ commitments, the four required reviews) and does not restate them. Other documen
    (`kb/Work/R13`). This settles implementor LATITUDE only — never GnuCOBOL's non-ISO extensions — and the choice is
    documented in `docs/CONFORMANCE.md`. When a general-format DIAGRAM is load-bearing, render the PDF page
    (`scripts/render-spec-page.py <page>`): the OCR'd diagrams were systematically lossy toward falsely-restrictive syntax.
-   **A citation names its edition: `§<edition>:<locator>[ <rule>]`** — `§2023:13.18.35.4 GR1`, `§1985:VI.5.3.2 GR3`
+   **A citation names its edition: `§<edition>:<locator>[ <rule>]`** — `§2023:13.18.35.4 GR1`, `§1985:VI.5.3.4 GR3`
    (kb/Work PB4887; the format and its one parser are `scripts/spec/citation.py`). A bare `§` is a section of a repository
    document, never the standard.
    **⛔ VALIDATE EVERY CITATION MECHANICALLY — `python scripts/spec/cite.py --check "§2023:<clause>[ <rule>]" "<text>"`.**
    The failure mode is not inventing a citation, it is INHERITING one: a note or design doc carries a §, its quoted text is
    genuinely in the standard, and the clause NUMBER is never re-derived before it propagates into code comments, goldens
-   and the DEVLOG. A citation you did not run `--check` on is not a citation.
+   and the DEVLOG. A citation you did not run `--check` on is not a citation. It checks every part, in every edition: the
+   clause, the rule's kind, ordinal and sub-item (`GR6c`), and that a quotation of four or more words lies inside that
+   rule; a failure names the part and, where it can, the right designator (kb/Work PB5317).
 2. **Implement each feature FROM its subsystem deep-dive design doc** (`docs/DESIGN.md` §0.5 lists them) plus the spec.
    Follow the doc; do not improvise. A design correction updates the doc in the same change set.
 3. **Implement the COMPLETE feature to spec + design — never scope to what a test references.** Tests verify, they

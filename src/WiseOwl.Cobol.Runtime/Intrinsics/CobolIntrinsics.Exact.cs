@@ -465,11 +465,15 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>NUMVAL-C's §2023:15.68.4 r1 value as an SDIDI, exact at the parsed scale — the projection EVERY
-    /// arithmetic mode uses; the currency and grouping rules are the one scan's.</summary>
+    /// arithmetic mode uses; the currency and grouping rules are the one scan's. <paramref name="contentUnrestricted"/> is
+    /// the COBOL-85 rule (kb/Work PB5161, <c>DialectBehavior.NumvalCCurrencyContentRules</c> inactive): the 1989 module
+    /// puts no rule on argument-2's characters (§1989:A.2.30.3 AR1, AR4), so §2023:15.68.3 AR2's content screen is not
+    /// applied and the scan looks for the currency string as written.</summary>
     public static CobolDec NumvalCDec(string text, string currency, bool commaMode = false, bool anycase = false,
-                                      int digitCap = 31, LocaleFacts? classification = null)
+                                      int digitCap = 31, LocaleFacts? classification = null, bool contentUnrestricted = false)
     {
-        if (InvalidCurrency(currency)) return CobolDec.From(NumvalCInvalidCurrency(currency), 0);
+        if (!contentUnrestricted && CurrencyStringViolatesContentRules(currency))
+            return CobolDec.From(NumvalCInvalidCurrency(currency), 0);
         NvParse p = NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true, classification);
         if (p.ErrPos != 0) return CobolDec.From(NumvalCReject(p, text, digitCap), 0);
         return CobolDec.From(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac);
@@ -550,16 +554,15 @@ public static partial class CobolIntrinsics
         return p.ErrPos != 0 ? p.ErrPos : p.CapPos;
     }
 
-    /// <summary>The §2023:15.68.3 r2 runtime reject of an invalid argument-2 — shared by <see cref="NumvalC"/> and
-    /// <see cref="NumvalCDec"/> (TEST-NUMVAL-C carries its own r1c LENGTH+1 leg beside this raise).</summary>
+    /// <summary>The §2023:15.68.3 r2 runtime reject of an invalid argument-2 of <see cref="NumvalCDec"/> (TEST-NUMVAL-C
+    /// carries its own r1c LENGTH+1 leg beside its own raise).</summary>
     private static Int128 NumvalCInvalidCurrency(string currency) =>
         Exceptions.ExceptionState.ArgumentError(
             $"NUMVAL-C argument-2 \"{currency}\" shall contain at least one non-space character and none "
             + "of the digits 0-9, the characters '*' '+' '-' ',' '.', or the letter pair CR/DB in any "
             + "case (§2023:15.68.3 rule 2)");
 
-    /// <summary>The §2023:15.68 reject projection — shared by <see cref="NumvalC"/> and <see cref="NumvalCDec"/>
-    /// (see <see cref="NumvalReject"/>).</summary>
+    /// <summary>The §2023:15.68 reject projection of <see cref="NumvalCDec"/> (see <see cref="NumvalReject"/>).</summary>
     private static Int128 NumvalCReject(NvParse p, string text, int digitCap) =>
         p.CapHit
             ? DigitCapExceeded("NUMVAL-C", digitCap + 1, digitCap, "ISO §2023:15.68.3 rules 6-7")
@@ -570,8 +573,11 @@ public static partial class CobolIntrinsics
     /// <summary>§2023:15.68.3 r2's content bans on the currency string (after the rule's own edge-space trim):
     /// empty/all-space, any digit 0-9, any of <c>* + - , .</c> (the characters are named outright — the
     /// comma/period ban does not flex with DECIMAL-POINT IS COMMA), or a CR/DB letter pair in any case.
-    /// Shared by NUMVAL-C and TEST-NUMVAL-C (§2023:15.94.3 r1 mirrors the argument rules).</summary>
-    private static bool InvalidCurrency(string currency)
+    /// ⛔ THE ONE COPY OF THE RULE (kb/Work PB5161): the binder asks it of a LITERAL argument-2 at compile time
+    /// (<c>IntrinsicBinder.BindNumvalCFamily</c>, COBOL1627) and NUMVAL-C and TEST-NUMVAL-C of a data item's content at run time
+    /// (§2023:15.94.3 r1 mirrors the argument rules), each only where the edition has the rule (from 2002,
+    /// <c>DialectBehavior.NumvalCCurrencyContentRules</c>; TEST-NUMVAL-C is itself a 2002 function).</summary>
+    public static bool CurrencyStringViolatesContentRules(string currency)
     {
         string cur = currency.Trim();
         return cur.Length == 0
@@ -610,7 +616,7 @@ public static partial class CobolIntrinsics
         // §2023:15.68.3 r2 via §2023:15.94.3 r1 — an invalid runtime currency raises EC-ARGUMENT-FUNCTION; the
         // checking-off verdict is the r1c "no specific character in error" LENGTH+1 leg (no character OF
         // ARGUMENT-1 is in error — the argument-2 is — and 0 would falsely certify conformance).
-        if (InvalidCurrency(currency))
+        if (CurrencyStringViolatesContentRules(currency))
         {
             Exceptions.ExceptionState.ArgumentError(
                 $"TEST-NUMVAL-C argument-2 \"{currency}\" shall contain at least one non-space character and "

@@ -960,6 +960,29 @@ compile-time screen stays fail-open (it can only refuse the provably non-integra
 run-time condition. `IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers` walks `NumXCarrier`.
 Goldens `pb1526_integer_argument_has_integral_value`, `pb638_unsigned_wide_item_as_integer_argument`.
 
+The compile-time screen's witness shapes are three, each a root shape with a valuation that is not an integer
+(`IntrinsicArgumentRules.NotAlwaysIntegral`): a quotient of a bare item by a literal, an additive spine with an uncancelled
+scaled item (or a non-integral constant), and a POWER over a bare numeric item whose exponent is a negative or non-integral
+literal or a different item that is signed, negated or scaled (`PowerWitness`, kb/Work PB5208: the item can hold 3 × 10^(−s),
+whose negative integer power is 10^(sk) / 3^k and whose non-integral power is irrational). The power half `ProvablyIntegral`
+admits (a non-negative integer literal exponent) is the complement; a literal base or an expression base fails open.
+Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`; complement `pb5208_power_integral_exponents`.
+
+### An argument rule that differs by edition is one edition arm, never a second copy (PB5130, PB5161, PB5162).
+
+The 1989 intrinsic function module (the `--std 85` functions) words some argument rules less strictly than 2002 and later,
+and each difference is ONE switch on the edition that states it. A rule whose source is legal everywhere but whose ANSWER
+changes is a `DialectBehavior` row read by the binder into a flag on `BoundIntrinsicCall` and rendered as a named runtime
+argument: `IntegerDateFormBounded` (2002; the year of the four integer-date conversions is unbounded above at 85, so
+`CobolDate` counts Gregorian days arithmetically instead of through `System.DateTime`, which ends at 9999;
+`IntegerDateFormUnbounded` → `unbounded: true`) and `NumvalCCurrencyContentRules` (2002; NUMVAL-C's argument-2 has no content
+rule at 85; `CurrencyContentUnrestricted` → `contentUnrestricted: true`, and the one copy of the rule,
+`CobolIntrinsics.CurrencyStringViolatesContentRules`, serves the binder's literal screen and the runtime's data-item screen).
+A per-position argument PREDICATE whose wording starts later carries that edition itself (`ArgPredicate.Since`, asked through
+`AppliesAt`): ORD's category predicate starts at 2002 because §1989:A.2.31.3 AR1 says CLASS alphanumeric, which holds the
+edited categories; `IntrinsicArgumentClassDriftTests.CategoryPredicates_StartInTheEditionWhoseRuleSaysCategory` holds every
+1985 function's category row to its 1989 sentence.
+
 ### An argument expression past the Int128 carrier is taken EXACT by the exact family, on the wide intermediate (PB3953).
 
 A nested native product of 39 to 77 digits is the exact wide intermediate (`NumX.Wide`, `CobolWide`, NUMERIC_DESIGN, kb/Work
