@@ -335,7 +335,10 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
     }
 
     /// <summary>The rules that need the entries' sizes and VALUE clauses, asked once the forest is complete: A.1.2.2 SR5 and SR14, a record of an input or input-output
-    /// CD "shall describe a record of exactly" 87 or 33 "alphanumeric character positions"; and SR5, SR9, SR14, "only the first redefinition may contain VALUE clauses".</summary>
+    /// CD "shall describe a record of exactly" 87 or 33 "alphanumeric character positions" (the storage width), which the 1985 text words as "standard data format
+    /// characters" (§1985:XIV.2.2.3 SR5 and SR14, sized by §1985:IV.4.3.4: <see cref="ItemLength.StandardDataFormatCharacters"/>, never the storage a COMP item
+    /// occupies, so at --std 85 only); and SR5, SR9, SR14, "only the first redefinition
+    /// may contain VALUE clauses", where a condition-name entry is a VALUE clause too (kb/Work PB5290).</summary>
     internal void CheckRecords()
     {
         foreach (var cd in host.State.Communication.Declared)
@@ -344,23 +347,26 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
             {
                 int required = cd.Format is CommunicationFormat.Input ? 87 : 33;
                 string rule = cd.Format is CommunicationFormat.Input ? "SR5" : "SR14";
+                bool is1985 = Edition.DialectLevel < 2002;
                 foreach (var record in cd.Records)
-                    if (record.ByteWidth != required)
+                    if ((is1985 ? ItemLength.StandardDataFormatCharacters(record) : record.ByteWidth) is var size && size != required)
                         using (Edition.At(record))
-                            Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"record '{record.CobolName ?? "FILLER"}' of CD '{cd.Name}' describes {record.ByteWidth} character "
-                                + $"positions; ISO/IEC 1989:2002 A.1.2.2 {rule}: it \"shall describe a record of exactly {required} alphanumeric character positions\".");
+                            Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"record '{record.CobolName ?? "FILLER"}' of CD '{cd.Name}' describes {size} character "
+                                + (is1985
+                                    ? $"positions in standard data format; ISO §1985:XIV.2.2.3 {rule}: it \"must describe a record of exactly {required} standard data format characters\" (§1985:IV.4.3.4)."
+                                    : $"positions; ISO/IEC 1989:2002 A.1.2.2 {rule}: it \"shall describe a record of exactly {required} alphanumeric character positions\"."));
             }
             foreach (var record in cd.Records.Skip(1))
                 if (FirstWithValue(record) is { } valued)
                     using (Edition.At(valued))
-                        Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"'{valued.CobolName ?? "FILLER"}' has a VALUE clause in a record of CD '{cd.Name}' that is not its first; "
-                            + "ISO/IEC 1989:2002 A.1.2.2: \"only the first redefinition may contain VALUE clauses\".");
+                        Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"'{valued.CobolName ?? "FILLER"}' has {(valued.Own88s.Count > 0 && valued.RawValue is null && valued.TableValues is null ? $"the condition-name '{valued.Own88s[0].Name}', whose entry is a VALUE clause," : "a VALUE clause")} in a record of CD '{cd.Name}' that is not its first; "
+                            + (Edition.DialectLevel < 2002 ? "ISO §1985:XIV.2.2.3 (SR5, SR9 and SR14): " : "ISO/IEC 1989:2002 A.1.2.2: ") + "\"only the first redefinition may contain VALUE clauses\".");
         }
     }
 
     private static DataItem? FirstWithValue(DataItem item)
     {
-        if (item.RawValue is not null || item.TableValues is not null) return item;
+        if (item.RawValue is not null || item.TableValues is not null || item.Own88s.Count > 0) return item;
         foreach (var child in item.Children)
             if (FirstWithValue(child) is { } found)
                 return found;

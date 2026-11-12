@@ -64,7 +64,7 @@ A CD is a redefinition class, the FD's implicit record area applied to a new sec
 
 Asked at the entry: SR2 (INITIAL once, and not with USING), SR4 and SR8 (some way of describing the area), SR6, SR10 and SR15 (unique data-names), and Annex A's "only in a program definition". `LevelNumberPass` asks 13.16.31 SR2 (no level 77) with its own `CommunicationRecord` arm (the FD set, the CD sentence and the 2002 citation; PB4717), and `ResolveRedefinesPass` 13.16.42
 SR4 (no REDEFINES at level 1). A residence row of `ClausePlacementRules` lists the sections its sentence lists, so EXTERNAL, GLOBAL (2002 13.16.25.2 SR1 b) and BASED refuse a CD's record as COBOL2404. Asked once the forest is complete (`CheckCommunicationRecordsPass`): SR5 and SR14 (exactly 87 or 33
-positions) and the VALUE rule. All are COBOL6169 with the rule quoted, the COBOL1720 precedent.
+positions: at --std 85 the standard data format characters of §1985:IV.4.3.4, `ItemLength.StandardDataFormatCharacters`, so a COMP item counts its digits; from 2002 the storage width) and the VALUE rule (a condition-name entry is a VALUE clause: kb/Work PB5290). All are COBOL6169 with the rule quoted, the COBOL1720 precedent.
 
 ## 4. The statements
 
