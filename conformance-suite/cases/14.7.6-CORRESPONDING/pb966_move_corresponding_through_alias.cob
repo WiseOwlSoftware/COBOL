@@ -51,8 +51,8 @@
           05 SRR REDEFINES SR.
              10 S5 PIC X(2).
           05 S3 PIC X(3) VALUE "GHI".
-       66 SALIAS RENAMES SG THROUGH S3.
-       66 GALIAS RENAMES SG.
+       66 SALIAS RENAMES SG OF SRC THROUGH S3 OF SRC.
+       66 GALIAS RENAMES SG OF SRC.
        01 DST.
           05 S0 PIC X(2).
           05 S1 PIC X(3).

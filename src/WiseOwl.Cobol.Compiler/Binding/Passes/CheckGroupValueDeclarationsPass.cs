@@ -228,7 +228,7 @@ internal sealed class CheckGroupValueDeclarationsPass : IBindPass
     /// one; the alphanumeric arm is GR3's residue, its character positions being
     /// <see cref="DataItem.ImageWidth"/> and its usage display (§2023:8.5.2 — "An alphanumeric group item is treated as
     /// though it had a usage of display").</para></summary>
-    private static PicInfo GroupSubjectPic(DataItem group) =>
+    internal static PicInfo GroupSubjectPic(DataItem group) =>
         group.AsIfPic
         ?? new PicInfo(PicCategory.Alphanumeric, Usage.Display, group.ImageWidth, Digits: 0, Scale: 0, Signed: false);
 

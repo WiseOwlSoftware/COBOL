@@ -133,7 +133,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         {
             var t = ins.Tallying;
             string kinds = string.Join(", ", t.Select(x => RuntimeApi.InspectTallyKindText(x.Kind)));
-            string tally = RuntimeApi.InspectTally(img, kinds, tallyPats, tallyBefs, tallyAfts, back);
+            string tally = RuntimeApi.InspectTally(img, kinds, tallyPats, tallyBefs, tallyAfts, back, ins.BeforeFromLeftmost);
             w.Line($"long[] __cnt{id} = {tally};");
             // One add per operand, in source order — the same counter may appear under several operands and
             // accumulates each count (GR11 — INSPECT adds, it never initializes).
@@ -177,13 +177,13 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             string? figs = r.Any(x => x.ReplacementIsFigurative)
                 ? string.Join(", ", r.Select(x => x.ReplacementIsFigurative ? "true" : "false"))
                 : null;
-            w.Line($"{img} = {RuntimeApi.InspectReplace(img, kinds, replPats, replReps, replBefs, replAfts, back, figs)};");
+            w.Line($"{img} = {RuntimeApi.InspectReplace(img, kinds, replPats, replReps, replBefs, replAfts, back, figs, ins.BeforeFromLeftmost)};");
             mutated = true;
         }
 
         if (ins.Converting is { } cv)
         {
-            w.Line($"{img} = {RuntimeApi.InspectConvert(img, convFrom, convTo, convBef, convAft, back, cv.ToIsFigurative)};");
+            w.Line($"{img} = {RuntimeApi.InspectConvert(img, convFrom, convTo, convBef, convAft, back, cv.ToIsFigurative, ins.BeforeFromLeftmost)};");
             mutated = true;
         }
 

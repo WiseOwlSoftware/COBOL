@@ -43,6 +43,7 @@ public static class Constructs
     public const string CallUsingGroupAnyLevel2002 = "call-using-group-any-level-2002";
     public const string CaseFunctionLocalePhrase2014 = "case-function-locale-phrase-2014";
     public const string CharacterClassification2002 = "character-classification-2002";
+    public const string ClassClauseInAlphabet2002 = "class-clause-in-alphabet-2002";
     public const string ClassConditionAlphabetName2002 = "class-condition-alphabet-name-2002";
     public const string ClassDefinition2002 = "class-definition-2002";
     public const string CloseWithLockRemoved2023 = "close-with-lock-removed-2023";
@@ -54,6 +55,7 @@ public static class Constructs
     public const string ComputerNameOptional2002 = "computer-name-optional-2002";
     public const string ConcatOperator2002 = "concat-operator-2002";
     public const string ConditionalPhrasesAnyOrder2002 = "conditional-phrases-any-order-2002";
+    public const string ConfigurationParagraphLonePeriod2002 = "configuration-paragraph-lone-period-2002";
     public const string ConstantEntry2002 = "constant-entry-2002";
     public const string ConstantRecord2014 = "constant-record-2014";
     public const string ContinueAfter2023 = "continue-after-2023";
@@ -77,6 +79,7 @@ public static class Constructs
     public const string EndReceiveAsUserWord = "end-receive-as-user-word";
     public const string EnterRemoved2002 = "enter-removed-2002";
     public const string EvaluateDirective2002 = "evaluate-directive-2002";
+    public const string EvaluatePartialExpression2002 = "evaluate-partial-expression-2002";
     public const string ExceptionFileArgument2023 = "exception-file-argument-2023";
     public const string ExceptionFileN2002 = "exception-file-n-2002";
     public const string ExceptionFileNArgument2023 = "exception-file-n-argument-2023";
@@ -123,9 +126,11 @@ public static class Constructs
     public const string InitializeCategory2014 = "initialize-category-2014";
     public const string InitializeCategory2023 = "initialize-category-2023";
     public const string InitializeFiller2002 = "initialize-filler-2002";
+    public const string InitializeReplacingCategorySet2002 = "initialize-replacing-category-set-2002";
     public const string InitializeThenReplacing2002 = "initialize-then-replacing-2002";
     public const string InitializeToDefault2002 = "initialize-to-default-2002";
     public const string InitializeToValue2002 = "initialize-to-value-2002";
+    public const string InitializeVariableOccurrence2002 = "initialize-variable-occurrence-2002";
     public const string InlineMethodInvocation2002 = "inline-method-invocation-2002";
     public const string InlinePerformAfter2002 = "inline-perform-after-2002";
     public const string InspectBackward2023 = "inspect-backward-2023";
@@ -208,6 +213,7 @@ public static class Constructs
     public const string ReplaceAlsoLast2002 = "replace-also-last-2002";
     public const string ReplaceAnywhere2002 = "replace-anywhere-2002";
     public const string ReplacingPartialWord2002 = "replacing-partial-word-2002";
+    public const string ReportControlOperandForms2002 = "report-control-operand-forms-2002";
     public const string ReportFiller2002 = "report-filler-2002";
     public const string ReportGroupSign2002 = "report-group-sign-2002";
     public const string ReportMultiColumn2002 = "report-multi-column-2002";
@@ -229,6 +235,7 @@ public static class Constructs
     public const string RerunRemoved2002 = "rerun-removed-2002";
     public const string ResumeStatement2002 = "resume-statement-2002";
     public const string RetryPhrase2002 = "retry-phrase-2002";
+    public const string RewriteRecordWord2002 = "rewrite-record-word-2002";
     public const string RoundedModeIs2014 = "rounded-mode-is-2014";
     public const string SameAsClause2002 = "same-as-clause-2002";
     public const string SearchIdentifier1EnclosingSubscript2023 = "search-identifier-1-enclosing-subscript-2023";

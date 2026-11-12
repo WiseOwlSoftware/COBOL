@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1090_empty_special_names_two_periods
       *> rules: [SR-12.3.7.3-31]
-      *> accept: [85]
+      *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

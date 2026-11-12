@@ -65,6 +65,12 @@ internal sealed class CheckClauseSubjectsPass : IBindPass
                 using var _ = binder.Edition.At(item);
                 binder.Edition.Error(DiagnosticCatalog.ClauseSubjectCategory, $"data item '{name}': {jus}");
             }
+            if (item.Synchronized is not null && item.ClonedFrom is null
+                && DataBinder.SynchronizedViolation(pic, binder.Edition.DialectLevel) is { } sync)
+            {
+                using var _ = binder.Edition.At(item);
+                binder.Edition.Error(DiagnosticCatalog.ClauseSubjectCategory, $"data item '{name}': {sync}");
+            }
         }
 
         foreach (var item in binder.CompositionForest())
@@ -72,6 +78,8 @@ internal sealed class CheckClauseSubjectsPass : IBindPass
             if (item.Pic is not { } pic) continue;
             if (item.BlankWhenZero && DataBinder.BlankWhenZeroViolation(pic) is not null) item.BlankWhenZero = false;
             if (item.Justified && DataBinder.JustifiedViolation(pic) is not null) item.Justified = false;
+            if (item.Synchronized is not null && DataBinder.SynchronizedViolation(pic, binder.Edition.DialectLevel) is not null)
+                item.Synchronized = null;
         }
     }
 }

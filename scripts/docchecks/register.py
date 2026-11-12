@@ -97,7 +97,7 @@ def build_extract(conformance: str, derivation_heading: str, derivation_header: 
                    "every schema determination-prefix; the prose behind it is not data and is not here.",
         "annexA1": [{"key": r.key, "lead": schema.plain(r.determination)[:LEAD_LENGTH]}
                     for r in schema.section7_rows(conformance)],
-        "derivations": [{"key": r.key, "arm": r.arm, "names": r.names, "signature": r.signature}
+        "derivations": [{"key": r.key, "arm": r.arm, "names": r.names, "signature": r.signature, "refuter": r.refuter}
                         for r in schema.derivation_rows(conformance, derivation_heading, derivation_header)],
         "declinedCodes": {"A3": codes_under(conformance, A3_HEADING), "A4": codes_under(conformance, A4_HEADING)},
     }

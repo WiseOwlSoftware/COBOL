@@ -36,7 +36,10 @@ public sealed class LiteralAliasResolutionDriftTests
         // The resolution reads each table once per spelling of the word: the data-reference overload and the bare-word
         // overload (a `literal | cobolWord` position, kb/Work PB780). The one other read is FigurativeOperand's Format 7
         // `ALL symbolic-character-1`, whose operand is a cobolWord the grammar already placed in a figurative constant.
-        Assert.Single(Regex.Matches(src, @"\.ConstantOf\("));
+        // The data-reference overload reads the constant through DataBinder.ConstantOfIdentifierPosition, which counts it with the data items
+        // of its spelling (kb/Work PB5301): a bare reference to a name a constant-name and a data item share is not unique.
+        Assert.Single(Regex.Matches(src, @"\.ConstantOfIdentifierPosition\("));
+        Assert.Empty(Regex.Matches(src, @"\.ConstantOf\("));
         Assert.Single(Regex.Matches(src, @"\.FindConstant\("));
         Assert.Equal(3, Regex.Matches(src, @"\.SymbolicOf\(").Count);
         int wordResolution = src.IndexOf("internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>", StringComparison.Ordinal);
@@ -47,7 +50,7 @@ public sealed class LiteralAliasResolutionDriftTests
         int resolution = src.IndexOf("internal LiteralAlias? LiteralAliasOf(Core.DataReferenceContext dref) =>", StringComparison.Ordinal);
         Assert.True(resolution >= 0, "ExpressionBinder.LiteralAliasOf is gone");
         string body = src[resolution..src.IndexOf(';', resolution)];
-        Assert.Contains("ctx.Data.Constants.ConstantOf(dref)", body);
+        Assert.Contains("ctx.Data.ConstantOfIdentifierPosition(dref)", body);
         Assert.Contains("ctx.Data.SpecialNames.SymbolicOf(dref)", body);
     }
 }

@@ -1,11 +1,12 @@
       *>--- conformance-case
       *> id: pb393_initialize_odo_group
       *> rules: [GR-14.9.20.4-8]
-      *> accept: [85]
+      *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB393. ISO 1989:2023 14.9.20.4 GR8: "If identifier-1 references a group data item, affected
+      *> kb/Work PB393 (accepted from 2002: §1985:VI.6.17.3 SR4 forbids this INITIALIZE at 85, kb/Work PB5088).
+      *> ISO 1989:2023 14.9.20.4 GR8: "If identifier-1 references a group data item, affected
       *> elementary data items are initialized in the sequence of their definition within the group data item.
       *> For a variable-occurrence data item, the number of occurrences initialized is determined by the rules
       *> of the OCCURS clause for a receiving data item." identifier-1 IS a receiving operand (14.9.20.3 SR7),

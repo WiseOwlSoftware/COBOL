@@ -43,7 +43,10 @@ public sealed record BoundInspectConvert(BoundOperand From, BoundOperand To, Bou
 /// <summary>INSPECT (ISO §2023:14.9.22). Formats 1–3 carry the flattened tallying/replacing operand lists; format 4
 /// carries <see cref="Converting"/>. A format 3 executes as two successive statements — tallying then replacing —
 /// over the same identifier-1 (GR19). <see cref="Backward"/> reverses the scan direction (2023-only, gated at
-/// bind time). <see cref="ReplacingTakesLengthAnew"/> is the COBOL-85 reading of an occurs-depending identifier-1 in a
+/// bind time). <see cref="BeforeFromLeftmost"/> is the edition's BEFORE rule: below COBOL-2023 an operand's BEFORE
+/// delimiter is looked for from the leftmost position even when the operand has an AFTER phrase (§1985:VI.6.18.4
+/// GR8 b; <c>DialectBehavior.InspectBeforeFromFirstEligiblePosition</c>, kb/Work PB5120).
+/// <see cref="ReplacingTakesLengthAnew"/> is the COBOL-85 reading of an occurs-depending identifier-1 in a
 /// format 3 (<c>DialectBehavior.InspectFormat3LengthIdentifiedOnce</c>, kb/Work PB5119): the REPLACING half reads the length
 /// at its own start, after the TALLYING half's counters were stored; from 2002 the binder pins the length instead.
 /// <para>
@@ -61,4 +64,5 @@ public sealed record BoundInspect(
     IReadOnlyList<BoundInspectReplace> Replacing,
     BoundInspectConvert? Converting,
     bool Backward,
+    bool BeforeFromLeftmost,
     bool ReplacingTakesLengthAnew = false) : BoundStatement;
