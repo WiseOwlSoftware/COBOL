@@ -193,6 +193,10 @@ def audit(ed: IsoEdition, args: argparse.Namespace) -> int:
         title = titles.get(sec, "")
         if kind_of(title) is None and sec not in admitted:
             continue
+        if sec in prose_blocks:
+            # A typed block whose rule is printed unnumbered is admitted as paragraph rows (kb/Work PB5332,
+            # §2002:8.8.4.1.5.2): it has no ordinal to count, and the prose check below holds its rows to its text.
+            continue
         printed = printed_ordinals(body)
         rows = held.get(sec, [])
         if len(printed) == len(rows):

@@ -29,6 +29,12 @@ THE SHAPES (FIGURE-STYLE.md, "Layout rules, for the generator"; kb/Work PB3530):
   BOX_AROUND_A_BRACE_GROUP                   — a box several rows tall is `╔ ║ ╚` / `╗ ║ ╝`, holding every row
                                                of the brace it encloses.
   TWO_ROW_BOX_ADDS_NO_ROW                    — a box two printed lines tall is no group: no spacer row between them.
+  CONTINUATION_KEEPS_ITS_INDENT              — §2002:13.3.5.1: `[ DEPENDING ON data-name-1 ]` continues `IS VARYING …`
+                                               4 characters in; drawn flush it read as a fourth alternative (PB5332).
+  LINE_REJOINED_BESIDE_A_BRACKET             — §2002:14.8.43.1: `file-name-1`, 1.4 pt below `UNLOCK`, stays on its
+                                               line rather than a row of its own under it (rejoin_lines, PB5332).
+  ELLIPSIS_REJOINED_TO_ITS_LINE              — §2002:A.1.1: the outer bracket's `…` stays level with the line it
+                                               repeats, not lifted to the inner bracket's first alternative (PB5332).
 """
 import pathlib
 import sys
@@ -104,8 +110,8 @@ FIGURES = {
         [
             '                     ╭ integer-1 [ ON NEXT PAGE ] ╮',
             '╭ LINE NUMBER IS   ╮ │                            │',
-            '│                  │ │ ╭ PLUS ╮                   │ …',
-            '┤ LINE NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├',
+            '│                  │ │ ╭ PLUS ╮                   │',
+            '┤ LINE NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├ …',
             '│                  │ │ ╰ +    ╯                   │',
             '╰ LINES ARE        ╯ │                            │',
             '                     ╰ ON NEXT PAGE               ╯',
@@ -605,6 +611,107 @@ FIGURES = {
             '╚ TO identifier-2   ╝',
         ],
     ),
+    # 2002 folio 237 (PDF page 259), band y 230-291: SD's RECORD clause
+    'CONTINUATION_KEEPS_ITS_INDENT': (
+        [
+            ('\uf8f1', 127.4, 131.8, 231.8, False),
+            ('\uf8fc', 453.3, 457.8, 231.8, False),
+            ('CONTAINS', 137.3, 184.8, 235.6, False),
+            ('integer-1', 187.3, 225.3, 235.6, False),
+            ('CHARACTERS', 227.8, 288.3, 235.6, False),
+            ('\uf8f4', 127.4, 131.8, 239.5, False),
+            ('\uf8f4', 453.3, 457.8, 239.5, False),
+            ('\uf8f4', 127.4, 131.8, 247.3, False),
+            ('\uf8f4', 453.3, 457.8, 247.3, False),
+            ('IS', 137.3, 145.8, 247.5, False),
+            ('VARYING', 149.0, 190.0, 247.5, True),
+            ('IN', 193.1, 202.6, 247.5, False),
+            ('SIZE', 205.1, 224.6, 247.5, False),
+            ('[', 227.1, 230.1, 247.5, False),
+            ('[', 232.6, 235.6, 247.5, False),
+            ('FROM', 238.8, 265.3, 247.5, False),
+            ('integer-2', 268.4, 306.4, 247.5, False),
+            (']', 308.9, 311.9, 247.5, False),
+            ('[', 314.4, 317.4, 247.5, False),
+            ('TO', 320.5, 333.0, 247.5, True),
+            ('integer-3', 336.2, 374.2, 247.5, False),
+            (']', 376.7, 379.7, 247.5, False),
+            ('CHARACTERS', 382.2, 442.7, 247.5, False),
+            (']', 445.2, 448.2, 247.5, False),
+            ('.', 464.3, 466.8, 254.6, False),
+            ('\uf8f2', 127.4, 131.8, 255.0, False),
+            ('\uf8fd', 453.3, 457.8, 255.0, False),
+            ('RECORD', 86.1, 123.1, 255.7, True),
+            ('[', 154.8, 157.8, 262.0, False),
+            ('DEPENDING', 161.0, 214.0, 262.0, True),
+            ('ON', 217.1, 231.1, 262.0, False),
+            ('data-name-1', 233.6, 287.1, 262.0, False),
+            (']', 289.6, 292.6, 262.0, False),
+            ('\uf8f4', 127.4, 131.8, 262.7, False),
+            ('\uf8f4', 453.3, 457.8, 262.7, False),
+            ('\uf8f4', 127.4, 131.8, 270.4, False),
+            ('\uf8f4', 453.3, 457.8, 270.4, False),
+            ('CONTAINS', 137.3, 184.8, 276.6, False),
+            ('integer-4', 187.3, 225.3, 276.6, False),
+            ('TO', 228.5, 241.0, 276.6, True),
+            ('integer-5', 244.1, 282.1, 276.6, False),
+            ('CHARACTERS', 284.6, 345.1, 276.6, False),
+            ('\uf8f3', 127.4, 131.8, 278.1, False),
+            ('\uf8fe', 453.3, 457.8, 278.1, False),
+        ],
+        [
+            (83.3, 227.4, 291.5, 'bracket', 'L'),
+            (458.8, 227.4, 291.5, 'bracket', 'R'),
+        ],
+        [
+            '┌        ╭ CONTAINS integer-1 CHARACTERS                                         ╮ ┐',
+            '│        │                                                                       │ │',
+            '│        │ IS VARYING IN SIZE [ [ FROM integer-2 ] [ TO integer-3 ] CHARACTERS ] │ │',
+            '│ RECORD ┤                                                                       ├ │ .',
+            '│        │     [ DEPENDING ON data-name-1 ]                                      │ │',
+            '│        │                                                                       │ │',
+            '└        ╰ CONTAINS integer-4 TO integer-5 CHARACTERS                            ╯ ┘',
+        ],
+    ),
+    # 2002 folio 544 (PDF page 566), band y 159-190: UNLOCK
+    'LINE_REJOINED_BESIDE_A_BRACKET': (
+        [
+            ('RECORD', 166.5, 203.5, 164.7, False),
+            ('UNLOCK', 62.4, 100.4, 167.4, True),
+            ('file-name-1', 109.4, 157.4, 168.8, False),
+            ('RECORDS', 166.5, 209.5, 176.5, False),
+        ],
+        [
+            (163.7, 162.1, 185.9, 'bracket', 'L'),
+            (211.0, 162.1, 185.9, 'bracket', 'R'),
+        ],
+        [
+            '                   ┌ RECORD  ┐',
+            'UNLOCK file-name-1 │         │',
+            '                   └ RECORDS ┘',
+        ],
+    ),
+    # 2002 folio 655 (PDF page 677), band y 505-544: the communication section
+    'ELLIPSIS_REJOINED_TO_ITS_LINE': (
+        [
+            ('constant-entry', 242.4, 303.9, 518.3, False),
+            ('...', 380.4, 387.9, 521.1, False),
+            ('communication-description-entry', 88.3, 230.3, 522.5, False),
+            ('...', 359.1, 366.6, 522.5, False),
+            ('record-description-entry', 242.4, 345.4, 530.2, False),
+        ],
+        [
+            (80.3, 510.1, 543.3, 'bracket', 'L'),
+            (373.4, 510.1, 543.3, 'bracket', 'R'),
+            (234.3, 515.4, 540.9, 'bracket', 'L'),
+            (352.2, 515.4, 540.9, 'bracket', 'R'),
+        ],
+        [
+            '┌                                 ┌ constant-entry           ┐   ┐',
+            '│ communication-description-entry │                          │ … │ …',
+            '└                                 └ record-description-entry ┘   ┘',
+        ],
+    ),
 }
 
 
@@ -621,7 +728,7 @@ def piece(text, x, y):
     return {"text": text, "x0": x, "x1": x + 5.0, "y0": y, "underlined": False}
 
 
-UNIT_CHECKS = 14                      # the checks unit_failures makes, so the verdict counts every one
+UNIT_CHECKS = 22                      # the checks unit_failures makes, so the verdict counts every one
 
 
 def unit_failures():
@@ -720,6 +827,90 @@ def unit_failures():
     adobe = draw(multiply("\uf8f1", "\uf8f2", "\uf8f3", "\uf8fc", "\uf8fd", "\uf8fe"), [])
     if adobe != draw(multiply("ì", "í", "î", "ü", "ý", "þ"), []) or "┤" not in "".join(adobe):
         fails.append(f"GLYPH_PIECES: a brace of Adobe private-use pieces drew as {adobe}")
+
+    # A fused hook is re-measured against the raw run NEAREST in y: OCCURS Formats 1, 2 and 4 print `}KEY` at one x
+    # (2014 PDF page 370), and the first run gave Format 2's `KEY` Format 1's height (kb/Work PB5331, claim p370-1).
+    class RawPage:
+        def __init__(self, runs):
+            self.runs = runs
+
+        def get_text(self, _kind):
+            return {"blocks": [{"type": 0, "lines": [{"spans": [{"chars": [
+                {"c": c, "bbox": (x + 5 * k, y, x + 5 * k + 5, y + 9)} for k, c in enumerate(text)]}]}
+                for text, x, y in self.runs]}]}
+
+        def get_drawings(self):
+            return []
+
+    hook = ""
+    page = RawPage([(hook + "KEY", 151.3, 211.0), (hook + "KEY", 151.3, 308.0), (hook + "KEY", 151.3, 450.0)])
+    split = R.split_fused(page, [{"text": hook + "KEY", "x0": 151.3, "x1": 177.0, "y0": 308.0, "underlined": False}])
+    if sorted((w["text"], w["y0"]) for w in split) != sorted([("KEY", 308.0), (hook, 308.0)]):
+        fails.append(f"split_fused: a fused hook at y 308 was re-measured as {split}, want both pieces at y 308")
+
+    # The one-character word's underline: the level-number `1` of §2014:13.10.1 is underlined by a 2.85 pt rule.
+    rule = [R.figure_extract.figure_geometry.Stroke(68.7, 196.9, 71.5, 197.3)]
+    accepted = [r for r in rule if r.width >= R.figure_extract.MIN_RULE_W]
+    if not R.figure_extract.is_underlined((67.6, 187.0, 72.6, 196.0), accepted):
+        fails.append("MIN_RULE_W: the 2.85 pt underline of a one-digit word is not read as an underline")
+    fails += pb5332_failures()
+    return fails
+
+
+class _Page:
+    """A planted page for `split_fused`: the raw text layer's lines, and no drawing (so no underline)."""
+    def __init__(self, runs):
+        self.runs = runs
+
+    def get_text(self, kind):
+        assert kind == "rawdict"
+        return {"blocks": [{"type": 0, "lines": [{"spans": [{"chars": [
+            {"c": c, "bbox": (x + 2.0 * k, y, x + 2.0 * k + 2.0, y + 10.0)} for k, c in enumerate(text)]}]}
+            for text, x, y in self.runs]}]}
+
+
+def pb5332_failures():
+    """The figure mechanisms kb/Work PB5332 fixed, each on planted input (no PDF is read)."""
+    import figure_extract
+    import figure_geometry
+    from spec_headings import INTRODUCES_FORMAT
+    import sweep_figures
+    fails = []
+    # split_fused takes the run AT the word: one page prints the fused `\uf8fc...` twice (2002 PDF page 234,
+    # Formats 3 and 4 of the file control entry, 393 pt apart and 0.5 pt apart in x).
+    page = _Page([("\uf8fc...", 214.3, 160.5), ("\uf8fc...", 213.8, 553.4)])
+    real = figure_extract.underlines
+    figure_extract.underlines = lambda _page: []
+    try:
+        got = R.split_fused(page, [{"text": "\uf8fc...", "x0": 213.8, "x1": 227.7, "y0": 553.4, "underlined": False}])
+    finally:
+        figure_extract.underlines = real
+    if sorted(w["y0"] for w in got) != [553.4, 553.4]:
+        fails.append(f"split_fused: the second fused run was re-measured from the first: {got}")
+    # The narrowest underline (2.85 pt under the level number `1`, 2002 PDF page 267) is a rule.
+    rule = figure_geometry.Stroke(85.70, 196.89, 88.55, 197.29)
+    real_strokes = figure_geometry.strokes
+    figure_geometry.strokes = lambda _page: [rule]
+    try:
+        kept = figure_extract.underlines(None)
+    finally:
+        figure_geometry.strokes = real_strokes
+    if not (kept and figure_extract.is_underlined((84.63, 187.02, 89.63, 196.02), kept)):
+        fails.append("underlines: the 2.85 pt rule under the level number `1` is not an underline")
+    # The sentence that introduces a general format, and only that sentence.
+    if not INTRODUCES_FORMAT.search("The general format of the communication section is shown below:"):
+        fails.append("INTRODUCES_FORMAT: 2002's communication section sentence is not recognised")
+    if INTRODUCES_FORMAT.search("Code fragments to accomplish this are shown below:"):
+        fails.append("INTRODUCES_FORMAT: a sentence introducing sample code was read as introducing a format")
+    lines = ["##### A.1.1 Communication section", "", "Prose.", "",
+             "The general format of the communication section is shown below:", "", "COMMUNICATION SECTION .",
+             "", "###### A.1.1.1 Communication description entry", "", "More prose."]
+    if sweep_figures.clause_spans(lines) != {"A.1.1": (5, 8)}:
+        fails.append(f"sweep_figures.clause_spans: the introduced region is {sweep_figures.clause_spans(lines)}")
+    # A Markdown hard break is markup, not a word.
+    furniture = sweep_figures.page_furniture(2002)
+    if sweep_figures.words_of("a-b c . . .\\\n&emsp;d-e", furniture) != sweep_figures.words_of("a-b c …\nd-e", furniture):
+        fails.append("words_of: a line's hard-break backslash was counted as a word")
     return fails
 
 
