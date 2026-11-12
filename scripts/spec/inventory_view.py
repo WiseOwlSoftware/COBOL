@@ -47,7 +47,7 @@ from typing import Any, NamedTuple
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import lineage  # noqa: E402  (an older edition's change record and its state)
 from inventory_schema import (HELD, NEWEST, REGISTER_EXTRACT_REL, REPO, SCHEMA_REL, WORKING_TREE, Edition,  # noqa: E402
-                              Schema, Tree, edition, load_schema)
+                              NotReadAhead, Schema, Tree, edition, load_schema, read_view_ahead, refuter_files)
 from inventory_store import STORE_KEYS, inventory_dir, read_store, store_at  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -215,10 +215,9 @@ def inventory_at(rev: str, year: int | None = None, repo: pathlib.Path = REPO) -
         return None
     if all("state" in r for r in records):      # a commit before PB4992: no record of the view's holds a state
         return spec_order(records)
-    schema = load_schema(tree)
-    # Every other file the view reads at this commit, in ONE batch (a partial clone fetches them in one request).
-    tree = tree.read_ahead([SCHEMA_REL, REGISTER_EXTRACT_REL, *(e.catalog for e in schema.all_editions if e.held),
-                            *((schema.derivation.undefined_list,) if schema.derivation else ())])
+    # Every other file the view reads at this commit, in two batches (a partial clone fetches each in one request); a file
+    # the view reads that `read_view_ahead` did not is refused by name (`NotReadAhead`), never read as absent.
+    tree = read_view_ahead(tree)
     schema = load_schema(tree)
     return _join_tree(_edition(schema, year), schema, tree, {r["rule-id"]: r for r in records}).rows
 
@@ -438,6 +437,33 @@ def self_test() -> int:
        and list(at_schema.derivation.register) == ["DRV-GR-4.2-1"]
        and set(at_schema.catalog) == {"GR-4.10-1", "GR-4.2-1", "DOC-A.1-1"},
        "a commit's schema reads that commit's register extract, Annex A.2 list and catalog, not the working tree's")
+    # kb/Work PB5374 branch review R1-1: the refuter record file a §8 row names is an input of the view the schema does not
+    # name, so a commit's read-ahead read it as absent and an UPHELD claude-signed argued row computed GAP at the commit.
+    refute_rel = "adjudication/fixture/refute.jsonl"
+    repo.commit("a refuted derivation", {
+        REGISTER_EXTRACT_REL: json.dumps({"annexA1": [{"key": "DOC-A.1-1", "lead": "Provided."}], "derivations": [
+            {"key": "DRV-GR-4.10-1", "arm": "unpopulatable-antecedent", "signature": "claude: 2026-11-12",
+             "names": "the closed set of states this fixture reaches", "refuter": refute_rel}]}),
+        refute_rel: json.dumps({"rule-id": "GR-4.10-1", "outcome": "UPHELD"}) + "\n"})
+    argued = {"rule-id": "GR-4.10-1", "verdict": "CONFORMS", "derivation": schema.derivation.anchor_for({"rule-id": "GR-4.10-1"})}
+
+    def refusal_codes(tree: Tree) -> list[str]:
+        s = load_schema(tree)
+        return [r.code for r in s.derivation.refusals(argued, s)]
+
+    head = Tree(repo.path, "HEAD")
+    ok(refusal_codes(read_view_ahead(head)) == refusal_codes(head) == []
+       and refuter_files(head.json(REGISTER_EXTRACT_REL)) == [refute_rel],
+       f"a commit's read-ahead holds the refuter record its register names: the UPHELD argued row stands, as it does live ({refusal_codes(read_view_ahead(head))})")
+    try:
+        refusal_codes(head.read_ahead(load_schema(head).view_files()))
+        missed = ""
+    except NotReadAhead as e:
+        missed = str(e)
+    ok(refute_rel in missed, f"a view input the read-ahead missed is refused by name, never read as absent ({missed!r})")
+    ok(head.read_ahead([refute_rel, "no/such/file.json"]).files == {
+        refute_rel: head.text(refute_rel), "no/such/file.json": None},
+       "a read-ahead holds every path it was asked: a file the commit lacks as None")
     # The merge-queue bounce of PB4992 (inert watch): the view, states included, opens no document. The conformance
     # manifest's generator runs it inside the compiler tests, where a document is inert (kb/Work PB4453, PB4395). Asked of
     # a FRESH interpreter whose hook is armed before the view is imported (review R4-1): in this one, earlier arms have

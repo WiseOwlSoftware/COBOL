@@ -185,10 +185,17 @@ def git(*args: str, stdin: str | None = None) -> str:
 #: the last input-touching commit also gives the reader the sha they actually want: the tree the NUMBERS came
 #: from. Deliberately absent from this set: the rendered page and the trend series — including either would make
 #: regenerating move the stamp, so `--check` would never converge.
+#: Every file the inventory's view reads besides its stores, as the working tree names them: the files the schema names
+#: (`Schema.view_files`: the schema, every held catalog, the registers' extract, the Annex A.2 list) and the refuter record
+#: files the register names (`refuter_files`), the list `inventory_schema.read_view_ahead` reads at a commit. A commit that
+#: touches one moves the view (kb/Work PB5374 branch review R1-1: the refuter records were nowhere in either list below).
+VIEW_INPUTS = tuple(dict.fromkeys([
+    *inventory_schema.load_schema().view_files(),
+    *inventory_schema.refuter_files(inventory_schema.WORKING_TREE.json(inventory_schema.REGISTER_EXTRACT_REL))]))
+
 STAMP_PATHS = (
     *(ed.store for ed in inventory_schema.EDITIONS if ed.held),
-    *(ed.catalog for ed in inventory_schema.EDITIONS if ed.held),
-    "tests/version-matrix/inventory-schema.json",
+    *VIEW_INPUTS,
     construct_store.STORE_REL,
     "conformance-suite",
     "kb/Work",
@@ -441,8 +448,9 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
     one note, or closed one row, costs one blob. Each blob is reduced to its summary (a row's id, state and verdict, a
     note's frontmatter) as it arrives and then dropped. A commit's inventory is its `tests/version-matrix/inventory/`
     directory, or for a commit before kb/Work PB4148 the one legacy file; from kb/Work PB4992 on it is the commit's view,
-    and every file that view reads (the schema, the catalog, docs/CONFORMANCE.md's registers, the Annex A.2 list) is read
-    as that commit has it, in the same two processes (branch review R1-3). `--self-test` holds the process count constant in the number of commits (a structural bound, never a
+    and every file that view reads (`Schema.view_files`: the schema, the catalogs, the registers' extract, the Annex A.2
+    list) is read as that commit has it, in the same two processes (branch review R1-3), and the refuter record files its
+    register names (`inventory_schema.refuter_files`) in two more, only when one names any (kb/Work PB5374 review R1-1). `--self-test` holds the process count constant in the number of commits (a structural bound, never a
     wall-clock one)."""
     uniq = list(dict.fromkeys(shas))
     if not uniq:
@@ -451,10 +459,9 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
     # store holds adjudications only and the commit's rows are its VIEW, read under the files that commit holds. Each is
     # located by the working tree's newest edition (a commit before the editions were the schema's names none).
     ed = inventory_schema.NEWEST
-    # Every held catalog is a file the view may read: a derivation arm reads the catalog of its rule's edition
-    # (`Schema.catalog_entry`, kb/Work PB5374). A blob is read once however many commits share it.
-    viewed = sorted({inventory_schema.SCHEMA_REL, *(e.catalog for e in inventory_schema.EDITIONS if e.held),
-                     inventory_schema.REGISTER_EXTRACT_REL, inventory_schema.load_schema().derivation.undefined_list})
+    # The files the view reads that the schema names (`Schema.view_files`, the list `read_view_ahead` reads too). A blob is
+    # read once however many commits share it; a file the view reads that no list names is `NotReadAhead`, never absent.
+    viewed = sorted(set(inventory_schema.load_schema().view_files()))
     dirs = sorted({f.rpartition("/")[0] for f in (*viewed, *((ed.legacy_file,) if ed.legacy_file else ()))})
     asked = (*(("kb/Work",) if register else ()), ed.store, *dirs)
     trees = git_batch.tree_entries(REPO, [f"{sha}:{directory}" for sha in uniq for directory in asked])
@@ -493,22 +500,42 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
             except ValueError:
                 records[oid] = None
 
-    def rows_of(sha: str, blobs: list[str], files: dict[str, str]) -> list[dict] | None:
+    # Every commit's view inputs, each file's text or None where the commit lacks it (a read-ahead tree's `files`).
+    files_of = [{rel: joined[ids[rel]] if rel in ids else None for rel in viewed} for ids in viewed_ids]
+    # The refuter record files each commit's §8 register names are inputs of its view that its schema does not name
+    # (`inventory_schema.read_view_ahead`'s second stage). Read as that commit has them, in two more processes whatever the
+    # number of commits, and only when some commit's register names one; an extract commits share is parsed once.
+    extract_rel = inventory_schema.REGISTER_EXTRACT_REL
+    named: dict[str, list[str]] = {}   # extract blob -> the refuter record files it names
+    for ids in viewed_ids:
+        if (oid := ids.get(extract_rel)) is not None and oid not in named:
+            named[oid] = inventory_schema.refuter_files(json.loads(joined[oid]))
+    wanted = [named.get(ids.get(extract_rel, ""), []) for ids in viewed_ids]
+    if pairs := sorted({(sha, rel.rpartition("/")[0]) for sha, rels in zip(uniq, wanted) for rel in rels}):
+        listed = dict(zip(pairs, git_batch.tree_entries(REPO, [f"{sha}:{directory}" for sha, directory in pairs])))
+        refuter_ids = [{rel: (listed[sha, rel.rpartition("/")[0]] or {}).get(rel.rpartition("/")[2]) for rel in rels}
+                       for sha, rels in zip(uniq, wanted)]
+        texts = {oid: data.decode("utf-8", errors="replace")
+                 for oid, data in git_batch.blobs(REPO, {o for ids in refuter_ids for o in ids.values() if o})}
+        for files, ids in zip(files_of, refuter_ids):
+            files.update({rel: None if oid is None else texts[oid] for rel, oid in ids.items()})
+
+    def rows_of(sha: str, blobs: list[str], files: dict[str, str | None]) -> list[dict] | None:
         found = [records[o] for o in blobs]
         if not blobs or None in found:
             return None
         rows = [r for part in found for r in part]
         if all("state" in r for r in rows):          # a commit before PB4992: its rows as committed
             return rows
-        if inventory_schema.SCHEMA_REL not in files or ed.catalog not in files:
+        if files[inventory_schema.SCHEMA_REL] is None or files[ed.catalog] is None:
             return None
-        tree = inventory_schema.Tree(REPO, sha, {rel: joined[oid] for rel, oid in files.items()})
+        tree = inventory_schema.Tree(REPO, sha, files)
         schema = inventory_schema.load_schema(tree)
         newest = schema.newest
         return inventory_view.join(newest, newest.rules(tree), {r["rule-id"]: r for r in rows}, schema, {}).rows
 
     out: dict[str, Committed] = {}
-    for sha, ids, legacy_id, files, note_oids in zip(uniq, row_ids, legacy_ids, viewed_ids, note_ids):
+    for sha, ids, legacy_id, files, note_oids in zip(uniq, row_ids, legacy_ids, files_of, note_ids):
         try:
             rows = rows_of(sha, [*ids] if ids else [legacy_id] if legacy_id else [], files)
             rows = None if rows is None else [(r["rule-id"], r["state"], r["verdict"]) for r in rows]
@@ -552,10 +579,10 @@ def missed_points(pts: list[dict]) -> list[dict]:
     # was taken), and those were walked when an earlier point was recorded (kb/Work PB3161, review finding R1-2: nine
     # shas appeared twice in the frozen series).
     revs = [inventory_store.landed_head(REPO), *(f"^{sha}" for sha in recorded)]
-    # A commit moves the view when it touches the store or the catalog it is joined with (kb/Work PB4992).
+    # A commit moves the view when it touches the store or any file the view reads with it (kb/Work PB4992, PB5374).
     newest = inventory_schema.NEWEST
     log = git("log", "--reverse", "--first-parent", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--",
-              *inventory_store.history_pathspecs(newest), newest.catalog, "kb/Work", stdin="\n".join(revs) + "\n")
+              *inventory_store.history_pathspecs(newest), *VIEW_INPUTS, "kb/Work", stdin="\n".join(revs) + "\n")
     walked = [line.split("|", 2) for line in log.splitlines() if line]
     measured = measure_commits([sha for sha, _, _ in walked])   # two processes however many commits (PB3315)
     out: list[dict] = []
@@ -1525,7 +1552,25 @@ def self_test() -> int:
         viewed = measure_commits(["HEAD"], register=False)["HEAD"].inventory
         check("a commit after PB4992 is measured as its view: its catalog joined with its store under its schema",
               viewed == {"gap": 3, "closed": 0, "dns": 1} and gap_at("HEAD") == 3, f"{viewed}")
-        scratch.write({catalog_rel: None, schema_rel: None})
+        # kb/Work PB5374 branch review R1-1: the refuter record file a commit's §8 register names is read as that commit
+        # has it, so a claude-signed argued row stands at the commit as it does live (it read as absent: GAP).
+        extract_rel, refute_rel = inventory_schema.REGISTER_EXTRACT_REL, "adjudication/fixture/refute.jsonl"
+        scratch.commit("a refuted derivation", {
+            extract_rel: json.dumps({"annexA1": [], "derivations": [
+                {"key": "DRV-GR-4.4-2", "arm": "unpopulatable-antecedent", "signature": "claude: 2026-11-12",
+                 "names": "the closed set of states this fixture reaches", "refuter": refute_rel}]}),
+            refute_rel: json.dumps({"rule-id": "GR-4.4-2", "outcome": "UPHELD"}) + "\n"})
+        seen, real_join = [], inventory_view.join
+        inventory_view.join = lambda ed_, rules_, records_, schema_, targets_: (
+            seen.append(schema_.derivation.refuter_outcome(refute_rel, "GR-4.4-2")),
+            real_join(ed_, rules_, records_, schema_, targets_))[1]
+        try:
+            measure_commits(["HEAD"], register=False)
+        finally:
+            inventory_view.join = real_join
+        check("a commit's view reads the refuter record its register names, as that commit has it",
+              seen == ["UPHELD"], f"{seen}")
+        scratch.write({catalog_rel: None, schema_rel: None, extract_rel: None, refute_rel: None})
         scratch.commit("the fixture's old shape again")
 
         # missed_points in a merge DAG (review finding R1-2): a branch merged AFTER the last point was recorded is

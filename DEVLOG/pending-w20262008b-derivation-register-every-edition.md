@@ -25,3 +25,13 @@ signed standing only on an UPHELD refuter record named in §8's new `Refuted` co
 edition's catalog (`Schema.catalog`); the audit, the drift test and the population guard read every held edition and
 refuse a §8 row no row claims. Both engines and the parity fixture (28 cases) changed together. No row is recorded:
 PB5373's adjudication records the 1985 class 1 and 2 rows.
+
+Branch review R1-1 found the refuter record file a §8 row names missing from both hand lists of the files a commit's
+view reads ahead (`inventory_at`, `gen_ledger.measure_commits`): a `Tree` with `files` read it as absent, so a
+claude-signed argued row would have computed GAP at a commit while the live view computed OK. Fixed at the shape: one
+list (`Schema.view_files` plus `refuter_files` of the commit's register, read in two stages by `read_view_ahead`;
+`measure_commits` reads the same two stages for every commit, two more git processes only when a register names a
+refuter file), and a read-ahead tree now raises `NotReadAhead` on any path it was not asked instead of answering
+"absent", so the next input a list misses fails by name. The sibling lists `STAMP_PATHS` and `missed_points`'
+pathspec read the same `VIEW_INPUTS`. Self-tests: `inventory_view` (the argued row's refusals at the read-ahead tree are
+none; the schema-only stage raises naming the file) and `gen_ledger` (the commit's view reads the refuter record UPHELD).

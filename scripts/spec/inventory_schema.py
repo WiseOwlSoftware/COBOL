@@ -58,6 +58,8 @@ REGISTER_PATH = REPO / "docs" / "CONFORMANCE.md"
 #: the EXTRACT, never the Markdown: a document is inert, so no compiler test, nor the Python it runs, may open one
 #: (PB4992's merge-queue bounce: the conformance manifest's generator computed states and opened CONFORMANCE.md).
 REGISTER_EXTRACT_REL = "tests/version-matrix/conformance-register.json"
+#: What a §8 row's `Refuted` cell holds when it names no refuter record file.
+NO_REFUTER = frozenset({"", "—", "-"})
 REGISTER_HEADING = "## 7. Annex A.1"
 #: The label in the §7 table's own header row, so the reader can tell a header from a determination.
 REGISTER_HEADER_CELL = "A.1 item"
@@ -69,11 +71,16 @@ class Tree:
     the repository at `root`. The state rule reads more than the store: the schema, the catalog, docs/CONFORMANCE.md's
     registers and the Annex A.2 list. A view of a commit reads each of them as that commit has it, and a view of another
     worktree reads that worktree's (branch review R1-3, R1-4). `files`, when given, are the commit's files already read
-    (by path), as a reader that reads many commits' blobs in one batch has them (`gen_ledger.measure_commits`); a path it
-    does not hold is a file the commit lacks."""
+    (by path), as a reader that reads many commits' blobs in one batch has them (`gen_ledger.measure_commits`,
+    `read_view_ahead`): every path it was ASKED, its text or None for a file the commit lacks.
+
+    ⛔ A PATH IT WAS NOT ASKED IS `NotReadAhead`, never None (kb/Work PB5374 branch review R1-1). The view's inputs grow
+    (the older catalogs, then the refuter record files a §8 row names), and when a read-ahead list missed one the commit's
+    view answered "the commit has no such file" and computed GAP where the live view computed OK: silently, because a
+    missing file is a legal answer. A reader that reads a file it did not read ahead now fails by name."""
     root: pathlib.Path = REPO
     rev: str | None = None
-    files: Mapping[str, str] | None = None
+    files: Mapping[str, str | None] | None = None
 
     def git(self, *args: str, stdin: bytes | None = None) -> bytes | None:
         """`git <args>`'s stdout in `root`, or None when it fails (a revision or a path the commit lacks)."""
@@ -83,7 +90,10 @@ class Tree:
     def text(self, rel: str) -> str | None:
         """The file `rel` (repository-relative, `/`-separated) in this tree, or None when the tree has none."""
         if self.files is not None:
-            return self.files.get(rel)
+            if rel not in self.files:
+                raise NotReadAhead(f"{rel} at {self.rev}: the view read a file its reader did not read ahead; every "
+                                   f"file the view reads is `Schema.view_files` or `refuter_files` (`read_view_ahead`)")
+            return self.files[rel]
         if self.rev is None:
             p = self.root / rel
             return p.read_text(encoding="utf-8") if p.is_file() else None
@@ -97,12 +107,22 @@ class Tree:
     def read_ahead(self, rels: Iterable[str]) -> Tree:
         """This commit with the files `rels` read in one batch (`git_batch`): every file a reader will ask for, so a
         partial clone (CI's `filter: blob:none`) fetches the commit's missing blobs in ONE request, not one per file (the
-        merge-queue bounce of kb/Work PB4992). A working tree reads its files directly and is returned as it is."""
+        merge-queue bounce of kb/Work PB4992). A file the commit lacks is read as None; the files already read are kept, so
+        a reader reads ahead in stages (`read_view_ahead`). A working tree reads its files directly and is returned as it is."""
         if self.rev is None:
             return self
-        ids = git_batch.path_ids(self.root, self.rev, list(dict.fromkeys(rels))) or {}   # trees only: no blob fetched
+        held = self.files or {}
+        asked = [rel for rel in dict.fromkeys(rels) if rel not in held]
+        if not asked:
+            return self if self.files is not None else Tree(self.root, self.rev, {})
+        ids = git_batch.path_ids(self.root, self.rev, asked) or {}   # trees only: no blob fetched
         data = dict(git_batch.blobs(self.root, ids.values()))
-        return Tree(self.root, self.rev, {rel: data[i].decode("utf-8") for rel, i in ids.items()})
+        return Tree(self.root, self.rev, {**held, **{rel: data[ids[rel]].decode("utf-8") if rel in ids else None
+                                                      for rel in asked}})
+
+
+class NotReadAhead(RuntimeError):
+    """A read-ahead tree (`Tree.files`) was asked for a file it was not given: its reader's read-ahead list is short."""
 
 
 WORKING_TREE = Tree()
@@ -1040,7 +1060,7 @@ class Derivation:
         signer = self.signers.get(self.signer_of(entry.signature), {})
         if signed and signer.get("refuter") and arm["argued"] is not False:
             path = entry.refuter.strip()
-            outcome = None if path in ("", "—", "-") else self.refuter_outcome(path, row.get("rule-id", ""))
+            outcome = None if path in NO_REFUTER else self.refuter_outcome(path, row.get("rule-id", ""))
             if outcome is None:
                 out.append(Refusal("no-refuter-record",
                                    f"determination '{entry.key}' argues arm {entry.arm} under '{entry.signature}', whose "
@@ -1202,6 +1222,13 @@ class Schema:
                     catalog[rid] = (ed.year, text)
             self._catalog = catalog
         return self._catalog
+
+    def view_files(self) -> list[str]:
+        """Every file the view of this schema's tree reads besides its store that the SCHEMA names: itself, the registers'
+        extract, every held edition's catalog (a derivation reads its rule's own edition, `catalog_entry`) and the Annex
+        A.2 list. The refuter record files are the rest, named by the register (`refuter_files`, `read_view_ahead`)."""
+        return [SCHEMA_REL, REGISTER_EXTRACT_REL, *(e.catalog for e in self.all_editions if e.held),
+                *((self.derivation.undefined_list,) if self.derivation else ())]
 
     def catalog_entry(self, rule_id: str) -> tuple[int, str] | None:
         """`(year, text)` of `rule_id` in the held catalog that carries it, or None: what the derivation arms ask. It opens
@@ -1489,6 +1516,24 @@ def register_extract(tree: Tree) -> dict[str, Any]:
         raise SystemExit(f"{REGISTER_EXTRACT_REL} not found in {tree.rev or tree.root} — "
                          "run: python scripts/doc_audits.py --write-register")
     return doc
+
+
+def refuter_files(extract: dict[str, Any] | None) -> list[str]:
+    """The refuter record files the registers' extract `extract` names in its §8 rows' `Refuted` cells (none for None):
+    inputs of the view that its schema does not name, because the register names them (`Derivation.refuter_outcome`)."""
+    return sorted({(d.get("refuter") or "").strip() for d in (extract or {}).get("derivations", [])} - NO_REFUTER)
+
+
+def read_view_ahead(tree: Tree) -> Tree:
+    """`tree` (a commit) with EVERY file its view reads besides the store read ahead, in two batches: the files its schema
+    names (`Schema.view_files`), then the refuter record files its register extract names (`refuter_files`). The one
+    list of a commit's view inputs, read by `inventory_view.inventory_at`; `gen_ledger.measure_commits` reads the same
+    two stages for many commits at once. A file both miss is `NotReadAhead` when the view reads it. A working tree is
+    returned as it is."""
+    if tree.rev is None:
+        return tree
+    tree = tree.read_ahead(load_schema(tree).view_files())
+    return tree.read_ahead(refuter_files(tree.json(REGISTER_EXTRACT_REL)))
 
 
 def load_schema(tree: Tree = WORKING_TREE) -> Schema:
