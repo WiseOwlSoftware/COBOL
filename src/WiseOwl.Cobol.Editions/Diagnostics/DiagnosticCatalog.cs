@@ -7477,8 +7477,9 @@ public static class DiagnosticCatalog
         + "name. A key needs exactly one ordered value per table element, so ISO §2023:13.18.38.3 forbids a key under a "
         + "group within the table that contains an OCCURS clause (SR4), a key whose own entry contains an OCCURS "
         + "clause unless it is the subject of the entry (SR6), a key of class boolean, message-tag, object, or "
-        + "pointer (SR8), and a key that is a variable-length group (SR9).",
-        "ISO §2023:13.18.38.3 SR4, SR6, SR8, SR9");
+        + "pointer (SR8), and a key that is a variable-length group (SR9). At COBOL-85 §1985:VI.5.8.3 SR12 forbids "
+        + "any entry that contains an OCCURS clause between the subject and a key's entry.",
+        "ISO §2023:13.18.38.3 SR4, SR6, SR8, SR9 · §1985:VI.5.8.3 SR12");
 
     /// <summary>COBOL2788 — an OCCURS DEPENDING ON data-name-1 lacks the GLOBAL or EXTERNAL attribute the table's
     /// record has (kb/Work PB1261; §2023:13.18.38.3 SR18 / SR21). Bound in <c>OdoResolvePass</c>.</summary>
