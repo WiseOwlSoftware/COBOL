@@ -794,8 +794,10 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // §2023:13.18.43.4 GR16 byte count through THE SAME builder both READ arms use (kb/Work PB339), and the
             // MOVE statement's own syntax rules have already been applied to it.
             // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs (D20).
-            if (rt.IntoMove is { } intoMove) { move.Emit(intoMove); seqIo.Debug.LandAfterAction(); }
-            if (rt.NotAtEnd is { } not) Statements.EmitStatementList(not);
+            if (rt.IntoMove is { } intoMove) move.Emit(intoMove);
+            using (seqIo.Debug.OweAfterAction())
+                if (rt.NotAtEnd is { } not) Statements.EmitStatementList(not);
+            if (rt.IntoMove is not null) seqIo.Debug.LandAfterAction();   // §1985:XV.3.2.4 GR5 d: "immediately after execution of that statement" — NOT AT END is inside it (kb/Work PB5295)
         }
         // §2023:14.9.34.4 GR3 — the at end condition: control transfers to imperative-statement-1, and on return from
         // it to the end of the statement. ⚠ The null guard is now DEFENSIVE ONLY, and must not become an empty

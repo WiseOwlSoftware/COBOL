@@ -142,13 +142,35 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     /// a verb whose success block exists only for its phrases (the keyed READ) opens it for these too.</summary>
     public bool HasAfterAction => _afterAction.Count > 0;
 
-    /// <summary>A READ, RETURN, RECEIVE, DELETE or START emitter calls this where the verb's own action is done, before the phrases' imperative
-    /// statements (general rules 2 and 8 b; a RETURN's and RECEIVE's only on the path that delivered data; a READ's on that path, and on the one
-    /// that delivered none through <see cref="LandFileNameAfterFailure"/>).</summary>
+    /// <summary>A READ, RETURN, RECEIVE, DELETE or START emitter calls this where the verb's own action AND its phrases' imperative statements are
+    /// done (general rules 2 and 8 b: "immediately after execution of that statement", and the phrases are inside it, §1985:XIV.3.5.4 GR4; a RETURN's
+    /// and RECEIVE's only on the path that delivered data; a READ's on that path, and on the one that delivered none through
+    /// <see cref="LandFileNameAfterFailure"/>). While the phrases are emitted the fires are owed (<see cref="OweAfterAction"/>).</summary>
     public void LandAfterAction()
     {
         LandAfterActionKeeping();
         _afterAction = [];
+    }
+
+    /// <summary>Held after-action fires are owed while the verb's phrases are emitted, as an enclosing statement's after-statement fires are: a
+    /// transfer of control nested in a phrase (<see cref="LandBeforeTransfer"/>) runs them first, so each path runs each section once. The verb's
+    /// emitter wraps the phrases the section follows in <c>using (Debug.OweAfterAction())</c> and lands the fires after it.</summary>
+    public IDisposable OweAfterAction()
+    {
+        if (_afterAction.Count == 0) return NoOwed.Instance;
+        _owedAfter.Push((_afterAction, _line, PhraseFlags.None));
+        return new Owed(_owedAfter);
+    }
+
+    private sealed class NoOwed : IDisposable
+    {
+        public static readonly NoOwed Instance = new();
+        public void Dispose() { }
+    }
+
+    private sealed class Owed(Stack<(IReadOnlyList<DebugFire> Fires, int Line, PhraseFlags Flags)> stack) : IDisposable
+    {
+        public void Dispose() => stack.Pop();
     }
 
     /// <summary>As <see cref="LandAfterAction"/>, but the fires stay held for the READ's other arm (<see cref="LandFileNameAfterFailure"/>), which
