@@ -333,7 +333,7 @@ import inventory_schema, inventory_view
 schema = inventory_schema.load_schema()
 for year in inventory_schema.HELD:
     inventory_view.inventory(year, schema)
-schema.register_items(), schema.derivation.register, schema.derivation.undefined, schema.rule_ids
+schema.register_items(), schema.derivation.register, schema.derivation.undefined, schema.catalog
 print("OPENED " + json.dumps(opened))
 """
 
@@ -413,7 +413,11 @@ def self_test() -> int:
        "a commit before PB4992 is read as its whole rows, as committed")
     repo.write({ed.store + "/GR-4.2-1.json": None})
     write_store([adjudicated], repo.path / ed.store)
-    repo.commit("the view", {ed.catalog: json.dumps({"rules": rules}), SCHEMA_REL: WORKING_TREE.text(SCHEMA_REL)})
+    # Every held edition's catalog is a file of the commit, as the schema it commits holds them (the state rule's
+    # `Schema.catalog` reads each, kb/Work PB5374); the older ones are empty here.
+    repo.commit("the view", {ed.catalog: json.dumps({"rules": rules}), SCHEMA_REL: WORKING_TREE.text(SCHEMA_REL),
+                             **{e.catalog: json.dumps({"rules": []}) for e in schema.all_editions
+                                if e.held and e.catalog != ed.catalog}})
     at = inventory_at("HEAD", 2023, repo.path) or []
     ok([(r["rule-id"], r["verdict"], r["state"]) for r in at]
        == [("GR-4.2-1", "PARTIAL", "GAP"), ("GR-4.10-1", "", "GAP"), ("DOC-A.1-1", "", "GAP")],
@@ -432,7 +436,7 @@ def self_test() -> int:
     ok(at_schema.register_items() == {"DOC-A.1-1"} and at_schema.register_items() != schema.register_items()
        and at_schema.derivation.undefined == {1: {"GR-4.2-1"}}
        and list(at_schema.derivation.register) == ["DRV-GR-4.2-1"]
-       and at_schema.rule_ids == {"GR-4.10-1", "GR-4.2-1", "DOC-A.1-1"},
+       and set(at_schema.catalog) == {"GR-4.10-1", "GR-4.2-1", "DOC-A.1-1"},
        "a commit's schema reads that commit's register extract, Annex A.2 list and catalog, not the working tree's")
     # The merge-queue bounce of PB4992 (inert watch): the view, states included, opens no document. The conformance
     # manifest's generator runs it inside the compiler tests, where a document is inert (kb/Work PB4453, PB4395). Asked of

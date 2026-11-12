@@ -53,8 +53,8 @@ SCHEMA_PATH = REPO / SCHEMA_REL
 #: determinations are keyed by that id plus a letter (`DOC-A.1-92b`, kb/Work PB3840); no inventory row anchors on those.
 REGISTER_PATH = REPO / "docs" / "CONFORMANCE.md"
 #: THE REGISTERS' EXTRACT: what the tests and the state rule read of docs/CONFORMANCE.md's §7 and §8 (each §7 row's key
-#: and determination lead; each §8 row's key, arm, names and signature), written from the Markdown by this module's one
-#: parser (`doc_audits.py --write-register`) and held fresh by the DOC AUDITS audit (kb/Work PB4453). The state rule reads
+#: and determination lead; each §8 row's key, arm, names, signature and refuter file), written from the Markdown by this
+#: module's one parser (`doc_audits.py --write-register`) and held fresh by the DOC AUDITS audit (kb/Work PB4453). The state rule reads
 #: the EXTRACT, never the Markdown: a document is inert, so no compiler test, nor the Python it runs, may open one
 #: (PB4992's merge-queue bounce: the conformance manifest's generator computed states and opened CONFORMANCE.md).
 REGISTER_EXTRACT_REL = "tests/version-matrix/conformance-register.json"
@@ -557,7 +557,8 @@ class DerivationRow(NamedTuple):
     arm: str        #: which of the three §1.1 grounds this determination stands on
     names: str      #: the arm's OBJECT — `A.2 item <n>` / the closed set / the indistinguishable rule-id
     argument: str   #: the derivation itself, written for a reader
-    signature: str  #: the owner's signature, one of the keys of `derivation.signatures` in the schema
+    signature: str  #: the signature, one of the keys of `derivation.signatures` in the schema (`<signer>: <date>`)
+    refuter: str    #: the refuter record file an argued arm signed by a refuter-bound signer names; '—' or '' for none
 
 
 def register_cells(line: str) -> list[str]:
@@ -862,7 +863,13 @@ class Derivation:
     not because nobody has written the golden but because any golden would pin an IMPLEMENTATION CHOICE as though
     it were the standard's answer, which is precisely what `test-ref.spec-derived` exists to prevent. Such a row
     may instead close on a DETERMINATION recorded in `docs/CONFORMANCE.md` §8, keyed by the row's own rule-id,
-    naming one of three grounds and signed by the owner.
+    naming one of the schema's arms and signed by a dated decision (`signatures`, each `<signer>: <date>`).
+
+    ⚙ EVERY EDITION'S ROWS (kb/Work PB5374). A row of any held edition is checked against ITS OWN edition's catalog
+    (`Schema.catalog` keys each rule-id to the one held catalog that carries it). The `undefined-in-rule` arm is the
+    1985 edition's mechanical arm, as that standard has no Annex A.2: the rule's own text declares the result undefined.
+    A signer whose `refuter` is set (the deciding session, kb/Work PB5373) signs an ARGUED arm only beside an UPHELD
+    `cobol-refuter` record of the row (`refuter_outcome`), which keeps the independent read the owner's signature gave.
 
     ⛔ CHECKABLE, NOT A FREE-TEXT ESCAPE HATCH — the note's own second consequence, and the reason this is a
     predicate rather than a convention. The `undefined-A.2` arm is MECHANICAL: Annex A.2 is the standard's own
@@ -885,17 +892,57 @@ class Derivation:
         self.anchor_template: str = raw["anchor-template"]
         self.heading: str = raw["register-heading"]
         self.header_cell: str = raw.get("register-header-cell", "Rule")
-        #: Every signature the owner has given — one dated decision each, mapped to where it is recorded.
+        #: Who may sign (`signers`): each signer's `refuter` and `decision-note` obligations (kb/Work PB5373). A schema of a
+        #: commit before kb/Work PB5374 has none, and every signature it lists is the owner's, which needs no refuter.
+        self.signers: dict[str, dict[str, Any]] = {k: v for k, v in raw.get("signers", {}).items() if not k.startswith("$")}
+        #: Every signature given — one dated decision each (`<signer>: <date>`), mapped to where it is recorded.
         self.signatures: dict[str, str] = {k: v for k, v in raw["signatures"].items() if not k.startswith("$")}
         self.undefined_list: str = raw["undefined-list"]
         self.arms: dict[str, dict[str, Any]] = {
-            name: {"names": re.compile(arm["names-pattern"]), "check": arm["check"]}
+            name: {"names": re.compile(arm["names-pattern"]), "check": arm["check"], "argued": arm.get("argued")}
             for name, arm in raw["arms"].items() if not name.startswith("$")
         }
-        #: Injectable so a self-test drives the predicate against a FABRICATED register and a fabricated A.2
-        #: list — the arms cannot be falsified against today's document, where every row is correct.
+        #: Injectable so a self-test drives the predicate against a FABRICATED register, a fabricated A.2 list and
+        #: fabricated refuter records — the arms cannot be falsified against today's document, where every row is correct.
         self._register = register
         self._undefined = undefined
+        self._refuters: dict[str, dict[str, str] | None] = {}
+
+    @staticmethod
+    def signer_of(signature: str) -> str:
+        """The signer of a signature key `<signer>: <date>` (the text before the first colon)."""
+        return signature.partition(":")[0].strip()
+
+    def refuter_outcome(self, path: str, rule_id: str) -> str | None:
+        """The `outcome` the refuter record file `path` (repository-relative JSON lines) records for `rule_id`, or None
+        when the tree has no such file or the file holds no record of the rule. Read once per file."""
+        if path not in self._refuters:
+            text = self.tree.text(path)
+            self._refuters[path] = None if text is None else {
+                rec["rule-id"]: rec.get("outcome", "") for rec in map(json.loads, filter(str.strip, text.splitlines()))
+                if isinstance(rec, dict) and "rule-id" in rec}
+        records = self._refuters[path]
+        return None if records is None else records.get(rule_id)
+
+    def signature_findings(self) -> list[str]:
+        """What is wrong with the `signatures` map itself: a key whose signer `signers` does not name, or a key of a
+        `decision-note` signer whose value does not open `kb/Work <id>` naming an existing `kind: decision` note. Read by
+        `audit_derivations.py --check` (a gate audit, in every lane), never by the state rule: a note is a document."""
+        out = []
+        for key, value in self.signatures.items():
+            signer = self.signers.get(self.signer_of(key))
+            if signer is None:
+                out.append(f"signature '{key}': signer '{self.signer_of(key)}' is not one of {sorted(self.signers)}")
+                continue
+            if not signer.get("decision-note"):
+                continue
+            m = re.match(r"kb/Work (PB[0-9]+|R[0-9]+)\b", value)
+            note = None if m is None else self.tree.text(f"kb/Work/{m.group(1)}.md")
+            if note is None:
+                out.append(f"signature '{key}': its value must open 'kb/Work <id>' naming a note that exists, not {value!r}")
+            elif not re.search(r"(?m)^kind:\s*decision\s*$", note.partition("\n---")[0]):
+                out.append(f"signature '{key}': kb/Work {m.group(1)} is not a `kind: decision` note")
+        return out
 
     def anchor_for(self, row: dict[str, Any]) -> str:
         """The derivation anchor this row would carry — COMPUTED from its own rule-id, never chosen."""
@@ -910,7 +957,8 @@ class Derivation:
         """The §8 register as this tree's extract has it (`REGISTER_EXTRACT_REL`): key, arm, names and signature; the
         argument is prose, not data, and is not in it."""
         if self._register is None:
-            self._register = {d["key"]: DerivationRow(d["key"], d["arm"], d["names"], "", d["signature"])
+            self._register = {d["key"]: DerivationRow(d["key"], d["arm"], d["names"], "", d["signature"],
+                                                         d.get("refuter", ""))
                               for d in register_extract(self.tree)["derivations"]}
         return self._register
 
@@ -976,17 +1024,32 @@ class Derivation:
                                f"docs/CONFORMANCE.md {self.heading.strip('# ')} carries no row keyed "
                                f"'{self.key_for(row)}'"))
             return out
-        if entry.signature not in self.signatures:
+        signed = entry.signature in self.signatures
+        if not signed:
             out.append(Refusal("bad-signature",
                                f"determination '{entry.key}' is signed '{entry.signature}', not one of "
-                               f"{sorted(self.signatures)} — a derivation is the OWNER's, and the signature "
-                               f"records which owner decision read it"))
+                               f"{sorted(self.signatures)} — the signature records which dated decision read it"))
         arm = self.arms.get(entry.arm)
         if arm is None:
             out.append(Refusal("unknown-arm",
                                f"determination '{entry.key}' names arm '{entry.arm}', not one of "
                                f"{sorted(self.arms)}"))
             return out
+        # ⛔ REFUSAL 8 — an ARGUED arm signed by a signer that is not its own reader (kb/Work PB5373) stands only on an
+        # UPHELD refutation: the refuter tried to write the witness the derivation says cannot exist, and failed.
+        signer = self.signers.get(self.signer_of(entry.signature), {})
+        if signed and signer.get("refuter") and arm["argued"] is not False:
+            path = entry.refuter.strip()
+            outcome = None if path in ("", "—", "-") else self.refuter_outcome(path, row.get("rule-id", ""))
+            if outcome is None:
+                out.append(Refusal("no-refuter-record",
+                                   f"determination '{entry.key}' argues arm {entry.arm} under '{entry.signature}', whose "
+                                   f"signer needs a refuter record, and its Refuted cell {entry.refuter!r} names no "
+                                   f"record of {row.get('rule-id')}"))
+            elif outcome != "UPHELD":
+                out.append(Refusal("refuter-not-upheld",
+                                   f"determination '{entry.key}': the refuter record of {row.get('rule-id')} in "
+                                   f"{path} reads {outcome!r}, not UPHELD — an overturned derivation becomes a test"))
         m = arm["names"].match(entry.names)
         if m is None:
             out.append(Refusal("names-shape",
@@ -1017,18 +1080,39 @@ class Derivation:
             if named == rid:
                 return [Refusal("self-indistinguishable",
                                 f"determination '{entry.key}': a rule cannot be indistinguishable from itself")]
-            if named not in schema.rule_ids:
+            own, other = schema.catalog.get(rid), schema.catalog.get(named)
+            if other is None or own is None or other[0] != own[0]:
                 return [Refusal("unknown-rule",
-                                f"determination '{entry.key}': names '{named}', not a rule in the catalog")]
+                                f"determination '{entry.key}': names '{named}', not a rule of the catalog of "
+                                f"{rid}'s own edition")]
+            return []
+        if check == "quoted-in-rule":
+            if any(rid in covered for covered in self.undefined.values()):
+                return [Refusal("a2-lists-rule",
+                                f"determination '{entry.key}': Annex A.2 lists {rid}, so the row keeps the "
+                                f"undefined-A.2 arm (one fact, one arm)")]
+            own = schema.catalog.get(rid)
+            if own is None:
+                return [Refusal("unknown-rule",
+                                f"determination '{entry.key}': {rid} is not a rule of any held catalog")]
+            if spaced(m.group(1)) not in spaced(own[1]):
+                return [Refusal("quote-not-in-rule",
+                                f"determination '{entry.key}': the quotation {m.group(1)!r} is not in the text of "
+                                f"{rid} in its edition's catalog")]
             return []
         return [Refusal("unknown-check",
                         f"determination '{entry.key}': arm {entry.arm} declares check '{check}', which this "
                         "evaluator does not implement — the schema and the writer disagree")]
 
 
+def spaced(text: str) -> str:
+    """`text` with each whitespace run as one space, the form an `undefined-in-rule` quotation is compared in."""
+    return " ".join(text.split())
+
+
 def derivation_rows(text: str, heading: str, header_cell: str = "Rule") -> list[DerivationRow]:
     """Every data row of the §8 derivation register, in document order."""
-    return [DerivationRow(c[0], c[1], _cell(c, 2), _cell(c, 3), _cell(c, 4))
+    return [DerivationRow(c[0], c[1], _cell(c, 2), _cell(c, 3), _cell(c, 4), _cell(c, 5))
             for c in register_section(text, heading, header_cell)]
 
 
@@ -1074,9 +1158,9 @@ class Schema:
         #: declares none — the door is DATA, so removing the object closes it everywhere at once.
         self.derivation: Derivation | None = (Derivation(raw["derivation"], tree=tree) if "derivation" in raw
                                               else None)
-        #: The catalog rule-ids, for the `indistinguishable-consequent` arm. Lazy, because only that arm needs
-        #: them and every other consumer of this class would otherwise pay a 4,311-rule parse it never reads.
-        self._rule_ids: set[str] | None = None
+        #: Every held edition's catalog, for the arms that read one (`catalog`). Lazy, because only those arms need it
+        #: and every other consumer of this class would otherwise pay a parse of every catalog it never reads.
+        self._catalog: dict[str, tuple[int, str]] | None = None
         #: The §7 register, injectable — see `register_items`.
         self._register_items: set[str] | None = None
 
@@ -1100,10 +1184,22 @@ class Schema:
         return [e for e in self.all_editions if e.held][-1]
 
     @property
-    def rule_ids(self) -> set[str]:
-        if self._rule_ids is None:
-            self._rule_ids = {r["id"] for r in self.newest.rules(self.tree)}
-        return self._rule_ids
+    def catalog(self) -> dict[str, tuple[int, str]]:
+        """`{rule-id -> (its edition's year, its text)}` over EVERY held edition's catalog (kb/Work PB5374): a derivation is
+        checked against its own edition's rules, and a rule-id names one edition (the ids are unique across catalogs;
+        a repeated one is a SystemExit, as it would make a row's edition ambiguous)."""
+        if self._catalog is None:
+            catalog: dict[str, tuple[int, str]] = {}
+            for ed in self.all_editions:
+                if not ed.held:
+                    continue
+                for r in ed.rules(self.tree):
+                    if r["id"] in catalog:
+                        raise SystemExit(f"rule-id {r['id']} is in the {catalog[r['id']][0]} and the {ed.year} catalogs: "
+                                         "a rule-id names one edition")
+                    catalog[r["id"]] = (ed.year, r["text"])
+            self._catalog = catalog
+        return self._catalog
 
     def locations(self, row: dict[str, Any]) -> list[str]:
         """The row's `code-location` list, split on the schema's own separator."""
