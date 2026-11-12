@@ -142,18 +142,13 @@ internal sealed class MessageStoreState
     /// between one of them and a source change. Returns whether anything did not already have the state asked for.</summary>
     internal bool SetQueuePaths(QueueNode queue, bool enable)
     {
-        bool changed = false;
+        if (QueuePathsAre(queue, enable)) return false;
         foreach (var level in _definitions.FindQueue(queue.Path)!.SelfAndDescendants())
         {
-            var node = new QueueNode(level, _tables!);
-            if (node.Enabled != enable)
-            {
-                node.Enabled = enable;
-                changed = true;
-            }
-            changed |= SetPaths(level, _definitions.Sources, enable);
+            new QueueNode(level, _tables!).Enabled = enable;
+            foreach (var source in _definitions.Sources) _tables!.PutPath(source.Name, level.Path, enable);
         }
-        return changed;
+        return true;
     }
 
     /// <summary>§1985:XIV.3.2.4 GR4 and §1985:XIV.3.3.4 GR3: DISABLE or ENABLE INPUT TERMINAL acts on "the logical paths between the source ... and all of its associated

@@ -201,6 +201,32 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
         Assert.True(refused, "the matrix refused no write");
     }
 
+    /// <summary>§1985:XIV.2.2.4 GR31 fixes the SYMBOLIC TERMINAL at the first statement referencing the CD, and a statement the host refused (92 or 93) took no action, so it fixed none:
+    /// with the host refusing every write from the nth on, an input-output CD's SEND to T2 that answers 9x leaves the CD free to name TT on the same activation, which then answers 00
+    /// (the lock set by the action that ran before the store refused its landing is lifted: <c>Dialogue.UndoLocks</c>).</summary>
+    [Fact]
+    public void RefusedInputOutputSend_FixedNoTerminal_ARetryNamingAnotherTerminalAnswers00()
+    {
+        bool refused = false;
+        using var fault = new MediumFault();
+        for (int from = 0; ; from++)
+        {
+            string directory = Prepared();
+            using var s = new Session(directory);
+            Assert.Equal("00", InputStatus(s.Control.AcceptMessageCount(InputArea("Q"))));
+            var activation = new CdActivation();
+            fault.RefuseWritesFrom = from;
+            string status = InOutStatus(s.Control.Send(activation, CommunicationFormat.InputOutput, InOutArea("T2", 2), "XY", SendIndicator.EndOfMessage));
+            fault.RefuseWritesFrom = null;
+            if (status == "00") break;
+            Assert.Contains(status, new[] { "92", "93" });
+            refused = true;
+            Assert.Equal("00", InOutStatus(s.Control.Send(activation, CommunicationFormat.InputOutput, InOutArea("TT", 2), "XY", SendIndicator.EndOfMessage)));
+            Assert.True(from < 200, "the statement never completed");
+        }
+        Assert.True(refused, "the matrix refused no write");
+    }
+
     /// <summary>The statements a brand-new store's first run unit runs: its creation and seeding on the first, a transmission to a device on the second.</summary>
     private static void FirstRunUnit(string directory)
     {
