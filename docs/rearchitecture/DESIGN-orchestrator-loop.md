@@ -1976,7 +1976,7 @@ new module, and `review_lane.py` is declared in `scripts/script_layering.py` bes
 ### 16.8 `docs/CONFORMANCE.md`: one file per entry, one reader, a rendered whole
 
 **Today** one 4,992-line file (`wc -l`, 2026-11-12): §1 summary · §2 the A.3 table · §3 ninety `- **D-KEY — title**`
-determinations (`grep -c "^- \*\*D-"`) and the numbered subsections §3.1–§3.10 (the A.2 undefined cases, the
+determinations (`grep -c "^- \*\*D-"`) and the numbered subsections 3.1 to 3.10 (the A.2 undefined cases, the
 extensions table, eight COBOL-85 determinations added since 2026-11-01) · §4 the four documented-non-support facilities ·
 §5 the A.4 table · §6 maintenance · §7 the A.1 register (`DOC-A.1-<item>` rows) · §8 the derivations (`DRV-<rule-id>`
 rows). It took 123 of 792 landings and 161 dispatch holds in 14 days (§16), 137 of the holds on the whole file. No
@@ -2027,7 +2027,7 @@ named by the entry's key:
 | §3 the determinations | `docs/conformance/3/` | `D-<KEY>.md`, frontmatter `title:`, `notes:` (the kb/Work ids); body as written |
 | §3.1 the A.2 undefined cases | `docs/conformance/3.1/` | `D-<KEY>.md`, as §3 |
 | §3.2 the extensions | `docs/conformance/3.2/` | `<Id>.md`, frontmatter `cells:` |
-| §3.3–§3.10 the COBOL-85 determinations | `docs/conformance/3.3/` … `3.10/` | none: `index.md` only (each is one prose section) |
+| sections 3.3 to 3.10, the COBOL-85 determinations | `docs/conformance/3.3/` … `3.10/` | none: `index.md` only (each is one prose section) |
 | §4 the documented-non-support facilities | `docs/conformance/4/` | `<facility>.md` (MCS, commit-and-rollback, VALIDATE, screen), frontmatter `order:` |
 | §5 the A.4 dispositions | `docs/conformance/5/` | `A.4-<n>.md`, frontmatter `cells:` |
 | §7 the A.1 register | `docs/conformance/7/` | `DOC-A.1-<item>.md`, frontmatter `cells:` |
@@ -2169,7 +2169,7 @@ over the ten landings after tier 16, from the land-lane conflict briefs, with th
 The §2 component table of this document gains the new modules as each split lands (the implementer's sweep, rule 6);
 §12 names the case layout once PB3729 lands, and its list of tests becomes the case directories; `docs/DOC_INDEX.md`'s
 rows for the split scripts and for `docs/CONFORMANCE.md` change with their steps; `DESIGN-test-build-ci.md` §3.14.10
-and section 3.17.4 keep their one-sentence pointers here (§3.14.10 names `selftest_layout.py` as the rule the runner calls
+and section 3.17.4 keep their one-sentence pointers here (its section 3.14.10 names `selftest_layout.py` as the rule the runner calls
 from PB3729 on, and the narrowed discovery from PB5409 on); MANDATORY-PRACTICES' I-rules that say "a fix ships its
 self-test arm" say "its case" from PB3729 on; the `gate`, `workstream`, `kb-sync`, `land-a-fix` and `spec-lookup` skills name
 the case layout where they name `--self-test`, and `docs/conformance/` where they name `CONFORMANCE.md` §N. Nothing in this
