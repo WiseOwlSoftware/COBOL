@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-22",
  "rule-digest": "ff73fd2b6c77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#EmitDebugCause; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDebugRunner; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#ContentsFor",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-22",
+ "notes": "§1985:XV.3.2.4 GR22: on an implicit transfer from the previous sequential paragraph, DEBUG-LINE identifies the previous statement, DEBUG-NAME contains procedure-name-1 and \"DEBUG-CONTENTS contains 'FALL THROUGH'\". DispatchEmitter.EmitDispatchMethod's case epilogue emits EmitDebugCause(FallThrough, the paragraph's last line) before __pc = i + 1, and the next case's __RunDebug populates DEBUG-ITEM (DebugItem.ContentsFor gives FALL THROUGH). Probes at 85: fall-through inside a PERFORM PB THRU PD range across an empty paragraph (DEBUG-LINE 27, the DISPLAY in PB), fall-through into a section-name subject (line 33) and into a paragraph of that section (line 36); COBOL0902 at 2002/2023. The witness checks FALL THROUGH, the name and DEBUG-LINE stability.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

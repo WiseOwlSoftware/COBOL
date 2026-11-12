@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985 indexed I-O-CONTROL: [RERUN ON file-name/implementor-name EVERY {integer RECORDS OF file-name | integer CLOCK-UNITS | condition-name}] … [SAME [RECORD] AREA FOR file-name-3 {file-name-4} …] … . The paragraph survives, so REMOVED is wrong: §2023:12.4.6.2 keeps I-O-CONTROL with apply-commit-clause and same-clause (\"The apply-commit and same clauses may be specified in any order\"), and §2023:12.4.6.4.2 keeps SAME AREA (Format 1) and SAME RECORD AREA (Format 2). RERUN occurs nowhere in the 2023 text, so a 1985 program with a RERUN clause is refused; APPLY COMMIT is added. Compile-time only.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-12.4.6.2": "bea3f5dbe52a",
+   "FMT-12.4.6.4.2": "ef1242cdad87"
+  }
  }
 }

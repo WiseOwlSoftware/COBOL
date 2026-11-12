@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "X3.23a-1989 only boxed numbered paragraphs 3 and 4 (a typographical correction, erratum C147, kb/Work PB5045); the wording is the printed wording and the level-2 box is no difference. 1985: a program is in the initial state 'Every time the program is called, if it possesses the initial attribute.' (§1985:X.2.4.2 GR3). 2023: 'When an initial program is activated, the data items and file connectors contained in it and any program contained within it are set to their initial states' (§2023:11.10.4 GR3); 'Data items in the working-storage section of a program that does have the initial attribute are initial data' (§2023:13.5.4 GR2), and 'Automatic data and initial data is placed in the initial state every time the function, method, or program in which it is described is activated' (§2023:14.6.2.3.2, prose with no catalog row). Called to activated is wording. Same requirement.",
-  "source": "readjudicate-amended-1985/slice-07"
+  "source": "readjudicate-amended-1985/slice-07",
+  "digests": {
+   "GR-11.10.4-3": "5d9f42e6c2b0",
+   "GR-13.5.4-2": "4c876f33408e"
+  }
  }
 }

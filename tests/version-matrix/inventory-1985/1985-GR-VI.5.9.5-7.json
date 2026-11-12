@@ -16,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993, page VI-34) rewrote one sentence: a floating currency string, which the printed rule let 'CR' and 'DB' follow, 'may have one of the editing sign control symbols '+', '-', 'CR', or 'DB' immediately to the right of this string' (§1985:VI.5.9.5 GR7). 2023 allows the same: §2023:13.18.40.3 SR25 ('The symbol '+' or the symbol '-', when used, shall be either the leftmost or the rightmost symbol in character-string-1') and, for CR and DB, Table 10 of §2023:13.18.40.6, which has no catalog row. The rest is restated by §2023:13.18.40.5 GR6 (a string of at least two, embedded simple insertion symbols, the left and right limits, 'The second floating symbol represents the leftmost limit of the numeric data that may be stored in the item', both ways of writing it, spaces for a zero value, the '+' and '-' rows of Table 9, 'If truncation occurs, the value of the data that is used for editing is the value after truncation'), §2023:13.18.40.3 SR27 (one floating string only) and §2023:13.18.40.3 SR29 ('at least one insertion symbol shall be specified to the left of the decimal point position'). The difference is the set of floating insertion symbols. 1985: 'The currency symbol and editing sign control symbols '+' and '-' are the floating insertion characters'; 2023: 'The currency symbol, the extended editing sign control symbols, if specified, and the fixed editing sign control symbols '+' and '-' are used as the floating insertion symbols', with Table 9 rows 'character-1 NEGATIVE phrase | literal-2 or spaces | literal-2' and a currency string of several characters ('a single occurrence of the replacement character(s) is (are) placed into the character position(s)'). A floating string of an EDITING character-1 (§2023:13.18.40.3 SR12, the FOR phrase), which 1985 refuses, is accepted: a case added, reachable only through 2023 syntax; a picture 1985 accepts edits the same.",
-  "source": "readjudicate-amended-1985/slice-03"
+  "source": "readjudicate-amended-1985/slice-03",
+  "digests": {
+   "GR-13.18.40.5-6": "86590e059837",
+   "SR-13.18.40.3-25": "45a5ca338c08",
+   "SR-13.18.40.3-27": "70112cb28d6a",
+   "SR-13.18.40.3-29": "83c185331c47"
+  }
  }
 }

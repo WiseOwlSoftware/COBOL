@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Item b) of SR-12.3.7.3-16 states the same positional pairing of symbolic-character-1 with integer-1. The other items are separate rules and do not change this one.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.3.7.3-16": "db2d00ce3d9d"
+  }
  }
 }

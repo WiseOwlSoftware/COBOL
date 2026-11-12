@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "CHANGED: 1985 names as conditional phrases within CALL \"ON OVERFLOW, ON EXCEPTION, or NOT ON EXCEPTION\" (§1985:IV.6.4.2.1.1). 2023 removed the CALL ON OVERFLOW phrase (§2023:E.2 1) \"On Overflow phrase of the CALL statement\"): the CALL general formats (FMT-14.9.4.2, §2023:14.9.4.2) carry only \"ON EXCEPTION imperative-statement-1\" / \"NOT ON EXCEPTION imperative-statement-2\", and Table 12 gives \"CALL | [NOT] ON EXCEPTION | END-CALL\" (§2023:14.5.1). A conforming 1985 CALL ... ON OVERFLOW is not conforming 2023 source (compile-time refusal); CALL with [NOT] ON EXCEPTION stays conditional. The Table 12 classification itself has no catalog rule (catalog lacks 14.5.1).",
-  "source": "adjudicate-712/slice-05"
+  "source": "adjudicate-712/slice-05",
+  "digests": {
+   "FMT-14.9.4.2": "02ef50f0e383"
+  }
  }
 }

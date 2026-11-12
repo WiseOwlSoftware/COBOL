@@ -1001,13 +1001,12 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def wave_concurrency(state: "gate_slot.SlotState") -> tuple[int, str]:
-    """The implementers one wave may run at once, DERIVED from the gate pool they feed (kb/Work PB5100): the pool's cap in
-    force, less the slots held and the tickets waiting now (another lane's gates: this planner runs before the wave starts
-    any of its own), never fewer than one. Gates are 86 % of a group's fix-to-review time (kb/Work PB4888), so an
-    implementer beyond the free slots only holds a model session open while its gate queues. Returns (workers, why)."""
-    n = max(1, state.cap - len(state.held) - len(state.waiting))
-    return n, (f"gate cap {state.cap} - {len(state.held)} slot(s) held - {len(state.waiting)} ticket(s) waiting, "
-               "at least 1")
+    """The implementers one wave may run at once: the gate pool's cap in force (kb/Work PB5100, PB5303), never fewer than
+    one. NOT the cap less the slots held and tickets waiting when the wave is planned: an implementer codes far longer than
+    it gates, so the slots held at planning time say nothing about the slots free when its gates arrive (wave 20261999 was
+    planned at 1 from a busy moment and ran 8 compiler groups serially for 216+ minutes). The cap already bounds the gate
+    queue: the slot queue serializes the gates themselves. Returns (workers, why)."""
+    return max(1, state.cap), f"the gate pool's cap in force ({state.cap}), at least 1; not reduced by the slots held at planning time"
 
 
 def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:

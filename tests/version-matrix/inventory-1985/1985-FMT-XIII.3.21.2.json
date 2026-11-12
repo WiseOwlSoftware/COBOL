@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.3.21.2",
  "rule-digest": "e60802e8d128",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#usageClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportUsage; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateData; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#UsageConstructId",
  "test-ref": "conformance:cases/XIII.3.21@1985-USAGE-CLAUSE/1985-FMT-XIII_3_21_2",
+ "notes": "§1985:XIII.3.21.2 prints '[ USAGE IS ] DISPLAY', and 'The USAGE clause for a report group item can specify only USAGE IS DISPLAY' (§1985:XIII.3.21.3 SR3). The shared usageClause parses every usage; ReportSectionBinder.ScreenReportUsage refuses any usage but DISPLAY or NATIONAL in a report entry (COBOL2198, the witness's COMPUTATIONAL), at the clause and at the settled usage, and VersionConformancePass.GateData walks each report printable item through UsageConstructId so USAGE NATIONAL / PIC N is refused at 85 as NationalData2002 (COBOL0900). Probes at 85: USAGE IS DISPLAY, USAGE DISPLAY and bare DISPLAY print '007', group-level USAGE DISPLAY with subordinate DISPLAY prints '-012 ****'; COMP, BINARY, PACKED-DECIMAL, INDEX and a group USAGE COMP COBOL2198; USAGE NATIONAL with PIC N(3) COBOL0900 (accepted at 2023, 'ABC'), with PIC X(3) COBOL0881; USAGE twice COBOL2423, USAGE IS alone a parse error; NATIONAL (a user word at 85) accepted as an entry name. COBOL2198's text names DISPLAY or NATIONAL at 85 as well, a wording point only.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -13,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "1985 report-writer USAGE is '[USAGE IS] DISPLAY' only (§1985:XIII.3.21.3 SR3). §2023:13.15.2 gives '[USAGE IS] {DISPLAY|NATIONAL}' and §2023:13.18.60.3 SR7 'Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item', the clause otherwise being the general USAGE clause of §2023:13.18.60.2 (§2023:13.15.4 GR2). USAGE NATIONAL in a report group, refused in 1985, is accepted. CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.15.2": "d2104b4e3f18",
+   "SR-13.18.60.3-7": "101e1c040055",
+   "FMT-13.18.60.2": "d21934139e1a",
+   "GR-13.15.4-2": "adfcec9cace3"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Every 2023 file description entry format (§2023:13.4.5.2, from 'Format 1 (sequential)' on) opens with the level indicator FD followed by file-name-1. §2023:13.4.5.1: 'The file description entry (FD entry) represents the highest level of organization in the file section'. Same requirement.",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "FMT-13.4.5.2": "b75b09e44e69"
+  }
  }
 }

@@ -29,8 +29,8 @@ public static class CobolFile
     /// resolved from the ASSIGN target by <see cref="ResolveHostPath"/>. See <see cref="FileRegistry.Register"/>.</summary>
     public static void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
         bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023,
-        int recordMax = 0)
-        => _reg.Register(cobolName, assignTarget, recordWidth, lineSequential, optional, varyMin, varyMax, selectName, edition, recordMax);
+        int recordMax = 0, bool printFile = false)
+        => _reg.Register(cobolName, assignTarget, recordWidth, lineSequential, optional, varyMin, varyMax, selectName, edition, recordMax, printFile);
 
     /// <summary>Register a SELECTed REPORT FILE — a file with no record description (§2023:13.4.5.3 SR8), whose width is
     /// the widest report line; see <see cref="FileRegistry.RegisterReport"/> (kb/Work PB677).</summary>

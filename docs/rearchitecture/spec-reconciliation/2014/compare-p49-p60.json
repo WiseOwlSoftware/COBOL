@@ -1,0 +1,97 @@
+{
+  "batch": [49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60],
+  "pages_checked": [49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p49-1",
+      "page": 49,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Expression | 8.8, Expressions | arithmetic-expression-n boolean-expression-n conditional-expression-n  ...  c) Exception name | 14.6.12.1.5, Exception-names and exception conditions | exception-name-1",
+      "markdown_says": "| Expression | 8.8, Expressions | arithmetic-expression-n |\n\nboolean-expression-n conditional-expression-n\n\n| Integer | ...\n| c) Exception name | 14.6.12.1.5, Exception-names and | exception-name-1 |\n\nexception conditions",
+      "why_it_matters": "The operand-type table is broken in two places: the terms boolean-expression-n and conditional-expression-n are ejected from the Expression row into a stray paragraph, and the tail of the cross-reference 'exception conditions' is ejected from the Exception name row. The user-defined-word row is also split across three table rows ('qualification and subscription if' / 'needed'), each looking like a separate operand type."
+    },
+    {
+      "id": "p51-1",
+      "page": 51,
+      "kind": "ocr-error",
+      "severity": "structural",
+      "pdf_says": "When an operand is textually subscripted, as operand-j_n (n printed as a subscript), the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.",
+      "markdown_says": "When an operand is textually subscripted, as operand-jn, the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.",
+      "why_it_matters": "The clause defines the textual-subscript notation itself, and the subscript n was flattened onto the baseline, so the example reads as a term named 'operand-jn' and no longer shows the notation it defines."
+    },
+    {
+      "id": "p51-2",
+      "page": 51,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "b) if that operand is a data-name or an identifier, it shall reference one of the following:\n    1. an integer intrinsic function,\n    2. a fixed-point numeric data item, ...",
+      "markdown_says": "   b) if that operand is a data-name or an identifier, it shall reference one of the following:\n\n   1\\. an integer intrinsic function,\n\n   2\\. a fixed-point numeric data item, other than an intrinsic function, ...",
+      "why_it_matters": "Items 1. and 2. are indented under b) in the PDF as its sub-items; the markdown places them at the same level as a) and b), detaching them from their parent."
+    },
+    {
+      "id": "p52-1",
+      "page": 52,
+      "kind": "incorrect-text",
+      "severity": "structural",
+      "pdf_says": "can | is able to / there is a possibility of / it is possible to ... cannot | be unable to / there is no possibility of / it is not possible to ... should | it is recommended that / ought to ... should not | It is not recommended that / ought not to",
+      "markdown_says": "| can<br>cannot | is able to<br>there is a possibility of it is possible to<br>be unable to<br>there is no possibility of it is not possible to | ... |\n| should<br>should not | it is recommended that ought to<br>It is not recommended that ought not to | ...",
+      "why_it_matters": "In Table 1 several separate equivalent expressions are run together into single phrases ('there is a possibility of it is possible to', 'it is recommended that ought to'), and the alignment of which expressions belong to the negative form (cannot, should not, shall not, need not) is lost. The footnote marker '1' on 'Equivalent Expressions' is also flattened to 'Expressions1'."
+    },
+    {
+      "id": "p53-1",
+      "page": 53,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "- (hyphen)   continuation indicator   a continuation line",
+      "markdown_says": "| / | comment indicator | a comment line with page ejection |\n\n\\- (hyphen) continuation indicator a continuation line",
+      "why_it_matters": "The fixed-indicators table loses its third row: the hyphen continuation indicator is ejected from the table into a run-on paragraph with no column separation."
+    },
+    {
+      "id": "p54-1",
+      "page": 54,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "space   source indicator   any line that is not a comment line or a continuation line",
+      "markdown_says": "space source indicator any line that is not a comment line or a continuation line",
+      "why_it_matters": "The last row of the fixed-indicators table (continued from page 53) is a run-on paragraph rather than a table row, so the character 'space', the indicator name and its meaning are not distinguishable."
+    },
+    {
+      "id": "p54-2",
+      "page": 54,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "*>  comment indicator  1) a comment line when specified as the first character-string in the program-text area; 2) an inline comment ... 6.2.2.1, Syntax Rules.\n>>  compiler directive indicator  a compiler-directive line when followed by a compiler-directive word - with or without an intervening space, subject to additional rules in 7.3, Compiler directives.\n\"- '-  literal continuation indicator  continuation of a literal when specified in an unterminated literal with the same quotation symbol in its opening delimiter, subject to additional rules in 6.2.2.1, Syntax Rules.",
+      "markdown_says": "| \\*> | comment indicator | 1) a comment line when specified as the first |\n\ncharacter-string in the program-text area;\n\n2\\) an inline comment ...\n\n| >> | compiler directive | a compiler-directive line when followed by a compiler-directive |\n|---|---|---|\n|  | indicator | word - with or without an intervening space, subject to |\n\nadditional rules in 7.3, Compiler directives.\n\n| \"- | literal continuation | continuation of a literal when specified in an unterminated |\n|---|---|---|\n| '- | indicator | literal with the same quotation symbol in its opening delimiter, |\n\nsubject to additional rules in 6.2.2.1, Syntax Rules.",
+      "why_it_matters": "The floating-indicators table is shattered into three tables plus stray paragraphs: each description is cut mid-sentence; the indicator name 'compiler directive indicator' is split across two rows; and '-' appears as a separate row whose name is just 'indicator' and whose meaning is a sentence fragment, instead of '\"-' and ''-' sharing one row and one description."
+    },
+    {
+      "id": "p55-1",
+      "page": 55,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Figure 1: Margin L at the left of position 1; Margin C between positions 6 and 7; Margin A between positions 7 and 8; Margin R after the last position (...). Positions 1-6 braced as 'Sequence Number Area'; position 7 arrowed as 'Indicator Area'; positions 8 through ... braced as 'Program-text Area'.",
+      "markdown_says": "| Margin |  |  |  |  | Margin |  | Margin |  | Margin |\n|---|---|---|---|---|---|---|---|---|---|\n| L |  |  |  |  | C |  | A |  | R |\n| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 10 11 12 13 | ... |\n\nProgram-text Area Sequence Number Area\n\nIndicator Area",
+      "why_it_matters": "Figure 1 is garbled: the table puts Margin C over position 6 and Margin A over position 8 rather than on the boundaries, positions 9-13 are merged into one cell, Margin R sits over '...', and the three area labels are detached from their spans and listed out of order, so the figure no longer shows which positions form which area. The prose below the figure restates the margins, so it does not lose the normative content."
+    },
+    {
+      "id": "p60-1",
+      "page": 60,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Compiler directing statements | Stage (underlined header) ... FLAG-85 Compilation / FLAG-NATIVE-ARITHMETIC Compilation / IF Text-manipulation",
+      "markdown_says": "   Compiler directing statements Stage\n\n| COPY statement | Text manipulation |\n|---|---|\n...\n| FLAG-85 | Compilation |\n\n   FLAG-NATIVE-ARITHMETIC Compilation\n\n| IF | Text-manipulation |",
+      "why_it_matters": "The stage table is broken: its header row is a stray paragraph, so 'COPY statement | Text manipulation' became the table's header row; the second header 'Compiler directives | Stage' is an ordinary data row; and the FLAG-NATIVE-ARITHMETIC row is ejected from the table into a paragraph, splitting it into two tables."
+    },
+    {
+      "id": "p60-2",
+      "page": 60,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "COPY statement   Text manipulation\n      SUPPRESS phrase   Implementor-defined\nREPLACE statement   Text manipulation",
+      "markdown_says": "| COPY statement | Text manipulation |\n|---|---|\n| SUPPRESS phrase | Implementor-defined |\n| REPLACE statement | Text manipulation |",
+      "why_it_matters": "In the PDF 'SUPPRESS phrase' is indented under COPY statement as the COPY statement's SUPPRESS phrase; the markdown puts it at the same level as COPY and REPLACE, so it reads as a separate compiler directing statement."
+    }
+  ]
+}

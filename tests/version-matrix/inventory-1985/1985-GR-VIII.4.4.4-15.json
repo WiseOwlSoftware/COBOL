@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.27.4 GR17 creates an absent optional file on OPEN EXTEND or I-O 'as if the following statements were executed in the order shown: OPEN OUTPUT ... CLOSE', then the coded OPEN; §2023:14.9.27.4 GR18 'After the creation of the file, the file contains no records'; Table 18 (§2023:14.9.27.4 GR4) and §2023:9.1.13.2 GR4 ('If the open mode is I-O or extend, the physical file has been created') state the same results. The '05' restates 1985's own 05.",
-  "source": "adjudicate-712-r2/slice-08"
+  "source": "adjudicate-712-r2/slice-08",
+  "digests": {
+   "GR-14.9.27.4-17": "c29782e39335",
+   "GR-14.9.27.4-18": "f152580b4f96",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-9.1.13.2-4": "6687777bb08d"
+  }
  }
 }

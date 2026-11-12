@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "1985: data-name-1 required for a group referenced by GENERATE/USE, a sum counter referenced in the Procedure Division or Report Section, a detail in UPON, sum counter qualification. 2023 §2023:13.15.3 SR7 'shall be specified when the data-name is referenced in a GENERATE statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase ... or as an operand in a SUM clause'; sum counter references: §2023:13.18.54.4 GR5 'the data-name is the name of the sum counter', §2023:13.8.6.2.3 SR1, §2023:13.18.53.3 SR4; an unnamed entry is FILLER (§2023:13.18.20.3 SR2) and 'Under no circumstances shall a FILLER item be referred to explicitly' (§2023:13.18.20.4 GR1). The same programs are refused. GR-13.18.54.4-12 repeats SR-13.8.6.2.3-1 and adds nothing.",
-  "source": "adjudicate-712-r2/slice-11"
+  "source": "adjudicate-712-r2/slice-11",
+  "digests": {
+   "SR-13.15.3-7": "1850002beb1a",
+   "GR-13.18.54.4-5": "a87f7ccf0507",
+   "SR-13.8.6.2.3-1": "ee9bcb0a7dc4",
+   "SR-13.18.53.3-4": "35eadd3ffa70",
+   "GR-13.18.20.4-1": "aba83a0a35b1",
+   "SR-13.18.20.3-2": "986eb68e704c"
+  }
  }
 }

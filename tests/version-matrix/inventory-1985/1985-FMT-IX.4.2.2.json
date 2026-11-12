@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"CLOSE {file-name-1 ║[WITH LOCK]║} …\"; 2023: \"CLOSE {file-name-1 [{REEL|UNIT} [FOR REMOVAL] | WITH NO REWIND]} … — no WITH LOCK phrase\". The 2023 CLOSE format still accepts CLOSE file-name-1 … for indexed files but drops the WITH LOCK phrase. REEL, UNIT and NO REWIND are for sequential files only.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.6.2": "b92f554aa426",
+   "SR-14.9.6.3-1": "2c672d333ed6"
+  }
  }
 }

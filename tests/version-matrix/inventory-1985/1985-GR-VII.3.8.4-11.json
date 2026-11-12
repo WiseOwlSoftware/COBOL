@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same rule. 1985 measured record size in character positions; 2023 uses bytes for the same unit. Only national data, absent in 1985, separates them, so 1985 programs get the same value.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.43.4-15": "c915825bef81"
+  }
  }
 }

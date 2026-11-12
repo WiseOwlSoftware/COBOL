@@ -15,6 +15,15 @@
   ],
   "bridge": true,
   "reason": "1985: '.' is the insertion character and decimal point for alignment, counted in size, 'V' with '.' disallowed, final '.' ends the entry, same position. §2023:13.18.40.5 GR4 ('The symbol . is used as the special insertion editing symbol', same position), §2023:13.18.40.4 GR14 (counted, alignment), §2023:13.18.40.3 SR20 (V and . 'mutually exclusive'), §2023:13.18.40.3 SR7 with §2023:8.3.5 SR8, §2023:13.18.40.3 SR13 and §2023:12.3.7.4 GR14 (DECIMAL-POINT IS COMMA). Same programs, same effect.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-13.18.40.5-4": "78289b09f12b",
+   "GR-13.18.40.4-14": "afd0f88fdb6d",
+   "SR-13.18.40.3-20": "5b534245d41f",
+   "SR-13.18.40.3-7": "459081c85b3b",
+   "SR-8.3.5-8": "17894f6f67b2",
+   "SR-13.18.40.3-13": "8fe7d3903dfc",
+   "GR-12.3.7.4-14": "575faf83d25e"
+  }
  }
 }

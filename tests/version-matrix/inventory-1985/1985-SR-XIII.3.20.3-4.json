@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-55, kb/Work PB4952). Report and page headings and footings at most once per report, at most one control heading and one control footing per control, either optional; 2023 SR13 and SR14 state the same.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "SR-13.18.57.3-13": "70de0e5c3100",
+   "SR-13.18.57.3-14": "dbd0684be112"
+  }
  }
 }

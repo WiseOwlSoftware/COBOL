@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"Literal-1 must be a two-character nonnumeric literal.\"; 2023: \"Literal-1 shall be an alphanumeric literal.\". 2023 drops the two-character length requirement; alphanumeric literals of other lengths are now accepted in the CODE clause.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.12.3-1": "b93bde5d0ce6"
+  }
  }
 }

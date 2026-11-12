@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "The 1985 Nucleus format is the bare word EXIT, and 2023 Format 1 (simple) is the same bare EXIT. The other 2023 formats are separate features and do not alter the simple form.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.14.2": "2383d4924015"
+  }
  }
 }

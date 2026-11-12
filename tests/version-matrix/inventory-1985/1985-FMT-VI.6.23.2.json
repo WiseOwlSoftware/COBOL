@@ -15,6 +15,11 @@
   "reason": "§1985:VI.6.23.2 sends index-name-2, identifier-2 or integer-1 in Format 1 and identifier-3 or integer-2 in Format 2, and §1985:VI.6.23.3 SR2 to SR4 require integers ('Identifier-3 must reference an elementary numeric integer', 'Integer-1 must be positive'); Format 4 is condition-name TO TRUE only. §2023:14.9.39.2 takes arithmetic-expression-1 and arithmetic-expression-2 as those operands, adds TO FALSE and repeated condition-name groups, and adds further formats (object reference, attribute and others). A 1985 SET means the same, but a non-integer sending value, refused at compile time in 1985, is accepted in 2023 and becomes a run-time exception condition: §2023:14.9.39.4 GR2 ('If the value of arithmetic-expression-1 does not result in an integer ... the EC-BOUND-SUBSCRIPT exception condition is set to exist') and §2023:14.9.39.4 GR3 for arithmetic-expression-2. Wider syntax plus a refusal made an exception condition: CHANGED.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-14.9.39.2": "7e3880298603",
+   "GR-14.9.39.4-2": "4f89c83a42be",
+   "GR-14.9.39.4-3": "cb08d20dbcb0"
+  }
  }
 }

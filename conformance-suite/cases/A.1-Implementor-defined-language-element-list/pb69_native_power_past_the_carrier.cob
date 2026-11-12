@@ -30,14 +30,16 @@
       *>   over it is 980012199. Before PB4569 the argument was the binary64 power's shortest decimal,
       *>   9.99999999999997E44, whose residue is 1012193 (before PB69: 639816141 from the sentinel and
       *>   966729007 from the Dec arm's modular landing).
+      *> X and Y are UNSIGNED: A ** X is MOD's argument-1, which §2023:15.3 type 6 requires to ALWAYS result in
+      *> an integer, and a signed exponent item can be negative (kb/Work PB5208 refuses A ** X over a signed X).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB69NATIVEPOW.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 A PIC S9(18) VALUE 999999999999999.
        01 B PIC S9(18) VALUE 1000000007.
-       01 X PIC S9(4) VALUE 3.
-       01 Y PIC S9(4) VALUE 2.
+       01 X PIC 9(4) VALUE 3.
+       01 Y PIC 9(4) VALUE 2.
        01 R18 PIC S9(18).
        01 R31 PIC S9(31).
        PROCEDURE DIVISION.

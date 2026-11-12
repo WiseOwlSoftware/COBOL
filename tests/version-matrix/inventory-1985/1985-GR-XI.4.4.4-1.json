@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Short file-name-2 records are still space filled on the right on release to fixed-length file-name-1. National and SELECT WHEN cases apply only to 2023 features; 1985 programs unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.40.4-7": "94d72537c9fa"
+  }
  }
 }

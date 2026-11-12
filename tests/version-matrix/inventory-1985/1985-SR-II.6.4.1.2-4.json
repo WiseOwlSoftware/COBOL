@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: a non-common nested program may be called 'if, and only if, that program is directly contained within the calling program'. §2023:8.4.6.3 SR1: 'only by statements included in that containing program or, if the program possesses the recursive attribute, in the program itself' (cf. §2023:11.10.4 GR4 'may call itself'). The self-call 1985 refuses is accepted for a RECURSIVE program: a case added, so CHANGED. §2023:14.9.4.4 GR3 applies it to CALL.",
-  "source": "adjudicate-712-r2/slice-13"
+  "source": "adjudicate-712-r2/slice-13",
+  "digests": {
+   "SR-8.4.6.3-1": "8217603f4909",
+   "GR-14.9.4.4-3": "04fde73bf906"
+  }
  }
 }

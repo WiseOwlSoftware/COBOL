@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 requires the entry-name clause (data-name or FILLER), if specified, to immediately follow the level-number. The implicit-FILLER default is a separate rule; section-list changes come from features dropped elsewhere.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.16.3-4": "2d891dac76cc"
+  }
  }
 }

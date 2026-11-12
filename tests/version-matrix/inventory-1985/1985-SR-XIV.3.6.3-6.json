@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.3.6.3-6",
  "rule-digest": "baafb7255537",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOf; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendText",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-SR-XIV_3_6_3-6",
+ "notes": "§1985:XIV.3.6.3 SR6 (Amendment 1): \"If identifier-1 is a function-identifier, it must reference an alphanumeric function.\" BindSend binds a functionCall sendText through IntrinsicOperand and refuses (COBOL6171) any operand whose IntrinsicArgumentRules.ClassOf is not alphanumeric: probes at --std 85 refuse ORD, ORD-MAX, LENGTH (integer), SQRT and RANDOM (numeric), and NATIONAL-OF (also COBOL1502, a 2002 function), and accept UPPER-CASE, LOWER-CASE of a subscripted element, REVERSE of a group, CHAR, CURRENT-DATE, WHEN-COMPILED and a reference-modified UPPER-CASE, in Format 1 and Format 2; the witness refuses FUNCTION ORD at line 32. LEAD outside this rule (no note found): the same check refuses a NON-function identifier-1 that is numeric (PIC 9(4)) or numeric-edited (ZZ9) at --std 85 with a 2002 rule (A.2.6.2 SR2), though the 1985 SEND has no class rule for a data item (rejects-legal-source against 1985-FMT-XIV.3.6.2).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

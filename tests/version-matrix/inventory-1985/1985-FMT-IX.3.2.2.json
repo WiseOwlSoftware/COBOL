@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 indexed FD: BLOCK CONTAINS, RECORD (CONTAINS / VARYING / integer-6 TO integer-7), LABEL RECORDS, VALUE OF, DATA RECORDS. §2023:13.4.5.2 Format 2 (relative-or-indexed) keeps FD file-name-1, BLOCK CONTAINS (restated in §2023:13.18.10.2) and record-clause (§2023:13.18.43.2, which also admits BYTES), but carries no LABEL RECORDS, VALUE OF or DATA RECORDS clause: a 1985 program using them (obsolete in 1985) is refused under 2023. EXTERNAL and GLOBAL are not new, 1985 X.4.2.2 already had them; only EXTERNAL AS literal-1 is. Compile-time only.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-13.4.5.2": "b75b09e44e69",
+   "FMT-13.18.10.2": "80e87404b097",
+   "FMT-13.18.43.2": "eaecef407473"
+  }
  }
 }

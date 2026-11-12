@@ -1,0 +1,13 @@
+{
+  "claim_id": "p95-1",
+  "claim_key": "591e6da4656c1ce2",
+  "page": 95,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p95-1", "page": 95, "kind": "misplaced-content", "severity": "structural", "section": "8.3.1.1.3.1 Required words", "pdf_says": "=    Relational operator - equal\n        and assignment operator in COMPUTE", "markdown_says": "| = | Relational operator - equal |\n\nand assignment operator in COMPUTE\n\n| == | Pseudo-text delimiter in COPY and REPLACE statements |\n|---|---|", "detail": "The '=' row's continuation 'and assignment operator in COMPUTE' is detached from the table into a standalone paragraph, splitting the special-character-word table in two; the '=' entry in the table no longer records its assignment meaning.", "why_it_matters": "The '=' table entry reads as only a relational operator; its meaning as the COMPUTE assignment operator sits detached outside the table."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page 73 (PDF p95), 8.3.1.1.3.1 table, shows '=  Relational operator - equal' with the indented continuation line 'and assignment operator in COMPUTE' directly below it, then '=='. The markdown (page-95.md lines 36-40) holds the same words in the same order: the '=' row, then 'and assignment operator in COMPUTE' as a paragraph on the next block, then the '==' row. No text is missing or misquoted, and the continuation still sits immediately after the '=' row, so a reader gets the same meaning. The difference is table layout from line wrapping: the wrapped continuation became a paragraph that splits the table. That is a formatting defect and does not change content. (A side effect is that the second table's '---' separator follows the '==' row, so a renderer would show '==' as a header row. That is also only formatting, and every row is still present.)",
+    "corrected_description": ""
+  }
+}

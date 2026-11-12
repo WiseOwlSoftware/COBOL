@@ -8,6 +8,9 @@
    "RV-15.20.4-1"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "RV-15.20.4-1": "0c794832c6ee"
+  }
  }
 }

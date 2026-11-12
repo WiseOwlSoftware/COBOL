@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.2.7.4-5",
  "rule-digest": "764c504f450b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register",
  "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-GR-VII_2_7_4-5",
+ "notes": "Behaviour: with BLOCK CONTAINS 3 RECORDS and no PADDING CHARACTER clause, two 5-character records make a 10-byte file (ALPHADELTA) and the third READ is at end (status 10); nothing pads. The refuter's only doubt was that docs/CONFORMANCE.md had no determination. The pinned tree now has one: §3.6, row 'The PADDING CHARACTER clause (85, 2002; deleted from 2014)' (kb/Work PB5069, PB5070), 'a null facility in function ... no padding character is written or bypassed', resting on GR2. Under GR2 no padding occurs on any file this implementation supports, so the GR5 default is never used, and the implementor has stated so.",
  "next": {
   "kind": "REMOVED",
   "to": [],

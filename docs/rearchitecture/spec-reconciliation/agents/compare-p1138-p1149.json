@@ -1,9 +1,9 @@
 {
   "batch": [1138, 1139, 1140, 1141, 1142, 1143, 1144, 1145, 1146, 1147, 1148, 1149],
-  "pages_checked": [1138, 1139, 1140, 1141, 1142, 1143, 1144, 1145, 1146, 1147, 1148, 1149],
+  "pages_checked": [1138, 1139, 1140, 1141, 1142, 1143, 1144, 1145, 1146, 1147, 1148, 1149], "pages_unread": [],
   "findings": [
     {
-      "page": 1143,
+      "id": "p1143-1", "page": 1143,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "Figure  D.5 — Banking hierarchy : a three-compartment box 'Account' (name / 'account-number, balance, date-opened' / 'deposit, withdraw, balance'), with the side labels 'Data items ——>' and 'Methods ——>' aimed at the second and third compartments, and TWO solid lines rising from the top edges of the 'CheckingAccount' and 'SavingAccount' boxes to arrowheads on the bottom edge of the 'Account' box.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Re-render Figure D.5 so the subclass→superclass edges survive — e.g. an ASCII/box drawing in the style already used for Figure D.4 on page 1142, with 'CheckingAccount' and 'SavingAccount' below 'Account' and an upward arrow from each to Account, keeping the three compartments (class name / data items / methods) per box and the two side labels."
     },
     {
-      "page": 1138,
+      "id": "p1138-1", "page": 1138,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.4   Methods  /  D.19.4.1   General  — printed at the same typographic rank as D.19.1 General, D.19.2 Classes and D.19.3 Objects, i.e. as children of D.19 Object oriented concepts.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Demote to '### D.19.4 Methods' and '#### D.19.4.1 General'."
     },
     {
-      "page": 1139,
+      "id": "p1139-1", "page": 1139,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.4.2   Method invocation  — printed at exactly the same typographic rank as D.19.4.1 General on the preceding page.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Change to '#### D.19.4.2 Method invocation' (matching the corrected '#### D.19.4.1 General')."
     },
     {
-      "page": 1140,
+      "id": "p1140-1", "page": 1140,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.4.3   Method prototypes  — printed at the same typographic rank as D.19.4.1 General and D.19.4.2 Method invocation.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Change to '#### D.19.4.3 Method prototypes'."
     },
     {
-      "page": 1142,
+      "id": "p1142-1", "page": 1142,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.5   Other object oriented programming features  /  D.19.5.1   Inheritance  — D.19.5 printed at the same rank as D.19.1, D.19.2, D.19.3, D.19.4; D.19.5.1 one rank below it.",
@@ -48,7 +48,7 @@
       "suggested_repair": "Demote to '### D.19.5 Other object oriented programming features' and '#### D.19.5.1 Inheritance'."
     },
     {
-      "page": 1145,
+      "id": "p1145-1", "page": 1145,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.5.2   Restricting inheritance and modification with the FINAL clause  — printed at the same typographic rank as D.19.5.1 Inheritance.",
@@ -57,7 +57,7 @@
       "suggested_repair": "Change to '#### D.19.5.2 Restricting inheritance and modification with the FINAL clause'."
     },
     {
-      "page": 1145,
+      "id": "p1145-2", "page": 1145,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "CheckingAccount Class   (underlined, exactly as 'Account Class' is underlined on page 1144)",
@@ -66,7 +66,7 @@
       "suggested_repair": "Wrap as '<u>CheckingAccount Class</u>' to match the page-1144 treatment of '<u>Account Class</u>'."
     },
     {
-      "page": 1146,
+      "id": "p1146-1", "page": 1146,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.5.3   Conformance  — printed at the same typographic rank as D.19.5.1 Inheritance and D.19.5.2 Restricting inheritance...",
@@ -75,7 +75,7 @@
       "suggested_repair": "Change to '#### D.19.5.3 Conformance'."
     },
     {
-      "page": 1149,
+      "id": "p1149-1", "page": 1149,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.5.4   Polymorphism  /  D.19.5.4.1   General  — D.19.5.4 printed at the same rank as D.19.5.1/.2/.3; D.19.5.4.1 one rank below it.",

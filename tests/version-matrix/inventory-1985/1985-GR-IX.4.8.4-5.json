@@ -15,6 +15,15 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.49.4 GR6 restates 1985 GR5 and a-e word for word ('unless an AT END or INVALID KEY phrase takes precedence'); its exception-checking PERFORM precondition always holds for 1985 programs. file-name-1 precedence: §2023:14.9.49.4 GR5 and §2023:14.9.49.4 GR3 a)-b). AT END/INVALID KEY precedence: §2023:9.1.14 GR2, §2023:9.1.14 GR3, §2023:14.9.30.4 GR24; USE on other unsuccessful completion: 9.1.14 level-2 rule 1. Run-time, no refusal. Same.",
-  "source": "adjudicate-712-r2/slice-03"
+  "source": "adjudicate-712-r2/slice-03",
+  "digests": {
+   "GR-14.9.49.4-6": "b41480584b33",
+   "GR-14.9.49.4-5": "2736b3d8157a",
+   "GR-14.9.49.4-3": "1f60d13b42af",
+   "GR-9.1.14-2": "e2d0046858ad",
+   "GR-9.1.14-3": "4d9f118d4cd2",
+   "GR-9.1.14-L2.1": "b5da8dae842e",
+   "GR-14.9.30.4-24": "fc6732e2c178"
+  }
  }
 }

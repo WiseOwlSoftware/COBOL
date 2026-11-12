@@ -25,7 +25,7 @@ Security vulnerabilities are **not** filed as issues; see [SECURITY.md](SECURITY
 Every question of syntax, semantics or output is settled by the text of **ISO/IEC 1989:2023**. The Markdown
 transcription lives at `specs/ISO_COBOL_2023.md`. When you report a defect or change behavior, cite the exact clause,
 syntax rule (SR) or general rule (GR), and name the edition of the standard you cite. The format is
-`§<edition>:<locator>[ <rule>]`: for example `§2023:14.9.25.3 SR1`, or `§1985:VI.5.3.2 GR3` for ANSI X3.23-1985, whose
+`§<edition>:<locator>[ <rule>]`: for example `§2023:14.9.25.3 SR1`, or `§1985:VI.5.3.4 GR3` for ANSI X3.23-1985, whose
 locator is the Roman section and then that section's own paragraph number. `scripts/spec/citation.py` documents the
 format and parses it. Check the citation mechanically:
 
@@ -62,8 +62,10 @@ Always build the **solution**, not a single project, before running tests with `
 stale compiler.
 
 **Line endings are LF, everywhere.** `.gitattributes` (`* text=auto eol=lf`) checks every text file out LF on
-Windows too, whatever your `core.autocrlf`, and `python scripts/line_endings.py --check` (part of the gate) refuses
-a CR in any tracked text file. Once per clone, let a merge or rebase compare branches after that normalization, so
+Windows too, whatever your `core.autocrlf`, and `python scripts/line_endings.py --check` refuses a CR in any tracked
+text file and any file whose `.gitattributes` say anything but `-text` or text with `eol=lf`. The gate runs it over only
+what your branch changes and what your checkout has modified (the whole tree when your branch edits a `.gitattributes`
+or the check itself); CI sweeps every tracked file once per merge group. Once per clone, let a merge or rebase compare branches after that normalization, so
 a branch cut before it never conflicts on line endings alone:
 
 ```bash

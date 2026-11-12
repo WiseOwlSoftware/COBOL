@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.1.4-11",
  "rule-digest": "f3962b695ee2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelativeKeyStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Return; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Rewind",
  "test-ref": "conformance:cases/XI.4.1@1985-MERGE-STATEMENT/1985-GR-XI_4_1_4-11",
+ "notes": "§1985:XI.4.1.4 GR11: GIVING writes the merged records 'as if an OPEN statement with the OUTPUT phrase', each 'as if a WRITE statement without any optional phrases', a variable-length record at 'the size of that record when it was read from file-name-1', a relative key of 1, 2, ... ending at the last record, an as-if CLOSE, USE procedures executed, and on 'the first attempt to write beyond the externally defined boundaries' the USE procedure then termination as in 11c. EmitMerge reaches EmitGivingFile at every edition (no edition arm): Rewind per file, EmitImplicitOpen, a SortReturn/WRITE loop with the released extents, EmitRelativeKeyStore after each successful write, the WriteBoundary break before the general disposition, and the as-if CLOSE. Probes at 85: witness RK 0003 AAA BBB CCC; class a: varying USING and GIVING files (VARYING 2 TO 6, DEPENDING ON preset to 6) read back at 02/04/06/03; class e: one MERGE GIVING a DYNAMIC relative, an indexed and a sequential file gives each all four records, RK=0004, relative 1..4; indexed sequence error -> USE runs with FS=21 and the merge goes on; GIVING path in a missing directory -> USE runs with FS=30; relative RK PIC 9 with 12 records -> USE once with FS=24 RK=9, then the file is closed (FS=00); GIVING file already open -> run unit ends with status 41 (1985 states no result); class f: zero records leave RK at its prior 0055. Class b/c/d: GR11 has no syntax arm; its SR11 size rule belongs to another row.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "X3.23b-1993 added to general rule 11 the sentence 'the size of any record written to file-name-4 is the size of that record when it was read from file-name-1', the words 'any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-4 is executed' and the last paragraph, ending 'is undefined upon completion of the MERGE statement for which the GIVING phrase is specified' (errata C295 to C297, kb/Work PB5045). §2023:14.9.24.4 GR12 carries all three, so the variable-length write size the withdrawn record counted as a difference is one no longer. What still differs: 1985 'At the start of execution of the MERGE statement, the file referenced by file-name-4 must not be in the open mode' (§1985:XI.4.1.4 GR11) states no result, and 2023 adds 'If the file is in an open mode, the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the execution of the MERGE statement terminates'; 1985 'The initiation is performed as if an OPEN statement with the OUTPUT phrase had been executed', 2023 'as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed'; and 2023 defines the outcome of exceptions on the implicit statements: 'If a fatal exception condition exists as a result of this implicit OPEN statement and there is an applicable USE procedure that completes normally, processing for the file connector that caused the exception condition is bypassed' and 'If an exception condition exists as a result of this implicit WRITE statement and there is an applicable USE procedure that completes normally, the MERGE continues execution, otherwise the MERGE statement is terminated'. §2023:14.9.24.4 GR11 restates the 1985 ban 'the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-4' as 'no statement may be executed manipulating the file referenced by or accessing the record area associated with file-name-2, file-name-3, or file-name-4'.",
-  "source": "readjudicate-amended-1985/slice-07"
+  "source": "readjudicate-amended-1985/slice-07",
+  "digests": {
+   "GR-14.9.24.4-12": "35599ecced8e",
+   "GR-14.9.24.4-11": "f89a6eb9ed0a"
+  }
  }
 }

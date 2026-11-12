@@ -9,6 +9,9 @@
   "reason": "1985: 'An operand is numeric if it consists entirely of the characters 0, 1, 2, 3, ... , 9, with or without an operational sign', refined in the same clause: with no sign in the data description the content must be digits with no sign; with one, digits and a valid sign. §2023:8.8.4.4.4 GR3 n) gives the same test for every 1985 operand: for a numeric display item 'the condition is true if the presence or absence of an operational sign in the content of the data item referenced by identifier-1 is in agreement with the data description of identifier-1' and the rest is digits; for a non-numeric item 'the condition is true if the content ... consists entirely of the characters 0, 1, 2, 3, ..., 9' (1985's unsigned case). The floating-point and other-usage branches cover operands 1985 refused (its DISPLAY-only rule); that widening belongs to the operand rule, not this definition. Same meaning.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "source": "adjudicate-712/slice-13",
+  "digests": {
+   "GR-8.8.4.4.4-3": "debeac58f5ff"
+  }
  }
 }

@@ -1,10 +1,10 @@
 {
   "batch": [538, 539, 540, 541, 542, 544, 545, 547, 548, 549, 550, 551],
-  "pages_checked": [538, 539, 540, 541, 542, 544, 545, 547, 548, 549, 550, 551],
+  "pages_checked": [538, 539, 540, 541, 542, 544, 545, 547, 548, 549, 550, 551], "pages_unread": [],
   "notes": "Figure-fidelity sweep. This batch turned out to contain essentially no general-format diagrams: the only syntax skeleton on any of these twelve pages is the one-line USING clause general format on p.542 ('USING identifier-1'), whose underline on the required word USING is correctly preserved as <u>USING</u> in the markdown. There are therefore NO choice-indicator (5.2.6.4 vertical bar) sites, no unclosed brackets/braces, and no ellipsis-placement (5.2.7) sites to lose on these pages. All twelve pages were compared line by line against the rendered PDF; the numeric literals in the FLOAT-DECIMAL/FLOAT-BINARY NOTEs on pp.538-539 were digit-counted against zoomed crops and match the printed glyphs exactly (including ISO's own defects, e.g. the 15-digit '-9.999 999 999 999 99E+384' on p.538 and the 34-nine value on p.539). Only two cosmetic transcription artifacts were found.",
   "findings": [
     {
-      "page": 545,
+      "id": "p545-1", "page": 545,
       "kind": "ocr-error",
       "severity": "cosmetic",
       "pdf_says": "and each corresponding occurrence of the data item referenced by identifier-2.",
@@ -13,7 +13,7 @@
       "suggested_repair": "In specs/ISO_COBOL.md line 22821 replace 'identifier-**2**.' with 'identifier-2.', and sweep the file for the sibling pattern /(?:identifier|literal|subscript|index|data-name)-\\*\\*\\d+\\*\\*/ plus stray '**.**'."
     },
     {
-      "page": 551,
+      "id": "p551-1", "page": 551,
       "kind": "ocr-error",
       "severity": "cosmetic",
       "pdf_says": "the initialization of the associated data item behaves as if the value of the data item referenced by the DEPENDING phrase in the OCCURS clause specified for the variable-occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause.  [the PDF breaks the compound term across the p.551/p.552 boundary: 'variable-' ends the last line of p.551 and 'occurrence data item' opens p.552]",

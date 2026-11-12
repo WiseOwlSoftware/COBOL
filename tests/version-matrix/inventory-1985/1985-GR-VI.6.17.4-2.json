@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "2023 keeps the implicit elementary MOVEs, REPLACING category selection, every table occurrence and the literal-1/identifier-2 sender. DEFAULT, VALUE and SET only add cases outside 1985 syntax.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.20.4-4": "3a8f6c193726",
+   "GR-14.9.20.4-5": "e8d825852f8e",
+   "GR-14.9.20.4-6": "b4d6cbec2efb",
+   "SR-14.9.20.3-8": "105291a247bd"
+  }
  }
 }

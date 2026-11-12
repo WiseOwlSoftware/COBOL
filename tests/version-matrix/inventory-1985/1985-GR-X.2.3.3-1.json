@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "CHANGED: §1985:X.2.3.3 GR1 'The beginning of a division in a program is indicated by the appropriate division header', and its end by 'The division header of a succeeding division in that program', 'An Identification Division header which indicates the start of another source program', 'The end program header' or 'That physical position after which no more source program lines occur'. §2023:10.3 (prose with no catalog row, kb/Work PB479) adds a case to the beginning: it is indicated 'by its division header or, in the case of the identification division when its header is omitted, by one of the paragraph headers permitted in the identification division', and the end 'by the beginning of the next division, an end marker for the source unit, or the end of the compilation group'. The catalogued rules that state parts of it: the identification division's format makes the header optional, '[ IDENTIFICATION DIVISION. ]' (§2023:11.2.1, FMT-11.2.1), where 1985 prints 'IDENTIFICATION DIVISION.' unbracketed (§1985:VI.3.2.1.1); and 'An end marker indicates the end of the specified source unit' (§2023:10.7.4 GR1), the end program header widened to every end marker. The words that differ: 'or, in the case of the identification division when its header is omitted, by one of the paragraph headers permitted in the identification division'. 1985 ends a division before a contained program only at 'An Identification Division header'; in 2023 it ends at 'the beginning of the next division', and a source unit 'begins with an identification division' (§2023:10.3) whose header may be omitted, so a contained program that begins at its PROGRAM-ID paragraph is conforming 2023 source and ends nothing under the 1985 rule. Where every header is written, a division ends at the same places in both. The 1985 level-2 box is no difference.",
-  "source": "classify-unrecorded-1985/slice-04"
+  "source": "classify-unrecorded-1985/slice-04",
+  "digests": {
+   "FMT-11.2.1": "22ccbe0d710a",
+   "GR-10.7.4-1": "dc7f88d18ec1"
+  }
  }
 }

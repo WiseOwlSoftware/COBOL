@@ -1,9 +1,9 @@
 {
   "batch": [721, 732, 734, 736, 740, 750, 756, 759, 760, 761, 762, 775],
-  "pages_checked": [721, 732, 734, 736, 740, 750, 756, 759, 760, 761, 762, 775],
+  "pages_checked": [721, 732, 734, 736, 740, 750, 756, 759, 760, 761, 762, 775], "pages_unread": [],
   "findings": [
     {
-      "page": 756,
+      "id": "p756-1", "page": 756,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "Format 1 (to-message-server): 'SEND TO { literal-1 / message-server-name-1 } FROM identifier-1' -- at 300 dpi (crop of the printed glyphs, and again for Format 2 'SEND TO  data-name-2  FROM identifier-1') the underline rule runs only beneath SEND and beneath FROM. There is a clear gap after the D of SEND and NO rule beneath TO in either format. (By contrast the SET formats on pp. 759-762 do print an underline beneath TO, so the omission here is deliberate typesetting, not a printing defect.)",
@@ -12,7 +12,7 @@
       "suggested_repair": "In both figure notes on page 756 remove `TO` from the 'Underlined (required) words' list, and state explicitly that `TO` is NOT underlined (an optional word), matching the pattern already used on pp. 736/750/760/762 (e.g. \"`AT` is not underlined\", \"`OF` is not underlined\")."
     },
     {
-      "page": 760,
+      "id": "p760-1", "page": 760,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Page 760 ends with 'Format 9 (program-pointer-assignment):' followed by the single syntax line 'SET { identifier-7 } ... TO  identifier-8'. Nothing further is printed on page 760. Page 761 then OPENS with its own first line, the label 'Format 10 (data-pointer-arithmetic):', above the Format 10 syntax diagram 'SET  { identifier-9 } ... { UP / DOWN } BY arithmetic-expression-3'.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Split line 30846 into 'SET { identifier-7 } ... TO identifier-8' (ending the page-760 content) and move 'Format 10 (data-pointer-arithmetic):' to be the first content line AFTER the <a id=\"page-761\"></a> / '## Page 761' scaffolding and before the Format 10 fenced block, matching where it is printed. While there, consider fencing the Format 8 and Format 9 syntax lines (lines 30842 and 30846) in ``` blocks like every other SET format, so they are not mistaken for prose."
     },
     {
-      "page": 762,
+      "id": "p762-1", "page": 762,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "'14.9.39.3   Syntax rules' is printed in exactly the same bold heading style and at the same outline depth as '14.9.39.1   General' and '14.9.39.2   General formats' on page 759 -- all three are fourth-level clause headings subordinate to '14.9.39  SET statement'.",

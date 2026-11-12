@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"there must not be the execution of any statement that would cause the execution of a USE procedure that had previously been invoked\"; 2023: \"if a statement raises an exception condition that would cause the execution of a USE procedure ... the EC-FLOW-USE exception condition is set to exist\". 1985 forbids such execution, leaving the result unspecified. 2023 defines a result: the EC-FLOW-USE exception condition is set to exist.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.49.4-2": "820a17a8823a"
+  }
  }
 }

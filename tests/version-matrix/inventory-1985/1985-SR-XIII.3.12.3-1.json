@@ -10,6 +10,10 @@
   "reason": "1985: 'In the Report Section data-name-1 need not appear in a data description entry.' The 2023 report group description entry format brackets the entry-name clause ('level-number [ entry-name-clause ]', §2023:13.15.2), and when it is absent 'the word FILLER is assumed' (§2023:13.18.20.3 SR2). An unnamed report entry is accepted and means the same (it cannot be referenced in either edition); no exception condition.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-33"
+  "source": "adjudicate-712/slice-33",
+  "digests": {
+   "FMT-13.15.2": "d2104b4e3f18",
+   "SR-13.18.20.3-2": "986eb68e704c"
+  }
  }
 }

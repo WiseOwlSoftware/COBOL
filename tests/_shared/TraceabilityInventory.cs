@@ -58,7 +58,8 @@ internal static class TraceabilityInventory
     }
 
     /// <summary>A held edition, as the schema's <c>editions.of</c> states it: its <paramref name="Spelling"/> in an
-    /// <c>editions</c> band and its <paramref name="NextHeld"/> edition (null for the newest), which its change records name.</summary>
+    /// <c>editions</c> band and its <paramref name="NextHeld"/> edition, the next held edition in the lineage (null for the
+    /// newest), which its change records name.</summary>
     internal sealed record Edition(
         int Year, string Spelling, string Catalog, string Locator, string Store, IReadOnlyList<string> Adjudicated, int? NextHeld)
     {
@@ -79,10 +80,13 @@ internal static class TraceabilityInventory
             .Where(e => e.TryGetProperty("store", out _)).ToList();
         if (held.Count == 0)
             throw new InvalidDataException("inventory-schema.json editions.of holds no edition with a store");
+        // The change records of an older edition name the next held edition IN THE LINEAGE: one marked `linked: false`
+        // (2002 until the 1985 to 2002 records are adjudicated, kb/Work PB5256) is bridged over, as inventory_schema.py does.
+        static bool Linked(JsonElement e) => !e.TryGetProperty("linked", out var l) || l.ValueKind != JsonValueKind.False;
         return [.. held.Select((e, i) => new Edition(
             e.GetProperty("year").GetInt32(), Str(e, "spelling"), Str(e, "catalog"), Str(e, "locator"), Str(e, "store"),
             [.. e.GetProperty("adjudicated").EnumerateArray().Select(f => f.GetString()!)],
-            i + 1 < held.Count ? held[i + 1].GetProperty("year").GetInt32() : null))];
+            held.Skip(i + 1).Where(Linked).Select(n => (int?)n.GetProperty("year").GetInt32()).FirstOrDefault()))];
     });
 
     /// <summary>Every row of the newest edition's view, joined once per test assembly.</summary>

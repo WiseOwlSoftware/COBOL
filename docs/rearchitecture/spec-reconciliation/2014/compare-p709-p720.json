@@ -1,0 +1,43 @@
+{
+  "batch": [709, 710, 711, 712, 713, 714, 715, 716, 717, 718, 719, 720],
+  "pages_checked": [709, 710, 711, 712, 713, 714, 715, 716, 717, 718, 719, 720],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p715-1",
+      "page": 715,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Argument-1\ncharacteristics          Value returned",
+      "markdown_says": "   Argument-1\n\n| characteristics | Value returned |",
+      "why_it_matters": "The NOTE table's two-line column heading 'Argument-1 characteristics' is split: 'Argument-1' is detached as a stray paragraph above the table and the column header reads only 'characteristics'."
+    },
+    {
+      "id": "p716-1",
+      "page": 716,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "$**,**9.99              0\nBINARY-CHAR SIGNED      -128 (assuming an 8-bit twos-complement representation)\nBINARY-CHAR UNSIGNED    0 (assuming an 8-bit twos-compliment representation)",
+      "markdown_says": "$\\*\\*,\\*\\*9.99 0\\\nBINARY-CHAR SIGNED -128 (assuming an 8-bit twos-complement representation)\\\nBINARY-CHAR UNSIGNED 0 (assuming an 8-bit twos-compliment representation)",
+      "why_it_matters": "These three rows continue the two-column 'Argument-1 characteristics / Value returned' table of the LOWEST-ALGEBRAIC NOTE from page 715, but the markdown renders them as run-together text lines outside any table, so the argument and value columns are merged (e.g. '$**,**9.99 0')."
+    },
+    {
+      "id": "p718-1",
+      "page": 718,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "((argument-1₁ + argument-1₂) / 2)  [1 and 2 printed as subscripts]",
+      "markdown_says": "((argument-11 + argument-12) / 2)",
+      "why_it_matters": "The subscripts that index the occurrences of argument-1 were flattened into the name, so the equivalent arithmetic expression for MEAN now reads as operands named argument-11 and argument-12."
+    },
+    {
+      "id": "p718-2",
+      "page": 718,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "((argument-1₁ + argument-1₂ +... + argument-1ₙ) / n)  [1, 2 and n printed as subscripts]",
+      "markdown_says": "((argument-11 + argument-12 +... + argument-1n) / n)",
+      "why_it_matters": "The subscripts 1, 2 and n were flattened into the operand names, so the general MEAN expression reads as argument-11, argument-12 and argument-1n instead of the 1st, 2nd and nth occurrences of argument-1."
+    }
+  ]
+}

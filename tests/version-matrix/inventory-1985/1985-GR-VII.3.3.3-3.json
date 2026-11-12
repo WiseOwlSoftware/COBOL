@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both size the physical record in the storage unit needed to hold it, regardless of character types. 1985 'character positions required to store' and 2023 'bytes' name that same unit.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.10.4-3": "bce878d5fb09"
+  }
  }
 }

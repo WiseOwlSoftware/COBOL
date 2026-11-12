@@ -1,9 +1,9 @@
 {
   "batch": [152, 164, 166, 172, 218, 224, 228, 286, 302, 304, 306, 308],
-  "pages_checked": [152, 164, 166, 172, 218, 224, 228, 286, 302, 304, 306, 308],
+  "pages_checked": [152, 164, 166, 172, 218, 224, 228, 286, 302, 304, 306, 308], "pages_unread": [],
   "findings": [
     {
-      "page": 286,
+      "id": "p286-1", "page": 286,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "The 10.6.1 COBOL compilation group general format prints the repetition ellipsis INSIDE the outer bracket, immediately to the right of the closing brace: [ { program-prototype / function-prototype / program-definition / function-definition / class-definition / interface-definition } … ]  — the '…' glyph sits between the closing brace and the closing bracket (verified at 300 dpi; the closing bracket's right stroke is clearly to the right of the ellipsis).",
@@ -12,7 +12,7 @@
       "suggested_repair": "Move the ellipsis inside the outer bracket, to the right of the closing brace column (e.g. `⎢ ⎨ program-definition   ⎬ … ⎥`), and rewrite the figure note to say the ellipsis binds to the closing brace: the braced selection may repeat, and the whole bracketed repetition is optional."
     },
     {
-      "page": 286,
+      "id": "p286-2", "page": 286,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "In the 'where program-prototype is:' and 'where function-prototype is:' skeletons the required words are underlined and the optional word IS is NOT: 'IDENTIFICATION DIVISION.' (both underlined), 'PROGRAM-ID.' / 'FUNCTION-ID.' (underlined), 'AS' (underlined), 'IS' (NOT underlined), 'PROTOTYPE.' (underlined), 'END PROGRAM' / 'END FUNCTION' (both words underlined). Verified at 300 dpi.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Render both skeletons in one fenced block preserving their line structure and add the standard 'Figure notes' paragraph: IDENTIFICATION, DIVISION., PROGRAM-ID./FUNCTION-ID., AS, PROTOTYPE., END, PROGRAM/FUNCTION are underlined (required words); IS is not underlined (optional word)."
     },
     {
-      "page": 164,
+      "id": "p164-1", "page": 164,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Page 164 opens with two further INVOKE substitution forms, each on its own line, followed by a blank line and the lead-in 'where:':\n    INVOKE object-class-name-1 literal-1 USING arguments RETURNING temp-identifier\n    INVOKE object-class-name-1 literal-1 RETURNING temp-identifier\n\nwhere:\n(they continue the four-form list under 8.4.3.4.4 General rule 1, whose first two forms are printed at the foot of page 163)",
@@ -30,7 +30,7 @@
       "suggested_repair": "Split the run-on line back into four separate lines (one per INVOKE form), put the last two forms and the 'where:' lead-in after the `<a id=\"page-164\"></a>` anchor, and set the four forms as an indented block so their line structure is stable."
     },
     {
-      "page": 304,
+      "id": "p304-1", "page": 304,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "The NOTE after General rule 2 of 11.9.6 ('NOTE   NEAREST-AWAY-FROM-ZERO is the rounding mode provided by the ROUNDED phrase in earlier COBOL standards.'), the NOTE after 11.9.7.4 General rule 1 ('NOTE   All information required to interact successfully with a runtime element…'), and sub-items a) and b) under 11.9.7.4 General rule 4 are all printed indented under their parent numbered rule (the NOTEs additionally in the smaller NOTE type size).",
@@ -39,7 +39,7 @@
       "suggested_repair": "Indent the two NOTE paragraphs and the a)/b) sub-items by three spaces so they remain continuation content of their parent numbered rule, matching pages 172, 228 and 308."
     },
     {
-      "page": 172,
+      "id": "p172-1", "page": 172,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "8.4.3.13.2 General format, 8.4.3.13.3 Syntax rules and 8.4.3.13.4 General rules are printed at the same heading rank as 8.4.3.14.1 General on the same page (identical size and weight; all are fourth-level subsections of 8.4.3).",

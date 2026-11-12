@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same alternatives: imperative statement(s), or a conditional statement optionally preceded by imperatives. The level-2 box is no difference, and 'one or more' only spells out a sequence.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.19.3-1": "dacd615f535e"
+  }
  }
 }

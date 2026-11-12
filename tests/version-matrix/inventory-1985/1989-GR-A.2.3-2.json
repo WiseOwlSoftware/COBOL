@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "Class/category numeric with an operational sign (§2023:15.2 GR4) and the ban on a numeric function where an integer operand is required (§2023:8.4.3.2.3 SR11) carry over; implementor-defined characteristics survive only for native arithmetic (§2023:15.4.1, §2023:A.1 92). But 1989 'A numeric function may be used only in an arithmetic expression'; 2023 drops that limit: a function 'may be used anywhere a sending data item of that class and category may be specified' (§2023:15.2 lead text, no catalog row). Looser.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "GR-15.2-4": "9ff4df89be62",
+   "SR-8.4.3.2.3-11": "ad38d8b5a212",
+   "DOC-A.1-92": "3141348e06db"
+  }
  }
 }

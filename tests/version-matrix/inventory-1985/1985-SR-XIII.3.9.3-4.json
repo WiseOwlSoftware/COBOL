@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 limits a report group to 'one, two, or three hierarchic levels' (format 1 at 01, format 2 at 02-48 over format 3 elementary entries). 2023 keeps the level-1 first entry (§2023:13.15.3 SR4, §2023:13.15.4 GR1) and elementary-only PICTURE/COLUMN/SOURCE/VALUE/SUM (§2023:13.15.3 SR11) but allows 'any integer from 1 through 49' with no depth cap (§2023:13.15.3 SR3), so deeper nesting refused in 1985 is accepted. Looser; no exception condition involved.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "SR-13.15.3-3": "acd0bca7353d",
+   "SR-13.15.3-4": "b7c750fd3f13",
+   "SR-13.15.3-11": "a3961a741d10",
+   "GR-13.15.4-1": "38e0dbf9bc8d"
+  }
  }
 }

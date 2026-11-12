@@ -1,0 +1,13 @@
+{
+  "claim_id": "p718-2",
+  "claim_key": "997e73cd550039cb",
+  "page": 718,
+  "kind": "ocr-error",
+  "severity": "normative",
+  "claim": {"id": "p718-2", "page": 718, "kind": "ocr-error", "severity": "normative", "pdf_says": "((argument-1₁ + argument-1₂ +... + argument-1ₙ) / n)  [1, 2 and n printed as subscripts]", "markdown_says": "((argument-11 + argument-12 +... + argument-1n) / n)", "why_it_matters": "The subscripts 1, 2 and n were flattened into the operand names, so the general MEAN expression reads as argument-11, argument-12 and argument-1n instead of the 1st, 2nd and nth occurrences of argument-1."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 718 (printed page 694, §2014:15.56.3 Returned values, rule 1c) shows '((argument-1' followed by a lowered, smaller-font subscript 1, '+ argument-1' with subscript 2, '+... + argument-1' with subscript n, ') / n)'. page-718.md line 33 reads '((argument-11 + argument-12 +... + argument-1n) / n)' with no subscript markup, so the occurrence indices are fused into the operand name and the text literally names argument-11, argument-12 and argument-1n, which are not the formats' operands. Both sources are quoted correctly by the claim. This is a loss of notation in normative returned-value text, not scaffolding or wrapping. Sibling: line 29 (rule 1b, '((argument-11 + argument-12) / 2)') has the same flattening and is not covered by this claim.",
+    "corrected_description": ""
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p260-1",
+  "claim_key": "9a0a62fbee927b11",
+  "page": 260,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p260-1", "page": 260, "kind": "table-restructured", "severity": "structural", "pdf_says": "Term / Subclause table with three rows, the last \"record-description-entry 13.10, Record description entry\"", "markdown_says": "| constant-entry | 13.9, Constant entry |\n\nrecord-description-entry 13.10, Record description entry", "why_it_matters": "The last row of the 13.4.1 meta-language term table fell out of the markdown table and became a loose paragraph. Text present; table structure lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of printed page 238 (PDF p260) shows the 13.4.1 Term/Subclause table with three aligned rows: 77-level-entry / 13.11, 77-level data description entry; constant-entry / 13.9, Constant entry; record-description-entry / 13.10, Record description entry. The markdown table holds only the first two rows. The third row follows after a blank line as a plain paragraph, 'record-description-entry 13.10, Record description entry', outside the table. Both sources are quoted correctly. All the words are still there, so nothing normative is lost to a human reader. But the row is no longer a table row, so any tool that reads the term-to-subclause mapping from the markdown table loses the record-description-entry -> 13.10 entry. That makes this a real structural transcription defect, as claimed, and not a normative one.",
+    "corrected_description": null
+  }
+}

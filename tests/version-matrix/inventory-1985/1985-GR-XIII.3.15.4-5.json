@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: 'The NEXT PAGE phrase specifies that the report group is to be presented beginning on the indicated line number on a new page.' 2023 §2023:13.18.35.4 GR4 a) 'If the first LINE clause has a NEXT PAGE phrase, no page fit test takes place and the page fit is declared unsuccessful' (a page advance, except for the chronologically first body group since INITIATE, which 1985 fit rule 3c also leaves on the current page); §2023:13.18.35.4 GR5 a) first line at integer-1, 'If in addition the NEXT PAGE phrase is present and the report group is a report footing, the first line is printed beginning on a new page'; §2023:13.18.35.4 GR6; §2023:13.18.37.4 GR4 a)2 'with the NEXT PAGE phrase, a page advance takes place'. The rule refuses nothing; same placement for every 1985 program.",
-  "source": "adjudicate-712-r2/slice-11"
+  "source": "adjudicate-712-r2/slice-11",
+  "digests": {
+   "GR-13.18.35.4-4": "354fcfe9f645",
+   "GR-13.18.35.4-5": "8d7c40e355c7",
+   "GR-13.18.35.4-6": "b9b54a2483a7",
+   "GR-13.18.37.4-4": "ccdbe2fd25e1"
+  }
  }
 }

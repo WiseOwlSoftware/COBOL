@@ -13,6 +13,12 @@
   ],
   "bridge": true,
   "reason": "1985 sort-merge file control: 'SELECT file-name-1 ASSIGN TO {implementor-name-1|literal-1} ... .', and 1985 SR XI.2.3.3-2 permits only ASSIGN after file-name-1. §2023:12.4.5.1 Format 4 (sort-merge), required for sort-merge files by §2023:12.4.5.2 SR13, keeps ASSIGN TO {device-name-1|literal-1} ... (meaning implementor-defined, §2023:12.4.5.2 SR5; literal-1 alphanumeric, not figurative, §2023:12.4.5.2 SR4) but adds '[USING data-name-1]', the alternative 'ASSIGN USING data-name-1', and '[[ORGANIZATION IS] SEQUENTIAL]'. More entries accepted; 1985 entries keep their meaning. CHANGED (looser). Note: the catalog text of FMT-12.4.5.1 stops after Format 2; Format 4 was read from specs/ISO_COBOL_2023.md.",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-12.4.5.1": "14f82fb7eed3",
+   "SR-12.4.5.2-13": "ec5c374a4081",
+   "SR-12.4.5.2-4": "6ca222e2d0a1",
+   "SR-12.4.5.2-5": "9f65daeef717"
+  }
  }
 }

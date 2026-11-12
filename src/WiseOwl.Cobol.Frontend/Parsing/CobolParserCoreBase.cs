@@ -146,8 +146,13 @@ public abstract class CobolParserCoreBase : Parser
     protected bool communicationNameFollows() =>
         _communicationNames.Count > 0 && TokenStream.LT(2)?.Text is { } word && _communicationNames.Contains(CobolNames.UpperFold(word));
 
-    /// <summary>X3.23-1985 <c>SEGMENT-LIMIT IS segment-number</c> — the word SEGMENT-LIMIT (kb/Work PB830).</summary>
-    protected bool segmentLimitAhead() => Word(TokenStream.LT(1), "SEGMENT-LIMIT");
+    /// <summary>X3.23-1985 <c>SEGMENT-LIMIT IS segment-number</c> (§1985:XVI.2.3.2; IS optional) — the word SEGMENT-LIMIT followed
+    /// by IS or by the integer (kb/Work PB830, PB5298). The second-token check is what lets the clause follow PROGRAM COLLATING
+    /// SEQUENCE IS alphabet-name-1, whose optional alphabet-name-2 slot asks <see cref="objectComputerClauseAhead"/>, and keeps
+    /// a word SEGMENT-LIMIT with neither after it (a computer-name, or an alphabet-name where the word is not reserved) a name.</summary>
+    protected bool segmentLimitAhead()
+        => Word(TokenStream.LT(1), "SEGMENT-LIMIT")
+           && TokenStream.LT(2)?.Type is CobolParserCore.IS or CobolParserCore.INTEGERLIT;
 
     private static readonly string[] LocaleCategories =
         ["LC_ALL", "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME", "USER-DEFAULT"];

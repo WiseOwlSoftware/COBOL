@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"IS EXTERNAL\"; 2023: \"IS EXTERNAL [ AS literal-1 ]\". 2023 keeps IS EXTERNAL but adds an optional AS literal-1 phrase giving the externalized name. Programs using it are accepted only under 2023: a case is added.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-13.18.22.2": "41674d41b2f8"
+  }
  }
 }

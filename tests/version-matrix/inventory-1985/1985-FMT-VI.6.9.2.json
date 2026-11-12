@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"CONTINUE\"; 2023: \"CONTINUE [ AFTER arithmetic-expression-1 SECONDS ]\". 2023 adds an optional AFTER ... SECONDS phrase that suspends execution, so programs 1985 refuses are now accepted. Plain CONTINUE is still valid and acts as AFTER zero seconds.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.9.2": "0f602a4583d1",
+   "SR-14.9.9.3-2": "7b22955e02f5"
+  }
  }
 }

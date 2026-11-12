@@ -1,0 +1,13 @@
+{
+ "id": "repository-paragraph-2002",
+ "status": "active",
+ "description": "The REPOSITORY paragraph with no entry — the paragraph is ISO/IEC 1989:2002's (§2023:12.3.8); X3.23-1985's CONFIGURATION SECTION prints SOURCE-COMPUTER, OBJECT-COMPUTER and SPECIAL-NAMES only (§1985:IV.6.2.3.1). Each entry kind carries its own introduction row (repository-class-2002, repository-function-2002, repository-interface-2002, repository-program-2002, repository-property-2002), so this row names the one shape none of them sees: the header with no entry. Introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryParagraph. kb/Work PB5167.",
+ "display": "the REPOSITORY paragraph",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§2023:12.3.8 (REPOSITORY paragraph); §1985:IV.6.2.3.1 (the three configuration paragraphs)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 addition: the REPOSITORY paragraph (kb/Work PB5167)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. REPEMPTY.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"EMPTY REPOSITORY\".\n    STOP RUN.\n"
+}

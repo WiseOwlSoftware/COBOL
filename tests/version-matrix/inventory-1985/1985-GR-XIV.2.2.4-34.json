@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-34",
  "rule-digest": "e7090b92e5d7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetStatus; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-34",
+ "notes": "§1985:XIV.2.2.4 GR34: data-name-6 \"indicates the status condition of the previously executed DISABLE, ENABLE, PURGE, RECEIVE, or SEND statement\" per Table 1. Every statement runs through MessageControlSession#Statement, which stores the action's status at positions 32-33 via CommunicationArea#SetStatus; SetPath, Send, Purge and Receive return Table 1's I-O values. Probes at --std 85: ENABLE with a wrong KEY 40, ENABLE 00, DISABLE 00 then 15, SEND to a disabled terminal 10 (no action) for a message and a portion, PURGE with no portion 70, SEND WITH a zero indicator and no FROM 60, unknown terminal RECEIVE 21 and SEND 20, an unreadable mcs.json 91 on every statement; the witness covers 00/15/10.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

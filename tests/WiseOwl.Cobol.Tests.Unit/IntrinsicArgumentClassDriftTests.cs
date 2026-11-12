@@ -718,6 +718,46 @@ public sealed class IntrinsicArgumentClassDriftTests
     }
 
     /// <summary>
+    /// ⛔ A CATEGORY PREDICATE STARTS IN THE EDITION WHOSE RULE SAYS CATEGORY (kb/Work PB5162). The 1989 intrinsic function
+    /// module words ORD's argument by CLASS — §1989:A.2.31.3 AR1 "must be class alphabetic or alphanumeric" — and the 1985
+    /// alphanumeric class holds the numeric edited and alphanumeric edited categories (§1985:IV.4.3.3), so a row that carried
+    /// §2023:15.70.3 AR1's category wording at every edition refused a one-character PIC Z item at <c>--std 85</c>. NUMVAL and
+    /// NUMVAL-C say "alphanumeric data item" there (§1989:A.2.29.3 AR1, §1989:A.2.30.3 AR1), the category, so their predicate
+    /// holds from 85. Every CharacterCategory row of a function the 1989 module has is listed with its 1989 rule and the edition
+    /// its predicate must start in, and a 1985 function's category row missing from the list fails. (The quotations are held to
+    /// the standard by the CITATIONS audit, never by a compiler test opening the Markdown, kb/Work PB4453.)
+    /// </summary>
+    [Fact]
+    public void CategoryPredicates_StartInTheEditionWhoseRuleSaysCategory()
+    {
+        // function → (its 1989 argument-1 rule, the edition the category predicate starts in):
+        //   §1989:A.2.29.3 AR1 "Argument-1 must be a nonnumeric literal or alphanumeric data item" (the category);
+        //   §1989:A.2.30.3 AR1 "Argument-1 must be a nonnumeric literal or alphanumeric data item" (the category);
+        //   §1989:A.2.31.3 AR1 "Argument-1 must be one character in length and must be class alphabetic or alphanumeric".
+        var wording = new (string Function, string Rule, int Since)[]
+        {
+            ("NUMVAL", "§1989:A.2.29.3 AR1", 85),
+            ("NUMVAL-C", "§1989:A.2.30.3 AR1", 85),
+            ("ORD", "§1989:A.2.31.3 AR1", 2002),
+        };
+        var problems = new List<string>();
+        foreach (var (fn, rule, since) in wording)
+        {
+            var predicate = IntrinsicArgumentRules.Verified[fn].At(0)?.Predicates
+                .SingleOrDefault(p => p.Kind == ArgPredicateKind.CharacterCategory);
+            if (predicate is not { } p) problems.Add($"{fn}: its row carries no CharacterCategory predicate");
+            else if (p.Since != since) problems.Add($"{fn}: its CharacterCategory predicate starts at {p.Since}, {rule} says {since}");
+        }
+        // Every CharacterCategory row of a 1985 function is in the table above, so the next one cannot be forgotten.
+        foreach (var (fn, schema) in IntrinsicArgumentRules.Verified)
+            if (IntrinsicCatalog.TryGet(fn, out var sig) && sig.IntroducedIn == 85
+                && schema.At(0)?.Predicates.Any(p => p.Kind == ArgPredicateKind.CharacterCategory) == true
+                && !wording.Any(w => w.Function == fn))
+                problems.Add($"{fn}: a 1985 function with a CharacterCategory predicate, missing from the 1989 wording table");
+        Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
+    }
+
+    /// <summary>
     /// ⛔ EVERY OPERAND POSITION THAT §2023:15.6 TABLE 21 TYPES <c>Int</c> AND NOTHING ELSE IS KIND <c>'i'</c> IN THE VERIFIED
     /// TABLE (kb/Work PB1420). §2023:8.4.3.2.3 SR11 ("A numeric function shall not be specified where an integer operand is
     /// required") is only as complete as the table of integer positions, and that table was HAND-MAINTAINED: RANDOM's

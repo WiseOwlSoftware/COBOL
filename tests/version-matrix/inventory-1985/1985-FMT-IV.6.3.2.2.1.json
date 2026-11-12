@@ -17,6 +17,13 @@
   ],
   "bridge": true,
   "reason": "1985 data division: FILE SECTION (file-description-entry {record-description-entry} …, sort-merge entries, report-file-description-entry), WORKING-STORAGE, LINKAGE, COMMUNICATION and REPORT sections. §2023:13.2.1 (with the section formats §2023:13.4.2, §2023:13.5.2, §2023:13.7.2 and §2023:13.8.2 restating it) has no COMMUNICATION SECTION, so a 1985 program with one is refused; it lets a file-description-entry have no record-description-entry ([ … ] …), adds constant-entry and type-declaration-entry, and adds LOCAL-STORAGE and SCREEN sections. Compile-time only.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-13.2.1": "dc03a1a88d48",
+   "FMT-13.4.2": "30cd0a649abb",
+   "FMT-13.5.2": "2f4cc6b67702",
+   "FMT-13.7.2": "e90f6e9c6e4f",
+   "FMT-13.8.2": "dc7b76b90b03"
+  }
  }
 }

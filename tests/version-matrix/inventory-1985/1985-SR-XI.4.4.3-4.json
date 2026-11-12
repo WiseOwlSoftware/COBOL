@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Rules a, c-f carry over (bytes for character positions). The new class and dynamic-item bans cover only post-1985 features. Qualification stays allowed under the general rules.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.40.3-6": "983633d179cd"
+  }
  }
 }

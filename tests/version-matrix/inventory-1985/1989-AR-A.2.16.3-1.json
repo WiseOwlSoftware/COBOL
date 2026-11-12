@@ -1,6 +1,10 @@
 {
  "rule-id": "1989-AR-A.2.16.3-1",
  "rule-digest": "be7ceaa671d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDate; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DaysBeforeYear; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IntegerDateFormBounded; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+ "test-ref": "conformance:cases/A.2.16@1985-INTEGER-OF-DATE-FUNCTION/pb5130_integer_date_year_10000_85",
+ "notes": "kb/Work PB5130 (landed). §1989:A.2.16.3 AR1 a. \"It must be an integer greater than 1600\" bounds the year below only. At --std 85 DialectBehavior.IntegerDateFormBounded (2002) is inactive, the binder sets BoundIntrinsicCall.IntegerDateFormUnbounded and CobolDate.IntegerOfDate counts Gregorian days arithmetically with no upper year: INTEGER-OF-DATE (100000101) is 3067672 and (100001231) 3068037; a month or day outside its range, or a year of 1600 or less, is still the incorrect-argument default 0. Witness pb5130_integer_date_year_10000_85.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -9,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "Form YYYYMMDD, the calculation and the MM/DD limits are identical, but 1989 bounds the year only below ('an integer greater than 1600') while §2023:15.46.3 AR1 says 'greater than 1600 and less than 10000'. The 1989 value is defined by the calculation (YYYY * 10,000) + ..., which is valid for YYYY >= 10000, and no 1989 rule caps it; such an argument is now out of range (EC-ARGUMENT-FUNCTION per §2023:15.3 AR14). Stricter.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "AR-15.46.3-1": "f16c5e5f30a0"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XII.3.4-7",
  "rule-digest": "cd1e5ee420cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-GR-XII_3_4-7",
+ "notes": "§1985:XII.3.4 GR7 (Amendment 2): comment and blank lines in the source and in pseudo-text-1 \"are ignored for purposes of matching\", those of pseudo-text-2 are placed into the resultant program, and one inside the matched source words \"is not placed into the resultant program\". FixedFormConverter turns a * or / comment line and a blank line into no text-words, TextWordScanner treats what is left of a comment as a space, so ApplyReplacements matches across them and replaces the whole matched span (lines included) by pseudo-text-2 as written; ForbiddenIn does not refuse the comment of a written pseudo-text-2 at 85 (probe g5d). Witness: a comment and a blank line inside DISPLAY ... \"A\" still match (B). Probes (classes b, d): a comment and a blank line inside pseudo-text-1, a / line and a blank line inside the matched source, a comment inside pseudo-text-2 and an empty * line (g7a: 2, B).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -13,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993) changed the last sentence from 'is not replaced' to §1985:XII.3.4 GR7 'is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1'. 2023 agrees with that sentence and with the matching part ('are ignored for purposes of matching'): §2023:6.5 GR2 'If the line is a comment line or a blank line, that line is logically discarded', applied to fixed form by §2023:6.1 GR2 a) ('as though the lines had been logically converted from fixed form to free form'), and §2023:7.2.4.4 GR8 c) 6 'Comments, if any, are treated as a single space'. The result still differs for pseudo-text-2: 1985 'Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged'; §2023:7.2.4.4 GR9 the text REPLACE produces 'shall not contain a COPY statement, a REPLACE statement, a SOURCE FORMAT directive, a comment, or a blank line'. The resultant text differs; the compiled program's meaning does not.",
-  "source": "readjudicate-amended-1985/slice-08"
+  "source": "readjudicate-amended-1985/slice-08",
+  "digests": {
+   "GR-6.5-2": "2121317b3c52",
+   "GR-6.1-2": "22025b4250bf",
+   "GR-7.2.4.4-8": "49f337bc96d0",
+   "GR-7.2.4.4-9": "dd64d9a5e61c"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "SR-22 sits in the format 2 (DEPENDING) syntax-rule group with SR-16–24 (integer-1/2, data-name-1, DEPENDING). It limits what may follow the subject, as 1985 SR10 does.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.38.3-22": "1a8ab7414a38"
+  }
  }
 }

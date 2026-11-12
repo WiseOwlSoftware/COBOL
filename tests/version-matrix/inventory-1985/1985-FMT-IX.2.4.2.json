@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both formats select exactly one of SEQUENTIAL, RANDOM or DYNAMIC after ACCESS MODE IS; the 1985 level-2 box on DYNAMIC is no difference per instructions.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-12.4.5.5.1": "ce888455e095",
+   "FMT-12.4.5.1": "14f82fb7eed3"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-15",
  "rule-digest": "655e8ea46932",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToDestinations; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToTerminal; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Release; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-15",
+ "notes": "§1985:XIV.2.2.4 GR15: the output CD information 'is not sent to the terminal, but constitutes the communication between the program and the MCS'. Emit passes the area and the text separately, and MessageControlSession.Send reads the count, length and destinations from the area and releases only the text portion (Release) to destinations or the terminal. Probe gr15 at --std 85: SEND to a 2-entry table leaves D1.out holding 'PAYLOAD!' only and delivers 'PAYLOAD!' (length 8) to the queue a deliverTo destination feeds, while the area reads '00020008000D1 0D2'; an I-O SEND puts 'PAYL' alone in T1.out.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

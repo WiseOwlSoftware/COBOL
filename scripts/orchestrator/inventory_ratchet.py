@@ -3,6 +3,7 @@
 
     python scripts/orchestrator/inventory_ratchet.py                   # working tree vs merge-base(HEAD, origin/main)
     python scripts/orchestrator/inventory_ratchet.py --base REF --head REF
+    python scripts/orchestrator/inventory_ratchet.py --repo DIR ...       # another checkout (default: this one)
 
 Design: docs/rearchitecture/DESIGN-orchestrator-loop.md section 7 (kb/Work PB1981 item 1). The inventory
 (`tests/version-matrix/inventory/`) defines "done"; its GAP count is the project's progress metric.
@@ -32,7 +33,7 @@ from typing import Any, Iterable
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "spec"))
 from audit_witness_loss import default_base  # noqa: E402
-from inventory_schema import REPO  # noqa: E402
+from inventory_schema import REPO, Tree  # noqa: E402
 from inventory_view import inventory, inventory_at  # noqa: E402  (the one view of the inventory, in the tree and at a ref)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -71,19 +72,19 @@ def unexcused(ids: Iterable[str], marks: list[tuple[str, str]]) -> list[str]:
     return [rid for rid in ids if not any(fnmatch.fnmatchcase(rid, pat) for pat, _ in marks)]
 
 
-def _git(*args: str) -> str:
-    return subprocess.run(["git", *args], cwd=REPO, check=True, capture_output=True, text=True,
+def _git(repo: pathlib.Path, *args: str) -> str:
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True,
                           encoding="utf-8", errors="replace").stdout
 
 
-def added_lines(base: str, head: str) -> list[str]:
-    """Every line added between base and head in DEVLOG/ and kb/Work (head WORKTREE adds untracked files whole)."""
+def added_lines(base: str, head: str, repo: pathlib.Path = REPO) -> list[str]:
+    """Every line added between base and head in `repo`'s DEVLOG/ and kb/Work (head WORKTREE adds untracked files whole)."""
     rng = [base] if head == WORKTREE else [base, head]
-    diff = _git("diff", "--unified=0", "--no-color", *rng, "--", *EXCUSE_PATHS)
+    diff = _git(repo, "diff", "--unified=0", "--no-color", *rng, "--", *EXCUSE_PATHS)
     lines = [l[1:] for l in diff.splitlines() if l.startswith("+") and not l.startswith("+++")]
     if head == WORKTREE:
-        for rel in _git("ls-files", "--others", "--exclude-standard", "--", *EXCUSE_PATHS).split():
-            lines += (REPO / rel).read_text(encoding="utf-8", errors="replace").splitlines()
+        for rel in _git(repo, "ls-files", "--others", "--exclude-standard", "--", *EXCUSE_PATHS).split():
+            lines += (repo / rel).read_text(encoding="utf-8", errors="replace").splitlines()
     return lines
 
 
@@ -91,18 +92,22 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--base", help="the ref to compare against (default: merge-base of HEAD and origin/main)")
     ap.add_argument("--head", default=WORKTREE, help=f"a ref, or {WORKTREE} (default) for the working tree")
+    ap.add_argument("--repo", type=pathlib.Path, default=REPO,
+                    help="the checkout whose refs, working tree and excuses are read (default: this one; the self-test "
+                         "names a scratch one, kb/Work PB5227)")
     a = ap.parse_args(argv)
-    base = a.base or default_base()
-    before = inventory_at(base)
+    repo = a.repo.resolve()
+    base = a.base or default_base(repo)
+    before = inventory_at(base, repo=repo)
     if before is None:
         print(f"⛔ the inventory does not exist at {base}: nothing to compare against")
         return 2
-    after = inventory() if a.head == WORKTREE else inventory_at(a.head)
+    after = inventory(tree=Tree(repo)) if a.head == WORKTREE else inventory_at(a.head, repo=repo)
     if after is None:
         print(f"⛔ the inventory does not exist at {a.head}")
         return 2
     v = compare(before, after)
-    marks = excuses(added_lines(base, a.head))
+    marks = excuses(added_lines(base, a.head, repo))
     bad_reopen = unexcused(v["reopened"], marks)
     bad_gap = unexcused(v["new_gap"], marks)
     for rid in v["reopened"]:

@@ -3,7 +3,7 @@
 
 WHY THIS EXISTS. `specs/ISO_COBOL_2023.md` is published; the PDF it was transcribed from is NOT. Two things therefore
 have to be true of the Markdown before it leaves the private submodule, and neither is guaranteed by any other
-gate (`--edition {1985,2002,2023}`, default 2023, names the transcription; what is edition-specific, the stamp shapes
+gate (`--edition {1985,2002,2014,2023}`, default 2023, names the transcription; what is edition-specific, the stamp shapes
 and the acknowledgment's wording, is keyed by edition below, and an edition with no row exits naming the table):
 
   1. **It carries no per-copy licence stamp.** Every page of the source PDF is stamped by the reseller with the
@@ -19,8 +19,9 @@ and the acknowledgment's wording, is keyed by edition below, and an edition with
      under.
 
   3. **A transcription that keeps its pages agrees with its reconciliation ledger** (`LEDGER`, 1985: kb/Work PB4850):
-     every repair on its page, every claim decided, and each page's prose carrying exactly the level-2 box sides its
-     marked boxes account for (`check_ledger`).
+     every page of the book compared (`book_pages` the transcription's page count, `pages_swept` every page of it, no
+     page in `pages_unread`), every repair on its page, every claim decided, and each page's prose carrying exactly the
+     level-2 box sides its marked boxes account for (`check_ledger`).
 
   4. **Every gap in the printed folios holds a reconstruction, and every reconstruction stands in one** (owner
      2026-11-09, kb/Work PB4952): editorial text between two notes that name the folios, the opening one its sources
@@ -45,7 +46,7 @@ printed page, and needs the PDF to do it. This check needs to run in the public 
 absent by design — so it verifies presence and structure only, and defers fidelity to the other gate. The two are
 complements, not duplicates.
 
-    python scripts/spec/verify_publishable.py [--edition 1985|2002|2023]
+    python scripts/spec/verify_publishable.py [--edition 1985|2002|2014|2023]
     python scripts/spec/verify_publishable.py --self-test        # planted texts: no PDF, no tracked tree
 """
 from __future__ import annotations
@@ -77,6 +78,25 @@ REPO = spec_pdf.REPO
 #: the 1985 line's opening and licence-terms sentences, a store order reference whose number is longer than six digits
 #: (so 2023's `X_` shape, which needs a word boundary after six, misses it), and 2023's download date. Each shape matches
 #: that line on every page and no other line of the PDF.
+#: 2014: read from the 2014 PDF's own text layer (kb/Work PB5268). It prints one stamp line, the same on all 952 pages, of
+#: the 2002 line's shape: the reseller's opening sentence, `Licensed to` and a name, a store order reference whose number
+#: has seven digits, a download date and the two licence-terms sentences. Each shape of `_INCITS_STORE_STAMP` and
+#: `_INCITS_STORE_TREE` matches that line on every one of the 952 pages and no other line of the 2014 PDF (measured
+#: 2026-11-11), so the two editions name the one shape set measured on both PDFs; neither row falls back to the other's.
+_INCITS_STORE_STAMP: list[tuple[str, str]] = [
+    (r"Copyright by INCITS", "per-copy licence stamp"),
+    (r"Licensed to\b", "per-copy licence stamp"),
+    (r"\border\s*#", "reseller order reference"),
+    (r"\bX_\d{6,}\b", "reseller order number"),
+    (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
+    (r"Single user licen[cs]e", "per-copy licence stamp"),
+    (r"Copying and networking", "per-copy licence stamp"),
+]
+_INCITS_STORE_TREE: list[tuple[str, str]] = [
+    (r"\bX_\d{6,}\b", "reseller order number"),
+    (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
+    (r"Licensed to [A-Z][a-z]+ [A-Z][a-z]+", "per-copy licence stamp naming a purchaser"),
+]
 FORBIDDEN: dict[int, list[tuple[str, str]]] = {
     1985: [
         (r"Licensed to\b", "per-copy licence stamp"),
@@ -85,15 +105,8 @@ FORBIDDEN: dict[int, list[tuple[str, str]]] = {
         (r"Single user licen[cs]e", "per-copy licence stamp"),
         (r"Copying and networking", "per-copy licence stamp"),
     ],
-    2002: [
-        (r"Copyright by INCITS", "per-copy licence stamp"),
-        (r"Licensed to\b", "per-copy licence stamp"),
-        (r"\border\s*#", "reseller order reference"),
-        (r"\bX_\d{6,}\b", "reseller order number"),
-        (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
-        (r"Single user licen[cs]e", "per-copy licence stamp"),
-        (r"Copying and networking", "per-copy licence stamp"),
-    ],
+    2002: _INCITS_STORE_STAMP,
+    2014: _INCITS_STORE_STAMP,
     2023: [
         (r"Licensed to\b", "per-copy licence stamp"),
         (r"Single user licen[cs]e", "per-copy licence stamp"),
@@ -111,11 +124,8 @@ TREE_FORBIDDEN: dict[int, list[tuple[str, str]]] = {
     1985: [
         (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number"),
     ],
-    2002: [
-        (r"\bX_\d{6,}\b", "reseller order number"),
-        (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
-        (r"Licensed to [A-Z][a-z]+ [A-Z][a-z]+", "per-copy licence stamp naming a purchaser"),
-    ],
+    2002: _INCITS_STORE_TREE,
+    2014: _INCITS_STORE_TREE,
     2023: [
         (r"\bX_\d{6}\b", "reseller order number"),
         (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
@@ -186,6 +196,19 @@ REQUIRED: dict[int, list[tuple[str, str]]] = {
          "the Preface must state that it is not part of the standard"),
         (r"^# Addendum", "the Addendum that lists every correction (check_corrections)"),
     ],
+    # 2014 prints the CODASYL grant and its paragraphs on its INCITS cover page, PDF page 2 (kb/Work PB5268), with the
+    # printed defects the Preface keeps ("OI" for "or"). It has no corrections section yet: nothing is corrected.
+    2014: [
+        (r"\A# Preface\n", "the file must open with the Preface (PDF page 2: 'as part of the preface')"),
+        (r"COBOL is an industry language and is not the property of any company",
+         "the acknowledgment's first paragraph"),
+        (r"No warranty, expressed or implied, is made by any contributor",
+         "the acknowledgment's no-warranty paragraph"),
+        (r"have specifically authorized the use of this material in whole or in part",
+         "the acknowledgment's authorization sentence"),
+        (r"NOT part of ISO/IEC 1989:2014",
+         "the Preface must state that it is not part of the standard"),
+    ],
     # 2002 prints no acknowledgment and no reproduction grant; it is reproduced under the permission the owner confirmed
     # on 2026-11-05 (kb/Work PB4813), which the Preface states without naming anyone.
     2002: [
@@ -198,6 +221,7 @@ REQUIRED: dict[int, list[tuple[str, str]]] = {
 #: The words that open the acknowledgment, which must precede clause 1 (the Preface), by edition; None for an edition
 #: that prints no acknowledgment (2002), whose Preface carries none.
 ACKNOWLEDGMENT_OPENING: dict[int, str | None] = {1985: "COBOL is an industry language", 2002: None,
+                                                 2014: "COBOL is an industry language",
                                                  2023: "COBOL is an industry language"}
 
 
@@ -328,20 +352,37 @@ def check_corrections(text: str, edition: int) -> list[str]:
 #: batch claim with its decision, every repair, and every level-2 box. 2023 dropped its pages; its reconciliation is
 #: LEDGER.json (merge_reconciliation.py) and its corrections the Addendum (check_corrections).
 LEDGER: dict[int, str] = {1985: "docs/rearchitecture/spec-reconciliation/LEDGER-1985.json"}
+#: EVERY edition's reconciliation ledger, the one home of their paths: the page-keeping ledgers above, and each ledger
+#: merge_reconciliation.py writes from its agent files (its EDITIONS rows take their ledger from here): 2023's
+#: LEDGER.json, and 2002's and 2014's, in LEDGER-1985.json's shape (kb/Work PB5255).
+RECONCILIATION: dict[int, str] = {
+    **LEDGER,
+    2023: "docs/rearchitecture/spec-reconciliation/LEDGER.json",
+    2002: "docs/rearchitecture/spec-reconciliation/LEDGER-2002.json",
+    2014: "docs/rearchitecture/spec-reconciliation/LEDGER-2014.json",
+}
+
+
+def ledger_pages(ledger: dict) -> set[int]:
+    """The PDF pages a reconciliation ledger records as compared: 2023's merge lists them (`pages_swept`); a page-keeping
+    batch ledger compared every page of its book and records how many (`pages`, LEDGER-1985.json's `about`)."""
+    if "pages_swept" in ledger:
+        return set(ledger["pages_swept"])
+    return set(range(1, int(ledger.get("pages", 0)) + 1))
+
+
+def reconciled(edition: int, repo: pathlib.Path = REPO) -> bool:
+    """THE FACT that `edition`'s transcription is reconciled (kb/Work PB5256, branch review R1-4): its reconciliation ledger
+    exists and records every page of the PDF (`spec_pdf.EDITIONS[edition].pages`) as compared. The ISO rule catalog
+    records an unreconciled edition's findings instead of failing on them, and the inventory refuses to LINK an
+    unreconciled edition into the lineage (`inventory_schema.link_errors`): its rule ids may still move."""
+    path = repo / RECONCILIATION[edition] if edition in RECONCILIATION else None
+    if path is None or not path.is_file():
+        return False
+    return ledger_pages(json.loads(path.read_text(encoding="utf-8"))) == set(range(1, spec_pdf.EDITIONS[edition].pages + 1))
 #: What a claim's decision may be; each but APPLIED states its reason.
 DECISIONS = {"APPLIED", "REFUTED", "ALREADY", "FORMAT", "BOX", "FIGURE", "KEPT"}
-BOX_SIDE = spec_pdf.BOX_SIDE
-PAGE_HEADING = re.compile(r"^## Page (\d+)$", re.M)
 CODE_SPAN = re.compile(r"`[^`\n]*`")
-
-
-def pages_of(text: str) -> dict[int, str]:
-    """The transcription's text by PDF page (`## Page N` opens page N); the front matter before page 1 is page 0."""
-    cuts = [(int(m.group(1)), m.start()) for m in PAGE_HEADING.finditer(text)]
-    out = {0: text[:cuts[0][1]] if cuts else text}
-    for (page, at), (_, end) in zip(cuts, cuts[1:] + [(0, len(text))]):
-        out[page] = text[at:end]
-    return out
 
 
 def prose_box_sides(page: str) -> int:
@@ -354,18 +395,30 @@ def prose_box_sides(page: str) -> int:
         if "<pre" in line:
             figure = True
         if not figure and not fence:
-            count += CODE_SPAN.sub("", line).count(BOX_SIDE)
+            count += CODE_SPAN.sub("", line).count(spec_pdf.BOX_SIDE)
         if "</pre>" in line:
             figure = False
     return count
 
 
 def check_ledger(text: str, ledger: dict) -> list[str]:
-    """The transcription agrees with its reconciliation ledger: every applied repair and sweep is on its page, every claim
-    is decided, every marked box opens where the ledger says, and each page's prose carries exactly the box sides its
-    marked boxes account for (two per marked block), so a box added, lost or moved without the ledger is refused."""
+    """The transcription agrees with its reconciliation ledger: the ledger compared every page of the book (its
+    `book_pages` is the transcription's page count, its `pages_swept` every one of them and its `pages_unread` none),
+    every applied repair and sweep is on its page, every claim is decided, every marked box opens where the ledger says,
+    and each page's prose carries exactly the box sides its marked boxes account for (two per marked block), so a box
+    added, lost or moved without the ledger is refused."""
     failures: list[str] = []
-    pages = pages_of(text)
+    pages = spec_pdf.pages_of(text)
+    book = spec_pdf.page_count(text)
+    swept = set(ledger.get("pages_swept") or [])
+    if ledger.get("book_pages") != book:
+        failures.append(f"the ledger's book_pages {ledger.get('book_pages')!r} is not the transcription's {book} pages")
+    if unswept := sorted(set(range(1, book + 1)) - swept):
+        failures.append(f"{len(unswept)} page(s) were never compared (not in pages_swept): {unswept[:20]}")
+    if beyond := sorted(swept - set(range(1, book + 1))):
+        failures.append(f"pages_swept names page(s) the transcription does not hold: {beyond[:20]}")
+    if unread := ledger.get("pages_unread"):
+        failures.append(f"{len(unread)} page(s) are unread: {[u['page'] for u in unread][:20]}")
     print(f"\nreconciliation ledger ({len(ledger['claims'])} claims, {len(ledger['sweeps'])} sweeps, "
           f"{len(ledger['boxes'])} boxes) — the transcription must agree:")
 
@@ -401,8 +454,8 @@ def check_ledger(text: str, ledger: dict) -> list[str]:
     for f in failures[:20]:
         print(f"  ✗ {f}")
     if not failures:
-        print(f"  ✓ every repair on its page, every claim decided, {sum(sides.values()) // 2} boxed blocks where the ledger "
-              "puts them")
+        print(f"  ✓ {book} of {book} pages compared, every repair on its page, every claim decided, "
+              f"{sum(sides.values()) // 2} boxed blocks where the ledger puts them")
     return failures
 
 
@@ -450,7 +503,7 @@ def check_reconstructions(lines: list[str], edition: int) -> list[str]:
         printed: list[tuple[int, str]] = []
         last: tuple[int, str] | None = None
         for i, ln in enumerate(lines + ["## Page 0"]):
-            if PAGE_HEADING.match(ln):
+            if spec_pdf.PAGE_HEADING.match(ln):
                 if last is not None:
                     printed.append(last)
                 last = None
@@ -579,6 +632,22 @@ def self_test() -> int:
         with contextlib.redirect_stdout(io.StringIO()):
             return fn(*args)
 
+    # kb/Work PB5256, branch review R1-4: an edition is reconciled when its ledger records every page of its PDF compared.
+    import tempfile  # noqa: PLC0415
+    with tempfile.TemporaryDirectory() as tmp:
+        root = pathlib.Path(tmp)
+        (root / RECONCILIATION[2023]).parent.mkdir(parents=True)
+        pages23 = spec_pdf.EDITIONS[2023].pages
+        (root / RECONCILIATION[2023]).write_text(json.dumps({"pages_swept": list(range(1, pages23))}), encoding="utf-8",
+                                                 newline="\n")
+        short = reconciled(2023, root)
+        (root / RECONCILIATION[2023]).write_text(json.dumps({"pages_swept": list(range(1, pages23 + 1))}),
+                                                 encoding="utf-8", newline="\n")
+        (root / RECONCILIATION[1985]).write_text(json.dumps({"pages": spec_pdf.EDITIONS[1985].pages}), encoding="utf-8",
+                                                 newline="\n")
+        check("an edition is reconciled when its ledger records every page compared, in either ledger's shape, and not "
+              "with a page short or with no ledger (2002)",
+              not short and reconciled(2023, root) and reconciled(1985, root) and not reconciled(2002, root))
     good = ("# Preface\n\nCOBOL is an industry language and is not the property of any company\n"
             "No warranty, expressed or implied, is made by any contributor\n"
             "have specifically authorized the use of this material in whole or in part\n"
@@ -614,7 +683,21 @@ def self_test() -> int:
           == ["missing: the Preface must state the permission the transcription is reproduced under"])
     check("2002 never borrows 2023's acknowledgment: a 2023 text lacks the 2002 Preface's statements",
           len(quietly(check_text, good, 2002)) >= 2)
-    good_1985 = good.replace("ISO/IEC 1989:2023", "American National Standard X3.23-1985").replace(
+    # 2014 (kb/Work PB5268): the 2002 stamp's shape, measured on its own PDF, and the CODASYL acknowledgment in its Preface.
+    check("2014 refuses every piece of its stamp, each once, the seven-digit order number included",
+          len(quietly(check_stamp, [planted_2002], 2014)) == len(FORBIDDEN[2014])
+          and quietly(check_stamp, [long_order], 2014) != [])
+    check("2014's tree shapes catch the order number, the download date and a purchaser's name",
+          all(re.search(p, planted_2002) for p, _ in TREE_FORBIDDEN[2014]))
+    good_2014 = good.replace("ISO/IEC 1989:2023", "ISO/IEC 1989:2014").replace(
+        '<a id="section-1"></a>\n\n## 1 Scope\n\n# Addendum\n',
+        "# Front matter: covers, contents, foreword and introduction\n\n## Page 2\n\n# Clauses 1 to 16\n\n## Page 25\n")
+    check("a clean 2014 text passes: its Preface carries the acknowledgment before the body, and it has no Addendum yet",
+          quietly(check_text, good_2014, 2014) == [])
+    check("a 2014 Preface without the acknowledgment is refused, and its body line is its own, not 2023's",
+          len(quietly(check_text, good_2014.replace("COBOL is an industry language", "COBOL is a language"), 2014)) >= 1
+          and quietly(check_text, good, 2014) != [])
+    good_1985 =good.replace("ISO/IEC 1989:2023", "American National Standard X3.23-1985").replace(
         '<a id="section-1"></a>\n\n## 1 Scope', "# SECTION I: INTRODUCTORY INFORMATION\n\n## Page 21").replace(
         "# Addendum\n", "# Errata\n")
     check("a clean 1985 text passes, its body opening at Section I", quietly(check_text, good_1985, 1985) == [])
@@ -656,7 +739,7 @@ def self_test() -> int:
           in quietly(check_text, good.replace("# Addendum\n", ""), 2023))
     planted_pages = ("# Preface\n\nthe notation `║boxed║`\n\n## Page 1\n\n<u>Format 1</u>:\n\n(4) a rule ║or extend║ here.\n\n"
                      "<pre style=\"line-height:1\">\n║ a drawn box ║\n</pre>\n\n## Page 2\n\nplain\n")
-    planted_ledger = {"claims": [{"page": 1, "i": 0, "decision": "APPLIED",
+    planted_ledger = {"book_pages": 2, "pages_swept": [1, 2], "pages_unread": [], "claims": [{"page": 1, "i": 0, "decision": "APPLIED",
                                   "edits": [{"was": "Format 1:", "now": "<u>Format 1</u>:"}]},
                                  {"page": 2, "i": 0, "decision": "REFUTED", "reason": "the page prints it so"}],
                       "sweeps": [], "boxes": [{"page": 1, "n": 0, "decision": "MARKED", "blocks": 1, "opens": ["║or extend║"]},
@@ -669,6 +752,12 @@ def self_test() -> int:
                                                   planted_ledger)) == 1)
     undecided = dict(planted_ledger, claims=planted_ledger["claims"] + [{"page": 2, "i": 1, "decision": "REFUTED"}])
     check("a claim decided with no reason is refused", len(quietly(check_ledger, planted_pages, undecided)) == 1)
+    for name, change in (("a ledger whose book_pages is not the transcription's page count is refused", {"book_pages": 3}),
+                         ("a ledger that never compared a page of the book is refused", {"pages_swept": [1]}),
+                         ("a ledger that lists a page the book does not hold is refused", {"pages_swept": [1, 2, 3]}),
+                         ("a ledger with an unread page is refused",
+                          {"pages_unread": [{"page": 2, "reason": "blank render"}]})):
+        check(name, len(quietly(check_ledger, planted_pages, dict(planted_ledger, **change))) == 1)
     # kb/Work PB4952: a gap in the printed folios holds a reconstruction, and a reconstruction stands only in a gap.
     opening = ("> ⚠ **RECONSTRUCTED — not printed in our copy (folios XIII-30 and XIII-31).** Planted. **Sources:** the "
                "siblings. **Confidence: low.**")

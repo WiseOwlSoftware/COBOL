@@ -1,9 +1,9 @@
 {
   "batch": [670, 671, 672, 675, 676, 677, 678, 679, 680, 682, 683, 684],
-  "pages_checked": [670, 671, 672, 675, 676, 677, 678, 679, 680, 682, 683, 684],
+  "pages_checked": [670, 671, 672, 675, 676, 677, 678, 679, 680, 682, 683, 684], "pages_unread": [],
   "findings": [
     {
-      "page": 680,
+      "id": "p680-1", "page": 680,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "FORMAT 3\n\n19) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements ...\n\nFORMAT 4\n\n20) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement ...   [both 'FORMAT 3' and 'FORMAT 4' are printed as ordinary body text in the same size/weight as the sibling labels 'FORMAT 1', 'FORMATS 2 AND 3' and 'FORMAT 2' on pages 675/676/679 - they are format-applicability labels inside 14.9.22.4 General rules, not headings]",
@@ -12,7 +12,7 @@
       "suggested_repair": "Demote both lines to plain body text - replace '## FORMAT 3' with 'FORMAT 3' and '## FORMAT 4' with 'FORMAT 4' at specs/ISO_COBOL.md lines 28029 and 28033, matching the treatment of every other format-applicability label in 14.9.22. Sweep the other six doc-wide occurrences of a '^## FORMAT n' heading (lines 6280, 6284, 6288, 6298, 19800, 25360) and verify each against its PDF page before demoting."
     },
     {
-      "page": 675,
+      "id": "p675-1", "page": 675,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "14.9.22.4   General rules   [a fourth-level subsection of 14.9.22 INSPECT statement, printed in the same bold heading style as 14.9.21.4 General rules on page 672]",
@@ -21,7 +21,7 @@
       "suggested_repair": "Change '## 14.9.22.4 General rules' to '### 14.9.22.4 General rules' (line 27892). This is systemic, not isolated - '## 14.9.22.3 Syntax rules' (line 27853) has the same defect, as do 14.9.20.4, 14.9.24.4, 14.9.25.4, 14.9.26.4, 14.9.27.4, 14.9.28.3, 14.9.28.4 and others. Fix with one doc-wide sweep that re-levels every four-component 14.x.y.z heading to '###', not a per-page edit."
     },
     {
-      "page": 683,
+      "id": "p683-1", "page": 683,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "14.9.23.4   General rules   [a fourth-level subsection of 14.9.23 INVOKE statement, printed in the same bold heading style as 14.9.23.1 General / 14.9.23.2 General format / 14.9.23.3 Syntax rules]",

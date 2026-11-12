@@ -15,6 +15,14 @@
   ],
   "bridge": true,
   "reason": "30, 35, 37 a) and 39 carry over (§2023:9.1.13.6 GR1, GR5, GR6, GR7; OPEN §2023:14.9.27.4 GR10 sets '39', GR16 sets '37' for an unsupported I-O open). But 1985 'I-O Status = 38 ... an OPEN statement is attempted on a file previously closed with lock' (§1985:VIII.1.3.4 GR4) has no 2023 rule: §2023:E.2 lists 'The WITH LOCK phrase of the CLOSE statement and the related File Status of 38' as removed. 37 also gains an authority case and 39 DELETE FILE, neither reachable from 1985 source.",
-  "source": "adjudicate-712/slice-18"
+  "source": "adjudicate-712/slice-18",
+  "digests": {
+   "GR-9.1.13.6-1": "496b685aec5d",
+   "GR-9.1.13.6-5": "63619007ba1d",
+   "GR-9.1.13.6-6": "b8d74a99aedb",
+   "GR-9.1.13.6-7": "5a57e7f5f853",
+   "GR-14.9.27.4-10": "b14289c182cb",
+   "GR-14.9.27.4-16": "4fc7fb7e2271"
+  }
  }
 }

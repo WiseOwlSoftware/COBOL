@@ -68,9 +68,11 @@ NORMAL = "normal"
 #: The standings a list may confer, each the word the text uses for it (§1985:I.1.5.2.3; §2023:4.2.12, §2023:4.2.13).
 STANDINGS = ("archaic", "obsolete")
 FORMAT = "FMT"
-#: An item of a list: 1985 `(n) <u>name</u>.`; 2023 `n\) **name.**`.
+#: An item of a list: 1985 `(n) <u>name</u>.`; 2023 `n\) **name.**`; 2002 `n\) name. <its remark>` (the name in body
+#: type, ending at its first full stop). Tried in this order, so a 2023 item is read by its own shape.
 LIST_ITEMS = (re.compile(r"^\((?P<n>\d+)\)\s+<u>(?P<name>[^<]+)</u>"),
-              re.compile(r"^(?P<n>\d+)[\\]\)\s+\*\*(?P<name>[^*]+?)\.?\*\*"))
+              re.compile(r"^(?P<n>\d+)[\\]\)\s+\*\*(?P<name>[^*]+?)\.?\*\*"),
+              re.compile(r"^(?P<n>\d+)[\\]\)\s+(?P<name>[A-Z][^.*]+)\."))
 _MARKUP = re.compile(r"<[^>]+>|" + re.escape(spec_pdf.BOX_SIDE))
 _CLAUSE = re.compile(r"(?P<locator>[A-Z0-9.]+)\((?P<n>\d+)\)")
 #: A numbered format of a general format, with its name: `Format 2 (program):` (§2023:5.2.1).

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: VALUE 'must not be stated in a data description entry that contains a REDEFINES clause, or in an entry that is subordinate to an entry containing a REDEFINES clause. This rule does not apply to condition-name entries.' §2023:13.18.63.3 SR12 states the ban word for word ('shall not be specified in a data description entry that contains a REDEFINES clause or in an entry that is subordinate to an entry containing a REDEFINES clause') under the heading FORMAT 1 (data-item), so it does not reach a condition-name entry (format 3) and carries the exemption as well. ADJUDICATED 2026-11-10 (band-85 slice 13): two targets removed. §2023:13.18.63.3 SR16 ('Syntax rules 10, 11,12,13,14,and 15 above apply') applies the ban to the table format, VALUE ... FROM ( subscript-1 ), which no 1985 program can write (1985 format 1 is 'VALUE IS literal-1'). §2023:13.18.63.3 SR24 ('Syntax rules 10 and 17 above apply') states that the boolean-literal rule and 'The words VALUE and VALUES are equivalent' apply to condition-names; it does not state the exemption, and 1985 states neither of those two.",
-  "source": "band-85/slice-13"
+  "source": "band-85/slice-13",
+  "digests": {
+   "SR-13.18.63.3-12": "8feffabc975f"
+  }
  }
 }

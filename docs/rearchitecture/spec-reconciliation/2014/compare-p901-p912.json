@@ -1,0 +1,16 @@
+{
+  "batch": [901, 902, 903, 904, 905, 906, 907, 908, 909, 910, 911, 912],
+  "pages_checked": [901, 902, 903, 904, 905, 906, 907, 908, 909, 910, 911, 912],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p907-1",
+      "page": 907,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Integer-seconds time formats | Formats | Values (two-line first-column header \"Integer-seconds / time formats\"; likewise \"Fractional-seconds / time formats\")",
+      "markdown_says": "Integer-seconds\n\n| time formats | Formats | Values |  (and likewise \"Fractional-seconds\" as a loose paragraph above a table headed \"| time formats | Formats | Values |\")",
+      "why_it_matters": "The two-line column header of the integer-seconds and fractional-seconds tables in D.29.4.1 was split: its first line became a stray paragraph outside the table and the table's first column is headed only \"time formats\". Informative annex; no values lost."
+    }
+  ]
+}

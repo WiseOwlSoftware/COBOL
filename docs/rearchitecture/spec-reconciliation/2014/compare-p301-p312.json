@@ -1,0 +1,47 @@
+{
+  "batch": [301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312],
+  "pages_checked": [301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p301-1",
+      "page": 301,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "section": "13.7.1 General format (meta-language term table)",
+      "pdf_says": "Term / Subclause table with four rows: 77-level-entry 13.13, 77-level data description entry; constant-entry 13.10, Constant entry; record-description-entry 13.11, Record description entry; type-declaration-entry 13.12, Type declaration entry",
+      "markdown_says": "| 77-level-entry | 13.13, 77-level data description entry |\n| constant-entry | 13.10, Constant entry |\n\nrecord-description-entry 13.11, Record description entry\\\ntype-declaration-entry 13.12, Type declaration entry",
+      "why_it_matters": "The last two rows of the term table fell out of the markdown table into a loose paragraph, so a reader or tool parsing the table sees only two of the four terms. Wording is intact."
+    },
+    {
+      "id": "p303-1",
+      "page": 303,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "section": "13.8.1 General format (meta-language term table)",
+      "pdf_says": "Term / Subclause table with two rows: 77-level-entry 13.13, 77-level data description entry; report-group-description-entry 13.8.4, Report group description entry",
+      "markdown_says": "| 77-level-entry | 13.13, 77-level data description entry |\n\nreport-group-description-entry 13.8.4, Report group description entry",
+      "why_it_matters": "The second row of the term table fell out of the markdown table into a loose paragraph; a table parser sees one term instead of two. Wording is intact."
+    },
+    {
+      "id": "p305-1",
+      "page": 305,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "section": "13.9.1 General format (meta-language term table)",
+      "pdf_says": "Term / Subclause table with two rows: constant-entry 13.10, Constant entry; screen-description-entry 13.17, Screen description entry",
+      "markdown_says": "| constant-entry | 13.10, Constant entry |\n\nscreen-description-entry 13.17, Screen description entry",
+      "why_it_matters": "The second row of the term table fell out of the markdown table into a loose paragraph; a table parser sees one term instead of two. Wording is intact."
+    },
+    {
+      "id": "p306-1",
+      "page": 306,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "section": "13.10.1 General format (constant entry)",
+      "pdf_says": "{ 1 / 01 } constant-name-1 CONSTANT ... -- both level numbers in the leading brace are underlined (a short underline is printed under the \"1\" as well as under \"01\")",
+      "markdown_says": "╭ 1  ╮\n┤    ├ constant-name-1 <u>CONSTANT</u> ...\n╰ <u>01</u> ╯",
+      "why_it_matters": "The markdown drops the underline from the level number 1. By §2014:5.2.1/5.2.2 an un-underlined word is optional, and a brace alternative that is optional can be implicitly selected (§2014:5.2.5.2), so the transcription reads as if the level number could be omitted entirely; the printed format requires 1 or 01 to be written."
+    }
+  ]
+}

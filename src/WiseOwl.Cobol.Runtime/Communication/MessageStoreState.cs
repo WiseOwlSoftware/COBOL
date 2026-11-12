@@ -27,8 +27,11 @@ internal abstract class MessageEndpoint(EndpointKind kind, string[] path, string
         set => tables.PutEndpoint(kind, path, row(value));
     }
 
+    /// <summary>§1985:XIV.3.2.4 GR7 and §1985:XIV.3.3.4 GR6: the KEY's value "match[es] the system password". The standard leaves the rules for a match to the implementor
+    /// (its own rationale for the KEY phrase: they "are not specified"), so the two are compared as alphanumeric operands (§2023:8.8.4.2.7: the shorter extended with spaces, so trailing spaces
+    /// count on neither side. A password of spaces matches any key of spaces. A KEY phrase omitted gives nothing to match and is honored (docs/CONFORMANCE.md §3.3).</summary>
     public bool Admits(string? written) =>
-        written is null || key is null || string.Equals(written.TrimEnd(' '), key, StringComparison.Ordinal);
+        written is null || key is null || string.Equals(written.TrimEnd(' '), key.TrimEnd(' '), StringComparison.Ordinal);
 }
 
 /// <summary>One level of the queue hierarchy (E.5.5.4). A level that is not named at RECEIVE is chosen "in the alphabetical order", the
@@ -97,6 +100,58 @@ internal sealed class MessageStoreState
 
     internal DestinationEndpoint? FindDestination(string name) => _definitions.Destination(name) is { } destination ? new DestinationEndpoint(destination, _tables!) : null;
 
+    /// <summary>§1985:XIV.2.2.4 GR10: whether <paramref name="name"/> is "the symbolic name of the communication terminal" the MCS knows: a source or a terminal of its definitions.
+    /// A destination's own name, which the MCS gives a message the destination delivers when no source is defined for it, is neither.</summary>
+    internal bool KnowsCommunicationTerminal(string name) => _definitions.Source(name) is not null || _definitions.Terminal(name) is not null;
+
+    /// <summary>Whether the logical path between <paramref name="sourceName"/> and the queue <paramref name="queue"/> is open: what a statement last set for that path, and
+    /// else the queue's and the source's own enabled states. A name that is no defined source (a destination's own, §1985:XIV.2.2.4 GR10) has no path to close, so the queue alone decides.</summary>
+    private bool PathOpen(string sourceName, QueueDefinition queue) =>
+        _definitions.Source(sourceName) is not { } source
+            ? new QueueNode(queue, _tables!).Enabled
+            : _tables!.Path(sourceName, queue.Path) ?? (new QueueNode(queue, _tables).Enabled && new SourceEndpoint(source, _tables).Enabled);
+
+    private bool SetPaths(QueueDefinition queue, IEnumerable<SourceDefinition> sources, bool enable)
+    {
+        bool changed = false;
+        foreach (var source in sources)
+        {
+            changed |= PathOpen(source.Name, queue) != enable;
+            _tables!.PutPath(source.Name, queue.Path, enable);
+        }
+        return changed;
+    }
+
+    /// <summary>§1985:XIV.3.2.4 GR3 and §1985:XIV.3.3.4 GR2: DISABLE or ENABLE INPUT acts on "the logical paths between the queue and sub-queues specified ... and all the
+    /// associated ... sources". A queue designated by fewer levels than the CD has is a structure, so the queue, every queue below it and every path
+    /// between one of them and a source change. Returns whether anything did not already have the state asked for.</summary>
+    internal bool SetQueuePaths(QueueNode queue, bool enable)
+    {
+        bool changed = false;
+        foreach (var level in _definitions.FindQueue(queue.Path)!.SelfAndDescendants())
+        {
+            var node = new QueueNode(level, _tables!);
+            if (node.Enabled != enable)
+            {
+                node.Enabled = enable;
+                changed = true;
+            }
+            changed |= SetPaths(level, _definitions.Sources, enable);
+        }
+        return changed;
+    }
+
+    /// <summary>§1985:XIV.3.2.4 GR4 and §1985:XIV.3.3.4 GR3: DISABLE or ENABLE INPUT TERMINAL acts on "the logical paths between the source ... and all of its associated
+    /// queues and sub-queues", every queue of the definitions. Returns whether anything did not already have the state asked for.</summary>
+    internal bool SetSourcePaths(SourceEndpoint source, bool enable)
+    {
+        bool changed = source.Enabled != enable;
+        source.Enabled = enable;
+        var definition = _definitions.Source(source.Name)!;
+        foreach (var queue in _definitions.AllQueues) changed |= SetPaths(queue, [definition], enable);
+        return changed;
+    }
+
     internal TerminalEndpoint? FindTerminal(string name) => _definitions.Terminal(name) is { } terminal ? new TerminalEndpoint(terminal, _tables!) : null;
 
     /// <summary>The next message of the designated structure, removed from its queue, with the level it was found at (E.5.5.3, E.5.5.4: the first key at or after the structure's prefix).</summary>
@@ -114,7 +169,7 @@ internal sealed class MessageStoreState
     internal bool HasTransmissions => _transmissions.Count > 0;
 
     /// <summary>The MCS's own work after each statement that changed anything: each enabled destination's output queue moves on, into the input
-    /// queue it feeds where that queue and the source's path are enabled ("provided that input queue is enabled", E.5.5.1), and otherwise to its device.
+    /// queue it feeds where the path between that queue and the source is enabled ("provided that input queue is enabled", E.5.5.1), and otherwise to its device.
     /// Returns what the devices are to take: nothing here reaches outside the store's rows, so the store lands the rows and the devices' committed ends together.</summary>
     internal IReadOnlyList<(string Device, StoredMessage Message)> Deliver()
     {
@@ -130,7 +185,7 @@ internal sealed class MessageStoreState
                 foreach (var message in _tables.TakeOutbound(definition.Name))
                     _tables.AddTerminalMessage(target[MessageDefinitions.TerminalTarget.Length..], message.From(definition.SourceName));
             }
-            else if (FindQueue(target.Split('/')) is { Enabled: true } queue && FindSource(definition.SourceName) is not { Enabled: false })
+            else if (_definitions.FindQueue(target.Split('/')) is { } queue && PathOpen(definition.SourceName, queue))
             {
                 foreach (var message in _tables.TakeOutbound(definition.Name))
                     _tables.AddQueueMessage(queue.Path, message.From(definition.SourceName));

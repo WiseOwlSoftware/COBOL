@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: compilation is 'logically equivalent to processing all COPY statements prior to the processing of the resultant source program'. 2023: §2023:7.2.3.4 GR6 replaces the COPY statement by library text in the compilation group and §2023:7.2.3.4 GR8 modifies it 'during creation of the structured compilation group', the text-manipulation stage that precedes compilation. Same model. The 7.2.2.5 NOTE is non-normative.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-7.2.3.4-6": "b40317ac7f90",
+   "GR-7.2.3.4-8": "52b4837424e9"
+  }
  }
 }

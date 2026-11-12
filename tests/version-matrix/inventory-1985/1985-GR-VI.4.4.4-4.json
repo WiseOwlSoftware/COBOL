@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: paragraph specified but object-computer-entry omitted -> 'the object computer is defined by the implementor'. §2023:12.3.6.4 GR3: 'When the OBJECT-COMPUTER paragraph is specified, but computer-name-1 is not specified, the object computer is defined by the implementor', documented per §2023:A.1 (DOC-A.1-126). In the 1985 format every clause follows computer-name, so the cases coincide for 1985 programs; clauses without computer-name-1 are new 2023 syntax.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "GR-12.3.6.4-3": "0db19d0dcb21",
+   "DOC-A.1-126": "8ac05524eb39"
+  }
  }
 }

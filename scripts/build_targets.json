@@ -33,9 +33,10 @@
       "facets": ["toolchain"],
       "inputs": {
         "conformance-suite/": "the generator and the modules it imports (harness/generate.py, config.py, cobol_source.py), every test's header and expected outputs (cases/, wiseowl/cases/), WiseOwl's refusals and compile options (wiseowl/diagnostics/, wiseowl/options/), the adapters, profiles and baselines it checks, and implementor-defined.json (traced)",
-        "tests/version-matrix/": "the traceability inventory of both editions (inventory/, inventory-1985/), inventory-schema.json, the construct catalogue (constructs/), reserved-words.json, annex-a2-undefined.json and conformance-register.json (traced), and the files the schema names",
+        "tests/version-matrix/": "the traceability inventory of every held edition (inventory/, inventory-1985/, inventory-2002/), inventory-schema.json, the construct catalogue (constructs/), reserved-words.json, annex-a2-undefined.json and conformance-register.json (traced), and the files the schema names",
         "docs/rearchitecture/spec-rule-catalog.json": "the inventory view (scripts/spec/inventory_view.py; traced)",
         "docs/rearchitecture/spec-rule-catalog-1985.json": "the inventory view of 1985 (traced)",
+        "docs/rearchitecture/spec-rule-catalog-2002.json": "the inventory view of 2002 (scripts/spec/inventory_view.py, every held edition generate.py joins; traced, kb/Work PB5256)",
         "specs/ISO_COBOL_2023.md": "annex_names and standard_keywords (generate.py SPEC_PATH; traced)",
         "scripts/spec/": "imported: construct_store, generated_output, inventory_schema, inventory_store, inventory_view, lineage (traced); the directory is on the module path ahead of the standard library, so a file added there can shadow a module it imports",
         "scripts/standard_streams.py": "imported by generate.py (ensure_utf8)",
@@ -72,7 +73,8 @@
         "scripts/spec/generated_output.py|prepare|entry.is_dir()": "an entry of the output directory {out}, not an input",
         "scripts/spec/generated_output.py|prepare|entry.is_symlink()": "an entry of the output directory {out}, not an input",
         "scripts/spec/inventory_schema.py|Tree.text|p.is_file()": "the files the schema and the view name: SCHEMA_REL and REGISTER_EXTRACT_REL under tests/version-matrix/, the rule catalogs (docs/rearchitecture/spec-rule-catalog*.json) and the Annex A.2 list, each declared",
-        "scripts/spec/inventory_store.py|read_store|directory.is_dir()": "inventory_dir(edition): tests/version-matrix/inventory and inventory-1985",
+        "scripts/spec/lineage.py|main|path.exists()": "the committed candidate pairing (docs/rearchitecture/spec-lineage-candidates-<year>.json) that `lineage.py --candidates --check` compares: lineage.main is the CLI, never called by the generator, which imports lineage for its state rule",
+        "scripts/spec/inventory_store.py|read_store|directory.is_dir()": "inventory_dir(edition): tests/version-matrix/inventory, inventory-1985 and inventory-2002",
         "scripts/spec/inventory_store.py|write_store|directory.is_dir()": "write_store is the recorder's, never called by the generator, which only reads the store",
         "scripts/spec/inventory_store.py|write_store|f.is_file()": "write_store is the recorder's, never called by the generator (both calls)"
       }

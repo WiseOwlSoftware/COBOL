@@ -88,7 +88,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a population that cannot be listed is NOT RUN [population]',
         'a red audit (a tracked rendered view) that is known before the slot STOPS the gate before the build',
         'the corpus fetch runs BEFORE the gate slot is taken, a red audit never queues for one',
-        'an audit that turns RED while the gate queues for the slot ends the gate before the build',
+        'an audit that turns RED while the gate queues for the slot ends the gate AT ONCE (kb/Work PB5322)',
         'an audit that is RED only after the test hosts have started STOPS them',
         'the script self-tests (the audits in TOOLING_ONLY, and the post-build ones) run ONLY when the change touches tooling',
         'the audits a change that touches no tooling runs are AUDITS less TOOLING_ONLY',
@@ -314,12 +314,16 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'clear returns the cap to its coded default, and repairs a malformed file',
         'gate classes in service order: landing, then fix, then implementer tickets, FIFO within each class',
         "a hold far past the median of its kind's recorded holds is flagged by status, never killed",
+        'a queued waiter whose abandon turns true withdraws its ticket at once and never takes the slot (kb/Work PB5322)',
         'a waiting gate says why a later ticket is served first (fix before implementer) and what the gate next in line waits for',
     ),
     'scripts/spec/audit_code_citations.py': (
         '("SUBJECT",', '("HEADER",', '("PHANTOM",', '("FORMAT",', '("RULE",', '("SUBITEM",', '("FORMAT-NAME",',
         '("FORMAT-RULE",',
         '("QUOTE-RULE",',  # a QUOTATION resolved to its own top-level rule (kb/Work PB597)
+        # RESOLVE: every citation of every edition through cite.resolve, and its shrink-only baseline (kb/Work PB5317)
+        '("no-ordinal", "the SORT statement (§1985:XI.4.4.4 GR99)")', '("no-rule-list", "COMPUTE (§2023:14.9.8 GR1)")',  # citation-audit: example
+        'the baseline allows its entries wherever their line moves',
         '("CITATION",', 'BARE fires on a bare 2023 citation',  # the edition form and its phase-2 refusal (kb/Work PB4887)
         '("DIAG-NO-RULE",', '("DIAG-UNQUALIFIED",',  # the DIAGNOSTIC-STRING family (kb/Work PB838)
         # CONSTRUCT-CODE (kb/Work PB4467): a construct citation names the ISO rule only. One arm per kind of token it refuses.
@@ -341,7 +345,17 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'fires EMPTY-NEEDLE (check)', 'fires EMPTY-NEEDLE (find)', 'pins 14.7.7 2) bare', 'pins 14.9.8.4 1) b)',
         'accepts the PRINTED form (C6)', 'fires on a wrong clause',
         'reads the transcription of the edition the citation names (2002)', 'an edition whose transcription is absent exits naming it',
-        'fires on a rule the text is not under (GR2)', 'fires on a 1985 paragraph of the wrong section',  # kb/Work PB4887
+        'fires on a 1985 paragraph of the wrong section',  # kb/Work PB4887
+        # kb/Work PB5317: every part of a citation, in every edition, and the catalog's boundaries anchored
+        '1985: GR99 fails', '1985: a real quotation under the wrong ordinal (GR10) fails', '1985: the right ordinal passes',
+        '1985: a one-character quotation fails', '1985: a paragraph with no general rules cited GR1 fails',
+        '1985: a sub-item', '2023: GR99 fails', '2023: a real quotation under the wrong ordinal fails',
+        '2023: the wrong sub-item fails', '2023: a one-character quotation fails', '2023: a clause with no syntax rules',
+        '2023: a designator form the checker does not read fails by name', '2002 catalog mode: GR99 fails',
+        '2002 catalog mode: a real quotation under the wrong ordinal fails', '2002 catalog mode: a one-character',
+        '2002 catalog mode: a clause with no general rules', '2002 catalog mode: a catalog row the transcription does not carry',
+        '2002: GR99 fails', '2002: the wrong ordinal fails', '2014 LABEL MODE: GR6c',
+        'every row of every held catalog is anchored',
     ),
     # THE ONE CITATION PARSER (kb/Work PB4887 item 5): every edition, every locator shape and each rejection.
     'scripts/spec/citation.py': (

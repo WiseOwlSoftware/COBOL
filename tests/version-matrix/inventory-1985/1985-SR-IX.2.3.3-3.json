@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Same literal rule and implementor-defined meaning (implementor-name is now device-name). The zero-length bar only excludes a literal form 1985 lacked, so the same 1985 programs pass.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.4.5.2-4": "6ca222e2d0a1",
+   "SR-12.4.5.2-5": "9f65daeef717"
+  }
  }
 }

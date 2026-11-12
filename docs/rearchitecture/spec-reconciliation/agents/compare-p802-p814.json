@@ -1,9 +1,9 @@
 {
   "batch": [802, 803, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814],
-  "pages_checked": [802, 803, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814],
+  "pages_checked": [802, 803, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814], "pages_unread": [],
   "findings": [
     {
-      "page": 810,
+      "id": "p810-1", "page": 810,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "NOTE    The VALIDATE facility is an obsolete feature.\n\nUnlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.  [both paragraphs are printed in the reduced NOTE typeface - measured cap height 27 px at 300 dpi, versus 30 px for the adjacent normative body paragraph 'The VALIDATE statement invokes data validation...'; the same wording appears elsewhere in the standard folded inside a single note, e.g. 'NOTE 1    The STANDARD BINARY Intermediate Data Item (SBIDI) is an obsolete feature. Unlike other obsolete features, it is intended that interest in this facility will be reevaluated...']",

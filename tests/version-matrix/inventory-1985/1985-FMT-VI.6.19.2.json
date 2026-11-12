@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both formats match in 2023: simple MOVE and MOVE CORRESPONDING/CORR. The level-2 box and the identifier renumbering (1/2 to 3/4) are no difference.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.25.2": "4fe0dc4c9ea8"
+  }
  }
 }

@@ -1,0 +1,19 @@
+{
+  "batch": [217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228],
+  "pages_checked": [217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p225-1",
+      "page": 225,
+      "kind": "misplaced-content",
+      "severity": "normative",
+      "why_it_matters": "A reader of the markdown can apply the period-as-grouping-separator rule to the locale format of PICTURE, but the PDF limits it to the basic format (item b), so the transcription widens a normative editing rule.",
+      "section": "12.2.6.3 General rules, rule 14",
+      "pdf_says": "b) For the basic format of the PICTURE clause, the character written in character-strings, and inserted in numeric-edited items to represent the decimal separator shall be the comma. [indented under b):] NOTE 1 For the locale format of the PICTURE clause, ... [indented under b):] The character written in character-strings, and inserted in numeric-edited items to represent the grouping separator shall be the period. [back at rule 14's level:] The DECIMAL-POINT IS COMMA clause has no effect on the editing or de-editing of a data item described with the locale format of the PICTURE clause.",
+      "markdown_says": "   b) For the basic format of the PICTURE clause, ... shall be the comma.\n\n   NOTE 1 For the locale format of the PICTURE clause, ...\n\n   The character written in character-strings, and inserted in numeric-edited items to represent the grouping separator shall be the period.\n\n   The DECIMAL-POINT IS COMMA clause has no effect on the editing or de-editing of a data item described with the locale format of the PICTURE clause.",
+      "explanation": "In the PDF, NOTE 1 and the grouping-separator sentence are indented as continuation paragraphs of item b) (the basic-format case), while the 'has no effect' sentence is at rule 14's own level. The markdown puts all three at the same indentation as a) and b) and as the rule-14-level sentence, so the grouping-separator rule is detached from b) and reads as applying to rule 14 generally, including the locale format of PICTURE, which the next sentence says DECIMAL-POINT IS COMMA does not affect.",
+      "normative": true
+    }
+  ]
+}

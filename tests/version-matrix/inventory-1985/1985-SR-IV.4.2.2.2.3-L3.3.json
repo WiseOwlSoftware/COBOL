@@ -19,6 +19,15 @@
   ],
   "bridge": true,
   "reason": "1985: 'the word ALL is redundant and is used for readability only', so with SRL3.1 ('the only figurative constant permitted is ZERO') ALL ZERO stood wherever ZERO did, a numeric-only literal included. 2023 drops the redundancy statement and §2023:8.3.3.6.3 SR1 a) permits there only 'ZERO (ZEROS, ZEROES) without the ALL phrase': ALL ZERO in that position, accepted in 1985, is refused (a case removed), so CHANGED. Kept parts: ALL optional in formats 1-5 (FMT-8.3.3.6.2) with one character when 'other than ALL literal-1' (§2023:8.3.3.6.4 GR3); HIGH/LOW-VALUE follow the program collating sequence except in SPECIAL-NAMES (§2023:12.3.7.4 GR8, GR9; §2023:8.3.3.6.4 GR6, GR7).",
-  "source": "adjudicate-712-r2/slice-13"
+  "source": "adjudicate-712-r2/slice-13",
+  "digests": {
+   "FMT-8.3.3.6.2": "11f4a32bad96",
+   "SR-8.3.3.6.3-1": "e75155955975",
+   "GR-8.3.3.6.4-3": "0ee983e61ad4",
+   "GR-8.3.3.6.4-6": "61feedf29584",
+   "GR-8.3.3.6.4-7": "c688de14fa82",
+   "GR-12.3.7.4-8": "51f4dd9f3e04",
+   "GR-12.3.7.4-9": "eb1c566f75ff"
+  }
  }
 }

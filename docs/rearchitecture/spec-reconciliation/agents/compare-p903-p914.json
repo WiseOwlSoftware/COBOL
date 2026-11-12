@@ -1,9 +1,9 @@
 {
   "batch": [903, 904, 905, 906, 907, 908, 909, 910, 911, 912, 913, 914],
-  "pages_checked": [903, 904, 905, 906, 907, 908, 909, 910, 911, 912, 913, 914],
+  "pages_checked": [903, 904, 905, 906, 907, 908, 909, 910, 911, 912, 913, 914], "pages_unread": [],
   "findings": [
     {
-      "page": 903,
+      "id": "p903-1", "page": 903,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "FUNCTION  LENGTH  ( argument-1 [ PHYSICAL ] )   -- with FUNCTION, LENGTH and PHYSICAL each UNDERLINED in the printed general format (5.2.6.2: an underlined word is a required word).",

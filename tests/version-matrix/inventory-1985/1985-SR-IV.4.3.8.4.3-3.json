@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"anywhere an identifier referencing a data item of the class alphanumeric is permitted\"; 2023: \"anywhere an identifier referencing a data item of class alphanumeric, boolean, or national is permitted\". Same general permission, but 2023 adds cases: reference modification is also allowed wherever identifiers of class boolean or national are permitted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-8.4.3.3.3-5": "6654641f8ed5"
+  }
  }
 }

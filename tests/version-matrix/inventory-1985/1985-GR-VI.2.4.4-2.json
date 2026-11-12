@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: after END PROGRAM the next COBOL statement 'must be the Identification Division header of a program to be compiled separately'. §2023:10.6.1 lets a compilation group continue with any source unit (program, function, prototype, class or interface definition), and §2023:11.2.1 makes '[ IDENTIFICATION DIVISION. ]' optional, so the next unit may begin with its PROGRAM-ID (or other ID) paragraph. Looser: 1985 refuses a following unit that lacks the IDENTIFICATION DIVISION header; 2023 accepts it. 1985-conforming text is still accepted.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "FMT-10.6.1": "985639fb1dfa",
+   "FMT-11.2.1": "22ccbe0d710a"
+  }
  }
 }

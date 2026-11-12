@@ -1,0 +1,13 @@
+{
+  "claim_id": "p86-1",
+  "claim_key": "9c601eec55add022",
+  "page": 86,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p86-1", "page": 86, "kind": "misplaced-content", "severity": "structural", "section": "8.2 Locales", "pdf_says": "LC_ALL    Locale-categories LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, and LC_TIME, and any other categories included in the locale.", "markdown_says": "| LC_ALL | Locale-categories LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, |\n\nLC_NUMERIC, and LC_TIME, and any other categories included in the locale.", "detail": "The LC_ALL row's description is split: its second line is detached from the table and appears as a standalone paragraph after it, so the table's LC_ALL entry omits LC_NUMERIC, LC_TIME and 'any other categories included in the locale'.", "why_it_matters": "A reader of the table sees LC_ALL covering only four categories; the full set it controls (including LC_NUMERIC, LC_TIME and any other categories) is outside the table."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (2002 p.64, PDF p.86, §2002:8.2) shows the LC_ALL description wrapping onto a second line: 'Locale-categories LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, / LC_NUMERIC, and LC_TIME, and any other categories included in the locale.' The markdown (page-86.md lines 15-17) carries every word of it: the first line in the LC_ALL table row, the wrapped second line immediately after the table, as a sentence fragment that begins in lower case mid-list and continues the row. No text is missing, altered or moved elsewhere; the only difference is that the table conversion did not join a wrapped cell line back into its row. That is a line-wrapping/table-formatting artifact on an adjacent line, which does not change the meaning of the clause, so by the verification rules it is not a content discrepancy.",
+    "corrected_description": ""
+  }
+}

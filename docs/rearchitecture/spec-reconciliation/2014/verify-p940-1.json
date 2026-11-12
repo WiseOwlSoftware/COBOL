@@ -1,0 +1,13 @@
+{
+  "claim_id": "p940-1",
+  "claim_key": "64ffd5ab64f451a9",
+  "page": 940,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p940-1", "page": 940, "kind": "misplaced-content", "severity": "structural", "pdf_says": "(indented) SET statement, locale 574 / LEADING phrase / (indented) INSPECT statement 515 / (indented) SIGN clause 388 / LEAP-SECOND directive 61", "markdown_says": "   SET statement, locale 574 LEADING phrase\n\n   INSPECT statement 515\\\n   SIGN clause 388\\\n   LEAP-SECOND directive 61\\", "why_it_matters": "The continued sub-entry of LC_TIME and the headword LEADING phrase are merged onto one line, and the whole right column loses its sub-entry indentation, so sub-entries (e.g. 'INSPECT statement 515', 'Qualified 96') are indistinguishable from headwords. Informative index only."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 940 (folio 916), right column, top: 'SET statement, locale 574' is indented as LC_TIME's continued sub-entry (LC_TIME 74, 435 ends the left column), then the headword 'LEADING phrase' sits flush left with the indented sub-entries 'INSPECT statement 515' and 'SIGN clause 388', then the headword 'LEAP-SECOND directive 61'. The markdown at page-940.md has '   SET statement, locale 574 LEADING phrase' on one line, then a blank line, and the rest of the right column (from 'INSPECT statement 515' to 'Alphanumeric 84') all carries the same 3-space indent with no &emsp; sub-entry markers. The left column does keep its &emsp; markers. So the two lines really are merged and the headword/sub-entry hierarchy really is lost in the right column. For example, 'Qualified 96' under LINAGE-COUNTER and LINE-COUNTER, and 'Data 133'/'Object 200' under 'Life cycle', can no longer be told apart from headwords. This is a transcription defect in the informative index, not a wrapping or formatting artifact. It changes which entry a locator belongs to, but it has no normative effect.",
+    "corrected_description": ""
+  }
+}

@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"For an indexed file, the collating sequence associated with the native character set is assumed.\"; 2023: \"If no COLLATING SEQUENCE clause is specified: a) ...native alphanumeric collating sequence; b) ...native national collating sequence\". 1985 always assumes the native sequence for indexed keys. 2023 makes it only the default, which a COLLATING SEQUENCE clause can override, and adds a native national sequence for national keys.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-12.4.5.3-6": "a728ff4e6f3c",
+   "GR-12.4.5.5.3-2": "762981f4f2a5"
+  }
  }
 }

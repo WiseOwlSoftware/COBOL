@@ -20,6 +20,16 @@
   ],
   "reason": "1985: by reference the called item 'occupies the same storage area' and 'must describe the same number of character positions'. Storage sharing is kept (§2023:14.2.3 GR8 'operates as if the formal parameter occupies the same storage area as the argument'; §2023:8.6.7 GR3 'establishes a common data item'). The length rule differs: §2023:14.8.2.3.2 keeps 'the formal parameter shall be of the same length' only for elementary items in a plain CALL, but for an alphanumeric group §2023:14.8.2.2 SR1 allows 'the same number or a smaller number of bytes' and requires the other operand to be a group or alphanumeric item (a group argument with a numeric formal of equal size, legal in 1985, now violates). §2023:13.7.3 SR3 and §2023:14.9.4.3 SR25 apply these rules, and §2023:14.9.4.4 GR3d sets EC-PROGRAM-ARG-MISMATCH on a detected violation.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "GR-14.2.3-8": "7a8319c49c31",
+   "GR-8.6.7-3": "8681377c6603",
+   "SR-14.8.2.2-1": "8b2a79a815ab",
+   "GR-14.8.2.3.2-L2.1": "f85b0fa7919a",
+   "GR-14.8.2.3.2-L2.2": "5c5d8ba0148e",
+   "SR-13.7.3-3": "2f4a35f5a87c",
+   "SR-14.9.4.3-25": "541649622300",
+   "GR-14.9.4.4-3": "04fde73bf906"
+  }
  }
 }

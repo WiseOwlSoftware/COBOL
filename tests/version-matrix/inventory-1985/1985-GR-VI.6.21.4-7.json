@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.28.4 GR5 keeps the transfer to the first statement of the specified set (except as General rules 9, 10 and 11 indicate, the renumbered 1985 10b-d) and the return: 'If procedure-name-2 is specified, the return mechanism is after the last statement of procedure-name-2' (for a section, its last paragraph's last statement, as 1985 a)-d) spell out). 1985 e) follows from §2023:14.9.28.4 GR4: 'For an inline PERFORM statement, the specified set of statements consists of all statements contained within the PERFORM statement'. 14.6.3 GR1 and GR9/10/13 carry other 1985 rules (IV.4.4.2, GR10).",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "adjudicate-712-r2/slice-05",
+  "digests": {
+   "GR-14.9.28.4-5": "8155cd5dc457",
+   "GR-14.9.28.4-4": "a8c49df0ee59"
+  }
  }
 }

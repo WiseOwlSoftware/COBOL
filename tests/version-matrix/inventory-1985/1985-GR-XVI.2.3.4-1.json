@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.2.3.4-1",
  "rule-digest": "c61e6bddf9b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#segmentLimitClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSegmentLimitClause; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitFields; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitGoTo",
  "test-ref": "conformance:cases/XVI.2.3@1985-SEGMENT-LIMIT-CLAUSE/1985-GR-XVI_2_3_4-1",
+ "notes": "§1985:XVI.2.3.4 GR1: with SEGMENT-LIMIT, \"only those segments having segment-numbers from 0 up to, but not including, the segment-number designated as the segment-limit, are considered as permanent segments\". A permanent segment is never overlaid and the fixed portion is \"logically treated as if it were always in memory\" (§1985:XVI.1.4.2), so the observable duty is that segments 0 through limit-1 keep their last-used state. The clause parses (segmentLimitClause, IntegerOperandPass.Slots Nonzero), is admitted at 85 (VisitSegmentLimitClause) and every segment is resident (AlterSwitchEmitter fields persist). The witness ALTERs in segment 20 under limit 10 and prints A, B. Probes: r4a (limit 10: segment 9 permanent and 20 overlayable, each re-entered after independent segment 60) S20 FIRST/LATER, S9 FIRST/LATER; r4b (limit 1, boundary: 0 permanent, 1 and 49 overlayable, segment 99 between) LATER each time; class b r2i limit 0 COBOL2386, r2c twice COBOL2423, r2k/r2l/r2u COBOL5506; class c r2f --std 2002 COBOL0902; class f r2v 18-digit accepted. Limit 50 is accepted: PB5084 (1985-SR-XVI.2.3.3-1).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

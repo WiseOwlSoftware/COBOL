@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"RERUN [ON file-name-1] EVERY ... [ MULTIPLE FILE TAPE CONTAINS { file-name-5 [ POSITION integer-3 ] } … ]\"; 2023: \"I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ]\". The I-O-CONTROL paragraph and SAME [RECORD] AREA remain, but the 2023 format drops the RERUN and MULTIPLE FILE TAPE clauses, so programs using them are no longer accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-12.4.6.2": "bea3f5dbe52a",
+   "FMT-12.4.6.4.2": "ef1242cdad87"
+  }
  }
 }

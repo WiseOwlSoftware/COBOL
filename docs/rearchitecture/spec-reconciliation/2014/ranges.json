@@ -1,0 +1,2039 @@
+{
+ "edition": 2014,
+ "about": "The page-range plan of the reconciliation of the 2014 transcription against its rendered PDF pages (kb/Work PB5255), generated and checked by scripts/spec/reconcile_ranges.py; never edit it by hand. One run is one spec-reconcile Workflow call whose `pages` is the run's.",
+ "pages": 952,
+ "batch_pages": 12,
+ "run_batches": 6,
+ "work_rule": "a batch's work is its page count plus one per general format drawn on it",
+ "figure_pages": [
+  63,
+  67,
+  70,
+  72,
+  74,
+  75,
+  76,
+  79,
+  81,
+  83,
+  84,
+  85,
+  86,
+  87,
+  88,
+  89,
+  90,
+  108,
+  110,
+  111,
+  112,
+  113,
+  114,
+  118,
+  119,
+  120,
+  121,
+  122,
+  123,
+  125,
+  127,
+  129,
+  130,
+  131,
+  132,
+  133,
+  134,
+  135,
+  136,
+  137,
+  138,
+  162,
+  176,
+  178,
+  182,
+  183,
+  185,
+  186,
+  187,
+  188,
+  189,
+  228,
+  229,
+  230,
+  231,
+  233,
+  234,
+  235,
+  236,
+  237,
+  238,
+  239,
+  241,
+  242,
+  243,
+  244,
+  245,
+  246,
+  247,
+  249,
+  250,
+  251,
+  252,
+  255,
+  256,
+  266,
+  271,
+  272,
+  273,
+  274,
+  278,
+  279,
+  280,
+  282,
+  283,
+  285,
+  286,
+  287,
+  288,
+  289,
+  290,
+  291,
+  293,
+  294,
+  295,
+  296,
+  298,
+  299,
+  300,
+  301,
+  303,
+  305,
+  306,
+  309,
+  310,
+  312,
+  313,
+  317,
+  318,
+  319,
+  321,
+  322,
+  323,
+  324,
+  325,
+  326,
+  327,
+  328,
+  329,
+  330,
+  331,
+  332,
+  333,
+  335,
+  339,
+  340,
+  342,
+  343,
+  344,
+  345,
+  346,
+  347,
+  348,
+  349,
+  351,
+  352,
+  353,
+  354,
+  355,
+  356,
+  357,
+  358,
+  359,
+  360,
+  362,
+  367,
+  368,
+  370,
+  376,
+  378,
+  393,
+  395,
+  398,
+  401,
+  403,
+  405,
+  406,
+  407,
+  408,
+  410,
+  411,
+  412,
+  413,
+  415,
+  419,
+  421,
+  422,
+  427,
+  428,
+  429,
+  430,
+  436,
+  437,
+  439,
+  446,
+  448,
+  449,
+  471,
+  477,
+  484,
+  490,
+  493,
+  495,
+  496,
+  501,
+  503,
+  506,
+  508,
+  509,
+  511,
+  514,
+  515,
+  517,
+  522,
+  526,
+  527,
+  529,
+  530,
+  532,
+  534,
+  538,
+  539,
+  540,
+  545,
+  549,
+  554,
+  561,
+  563,
+  568,
+  569,
+  574,
+  575,
+  582,
+  584,
+  585,
+  587,
+  592,
+  597,
+  598,
+  599,
+  609,
+  616,
+  620,
+  621,
+  624,
+  627,
+  628,
+  629,
+  630,
+  634,
+  639,
+  643,
+  666,
+  667,
+  668,
+  669,
+  670,
+  671,
+  672,
+  673,
+  674,
+  675,
+  676,
+  677,
+  678,
+  679,
+  680,
+  681,
+  682,
+  683,
+  684,
+  685,
+  686,
+  687,
+  688,
+  689,
+  690,
+  691,
+  692,
+  693,
+  694,
+  695,
+  696,
+  697,
+  698,
+  700,
+  701,
+  702,
+  703,
+  704,
+  705,
+  706,
+  708,
+  709,
+  710,
+  711,
+  712,
+  713,
+  714,
+  715,
+  717,
+  718,
+  719,
+  720,
+  721,
+  722,
+  723,
+  724,
+  726,
+  729,
+  730,
+  731,
+  732,
+  733,
+  734,
+  735,
+  736,
+  737,
+  738,
+  739,
+  740,
+  741,
+  742,
+  743,
+  744,
+  745,
+  746,
+  747,
+  748,
+  749,
+  750,
+  751,
+  752,
+  753,
+  754,
+  755,
+  756,
+  757,
+  758
+ ],
+ "general_formats": 465,
+ "ambiguous_pages": [
+  1,
+  2,
+  25,
+  54,
+  55,
+  60,
+  63,
+  64,
+  99,
+  136,
+  137,
+  188,
+  194,
+  195,
+  198,
+  204,
+  256,
+  266,
+  294,
+  299,
+  300,
+  301,
+  313,
+  486,
+  504,
+  505,
+  537,
+  677,
+  716,
+  724,
+  726,
+  729,
+  757,
+  790,
+  791,
+  810,
+  817,
+  818,
+  826,
+  836,
+  837,
+  866,
+  867,
+  868,
+  880,
+  890,
+  891,
+  892,
+  893,
+  897,
+  898,
+  899,
+  900,
+  915,
+  952
+ ],
+ "ambiguous_source": "transcribe_pdf.py status: the text-layer conversion run's local.json, pages whose record carries `ambiguous`",
+ "flagged_clauses": {
+  "11.2.1": [
+   234
+  ],
+  "13.16.1": [
+   312,
+   313
+  ]
+ },
+ "summary": {
+  "batches": 80,
+  "flagged": 31,
+  "figure": 54,
+  "flagged_or_figure": 67
+ },
+ "halves": {
+  "account1": {
+   "work": 709,
+   "batches": 38,
+   "flagged_batches": 15,
+   "figure_batches": 26,
+   "runs": [
+    {
+     "run": "account1-r01",
+     "batches": [
+      1,
+      5,
+      9,
+      16,
+      20,
+      25
+     ],
+     "pages": "1-12,49-60,97-108,181-192,229-240,289-300",
+     "page_count": 72,
+     "work": 113
+    },
+    {
+     "run": "account1-r02",
+     "batches": [
+      27,
+      42,
+      45,
+      60,
+      64,
+      68
+     ],
+     "pages": "313-324,493-504,529-540,709-720,757-768,805-816",
+     "page_count": 72,
+     "work": 120
+    },
+    {
+     "run": "account1-r03",
+     "batches": [
+      70,
+      74,
+      77,
+      8,
+      11,
+      15
+     ],
+     "pages": "85-96,121-132,169-180,829-840,877-888,913-924",
+     "page_count": 72,
+     "work": 101
+    },
+    {
+     "run": "account1-r04",
+     "batches": [
+      21,
+      28,
+      30,
+      32,
+      34,
+      37
+     ],
+     "pages": "241-252,325-336,349-360,373-384,397-408,433-444",
+     "page_count": 72,
+     "work": 131
+    },
+    {
+     "run": "account1-r05",
+     "batches": [
+      40,
+      44,
+      48,
+      50,
+      53,
+      56
+     ],
+     "pages": "469-480,517-528,565-576,589-600,625-636,661-672",
+     "page_count": 72,
+     "work": 126
+    },
+    {
+     "run": "account1-r06",
+     "batches": [
+      59,
+      63,
+      13,
+      39,
+      65,
+      71
+     ],
+     "pages": "145-156,457-468,697-708,745-756,769-780,841-852",
+     "page_count": 72,
+     "work": 94
+    },
+    {
+     "run": "account1-r07",
+     "batches": [
+      76,
+      79
+     ],
+     "pages": "901-912,937-948",
+     "page_count": 24,
+     "work": 24
+    }
+   ]
+  },
+  "account2": {
+   "work": 708,
+   "batches": 42,
+   "flagged_batches": 16,
+   "figure_batches": 28,
+   "runs": [
+    {
+     "run": "account2-r01",
+     "batches": [
+      3,
+      6,
+      12,
+      17,
+      22,
+      23
+     ],
+     "pages": "25-36,61-72,133-144,193-204,253-276",
+     "page_count": 72,
+     "work": 104
+    },
+    {
+     "run": "account2-r02",
+     "batches": [
+      26,
+      41,
+      43,
+      57,
+      61,
+      66
+     ],
+     "pages": "301-312,481-492,505-516,673-684,721-732,781-792",
+     "page_count": 72,
+     "work": 117
+    },
+    {
+     "run": "account2-r03",
+     "batches": [
+      69,
+      73,
+      75,
+      80,
+      7,
+      10
+     ],
+     "pages": "73-84,109-120,817-828,865-876,889-900,949-952",
+     "page_count": 64,
+     "work": 95
+    },
+    {
+     "run": "account2-r04",
+     "batches": [
+      14,
+      19,
+      24,
+      29,
+      31,
+      33
+     ],
+     "pages": "157-168,217-228,277-288,337-348,361-372,385-396",
+     "page_count": 72,
+     "work": 109
+    },
+    {
+     "run": "account2-r05",
+     "batches": [
+      35,
+      36,
+      38,
+      46,
+      47,
+      49
+     ],
+     "pages": "409-432,445-456,541-564,577-588",
+     "page_count": 72,
+     "work": 104
+    },
+    {
+     "run": "account2-r06",
+     "batches": [
+      51,
+      52,
+      54,
+      58,
+      62,
+      2
+     ],
+     "pages": "13-24,601-624,637-648,685-696,733-744",
+     "page_count": 72,
+     "work": 107
+    },
+    {
+     "run": "account2-r07",
+     "batches": [
+      4,
+      18,
+      55,
+      67,
+      72,
+      78
+     ],
+     "pages": "37-48,205-216,649-660,793-804,853-864,925-936",
+     "page_count": 72,
+     "work": 72
+    }
+   ]
+  }
+ },
+ "batches": [
+  {
+   "batch": 1,
+   "pages": "1-12",
+   "figure_pages": [],
+   "ambiguous": [
+    1,
+    2
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 2,
+   "pages": "13-24",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account2"
+  },
+  {
+   "batch": 3,
+   "pages": "25-36",
+   "figure_pages": [],
+   "ambiguous": [
+    25
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 4,
+   "pages": "37-48",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account2"
+  },
+  {
+   "batch": 5,
+   "pages": "49-60",
+   "figure_pages": [],
+   "ambiguous": [
+    54,
+    55,
+    60
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 6,
+   "pages": "61-72",
+   "figure_pages": [
+    63,
+    67,
+    70,
+    72
+   ],
+   "ambiguous": [
+    63,
+    64
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 17,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 7,
+   "pages": "73-84",
+   "figure_pages": [
+    74,
+    75,
+    76,
+    79,
+    81,
+    83,
+    84
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 20,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 8,
+   "pages": "85-96",
+   "figure_pages": [
+    85,
+    86,
+    87,
+    88,
+    89,
+    90
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 18,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 9,
+   "pages": "97-108",
+   "figure_pages": [
+    108
+   ],
+   "ambiguous": [
+    99
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 14,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 10,
+   "pages": "109-120",
+   "figure_pages": [
+    110,
+    111,
+    112,
+    113,
+    114,
+    118,
+    119,
+    120
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 35,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 11,
+   "pages": "121-132",
+   "figure_pages": [
+    121,
+    122,
+    123,
+    125,
+    127,
+    129,
+    130,
+    131,
+    132
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 31,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 12,
+   "pages": "133-144",
+   "figure_pages": [
+    133,
+    134,
+    135,
+    136,
+    137,
+    138
+   ],
+   "ambiguous": [
+    136,
+    137
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 21,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 13,
+   "pages": "145-156",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account1"
+  },
+  {
+   "batch": 14,
+   "pages": "157-168",
+   "figure_pages": [
+    162
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 14,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 15,
+   "pages": "169-180",
+   "figure_pages": [
+    176,
+    178
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 16,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 16,
+   "pages": "181-192",
+   "figure_pages": [
+    182,
+    183,
+    185,
+    186,
+    187,
+    188,
+    189
+   ],
+   "ambiguous": [
+    188
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 22,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 17,
+   "pages": "193-204",
+   "figure_pages": [],
+   "ambiguous": [
+    194,
+    195,
+    198,
+    204
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 18,
+   "pages": "205-216",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account2"
+  },
+  {
+   "batch": 19,
+   "pages": "217-228",
+   "figure_pages": [
+    228
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 15,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 20,
+   "pages": "229-240",
+   "figure_pages": [
+    229,
+    230,
+    231,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    239
+   ],
+   "ambiguous": [],
+   "clauses": [
+    "11.2.1"
+   ],
+   "flagged": true,
+   "figure": true,
+   "work": 27,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 21,
+   "pages": "241-252",
+   "figure_pages": [
+    241,
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    249,
+    250,
+    251,
+    252
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 30,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 22,
+   "pages": "253-264",
+   "figure_pages": [
+    255,
+    256
+   ],
+   "ambiguous": [
+    256
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 17,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 23,
+   "pages": "265-276",
+   "figure_pages": [
+    266,
+    271,
+    272,
+    273,
+    274
+   ],
+   "ambiguous": [
+    266
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 25,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 24,
+   "pages": "277-288",
+   "figure_pages": [
+    278,
+    279,
+    280,
+    282,
+    283,
+    285,
+    286,
+    287,
+    288
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 22,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 25,
+   "pages": "289-300",
+   "figure_pages": [
+    289,
+    290,
+    291,
+    293,
+    294,
+    295,
+    296,
+    298,
+    299,
+    300
+   ],
+   "ambiguous": [
+    294,
+    299,
+    300
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 26,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 26,
+   "pages": "301-312",
+   "figure_pages": [
+    301,
+    303,
+    305,
+    306,
+    309,
+    310,
+    312
+   ],
+   "ambiguous": [
+    301
+   ],
+   "clauses": [
+    "13.16.1"
+   ],
+   "flagged": true,
+   "figure": true,
+   "work": 19,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 27,
+   "pages": "313-324",
+   "figure_pages": [
+    313,
+    317,
+    318,
+    319,
+    321,
+    322,
+    323,
+    324
+   ],
+   "ambiguous": [
+    313
+   ],
+   "clauses": [
+    "13.16.1"
+   ],
+   "flagged": true,
+   "figure": true,
+   "work": 25,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 28,
+   "pages": "325-336",
+   "figure_pages": [
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    331,
+    332,
+    333,
+    335
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 23,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 29,
+   "pages": "337-348",
+   "figure_pages": [
+    339,
+    340,
+    342,
+    343,
+    344,
+    345,
+    346,
+    347,
+    348
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 23,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 30,
+   "pages": "349-360",
+   "figure_pages": [
+    349,
+    351,
+    352,
+    353,
+    354,
+    355,
+    356,
+    357,
+    358,
+    359,
+    360
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 23,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 31,
+   "pages": "361-372",
+   "figure_pages": [
+    362,
+    367,
+    368,
+    370
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 20,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 32,
+   "pages": "373-384",
+   "figure_pages": [
+    376,
+    378
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 15,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 33,
+   "pages": "385-396",
+   "figure_pages": [
+    393,
+    395
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 15,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 34,
+   "pages": "397-408",
+   "figure_pages": [
+    398,
+    401,
+    403,
+    405,
+    406,
+    407,
+    408
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 21,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 35,
+   "pages": "409-420",
+   "figure_pages": [
+    410,
+    411,
+    412,
+    413,
+    415,
+    419
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 18,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 36,
+   "pages": "421-432",
+   "figure_pages": [
+    421,
+    422,
+    427,
+    428,
+    429,
+    430
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 20,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 37,
+   "pages": "433-444",
+   "figure_pages": [
+    436,
+    437,
+    439
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 19,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 38,
+   "pages": "445-456",
+   "figure_pages": [
+    446,
+    448,
+    449
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 18,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 39,
+   "pages": "457-468",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account1"
+  },
+  {
+   "batch": 40,
+   "pages": "469-480",
+   "figure_pages": [
+    471,
+    477
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 14,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 41,
+   "pages": "481-492",
+   "figure_pages": [
+    484,
+    490
+   ],
+   "ambiguous": [
+    486
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 18,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 42,
+   "pages": "493-504",
+   "figure_pages": [
+    493,
+    495,
+    496,
+    501,
+    503
+   ],
+   "ambiguous": [
+    504
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 18,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 43,
+   "pages": "505-516",
+   "figure_pages": [
+    506,
+    508,
+    509,
+    511,
+    514,
+    515
+   ],
+   "ambiguous": [
+    505
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 23,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 44,
+   "pages": "517-528",
+   "figure_pages": [
+    517,
+    522,
+    526,
+    527
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 24,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 45,
+   "pages": "529-540",
+   "figure_pages": [
+    529,
+    530,
+    532,
+    534,
+    538,
+    539,
+    540
+   ],
+   "ambiguous": [
+    537
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 28,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 46,
+   "pages": "541-552",
+   "figure_pages": [
+    545,
+    549
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 14,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 47,
+   "pages": "553-564",
+   "figure_pages": [
+    554,
+    561,
+    563
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 18,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 48,
+   "pages": "565-576",
+   "figure_pages": [
+    568,
+    569,
+    574,
+    575
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 20,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 49,
+   "pages": "577-588",
+   "figure_pages": [
+    582,
+    584,
+    585,
+    587
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 16,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 50,
+   "pages": "589-600",
+   "figure_pages": [
+    592,
+    597,
+    598,
+    599
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 29,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 51,
+   "pages": "601-612",
+   "figure_pages": [
+    609
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 14,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 52,
+   "pages": "613-624",
+   "figure_pages": [
+    616,
+    620,
+    621,
+    624
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 18,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 53,
+   "pages": "625-636",
+   "figure_pages": [
+    627,
+    628,
+    629,
+    630,
+    634
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 20,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 54,
+   "pages": "637-648",
+   "figure_pages": [
+    639,
+    643
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 15,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 55,
+   "pages": "649-660",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account2"
+  },
+  {
+   "batch": 56,
+   "pages": "661-672",
+   "figure_pages": [
+    666,
+    667,
+    668,
+    669,
+    670,
+    671,
+    672
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 19,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 57,
+   "pages": "673-684",
+   "figure_pages": [
+    673,
+    674,
+    675,
+    676,
+    677,
+    678,
+    679,
+    680,
+    681,
+    682,
+    683,
+    684
+   ],
+   "ambiguous": [
+    677
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 24,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 58,
+   "pages": "685-696",
+   "figure_pages": [
+    685,
+    686,
+    687,
+    688,
+    689,
+    690,
+    691,
+    692,
+    693,
+    694,
+    695,
+    696
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 24,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 59,
+   "pages": "697-708",
+   "figure_pages": [
+    697,
+    698,
+    700,
+    701,
+    702,
+    703,
+    704,
+    705,
+    706,
+    708
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 22,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 60,
+   "pages": "709-720",
+   "figure_pages": [
+    709,
+    710,
+    711,
+    712,
+    713,
+    714,
+    715,
+    717,
+    718,
+    719,
+    720
+   ],
+   "ambiguous": [
+    716
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 23,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 61,
+   "pages": "721-732",
+   "figure_pages": [
+    721,
+    722,
+    723,
+    724,
+    726,
+    729,
+    730,
+    731,
+    732
+   ],
+   "ambiguous": [
+    724,
+    726,
+    729
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 21,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 62,
+   "pages": "733-744",
+   "figure_pages": [
+    733,
+    734,
+    735,
+    736,
+    737,
+    738,
+    739,
+    740,
+    741,
+    742,
+    743,
+    744
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 24,
+   "priority": 1,
+   "half": "account2"
+  },
+  {
+   "batch": 63,
+   "pages": "745-756",
+   "figure_pages": [
+    745,
+    746,
+    747,
+    748,
+    749,
+    750,
+    751,
+    752,
+    753,
+    754,
+    755,
+    756
+   ],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": true,
+   "work": 24,
+   "priority": 1,
+   "half": "account1"
+  },
+  {
+   "batch": 64,
+   "pages": "757-768",
+   "figure_pages": [
+    757,
+    758
+   ],
+   "ambiguous": [
+    757
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": true,
+   "work": 14,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 65,
+   "pages": "769-780",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account1"
+  },
+  {
+   "batch": 66,
+   "pages": "781-792",
+   "figure_pages": [],
+   "ambiguous": [
+    790,
+    791
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 67,
+   "pages": "793-804",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account2"
+  },
+  {
+   "batch": 68,
+   "pages": "805-816",
+   "figure_pages": [],
+   "ambiguous": [
+    810
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 69,
+   "pages": "817-828",
+   "figure_pages": [],
+   "ambiguous": [
+    817,
+    818,
+    826
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 70,
+   "pages": "829-840",
+   "figure_pages": [],
+   "ambiguous": [
+    836,
+    837
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 71,
+   "pages": "841-852",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account1"
+  },
+  {
+   "batch": 72,
+   "pages": "853-864",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account2"
+  },
+  {
+   "batch": 73,
+   "pages": "865-876",
+   "figure_pages": [],
+   "ambiguous": [
+    866,
+    867,
+    868
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 74,
+   "pages": "877-888",
+   "figure_pages": [],
+   "ambiguous": [
+    880
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 75,
+   "pages": "889-900",
+   "figure_pages": [],
+   "ambiguous": [
+    890,
+    891,
+    892,
+    893,
+    897,
+    898,
+    899,
+    900
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account2"
+  },
+  {
+   "batch": 76,
+   "pages": "901-912",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account1"
+  },
+  {
+   "batch": 77,
+   "pages": "913-924",
+   "figure_pages": [],
+   "ambiguous": [
+    915
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 12,
+   "priority": 0,
+   "half": "account1"
+  },
+  {
+   "batch": 78,
+   "pages": "925-936",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account2"
+  },
+  {
+   "batch": 79,
+   "pages": "937-948",
+   "figure_pages": [],
+   "ambiguous": [],
+   "clauses": [],
+   "flagged": false,
+   "figure": false,
+   "work": 12,
+   "priority": 2,
+   "half": "account1"
+  },
+  {
+   "batch": 80,
+   "pages": "949-952",
+   "figure_pages": [],
+   "ambiguous": [
+    952
+   ],
+   "clauses": [],
+   "flagged": true,
+   "figure": false,
+   "work": 4,
+   "priority": 0,
+   "half": "account2"
+  }
+ ]
+}

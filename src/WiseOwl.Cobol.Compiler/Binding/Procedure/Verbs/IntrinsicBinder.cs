@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -910,8 +911,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // provably alphabetic keeps r3's "otherwise" arm (alphanumeric).
         bool alphabetic = resolved.Name == "CONCAT" && args.Count > 0 && args.All(IsAlphabeticArg);
 
+        // The four 1989 integer-date conversions take the year's upper bound from the edition (kb/Work PB5130): the 1989
+        // module bounds it below only (§1989:A.2.16.3 AR1), 2002 and later at 9999 (§2023:15.5.2).
+        bool integerDateUnbounded = resolved.RuntimeMethod is "DateOfInteger" or "DayOfInteger" or "IntegerOfDate" or "IntegerOfDay"
+            && !DialectBehaviors.IsActive(DialectBehavior.IntegerDateFormBounded, ctx.Edition.Edition.Year);
+
         return new BoundIntrinsicCall(resolved, args, category, collate)
-            { CollateNat = collateNat, ResultIsAlphabetic = alphabetic };
+            { CollateNat = collateNat, ResultIsAlphabetic = alphabetic, IntegerDateFormUnbounded = integerDateUnbounded };
     }
 
     /// <summary>Is this argument provably CLASS ALPHABETIC (§2023:8.5.2.1 Table 2 — category alphabetic, the PIC A
@@ -1908,21 +1914,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // national — is the schema row's CharacterCategory predicate, screened by the CheckArgumentClasses call
         // above with NUMVAL and NUMVAL-F's §2023:15.67.3 / §2023:15.69.3 r1 (kb/Work PB658: this binder carried the only
         // copy, so the other two category-worded functions never screened the edited categories).
-        // §2023:15.68.3 r2's CONTENT halves for a LITERAL argument-2 (the same-class half rides the schema row;
+        // §2023:15.68.3 AR2's CONTENT halves for a LITERAL argument-2 (the same-class half rides the schema row;
         // a data item's content is the runtime guard's): at least one non-space character; none of the digits
         // 0-9 or the characters * + - , . ; no CR/DB pair in any case. The characters are named OUTRIGHT —
-        // the comma/period ban does not flex with DECIMAL-POINT IS COMMA.
-        if (operands.Count == 2 && operands[1] is BoundStringLiteral curLit)
-        {
-            string cur = curLit.Value.Trim();
-            if (cur.Length == 0
-                || cur.Any(c => char.IsAsciiDigit(c) || c is '*' or '+' or '-' or ',' or '.')
-                || WiseOwl.Cobol.Runtime.CobolNames.Contains(cur, "CR")
-                || WiseOwl.Cobol.Runtime.CobolNames.Contains(cur, "DB"))
-                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name} argument-2 shall contain at least one "
-                    + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
-                    + "the letter pair CR/DB in any case (ISO §2023:15.68.3 rule 2)");
-        }
+        // the comma/period ban does not flex with DECIMAL-POINT IS COMMA. ONE copy of the rule, the runtime's
+        // (CobolIntrinsics.CurrencyStringViolatesContentRules), asked here of the literal and there of a data item.
+        // ⛔ A 2002 RULE (kb/Work PB5161): the 1989 module asks of argument-2 only its class (§1989:A.2.30.3 AR4) and makes
+        // cs "the string of one or more characters specified by argument-2" (AR1), so below 2002 neither screen runs and
+        // a currency string such as "Fr." or "CRC" is scanned as written.
+        bool contentRules = DialectBehaviors.IsActive(DialectBehavior.NumvalCCurrencyContentRules, ctx.Edition.Edition.Year);
+        if (contentRules && operands.Count == 2 && operands[1] is BoundStringLiteral curLit
+            && CobolIntrinsics.CurrencyStringViolatesContentRules(curLit.Value))
+            ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name} argument-2 shall contain at least one "
+                + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
+                + "the letter pair CR/DB in any case (ISO §2023:15.68.3 rule 2)");
         if (operands.Count == 1 && !localeWritten)
         {
             // §2023:15.68.3 r3: "If NEITHER argument-2 NOR THE LOCALE KEYWORD is specified, there shall be only one
@@ -1942,7 +1947,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "rule 3) — name the currency string as argument-2");
         }
         return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric)
-        { Anycase = anycase, Locale = locale, LocaleWritten = localeWritten };
+        { Anycase = anycase, Locale = locale, LocaleWritten = localeWritten, CurrencyContentUnrestricted = !contentRules };
     }
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
@@ -2010,8 +2015,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // A "shall be a data item" violation is about the operand's SHAPE (a literal or an expression written where
             // an item is required), which no --permissive coercion relaxes: it stays the error it always was
             // (§2023:15.48.3 r3, kb/Work PB58 / PB4507); IntrinsicArgumentRules.IsCoercible says which predicates are.
+            // A predicate is asked only at an edition whose rule states it (ArgPredicate.Since, kb/Work PB5162).
             foreach (var p in rule.Predicates)
-                if (IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
+                if (p.AppliesAt(ctx.Edition.Edition.Year)
+                    && IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
                     Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: IntrinsicArgumentRules.IsCoercible(p, rule, args[i]));
             if (IntrinsicArgumentRules.Violation(rule, args[i]) is not { } why) continue;
             ReportClass($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})", args[i]);

@@ -14,6 +14,13 @@
   ],
   "bridge": true,
   "reason": "1985 GR3: every clause of the report FD except REPORT is as presented in Sequential I-O; the 1985 report FD (§1985:XIII.3.2.2) lists BLOCK, RECORD, LABEL RECORDS, VALUE OF and CODE-SET. 2023 §2023:13.4.5.2 'Format 3 (report)' (§2023:13.4.5.3 SR8 'Format 3 is the file description entry for a report file') shares only BLOCK CONTAINS (§2023:13.18.10.4 GR1), the record clause (§2023:13.18.43.4 GR1) and CODE-SET (§2023:13.18.13.4 GR1) with the sequential FD. LABEL RECORDS and VALUE OF, which this rule gave their sequential meaning in a report FD, are gone: a 1985 report FD writing them is refused. A case removed, so CHANGED.",
-  "source": "adjudicate-712-r2/slice-11"
+  "source": "adjudicate-712-r2/slice-11",
+  "digests": {
+   "FMT-13.4.5.2": "b75b09e44e69",
+   "SR-13.4.5.3-8": "f62781c2bcd6",
+   "GR-13.18.10.4-1": "d48f15b329e2",
+   "GR-13.18.43.4-1": "61cca5b6d730",
+   "GR-13.18.13.4-1": "72622113247d"
+  }
  }
 }

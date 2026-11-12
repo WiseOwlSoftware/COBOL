@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"are placed in the source program according to the rules for reference format. (See page IV-41, Reference Format.)\"; 2023: \"shall be in logical free-form reference format. Text-words inserted ... are placed in accordance with the rules of free-form reference format\". The extra-space rule is the same; the assumed space at line end is now NOTE 2. But inserted words now follow free-form rules, not the 1985 (fixed) reference format with its areas.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-7.2.4.4-10": "753e24cf3246"
+  }
  }
 }

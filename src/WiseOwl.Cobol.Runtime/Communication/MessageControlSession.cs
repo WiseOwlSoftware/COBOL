@@ -20,6 +20,9 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
     private const string Ok = "00", Disabled = "10", AlreadySet = "15", Unknown = "20", UnknownSource = "21", BadCount = "30",
         BadKey = "40", TextTooLong = "50", NoText = "60", CapacityExceeded = "65", NoPortion = "70", Combination = "80";
 
+    /// <summary>The error key values of Table 2 (§1985:XIV.2.2.6) this implementation reports.</summary>
+    private const char NoErrorKey = '0', UnknownKey = '1', DisabledKey = '2', NoPartialKey = '4', AlreadyKey = '5', FullKey = '6';
+
     /// <summary>The polling interval of a RECEIVE that waits for data (A.2.5.3 GR5 b).</summary>
     private static readonly TimeSpan WaitInterval = TimeSpan.FromMilliseconds(100);
 
@@ -45,11 +48,15 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         return (area.Image, status);
     }
 
+    /// <summary>§1985:XIV.3.1.4 GR1 counts "the number of complete messages that exist in the queue structure", and a message this run unit has begun to
+    /// receive still exists in it until its last portion is returned (§1985:VI.6.24.4 GR3: STOP RUN removes "any message partially received by that run
+    /// unit" from the queue). The store lets go of a message at its first portion, so the run unit adds the ones it holds (docs/CONFORMANCE.md §3.3).</summary>
     internal string AcceptMessageCount(string image) =>
-        Statement(CommunicationFormat.Input, image, (area, _, state) =>
+        Statement(CommunicationFormat.Input, image, (area, dialogue, state) =>
         {
-            if (state.FindQueue(area.QueuePath()) is not { } node) return Unknown;
-            area.SetMessageCount(node.CompleteMessages);
+            string[] path = area.QueuePath();
+            if (state.FindQueue(path) is not { } node) return Unknown;
+            area.SetMessageCount((long)node.CompleteMessages + dialogue.PartlyReceivedFrom(path));
             return Ok;
         }).Area;
 
@@ -62,10 +69,12 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             {
                 case CommunicationPath.Input:
                     return state.FindQueue(area.QueuePath()) is { } queue
-                        ? SetOne(queue, key, enable)
+                        ? SetPaths(queue, key, enable, () => state.SetQueuePaths(queue, enable))
                         : Unknown;
                 case CommunicationPath.InputTerminal:
-                    return state.FindSource(area.SourceName(format)) is { } source ? SetOne(source, key, enable) : UnknownSource;
+                    return state.FindSource(area.SourceName(format)) is { } source
+                        ? SetPaths(source, key, enable, () => state.SetSourcePaths(source, enable))
+                        : UnknownSource;
                 case CommunicationPath.InputOutputTerminal:
                     if (dialogue.LockedTerminalChanged(cd, area, format)) return UnknownSource;
                     return state.FindTerminal(area.SourceName(format)) is { } terminal ? SetOne(terminal, key, enable) : UnknownSource;
@@ -73,6 +82,10 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
                     return SetOutput(area, key, enable, state);
             }
         }).Area;
+
+    /// <summary>The statements that act on logical paths (§1985:XIV.3.2.4 GR3, GR4; §1985:XIV.3.3.4 GR2, GR3): a statement that finds every path it names already so changes nothing.</summary>
+    private static string SetPaths(IMessageEndpoint endpoint, string? key, bool enable, Func<bool> set) =>
+        !endpoint.Admits(key) ? BadKey : set() ? Ok : AlreadySet;
 
     private static string SetOne(IMessageEndpoint endpoint, string? key, bool enable)
     {
@@ -88,19 +101,22 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         if (ValidCount(area) is not { } count) return BadCount;
         for (int i = 1; i <= count; i++)
             if (state.FindDestination(area.Destination(i)) is { } checkedKey && !checkedKey.Admits(key))
+            {
+                SetErrorKeys(area, count, state, destination => destination.Enabled == enable ? AlreadyKey : NoErrorKey);
                 return BadKey;
+            }
         bool unknown = false, already = false;
         for (int i = 1; i <= count; i++)
         {
-            char errorKey = '0';
+            char errorKey = NoErrorKey;
             if (state.FindDestination(area.Destination(i)) is not { } destination)
             {
-                errorKey = '1';
+                errorKey = UnknownKey;
                 unknown = true;
             }
             else if (destination.Enabled == enable)
             {
-                errorKey = '5';
+                errorKey = AlreadyKey;
                 already = true;
             }
             else
@@ -110,6 +126,16 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             area.SetErrorKey(i, errorKey);
         }
         return unknown && already ? Combination : unknown ? Unknown : already ? AlreadySet : Ok;
+    }
+
+    /// <summary>§1985:XIV.2.2.4 GR22: when the MCS finds an error in DISABLE OUTPUT, ENABLE OUTPUT, PURGE or SEND, "each occurrence of data-name-4, up to
+    /// and including the occurrence specified by the content of data-name-1, [is] updated". A statement refused as a whole before any destination is acted
+    /// on (a wrong key, text too long, no text) still writes each occurrence, with what Table 2 says of that destination: unknown, or the
+    /// <paramref name="known"/> value of a destination the MCS holds. The statement's own condition is the status key's (docs/CONFORMANCE.md §3.3).</summary>
+    private static void SetErrorKeys(CommunicationArea area, int count, MessageStoreState state, Func<DestinationEndpoint, char> known)
+    {
+        for (int i = 1; i <= count; i++)
+            area.SetErrorKey(i, state.FindDestination(area.Destination(i)) is { } destination ? known(destination) : UnknownKey);
     }
 
     /// <summary>A.1.2.3 GR17: "If ... the value of the data item referenced by data-name-1 is outside the range of 1 through integer-1,
@@ -133,21 +159,20 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             bool unknown = false, disabled = false, noPortion = false;
             for (int i = 1; i <= count; i++)
             {
-                string name = area.Destination(i);
-                char errorKey = '0';
-                if (state.FindDestination(name) is not { } destination)
+                char errorKey = NoErrorKey;
+                if (state.FindDestination(area.Destination(i)) is not { } destination)
                 {
-                    errorKey = '1';
+                    errorKey = UnknownKey;
                     unknown = true;
                 }
-                else if (!dialogue.Sends.Remove(DestinationKey(name)))
+                else if (!dialogue.Sends.Remove(DestinationKey(area, i)))
                 {
-                    errorKey = '4';
+                    errorKey = NoPartialKey;
                     noPortion = true;
                 }
                 else if (!destination.Enabled)
                 {
-                    errorKey = '2';
+                    errorKey = DisabledKey;
                     disabled = true;
                 }
                 area.SetErrorKey(i, errorKey);
@@ -166,14 +191,24 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
     internal string Send(string cd, CommunicationFormat format, string image, string? text, SendIndicator indicator) =>
         Statement(format, image, (area, dialogue, state) =>
         {
+            // GR31 binds every statement that references the CD, so the terminal is fixed before any status is decided (kb/Work PB5283).
+            if (format is CommunicationFormat.InputOutput && dialogue.LockedTerminalChanged(cd, area, format)) return Unknown;
             if (format is CommunicationFormat.Output && ValidCount(area) is null) return BadCount;
             int textLength = area.TextLength(format) ?? int.MaxValue;
-            if (text is not null && textLength > text.Length) return TextTooLong;
-            if (indicator is SendIndicator.None && (text is null || textLength == 0)) return NoText;
+            string? refusal = text is not null && textLength > text.Length ? TextTooLong
+                : indicator is SendIndicator.None && (text is null || textLength == 0) ? NoText
+                : null;
+            if (refusal is not null)
+            {
+                // GR22: the statement is refused before any destination, and each occurrence still says what Table 2 says of its destination.
+                if (format is CommunicationFormat.Output)
+                    SetErrorKeys(area, area.DestinationCount!.Value, state, destination => destination.Enabled ? NoErrorKey : DisabledKey);
+                return refusal;
+            }
             string portion = text is null ? "" : text[..textLength];
             return format is CommunicationFormat.Output
                 ? SendToDestinations(area, dialogue, portion, indicator, state)
-                : SendToTerminal(cd, area, dialogue, format, portion, indicator, state);
+                : SendToTerminal(area, dialogue, format, portion, indicator, state);
         }).Area;
 
     private static string SendToDestinations(CommunicationArea area, Dialogue dialogue, string portion, SendIndicator indicator, MessageStoreState state)
@@ -182,21 +217,20 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         bool unknown = false, disabled = false, full = false;
         for (int i = 1; i <= count; i++)
         {
-            string name = area.Destination(i);
-            char errorKey = '0';
-            if (state.FindDestination(name) is not { } destination)
+            char errorKey = NoErrorKey;
+            if (state.FindDestination(area.Destination(i)) is not { } destination)
             {
-                errorKey = '1';
+                errorKey = UnknownKey;
                 unknown = true;
             }
-            else if (dialogue.Release(DestinationKey(name), portion, indicator) is { } message && !destination.TryEnqueue(message))
+            else if (dialogue.Release(DestinationKey(area, i), portion, indicator) is { } message && !destination.TryEnqueue(message))
             {
-                errorKey = '6';
+                errorKey = FullKey;
                 full = true;
             }
             else if (!destination.Enabled)
             {
-                errorKey = '2';
+                errorKey = DisabledKey;
                 disabled = true;
             }
             area.SetErrorKey(i, errorKey);
@@ -206,9 +240,8 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
 
     /// <summary>Table A.1's "SEND input-output-cd": "Destination disabled. No action taken", where an output CD's destination holds
     /// the message until it is enabled.</summary>
-    private static string SendToTerminal(string cd, CommunicationArea area, Dialogue dialogue, CommunicationFormat format, string portion, SendIndicator indicator, MessageStoreState state)
+    private static string SendToTerminal(CommunicationArea area, Dialogue dialogue, CommunicationFormat format, string portion, SendIndicator indicator, MessageStoreState state)
     {
-        if (dialogue.LockedTerminalChanged(cd, area, format)) return Unknown;
         string name = area.SourceName(format);
         if (state.FindTerminal(name) is not { } terminal) return Unknown;
         if (!terminal.Enabled) return Disabled;
@@ -216,7 +249,18 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         return Ok;
     }
 
-    private static string DestinationKey(string name) => "D:" + name;
+    /// <summary>The message this run unit is releasing to one occurrence of the DESTINATION TABLE. A destination named in two occurrences is a destination
+    /// of the statement in each (§1985:XIV.3.6.4 GR6, docs/CONFORMANCE.md §3.3), so the key is the name and which occurrence of that name this is: two
+    /// occurrences hold two messages, each with a segment and message control of its own (kb/Work PB5288). The separator is a control character, which no
+    /// symbolic name holds (<see cref="MessageDefinitions"/>).</summary>
+    private static string DestinationKey(CommunicationArea area, int occurrence)
+    {
+        string name = area.Destination(occurrence);
+        int earlier = 0;
+        for (int i = 1; i < occurrence; i++)
+            if (string.Equals(area.Destination(i), name, StringComparison.Ordinal)) earlier++;
+        return $"D:{name}\u0001{earlier}";
+    }
 
     private static string TerminalKey(string name) => "T:" + name;
 
@@ -256,7 +300,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
                     pending = new PendingReceive(format, found.Path, found.Message);
                     dialogue.Receives.Add(pending);
                 }
-                filled = Transfer(dialogue, pending, area, format, segment, into);
+                filled = Transfer(dialogue, pending, area, format, segment, into, state);
                 return Ok;
             });
             if (status != Ok) return new CommunicationReceipt(answered, into, DataAvailable: true);   // GR5 c): refused, control passes "as if data had been made available"
@@ -268,21 +312,23 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
     }
 
     /// <summary>A.2.5.3 GR3, GR8, GR9: the text fills the area left to right "without space fill", and A.1.2.3 GR12 and GR33 give the end key.</summary>
-    private static string Transfer(Dialogue dialogue, PendingReceive pending, CommunicationArea area, CommunicationFormat format, bool segment, string into)
+    private static string Transfer(Dialogue dialogue, PendingReceive pending, CommunicationArea area, CommunicationFormat format, bool segment, string into, MessageStoreState state)
     {
         var (text, endKey) = pending.Next(segment, into.Length);
         if (pending.Finished) dialogue.Receives.Remove(pending);
         if (format is CommunicationFormat.Input) area.SetQueuePath(pending.Path);
         var message = pending.Message;
-        area.SetReceived(format, message.Date, message.Time, message.Source, text.Length, endKey);
+        // GR10: the symbolic name of a source "not known to the MCS" is reported as spaces (kb/Work PB5280).
+        area.SetReceived(format, message.Date, message.Time, state.KnowsCommunicationTerminal(message.Source) ? message.Source : "", text.Length, endKey);
         return string.Concat(text, into.AsSpan(text.Length));
     }
 
-    /// <summary>A.1.2.3 GR6 and GR28: the names of what scheduled the run unit (<see cref="MessageStore.Scheduled"/>), or spaces.</summary>
-    internal string InitialArea(string cd, CommunicationFormat format, string image)
+    /// <summary>A.1.2.3 GR6 and GR28: the names of what scheduled the run unit (<see cref="MessageStore.Scheduled"/>), or spaces. <paramref name="scheduledProgram"/>: the
+    /// program being activated is the one that established the run unit; any other program's INITIAL CD is initialized to spaces (§1985:XIV.2.2.4 GR28, GR6).</summary>
+    internal string InitialArea(string cd, CommunicationFormat format, string image, bool scheduledProgram)
     {
         var area = new CommunicationArea(image);
-        var scheduled = Store.Scheduled;
+        string[] scheduled = scheduledProgram ? Store.Scheduled : [];
         if (format is CommunicationFormat.Input)
             area.SetQueuePath(scheduled);
         else
@@ -311,6 +357,9 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             foreach (var (cd, terminal) in Terminals) copy.Terminals[cd] = terminal;
             return copy;
         }
+
+        /// <summary>The messages this run unit has begun to receive from the queue structure <paramref name="specified"/> designates.</summary>
+        internal int PartlyReceivedFrom(string[] specified) => Receives.Count(r => r.Format is CommunicationFormat.Input && r.Answers(specified));
 
         /// <summary>A.2.6.3 GR6, GR10, GR11: add one portion to the message this run unit is releasing to <paramref name="key"/>, closing
         /// the segment on any indicator. The message, once an EMI or EGI ends it, goes to the MCS; until then it "does not logically exist

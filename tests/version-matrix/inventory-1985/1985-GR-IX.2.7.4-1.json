@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'The RECORD KEY clause specifies the prime record key ... The values of the prime record key must be unique among records of the file.' §2023:12.4.5.12.4 GR1 'The value of the associated record key shall not be equal to the value of the same record key in another record in the file', equality on the file's collating sequence (1985 READ GR4 also compares on 'the collating sequence of the file'); §2023:14.9.51.4 GR36 'The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file'. WRITE GR42 b) is the invalid key consequence, a separate 1985 WRITE rule.",
-  "source": "adjudicate-712-r2/slice-02"
+  "source": "adjudicate-712-r2/slice-02",
+  "digests": {
+   "GR-12.4.5.12.4-1": "ac0fa43f5979",
+   "GR-14.9.51.4-36": "40378f8922bf"
+  }
  }
 }
