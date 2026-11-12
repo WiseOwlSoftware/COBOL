@@ -6892,16 +6892,18 @@ public static class DiagnosticCatalog
         + "as REDEFINES or BASED; or an OCCURS clause was specified on an entry whose level-number is 01 or 77.",
         "ISO §2023:13.16.3 SR5/SR6/SR7 · §2023:13.18.22.3 SR1 · §2023:13.18.27.3 SR1 b) · §2023:13.18.38.3 SR1 a)");
 
-    /// <summary>The SUBJECT rules of the BLANK WHEN ZERO and JUSTIFIED clauses — what the elementary item they are
-    /// written on may be. §2023:13.18.8.3 SR1 (category numeric-edited, or numeric without 'S') and SR2 (usage display
+    /// <summary>The SUBJECT rules of the BLANK WHEN ZERO, JUSTIFIED and (COBOL-85) SYNCHRONIZED clauses — what the
+    /// elementary item they are written on may be. §2023:13.18.8.3 SR1 (category numeric-edited, or numeric without 'S') and SR2 (usage display
     /// or national, written or inherited); §2023:13.18.32.3 SR3 (category alphabetic, alphanumeric, boolean or
     /// national — SR4's dynamic-length exclusion is §2023:13.16.3 SR18's COBOL1563). The typed-native binder only USED the BLANK WHEN ZERO flag, so the clause was silently
-    /// ignored on every usage but display/national and on every non-numeric picture (kb/Work PB507).</summary>
+    /// ignored on every usage but display/national and on every non-numeric picture (kb/Work PB507). At COBOL-85
+    /// §1985:VI.5.14.3 SR6 also bars SYNCHRONIZED on a usage INDEX item (kb/Work PB5189), the same rule that bars the
+    /// other two on one; from 2002 an index item may be synchronized (its alignment is implementor-defined).</summary>
     public static readonly DiagnosticDescriptor ClauseSubjectCategory = new(
         "COBOL2405", "clause-subject-category", EditionSeverity.Error,
-        "A BLANK WHEN ZERO or JUSTIFIED clause was specified for an item whose category or usage the clause does "
-        + "not admit.",
-        "ISO §2023:13.18.8.3 SR1/SR2 · §2023:13.18.32.3 SR3");
+        "A BLANK WHEN ZERO, JUSTIFIED or (COBOL-85) SYNCHRONIZED clause was specified for an item whose category or "
+        + "usage the clause does not admit.",
+        "ISO §2023:13.18.8.3 SR1/SR2 · §2023:13.18.32.3 SR3 · §1985:VI.5.14.3 SR6");
 
     /// <summary>COBOL2406 — a VALUE clause written where §2023:13.18.63.3 forbids its PLACEMENT (kb/Work PB550,
     /// PB551): a format 1 or format 2 VALUE clause in an entry that contains a REDEFINES clause or is subordinate
