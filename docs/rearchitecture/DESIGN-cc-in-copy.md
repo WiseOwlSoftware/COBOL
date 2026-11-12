@@ -245,14 +245,15 @@ the text it writes, decided by the line the match begins on (`firstLineIsDebuggi
   on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines"), and so does REPLACE from 2002; COBOL-85's
   REPLACE gives each introduced line the replaced line's indicator, so it drops them (`ResultRule.KeepsPseudoTextDebuggingLines`, asked
   with `EditionInfo.ReplacedTextIsLaidOutInFixedForm`).
-- When the replacement ends on a debugging line the replaced line is not, the text after the match starts a line of its own, so the rest
-  of the replaced line keeps its own indicator.
+- The text after the match keeps the indicator of the line the match ENDS on (GR11 decides the introduced lines only). When the line the
+  replacement ends on differs in kind from that line (a match crossing between a debugging line and a source line, either way) or a kept
+  directive line intervenes, the rest starts a line of its own, with the carrier when the end line is a debugging line.
 
 At COBOL-85 (`ReplacedTextIsLaidOutInFixedForm`) the resultant text is laid out in fixed-form lines, so a literal a replacement places on a
 debugging line that the program-text area cannot hold from the margin of the area it begins in (65 positions in area A, 61 in area B; a
 pseudo-text-2 literal keeps the area it was written in, literal-2 takes the replaced word's, §1985:XII.2.4 GR9) would be continued on a
-debugging line: COBOL7039 (§1985:XII.2.4 GR9, §1985:XII.3.4 GR11). The 2002 rules drop that error. The carrier a COPY statement written on
-a debugging line would give its whole library text is kb/Work PB5214.
+debugging line: COBOL7039 (§1985:XII.2.4 GR9, §1985:XII.3.4 GR11). The 2002 rules drop that error. A COPY statement written on a debugging
+line writes its whole library text behind the carrier (`ExpandCopiesOneLevel`: `LineIsDebugging`, `AppendAsDebuggingLines`; §1985:XII.2.4 GR9).
 
 ## §4 Wiring (greenfield only)
 
