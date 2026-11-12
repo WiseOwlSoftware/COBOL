@@ -269,6 +269,14 @@ public static class ItemCategory
     public static bool IsAlphanumericOrNational(Place place) =>
         Admits(Table16Operand.Of(place), place.Item, national: true);
 
+    /// <summary>⛔ THE ONE READER OF "DOES THIS REFERENCE DENOTE AN ELEMENTARY ITEM?" (kb/Work PB5216). A rule worded "shall
+    /// reference an elementary item" is asked of the REFERENCE, not of the item behind it: a reference-modified
+    /// identifier references "a unique data item" that "is considered an elementary data item" (§1985:IV.4.3.8.4.4 GR5),
+    /// the slice of a group included (§1985:IV.4.3.8.4.3 SR1 admits a group whose usage is DISPLAY; §2023:8.4.3.3.3 SR1
+    /// likewise), so <c>G (1:2)</c> over a group is elementary where <see cref="IsGroupItem"/> of its base item says
+    /// group. Every other reference is as elementary as the item it names.</summary>
+    public static bool IsElementaryReference(Place place) => place is RefModPlace || !IsGroupItem(place.Item);
+
     private static bool Admits(Table16Operand operand, DataItem item, bool national) => operand switch
     {
         // §2023:13.18.29.4 GR3's group arm, in its ONE spelling — never `item.IsGroup` alone (see IsAlphanumericGroup).
