@@ -16,7 +16,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// EC-SIZE two-phase wrapper (writes the <see cref="EcState"/> statement scratch the checked stores read — the
 /// EC↔arithmetic interlock) and the <c>StoreArith</c> store funnel.</summary>
 internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, EcEmitter ec,
-    ReceiverBracketEmitter brackets)
+    ReceiverBracketEmitter brackets, DebugTriggerEmitter debug)
 {
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the phrase bodies
     /// nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
@@ -514,7 +514,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// is not enabled, so it propagates: a zero divisor or an exponentiation-rule violation ends the run unit exactly as
     /// it does with checking off (DOC-A.1-70), where the family-wide catch used to latch it, drop it and go on with the
     /// receiver unchanged. A statement WITH the phrase catches everything: §2023:14.7.5 enables checking of all of it.</para></summary>
-    private void WriteSizeCatches(string flag, string? ecnVar)
+    private void WriteSizeCatches(string flag, string? ecnVar, string alsoOnCatch = "")
     {
         var w = ctx.Writer;
         var only = ecState.SizeErrOnlyNames;
@@ -523,14 +523,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             int cid = ctx.Names.NextEc();
             string taken = only is null ? ""
                 : $" when (__cse{cid}.IsProhibitedInexact || {string.Join(" || ", only.Select(n => $"__cse{cid}.EcName == {CsLiteral(n)}"))})";
-            w.Line($"catch (CobolSizeError __cse{cid}){taken} {{ {flag} = true; {ecnVar} = __cse{cid}.EcName; }}");
+            w.Line($"catch (CobolSizeError __cse{cid}){taken} {{ {flag} = true; {ecnVar} = __cse{cid}.EcName;{alsoOnCatch} }}");
             if (only is null || only.Contains("EC-SIZE-OVERFLOW"))
-                w.Line($"catch (global::System.OverflowException) {{ {flag} = true; {ecnVar} = \"EC-SIZE-OVERFLOW\"; }}");
+                w.Line($"catch (global::System.OverflowException) {{ {flag} = true; {ecnVar} = \"EC-SIZE-OVERFLOW\";{alsoOnCatch} }}");
         }
         else
         {
-            w.Line($"catch (CobolSizeError) {{ {flag} = true; }}");
-            w.Line($"catch (global::System.OverflowException) {{ {flag} = true; }}");
+            w.Line($"catch (CobolSizeError) {{ {flag} = true;{alsoOnCatch} }}");
+            w.Line($"catch (global::System.OverflowException) {{ {flag} = true;{alsoOnCatch} }}");
         }
     }
 
@@ -549,8 +549,18 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         => brackets.Receive(receiver, inSizeError ? ecState.SizeErrVar : null, () =>
         {
             if (!inSizeError) { emitOne(); return; }
-            using (ctx.Writer.Block("try")) emitOne();
-            WriteSizeCatches(ecState.SizeErrVar!, ecState.SizeErrEcVar);
+            var w = ctx.Writer;
+            string flag = ecState.SizeErrVar!;
+            // A debugging section for the item alone (§1985:XV.3.2.4 GR6) follows a statement that "causes the content of the data item … to be changed": the
+            // receiver whose store the size error skipped (§1985:VI.6.4.2: its content is unchanged) is not one. The statement's flag is lent to this receiver, so
+            // "did it fail" is asked of this store alone, and handed back with what an earlier receiver left in it.
+            string? stored = debug.StoreFlagFor(receiver);
+            string? earlier = stored is null ? null : $"__dbgWas{ctx.Names.NextEc()}";
+            if (earlier is not null) w.Line($"bool {earlier} = {flag}; {flag} = false;");
+            using (w.Block("try")) emitOne();
+            WriteSizeCatches(flag, ecState.SizeErrEcVar);
+            // "{stored}Ok" is whether an earlier receiver store of the same item succeeded: an item named as a receiver twice has changed, whatever the later store did.
+            if (earlier is not null) w.Line($"if ({flag}) {{ if (!{stored}Ok) {stored} = false; }} else {stored} = {stored}Ok = true; {flag} |= {earlier};");
         });
 
     /// <summary>⛔ §2023:14.7.4.3 RULE 7 IN A STATEMENT WITH NO SIZE ERROR PHRASE AND CHECKING OFF (kb/Work PB3990). "If the
@@ -680,7 +690,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // the INITIAL evaluation's raises (a statement with no formable initial value has no results to store);
         // each receiver's compute+store sits in its own GuardedStore try (kb/Work PB129 — §2023:14.7.7 r4b:
         // "processing proceeds to the next resulting data item to the right", §2023:14.7.5 storing rule 2).
-        WriteSizeCatches(flag, ecnVar);
+        // An exception that escapes the receivers' own tries is the INITIAL evaluation's (a zero divisor): no receiver was stored, so no debugging
+        // section for the item alone follows (§1985:XV.3.2.4 GR6; kb/Work PB5296).
+        WriteSizeCatches(flag, ecnVar, string.Concat(debug.StoreFlags.Select(f => $" {f} = false;")));
         ecState.SizeErrVar = null;
         ecState.SizeErrEcVar = null;
         ecState.SizeErrChecks = SizeChecks.None;

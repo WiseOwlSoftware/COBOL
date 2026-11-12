@@ -108,6 +108,29 @@ internal static class ExternalFileConnectorRules
                     break;   // one report per entry: the first clause that differs
                 }
             }
+            if (edition.DialectLevel < 2002) CheckFileDescriptions(edition, externalName, conns);
+        }
+    }
+
+    /// <summary>The X3.23-1985 agreement rules of the file DESCRIPTION entries (<see cref="FileDescriptionIdentity"/>, kb/Work PB5300), asked in the same pass
+    /// as the file control entries' and reported the same way (COBOL6847), at the clause the entry writes. Each rule compares the clauses the entries WRITE:
+    /// an entry is compared with the first entry of the run unit that writes the clause.</summary>
+    private static void CheckFileDescriptions(EditionContext edition, string externalName, List<FileModel> conns)
+    {
+        foreach (var rule in FileDescriptionIdentity.Rules)
+        {
+            FdClauseValue? reference = null;
+            foreach (var f in conns)
+            {
+                if (FileDescriptionIdentity.Of(f, rule) is not { } mine) continue;
+                if (reference is not { } first) { reference = mine; continue; }
+                if (rule.Agree(first.Value, mine.Value)) continue;
+                using (edition.At(f.ClauseOrEntryAt(mine.At)))
+                    edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
+                        $"external file '{externalName}': this file description entry and the first one in the run unit that writes {rule.Clause} "
+                        + $"differ in what they specify (\"{mine.Value}\" against \"{first.Value}\") — the entries of an external file connector agree "
+                        + $"in it (ISO {rule.Cite})");
+            }
         }
     }
 

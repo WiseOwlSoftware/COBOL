@@ -20,8 +20,9 @@
       *> Why each leg can fail: MOVE A TO C only sends A, so A's section
       *> must not run; ADD A TO A runs it once, not twice; the nested MOVE
       *> inside IF runs it and the IF (which references only C) does not;
-      *> a size error skips the store and the section still runs, after the
-      *> imperative statement of its phrase; G1 OF G references G1 and not
+      *> a size error skips the store (§1985:VI.6.4.2: the resultant keeps
+      *> its value), so the statement does not cause the content to change
+      *> and the section does not run (kb/Work PB5296); G1 OF G references G1 and not
       *> G, so G's section runs for MOVE G only; B is sent and received and
       *> both references run its section.
        IDENTIFICATION DIVISION.
