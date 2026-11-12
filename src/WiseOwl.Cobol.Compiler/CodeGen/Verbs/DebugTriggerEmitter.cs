@@ -30,6 +30,7 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     private IReadOnlyList<DebugFire> _afterAction = [];
     private LoopFires? _loop;
     private PhraseFlags? _phrases;
+    private IReadOnlyDictionary<DebugFire, string> _stored = new Dictionary<DebugFire, string>();
     private int _line;
     /// <summary>The after-statement fires of the statements now being emitted, innermost first: what a nested transfer of control must run first.</summary>
     private readonly Stack<(IReadOnlyList<DebugFire> Fires, int Line, PhraseFlags Flags)> _owedAfter = new();
@@ -37,10 +38,16 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     /// <summary>The "this phrase was evaluated" flags of one EVALUATE or SEARCH statement's fires (<see cref="DebugFire.Phrases"/>): a local per phrase
     /// index, declared before the statement, set by the verb's emitter where the phrase's condition begins to be evaluated
     /// (<see cref="Mark"/>) and read by the fires that name the phrase.</summary>
-    internal sealed class PhraseFlags(IReadOnlyDictionary<int, string> names)
+    internal sealed class PhraseFlags(IReadOnlyDictionary<int, string> names, IReadOnlyDictionary<DebugFire, string>? stored = null)
     {
         /// <summary>No phrase is flagged: the statement has no fire that depends on one.</summary>
         public static readonly PhraseFlags None = new(new Dictionary<int, string>());
+
+        /// <summary>The same phrase flags, with the "the statement stored into the item" flag of each <see cref="DebugFire.WhenStored"/> fire.</summary>
+        public PhraseFlags WithStored(IReadOnlyDictionary<DebugFire, string> flags) => new(names, flags);
+
+        /// <summary>The "stored" flag of each fire that runs only when the statement stored into its item (<see cref="DebugFire.WhenStored"/>), by fire.</summary>
+        public IReadOnlyDictionary<DebugFire, string> Stored { get; } = stored ?? new Dictionary<DebugFire, string>();
 
         /// <summary><paramref name="condition"/> with the assignment that records phrase <paramref name="index"/> as evaluated in front of it
         /// (unchanged when no fire depends on the phrase). The assignment is part of the condition's own expression, so it runs exactly when
@@ -48,9 +55,14 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
         public string Mark(int index, string condition) =>
             names.TryGetValue(index, out var flag) ? $"({flag} = true) && ({condition})" : condition;
 
-        /// <summary>The C# condition under which <paramref name="fire"/> runs: "any phrase it names was evaluated", or null for an unguarded fire.</summary>
-        public string? Guard(DebugFire fire) =>
-            fire.Phrases is null ? null : string.Join(" || ", fire.Phrases.Select(k => names[k]));
+        /// <summary>The C# condition under which <paramref name="fire"/> runs: "any phrase it names was evaluated" and "the statement stored into the item",
+        /// or null for an unguarded fire.</summary>
+        public string? Guard(DebugFire fire)
+        {
+            string? phrases = fire.Phrases is null ? null : $"({string.Join(" || ", fire.Phrases.Select(k => names[k]))})";
+            string? stored = Stored.TryGetValue(fire, out var flag) ? flag : null;
+            return phrases is not null && stored is not null ? $"{phrases} && {stored}" : phrases ?? stored;
+        }
     }
 
     /// <summary>The loop-phase fires a PERFORM emitter takes, with the PERFORM statement's source line (DEBUG-LINE).</summary>
@@ -60,9 +72,10 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     /// transfers control out of the paragraph case), the fires after it. Returns what <paramref name="emitInner"/> returned.</summary>
     public bool Emit(BoundDebugTriggered n, Func<BoundStatement, bool> emitInner)
     {
-        var (savedIo, savedAction, savedLoop, savedPhrases, savedLine) = (_beforeIo, _afterAction, _loop, _phrases, _line);
+        var (savedIo, savedAction, savedLoop, savedPhrases, savedLine, savedStored) = (_beforeIo, _afterAction, _loop, _phrases, _line, _stored);
         _line = n.SourceLine;
-        var phraseIndices = n.Fires.Where(f => f.Phrases is not null).SelectMany(f => f.Phrases!).Distinct().Order().ToList();
+        var fires = IdentifiedOnce(n.Fires);
+        var phraseIndices = fires.Where(f => f.Phrases is not null).SelectMany(f => f.Phrases!).Distinct().Order().ToList();
         var flags = PhraseFlags.None;
         if (phraseIndices.Count > 0)
         {
@@ -71,16 +84,23 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
             foreach (var k in phraseIndices) ctx.Writer.Line($"bool __dbgPhrase{id}_{k} = false;");
         }
         _phrases = phraseIndices.Count > 0 ? flags : null;
-        _beforeIo = Of(n, DebugWhen.BeforeIo);
-        _afterAction = Of(n, DebugWhen.AfterAction);
-        var loop = n.Fires.Where(f => f.When is DebugWhen.LoopInit or DebugWhen.LoopAugment or DebugWhen.LoopTest).ToList();
+        // The fires of the item alone run only when the statement stored into it: each owns a flag, true unless the verb's emitter finds its store skipped
+        // (StoreFlagFor: a receiver whose ON SIZE ERROR path kept its content), so a verb with no such path needs no cooperation (kb/Work PB5296).
+        var stored = new Dictionary<DebugFire, string>(ReferenceEqualityComparer.Instance);
+        foreach (var f in fires.Where(f => f.WhenStored)) stored[f] = $"__dbgStored{ctx.Names.NextDebugPhrases()}";
+        foreach (var name in stored.Values) ctx.Writer.Line($"bool {name} = true;");
+        _stored = stored;
+        if (stored.Count > 0) flags = flags.WithStored(stored);
+        _beforeIo = Of(fires, DebugWhen.BeforeIo);
+        _afterAction = Of(fires, DebugWhen.AfterAction);
+        var loop = fires.Where(f => f.When is DebugWhen.LoopInit or DebugWhen.LoopAugment or DebugWhen.LoopTest).ToList();
         _loop = loop.Count > 0 ? new LoopFires(loop, n.SourceLine) : null;
-        var after = Of(n, DebugWhen.After);
+        var after = Of(fires, DebugWhen.After);
         bool owes = after.Count > 0;
         if (owes) _owedAfter.Push((after, n.SourceLine, flags));
         try
         {
-            foreach (var fire in Of(n, DebugWhen.Before)) EmitFire(fire, n.SourceLine, flags);
+            foreach (var fire in Of(fires, DebugWhen.Before)) EmitFire(fire, n.SourceLine, flags);
             bool terminated = emitInner(n.Inner);
             if (_beforeIo.Count > 0 || _afterAction.Count > 0 || _loop is not null || _phrases is not null)
                 throw new InvalidOperationException(
@@ -95,7 +115,7 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
         finally
         {
             if (owes) _owedAfter.Pop();
-            (_beforeIo, _afterAction, _loop, _phrases, _line) = (savedIo, savedAction, savedLoop, savedPhrases, savedLine);
+            (_beforeIo, _afterAction, _loop, _phrases, _line, _stored) = (savedIo, savedAction, savedLoop, savedPhrases, savedLine, savedStored);
         }
     }
 
@@ -118,7 +138,37 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     private IEnumerable<string> OwedTexts() =>
         _owedAfter.SelectMany(owed => owed.Fires.Select(fire => FireText(fire, owed.Line, owed.Flags)));
 
-    private static List<DebugFire> Of(BoundDebugTriggered n, DebugWhen when) => n.Fires.Where(f => f.When == when).ToList();
+    private static List<DebugFire> Of(IReadOnlyList<DebugFire> fires, DebugWhen when) => fires.Where(f => f.When == when).ToList();
+
+    /// <summary>⛔ THE REFERENCE A FIRE DESCRIBES IS IDENTIFIED ONCE, WHEN THE STATEMENT BEGINS. A subscript is "evaluated only once as the first operation of
+    /// the execution of that statement" (§1985:IV.4.3.8), and DEBUG-SUB-n and DEBUG-CONTENTS describe "the occurrence number of each level" of that reference and
+    /// "the data item referenced by identifier-1" (§1985:XV.3.2.4 GR14, GR24). A <see cref="Place"/> renders its subscripts at each point of use, so a fire that
+    /// runs after <c>MOVE TE (SUB) TO SUB</c> would describe the occurrence the NEW SUB names; each data fire's place is therefore frozen into statement locals
+    /// before anything of the statement runs (<see cref="PlaceIdentification.Freeze(Place, Func{string, string})"/>, the mechanism INSPECT, STRING, UNSTRING and
+    /// RECEIVE identify their operands by; kb/Work PB5294, PB5279). Not frozen: a loop phase (each evaluation of a VARYING, AFTER or UNTIL phrase is the
+    /// statement that references the item, so its own subscripts are read then), a fire guarded by a phrase (the phrase may never be evaluated, and
+    /// identifying its operands first could raise an exception the statement would not), and a fire with no data place (file-name, cd-name, counter register).</summary>
+    private IReadOnlyList<DebugFire> IdentifiedOnce(IReadOnlyList<DebugFire> fires)
+    {
+        if (!fires.Any(Identifiable)) return fires;
+        var hoist = PlaceIdentification.Hoister(ctx);
+        return [.. fires.Select(f => Identifiable(f) ? f with { Referenced = PlaceIdentification.Freeze(f.Referenced!, hoist) } : f)];
+
+        static bool Identifiable(DebugFire f) =>
+            f is { Referenced: not null, Phrases: null, Contents: DebugContents.Referenced }
+            && f.Referenced.Undecorated is MemberPlace or DynTablePlace
+            && f.Target.Kind is DebugTargetKind.DataName or DebugTargetKind.AllReferences
+            && f.When is not (DebugWhen.LoopInit or DebugWhen.LoopAugment or DebugWhen.LoopTest);
+    }
+
+    /// <summary>The flag that records whether the statement now being emitted stored into <paramref name="receiver"/>'s item, when a fire of the item alone
+    /// waits on it (<see cref="DebugFire.WhenStored"/>), else null. An arithmetic statement with an ON SIZE ERROR path clears it where the receiver's store was
+    /// skipped (<see cref="ArithmeticEmitter"/>), so §1985:XV.3.2.4 GR6's "causes the content … to be changed" is asked of the path the statement took.</summary>
+    public string? StoreFlagFor(Place receiver) =>
+        _stored.Where(kv => ReferenceEquals(kv.Key.Target.Item, receiver.Item)).Select(kv => kv.Value).FirstOrDefault();
+
+    /// <summary>Every flag <see cref="StoreFlagFor"/> can answer for the statement now being emitted: the ones a statement that failed before it stored anywhere clears.</summary>
+    public IEnumerable<string> StoreFlags => _stored.Values;
 
     /// <summary>A WRITE or REWRITE emitter calls this immediately after its FROM phrase's implicit move and before the I-O
     /// (general rules 5 a and 6 a).</summary>
@@ -245,10 +295,21 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     /// in storage order (<c>CobolTable.AllImage</c>, each level's range read as the walk enters it).</para></summary>
     private static string DataItemImage(Place referenced)
     {
-        if (referenced is not TableAllPlace whole) return OperandText.AsStorageImage(referenced.Undecorated, "the DEBUG-CONTENTS of");
+        if (referenced is not TableAllPlace whole) return OperandText.AsStorageImage(WholeItem(referenced), "the DEBUG-CONTENTS of");
         string element = OperandText.AsStorageImage(whole.Element.Undecorated, "the DEBUG-CONTENTS of");
         return RuntimeApi.TableAllImage(PlaceRenderer.AllCountLambdas(whole), $"{LocalNames.Of(whole.Indices.Local)} => {element}");
     }
+
+    /// <summary>The whole item <paramref name="place"/> references, without the window a statement used (a reference modifier, a slice) but WITH the
+    /// current-extent wrapper of a variable-length group: its content is the occurrences the OCCURS DEPENDING ON item says it has, "only that part of the
+    /// table area that is specified by the value of the data item referenced by data-name-1 at the start of the operation" (§1985:VI.5.8.4 GR3), and DEBUG-CONTENTS is
+    /// moved as an alphanumeric item with the rest space-filled (§1985:XV.3.2.4 GR11, GR24 c; kb/Work PB5293).</summary>
+    private static Place WholeItem(Place place) => place switch
+    {
+        OdoGroupPlace odo => odo with { Inner = WholeItem(odo.Inner) },
+        PlaceDecorator d => WholeItem(d.Inner),
+        _ => place,
+    };
 
     /// <summary>The occurrence number each subscripted level of the reference computes, outermost first (general rule 14: "the occurrence
     /// number of each level is entered in DEBUG-SUB-1, DEBUG-SUB-2, DEBUG-SUB-3"), as C# <c>long</c> expressions read when the section runs.
