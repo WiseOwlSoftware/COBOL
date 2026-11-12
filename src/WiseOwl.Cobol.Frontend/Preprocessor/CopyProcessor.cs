@@ -961,8 +961,16 @@ public sealed class CopyProcessor(
                 var library = new DivisionCursor(standsInIdentification);   // the library text starts where the COPY stands
                 var processed = expandCopybook(one.Mapped!, depth + 1, w.LineCount, library);   // CC + nested COPY on the copybook
                 division.Adopt(library);                                    // and the text goes on where the library text left it
-                w.AppendMapped(processed);
+                // §1985:XII.2.4 GR9: "each text word introduced appears on a debugging line if the COPY statement begins on
+                // a debugging line" — the library text is written as debugging lines, so DebuggingLineRewriter's one decision
+                // (kb/Work PB1705) sees it on a debugging line (kb/Work PB5214).
+                if (LineIsDebugging(mapped, copyIdx)) AppendAsDebuggingLines(w, processed, copyLine);
+                else w.AppendMapped(processed);
                 w.NewLine(copyLine);
+                // The text after the statement's period stays on the kind of line the statement ends on: the remainder of a
+                // debugging line is still a debugging line.
+                if (afterCopy < text.Length && LineIsDebugging(mapped, afterCopy) && !RestOfLineBlank(text, afterCopy))
+                    w.Append(ReferenceFormatProcessor.DebugLineCarrier.AsSpan(), copyLine);
                 alreadyIncluded.Remove(one.CopybookPath!);
             }
             else
@@ -974,6 +982,38 @@ public sealed class CopyProcessor(
         }
         division.Finish(text);
         return w.Finish();
+    }
+
+    /// <summary>Whether the logical line holding position <paramref name="pos"/> of <paramref name="mapped"/> is a debugging
+    /// line: the reference-format stage carries one as <see cref="ReferenceFormatProcessor.DebugLineCarrier"/> at its start.</summary>
+    private static bool LineIsDebugging(MappedText mapped, int pos)
+        => string.CompareOrdinal(mapped.Text, mapped.LineStart(mapped.LineIndexAt(pos)),
+            ReferenceFormatProcessor.DebugLineCarrier, 0, ReferenceFormatProcessor.DebugLineCarrier.Length) == 0;
+
+    private static bool RestOfLineBlank(string text, int from)
+    {
+        for (int i = from; i < text.Length && text[i] != '\n'; i++)
+            if (!CobolSpace.IsBlank(text.AsSpan(i, 1))) return false;
+        return true;
+    }
+
+    /// <summary>Write <paramref name="library"/> with every line that holds text a debugging line (§1985:XII.2.4 GR9, kb/Work
+    /// PB5214): the carrier goes in front of each non-blank line that does not start with one (a debugging line of the library
+    /// text is kept as it is, and a blank line has no text word to introduce).</summary>
+    private static void AppendAsDebuggingLines(OriginWriter w, MappedText library, LineOrigin at)
+    {
+        string carrier = ReferenceFormatProcessor.DebugLineCarrier;
+        for (int piece = 0; piece < library.Lines.Length; piece++)
+        {
+            int start = library.LineStart(piece);
+            bool last = piece + 1 == library.Lines.Length;
+            int next = last ? library.Text.Length : library.LineStart(piece + 1);
+            int end = last ? next : next - 1;   // the line's text, without its newline
+            if (string.CompareOrdinal(library.Text, start, carrier, 0, carrier.Length) != 0
+                && !CobolSpace.IsBlank(library.Text.AsSpan(start, end - start)))
+                w.Append(carrier.AsSpan(), at);
+            w.AppendSlice(library, start, next - start);
+        }
     }
 
     /// <summary>Normalize library text to logical free form (kb/Work PB82 / PB1067) through the ONE §2023:6.5 walker the

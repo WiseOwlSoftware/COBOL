@@ -50,7 +50,7 @@ public static class DebuggingLineRewriter
     /// SOURCE is added to it (kb/Work PB2490): the lines the caller may still have to diagnose, because a source line is
     /// not a comment line and the logical conversion passed it over as one. The list is that of THIS stream — the final
     /// one's is complete apart from the region lines the caller blanked on the way.</para></summary>
-    public static IToken? Rewrite(CommonTokenStream tokenStream, List<IToken>? sourceLines = null)
+    public static IToken? Rewrite(CommonTokenStream tokenStream, List<IToken>? sourceLines = null, List<IToken>? misplacedLines = null)
     {
         tokenStream.Fill();
         var tokens = tokenStream.GetTokens();
@@ -62,6 +62,7 @@ public static class DebuggingLineRewriter
         var units = new Stack<UnitFrame>();
         var outside = new UnitFrame(inheritedMode: false);   // debugging lines before any unit header: no clause can govern them
         var kept = new List<int>();                          // the region lines that are source (token indices)
+        var misplaced = new List<int>();                     // the lines that stand where no debugging line may (token indices)
         var keptSource = new List<int>();                    // the other lines that are source (token indices)
         int nextLine = 0;
         for (int v = 0; v < visible.Count; v++)
@@ -78,18 +79,27 @@ public static class DebuggingLineRewriter
                     units.Push(new UnitFrame(units.Count > 0 && units.Peek().Mode));
                     break;
                 case CobolLexer.END when v + 1 < visible.Count && IsUnitKind(tokens[visible[v + 1]].Type):
-                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource);
+                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced);
                     break;
                 case CobolLexer.SOURCE_COMPUTER when units.Count > 0 && DeclaresMode(tokens, visible, v):
                     units.Peek().DeclaresMode = true;
                     break;
+                case CobolLexer.OBJECT_COMPUTER when units.Count > 0 && units.Peek().PermittedFrom < 0:
+                    units.Peek().PermittedFrom = visible[ParagraphEnd(tokens, visible, v)];
+                    break;
+                case CobolLexer.DATA or CobolLexer.PROCEDURE
+                    when units.Count > 0 && units.Peek().PermittedFrom < 0 && v + 1 < visible.Count
+                        && tokens[visible[v + 1]].Type == CobolLexer.DIVISION:
+                    units.Peek().PermittedFrom = at - 1;   // no OBJECT-COMPUTER paragraph in the Environment Division: the Data Division is the first place left
+                    break;
             }
         }
         while (nextLine < lines.Count) (units.Count > 0 ? units.Peek() : outside).Lines.Add(lines[nextLine++]);
-        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource);
-        Resolve(tokens, outside, kept, keptSource);
+        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced);
+        Resolve(tokens, outside, kept, keptSource, misplaced);
         tokenStream.Seek(0);
         sourceLines?.AddRange(keptSource.Select(i => tokens[i]));
+        misplacedLines?.AddRange(misplaced.Order().Select(i => tokens[i]));
         return kept.Count == 0 ? null : tokens[kept.Min()];
     }
 
@@ -178,8 +188,32 @@ public static class DebuggingLineRewriter
         return false;
     }
 
-    private static void Resolve(IList<IToken> tokens, UnitFrame unit, List<int> keptRegionLines, List<int> keptSourceLines)
+    /// <summary>The index in <paramref name="visible"/> of the last token of the paragraph whose header word is
+    /// <paramref name="visible"/>[<paramref name="at"/>]: its period (the paragraph's own, after the header's), or, in the empty
+    /// form <c>OBJECT-COMPUTER. SPECIAL-NAMES. …</c>, the header's period (the stops <see cref="DeclaresMode"/> uses).</summary>
+    private static int ParagraphEnd(IList<IToken> tokens, List<int> visible, int at)
     {
+        int i = at + 1;
+        if (i >= visible.Count || tokens[visible[i]].Type != CobolLexer.DOT) return at;
+        for (int j = i + 1; j < visible.Count; j++)
+        {
+            int type = tokens[visible[j]].Type;
+            if (type == CobolLexer.DOT) return j;
+            if (type is CobolLexer.OBJECT_COMPUTER or CobolLexer.SPECIAL_NAMES or CobolLexer.REPOSITORY
+                or CobolLexer.PROCEDURE or CobolLexer.DATA or CobolLexer.PROGRAM_ID or CobolLexer.END)
+                return j - 1;
+        }
+        return visible.Count - 1;
+    }
+
+    private static void Resolve(IList<IToken> tokens, UnitFrame unit, List<int> keptRegionLines, List<int> keptSourceLines,
+        List<int> misplacedLines)
+    {
+        // §1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the OBJECT-COMPUTER
+        // paragraph." Mode or no mode, a line that begins before that paragraph's end is misplaced; the caller diagnoses it
+        // where the edition has the rule.
+        foreach (var line in unit.Lines)
+            if (line.Start <= unit.PermittedFrom || unit.PermittedFrom < 0) misplacedLines.Add(line.Start);
         if (unit.Mode)                                  // the unit (or a container) declared the mode: its lines are source
         {
             foreach (var line in unit.Lines)
@@ -220,6 +254,9 @@ public static class DebuggingLineRewriter
     private sealed class UnitFrame(bool inheritedMode)
     {
         public bool DeclaresMode { get; set; }
+        /// <summary>The token index at or before which a debugging line is misplaced: where the unit's OBJECT-COMPUTER paragraph ends
+        /// or, with none, where its Data or Procedure Division begins (§1985:VI.7.3); -1 while neither has been met.</summary>
+        public int PermittedFrom { get; set; } = -1;
         public bool Mode => inheritedMode || DeclaresMode;
         public List<Extent> Lines { get; } = [];
     }

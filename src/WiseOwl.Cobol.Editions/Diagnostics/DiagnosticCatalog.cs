@@ -3290,6 +3290,27 @@ public static class DiagnosticCatalog
         + "containing the parts of a literal\" - a source line may not. Move the debugging line out of the literal, or "
         + "remove WITH DEBUGGING MODE so that the line is a comment.", "ISO §2023:6.3.5 2)");
 
+    /// <summary>COBOL7060 - a debugging line that begins before the end of the program's OBJECT-COMPUTER paragraph (kb/Work
+    /// PB5212). §1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the
+    /// OBJECT-COMPUTER paragraph." A COBOL-85 rule, reported at --std 85.</summary>
+    public static readonly DiagnosticDescriptor DebuggingLineBeforeObjectComputer = new(
+        "COBOL7060", "debugging-line-before-object-computer", EditionSeverity.Error,
+        "A debugging line (indicator D) stands before the end of the OBJECT-COMPUTER paragraph, or in a program that has none "
+        + "before its Data Division. §1985:VI.7.3: \"A debugging line is only permitted in the separately compiled "
+        + "program after the OBJECT-COMPUTER paragraph.\" Move the line after the paragraph, or remove its indicator.",
+        "§1985:VI.7.3");
+
+    /// <summary>COBOL7061 - a debugging line whose being a comment line leaves a program that is not syntactically correct
+    /// (kb/Work PB5212). §1985:VI.7.3: "The content of a debugging line must be such that a syntactically correct program
+    /// is formed with or without the debugging lines being considered as comment lines." The program parses with the line
+    /// as source (WITH DEBUGGING MODE) and fails with it hidden. A COBOL-85 rule.</summary>
+    public static readonly DiagnosticDescriptor DebuggingLineSyntaxBothWays = new(
+        "COBOL7061", "debugging-line-syntax-both-ways", EditionSeverity.Error,
+        "The program is not syntactically correct with its debugging lines taken as comment lines. §1985:VI.7.3: "
+        + "\"The content of a debugging line must be such that a syntactically correct program is formed with or without the "
+        + "debugging lines being considered as comment lines.\" Write the debugging line so that the statement or entry it "
+        + "belongs to is complete without it.", "§1985:VI.7.3");
+
     /// <summary>COBOL2689 — an inline comment on a line that ends in a floating literal continuation indicator
     /// (kb/Work PB1359). §2023:6.3.7.3 / §2023:6.4.4.3: an inline comment may be written on any line except one that contains
     /// a floating literal continuation indicator.</summary>
