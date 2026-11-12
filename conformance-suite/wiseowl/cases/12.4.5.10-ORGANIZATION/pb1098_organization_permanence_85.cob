@@ -41,7 +41,7 @@
       *>          a key of 0 is not a relative record number: outside the
       *>          boundaries WiseOwl defines (DOC-A.1-107), so at COBOL-85
       *>          the WRITE is the invalid key condition '24' (§1985:VIII.1.3.4
-      *>          item (3) c)); '34' is §2023:14.9.51.4 GR29 b)'s, new in 2023
+      *>          item (3) c)); '34' is §2023:14.9.51.4 GR29 b)'s, new in 2014
       *>          (kb/Work PB5125).
       *>  IX-OVER-RL / RL-OVER-IX - a relative store through an INDEXED
       *>          description and an indexed store through a RELATIVE

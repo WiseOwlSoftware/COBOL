@@ -19,11 +19,11 @@
       *> §2023:14.9.51.4 GR33 b): "When an attempt is made to write outside
       *> the externally defined boundaries of the file, the I-O status
       *> associated with the write file connector is set to '24'."
-      *> GR29 b) of 2023 adds: "If the relative key data item contains a
+      *> GR29 b) of 2023 (and 2014) adds: "If the relative key data item contains a
       *> value that is less than 1 or greater than the highest relative
       *> record number permitted for the file, the execution of the WRITE
       *> statement is unsuccessful, and the I O status for the write
-      *> file connector is set to '34'." That sentence is new in 2023
+      *> file connector is set to '34'." That sentence is new in 2014
       *> (kb/Work PB5125): this COBOL-85 test takes the invalid key
       *> condition '24' for the same attempt (§1985:VIII.1.3.4 item (3) c),
       *> §1985:VIII.1.3.5); pb5125_relative_write_key_range witnesses 34.
@@ -50,7 +50,7 @@
       *>  K3E9  - RRN 3 000 000 000 is above the highest permitted
       *>          number, so past the boundary the implementor defines:
       *>          '24', the invalid key condition, and the INVALID KEY
-      *>          branch runs (GR33 b); below 2023, GR29 b)'s '34' is
+      *>          branch runs (GR33 b); below 2014, GR29 b)'s '34' is
       *>          not a rule). The CLOSE that follows completes normally.
       *>  READ1-3 - GR15's "does not take place": the file holds RRN 5
       *>          and RRN 600 000 000 in ascending order, then the

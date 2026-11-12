@@ -228,7 +228,7 @@ RL114A	RL	green	-	valid	-
 RL115A	RL	green	-	valid	-
 RL116A	RL	green	-	valid	-
 RL117A	RL	green	RL107A	valid	-
-RL118A	RL	green	-	valid	BEHAVIOR relative-write-key-out-of-range-permanent-error: the 100th WRITE puts key 100 into the PIC 99 relative key as key 0, outside the file's boundaries; at 85 that is the invalid key condition '24' (§1985:VIII.1.3.4 item (3) c)), a non-permanent status, so REL-TEST-2's duplicate-key WRITE answers '22' and PASSes; from 2023 §2023:14.9.51.4 GR29 b) answers '34', a permanent error that REMAINS IN EFFECT (§2023:9.1.13.1; A.1 item 105), so REL-TEST-2, which asserts the pre-2023 '22', answers '34' and FAILs, the golden in tests/nist/valid-editions/2023 (kb/Work PB1541, PB5125)
+RL118A	RL	green	-	valid	BEHAVIOR relative-write-key-out-of-range-permanent-error: the 100th WRITE puts key 100 into the PIC 99 relative key as key 0, outside the file's boundaries; at 85 that is the invalid key condition '24' (§1985:VIII.1.3.4 item (3) c)), a non-permanent status, so REL-TEST-2's duplicate-key WRITE answers '22' and PASSes; from 2014 §2014:14.9.47.3 GR26 b) (§2023:14.9.51.4 GR29 b)) answers '34', a permanent error that REMAINS IN EFFECT (§2023:9.1.13.1; A.1 item 105), so REL-TEST-2, which asserts the pre-2014 '22', answers '34' and FAILs, the golden in tests/nist/valid-editions/2014 (kb/Work PB1541, PB5125)
 RL119A	RL	green	-	valid	-
 RL201A	RL	green	-	valid	-
 RL202A	RL	green	RL201A	valid	-

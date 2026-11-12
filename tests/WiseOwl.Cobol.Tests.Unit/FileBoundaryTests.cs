@@ -250,12 +250,15 @@ public sealed class FileBoundaryTests : IDisposable
     /// the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is outside the externally defined boundaries — GR33 b)'s
     /// '24', the invalid key condition — and a medium with no ROOM answers §2023:9.1.13.6 item 1's '30' at that statement;
     /// both leave the file as the previous statement left it, so the next OPEN reads exactly the records written
-    /// before.</summary>
-    [Fact]
-    public void RelativeWrite_BoundaryIsTheHosts_AndTheKeyRangeIs34()
+    /// before. The key range's '34' holds from 2014, the first text with GR29 b)'s sentence (§2014:14.9.47.3 GR26 b);
+    /// kb/Work PB5125).</summary>
+    [Theory]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void RelativeWrite_BoundaryIsTheHosts_AndTheKeyRangeIs34(int edition)
     {
-        string host = Host("rel.dat");
-        var c = new RelativeConnector(host, 4, KeyedAccess.Random, 18);
+        string host = Host($"rel-{edition}.dat");
+        var c = new RelativeConnector(host, 4, KeyedAccess.Random, 18) { Edition = edition };
         Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
         foreach (long key in new long[] { 536_870_888, RelativeConnector.HighestRelativeRecordNumber, 5 })
         {
@@ -277,13 +280,13 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     /// <summary>⛔ THE KEY RANGE'S STATUS IS THE EDITION'S (kb/Work PB5125). §2023:14.9.51.4 GR29 b) answers '34' for a key
-    /// below 1 or above the highest permitted number; the 2002 text (§2002:14.8.47.3 GR29 b)) and §1985:VIII.1.3.4 item (3) c)
-    /// know only the write beyond the externally defined boundaries, '24', the invalid key condition. Below 2023 the attempt
+    /// below 1 or above the highest permitted number, and so does the 2014 text (§2014:14.9.47.3 GR26 b)); the 2002 text
+    /// (§2002:14.8.47.3 GR29 b)) and §1985:VIII.1.3.4 item (3) c)
+    /// know only the write beyond the externally defined boundaries, '24', the invalid key condition. Below 2014 the attempt
     /// is therefore no permanent error: the next statement on the file runs, and nothing is released.</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
-    [InlineData(2014)]
     public void RelativeWrite_KeyOutOfRange_BelowTheFirstEditionWithGR29b_Is24(int edition)
     {
         string host = Host($"range-{edition}.dat");

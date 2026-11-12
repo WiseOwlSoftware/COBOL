@@ -772,8 +772,8 @@ unheld 1985 text.
   `construct:<id>` and derives its output from the unit's own expectation. Reported as unit-level coverage.
 - `excluded`, with a reason: `fips-pub-21-1` (decision 11) or `ccvs-scaffolding` (CCVS's own machinery, such as the
   X-card parameters). A CCVS check a later edition's text contradicts is not excluded: RL118A's REL-TEST-2 holds at
-  85 (a key of 0 is the invalid key condition '24', §1985:VIII.1.3.4) and fails from 2023 (§2023:14.9.51.4 GR29 b)
-  answers '34', a permanent error; kb/Work PB5125), so it maps as `rows`, its 2023 report a per-edition golden.
+  85 (a key of 0 is the invalid key condition '24', §1985:VIII.1.3.4) and fails from 2014 (§2014:14.9.47.3 GR26 b)
+  answers '34', a permanent error; kb/Work PB5125), so it maps as `rows`, its 2014 report a per-edition golden.
 - `open`: not yet mapped.
 
 No unit is `not-claimed`: WiseOwl implements Communication (decision 12), the one candidate the study found.
