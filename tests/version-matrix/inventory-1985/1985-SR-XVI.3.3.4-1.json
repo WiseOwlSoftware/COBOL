@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.3.3.4-1",
  "rule-digest": "fad7243e9055",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#CheckSegmentation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RulesInForce; src/WiseOwl.Cobol.Compiler/Binding/Model/SegmentNumber.cs#IsIndependent",
+ "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_4-1",
+ "notes": "§1985:XVI.3.3.4 SR1: a SORT in a non-independent segment names input and output procedures that each lie \"Totally within non-independent segments, or\" wholly in a single independent segment. SortBinder.SortBindFile resolves each INPUT and OUTPUT PROCEDURE range and CheckSegmentation asks Segmentation.CheckProcedures of each at its phrase (COBOL6877 at 85 for a fixed/independent mix); the witness INPUT PROCEDURE 10 THRU 60 from segment 0 is refused. Probes at --std 85 (work-rd-11): each procedure is checked on its own at its phrase (SortBinder.CheckSegmentation): s01 SORT in segment 0 with INPUT in 60 and OUTPUT in 70 accepted and ran (A B DONE), s02 SORT in 60 with INPUT in 60 and OUTPUT in fixed 20 ran (A B DONE), s03 SORT in 60 USING F1 OUTPUT in 70 refused COBOL6877, s07 SORT USING/GIVING (sequential files, no procedures) in 60 ran (A); c edition arm: a segment-number at 2002/2014/2023 is COBOL0902 and --permissive does not ask the rule (e01); a, d, f do not reach a procedure-placement rule. The procedures are the NAMED ones (docs/CONFORMANCE.md 3.8).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

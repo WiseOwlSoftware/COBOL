@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-8",
  "rule-digest": "3c58da86ddc6",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitReceive; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#RecordAreaImage; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#PendingReceive",
  "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-8",
+ "notes": "Overturn confirmed, the MESSAGE arm of the same cause. The receiving area is the group's maximum length (VI.5.8.4 GR3b), so a message shorter than it falls under GR8b: left-aligned, the rest of the area unchanged, one RECEIVE, END KEY 2. The compiler hands PendingReceive the current-length image, so the message is treated as larger than the area (GR8c): it is split, END KEY 0, and the remainder is held as a new message. Rerun g2.cob: RM 0004 0 GN=5; own r4own.cob: IN 0002 0 for a 4-character message into a 10-position area. Note PB5377 is right. kb/Work PB5377 holds the defect (adjudication: held-85/set5/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

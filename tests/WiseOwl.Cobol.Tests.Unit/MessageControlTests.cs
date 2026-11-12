@@ -455,6 +455,22 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
     }
 
+    /// <summary>§1985:VI.6.24.4 GR3 (kb/Work PB5373 class 4), the SEND half: "Any portion of a message transferred from the run unit via a SEND statement, but not terminated by an EMI or EGI, is purged from
+    /// the system" when the run unit ends. The ended run unit's portion "HEL" never reaches destination D2's queue Q2, so a second run unit counts no message there, and the next complete message it
+    /// sends arrives alone, not behind the purged portion.</summary>
+    [Fact]
+    public void APortionSentAndNotEnded_IsPurgedWhenTheRunUnitEnds_AndNeverReachesTheDestination()
+    {
+        var sender = Session();
+        var other = Open();
+        Assert.Equal("00", OutputStatus(sender.Send("C", CommunicationFormat.Output, OutputArea(3, "D2"), "HEL", SendIndicator.None)));
+        sender.Dispose();
+        Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q2"))));
+        Assert.Equal("00", OutputStatus(other.Send("C", CommunicationFormat.Output, OutputArea(2, "D2"), "OK", SendIndicator.EndOfMessage)));
+        Assert.Equal("000001", InputCount(other.AcceptMessageCount(InputArea("Q2"))));
+        Assert.Equal("OK", other.Receive("C", CommunicationFormat.Input, InputArea("Q2"), false, "..", noDataPhrase: true).Into);
+    }
+
     /// <summary>PURGE with a store that refuses keeps the portion and the error keys.</summary>
     [Fact]
     public void PurgeTheStoreRefuses_KeepsThePortion()

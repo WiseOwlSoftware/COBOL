@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-16",
  "rule-digest": "4ee0f3a4cfa7",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatcher; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDebugRunner; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#EmitDebugCause; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#ContentsFor",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-16",
+ "notes": "§1985:XV.3.2.4 GR16 gives 'START PROGRAM' only when 'the first execution of the first nondeclarative procedure in the program' runs the debugging section. EmitDispatcher emits EmitDebugCause(StartProgram) in every activation's entry code, so each later CALL of a program not CANCELed (last-used state) reports START PROGRAM again; GR11 leaves an item no rule specifies spaces. Probes: witness matches; d1 (paragraph subject: START PROGRAM DEBUG-LINE 20 = first statement, then PERFORM LOOP line 23, GO TO spaces line 24, DEBUG-ITEM group image spaced right); d2 (subject not first: FALL THROUGH); d3 (no DEBUGGING MODE: section not run); d4m (CALL twice: START PROGRAM twice); 2002/2023: COBOL0902. Classes a/e/f not reachable by a procedure trigger. No kb/Work note: to be filed. kb/Work PB5415 holds the defect (code read: coderead-85/out-read3/rd-07.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

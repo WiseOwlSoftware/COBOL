@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XVI.3.3.2-1",
  "rule-digest": "ae93eee8b597",
+ "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_2-1",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

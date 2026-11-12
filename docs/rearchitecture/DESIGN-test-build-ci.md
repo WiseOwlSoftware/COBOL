@@ -972,7 +972,10 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   re-gates at once therefore queues BEHIND everyone already waiting. `gate-slot: waiting, k ahead (ticket t, cap N, …)` is
   printed each time `k` changes, `gate-slot: took slot k of N (ticket t, waited s)` on acquisition, and a waiting gate says
   WHY it waits (a count that rises while it waits is a ticket of an earlier class numbered after its own and served first; the gate next
-  in line says it waits for the first released slot).
+  in line says it waits for the first released slot). A queue whose place does not move, and a gate in its test phase, are never silent either: each writes a
+  heartbeat line (`gate-slot: still waiting, …`; `build-local: tests running, n of m test host(s) finished, …`) at least every
+  `gate_slot.HEARTBEAT_S` (120 s, `Heartbeat`, an injected clock), because the loop's progress report reads the log the gate
+  is redirected into as the group's act (kb/Work PB5097: 26.7 minutes of silence in the queue, 20 and more in the test phase).
 - **Three classes, served in `GATE_CLASSES` order (kb/Work PB3103, PB4888).** A ticket is `landing`
   (`ticket-<seq>-landing.lock`, `COBOL_GATE_CLASS=landing`), `fix` (`ticket-<seq>-fix.lock`, `COBOL_GATE_CLASS=fix`: the
   re-gate of a branch already through a review round, which a review or gate finisher sets, owner 2026-11-07) or

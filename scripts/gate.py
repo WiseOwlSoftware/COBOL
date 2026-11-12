@@ -113,7 +113,8 @@ import inert_lane  # noqa: E402  — THE classification of a change no test read
 import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT, this_platform  # noqa: E402
 import buildgraph  # noqa: E402  — THE targets, their keys and the one store of their passes (kb/Work PB5207, PB5218)
-from gate_slot import ExclusiveLock, GateSlots, QueueAbandoned, Slot, gate_class_from_env  # noqa: E402
+from gate_slot import (ExclusiveLock, GateSlots, Heartbeat, QueueAbandoned, Slot,  # noqa: E402
+                       gate_class_from_env)
 import process_job  # noqa: E402  — THE one held process tree: an audit's or a test host's whole tree, stopped as one (kb/Work PB5098)
 from detached import kill_tree, pid_alive, spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536), THE one tree kill (PB4072), THE one liveness probe (PB4008)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
@@ -1295,10 +1296,14 @@ def live_gate(lock_path: Path) -> LiveGate | None:
 class Gate:
     def __init__(self, host: Host, run_root: Path, base: str | None = None,
                  say: Callable[[str], None] = lambda s: print(s, flush=True), run_dir: Path | None = None,
-                 now: Callable[[], dt.datetime] = lambda: dt.datetime.now(dt.timezone.utc)):
+                 now: Callable[[], dt.datetime] = lambda: dt.datetime.now(dt.timezone.utc),
+                 heartbeat: Callable[[], Heartbeat] = Heartbeat, heartbeat_poll_s: float = 1.0):
         """`run_dir`: the run directory a detached gate's launcher made (`--run`); None makes a fresh one. `now`: the
-        UTC clock a new run's name shows, never its order (`new_run`); the self-test stops it and turns it back."""
+        UTC clock a new run's name shows, never its order (`new_run`); the self-test stops it and turns it back.
+        `heartbeat`: makes the clock of the line the test phase writes while the hosts run (`_run_hosts`), polled every
+        `heartbeat_poll_s`; the self-test steps it."""
         self.host, self.run_root, self.base, self.say, self.run_dir = host, run_root, base, say, run_dir
+        self.heartbeat, self.heartbeat_poll_s = heartbeat, heartbeat_poll_s
         self.now = now
         self._pool: concurrent.futures.ThreadPoolExecutor | None = None  # `run` owns it for the work `_beside` starts
         self._base_sha: str | None = None
@@ -2142,14 +2147,35 @@ class Gate:
                                               for a in asms) or "no test host: nothing to run")
                  + (" concurrently" if len(asms) > 1 else ""))
 
+        stop_beat, finished = threading.Event(), []   # `finished`: appended by each host thread (list.append is atomic)
+
         def one(asm: str) -> tuple[str, int, float, float]:
             env = host_env(first, buildgraph.observation_log(run, asm), plan[asm], self._handed(asm))
             t = time.monotonic()
             rc = self.host.run_host(asm, run, env, spawn)
+            finished.append(asm)   # at the host's own return, not at pool.map's submission-order yield (R1-2)
             return asm, rc, time.monotonic() - t, time.monotonic() - hosts_started
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max(len(asms), 1)) as pool:
-            results = {asm: (rc, wall, fin) for asm, rc, wall, fin in pool.map(one, asms)}
+        # THE HEARTBEAT (kb/Work PB5097): the hosts write only their own logs, so the gate's console log (the one the
+        # loop's progress report reads as the group's act) is silent from the line above to the verdict, 20 minutes and
+        # more of a whole-population run. A line at every HEARTBEAT_S says the gate is alive and in its test phase.
+        def beat() -> None:
+            hb = self.heartbeat()
+            while not stop_beat.wait(self.heartbeat_poll_s):
+                if hb.due():
+                    self.say(f"build-local: tests running, {len(finished)} of {len(asms)} test host(s) finished, "
+                             f"{time.monotonic() - hosts_started:.0f} s since the hosts started")
+
+        beater = threading.Thread(target=beat, name="heartbeat", daemon=True)
+        beater.start()
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max(len(asms), 1)) as pool:
+                results = {}
+                for asm, rc, wall, fin in pool.map(one, asms):
+                    results[asm] = (rc, wall, fin)
+        finally:
+            stop_beat.set()
+            beater.join()
         if self.host.hosts_live.stopped_any():
             return   # stopped by a RED audit (`_audits`): a killed host's log is no report, `_audit_red` ends the gate
         for asm in asms:
@@ -2280,6 +2306,9 @@ class FakeHost(Host):
         self.stopped_by_audit, self.host_started = threading.Event(), threading.Event()
         #: Set when every planted test host has returned: the "audit-after-hosts" arm's audit turns RED only then.
         self.hosts_done, self._hosts_returned = threading.Event(), 0
+        #: Set by the "slow-host" arm's console once the gate has written a heartbeat line (kb/Work PB5097): its planted
+        #: hosts stay in their test phase until then.
+        self.beat_seen = threading.Event()
         self.reflog: list[tuple[str, int]] = [("head-1", 0)]   # `head_reflog`: (commit, Unix time HEAD moved to it)
         self.slot_taken = threading.Event()   # the "audit-slot" arm's ordering: the audit is red once the gate is queued
         self.ticket_live = False              # the "audit-slot" arm: the gate's ticket is in the planted queue
@@ -2455,6 +2484,8 @@ class FakeHost(Host):
         if "own-generation" in self.plant and asm == "Conformance":   # a host that ignored the hand-off (PB5231 R1-2)
             with open(env["WISEOWL_COBOL_HARNESS_LOG"], "a", encoding="utf-8", newline="\n") as log:
                 log.write(f"2026-11-11T00:00:00Z\t1\t{buildgraph.OWN_GENERATION}  suite :: planted\n")
+        if "slow-host" in self.plant:   # a host in its test phase, silent, until the gate's heartbeat line has been seen
+            self.beat_seen.wait(60)
         only = env.get(ONLY_CASES)   # a RETRY (kb/Work PB5099): the host runs exactly the cases its file names
         names = Path(only).read_text(encoding="utf-8").splitlines() if only else self.POPULATION[asm]
         cases = [(n, ["Passed"]) for n in self.POPULATION[asm] if n in names]
@@ -2638,6 +2669,24 @@ def self_test() -> int:
             and o.slot is None and not h.built and not o.runs and h.events == ["fetch", "slot"]
             and sink[-1] == o.line and run_dirs(root / "audit-slot" / "runs")[-1].joinpath(VERDICT_FILE).exists()
             and o.timings.get("slot_wait_s", 99) < 30, f"{o.line} {h.events}")
+        d = root / "slow-host"
+        d.mkdir()
+        slow = FakeHost(d, d / "gate.lock", plant={"slow-host"})
+        beats: list[str] = []
+
+        def console(line: str) -> None:
+            beats.append(line)
+            if "tests running" in line:
+                slow.beat_seen.set()
+
+        steps = iter(range(0, 10**9, 100))   # the arm's own clock: 100 s a reading, a beat every 300 s
+        o = Gate(slow, d / "runs", say=console, heartbeat=lambda: Heartbeat(300.0, lambda: float(next(steps))),
+                 heartbeat_poll_s=0.01).run()
+        arm("a gate in its test phase writes a heartbeat line to its console while its hosts run and say nothing "
+            "(kb/Work PB5097), and the line names the hosts finished and the seconds since they started; the clock is "
+            "the arm's own, so no wall-clock limit decides it",
+            o.verdict == "GREEN" and any(re.search(r"build-local: tests running, 0 of \d+ test host\(s\) finished, \d+ s since the "
+                                                   r"hosts started", b) for b in beats), f"{o.line} {beats[-5:]}")
         o, h = gate("audit-late", plant={"audit-late"})
         arm("an audit that is RED only after the test hosts have started STOPS them: the verdict is RED, the audit "
             "named, the hosts' partial results are NOT measured (no population) (kb/Work PB4326)",

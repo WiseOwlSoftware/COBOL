@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-20",
  "rule-digest": "57b546c24839",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#EmitDebugCause; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDebugRunner; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#ContentsFor",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-20",
+ "notes": "§1985:XV.3.2.4 GR20: when the PERFORM control mechanism transfers to procedure-name-1, DEBUG-LINE the PERFORM, DEBUG-NAME procedure-name-1, 'DEBUG-CONTENTS contains 'PERFORM LOOP''. ControlFlowEmitter.EmitOutOfLinePerform sets the PerformLoop cause with the PERFORM's line on every transfer of every loop form. Probes: witness matches; d7 (2 TIMES: two triggers line 21; zero and negative TIMES and UNTIL already true: none; VARYING I 1..2: two; PA THRU PB: PA PERFORM LOOP, PB FALL THROUGH); d1 (PERFORM line 23); 2002/2023 COBOL0902. PERFORM of a subject section's first paragraph also runs it (d8): the GR3 defect.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

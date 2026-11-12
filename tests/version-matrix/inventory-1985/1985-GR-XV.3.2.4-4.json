@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-4",
  "rule-digest": "2925da0ffcd7",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddAllProceduresSubjects; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugSectionSubject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#IsDebuggingSection; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-4",
+ "notes": "§1985:XV.3.2.4 GR4: ALL PROCEDURES applies GR3 'for every procedure-name in the program, except those appearing within a debugging section'. AddAllProceduresSubjects gets the set right: d9 shows sections and paragraphs, the non-debugging USE section ERR and its paragraph (USE PROCEDURE), GO TO DEPENDING target P-B, and no trigger for the data-name debugging section's own paragraph; the witness matches. But each section is a subject at its first pc, so GR3's defect reaches every section here: d11 re-runs the section S1 on each loop GO TO S1-1. ProcedureTableBuilder.AddDebugSectionSubject records a section-name subject as a trigger at the section's FIRST pc, and DispatchEmitter.EmitDispatchMethod fires every subject at its pc on every entry to that pc, so any transfer to the section's first PARAGRAPH (GO TO P1, GO TO P1 OF S2, PERFORM P1, a loop back to it) runs the section's debugging section under the section's name. docs/CONFORMANCE.md D-DEBUG-PROCEDURE encodes this ('runs it once, when control reaches the section's first paragraph'); PB5083 (landed) fixed only the later-paragraph case. No kb/Work note owns it: to be filed. kb/Work PB5414 holds the defect (code read: coderead-85/out-read3/rd-07.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

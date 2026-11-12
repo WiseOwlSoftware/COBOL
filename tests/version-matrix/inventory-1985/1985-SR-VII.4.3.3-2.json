@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VII.4.3.3-2",
  "rule-digest": "a18bdce415d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenMultipleFileClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MultipleFileReels; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen",
+ "test-ref": "conformance:cases/VII.4.3@1985-OPEN-STATEMENT/1985-SR-VII_4_3_3-2",
+ "notes": "§1985:VII.4.3.3 SR2: 'The EXTEND phrase must not be specified for a multiple file reel.'; a file is on one when the MULTIPLE FILE TAPE clause names it (§1985:VII.2.11.3 GR1). FileControlBinder.ScreenMultipleFileClause records each named file's reel on FileModel.MultipleFileReels, and StatementValidation.CheckOpenModeForFile, called per file-name of every OPEN group by SequentialIoBinder, refuses EXTEND on such a file with COBOL6814 at every edition (the clause itself is COBOL0902 from 2002, so 85 is the edition it reaches). Probes at --std 85: the witness (EXTEND of the first file) and EXTEND of the second file, EXTEND in a multi-group OPEN (OUTPUT F3 EXTEND F1), a POSITION-phrase clause, a one-file clause and a relative file on the reel (COBOL6814 plus GR20 d's COBOL6816) are all refused; OUTPUT/INPUT of a reel file and EXTEND of an OPTIONAL file off the reel run (ABC written and read back). Classes b, c (2023: COBOL0902 on the clause) and e (sequential and relative organizations, a failed OPEN EXTEND of a missing non-optional file gives status 35); a, d, f do not reach an OPEN syntax rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

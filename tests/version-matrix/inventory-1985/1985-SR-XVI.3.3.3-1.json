@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.3.3.3-1",
  "rule-digest": "fad7243e9055",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#CheckSegmentation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RulesInForce; src/WiseOwl.Cobol.Compiler/Binding/Model/SegmentNumber.cs#IsIndependent",
+ "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_3-1",
+ "notes": "§1985:XVI.3.3.3 SR1: a MERGE in a non-independent segment names an output procedure that lies \"Totally within non-independent segments, or\" wholly in a single independent segment. SortBinder.BindMerge resolves the OUTPUT PROCEDURE range and CheckSegmentation asks Segmentation.CheckProcedures at the phrase, which at 85 refuses a fixed/independent mix (COBOL6877); the witness MERGE OUTPUT 10 THRU 60 from segment 0 is refused. Probes at --std 85 (work-rd-11): s04 MERGE in 0 OUTPUT P-1 (60) THRU O-9 (70) refused COBOL6877 'segments 60, 70', s08 MERGE in 60 OUTPUT in 70 refused, s05 MERGE in 60 OUTPUT in 60 and s06 MERGE in 60 OUTPUT in fixed 49 accepted and ran with USING sequential files (DONE); MERGE has no INPUT PROCEDURE, so only its output procedure is checked (SortBinder.BindMerge); c edition arm: e01 (COBOL0902 at 2002+, --permissive does not ask the rule); a, d, f do not reach a procedure-placement rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

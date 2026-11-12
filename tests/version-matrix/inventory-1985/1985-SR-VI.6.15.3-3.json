@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.15.3-3",
  "rule-digest": "176643d9d074",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#BareGoToAlone; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#SequenceRuleOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGoToStatement",
+ "test-ref": "conformance:cases/VI.6.15@1985-GO-TO-STATEMENT/1985-SR-VI_6_15_3-3",
+ "notes": "§1985:VI.6.15.3 SR3: \"A format 1 GO TO statement, without procedure-name-1, can only appear in a single statement paragraph.\" PlacementRules.BareGoToAlone (selected by SequenceRuleOf for a target-less GO TO, asked only where Constructs.BareGotoRemoved2002 admits the statement, i.e. at 85) refuses with COBOL6818 a bare GO TO nested in IF, sharing its sentence (DISPLAY \"X\" GO TO; GO TO DISPLAY \"X\"), or one of 2 sentences in its paragraph (before or after another sentence, or two bare GO TOs), and accepts the paragraph whose only statement it is: probes P1. GO TO. altered by ALTER ... TO PROCEED TO and P3. GO TO. on the paragraph-name line ran to the altered targets. Edition arm: at --std 2002 and 2023 VersionConformancePass.VisitGoToStatement refuses the bare GO TO with COBOL0811 (deleted by ISO 2002). Witness: a bare GO TO as a second sentence, refused COBOL6818.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

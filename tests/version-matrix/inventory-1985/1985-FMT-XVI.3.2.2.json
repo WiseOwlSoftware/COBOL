@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-FMT-XVI.3.2.2",
  "rule-digest": "6d353d6e29dc",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#declarativeSection; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ScreenSegmentNumber; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#ValueOf",
+ "test-ref": "conformance:cases/XVI.3.2@1985-SEGMENT-NUMBERS/1985-FMT-XVI_3_2_2",
+ "notes": "§1985:XVI.3.2.2 prints 'section-name SECTION [ segment-number ] .', and §1985:III.2 defines the word: 'A segment-number may be expressed either as a one or two digit number.' sectionDefinition and declarativeSection admit SECTION integerLiteral? DOT, VisitSectionDefinition gates the number only from 2002 (COBOL0902) and ScreenSegmentNumber checks its VALUE through Segmentation.ValueOf, which strips leading zeros, so the one- and two-digit forms, the omitted number and the period are right but a three- or four-digit spelling with leading zeros is accepted as if it were the two-digit number. Probes at 85: (b) 'SECTION 30 30.', 'SECTION -5.', 'SECTION 5.0.', 'SECTION ABC.' and a header without its period are each refused; 'SECTION 0.' and 'SECTION 99.' run; 'SECTION 050.' runs and prints 'OK 050', and 'M SECTION 0050.' with 'SEGMENT-LIMIT IS 010' runs (under-reject; the sibling level-number shape, 001, is refused by COBOL1746). (c) the number is COBOL0902 at --std 2002. The witness runs fixed segment 40 and independent segment 60 with ALTERed GO TOs. kb/Work PB5379 holds the defect (code read: coderead-85/out-read3/rd-04.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

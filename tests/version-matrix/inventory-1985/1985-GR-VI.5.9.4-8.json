@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.9.4-8",
  "rule-digest": "c02982279f8f",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-GR-VI_5_9_4-8",
+ "notes": "Overturn confirmed. GR8 lists four operations that count the P positions (a numeric sending operand, two MOVE cases and a numeric comparison) and says that in all other operations they are ignored and are not counted in the size of the operand. INSPECT is none of the four: identifier-1 is inspected as though it had been redefined as alphanumeric (VI.6.18.4 GR3b), from its leftmost character position (GR2), so a 9PP item is one character. The compiler builds the subject from OperandText.AsString(deSign: true), the digit image with the P positions written as zeros (InspectEmitter#Emit, line 49), and stores the REPLACING result back through that image (EmitStore). Rerun: 9PP VALUE 500 tallies FOR CHARACTERS 03 (expected 01) and VPP9 VALUE .007 tallies 03 (expected 01) and FOR ALL '0' 02 (expected 00). REPLACING ALL '5' BY '7' turns the 5-character group G1 (9PP + X(4) 'ABCD') into the displayed 7 characters [700ABCD], N=70000, which no reading of the rule allows. The note PB5375 is right in its citations and its expected results. It omits that kb/Work PB5187 (landed) claimed this same row in its 2026-11-10 addendum with the INSPECT tally as a witness, and that the landing fixed only the comparison arm (ConditionRenderer.ComparisonText via OperandText.AsItemSizeTemporary). PB5375 is that remaining arm and should name PB5187 as related. kb/Work PB5375 holds the defect (adjudication: held-85/set5/decisions.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

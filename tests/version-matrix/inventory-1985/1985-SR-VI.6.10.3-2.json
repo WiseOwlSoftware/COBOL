@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.10.3-2",
  "rule-digest": "9f25367bb269",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDisplayStatement; src/WiseOwl.Cobol.Frontend/Parsing/Cobol85OperandForms.cs#IsUnsignedIntegerLiteral",
+ "test-ref": "conformance:cases/VI.6.10@1985-DISPLAY-STATEMENT/1985-SR-VI_6_10_3-2",
+ "notes": "§1985:VI.6.10.3 SR2: \"If literal-1 is numeric, then it must be an unsigned integer.\" VersionConformancePass#VisitDisplayStatement asks Cobol85OperandForms#IsUnsignedIntegerLiteral (no sign written, a single INTEGERLIT token) of every numeric literal operand and checks construct display-numeric-literal-2002, so 85 refuses COBOL0900 and 2002 on accepts (the witness DISPLAY 1.5 prints 1.5 at 2002). Probes at 85: refused -1, +1, -0, +0, 1.0, .5, 1.5E2, \"A\" 1.5 (second operand) and 1,5 under DECIMAL-POINT IS COMMA; accepted and printed 0, 0001, 18-digit 123456789012345678, 999999999999999999 \"X\", ZERO and ALL \"1\" (figurative constants are not numeric literals). Classes a, e and the edited/group class do not reach a literal rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

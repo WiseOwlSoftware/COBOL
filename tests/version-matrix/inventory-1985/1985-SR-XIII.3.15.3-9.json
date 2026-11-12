@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.15.3-9",
  "rule-digest": "149414de10d7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses",
+ "test-ref": "conformance:cases/XIII.3.15@1985-LINE-NUMBER-CLAUSE/1985-SR-XIII_3_15_3-9",
+ "notes": "§1985:XIII.3.15.3 SR9: \"The first LINE NUMBER clause specified within a PAGE FOOTING report group must be an absolute LINE NUMBER clause.\" ScreenReportLineClauses walks the RD's entries, resets firstLineClause at each level-01 entry, and below 2002 refuses the group's first LINE operand when it is relative (PLUS, +, or NEXT PAGE without integer-1) in a page footing (COBOL2199). Probes at --std 85: a relative first LINE at level 01 (TYPE PF LINE PLUS 1) and at level 05 (the witness) refused; LINE + 1 refused twice (SR9 and the 2002 '+' gate, COBOL0900); an absolute first LINE 18 followed by LINE PLUS 1 ran and printed FT1 on line 18 and FT2 on line 19 of a 20-line page; a relative first LINE in a page heading is accepted; the witness compiles at --std 2002.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

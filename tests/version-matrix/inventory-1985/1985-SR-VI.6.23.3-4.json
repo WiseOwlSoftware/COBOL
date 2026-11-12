@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.23.3-4",
  "rule-digest": "085745451208",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#GateCobol85IndexAmount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#IsCobol85IndexAmount; src/WiseOwl.Cobol.Frontend/Parsing/Cobol85OperandForms.cs#IsInteger; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetUpDown",
+ "test-ref": "conformance:cases/VI.6.23@1985-SET-STATEMENT/1985-SR-VI_6_23_3-4",
+ "notes": "§1985:VI.6.23.3 SR4: \"Integer-1 and integer-2 may be signed. Integer-1 must be positive.\", read with §1985:III.2's \"neither signed nor zero unless explicitly allowed\". BindSetTo and BindSetUpDown call GateCobol85IndexAmount, which at 85 (row set-arithmetic-expression-2002 unavailable) asks Cobol85OperandForms.IsInteger with sign Positive for integer-1 and Any for integer-2; IsInteger refuses zero at every sign, a decimal point and a sign detached by a space, and the refusal is COBOL0900. Probes at 85: TO 0, -1 (the witness), +0, -0, ZERO, 1.0, 1.5, - 1, 2 + 1, and a list SET IX, IY TO 0 refused; TO +2 and 00004 run (02, 04); UP BY 0, -0, 1.0, 1.5 refused; UP BY -1, +2, DOWN BY 1 run (02); 18-digit integers compile; --std 2002 accepts TO 0, TO -1 and UP BY 0.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

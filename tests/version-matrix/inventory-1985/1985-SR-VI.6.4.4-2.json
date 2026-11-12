@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.4.4-2",
  "rule-digest": "debfac8513ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-SR-VI_6_4_4-2",
+ "notes": "§1985:VI.6.4.4 SR2: \"The maximum size of each operand is 18 decimal digits\" and the composite of the operands each statement specifies \"must not contain more than 18 decimal digits\". The per-operand bound is EditionContext.CheckDigitCapacity (COBOL0802 for a 19-digit PICTURE 9(19), an edited Z(18)9 and a 19-digit literal at 85); the composite is StatementValidation.CheckComposite at Edition.MaxDigits = 18, with the per-verb membership the ArithmeticBinder Bind* members pass (all operands for ADD/SUBTRACT format 1, GIVING excluded in format 2, receivers only for MULTIPLY/DIVIDE below 2002 via CompositeMembers.ReceivingItems85, REMAINDER excluded) and CorrespondingBinder.CorrMatch per pair. Probes at --std 85: ADD 9(10) TO V9(9), a COMP S9(10), a P-scaled 9(10)P(5) with V9(4), and an ODO element OT(1) all refused COBOL0805 at 19 and accepted at 18; DIVIDE I9 INTO I10 F9 refused, DIVIDE ... GIVING I9 REMAINDER F9 accepted; CORRESPONDING accepted when only the whole statement spans 19; 2002/2023 accept the same 19-digit composites. Witness: ADD 9(18) TO V9, refused COBOL0805.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

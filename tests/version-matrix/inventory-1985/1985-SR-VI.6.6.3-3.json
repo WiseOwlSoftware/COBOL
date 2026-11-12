@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.6.3-3",
  "rule-digest": "58af25670108",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch",
+ "test-ref": "conformance:cases/VI.6.6@1985-ADD-STATEMENT/1985-SR-VI_6_6_3-3",
+ "notes": "§1985:VI.6.6.3 SR3: the ADD composite \"must not contain more than 18 digits\": format 1 over all operands, \"In format 2 the composite of operands is determined by using all of the operands in a given statement excluding the data items that follow the word GIVING\", format 3 per pair of corresponding items. ArithmeticBinder.BindAdd passes the addends with the TO receivers (format 1) or the addends incl. the TO operand and no receivers (format 2) to StatementValidation.CheckComposite, capped at Edition.MaxDigits = 18 at 85 (COBOL0805); CorrespondingBinder.CorrMatch checks each pair. Probes at --std 85: ADD 9(10) TO V9(9) refused, TO V9(8) accepted; ADD I10 F9 GIVING I18 refused (19 among the addends), ADD I10 TO I9 GIVING F9 accepted (GIVING excluded); ADD 1 TO I18 GIVING Z(8)9 accepted; ADD CORRESPONDING refused for a 19-digit pair and accepted and run for pairs of 15 and 14 digits whose union is 19; ADD 1 TO an S9(17)V9 at its maximum took SIZE ERROR; 2002/2023 accept the 19-digit composite. Witness: ADD 9(10) TO V9(9), refused COBOL0805.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

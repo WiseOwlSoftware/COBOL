@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XII.2.4-12",
  "rule-digest": "1e8437876da2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ForbiddenIn",
+ "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-GR-XII_2_4-12",
+ "notes": "§1985:XII.2.4 GR12 (the 1993 amendment): \"The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.\" ResolveOneCopy asks FindStatementKeyword whether the library text holds a COPY statement and, below 2002, refuses it at the outer COPY through the constructs row copy-nested-library-text-2002 (COBOL0900); the other way the produced text can hold one, a REPLACING operand that introduces COPY, is ApplyReplacements' ForbiddenIn (COBOL2574, every edition). Probes at --std 85: the witness (PB5126OU holds COPY PB5126IN) refused, and also with REPLACING on the outer COPY; REPLACING ==DISPLAY XX.== BY ==COPY LIBLIT.== and a pseudo-text-2 ending in COPY LIBLIT refused (COBOL2451 + COBOL2574); library text with COPY only inside an alphanumeric literal and on a comment line ran (prints COPY LIBX.); a copied AUTHOR comment-entry holding the word COPY ran (SR10); the witness at --std 2002 runs START OUTER INNER END.",
  "next": {
   "kind": "CHANGED",
   "to": [

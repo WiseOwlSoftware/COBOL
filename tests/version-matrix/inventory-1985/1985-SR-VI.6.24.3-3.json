@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.24.3-3",
  "rule-digest": "9f25367bb269",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral; src/WiseOwl.Cobol.Frontend/Parsing/Cobol85OperandForms.cs#IsUnsignedIntegerLiteral",
+ "test-ref": "conformance:cases/VI.6.24@1985-STOP-STATEMENT/1985-SR-VI_6_24_3-3",
+ "notes": "§1985:VI.6.24.3 SR3: \"If literal-1 is numeric, then it must be an unsigned integer.\" ControlFlowBinder.ScreenStopLiteral (85 only, where STOP literal exists) reports COBOL6817 unless Cobol85OperandForms.IsUnsignedIntegerLiteral holds: no PLUS or MINUS and a lone INTEGERLIT token; the witness is STOP 1.5. Probes (work-rd-09/stop): b) refused COBOL6817: ALL \"A\", ALL 'XY', ALL ZERO, ALL SPACES, ALL QUOTES, ALL symbolic-character, 1.5, 1.0, .5, -1, +1; accepted and run: ZERO, SPACE, QUOTE, HIGH-VALUE, \"HELLO\", 0, the 18-digit 123456789012345678 (each printed, then 'AFTER'); c) X\"41\" is COBOL0900 at 85, and the whole STOP literal statement is COBOL0902 at --std 2002. f) 0 and 18 digits are accepted; a negative or explicitly signed value and any literal with a digit right of the point are refused; a nonnumeric literal is outside the rule and accepted.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

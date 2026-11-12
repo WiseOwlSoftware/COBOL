@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.9.3-4",
  "rule-digest": "28edea88f1f5",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+ "test-ref": "conformance:cases/XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/1985-SR-XIII_3_9_3-4",
+ "notes": "§1985:XIII.3.9.3 SR4: \"A description of a report group may consist of one, two, or three hierarchic levels\": a. the first entry is format 1; b. \"Both format 2 and format 3 entries may be immediately subordinate to a format 1 entry\"; c. a format 2 entry has a format 3 entry immediately subordinate; d. format 3 entries are elementary. ReportSectionBinder#ScreenReportEntryFormats (85 only) refuses a level-01 entry with format 3 clauses (a) and a format 2 entry with no immediate format 3 child (c), and #ScreenReportEntryClausePresence refuses PICTURE/COLUMN on a group (d), all COBOL2247. Nothing caps the depth: a format 2 entry subordinate to another format 2 entry (four levels) is accepted. Probes at 85: refused the witness (02 LINE 2 with no child), 01 with COLUMN PIC VALUE, a PICTURE COLUMN group over a format 3 child; accepted and printed three levels (HELLO    012), two levels (01 LINE over format 3), a level gap 02 to 05, a lone format 1 detail; under-rejected f1/f2/f2/f3 (printed \"A   B\"). At 2002 the four-level group compiles, as 2023 SR3 allows. kb/Work PB5426 holds the defect (code read: coderead-85/out-read3/rd-06.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

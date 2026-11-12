@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VII.2.7.3-1",
  "rule-digest": "49edbe0d640e",
+ "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-SR-VII_2_7_3-1",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

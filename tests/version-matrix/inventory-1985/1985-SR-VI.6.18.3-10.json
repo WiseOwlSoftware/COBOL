@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.18.3-10",
  "rule-digest": "6a2204a2ac72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectConvertingRepeatedCharacter; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectSizeRulesCoverDataItems",
+ "test-ref": "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/1985-SR-VI_6_18_3-10",
+ "notes": "§1985:VI.6.18.3 SR10: 'The same character must not appear more than once either in literal-4 or in the data item referenced by identifier-6.' BindPhraseOperands calls CheckInspectConvertingRepeatedCharacter on the CONVERTING operand; below 2002 it scans a literal-4 and reports COBOL6859 at the first repeated character; identifier-6's content is a run-time value no syntax check can see, and from 2002 the rule is gone (first occurrence used). Probes at 85: (b) 'ABA', 'AA' TO SPACE, 'A  ' (space twice) and a 37-character literal-4 continued across a line with A repeated on the continuation are COBOL6859; 'ABCD' TO 'abcd' runs 'abcdabcd' and 'Aa' (case distinct) runs. (d/f) an identifier-6 and a FUNCTION UPPER-CASE(WS-2) holding 'AA' at run time compile and convert by the first occurrence ('XBCDXBCD'), outside what a syntax rule can check. (c) at --std 2002 'ABA' TO 'XYZ' compiles and runs 'XYCDXYCD'. The witness's CONVERTING 'ABA' TO 'XYZ' is COBOL6859.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

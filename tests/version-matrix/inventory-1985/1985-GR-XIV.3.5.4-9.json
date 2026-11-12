@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-9",
  "rule-digest": "98b2b23494a4",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitReceive; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#RecordAreaImage; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#PendingReceive",
  "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-9",
+ "notes": "Overturn confirmed, the SEGMENT arm of the same cause. A 9-character segment into a group whose maximum length is 10 falls under GR9b (left-aligned, the rest unchanged, END KEY 1). The current-length area (4 at GN=3) makes the compiler apply GR9c instead: rerun g2.cob gives RS 0004 0 GN=7, where TEXT LENGTH 0009 and END KEY 1 are expected. Note PB5377 is right. kb/Work PB5377 holds the defect (adjudication: held-85/set5/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

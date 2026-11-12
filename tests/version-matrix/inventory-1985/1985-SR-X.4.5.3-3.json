@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-X.4.5.3-3",
  "rule-digest": "cd5de8d1670b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataDescriptionEntry; src/WiseOwl.Cobol.Editions/Constructs.g.cs#ValueClauseLinkageFileExternal2002",
+ "test-ref": "conformance:cases/X.4.5@1985-EXTERNAL-CLAUSE/1985-SR-X_4_5_3-3",
+ "notes": "§1985:X.4.5.3 SR3 (amended): 'The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause. The VALUE clause may be specified for condition-name entries associated with such data description entries.' VersionConformancePass.VisitDataDescriptionEntry marks the record (the nearest 01/77, or a level-01 REDEFINES of an external record) as external, and VisitValueClause checks the construct value-clause-linkage-file-external-2002 for every data-item VALUE in it, so --std 85 refuses with COBOL0900; a level-88 VALUE is outside the gated entry and stays legal. Probes at --std 85: VALUE on the 01 EXTERNAL item, on a subordinate (the witness), on a level-10 S9(3)V9 item, VALUE ALL, ZERO into PIC 9(18), an edited item, the ODO object of an OCCURS DEPENDING ON table, a FILLER, a REDEFINES of the external record and an EXTERNAL FD's record are all refused; 88 entries with one and two values under an external item run (YES, NO); the next 01 and a 77 after the external record keep their VALUE (OK7); at --std 2002 the witness compiles. Classes a, b, c, d, e (EXTERNAL FD); f does not reach this syntax rule.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

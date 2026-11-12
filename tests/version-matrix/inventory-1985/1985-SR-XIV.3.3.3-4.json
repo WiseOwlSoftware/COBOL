@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.3.3.3-4",
  "rule-digest": "e02c4e2193ce",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#IsAlphanumericKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#IsCommunicationAlphanumericArea",
+ "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-SR-XIV_3_3_3-4",
+ "notes": "§1985:XIV.3.3.3 SR4: \"Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.\" CommunicationBinder#BindPath binds the KEY operand and refuses COBOL6171 when #IsAlphanumericKey fails; for a data item it asks #IsCommunicationAlphanumericArea of Place.Item, the item as declared, so a reference modification is ignored. §1985:IV.4.3.8.4.4 GR5 makes a reference-modified numeric, numeric edited or alphanumeric edited item \"class and category alphanumeric\", so ENABLE ... WITH KEY K-NUM (1:2) is legal and is refused. Probes at 85 (ENABLE OUTPUT): refused numeric, PIC A, ZZ9, S9(3)V9, -1, LENGTH and NUMVAL functions, a witness-like numeric item; accepted X, XBX, a group, \"PW\", SPACE, ZERO, ALL \"A\", K-T (I), UPPER-CASE, CHAR (66), CURRENT-DATE (1:4); rejected K-NUM (1:2). The KEY phrase is refused at 2002 on (COBOL0902). Siblings with the same cause: DISABLE KEY K-NUM (1:2) at 85 and RECEIVE INTO K-NUM (1:2) at 2002 (A.2.5.2 SR2) are refused COBOL6171 too. kb/Work PB5384 holds the defect (code read: coderead-85/out-read3/rd-06.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

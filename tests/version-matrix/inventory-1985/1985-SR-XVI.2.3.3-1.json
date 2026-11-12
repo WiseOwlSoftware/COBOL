@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.2.3.3-1",
  "rule-digest": "b17e5abef5ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSegmentLimitClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ScreenSegmentNumber; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#ValueOf; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots",
+ "test-ref": "conformance:cases/XVI.2.3@1985-SEGMENT-LIMIT-CLAUSE/1985-SR-XVI_2_3_3-1",
+ "notes": "§1985:XVI.2.3.3 SR1: \"Segment-number must be an integer ranging in value from 1 through 49.\" VersionConformancePass.VisitSegmentLimitClause calls ScreenSegmentNumber(1, 49) where the segment-limit-removed-2002 construct is available (COBOL-85 only), reading the value through Segmentation.ValueOf (leading zeros dropped, three or more significant digits saturate), and refuses 50 and up with COBOL6819; zero is IntegerOperandRules.Slots' Nonzero row (COBOL2386); the grammar admits only an unsigned integer literal. Probes at --std 85: 1, 49, 049 compile and run (sections 5 and 60 performed, OK 5); 50, 050, 99, 100, 18 digits (also COBOL2427), the 50 after MEMORY SIZE, and the second of two clauses get COBOL6819; 0 and 00 get COBOL2386; -1, +10, 10.0, \"10\", ZERO, a data-name and no operand are parse errors. At --std 2002 the clause is COBOL0902. The witness refuses SEGMENT-LIMIT IS 50.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

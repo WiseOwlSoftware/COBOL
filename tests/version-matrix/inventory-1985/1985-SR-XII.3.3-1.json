@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XII.3.3-1",
  "rule-digest": "ce613cb3ffe6",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FollowsSeparatorPeriod; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword",
+ "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-SR-XII_3_3-1",
+ "notes": "§1985:XII.3.3 SR1: a REPLACE \"must be preceded by a separator period except when it is the first statement in a separately compiled program.\" ApplyReplaceStatements finds each REPLACE (FindStatementKeyword) over the text COPY has already expanded (§1985:XII.3.4 GR4) and, below 2002, refuses one that FollowsSeparatorPeriod rejects through the constructs row replace-anywhere-2002 (COBOL0900). Probes at --std 85: the witness (first in the file, and after END PROGRAM's period) prints ONE / TWO; after a period on the same line, after DISPLAY 1., and with a comment line between the period and REPLACE, it runs; after a literal with no period, and after a separator comma, it is refused; .REPLACE glued is refused (COBOL2449); --std 2002 accepts the no-period form. Gap: FollowsSeparatorPeriod accepts any REPLACE whose preceding character comes from another file, so a REPLACE that begins library text copied by a COPY statement that itself follows no period (DISPLAY \"X\" COPY LIBR.) compiles, though in the source program it follows DISPLAY \"X\" with no separator period on any reading of the rule. kb/Work PB5422 holds the defect (code read: coderead-85/out-read3/rd-03.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

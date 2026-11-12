@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-10",
  "rule-digest": "6a945732a924",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdClause",
+ "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-10",
+ "notes": "§1985:XIV.2.2.3 SR10: \"Data-name-1, data-name-2, data-name-3, data-name-4, and data-name-5 must be unique within a CD entry.\" For an output CD, CommunicationSectionBinder.ReadClauses records each of DESTINATION COUNT, TEXT LENGTH, STATUS KEY, ERROR KEY and SYMBOLIC DESTINATION through its local Record, which refuses a name another field of the entry carries with COBOL6169 quoting SR10 (\"within a CD entry\") at 85; a series of data-names and FILLER are refused for Format 2, which prints neither. Probes at 85: STATUS KEY = TEXT LENGTH (the witness), SYMBOLIC DESTINATION = DESTINATION COUNT, ERROR KEY = TEXT LENGTH under DESTINATION TABLE OCCURS 2 INDEXED BY DX, a lower-case repeat, and a repeat without the table each refused; five distinct names accepted and run (MOVE 2 TO DC prints 0002); an index-name reused as ERROR KEY is a different user-word kind (COBOL2692).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

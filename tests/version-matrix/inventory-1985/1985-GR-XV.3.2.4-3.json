@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-3",
  "rule-digest": "ddf53e391fee",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugSectionSubject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-3",
+ "notes": "§1985:XV.3.2.4 GR3 runs a procedure-name subject's section 'Immediately before each execution of the named procedure' and after an ALTER of it. Paragraph subjects, ALTER (d5), PERFORM (d7), fall-through (d2), GO TO DEPENDING (d9) and START PROGRAM are right, and the witness matches. ProcedureTableBuilder.AddDebugSectionSubject records a section-name subject as a trigger at the section's FIRST pc, and DispatchEmitter.EmitDispatchMethod fires every subject at its pc on every entry to that pc, so any transfer to the section's first PARAGRAPH (GO TO P1, GO TO P1 OF S2, PERFORM P1, a loop back to it) runs the section's debugging section under the section's name. docs/CONFORMANCE.md D-DEBUG-PROCEDURE encodes this ('runs it once, when control reaches the section's first paragraph'); PB5083 (landed) fixed only the later-paragraph case. No kb/Work note owns it: to be filed. d14: a loop GO TO P1 inside S2 re-runs S2's section on every pass, though S2 executes once. kb/Work PB5414 holds the defect (code read: coderead-85/out-read3/rd-07.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

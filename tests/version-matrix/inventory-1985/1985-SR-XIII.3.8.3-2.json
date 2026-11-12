@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.8.3-2",
  "rule-digest": "d7a5e488051c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MaxPageLimit85",
+ "test-ref": "conformance:cases/XIII.3.8@1985-PAGE-CLAUSE/1985-SR-XIII_3_8_3-2",
+ "notes": "§1985:XIII.3.8.3 SR2: \"Integer-1 must not exceed three significant digits in length.\" ReportSectionBinder.ScreenReportPageIntegers bounds the WRITTEN page limit's value by MaxPageLimit85 (999) under Edition.DialectLevel < 2002 and refuses with COBOL2744, so leading zeros (not significant) pass; the witness refuses PAGE LIMIT IS 1000 LINES. Probes at --std 85: 999, 0999, 0000000999, 00099 LIMITS ARE...LINE, bare PAGE 999 and the full HEADING/FIRST DETAIL/LAST DETAIL/FOOTING form compile and run (3 report lines); 1000, 01000, 9999, bare PAGE 1000, the full form with 1000, and a second PAGE clause with 1000 each get COBOL2744 citing §1985 SR2; 10000 and 18 digits are refused too but the message cites the 2023 9999 bound (the else-if checks 9999 first), a wording lead only; 0, 99.0 and +999 are refused (COBOL2386, COBOL5506, COBOL0001). Edition arms PAGE ... 132 COLUMNS, PAGE 132 COLUMNS (no integer-1) and LAST CONTROL HEADING compile at 85: a format under-reject owned by kb/Work PB5242, not this rule.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

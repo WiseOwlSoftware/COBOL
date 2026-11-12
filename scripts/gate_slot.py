@@ -105,6 +105,11 @@ _SLOT_FILE = re.compile(r"(\d+)\.lock")
 # in 503 s where one-at-a-time takes 741 s, and cap 3 stays.
 DEFAULT_SLOTS = 3
 DEFAULT_POLL_S = 1.0
+#: THE GATE'S HEARTBEAT (kb/Work PB5097): while a gate waits for a slot or runs its tests, its console log gets a line at
+#: least this often, so a gate with nothing else to say is not silent. The loop's progress report reads that log (the
+#: gate's output is redirected into the group's scratch directory) as an act of the group, and calls a group a STALL after
+#: `progress.STALL_IDLE_MIN` (20 minutes) without one; `progress.self_test` holds the two apart, two beats to the stall.
+HEARTBEAT_S = 120.0
 #: THE GATE CLASSES (kb/Work PB3103, PB4888), IN SERVICE ORDER: a gate `enqueue.py land` starts is a LANDING gate (it sets
 #: CLASS_ENV=landing for its gate), the re-gate of a branch already through a review round is a FIX gate (a review or gate
 #: finisher sets CLASS_ENV=fix: its branch is one fix away from CLEAN), every other gate an IMPLEMENTER gate. A ticket of
@@ -593,14 +598,36 @@ class QueueAbandoned(Exception):
     withdrawn and no slot was taken (kb/Work PB5322)."""
 
 
+class Heartbeat:
+    """When a waiting process owes its log a line (kb/Work PB5097): `due()` is true once `interval_s` has passed since the
+    last line (`mark()`, or the `due()` that answered true), by the injected `clock`, so a test steps time instead of
+    waiting on it."""
+
+    def __init__(self, interval_s: float = HEARTBEAT_S, clock: Callable[[], float] = time.monotonic):
+        self.interval_s, self.clock = interval_s, clock
+        self._last = clock()
+
+    def mark(self) -> None:
+        """A line was written for another reason: the next beat is a whole interval away."""
+        self._last = self.clock()
+
+    def due(self) -> bool:
+        if self.clock() - self._last < self.interval_s:
+            return False
+        self.mark()
+        return True
+
+
 class GateSlots:
     """One POOL of the repository's gate cap (kb/Work PB3724): N slots, served in SERVICE order (every ticket of an earlier
     class first, ticket order within each class; kb/Work PB3103, PB4888). N is read from the pool's settings on every poll, never fixed
     per process (kb/Work PB2514). `root` is the slot directory; the pool's own slots, tickets, hold history and settings
     are in `directory`, the root itself for the gate pool and a subdirectory for any other."""
 
-    def __init__(self, root: Path, poll_s: float = DEFAULT_POLL_S, pool: Pool = GATE_POOL):
-        self.root, self.poll_s, self.pool = root, poll_s, pool
+    def __init__(self, root: Path, poll_s: float = DEFAULT_POLL_S, pool: Pool = GATE_POOL,
+                 heartbeat: Callable[[], Heartbeat] = Heartbeat):
+        """`heartbeat` makes the clock of one wait's heartbeat (`acquire`); a test passes one with a stepped clock."""
+        self.root, self.poll_s, self.pool, self.heartbeat = root, poll_s, pool, heartbeat
         self.directory = root / pool.subdir if pool.subdir else root
 
     @classmethod
@@ -695,6 +722,7 @@ class GateSlots:
             raise ValueError(f"{gate_class!r} is not a gate class ({', '.join(GATE_CLASSES)})")
         start = time.monotonic()
         seq, ticket_fd = self._take_ticket(label, gate_class)
+        beat = self.heartbeat()
         try:
             reported, told = None, set()
             while True:
@@ -709,6 +737,7 @@ class GateSlots:
                 if (ahead, cap) != reported:
                     say(f"gate-slot: waiting, {ahead} ahead (ticket {seq}, cap {cap}, {gate_class}, {self.directory})")
                     reported = (ahead, cap)
+                    beat.mark()
                     if ahead == 0:
                         say(f"gate-slot: next in line; all {cap} slot(s) of the {self.pool.name} pool are held, and this "
                             "gate takes the first one released")
@@ -718,9 +747,13 @@ class GateSlots:
                 for s_, c_, l_ in tickets_ahead:
                     if s_ > seq and s_ not in told:
                         told.add(s_)
+                        beat.mark()
                         say(f"gate-slot: ticket {s_} ({c_}) was taken after ticket {seq} ({gate_class}) and is served "
                             f"first: {c_} gates go ahead of {gate_class} gates (service order {' > '.join(GATE_CLASSES)}; "
                             "kb/Work PB3103, PB4888)")
+                if beat.due():   # a queue that does not move writes nothing above: 26 minutes of silence were measured (PB5097)
+                    say(f"gate-slot: still waiting, {ahead} ahead (ticket {seq}, cap {cap}, {gate_class}; "
+                        f"{time.monotonic() - start:.0f} s in the queue)")
                 time.sleep(self.poll_s)
         except BaseException:
             self._drop_ticket(seq, ticket_fd, gate_class)
@@ -1314,6 +1347,29 @@ def self_test() -> int:
             order = log.read_text().split()
             assert order == ["L", "W"], f"the fix gate was not served first: {order}"
 
+        def heartbeat() -> None:
+            # kb/Work PB5097: a gate whose place in the queue does not move still writes a line at every heartbeat. The
+            # clock is the arm's own (100 s a reading, a beat every 300 s), so no wall-clock limit decides the count.
+            repo, _ = make_repo("heartbeat")
+            go = root / "heartbeat.go"
+            h = gate(repo, "H", hold(go))
+            h.expect(r"^held pid=")
+            ticks = iter(range(0, 10**9, 100))
+            slots = GateSlots(slot_dir(repo), 0.05, heartbeat=lambda: Heartbeat(300.0, lambda: float(next(ticks))))
+            told: list[str] = []
+            t = threading.Thread(target=lambda: slots.acquire("Q", say=told.append).release(), daemon=True)
+            t.start()
+            deadline = time.monotonic() + 60   # a guard against a hung arm; the count below is what the arm asserts
+            while sum("still waiting" in x for x in told) < 3 and time.monotonic() < deadline:
+                time.sleep(0.02)
+            beats = [x for x in told if "still waiting" in x]
+            assert len(beats) >= 3 and all("ticket" in x and "in the queue" in x for x in beats), \
+                f"a queued gate whose place never moved wrote no heartbeat: {told}"
+            assert sum("gate-slot: waiting," in x for x in told) == 1, f"the heartbeat repeated the place-moved line: {told}"
+            go.touch()
+            t.join(60)
+            assert not t.is_alive() and h.finish() == 0, "the queue was not served after the heartbeat arm"
+
         print(f"gate_slot.py --self-test ({'Windows Job object' if IS_WINDOWS else 'Linux flock'} arm)")
         arm("FIFO order: a later waiter never overtakes a live earlier ticket, a re-gate queues last", fifo)
         arm("a killed holder releases its slot", killed_holder)
@@ -1334,6 +1390,7 @@ def self_test() -> int:
         arm("a queued waiter whose abandon turns true withdraws its ticket at once and never takes the slot (kb/Work PB5322)",
             withdrawn)
         arm("a waiting gate says why a later ticket is served first (fix before implementer) and what the gate next in line waits for", passer_explained)
+        arm("a queued gate whose place does not move still writes a heartbeat line at every interval (kb/Work PB5097)", heartbeat)
     finally:
         alive.unlink(missing_ok=True)
         for pr in procs:
@@ -1343,7 +1400,7 @@ def self_test() -> int:
     if failures:
         print(f"gate_slot.py --self-test: RED — {len(failures)} arm(s) failed")
         return 1
-    print("gate_slot.py --self-test: ALL GREEN — 14 arms")
+    print("gate_slot.py --self-test: ALL GREEN — 15 arms")
     return 0
 
 

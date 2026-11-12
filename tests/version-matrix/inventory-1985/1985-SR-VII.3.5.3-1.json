@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VII.3.5.3-1",
  "rule-digest": "1f6d997e1895",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#ScreenDataRecords; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataRecordsClause",
+ "test-ref": "conformance:cases/VII.3.5@1985-DATA-RECORDS-CLAUSE/1985-SR-VII_3_5_3-1",
+ "notes": "§1985:VII.3.5.3 SR1: \"Data-name-1 is the name of a data record and must have an 01 level-number record description, with the same name, associated with it.\" FileControlBinder.BindFileSection calls ScreenDataRecords for each FD and SD with that entry's own records, and every name that is not a level-01 record of THIS entry is refused with COBOL6849. Probes at --std 85: DATA RECORD IS R1, DATA RECORDS ARE R1 R2 and DATA RECORDS R2 accepted and the program wrote and read the sequential, relative and indexed file; a subordinate item (R2A), a 66 RENAMES, a Working-Storage 01, another FD's 01, the SD's record named in the FD, an FD record named in the SD, an undefined name and a second name W1 beside R1 all refused COBOL6849; an 01 whose name another FD repeats resolves to this FD's record; an empty list (COBOL0001), a qualified name and the clause written twice (COBOL2423) are refused. Edition arm: 2002 and 2023 refuse the clause, COBOL0873 (VisitDataRecordsClause). Witness: DATA RECORD IS names an 02 item, refused COBOL6849.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
