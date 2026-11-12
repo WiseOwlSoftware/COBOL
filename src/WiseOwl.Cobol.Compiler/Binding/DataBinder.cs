@@ -3411,8 +3411,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return (null, edited);
         // A FIGURATIVE CONSTANT OR ALL LITERAL ON A NON-NUMERIC SUBJECT IS A CHARACTER VALUE (kb/Work PB5181): the fill
         // character the one figurative service names for the kind under this program's collating sequence, repeated to
-        // the comparison's width (§2023:8.3.3.6.4 GR2 — "equal either to 1 or to the size of the associated operand,
-        // whichever is greater"). On a numeric subject the figurative ZERO keeps its algebraic zero and every other
+        // the comparison's width (§2023:8.3.3.6.4 GR2 — "equal either to 1 or to the number of character positions in
+        // the associated data item, literal, or intermediate result, whichever is greater"). On a numeric subject the figurative ZERO keeps its algebraic zero and every other
         // figurative names no value (SR2 refuses it there).
         if (parent.OperandPic is not { Category: PicCategory.Numeric })
         {

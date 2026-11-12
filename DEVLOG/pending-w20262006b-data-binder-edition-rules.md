@@ -43,3 +43,5 @@ edition (`FileControlBinder.ResolveFiles` prefers the record's candidate).
 Self-review: the four lenses found one shape defect in my own diff, `RecordClauseRule.Since = 1985` against `DialectLevel` 85 (eleven refusal goldens went red at the
 first gate), and the placement of the constant reading on `ConstantEntryBinder` (a new reader of the binder's members; it moved to `DataBinder`). Gate (run 000005-20261112T192543Z
 at 209a4a03d9): GREEN, Conformance 24,330/24,330, Unit 40,803/40,803, Characterization 37/37; every new golden passed in Conformance.trx.
+
+Review round 1 (R1-1): `ConstantOfIdentifierPosition` counted a container's GLOBAL data item against a constant the contained program declares itself, refusing a legal nested program with COBOL1639. §2023:8.4.6.2.1 rule 3 a) makes the own-element declaration the referenced item, so a locally declared constant now counts only the data items of declaration depth 0. Golden `8.4.2.2-Qualification/pb5301_constant_nearer_than_container_global_data` (DISPLAY KK shows 5). R1-2: the ConditionValueOf comment now quotes §2023:8.3.3.6.4 GR2 as printed (cite.py --check OK).

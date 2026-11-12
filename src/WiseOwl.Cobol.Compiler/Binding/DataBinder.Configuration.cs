@@ -161,7 +161,11 @@ public sealed partial class DataBinder
     {
         if (Constants.ConstantOf(dref) is not { } constant) return null;
         string name = dref.cobolWord().GetText();
-        int dataItems = QualifiedCandidates(name, [], ActiveScope).Count;
+        // §2023:8.4.6.2.1 3) a): a constant THIS source element declares is "the item in source element B", so a container's
+        // GLOBAL data item of the spelling is declared farther out and never competes with it (kb/Work PB5301, review R1-1).
+        bool constantIsOwn = Constants.IsDeclaredConstant(name);
+        var candidates = QualifiedCandidates(name, [], ActiveScope);
+        int dataItems = constantIsOwn ? candidates.Where(d => State.Forest.DeclaringDepth(d) == 0).Count : candidates.Count;
         if (dataItems > 0 && _sharedSpellingReported.Add(dref))
         {
             string msg = $"'{WrittenText(dref)}' does not uniquely identify its item — it is the name of a constant-name "
