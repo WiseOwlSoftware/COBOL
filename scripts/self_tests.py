@@ -699,7 +699,7 @@ class Runner:
                    PYTHONUTF8="1")
         if temp is not None:  # CI's Windows runner's TEMP is an alias of its directory; so is this one (aliased_temp)
             env.update({name: str(temp) for name in TEMP_VARS})
-        if selftest_layout.in_tree(test.path):  # a case file's `import selftest_cases` resolves against scripts/ (§16.2)
+        if selftest_layout.in_tree(test.path):  # a case file's `import selftest_cases` resolves against scripts/ (DESIGN-orchestrator-loop.md section 16.2)
             env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(self.repo / "scripts"), env.get("PYTHONPATH")]))
         env = inputs.traced_env(env, tracer, trace, self.repo)
         asked = time.monotonic()
@@ -973,7 +973,7 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, subprocess.CalledProcessError) as e:
         print(f"{VERDICT}NOT RUN — the case layout cannot be read: {e} ===")
         return 2
-    if refused:  # no gate, CI job or hand run runs the self-tests of a tree that breaks the layout (§16.2)
+    if refused:  # no gate, CI job or hand run runs the self-tests of a tree that breaks the layout (DESIGN-orchestrator-loop.md section 16.2)
         for line in refused:
             print(f"layout: {line}")
         print(f"{VERDICT}RED — layout: {len(refused)} refusal(s), the first: {refused[0]} ===")
