@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.2.7.3-1",
  "rule-digest": "49edbe0d640e",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#CapturePadding; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#OneCharacter",
  "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-SR-VII_2_7_3-1",
+ "notes": "Overturn confirmed, as PARTIAL (literal-1's screen is right for nonnumeric literals and the reserved-word figurative constants, and refuses the symbolic-character). A figurative constant may be used wherever 'literal' appears in a format, and '[ALL] symbolic-character' is one (IV.4.2.2.2.3 item 7), standing for the one character its SYMBOLIC CHARACTERS clause gives; with any figurative constant but ALL literal the word ALL is redundant (exception 3). The reader's own reading admits QUOTE and ALL QUOTE on that ground, and the same reading admits SYM1 and ALL SYM1. Rerun: padsym (IS SYM1) COBOL1639, the word resolved as data-name-1 only; padallsym (IS ALL SYM1) COBOL6848; padquote runs READ ABCD. Own probes in the same program: j1 (IS ALL QUOTE) and j2 (IS HIGH-VALUE) run READ ABCD. Note PB5420 is right in citation, sites, expected result and harm flags (rejects_legal_source, MINOR). kb/Work PB5420 holds the defect (adjudication: held-85/set7/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

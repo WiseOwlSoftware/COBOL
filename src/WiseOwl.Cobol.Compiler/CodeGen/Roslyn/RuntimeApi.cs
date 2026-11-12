@@ -1356,24 +1356,33 @@ internal static class RuntimeApi
     // ── INSPECT (CobolInspect; ISO §2023:14.9.22) ──
 
     /// <summary>The tallying pass — <c>CobolInspect.Tally</c>. Array-literal fragments are pre-rendered by the caller.</summary>
-    public static string InspectTally(string image, string kinds, string pats, string befs, string afts, string backward) =>
+    public static string InspectTally(string image, string kinds, string pats, string befs, string afts, string backward,
+        bool beforeFromLeftmost) =>
         $"{nameof(CobolInspect)}.{nameof(CobolInspect.Tally)}({image}, new int[] {{ {kinds} }}, " +
-        $"new string?[] {{ {pats} }}, new string?[] {{ {befs} }}, new string?[] {{ {afts} }}, {backward})";
+        $"new string?[] {{ {pats} }}, new string?[] {{ {befs} }}, new string?[] {{ {afts} }}, {backward}"
+        + BeforeFromLeftmostArgument(beforeFromLeftmost) + ")";
+
+    /// <summary>The named argument that selects the pre-2023 BEFORE rule of <c>CobolInspect</c> (kb/Work PB5120), or
+    /// nothing at COBOL-2023, whose rule is the runtime's default.</summary>
+    private static string BeforeFromLeftmostArgument(bool beforeFromLeftmost) =>
+        beforeFromLeftmost ? ", beforeFromLeftmost: true" : "";
 
     /// <summary>The replacing pass — <c>CobolInspect.Replace</c>. <paramref name="figs"/> is the comma-separated
     /// per-operand figurative-replacement flags, or null when no replacement is figurative (the runtime's default).</summary>
     public static string InspectReplace(string image, string kinds, string pats, string reps, string befs, string afts, string backward,
-        string? figs = null) =>
+        string? figs, bool beforeFromLeftmost) =>
         $"{nameof(CobolInspect)}.{nameof(CobolInspect.Replace)}({image}, new int[] {{ {kinds} }}, new string?[] {{ {pats} }}, " +
         $"new string?[] {{ {reps} }}, new string?[] {{ {befs} }}, new string?[] {{ {afts} }}, {backward}"
-        + (figs is null ? ")" : $", new bool[] {{ {figs} }})");
+        + (figs is null ? "" : $", figurative: new bool[] {{ {figs} }}")
+        + BeforeFromLeftmostArgument(beforeFromLeftmost) + ")";
 
     /// <summary>CONVERTING — <c>CobolInspect.Convert</c>. <paramref name="toFigurative"/> marks a figurative
     /// literal-5, which the runtime repeats to the from-set's size.</summary>
     public static string InspectConvert(string image, string from, string to, string before, string after, string backward,
-        bool toFigurative = false) =>
+        bool toFigurative, bool beforeFromLeftmost) =>
         $"{nameof(CobolInspect)}.{nameof(CobolInspect.Convert)}({image}, {from}, {to}, {before}, {after}, {backward}"
-        + (toFigurative ? ", toFigurative: true)" : ")");
+        + (toFigurative ? ", toFigurative: true" : "")
+        + BeforeFromLeftmostArgument(beforeFromLeftmost) + ")";
 
     /// <summary>Compile-time anchor for the tally-kind discriminators the emitter selects.</summary>
     public static string InspectTallyKindText(Binding.Bound.InspectTallyKind k) => k switch

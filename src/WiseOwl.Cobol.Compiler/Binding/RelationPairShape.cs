@@ -58,7 +58,9 @@ internal static class RelationPair
     /// <see cref="Place.DenotedItem"/>'s (kb/Work PB602): a reference-modified group is "a unique data item" of
     /// class alphanumeric (§2023:8.4.3.3.4 GR5/GR6), not the group, and its place denotes no declared item. The group
     /// question is the CATEGORY one (<see cref="ItemCategory.IsGroupItem"/>), which a level-66 THROUGH alias also
-    /// answers.</summary>
+    /// answers. The item returned is the ATTRIBUTES half (<see cref="MoveTable16.OperandItem(BoundOperand)"/>): its
+    /// strong type and its variable length are attributes, which a no-THROUGH alias takes from data-name-2
+    /// (§2023:13.18.45.4 GR1; kb/Work PB5120 review R1-1's sweep).</summary>
     public static DataItem? GroupItemOf(BoundOperand operand) =>
-        operand is BoundFieldOperand { Place.DenotedItem: { } item } && ItemCategory.IsGroupItem(item) ? item : null;
+        operand is BoundFieldOperand && MoveTable16.OperandItem(operand) is { } item && ItemCategory.IsGroupItem(item) ? item : null;
 }

@@ -1,0 +1,12 @@
+{
+ "id": "class-clause-in-alphabet-2002",
+ "description": "The IN alphabet-name phrase of the SPECIAL-NAMES CLASS clause - a COBOL-2002 addition read from the printed formats: §1985:VI.4.5.2 prints CLASS class-name-1 IS {literal-4 [THROUGH literal-5]} ... with no IN phrase, and §1985:VI.4.5.4 GR10 takes a numeric literal as \"The ordinal number of a character within the native character set\"; the ISO/IEC 1989:2002 format (12.2.6.1) prints [IN alphabet-name-4] and its GR12 takes the ordinal in that alphabet's character set when the phrase is written. At --std 85 the phrase would change the class's members, so it is refused (kb/Work PB5172). Gated in ONE place, VersionConformancePass.ParseArm.VisitClassDefinitionClause, beside the FOR phrase's gate (VCR row 7.52).",
+ "display": "the IN alphabet-name phrase of the CLASS clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.7.2 (the CLASS clause's IN phrase); §1985:VI.4.5.2 prints no IN phrase for CLASS; §1985:VI.4.5.4 GR10",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.52 (d) - the CLASS clause's IN phrase, read from the printed formats",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCLI.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET AL IS \"Z\" \"Y\"\n    CLASS C1 IS 1 THRU 2 IN AL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(2) VALUE \"ZY\".\nPROCEDURE DIVISION.\nMAIN.\n    IF W IS C1 DISPLAY \"T\" END-IF.\n    STOP RUN.\n"
+}

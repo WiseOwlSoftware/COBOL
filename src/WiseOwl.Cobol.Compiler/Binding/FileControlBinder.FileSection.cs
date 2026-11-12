@@ -269,6 +269,25 @@ public sealed partial class FileControlBinder
         // description entry for a report file." — a report file's area is the report engine's line, and
         // §2023:13.18.43.3 SR1 excludes it from the RECORD-clause requirement by name. Nothing to synthesize.
         if (file.IsReportFile) return;
+        // ⛔ THE PERMISSION TO OMIT THE RECORD DESCRIPTIONS IS COBOL-2002's (kb/Work PB5071). 1985 states the
+        // requirement with no exception in each of its three file modules — §1985:VII.3.2.3 SR3 (sequential),
+        // §1985:VIII.3.2.3 SR3 (relative), §1985:IX.3.2.3 SR3 (indexed): "One or more record description entries
+        // must follow the file description entry." — so a RECORD clause does not stand in for one, and COBOL1836's
+        // repair (write a RECORD clause) is not offered: the FD is refused before it is asked.
+        if (Edition.DialectLevel < 2002)
+        {
+            string module = file.Organization switch
+            {
+                FileOrganization.Relative => "VIII",
+                FileOrganization.Indexed => "IX",
+                _ => "VII",
+            };
+            Edition.Error(DiagnosticCatalog.FileDescriptionRecordRequired, $"file description entry '{fdName}': "
+                + $"no record description entry follows it; §1985:{module}.3.2.3 SR3: \"One or more record description "
+                + "entries must follow the file description entry.\" Write the file's record description entries "
+                + "after the FD.");
+            return;
+        }
         // §2023:13.4.5.3 SR7 withdraws SR3's permission for an INDEXED file. Rejecting is the whole repair: a prime
         // RECORD KEY has to be locatable in a record image (§2023:12.4.5.12.3 SR2), which is why the emitter's
         // fallback for an unlocatable key was a run-time abort — the compiler announcing the SOURCE's error.

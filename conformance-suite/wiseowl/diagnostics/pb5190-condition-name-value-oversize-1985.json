@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL1740: condition-name 'XC': the VALUE alphanumeric literal (2 characters) exceeds the item's 1 character positions indicated by its PICTURE clause (§1985:VI.5.15.3 SR3"}

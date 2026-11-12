@@ -2635,9 +2635,9 @@ static WiseOwl.Cobol.Runtime.CobolFloatClass.IsImage(string! image, in WiseOwl.C
 static WiseOwl.Cobol.Runtime.CobolIndex.Augment(long index, System.Int128 amount, bool down, string! detail) -> long
 static WiseOwl.Cobol.Runtime.CobolIndex.TryAmount(System.Int128 scaled, int scale, WiseOwl.Cobol.Runtime.SetAmountRule rule, string! detail, out long value) -> bool
 static WiseOwl.Cobol.Runtime.CobolIndex.TryAmountReal(double v, WiseOwl.Cobol.Runtime.SetAmountRule rule, string! detail, out long value) -> bool
-static WiseOwl.Cobol.Runtime.CobolInspect.Convert(string? text, string! fromSet, string! toSet, string? before, string? after, bool backward = false, bool toFigurative = false) -> string!
-static WiseOwl.Cobol.Runtime.CobolInspect.Replace(string? text, int[]! kinds, string?[]! patterns, string?[]! replacements, string?[]! befores, string?[]! afters, bool backward = false, bool[]? figurative = null) -> string!
-static WiseOwl.Cobol.Runtime.CobolInspect.Tally(string? text, int[]! kinds, string?[]! patterns, string?[]! befores, string?[]! afters, bool backward = false) -> long[]!
+static WiseOwl.Cobol.Runtime.CobolInspect.Convert(string? text, string! fromSet, string! toSet, string? before, string? after, bool backward = false, bool toFigurative = false, bool beforeFromLeftmost = false) -> string!
+static WiseOwl.Cobol.Runtime.CobolInspect.Replace(string? text, int[]! kinds, string?[]! patterns, string?[]! replacements, string?[]! befores, string?[]! afters, bool backward = false, bool[]? figurative = null, bool beforeFromLeftmost = false) -> string!
+static WiseOwl.Cobol.Runtime.CobolInspect.Tally(string? text, int[]! kinds, string?[]! patterns, string?[]! befores, string?[]! afters, bool backward = false, bool beforeFromLeftmost = false) -> long[]!
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AbsDec(WiseOwl.Cobol.Runtime.CobolDec a) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AbsReal(double v) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AbsScaled(System.Int128 v) -> System.Int128
