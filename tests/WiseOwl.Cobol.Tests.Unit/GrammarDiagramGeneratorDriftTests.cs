@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// The run happens under a HOSTILE temp directory (kb/Work PB5447): this test points the generator's <c>TMP</c>/<c>TEMP</c>
-/// at a directory of its own and, from this process, opens every Markdown file that appears there for read-write with
+/// at a directory of its own and, from this process, opens every file that appears there for read-write with
 /// read-write-delete sharing and holds it to the end of the run — what a real-time scanner or indexer can do to any
 /// fresh file in <c>%TEMP%</c>. A generator that hands rr's output back through a file there and re-reads it
 /// (<c>File.ReadAllText</c> asks for <c>FileShare.Read</c>, which a held write access refuses) exits 1 with "being
@@ -33,7 +33,7 @@ public sealed class GrammarDiagramGeneratorDriftTests
         Assert.True(File.Exists(script), $"missing generator: {script}");
 
         string temp = Directory.CreateTempSubdirectory("grammar-diagram-held-").FullName;
-        using var holder = new FreshFileHolder(temp, "*.md");
+        using var holder = new FreshFileHolder(temp);
 
         var psi = new ProcessStartInfo("pwsh", $"-NoProfile -ExecutionPolicy Bypass -File \"{script}\" -Check")
         {
@@ -58,16 +58,16 @@ public sealed class GrammarDiagramGeneratorDriftTests
         Directory.Delete(temp, recursive: true);
 
         Assert.True(exitCode == 0,
-            $"gen-grammar-diagrams.ps1 -Check exited {exitCode} while this test held every fresh .md under {temp}\n" +
+            $"gen-grammar-diagrams.ps1 -Check exited {exitCode} while this test held every fresh file under {temp}\n" +
             $"STDOUT:\n{stdout}\nSTDERR:\n{stderr}");
         Assert.Contains("grammar-diagram note", stdout); // sanity: it reported a generation summary
         // The holder was live: the -Check run writes its notes under the temp directory, and each was taken and held.
         // Zero would mean the generator ignored TMP/TEMP, and the hostile-directory half of this test proved nothing.
-        Assert.True(held > 0, $"no Markdown file appeared under {temp}: the generator did not write where this test held files");
+        Assert.True(held > 0, $"no file appeared under {temp}: the generator did not write where this test held files");
     }
 
     /// <summary>
-    /// Holds every file matching a pattern that is created under a directory: opens it for read-write with
+    /// Holds every file created under a directory, as a real-time scanner may: opens it for read-write with
     /// read-write-delete sharing as soon as its writer lets it (a writer that refused the share is waited out, it is
     /// never pre-empted) and keeps it open until <see cref="Stop"/>. A file deleted before it is taken is skipped.
     /// </summary>
@@ -79,9 +79,9 @@ public sealed class GrammarDiagramGeneratorDriftTests
         private bool _stopped;
         private int _heldCount;
 
-        public FreshFileHolder(string directory, string filter)
+        public FreshFileHolder(string directory)
         {
-            _watcher = new FileSystemWatcher(directory, filter) { IncludeSubdirectories = true, NotifyFilter = NotifyFilters.FileName };
+            _watcher = new FileSystemWatcher(directory) { IncludeSubdirectories = true, NotifyFilter = NotifyFilters.FileName };
             _watcher.Created += (_, e) => Take(e.FullPath);
             _watcher.EnableRaisingEvents = true;
         }
