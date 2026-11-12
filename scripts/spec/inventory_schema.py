@@ -1080,7 +1080,7 @@ class Derivation:
             if named == rid:
                 return [Refusal("self-indistinguishable",
                                 f"determination '{entry.key}': a rule cannot be indistinguishable from itself")]
-            own, other = schema.catalog.get(rid), schema.catalog.get(named)
+            own, other = schema.catalog_entry(rid), schema.catalog_entry(named)
             if other is None or own is None or other[0] != own[0]:
                 return [Refusal("unknown-rule",
                                 f"determination '{entry.key}': names '{named}', not a rule of the catalog of "
@@ -1091,7 +1091,7 @@ class Derivation:
                 return [Refusal("a2-lists-rule",
                                 f"determination '{entry.key}': Annex A.2 lists {rid}, so the row keeps the "
                                 f"undefined-A.2 arm (one fact, one arm)")]
-            own = schema.catalog.get(rid)
+            own = schema.catalog_entry(rid)
             if own is None:
                 return [Refusal("unknown-rule",
                                 f"determination '{entry.key}': {rid} is not a rule of any held catalog")]
@@ -1161,6 +1161,8 @@ class Schema:
         #: Every held edition's catalog, for the arms that read one (`catalog`). Lazy, because only those arms need it
         #: and every other consumer of this class would otherwise pay a parse of every catalog it never reads.
         self._catalog: dict[str, tuple[int, str]] | None = None
+        #: Each held edition's catalog as `catalog_entry` has parsed it, by year.
+        self._catalogs: dict[int, dict[str, str]] = {}
         #: The §7 register, injectable — see `register_items`.
         self._register_items: set[str] | None = None
 
@@ -1193,13 +1195,31 @@ class Schema:
             for ed in self.all_editions:
                 if not ed.held:
                     continue
-                for r in ed.rules(self.tree):
-                    if r["id"] in catalog:
-                        raise SystemExit(f"rule-id {r['id']} is in the {catalog[r['id']][0]} and the {ed.year} catalogs: "
+                for rid, text in self._catalog_of(ed).items():
+                    if rid in catalog:
+                        raise SystemExit(f"rule-id {rid} is in the {catalog[rid][0]} and the {ed.year} catalogs: "
                                          "a rule-id names one edition")
-                    catalog[r["id"]] = (ed.year, r["text"])
+                    catalog[rid] = (ed.year, text)
             self._catalog = catalog
         return self._catalog
+
+    def catalog_entry(self, rule_id: str) -> tuple[int, str] | None:
+        """`(year, text)` of `rule_id` in the held catalog that carries it, or None: what the derivation arms ask. It opens
+        the held catalogs NEWEST FIRST and stops at the one that has the id, so a 2023 row and the 2023 rule it names cost
+        the one catalog the newest view already reads (a history reader measures the newest view, kb/Work PB4992), and
+        an older edition's catalog is parsed only for a row of that edition."""
+        if self._catalog is not None:
+            return self._catalog.get(rule_id)
+        for ed in reversed(self.all_editions):
+            if ed.held and (text := self._catalog_of(ed).get(rule_id)) is not None:
+                return ed.year, text
+        return None
+
+    def _catalog_of(self, ed: Edition) -> dict[str, str]:
+        """`ed`'s catalog as `{rule-id -> text}`, parsed once."""
+        if ed.year not in self._catalogs:
+            self._catalogs[ed.year] = {r["id"]: r["text"] for r in ed.rules(self.tree)}
+        return self._catalogs[ed.year]
 
     def locations(self, row: dict[str, Any]) -> list[str]:
         """The row's `code-location` list, split on the schema's own separator."""

@@ -451,8 +451,10 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
     # store holds adjudications only and the commit's rows are its VIEW, read under the files that commit holds. Each is
     # located by the working tree's newest edition (a commit before the editions were the schema's names none).
     ed = inventory_schema.NEWEST
-    viewed = sorted({inventory_schema.SCHEMA_REL, ed.catalog, inventory_schema.REGISTER_EXTRACT_REL,
-                     inventory_schema.load_schema().derivation.undefined_list})
+    # Every held catalog is a file the view may read: a derivation arm reads the catalog of its rule's edition
+    # (`Schema.catalog_entry`, kb/Work PB5374). A blob is read once however many commits share it.
+    viewed = sorted({inventory_schema.SCHEMA_REL, *(e.catalog for e in inventory_schema.EDITIONS if e.held),
+                     inventory_schema.REGISTER_EXTRACT_REL, inventory_schema.load_schema().derivation.undefined_list})
     dirs = sorted({f.rpartition("/")[0] for f in (*viewed, *((ed.legacy_file,) if ed.legacy_file else ()))})
     asked = (*(("kb/Work",) if register else ()), ed.store, *dirs)
     trees = git_batch.tree_entries(REPO, [f"{sha}:{directory}" for sha in uniq for directory in asked])
