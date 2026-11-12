@@ -1,4 +1,4 @@
-## PB5250 PB5312: the I-O-CONTROL screens read the 1985 text below 2002 (SAME with a report file, SAME RECORD AREA against a sort clause, RERUN on a sort file)
+## Entry 3523 — 2026-11-12 10:03 PST — PB5250 PB5312: the I-O-CONTROL screens read the 1985 text below 2002 (SAME with a report file, SAME RECORD AREA against a sort clause, RERUN on a sort file)
 
 Both notes sit in `FileControlBinder.IoControl.cs`; each was re-probed on the branch build before any edit and each reproduced
 (`c3b-samesort.cob` exit 65 COBOL2738; `c_recarea.cob` printed OK; `p17_rerun.cob` printed `P17 RAN`, all at `--std 85`).
@@ -23,3 +23,4 @@ kb/Work PB5094); both notes landed with `closes_rows: []` and a reason. `docs/FI
 
 **Sibling sweep.** `FileModel.IsSequential` readers: the OPEN screen for MULTIPLE FILE TAPE members reads it but an SD is never
 opened, so no program reaches it; left as is.
+
