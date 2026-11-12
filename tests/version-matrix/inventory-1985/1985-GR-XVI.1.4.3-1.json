@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.1.4.3-1",
  "rule-digest": "71687e4d961b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitSegmentState; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#SegmentsPerPc; src/WiseOwl.Cobol.Compiler/Binding/Model/SegmentNumber.cs#IsIndependent",
  "test-ref": "conformance:cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-1",
+ "notes": "§1985:XVI.1.4.3 GR1: an independent segment is in its initial state when 'Control is transferred to that segment as a result of the implicit transfer of control between consecutive statements from a segment with a different segment-number'. ProcedureTableBuilder.SegmentsPerPc gives each pc its segment-number, AlterSwitchEmitter.EmitSegmentState emits __SegOf, __seg and __EnterSegment (which returns the segment's alterable GO TOs to their written targets), and DispatchEmitter.EmitDispatchMethod tests __SegOf[__pc] != __seg on every pc the loop enters, so a fall-through from segment 10 into segment 50 resets it; segment-numbers reach here only at 85 (COBOL0902 refuses them at 2002, probed). The witness falls from a fixed section into SECTION 50 twice after an ALTER and sees INITIAL each time; probes seg1/seg4 at 85 also showed no reset on a same-segment PERFORM THRU (ALT ALT) or on the implicit return from a PERFORM of a fixed paragraph. Classes a, d, e, f do not reach a control-flow rule; b: segment-number 100 is COBOL6819. Aside: noncontiguous sections of one segment-number (§1985:XVI.1.2) compiled without a diagnostic; not this rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

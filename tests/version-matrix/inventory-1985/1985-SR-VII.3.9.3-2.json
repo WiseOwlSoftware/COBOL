@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.3.9.3-2",
  "rule-digest": "33723eaacd6b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#ResolveValueOfDataNames; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#CaptureValueOf",
  "test-ref": "conformance:cases/VII.3.9@1985-VALUE-OF-CLAUSE/1985-SR-VII_3_9_3-2",
+ "notes": "§1985:VII.3.9.3 SR2: \"Data-name-1 must be in the Working-Storage Section.\" FileControlBinder.CaptureValueOf records each data-name-1 and ResolveValueOfDataNames, run once the data division is bound (so a Working-Storage item described after the FILE SECTION resolves), refuses any item whose Section is not WorkingStorage with COBOL6849; the clause itself is gated to 85 (VisitValueOfClause, COBOL0902 from 2002). Probes at 85: the witness's file record item F1-REC, an elementary file-section field, the 01 record itself and a LINKAGE item each refused naming their section; the same fault in an indexed FD refused; Working-Storage elementary, group, qualified and ODO-group operands accepted and run (FS=00).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

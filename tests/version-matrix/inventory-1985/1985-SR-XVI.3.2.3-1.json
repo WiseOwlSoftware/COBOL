@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.3.2.3-1",
  "rule-digest": "9cf555aa0a3d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeclarativeSection; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ScreenSegmentNumber; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#ValueOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#MeaningKept",
  "test-ref": "conformance:cases/XVI.3.2@1985-SEGMENT-NUMBERS/1985-SR-XVI_3_2_3-1",
+ "notes": "§1985:XVI.3.2.3 SR1: 'The segment-number must be an integer ranging in value from 0 through 99.' VisitSectionDefinition calls ScreenSegmentNumber(0, 99), which runs at COBOL-85 (Segmentation.MeaningKept) and reports COBOL6819 for any value above 99 (ValueOf maps more than two significant digits to int.MaxValue); the grammar's integerLiteral already refuses a sign, a decimal point and a name, and a declarative section is held to the tighter SR3 bound by VisitDeclarativeSection. Probes at 85: (f) 0 and 99 run, 100, 0100 and a 23-digit number are COBOL6819 (the last also COBOL2427); (b) -5 and 5.0 refused by the grammar; (c) a number at --std 2002 is COBOL0902. A three-digit spelling with a leading zero (050) passes as 50, which is the value SR1 asks about; its spelling is the word-form defect recorded on 1985-FMT-XVI.3.2.2. The witness's SECTION 100 is COBOL6819.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

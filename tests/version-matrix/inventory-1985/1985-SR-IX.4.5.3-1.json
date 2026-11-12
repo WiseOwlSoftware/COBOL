@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-IX.4.5.3-1",
  "rule-digest": "cbc42648a33c",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckPhraseOperandIsNotRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckIntoReceiver; src/WiseOwl.Cobol.Compiler/Binding/Model/StorageSharing.cs#IsRecordAreaOf; src/WiseOwl.Cobol.Compiler/Binding/Validation/RecordAreaRule.cs#InForce; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindIntoPhrase",
  "test-ref": "conformance:cases/IX.4.5@1985-READ-STATEMENT/1985-SR-IX_4_5_3-1",
+ "notes": "§1985:IX.4.5.3 SR1: 'The storage area associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area.' MoveBinder.BindIntoPhrase calls StatementValidation.CheckIntoReceiver, which asks CheckPhraseOperandIsNotRecordArea (RecordAreaRule.InForce: below 2023) whether StorageSharing.IsRecordAreaOf the operand: a record of the file or of a SAME RECORD AREA peer, or an offset-0 full-length subordinate; COBOL6827. Probes at 85 on an indexed file: refused INTO IREC (sequential, random, dynamic READ NEXT and READ KEY IS), INTO a second 01 of the FD, INTO a 10-byte subordinate WHOLE, INTO a SAME RECORD AREA peer's record; accepted INTO a part (IKEY), another file's record, a WS item and an ODO group (FS 47 after the failed OPEN, INTO untouched) - a part only shares storage (§1985:VI.6.4.5), right. 2002 refuses, 2023 accepts (c). The gap: IsRecordAreaOf excludes every reference-modified operand (docs/FILES_DESIGN.md D31 b), so READ IFILE INTO IREC (1:10) and INTO WHOLE (1:10), which name exactly the record area's 10 positions, compile. kb/Work PB5412 holds the defect (code read: coderead-85/out-read3/rd-08.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.23.3-3",
  "rule-digest": "b6d3746d2075",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetUpDown; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#GateCobol85IndexAmount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#IsCobol85IndexAmount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandContextRules",
  "test-ref": "conformance:cases/VI.6.23@1985-SET-STATEMENT/1985-SR-VI_6_23_3-3",
+ "notes": "§1985:VI.6.23.3 SR3: \"Identifier-3 must reference an elementary numeric integer.\" BindSetUpDown binds the UP BY/DOWN BY amount under OperandContext.ArithmeticIndexWindow, whose 2023 row (§2023:13.18.38.3 r7, §2023:13.18.60.3 SR10) admits an index-name and an index data item, and the 85 gate GateCobol85IndexAmount/IsCobol85IndexAmount refuses only a scaled numeric item, a non-integer literal or an expression; nothing at 85 refuses an index-name or a USAGE INDEX item as identifier-3. Refused at 85: PIC 9V9 (the witness), SVPP9, N + 1, a function (COBOL0900), alphanumeric, numeric-edited, group, reference-modified (COBOL0844), an unsubscripted table element (COBOL2270). Accepted wrongly: SET IX UP BY IDX (USAGE INDEX) and SET IX UP BY IY / DOWN BY JX (index-names), each compiling and moving IX by the other index's occurrence number. Accepted rightly: 99, S9(4), COMP, COMP-3, 9(18), 9PP, a subscripted integer. kb/Work PB5421 holds the defect (code read: coderead-85/out-read3/rd-01.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

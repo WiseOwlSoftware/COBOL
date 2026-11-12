@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.11.3-3",
  "rule-digest": "63e731c8444b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs",
  "test-ref": "conformance:cases/VI.6.11@1985-DIVIDE-STATEMENT/1985-SR-VI_6_11_3-3",
+ "notes": "§1985:VI.6.11.3 SR3: the composite of \"all receiving data items (except the REMAINDER data item) ... aligned on their decimal points, must not contain more than 18 digits\". Every DIVIDE arm of ArithmeticBinder (INTO, INTO/BY GIVING, GIVING REMAINDER) calls StatementValidation#CheckComposite with CompositeMembers.ReceivingItems85, which below 2002 superimposes only the receivers (the REMAINDER item is never passed) against Edition.MaxDigits 18, refusing COBOL0805; 2002 on counts the operands too against 31 (the witness compiles at 2002). Probes at 85: refused 9(17)V9+V99 (19), 9(18)+V9 in GIVING and in INTO T (I) C1 (19), ROUNDED 9(18)+V9, 9(15)PPP+VPP9 (21); accepted 9(17)V9+V9 (ran 3.3 .1), Z(15)9.99+V9, 9(15)PPP+9, Q 9(18) REMAINDER V9(5) and V99 (REMAINDER excluded), V9(18) dividend GIVING PIC 9 (operands excluded), literal -3 into S9(18) COMP (-333333333333333333), BY 0 ON SIZE ERROR (SIZE ERR).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

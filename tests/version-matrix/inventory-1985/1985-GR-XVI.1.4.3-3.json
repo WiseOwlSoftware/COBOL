@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.1.4.3-3",
  "rule-digest": "ac038c4e05b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitSegmentState; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#SegmentsPerPc; src/WiseOwl.Cobol.Compiler/Binding/Model/SegmentNumber.cs#IsIndependent",
  "test-ref": "conformance:cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-3",
+ "notes": "§1985:XVI.1.4.3 GR3: the segment is in its initial state when 'Control is transferred explicitly to that segment from a segment with a different segment-number', and in its last-used state on an implicit return or an EXIT PROGRAM return. Explicit transfers (GO TO, PERFORM: §1985:IV.4.4.2) land on a pc whose __SegOf differs from __seg, so EmitDispatchMethod's loop calls __EnterSegment (EmitSegmentState); a PERFORM or CALL return restores the caller's __seg in the nested __Dispatch's finally, so nothing resets. The witness GOes TO SECTION 60 from a fixed section twice and sees INITIAL twice; probes at 85: seg1 (PERFORM of SECTION 50 twice: INIT FIX ALT twice; GO TO from SECTION 60 into SECTION 50 twice: J-INIT twice), seg2 (CALL of a contained program from SECTION 55, EXIT PROGRAM, then the altered GO TO: ALT AFTER CALL, last-used), seg4 (same-segment PERFORM keeps the ALTER). c: COBOL0902/COBOL0810 at 2002.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
