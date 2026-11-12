@@ -22,6 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>It also closes the loop rule 5 asks for: implementing the next rule of this subclause must be adding a
 /// ROW, not writing a new <c>if</c> somewhere else.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class RecordClauseRuleDriftTests
 {
     private const string Clause = "13.18.43.3";
