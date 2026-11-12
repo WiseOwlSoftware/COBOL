@@ -1,0 +1,8 @@
+ENA Q1/SX       80
+ENA Q1/S1       15
+ENA QZ          20
+DIS Q1          00
+DIS Q1/SX       80
+DIS Q1/S2/S9    80
+ENA Q1/SX AFTER 20
+DIS Q1/S2       15

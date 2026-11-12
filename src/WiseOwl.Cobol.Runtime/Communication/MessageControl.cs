@@ -68,28 +68,28 @@ public static class MessageControl
     public static string AcceptMessageCount(string area) => Session.AcceptMessageCount(area);
 
     /// <summary>The ENABLE statement (A.2.3). <paramref name="key"/> is the COBOL-85 KEY phrase's value, or null.</summary>
-    public static string Enable(string cd, CommunicationFormat format, CommunicationPath path, string area, string? key) =>
+    public static string Enable(CdActivation cd, CommunicationFormat format, CommunicationPath path, string area, string? key) =>
         Session.SetPath(cd, format, path, area, key, enable: true);
 
     /// <summary>The DISABLE statement (A.2.2). <paramref name="key"/> is the COBOL-85 KEY phrase's value, or null.</summary>
-    public static string Disable(string cd, CommunicationFormat format, CommunicationPath path, string area, string? key) =>
+    public static string Disable(CdActivation cd, CommunicationFormat format, CommunicationPath path, string area, string? key) =>
         Session.SetPath(cd, format, path, area, key, enable: false);
 
     /// <summary>The PURGE statement (A.2.4).</summary>
-    public static string Purge(string cd, CommunicationFormat format, string area) => Session.Purge(cd, format, area);
+    public static string Purge(CdActivation cd, CommunicationFormat format, string area) => Session.Purge(cd, format, area);
 
     /// <summary>The SEND statement (A.2.6). <paramref name="text"/> is the image of identifier-1, or null when FROM is not written.</summary>
-    public static string Send(string cd, CommunicationFormat format, string area, string? text, SendIndicator indicator) =>
+    public static string Send(CdActivation cd, CommunicationFormat format, string area, string? text, SendIndicator indicator) =>
         Session.Send(cd, format, area, text, indicator);
 
     /// <summary>The RECEIVE statement (A.2.5). <paramref name="noDataPhrase"/> is whether the NO DATA phrase is written: without
     /// it, "execution of the run unit is suspended until data is made available" (GR5 b).</summary>
-    public static CommunicationReceipt Receive(string cd, CommunicationFormat format, string area, bool segment, string into, bool noDataPhrase) =>
+    public static CommunicationReceipt Receive(CdActivation cd, CommunicationFormat format, string area, bool segment, string into, bool noDataPhrase) =>
         Session.Receive(cd, format, area, segment, into, noDataPhrase);
 
     /// <summary>The area of a CD with the INITIAL clause before the first procedure division statement (A.1.2.3 GR6, GR28). Only the program that establishes the run unit
     /// can have been scheduled by the MCS; a CALLed program's INITIAL CD is initialized to spaces "in all other cases" (§1985:XIV.2.2.4 GR28; kb/Work PB5282).</summary>
-    public static string InitialArea(string cd, CommunicationFormat format, string area) =>
+    public static string InitialArea(CdActivation cd, CommunicationFormat format, string area) =>
         Session.InitialArea(cd, format, area, scheduledProgram: RunUnit.Current.Modules.RunningIsMain);
 
     /// <summary>Table A.3: "Any character other than 1, 2, or 3 will be interpreted as 0."</summary>

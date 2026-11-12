@@ -93,6 +93,8 @@ WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.LocaleCollationExceptio
 WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.Reason.get -> string!
 WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Failure.get -> WiseOwl.Cobol.Runtime.Collation.LocaleCollationException?
 WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Failure.init -> void
+WiseOwl.Cobol.Runtime.Communication.CdActivation
+WiseOwl.Cobol.Runtime.Communication.CdActivation.CdActivation() -> void
 WiseOwl.Cobol.Runtime.Communication.CommunicationFormat
 WiseOwl.Cobol.Runtime.Communication.CommunicationFormat.Input = 0 -> WiseOwl.Cobol.Runtime.Communication.CommunicationFormat
 WiseOwl.Cobol.Runtime.Communication.CommunicationFormat.InputOutput = 2 -> WiseOwl.Cobol.Runtime.Communication.CommunicationFormat
@@ -968,13 +970,13 @@ static WiseOwl.Cobol.Runtime.CobolWide.FromUnsigned(System.UInt128 value) -> Wis
 static WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.operator !=(WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt left, WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt right) -> bool
 static WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.operator ==(WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt left, WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt right) -> bool
 static WiseOwl.Cobol.Runtime.Communication.MessageControl.AcceptMessageCount(string! area) -> string!
-static WiseOwl.Cobol.Runtime.Communication.MessageControl.Disable(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, WiseOwl.Cobol.Runtime.Communication.CommunicationPath path, string! area, string? key) -> string!
-static WiseOwl.Cobol.Runtime.Communication.MessageControl.Enable(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, WiseOwl.Cobol.Runtime.Communication.CommunicationPath path, string! area, string? key) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Disable(WiseOwl.Cobol.Runtime.Communication.CdActivation! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, WiseOwl.Cobol.Runtime.Communication.CommunicationPath path, string! area, string? key) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Enable(WiseOwl.Cobol.Runtime.Communication.CdActivation! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, WiseOwl.Cobol.Runtime.Communication.CommunicationPath path, string! area, string? key) -> string!
 static WiseOwl.Cobol.Runtime.Communication.MessageControl.IndicatorOf(string! image) -> WiseOwl.Cobol.Runtime.Communication.SendIndicator
-static WiseOwl.Cobol.Runtime.Communication.MessageControl.InitialArea(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area) -> string!
-static WiseOwl.Cobol.Runtime.Communication.MessageControl.Purge(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area) -> string!
-static WiseOwl.Cobol.Runtime.Communication.MessageControl.Receive(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area, bool segment, string! into, bool noDataPhrase) -> WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt
-static WiseOwl.Cobol.Runtime.Communication.MessageControl.Send(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area, string? text, WiseOwl.Cobol.Runtime.Communication.SendIndicator indicator) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.InitialArea(WiseOwl.Cobol.Runtime.Communication.CdActivation! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Purge(WiseOwl.Cobol.Runtime.Communication.CdActivation! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Receive(WiseOwl.Cobol.Runtime.Communication.CdActivation! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area, bool segment, string! into, bool noDataPhrase) -> WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Send(WiseOwl.Cobol.Runtime.Communication.CdActivation! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area, string? text, WiseOwl.Cobol.Runtime.Communication.SendIndicator indicator) -> string!
 static WiseOwl.Cobol.Runtime.DebugItem.GroupWidthFor(int contentsWidth) -> int
 static WiseOwl.Cobol.Runtime.Exceptions.DispatchResult.CompletedNotNormally(int result) -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.get -> bool

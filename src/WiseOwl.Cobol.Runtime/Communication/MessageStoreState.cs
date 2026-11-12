@@ -102,6 +102,9 @@ internal sealed class MessageStoreState
     /// <summary>A.1.2.3 GR5 (<see cref="MessageDefinitions.FindQueue"/>): the queue the path designates. Null when the structure is unknown to the MCS.</summary>
     internal QueueNode? FindQueue(string[] path) => _definitions.FindQueue(path) is { } queue ? new QueueNode(queue, _tables!) : null;
 
+    /// <summary>The deepest known level of <paramref name="path"/> (<see cref="MessageDefinitions.FindQueuePrefix"/>), when the path as a whole is unknown to the MCS.</summary>
+    internal QueueNode? FindQueuePrefix(string[] path) => _definitions.FindQueuePrefix(path) is { } queue ? new QueueNode(queue, _tables!) : null;
+
     internal SourceEndpoint? FindSource(string name) => _definitions.Source(name) is { } source ? new SourceEndpoint(source, _tables!) : null;
 
     internal DestinationEndpoint? FindDestination(string name) => _definitions.Destination(name) is { } destination ? new DestinationEndpoint(destination, _tables!) : null;
@@ -127,6 +130,12 @@ internal sealed class MessageStoreState
         }
         return changed;
     }
+
+    /// <summary>Whether every queue, every queue below it and every path between one of them and a source already has the state <see cref="SetQueuePaths"/> would give it;
+    /// changes nothing. The 15 condition of a structure (§1985:B.2.2).</summary>
+    internal bool QueuePathsAre(QueueNode queue, bool enabled) =>
+        _definitions.FindQueue(queue.Path)!.SelfAndDescendants().All(level =>
+            new QueueNode(level, _tables!).Enabled == enabled && _definitions.Sources.All(source => PathOpen(source.Name, level) == enabled));
 
     /// <summary>§1985:XIV.3.2.4 GR3 and §1985:XIV.3.3.4 GR2: DISABLE or ENABLE INPUT acts on "the logical paths between the queue and sub-queues specified ... and all the
     /// associated ... sources". A queue designated by fewer levels than the CD has is a structure, so the queue, every queue below it and every path
