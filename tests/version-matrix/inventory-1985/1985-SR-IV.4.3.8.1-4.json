@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.1-4",
  "rule-digest": "a196b5f1f64a",
+ "test-ref": "conformance:cases/IV.4.3.8@1985-Uniqueness-of-Reference/1985-SR-IV_4_3_8_1-4",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
