@@ -699,7 +699,13 @@ def raster_sweep(edition: int, doc, lines: list[str], R, pages: tuple | None, cl
         stats[why] += 1
         if want is None:
             if why != NOT_A_FORMAT:
-                awaiting.append(d)
+                # WHY it waits, so a `--check` that fails on it names the block and the disagreement (a count alone
+                # sent the 2002/2014 integration, kb/Work PB5332, to a ten-minute bisection to find one figure).
+                reason = ("not where a format is printed" if why == "unclassified" else
+                          "not located on the page" if body is None else
+                          f"unread words {bad[:3]}" if bad else
+                          "; ".join(f"{name}: {', '.join(map(str, v[:2]))}" for name, v in diff.items() if v))
+                awaiting.append((d, reason))
             continue
         repl = [R.PRE_OPEN] + want
         if lines[d.start:d.end] == repl:
@@ -722,6 +728,9 @@ def raster_sweep(edition: int, doc, lines: list[str], R, pages: tuple | None, cl
             print(f"  page {d.page} {d.clause or ''} {d.label or ''} ({why}), {spec_md.name} lines {d.start + 1}-{d.end}")
             for line in difflib.unified_diff(lines[d.start:d.end], repl, "transcription", "decided", n=0, lineterm=""):
                 print(f"    {line}")
+        for d, reason in awaiting[:limit]:
+            print(f"  page {d.page} {d.clause or ''} {d.label or ''} awaits a verdict, {spec_md.name} lines "
+                  f"{d.start + 1}-{d.end}: {reason}")
     if mode == "apply":
         if not edits:
             print("\nnothing to apply")

@@ -20,7 +20,7 @@ merged into the 2002 branch, and every edition's figures come from the one merge
 
 **The redraw.** The 2002 branch's generator already carried both of PB5331's corrections plus its own (continuation
 indent, `rejoin_lines`, `INTRODUCES_FORMAT`). The merged generator therefore draws 2002 and 2023 exactly as the 2002 branch
-did. The only redraws are 5 figures of the 2014 text, which had never met PB5332's corrections. Each was checked against
+did. The only vector redraws are 5 figures of the 2014 text, which had never met PB5332's corrections; the 1985 scan is below. Each was checked against
 its rendered PDF page (`scripts/render-spec-page.py --edition 2014`):
 - §2014:12.3.6.1 (page 255): `IS literal-5 …` keeps its printed indent under `CLASS class-name-1`.
 - §2014:13.14.1 (page 309): `[ HEADING IS integer-3 ]` keeps its printed indent under `PAGE`.
@@ -37,7 +37,20 @@ from 43 to 48.
 - `sweep_figures.py --check` is clean for 2002 (446 figures) and 2014 (464).
 - For 2023 it reports the same 2 drifted figures as the base and as main: §2023:14.9.9.2 and §2023:14.9.28.2 Format 3. No
   branch changed them (PB5331's note measured them before and after).
-- 1985 is a scan. Its raster arm reads only `MIN_RULE_W`, and both sides set it to the same value.
+- 1985 is a scan, and its raster arm shares the generator, so the merge reached it too. On main, `--check --edition 1985`
+  is clean. At the merge it reported 1 figure drifted and 1 awaiting a verdict. Neither branch had run it.
+  - **Page 203** (FD entry, INDEXED FILE): the continuation indent now draws `[ DEPENDING ON data-name-1 ]` indented
+    under `IS VARYING IN SIZE …`, as printed. The figure is written with `--apply --pages 203 203`.
+  - **Page 905** (the WHEN-COMPILED function's general format, 2.46.2 of `ANSI_COBOL_1985.md`): `FUNCTION WHEN-COMPILED` fell from agreed to awaiting. The
+    vector arm's 2.5 pt width floor let a 2.7 pt sliver of the underline's edge, 0.2 pt thick, pass `figure_raster.find_rules`
+    as a rule (bisected: clean at 2.75 and 3.0, awaiting at 2.5). A printed rule measures 0.5 to 1.1 pt thick
+    (page 196). The root cause is that the raster arm had a ceiling on a rule's mean thickness and no floor, so
+    `RULE_MIN_THICK = 0.35` now adds the floor. `test_figure_raster.py` gains the check, which is RED with the floor at 0
+    ("78/79 RED") and GREEN with it ("79/79 GREEN").
+  - `sweep_figures` `--check` named neither the awaiting figure nor its reason, only a count. It now prints each one
+    with its disagreement.
+  - After both fixes, `sweep_figures.py --check --edition 1985` is clean (163 agreed, 0 awaiting, as on main).
+    `--identity` is clean, and `verify_publishable.py --edition 1985` reports 976 of 976 pages.
 - `merge_reconciliation.py --check` is CURRENT for 2002 and for 2014.
 - `verify_publishable.py` passes for both: 882 of 882 and 952 of 952 pages compared, every claim decided.
 - `extract_rule_catalog.py --check`: FINDINGS 0 for 2023 and 2002, no findings for 1985. 2014 has no catalog.

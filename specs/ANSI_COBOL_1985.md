@@ -8477,7 +8477,7 @@ Data Division - File Description Entry
 │        │                                                                       │
 │        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ ┐
 │ <u>RECORD</u> ┤                                                                       ├ │
-│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │
+│        │      [ <u>DEPENDING</u> ON data-name-1 ]                                     │ │
 │        │                                                                       │ │
 └        ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                            ╯ ┘
 

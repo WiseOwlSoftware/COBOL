@@ -29,4 +29,6 @@ repair was made from the rendered 2002 page or from the PDF's measured text laye
 **Landed together with the 2014 repairs (PB5331).** Both branches fixed the shared figure generator, so the 2014 branch
 was merged into this one and every edition's figures come from one generator (kb/Work/PB5332/2026-11-11-integration.md).
 The merged generator redrew 5 figures of the 2014 text, each checked against its printed page and recorded as a
-`figure-generator` sweep in `LEDGER-2014.json`. It redrew no 2002 or 2023 figure.
+`figure-generator` sweep in `LEDGER-2014.json`. It redrew no 2002 or 2023 figure. On the 1985 scan, it indented one figure's
+continuation line as printed (page 203). It also exposed a missing floor on a rule's thickness in the raster arm: a 0.2 pt
+sliver read as an underline on page 905. `figure_raster.RULE_MIN_THICK` adds that floor.
