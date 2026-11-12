@@ -94,7 +94,7 @@ internal sealed record McsMeta(byte[] Identity, ulong NextSerial, byte[] Definit
 internal sealed class McsTables(BTree tree)
 {
     private const byte MetaTag = (byte)'C', EndpointsTag = (byte)'E', QueueMessagesTag = (byte)'M', TerminalMessagesTag = (byte)'I',
-        QueueCountsTag = (byte)'N', OutboundTag = (byte)'O', OutboundCountsTag = (byte)'P', DeviceEndsTag = (byte)'D', PathsTag = (byte)'L';
+        QueueCountsTag = (byte)'N', OutboundTag = (byte)'O', OutboundCountsTag = (byte)'P', DeviceEndsTag = (byte)'D', PathsTag = (byte)'L', PartialReceivesTag = (byte)'R';
     private const byte PathEnd = 0x01, OwnerEnd = 0x00;
 
     private McsMeta? _meta;
@@ -239,6 +239,8 @@ internal sealed class McsTables(BTree tree)
             case EndpointKind.Queue:
                 foreach (var (key, _) in Scan(Join([QueueMessagesTag], body))) Delete(key);
                 foreach (var (key, _) in Scan(Join([PathsTag], body, [OwnerEnd]))) Delete(key);
+                foreach (var (key, value) in Scan([PartialReceivesTag]))
+                    if (value.AsSpan().StartsWith(body)) Delete(key);
                 break;
             case EndpointKind.Source:
                 byte[] source = Join([OwnerEnd], body);
@@ -330,6 +332,22 @@ internal sealed class McsTables(BTree tree)
         Delete(first[0].Key);
         return StoredMessage.Decode(first[0].Value);
     }
+
+    // ── Partly received messages ───────────────────────────────────────────────────────────────────────────────
+
+    private static byte[] PartialKey(ulong owner, ulong serial) => Join([PartialReceivesTag], Serial(owner), Serial(serial));
+
+    /// <summary>§1985:XIV.3.1.4 GR1 counts "the number of complete messages that exist in the queue structure", and a message a run unit has begun to receive still exists in it until
+    /// its last portion is returned: the run unit <paramref name="owner"/> holds its remainder, and this row says the message was taken from the queue at <paramref name="level"/>.</summary>
+    internal void PutPartialReceive(ulong owner, ulong serial, string[] level) => Put(PartialKey(owner, serial), PathBytes(level));
+
+    /// <summary>The last portion of the message was returned, or its owner is dead: the row goes.</summary>
+    internal void DeletePartialReceive(ulong owner, ulong serial) => Delete(PartialKey(owner, serial));
+
+    /// <summary>Every partly received message of the store: its owner run unit, its serial and the queue level it was taken from.</summary>
+    internal List<(ulong Owner, ulong Serial, string[] Level)> PartialReceives() =>
+        [.. Scan([PartialReceivesTag]).Select(row => (BinaryPrimitives.ReadUInt64BigEndian(row.Key.AsSpan(1)), BinaryPrimitives.ReadUInt64BigEndian(row.Key.AsSpan(1 + sizeof(ulong))),
+            Encoding.UTF8.GetString(row.Value).Split((char)PathEnd, StringSplitOptions.RemoveEmptyEntries)))];
 
     // ── Outbound messages ──────────────────────────────────────────────────────────────────────────────────────
 

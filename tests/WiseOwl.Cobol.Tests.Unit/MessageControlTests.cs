@@ -398,6 +398,37 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("ED", session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
     }
 
+    /// <summary>kb/Work PB5339, §1985:XIV.3.1.4 GR1: ACCEPT MESSAGE COUNT counts "the number of complete messages that exist in the queue structure", and a message a run unit has begun
+    /// to receive still exists in it until the last portion is returned, to every run unit's count, the run unit that holds the remainder and another one alike.</summary>
+    [Fact]
+    public void AMessagePartlyReceived_IsCountedByEveryRunUnitUntilItsLastPortion()
+    {
+        var receiver = Session();
+        var other = Open();
+        Assert.Equal("000001", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
+        Assert.Equal("SE", receiver.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("000001", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
+        Assert.Equal("000001", InputCount(receiver.AcceptMessageCount(InputArea("Q1"))));
+        Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q2"))));
+        Assert.Equal("ED", receiver.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
+        Assert.Equal("000000", InputCount(receiver.AcceptMessageCount(InputArea("Q1"))));
+    }
+
+    /// <summary>A run unit that ends takes the remainder of a message it was receiving with it (§1985:VI.6.24.4 GR3; ISO/IEC 1989:2002 14.5.10 rule 2), so another run unit never
+    /// counts it: the dead owner's row is dropped where it is found.</summary>
+    [Fact]
+    public void AMessagePartlyReceivedByARunUnitThatEnded_IsNotCounted()
+    {
+        var receiver = Session();
+        var other = Open();
+        Assert.Equal("SE", receiver.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("000001", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
+        receiver.Dispose();
+        Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
+        Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
+    }
+
     /// <summary>PURGE with a store that refuses keeps the portion and the error keys.</summary>
     [Fact]
     public void PurgeTheStoreRefuses_KeepsThePortion()
