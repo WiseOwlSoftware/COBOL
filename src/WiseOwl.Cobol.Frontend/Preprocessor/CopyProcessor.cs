@@ -1102,7 +1102,7 @@ public sealed class CopyProcessor(
                 || (e.Year == 2023 && !e.Permissive)) return;
             bool isCopy = word.IsWord("COPY");
             bool isDirective = e.Year >= 2002 && word.Span.Equals(">>", StringComparison.Ordinal);
-            bool isDebug = e.Year == 2002 && word.Span.Equals(">>D", StringComparison.OrdinalIgnoreCase);
+            bool isDebug = e.Year == 2002 && CobolKeywords.Same(word.Span, ">>D");
             if (!isCopy && !isDirective && !isDebug) return;
             string clause, quoted;
             if (e.Year == 85)
