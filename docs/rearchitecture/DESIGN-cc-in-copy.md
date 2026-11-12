@@ -216,7 +216,8 @@ COBOL-85 and the editions from 2002 differ in three rules of this stage, each as
   program); §2002:7.1.3.2 SR1 allows it wherever a character-string may stand. `ApplyReplaceStatements` asks the constructs row
   `replace-anywhere-2002` of a REPLACE that `FollowsSeparatorPeriod` does not accept. It asks the COPY-expanded text, whatever file each
   character came from (kb/Work PB5422): a COPY statement and its period are not part of the resultant text, so a REPLACE that begins
-  library text follows what preceded the COPY statement, and a debugging line's carrier is stepped over like a separator.
+  library text follows what preceded the COPY statement. It reads the last text-word before the REPLACE, so a comment, a comment-entry carrier
+  and a debugging line's carrier are spaces to it.
 - **COPY in library text.** §1985:XII.2.4 GR12 forbids it; §2002:7.1.2.3 GR14 allows it without REPLACING. `ResolveOneCopy` asks the
   row `copy-nested-library-text-2002` of the library text it has read, and reports at the OUTER statement. Below 2002 the one
   report speaks for the REPLACING arm (the 2023 GR10 diagnostic) too.

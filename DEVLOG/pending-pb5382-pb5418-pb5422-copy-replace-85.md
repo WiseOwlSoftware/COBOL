@@ -23,9 +23,11 @@ Re-probe: s14 and s16 print AB, s7 runs, the control s11 is unchanged. Golden `p
 PARTIAL to CONFORMS.
 
 **PB5422 (under-rejects).** `FollowsSeparatorPeriod` accepted a REPLACE whose preceding character came from another file, so
-`DISPLAY "X" COPY LIBR.` with a REPLACE at the start of LIBR compiled at 85. It now asks the COPY-expanded resultant text. The sibling sweep
-found a false refusal in the same function: a REPLACE on a debugging line after a period drew COBOL0900, because the carrier read as text.
-The carrier is now stepped over like a separator. Goldens `pb5422-replace-library-text-not-after-period` (refused at 85) and
+`DISPLAY "X" COPY LIBR.` with a REPLACE at the start of LIBR compiled at 85. It now reads the last text-word of the COPY-expanded
+resultant text before the REPLACE. The sibling sweep found a false refusal in the same function: a REPLACE on a debugging line after a
+period drew COBOL0900, because the carrier read as text. The first gate was RED on `pb4241_copy_operand_names_division` (a REPLACE after a
+COPY whose library text is a comment-entry paragraph): a character walk read the comment-entry carrier, so the check became a text-word
+scan, to which every carrier and comment is a space. Goldens `pb5422-replace-library-text-not-after-period` (refused at 85) and
 `pb5422-replace-library-text-after-period`. Row 1985-SR-XII.3.3-1 PARTIAL to CONFORMS.
 
 1985 GAP 318 to 315. Self-review looked at the one writer of replacement text (no second copy of the indicator rule), the allocation in
