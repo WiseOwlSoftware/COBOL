@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XII.3.4-3",
  "rule-digest": "dfdad90f4bd2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#SeparatelyCompiledProgramEnds; src/WiseOwl.Cobol.Editions/EditionInfo.cs#ReplaceScopeEndsWithSeparatelyCompiledProgram",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-GR-XII_3_4-3",
+ "notes": "§1985:XII.3.4 GR3: 'A given occurrence of the REPLACE statement is in effect from the point at which it is specified until the next occurrence of the statement or the end of the separately compiled program, respectively.' CopyProcessor.ApplyReplaceStatements applies each statement from its own position (ReplaceStates.Replacing without ALSO replaces the active one, Off cancels it) and, because EditionInfo.ReplaceScopeEndsWithSeparatelyCompiledProgram is true below 2002, ends every scope at the offsets SeparatelyCompiledProgramEnds finds (the END PROGRAM header that closes an outermost program; contained programs do not end it). Probes (work-rr-04): g3a, outer program with two contained programs and a second separately compiled one: a REPLACE in the outer program reaches the first contained program (I1-R1), a later REPLACE in that contained program supersedes it and carries into the sibling contained program (I1B-R2, I2-R2), and the next separately compiled program is untouched (S2-ORIG); at --std 2023 the same source carries R2 into SEP2 and fails there, the 2023 compilation-group scope. g3b: two operand pairs on one pseudo-text-1 (first wins, A-R1), copied text replaced (CPY-R1, GR4), REPLACE OFF twice, then a new REPLACE (B-R3), and a REPLACE written between END PROGRAM and the next IDENTIFICATION DIVISION applies to that program. c) REPLACE ALSO and REPLACE LAST OFF are COBOL0900 at 85 (g3c). Classes a, d, e, f do not reach a scope rule. The witness switches REPLACE on and OFF (REPLACED, ORIGINAL).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

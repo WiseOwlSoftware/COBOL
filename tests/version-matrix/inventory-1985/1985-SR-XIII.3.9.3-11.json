@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.9.3-11",
  "rule-digest": "36ce5d399b31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportEntryClauseTable.cs#Permits; src/WiseOwl.Cobol.Compiler/Binding/ReportEntryClauseTable.cs#AlternativesWritten; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClauseTable; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats",
  "test-ref": "conformance:cases/XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/1985-SR-XIII_3_9_3-11",
+ "notes": "§1985:XIII.3.9.3 SR11: Table 1 lists the only clause combinations of a format 3 entry; 'A blank indicates that the clause is not permitted', PICTURE is M in all five rows, and the rows are PIC+SUM, PIC+COLUMN+SUM(+BWZ,USAGE), PIC+SOURCE(+COLUMN,JUST,GI,USAGE), PIC+SOURCE(+COLUMN,BWZ,GI,USAGE), PIC+COLUMN+VALUE(+JUST,GI,USAGE), each with SIGN and LINE permitted. ReportEntryClauseTable#Permits holds the five rows verbatim and ReportSectionBinder#ScreenReportEntryClauseTable asks it of every elementary entry when DialectLevel < 2002 (COBOL2247), after #ScreenReportEntryClausePresence refuses two of SOURCE/SUM/VALUE (#AlternativesWritten) and #ScreenReportEntryFormats takes the SR8a USAGE case. Probes at --std 85: row 1 (unprinted SC PIC S999 SUM SIGN LEADING SEPARATE, sourced as '- 12'), row 2 (SUM + BWZ + USAGE), row 3 (SOURCE JUST RIGHT '   HELLO'; SOURCE + GROUP INDICATE with no COLUMN accepted), row 4 (SOURCE + BWZ + GI + USAGE, '-12 HELLO' then blank), row 5 (VALUE JUST RIGHT) accepted; SUM+JUST, VALUE+BWZ, unprinted SUM+BWZ, SOURCE+JUST+BWZ, SUM+GI refused COBOL2247, unprinted SUM+USAGE refused (SR8a), SOURCE with no PICTURE refused. The witness (a report heading entry PIC X(5) VALUE \"HELLO\" with no COLUMN, the blank COLUMN cell of row 5) is refused COBOL2247 at its line.",
  "next": {
   "kind": "CHANGED",
   "to": [

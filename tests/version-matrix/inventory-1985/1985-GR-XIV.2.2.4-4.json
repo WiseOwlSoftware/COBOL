@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-4",
  "rule-digest": "c46e52f562d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#MessageDefinitions.FindQueue; src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#McsNames; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#QueuePath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#AcceptMessageCount; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-4",
+ "notes": "§1985:XIV.2.2.4 GR4: data-name-1 to data-name-4 hold queue and sub-queue names that follow the system-name rules and \"must have been previously defined to the message control system (MCS)\". CommunicationArea.QueuePath reads positions 1-48, MessageDefinitions.FindQueue resolves them against mcs.json with McsNames' case fold (system-name rule), and an undefined or gapped path is status 20 in ACCEPT MESSAGE COUNT, RECEIVE and ENABLE/DISABLE INPUT. Probes at 85 (series-of-data-names CD): a 4-level Q/A/B/C path counts 1; a gap at level 2, a leading space and a blank queue each 20; Q alone counts 2 and RECEIVE fills all four levels; lowercase a disables Q/A. Witness: PAYQ sub-queues known and unknown.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

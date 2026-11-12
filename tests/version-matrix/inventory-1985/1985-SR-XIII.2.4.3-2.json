@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.2.4.3-2",
  "rule-digest": "dc00468c6f39",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenMultipleFileClause",
  "test-ref": "conformance:cases/XIII.2.4@1985-I-O-CONTROL-PARAGRAPH/1985-SR-XIII_2_4_3-2",
+ "notes": "'A file-name that represents a report file can appear in a MULTIPLE FILE TAPE clause or in a SAME clause for which the RECORD phrase is not specified' (§1985:XIII.2.4.3 SR2). FileControlBinder#SameOccurrenceRule carries the edition as a third axis: below 2002 a report file may be in one SAME AREA clause (§1985:VII.2.13.3 SR3a), in any number of SAME SORT / SORT-MERGE AREA clauses and in no SAME RECORD AREA clause, where 2002 and 2023 also bar the sort-merge-area format (kb/Work PB5250); ScreenSameClauses applies it (COBOL2738) and ScreenMultipleFileClause accepts a report file on a reel. Probes at 85: SAME AREA and bare SAME with a report file and a sequential file, two report files in one SAME AREA, SAME SORT AREA and SAME SORT-MERGE AREA with a report file, a report file in SAME AREA and two SAME SORT AREA clauses, MULTIPLE FILE TAPE CONTAINS RPT-FILE POSITION 2 and MULTIPLE FILE without TAPE all compile and run (OK, HELLO written); SAME RECORD AREA with the report file first, second, both files reports, and SAME RECORD without AREA refused COBOL2738 citing this rule, as are a report file in two SAME AREA clauses and a one-file SAME. The witness refuses SAME RECORD AREA FOR RPT-FILE OTH-FILE beside a legal MULTIPLE FILE TAPE.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

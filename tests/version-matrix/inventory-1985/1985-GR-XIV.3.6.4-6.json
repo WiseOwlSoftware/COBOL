@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-6",
  "rule-digest": "308e9f8e3f41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToDestinations; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToTerminal; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Dialogue.Release",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-6",
+ "notes": "§1985:XIV.3.6.4 GR6: format 1 releases one portion, format 2 never more than one message or segment, and \"the MCS will not transmit any portion of a message to a communication device until the entire message has been released to the MCS\". Dialogue.Release appends a portion, closes a segment on ESI and returns a StoredMessage only on EMI/EGI, which SendToDestinations enqueues and SendToTerminal transmits, so nothing reaches a device or queue before the message ends. Witness: portion/ESI/EMI counts 0,0,1 and a device file written only after EMI. Probes at --std 85: (e) device destination: three portions (format 1 twice, identifier-2=1) leave DEV.out absent; portions+ESI+EMI+EGI write HEHEHEL then H; a run ending with an ESI-only message writes nothing; I-O CD terminal written once (HEHEHE) after EMI; LOOP+DEV destinations: SEG count 0, EMI count 1, DEV gets HEHE then HE; (b) disabled destination 10/key 2, unknown 20/key 1, DESTINATION COUNT 0 status 30, nothing released.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

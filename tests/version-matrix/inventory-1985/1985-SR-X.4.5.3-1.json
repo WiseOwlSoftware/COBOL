@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.4.5.3-1",
  "rule-digest": "e979980fc53a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ResidenceFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#Rules",
  "test-ref": "conformance:cases/X.4.5@1985-EXTERNAL-CLAUSE/1985-SR-X_4_5_3-1",
+ "notes": "§1985:X.4.5.3 SR1: 'The EXTERNAL clause may be specified only in file description entries ... or in record description entries in the Working-Storage Section', which §1985:X.4.3.3 SR2 narrows to Working-Storage entries 'whose level-number is 01'; the 2023 extension to level 1 type declarations does not exist at 85. The Residence row of ClausePlacementRules.Rules for EXTERNAL admits only Working-Storage at level 1 (plus type declarations), ScreenClausePlacement asks it of every written clause through ResidenceFault (COBOL2404), the FD and SD entry formats are closed lists (SD EXTERNAL COBOL1970), and at 85 the type-declaration arm is unreachable because TYPEDEF itself is COBOL0900. Probes at --std 85: (b) EXTERNAL on a Linkage 01 (the witness), on an FD record 01, on a Working-Storage 05 and on a 77 each COBOL2404, SD S1 EXTERNAL COBOL1970; (c) 01 TD EXTERNAL TYPEDEF refused with COBOL0900; legal: FD F1 IS EXTERNAL with a Working-Storage 01 EXTERNAL group holding an OCCURS DEPENDING table ran OK, and a report-file FD IS EXTERNAL (§1985:X.4.2 Format 3) plus a Working-Storage 01 W EXTERNAL shared with a contained program printed INNER ABCD and wrote the report line ABCD.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
