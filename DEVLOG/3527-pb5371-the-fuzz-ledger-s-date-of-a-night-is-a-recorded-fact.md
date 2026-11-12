@@ -1,4 +1,4 @@
-## PB5371: the fuzz ledger's date of a night is a recorded fact, not a slice of its run id
+## Entry 3527 — 2026-11-12 10:41 PST — PB5371: the fuzz ledger's date of a night is a recorded fact, not a slice of its run id
 
 The published fuzz ledger said "The totals below run from 2026-10-20 to batc-h--30" and listed Night 10 as started on
 `batc-h--30`. `fuzz_history.night_date` cut characters 5 to 12 out of the run id and formatted them as a date. A run id is
@@ -20,3 +20,4 @@ carries a date within a day of its start. The tracked-history arm was run before
 The sibling sweep found one more assumption of the default name: a finding from an unrecorded run with a hand-given name
 is left off the page. It needs the run stated in the note's frontmatter, a design of its own, filed as PB5372 (open).
 `docs/rearchitecture/DESIGN-differential-fuzz.md` states both where it describes the history.
+
