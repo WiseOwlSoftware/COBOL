@@ -55,6 +55,16 @@ internal readonly record struct ValueSubject(ValueSubjectKind Kind, int? SizePos
     /// error on both dialect axes (kb/Work PB206).</summary>
     public bool IsGroup => Kind is ValueSubjectKind.Group;
 
+    /// <summary>The rule that bounds a CHARACTER literal by <see cref="SizePositions"/>, cited by the size arms of
+    /// <see cref="DataBinder.ValidateValueCategory"/>. An item's (elementary or group) is §2023:13.18.63.3 SR4. A
+    /// condition-name is sized only below COBOL-2002 (<see cref="ForConditionName"/>), where the rule is
+    /// §1985:VI.5.15.3 SR3, "Nonnumeric literals in a VALUE clause of an item must not exceed the size indicated by the
+    /// PICTURE clause"; SR4 of 2023 bounds only "an elementary item" and "an alphanumeric group item", so citing it on
+    /// an 88 would send the reader to a rule that does not reach the entry refused (kb/Work PB5190, review R1-2).</summary>
+    public string CharacterSizeRule => Kind is ValueSubjectKind.ConditionName
+        ? "§1985:VI.5.15.3 SR3, the conditional variable's PICTURE"
+        : "ISO §2023:13.18.63.3 SR4";
+
     /// <summary>An ELEMENTARY item's VALUE clause (§2023:13.18.63 formats 1, 2 and 4). Its size is "the size indicated
     /// by an explicit PICTURE clause" (§2023:13.18.63.3 SR4/SR5/SR10 sentence 2).
     /// <para>⛔ The <see langword="null"/> arm is not a defensive nicety: for a DYNAMIC LENGTH item,

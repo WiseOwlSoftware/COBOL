@@ -65,6 +65,13 @@ public sealed class ConditionNameValueSizeTests
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1740");
         Assert.Equal(2, errors.Count(e => e.Contains("COBOL1740")));   // XC "cd", and XR "aa" THRU "zz" (its two ends are one report)
+        // Each report cites the 1985 rule that reaches the entry, never §2023:13.18.63.3 SR4, which bounds only an
+        // elementary or group item (ValueSubject.CharacterSizeRule; review R1-2 of the w20262006b finisher).
+        Assert.All(errors.Where(e => e.Contains("COBOL1740")), e =>
+        {
+            Assert.Contains("§1985:VI.5.15.3 SR3", e);
+            Assert.DoesNotContain("13.18.63.3 SR4", e);
+        });
 
         var (fits, ferrors, _) = EditionHarness.CompileFull(
             Program("01 XV PIC X(2).\n   88 XC VALUE \"cd\".\n   88 XR VALUE \"aa\" THRU \"zz\".\n   88 XF VALUE ALL \"ABC\".",

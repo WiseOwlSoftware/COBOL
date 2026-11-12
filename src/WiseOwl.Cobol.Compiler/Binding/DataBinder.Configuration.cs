@@ -161,11 +161,16 @@ public sealed partial class DataBinder
     {
         if (Constants.ConstantOf(dref) is not { } constant) return null;
         string name = dref.cobolWord().GetText();
-        // §2023:8.4.6.2.1 3) a): a constant THIS source element declares is "the item in source element B", so a container's
-        // GLOBAL data item of the spelling is declared farther out and never competes with it (kb/Work PB5301, review R1-1).
-        bool constantIsOwn = Constants.IsDeclaredConstant(name);
-        var candidates = QualifiedCandidates(name, [], ActiveScope);
-        int dataItems = constantIsOwn ? candidates.Where(d => State.Forest.DeclaringDepth(d) == 0).Count : candidates.Count;
+        // §2023:8.4.6.2.1 GR3: among items of one spelling declared at different tiers the NEAREST declaration is the referenced
+        // item — a constant THIS source element declares is "the item in source element B is the referenced item" (GR3a), a
+        // GLOBAL constant of the n-th container is "The item in source element A if the name is declared in source element A"
+        // (GR3b.1, applied outward). So only a data item declared AT THE CONSTANT'S OWN TIER competes with it: one farther out is
+        // hidden by the constant, and one nearer has already removed an inherited constant (InheritStep.DropShadowed). The tier is
+        // 0 for a constant of this element (or of the method being bound), else the container's distance (kb/Work PB5301,
+        // reviews R1-1 of w20262006b and of its finisher).
+        int constantTier = Constants.IsDeclaredConstant(name) ? 0 : Constants.InheritedDepthOf(name);
+        int dataItems = QualifiedCandidates(name, [], ActiveScope)
+            .Where(d => State.Forest.DeclaringDepth(d) == constantTier).Count;
         if (dataItems > 0 && _sharedSpellingReported.Add(dref))
         {
             string msg = $"'{WrittenText(dref)}' does not uniquely identify its item — it is the name of a constant-name "

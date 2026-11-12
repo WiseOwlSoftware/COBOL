@@ -1655,7 +1655,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     + $"({CobolLiteral.Decode(raw).Length} characters) exceeds the "
                     + $"{(subject.IsGroup ? $"group item's {alnumLimit} character positions"
                                           : $"item's {alnumLimit} character positions indicated by its PICTURE clause")}"
-                    + " (ISO §2023:13.18.63.3 SR4)");
+                    + $" ({subject.CharacterSizeRule})");
                 break;
             // ── The SAME sentence on a NUMERIC-EDITED elementary subject (kb/Work PB4610). SR4's size sentences name
             //    "Alphanumeric literals in the VALUE clause of an elementary item", not the categories of the sentence
@@ -1675,7 +1675,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     && subject.SizePositions is { } editedLimit && CobolLiteral.Decode(raw).Length > editedLimit:
                 Edition.Error(DiagnosticCatalog.ValueNumericEditedOversize, $"{where}: the VALUE literal "
                     + $"({CobolLiteral.Decode(raw).Length} characters) exceeds the numeric-edited item's "
-                    + $"{editedLimit}-character edited size (ISO §2023:13.18.63.3 SR4)");
+                    + $"{editedLimit}-character edited size ({subject.CharacterSizeRule})");
                 break;
         }
         return raw;
