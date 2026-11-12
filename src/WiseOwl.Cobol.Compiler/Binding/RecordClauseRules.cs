@@ -58,6 +58,10 @@ internal readonly record struct RecordClauseSubject(DataItem? Record, int MinByt
 /// here, unlike <c>FileControlKeyRules.ScreenedOn</c>, because every rule in this subclause is stated inside the
 /// format it screens; the subclause states no rule about a clause written where its format does not apply.</param>
 /// <param name="Subject">What the rule speaks about (see <see cref="RecordRuleSubject"/>).</param>
+/// <param name="Since">The first edition (<see cref="EditionContext.DialectLevel"/>, a year) whose text carries the rule.
+/// A rule is screened only at an edition that has it: ISO/IEC 1989:2002 added Format 3's ordering rule
+/// (§2002:13.16.41.2 SR8), and §1985:VII.3.8 states none for Format 3, so a program written to 1985 may give both
+/// integers one value (kb/Work PB5196).</param>
 /// <param name="Violated">Whether this subject breaks the rule.</param>
 /// <param name="Message">The diagnostic body — what was written, then the rule, then the citation.</param>
 /// <param name="Code">The diagnostic this row reports under: the clause's own integers and a record
@@ -69,9 +73,16 @@ internal sealed record RecordClauseRule(
     string RuleText,
     RecordClauseFormat Format,
     RecordRuleSubject Subject,
+    int Since,
     Func<RecordClauseFacts, RecordClauseSubject, bool> Violated,
     Func<FileModel, RecordClauseFacts, RecordClauseSubject, string> Message,
-    DiagnosticDescriptor Code);
+    DiagnosticDescriptor Code)
+{
+    /// <summary>Whether this row screens a <paramref name="subject"/> of a clause written in <paramref name="clause"/>'s
+    /// format at the targeted edition: the format and subject match and the edition has the rule (<see cref="Since"/>).</summary>
+    internal bool AppliesAt(RecordClauseFacts clause, EditionContext edition, RecordRuleSubject subject) =>
+        Format == clause.Format && Subject == subject && edition.DialectLevel >= Since;
+}
 
 /// <summary>
 /// ⛔ THE ONE SCREEN FOR THE RECORD CLAUSE'S SIZE SYNTAX RULES (ISO/IEC 1989:2023 §2023:13.18.43.3), run from
@@ -107,9 +118,10 @@ internal sealed record RecordClauseRule(
 /// the PB743 clamp applied before the defect rather than after it: a rule read as one predicate gets one screen,
 /// and the arm that ships alone is silent forever. The drift test re-derives the split from the printed rule.</para>
 ///
-/// <para>EDITIONS. Every rule here is present in all four supported editions (85 · 2002 · 2014 · 2023): the
-/// RECORD clause and its syntax rules predate COBOL-85, and Annex E — the complete 2014→2023 delta — carries no
-/// entry for this subclause. So the table needs no edition column and the negatives reject at every edition.</para>
+/// <para>EDITIONS. Each row carries <see cref="RecordClauseRule.Since"/>, the first edition whose text has it. Every
+/// row but SR9 is present from 1985; Annex E — the complete 2014→2023 delta — carries no entry for this subclause.
+/// SR9 (Format 3's integer-5 greater than integer-4) first appears in §2002:13.16.41.2 SR8: §1985:VII.3.8 prints no syntax rule
+/// for Format 3, so at --std 85 <c>RECORD CONTAINS 5 TO 5 CHARACTERS</c> is legal (kb/Work PB5196).</para>
 ///
 /// <para>⚖ NOT HERE, AND WHY, rule by rule, so the absences are decisions rather than oversights:</para>
 /// <list type="bullet">
@@ -157,7 +169,7 @@ internal static class RecordClauseRules
         // its largest size, so it is that size the rule bounds.
         new("SR-13.18.43.3-3", "13.18.43.3", "ISO §2023:13.18.43.3 SR3",
             "No record description entry for the file may specify a number of bytes greater than integer-1",
-            RecordClauseFormat.Fixed, RecordRuleSubject.RecordDescription,
+            RecordClauseFormat.Fixed, RecordRuleSubject.RecordDescription, 1985,
             (c, s) => c.Upper is { } n && s.MaxBytes > n,
             (f, c, s) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, but the RECORD "
                 + $"clause states {c.UpperName} = {c.Upper}; no record description entry for the file may specify "
@@ -169,7 +181,7 @@ internal static class RecordClauseRules
         // inconsistency as well as the record's. Equal bounds violate it: the standard says GREATER.
         new("SR-13.18.43.3-5", "13.18.43.3", "ISO §2023:13.18.43.3 SR5",
             "Integer-3 shall be greater than integer-2",
-            RecordClauseFormat.Varying, RecordRuleSubject.Clause,
+            RecordClauseFormat.Varying, RecordRuleSubject.Clause, 1985,
             (c, _) => c is { Lower: { } lo, Upper: { } hi } && hi <= lo,
             (f, c, _) => $"{f.EntryFace} '{f.CobolName}': the RECORD IS VARYING IN SIZE clause states "
                 + $"FROM {c.Lower} TO {c.Upper}; {c.UpperName} shall be greater than {c.LowerName} "
@@ -181,7 +193,7 @@ internal static class RecordClauseRules
         // minimum occurrence count, which is the smallest record the description describes.
         new("SR-13.18.43.3-4", "13.18.43.3", "ISO §2023:13.18.43.3 SR4",
             "shall describe neither records that contain a lesser number of bytes than that specified by integer-2",
-            RecordClauseFormat.Varying, RecordRuleSubject.RecordDescription,
+            RecordClauseFormat.Varying, RecordRuleSubject.RecordDescription, 1985,
             (c, s) => c.Lower is { } lo && s.MinBytes < lo,
             (f, c, s) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is fewer "
                 + $"than the {c.LowerName} = {c.Lower} its RECORD IS VARYING IN SIZE clause states; "
@@ -192,7 +204,7 @@ internal static class RecordClauseRules
         // integer-3", against GR8 b)'s maximum.
         new("SR-13.18.43.3-4", "13.18.43.3", "ISO §2023:13.18.43.3 SR4",
             "nor records that contain a greater number of bytes than that specified by integer-3",
-            RecordClauseFormat.Varying, RecordRuleSubject.RecordDescription,
+            RecordClauseFormat.Varying, RecordRuleSubject.RecordDescription, 1985,
             (c, s) => c.Upper is { } hi && s.MaxBytes > hi,
             (f, c, s) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is more "
                 + $"than the {c.UpperName} = {c.Upper} its RECORD IS VARYING IN SIZE clause states; "
@@ -209,7 +221,7 @@ internal static class RecordClauseRules
         // The section is DataItem.Section (kb/Work PB1080), the fact §2023:12.4.5.8.3 SR2's FILE STATUS screen reads.
         new("SR-13.18.43.3-6", "13.18.43.3", "ISO §2023:13.18.43.3 SR6",
             "Data-name-1 shall describe an elementary",
-            RecordClauseFormat.Varying, RecordRuleSubject.DependingOperand,
+            RecordClauseFormat.Varying, RecordRuleSubject.DependingOperand, 1985,
             (_, s) => s.Depending is { IsElementary: false },
             (f, _, s) => $"{f.EntryFace} '{f.CobolName}': the RECORD clause's DEPENDING ON '{s.Depending?.CobolName}' "
                 + $"is a group item; {Sr6Sentence}",
@@ -217,7 +229,7 @@ internal static class RecordClauseRules
 
         new("SR-13.18.43.3-6", "13.18.43.3", "ISO §2023:13.18.43.3 SR6",
             "elementary unsigned integer",
-            RecordClauseFormat.Varying, RecordRuleSubject.DependingOperand,
+            RecordClauseFormat.Varying, RecordRuleSubject.DependingOperand, 1985,
             (_, s) => s.Depending is { IsElementary: true } d && d.Pic is not { IsIntegerDescription: true, Signed: false },
             (f, _, s) => $"{f.EntryFace} '{f.CobolName}': the RECORD clause's DEPENDING ON '{s.Depending?.CobolName}' "
                 + $"is not an unsigned integer; {Sr6Sentence}",
@@ -225,7 +237,7 @@ internal static class RecordClauseRules
 
         new("SR-13.18.43.3-6", "13.18.43.3", "ISO §2023:13.18.43.3 SR6",
             "in the working-storage, local-storage, or linkage section",
-            RecordClauseFormat.Varying, RecordRuleSubject.DependingOperand,
+            RecordClauseFormat.Varying, RecordRuleSubject.DependingOperand, 1985,
             (_, s) => s.Depending?.Section is { } sec
                 && sec is not (EntrySection.WorkingStorage or EntrySection.LocalStorage or EntrySection.Linkage),
             (f, _, s) => $"{f.EntryFace} '{f.CobolName}': the RECORD clause's DEPENDING ON '{s.Depending?.CobolName}' "
@@ -234,13 +246,15 @@ internal static class RecordClauseRules
             DiagnosticCatalog.RecordDependingOperand),
 
         // ── FORMAT 3 (fixed-or-variable-length) ──────────────────────────────────────────────────────────────
+        // ⛔ Since 2002 (kb/Work PB5196): §2002:13.16.41.2 SR8 is the first text to order integer-4 and integer-5;
+        // §1985:VII.3.8.4 GR14 makes them the smallest and the largest record size, equal for a file of one size.
         // ⛔ SR9 IS SR5 ONE FORMAT OVER, AND FORMAT 3 HAS NO SR4-ANALOGUE — deliberately, not by omission:
         // §2023:13.18.43.4 GR18 says that for this format "the size of each record is completely defined in the
         // record description entry", so the standard states no rule bounding the descriptions by integer-4 and
         // integer-5. Inventing one here would reject legal source.
         new("SR-13.18.43.3-9", "13.18.43.3", "ISO §2023:13.18.43.3 SR9",
             "Integer-5 shall be greater than integer-4",
-            RecordClauseFormat.FixedOrVariable, RecordRuleSubject.Clause,
+            RecordClauseFormat.FixedOrVariable, RecordRuleSubject.Clause, 2002,
             (c, _) => c is { Lower: { } lo, Upper: { } hi } && hi <= lo,
             (f, c, _) => $"{f.EntryFace} '{f.CobolName}': the RECORD CONTAINS clause states "
                 + $"{c.Lower} TO {c.Upper}; {c.UpperName} shall be greater than {c.LowerName} "
@@ -267,7 +281,7 @@ internal static class RecordClauseRules
         // Subject-outer: the record descriptions are enumerated ONCE for all of the record-level rules.
         foreach (var rule in Rules)
         {
-            if (rule.Format != clause.Format || rule.Subject != RecordRuleSubject.Clause) continue;
+            if (!rule.AppliesAt(clause, edition, RecordRuleSubject.Clause)) continue;
             var subject = default(RecordClauseSubject);
             if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Message(file, clause, subject));
         }
@@ -279,11 +293,11 @@ internal static class RecordClauseRules
             var subject = new RecordClauseSubject(null, 0, 0, depending);
             foreach (var rule in Rules)
             {
-                if (rule.Format != clause.Format || rule.Subject != RecordRuleSubject.DependingOperand) continue;
+                if (!rule.AppliesAt(clause, edition, RecordRuleSubject.DependingOperand)) continue;
                 if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Message(file, clause, subject));
             }
         }
-        if (!Rules.Any(r => r.Format == clause.Format && r.Subject == RecordRuleSubject.RecordDescription)) return;
+        if (!Rules.Any(r => r.AppliesAt(clause, edition, RecordRuleSubject.RecordDescription))) return;
         foreach (var record in file.Records)
         {
             // ⛔ EVERY record description is a subject, a variable-length one included (kb/Work PB1562). GR8 b) sums
@@ -298,7 +312,7 @@ internal static class RecordClauseRules
             var subject = new RecordClauseSubject(record, FileModel.MinRecordSize(record), FileModel.MaxRecordSize(record));
             foreach (var rule in Rules)
             {
-                if (rule.Format != clause.Format || rule.Subject != RecordRuleSubject.RecordDescription) continue;
+                if (!rule.AppliesAt(clause, edition, RecordRuleSubject.RecordDescription)) continue;
                 if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Message(file, clause, subject));
             }
         }
