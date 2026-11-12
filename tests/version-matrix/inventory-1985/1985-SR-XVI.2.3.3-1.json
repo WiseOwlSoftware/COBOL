@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XVI.2.3.3-1",
  "rule-digest": "b17e5abef5ae",
+ "test-ref": "conformance:cases/XVI.2.3@1985-SEGMENT-LIMIT-CLAUSE/1985-SR-XVI_2_3_3-1",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
