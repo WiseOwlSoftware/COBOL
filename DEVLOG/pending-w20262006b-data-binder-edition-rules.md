@@ -39,3 +39,7 @@ Goldens: 27 new programs (refused below or from the introducing edition, accepte
 0 to 0 (the 1985 rows are not in the inventory, PB5094). Codes COBOL7021-7023 were not needed: every refusal reuses an existing code.
 Found and left: `FD F LINAGE IS KK` with a constant and a data item KK still takes the constant; RECORD KEY IS K with a second K in working-storage is accepted at every
 edition (`FileControlBinder.ResolveFiles` prefers the record's candidate).
+
+Self-review: the four lenses found one shape defect in my own diff, `RecordClauseRule.Since = 1985` against `DialectLevel` 85 (eleven refusal goldens went red at the
+first gate), and the placement of the constant reading on `ConstantEntryBinder` (a new reader of the binder's members; it moved to `DataBinder`). Gate (run 000005-20261112T192543Z
+at 209a4a03d9): GREEN, Conformance 24,330/24,330, Unit 40,803/40,803, Characterization 37/37; every new golden passed in Conformance.trx.
