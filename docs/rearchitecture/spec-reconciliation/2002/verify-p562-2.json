@@ -1,0 +1,13 @@
+{
+  "claim_id": "p562-2",
+  "claim_key": "772c5c785bb41562",
+  "page": 562,
+  "kind": "ocr-error",
+  "severity": "normative",
+  "claim": {"id": "p562-2", "page": 562, "kind": "ocr-error", "severity": "normative", "pdf_says": "(operand-2 – (operand-1₁ + operand-1₂ + ... + operand-1ₙ))", "markdown_says": "(operand-2 – (operand-11 + operand-12 + ... + operand-1n))", "why_it_matters": "14.8.40.3 SUBTRACT general rule 2 (format 2): the same flattened subscripts on operand-1 make the expression defining the GIVING result reference operand-11, operand-12 and operand-1n instead of the indexed occurrences of operand-1."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The rendered PDF page 562 (printed page 540), §2002:14.8.40.3 GR2, shows the expression (operand-2 – (operand-1 + operand-1 + ... + operand-1)) with the 1, 2 and n set as true subscripts on each operand-1. Line 37 of page-562.md reads '(operand-2 – (operand-11 + operand-12 + ... + operand-1n))', so the subscripts are flattened into the operand name. That turns the indexed occurrences of operand-1 into what read as distinct operands named operand-11, operand-12 and operand-1n, which changes the meaning of the normative rule's defining expression. The claim quotes both sources accurately. The same flattening also occurs in GR1 (line 25, the operand-1 sum), which is presumably a sibling claim.",
+    "corrected_description": ""
+  }
+}

@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: an alphanumeric PICTURE uses combinations of 'A', 'X', '9' 'and the item is treated as if the character-string contained all X's' (all-A and all-9 excluded); content any characters. §2023:13.18.40.4 GR6 accepts the same strings ('at least one symbol X, or at least two different symbols from this set'), but no 2023 rule treats the item as all X's: §2023:13.18.40.4 GR14 makes 'A' equivalent to 'X' only outside VALIDATE, and each '9' of a display item 'shall contain a numeric character in the range 0 through 9'. The content requirement for '9' positions in an alphanumeric item is stricter.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "GR-13.18.40.4-6": "ec2d490af8c9",
+   "GR-13.18.40.4-14": "afd0f88fdb6d"
+  }
  }
 }

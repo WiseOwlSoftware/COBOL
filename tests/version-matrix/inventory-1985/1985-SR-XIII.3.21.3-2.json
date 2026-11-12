@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: a group's USAGE 'may also be written in the data description entry for a subordinate elementary item or group item'. §2023:13.18.60.3 SR2, applied to report entries by §2023:13.15.4 GR2 and offered at every level by §2023:13.15.2, permits the same 'but the same usage shall be specified in both entries'. That condition refuses no 1985 program: 1985 report USAGE is only DISPLAY (§1985:XIII.3.21.2), so group and subordinate usages never differ; NATIONAL is new syntax.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "SR-13.18.60.3-2": "e4600b0998b6",
+   "GR-13.15.4-2": "adfcec9cace3",
+   "FMT-13.15.2": "d2104b4e3f18"
+  }
  }
 }

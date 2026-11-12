@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 indexed READ: Format 1 READ file-name-1 [NEXT] RECORD [INTO] [AT END] [NOT AT END] [END-READ]; Format 2 READ … [KEY IS data-name-1] [INVALID KEY] [NOT INVALID KEY] [END-READ]. §2023:14.9.30.2 adds PREVIOUS, ADVANCING ON LOCK, IGNORING LOCK, WITH [NO] LOCK, retry-phrase and record-key-name-1, and its choice indicators let AT END/NOT AT END and INVALID KEY/NOT INVALID KEY appear in either order; §2023:14.9.30.3 SR8 and SR9 state when the omitted NEXT is implied (\"the NEXT phrase is implied\"). Every 1985 READ keeps its meaning; cases are added at compile time.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-14.9.30.2": "ab07b0e7e719",
+   "SR-14.9.30.3-8": "ddf6eb4f81d8",
+   "SR-14.9.30.3-9": "68152f3c36d8"
+  }
  }
 }

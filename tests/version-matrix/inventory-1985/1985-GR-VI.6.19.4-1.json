@@ -14,6 +14,10 @@
   "reason": "1985 GR1: the results are 'the same as if the user had referred to each pair of corresponding identifiers in separate MOVE statements', so each implied MOVE evaluates its own subscripts. §2023:14.9.25.4 GR11 keeps that equivalence 'except that if subscripting is specified for identifier-3 or identifier-4, the subscript value used is that resulting from the evaluation of the subscript at the start of the execution of the statement'. A conforming 1985 program can observe it: MOVE CORR A (I OF B) TO B, where B and the table element A each contain an item I, alters the subscript mid-statement; 1985 re-evaluates it for later pairs, 2023 does not. 1985 GR2's once-only rule is format 1's only. §2023:14.9.25.3 SR13 states the sending/receiving roles of the corresponding items.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "source": "adjudicate-712/slice-12",
+  "digests": {
+   "GR-14.9.25.4-11": "6fdd434237b7",
+   "SR-14.9.25.3-13": "16cb5923431f"
+  }
  }
 }

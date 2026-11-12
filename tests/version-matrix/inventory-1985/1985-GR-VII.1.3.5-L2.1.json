@@ -23,6 +23,19 @@
   ],
   "bridge": true,
   "reason": "1985 lists the successful-completion values for a sequential file: 00, 04, 05 ('An OPEN statement is successfully executed but the referenced optional file is not present'), 07. 2023 keeps each condition (§2023:9.1.13.2 GR1, GR3, GR4 a), GR6; set by READ §2023:14.9.30.4 GR14, OPEN §2023:14.9.27.4 GR4 Table 18, GR11, GR17, CLOSE §2023:14.9.6.4 GR3). It adds cases: 05 'For a DELETE FILE statement, the referenced file is not available' (§2023:9.1.13.2 GR4 b), and two new successful values for line sequential files, 06 'a line delimiter or the end-of-file has not been detected' (§2023:9.1.13.2 GR5) and 09 (§2023:9.1.13.2 GR7). Programs 2023 accepts (DELETE FILE, LINE SEQUENTIAL) get statuses the 1985 list does not contain: cases added.",
-  "source": "adjudicate-712-r2/slice-06"
+  "source": "adjudicate-712-r2/slice-06",
+  "digests": {
+   "GR-9.1.13.2-1": "17fa4ee70e7d",
+   "GR-9.1.13.2-3": "2f93339ac9a7",
+   "GR-9.1.13.2-4": "6687777bb08d",
+   "GR-9.1.13.2-5": "8d1eec466aab",
+   "GR-9.1.13.2-6": "45887fbca7d4",
+   "GR-9.1.13.2-7": "17e3ad3ebaf6",
+   "GR-14.9.30.4-14": "e85174ff8de7",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-14.9.27.4-11": "64ae37238248",
+   "GR-14.9.27.4-17": "c29782e39335",
+   "GR-14.9.6.4-3": "07cb78120ad0"
+  }
  }
 }

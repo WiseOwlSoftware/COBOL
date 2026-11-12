@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985 VII.3.4.3 SR2: 'The alphabet-name clause referenced by the CODE-SET clause must not specify the literal phrase' (also 1985 SPECIAL-NAMES GR d). §2023:13.18.13.3 SR1 only requires 'an alphabet that defines an alphanumeric coded character set', and §2023:12.3.7.4 GR7 (Table 6) marks the literal phrase as referencing a coded character set ('| literal phrase | Y | Y |'), with 7)k)4 defining the code set it specifies. A CODE-SET naming a literal-phrase alphabet, refused in 1985, is accepted in 2023: a compile-time relaxation.",
-  "source": "adjudicate-712/slice-31"
+  "source": "adjudicate-712/slice-31",
+  "digests": {
+   "SR-13.18.13.3-1": "8b76e584f510",
+   "GR-12.3.7.4-7": "2c3f94325c9c"
+  }
  }
 }

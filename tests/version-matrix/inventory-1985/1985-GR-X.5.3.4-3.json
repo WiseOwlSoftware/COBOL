@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 'callable' refers to Scope of Names rules. 2023 has CANCEL locate the program 'according to' 8.4.6 Scope of names and 8.4.6.3 Scope of program-names, so the same programs are reachable.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.5.4-2": "007fccbb9e49"
+  }
  }
 }

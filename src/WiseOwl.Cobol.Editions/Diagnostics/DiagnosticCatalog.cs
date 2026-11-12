@@ -1286,8 +1286,12 @@ public static class DiagnosticCatalog
         + "has a SOURCE or SUM clause (SR12), and may be omitted only for an alphanumeric, boolean or national "
         + "VALUE literal (SR14); a COLUMN clause shall be specified in each elementary entry that has a VALUE "
         + "clause (SR13); and if BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be "
-        + "specified (SR15).",
-        "ISO §2023:13.15.3 SR5/SR9/SR10/SR11/SR12/SR13/SR14/SR15");
+        + "specified (SR15). At every edition the SOURCE, SUM and VALUE clauses are alternatives of one brace "
+        + "(§2023:13.15.2; §1985:XIII.3.9.2; §1985:XIII.3.22.4 GR1: \"The VALUE clause must not conflict with other "
+        + "clauses in the data description of the item\"). At COBOL-85 an elementary format 3 entry's clauses shall be "
+        + "the cells of one row of §1985:XIII.3.9.3 SR11 Table 1, where a blank cell means the clause is not permitted "
+        + "(kb/Work PB5243).",
+        "ISO §2023:13.15.3 SR5/SR9/SR10/SR11/SR12/SR13/SR14/SR15; §2023:13.15.2; §1985:XIII.3.9.3 SR11");
 
     /// <summary>COBOL2519 — a GROUP INDICATE clause outside the placement §2023:13.18.28.3 SR1 admits: a report
     /// group that is not a DETAIL, or an elementary entry lacking the COLUMN clause or the SOURCE-or-VALUE clause
@@ -9496,6 +9500,16 @@ public static class DiagnosticCatalog
         + "phrase twice) declare the same index-name. The rule is unconditional: it does not wait for a reference. "
         + "(COBOL-2002 and later let an index-name be qualified, so two tables may each declare one spelling.)",
         "ISO §1985:VI.5.8.3 SR14");
+
+    /// <summary>COBOL6973 — an X3.23-1985 ENTER statement that another statement follows in its sentence (kb/Work PB5178).
+    /// Emitted by PlacementRules.RefusedOutOfSequence (the EnterEndsSentence row) where the statement exists (COBOL-85; from
+    /// 2002 it is COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor EnterNotEndOfSentence = new(
+        "COBOL6973", "enter-not-end-of-sentence", EditionSeverity.Error,
+        "An X3.23-1985 ENTER statement is followed by another statement before the separator period. §1985:VI.6.12.2 prints "
+        + "\"ENTER language-name-1 [ routine-name-1 ] .\", and §1985:IV.2.1.6: \"The separator period, when used in the "
+        + "formats, has the status of a required word.\" End the sentence after the ENTER statement.",
+        "X3.23-1985 ENTER statement general format (§1985:VI.6.12.2; §1985:IV.2.1.6)");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

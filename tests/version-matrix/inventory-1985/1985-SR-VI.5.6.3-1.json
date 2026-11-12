@@ -9,6 +9,10 @@
    "SR-13.16.3-11"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.32.3-1": "2535f37260e7",
+   "SR-13.16.3-11": "afee46f60526"
+  }
  }
 }

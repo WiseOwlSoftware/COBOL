@@ -13,6 +13,12 @@
   ],
   "bridge": true,
   "reason": "30, 35, 37 a) and 39 carry over (§2023:9.1.13.6 GR1, §2023:9.1.13.6 GR5 'is attempted on a file that is not described as optional and the physical file is not present', §2023:9.1.13.6 GR7). Two differences: 1985 d. 'I-O Status = 38 ... OPEN statement is attempted on a file previously closed with lock' has no 2023 counterpart (§2023:E.2 lists 'The WITH LOCK phrase of the CLOSE statement and the related File Status of 38' as deleted), and 37 gains a case, §2023:9.1.13.6 GR6 b) 'insufficient authority exists to access the file'. Run-time statuses only; nothing refused.",
-  "source": "adjudicate-712/slice-06"
+  "source": "adjudicate-712/slice-06",
+  "digests": {
+   "GR-9.1.13.6-1": "496b685aec5d",
+   "GR-9.1.13.6-5": "63619007ba1d",
+   "GR-9.1.13.6-6": "b8d74a99aedb",
+   "GR-9.1.13.6-7": "5a57e7f5f853"
+  }
  }
 }

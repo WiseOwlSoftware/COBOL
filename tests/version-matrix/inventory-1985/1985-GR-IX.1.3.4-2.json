@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 'At End. A sequential READ statement was unsuccessfully executed as a result of an at end condition' is word for word in §2023:9.1.13.1 ('At end. A sequential READ statement was unsuccessfully executed as a result of an at end condition'), prose with no catalog row. The catalogued carriers: statuses 10 and 14 are sequential-READ cases (§2023:9.1.13.4 GR1, GR2); READ sets '10' and 'the at end condition exists' (§2023:14.9.30.4 GR21), and 'When the at end condition exists, execution of the READ statement is unsuccessful' (§2023:14.9.30.4 GR24). PREVIOUS is new syntax this class definition does not govern; EC-I-O-AT-END is raised only when checking is enabled, off by default (§2023:14.6.13.1.1). Same class.",
-  "source": "adjudicate-712-r2/slice-01"
+  "source": "adjudicate-712-r2/slice-01",
+  "digests": {
+   "GR-9.1.13.4-1": "490fead5c8fb",
+   "GR-9.1.13.4-2": "1996553a1757",
+   "GR-14.9.30.4-21": "7fba2331b7f5",
+   "GR-14.9.30.4-24": "fc6732e2c178"
+  }
  }
 }

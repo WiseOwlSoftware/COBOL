@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: \"Argument-1 must be a nonnumeric literal or alphanumeric data item ... digit is a string of one to 18 digits\"; 2023: \"alphanumeric or national literal or ... data item ... total number of digits in argument-1 shall not exceed 31\". 2023 adds national arguments and lowercase CR/DB, and replaces the 18-digit limit per digit string with a total limit of 31, 34 or 35 digits depending on the arithmetic in effect.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "AR-15.67.3-1": "c5855a5d4c91",
+   "AR-15.67.3-3": "8f78890f1c52",
+   "AR-15.67.3-4": "d9a27dcb47d3"
+  }
  }
 }

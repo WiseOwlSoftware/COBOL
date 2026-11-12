@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.34.4 GR3 restates the next-record-by-keys rule, the AT END transfer, the unsuccessful RETURN with an undefined record area, and 'no RETURN statement may be executed as part of the current output procedure'. 1985 states no result for violating that ban; 2023 says 'If such a RETURN statement is executed, the EC-SORT-MERGE-RETURN exception condition is set to exist and the results ... are undefined'. A run-time rule in both editions; the violation now has a defined outcome.",
-  "source": "adjudicate-712/slice-22"
+  "source": "adjudicate-712/slice-22",
+  "digests": {
+   "GR-14.9.34.4-3": "10cdaf1c1841"
+  }
  }
 }

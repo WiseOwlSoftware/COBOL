@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both say executing REWRITE releases a logical record. 'Successful' only clarifies: a failed REWRITE updates no record (GR-14). 'Operating environment' is just a new term.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.35.4-4": "030909116250"
+  }
  }
 }

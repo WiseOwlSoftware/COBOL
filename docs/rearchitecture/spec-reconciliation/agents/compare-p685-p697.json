@@ -1,9 +1,9 @@
 {
   "batch": [685, 686, 687, 688, 689, 690, 691, 692, 693, 695, 696, 697],
-  "pages_checked": [685, 686, 687, 688, 689, 690, 691, 692, 693, 695, 696, 697],
+  "pages_checked": [685, 686, 687, 688, 689, 690, 691, 692, 693, 695, 696, 697], "pages_unread": [],
   "findings": [
     {
-      "page": 687,
+      "id": "p687-1", "page": 687,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "MERGE general format (14.9.24.2), COLLATING SEQUENCE alternative 2 is a brace carrying CHOICE INDICATOR bars just inside it: '{ | FOR ALPHANUMERIC IS alphabet-name-1 | }' over '{ | FOR NATIONAL IS alphabet-name-2 | }' -- i.e. a tall '{' followed by a tall vertical bar on the left, and a tall vertical bar followed by the closing '}' on the right, enclosing the two FOR lines.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Restore the choice indicator in the ASCII figure, e.g.\n[ COLLATING SEQUENCE { IS alphabet-name-1 [ alphabet-name-2 ]      } ]\n                     { {| FOR ALPHANUMERIC IS alphabet-name-1 |}   }\n                     { {| FOR NATIONAL IS alphabet-name-2     |}   }\nand note in the figure that the bars mean 'each at most once, in any order'."
     },
     {
-      "page": 687,
+      "id": "p687-2", "page": 687,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "MERGE general format (14.9.24.2), final group is a single tall BRACE spanning two lines:\n{ OUTPUT PROCEDURE IS procedure-name-1 [ { THROUGH } procedure-name-2 ]\n{                                        { THRU    }\n{ GIVING { file-name-4 } ...",
@@ -21,7 +21,7 @@
       "suggested_repair": "Render the final group as one brace spanning both alternatives, e.g.\n{ OUTPUT PROCEDURE IS procedure-name-1 [ { THROUGH } procedure-name-2 ] }\n{                                        { THRU    }                    }\n{ GIVING { file-name-4 } ...                                            }"
     },
     {
-      "page": 689,
+      "id": "p689-1", "page": 689,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.24.4   General rules  -- printed at the same typographic level as 14.9.24.1 General, 14.9.24.2 General format and 14.9.24.3 Syntax rules on page 657.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Change '## 14.9.24.4 General rules' to '### 14.9.24.4 General rules', and sweep the whole of clause 14.9 (and any other clause) for '^## \\d+\\.\\d+\\.\\d+\\.\\d+ ' headings that should be '###'."
     },
     {
-      "page": 696,
+      "id": "p696-1", "page": 696,
       "kind": "missing-text",
       "severity": "structural",
       "pdf_says": "Table 16 has a two-level header: a spanning cell 'Category of receiving operand' across all six data columns, above the individual column labels 'Alphabetic', 'Alphanumeric-edited, Alphanumeric', 'Boolean', 'National, National-edited', 'Numeric, Numeric-edited', 'Type-name'; the stub cell to its left reads 'Category of sending operand'.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Reintroduce the column-group label, e.g. add a first header row '|  |  | Category of receiving operand | | | | | |' or fold it into the header text as '| Category of sending operand \\\\ Category of receiving operand | | Alphabetic | ... |'."
     },
     {
-      "page": 696,
+      "id": "p696-2", "page": 696,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.25.4   General rules  -- printed at the same typographic level as 14.9.25.1 General, 14.9.25.2 General formats and 14.9.25.3 Syntax rules.",

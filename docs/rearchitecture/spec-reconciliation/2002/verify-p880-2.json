@@ -1,0 +1,13 @@
+{
+  "claim_id": "p880-2",
+  "claim_key": "7599f291b055a1b7",
+  "page": 880,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p880-2", "page": 880, "kind": "misplaced-content", "severity": "structural", "pdf_says": "UCS  9, 10, 16, 59, 75, 93, 479, 751, 760, 824\n    Definition  16", "markdown_says": "UCS 9, 10, 16, 59, 75, 93, 479, 751, 760, 824 Definition 16", "why_it_matters": "The sub-entry 'Definition 16' is run into the page list of its parent 'UCS', so it reads as part of the UCS locator list and the sub-entry is lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (index p. 858, PDF p. 880, left column under 'U') shows 'UCS  9, 10, 16, 59, 75, 93, 479, 751, 760, 824' on one line and an indented sub-entry 'Definition  16' on the next. page-880.md line 45 reads 'UCS 9, 10, 16, 59, 75, 93, 479, 751, 760, 824 Definition 16' as one paragraph, with no line break ('\\') and no '&emsp;' indent. Every other sub-entry on the page uses those markers, for example 'UCS-4 phrase\\' then '&emsp;SPECIAL-NAMES paragraph 195\\'. No text is missing, but the entry's structure is lost: the sub-entry reads as part of the UCS locator list. This is a real structural defect in informative index content, and it has no normative effect.",
+    "corrected_description": null
+  }
+}

@@ -184,14 +184,18 @@ public sealed class FileRegistry
     /// <c>"::EXT::"</c> key band) is ONE per run unit shared by every describing program (ISO §2023:13.18.22.4
     /// GR4a) — a later describer keeps the existing live connector (IC227A).</summary>
     public void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
-        bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0)
+        bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false)
     {
-        if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
-            return;   // the run-unit EXTERNAL connector already exists (§2023:13.18.22.4 GR4a)
+        if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.TryGetValue(cobolName, out var existing))
+        {
+            // the run-unit EXTERNAL connector already exists (§2023:13.18.22.4 GR4a); it is a print file when ANY describing program writes ADVANCING to it
+            if (printFile && existing is SequentialConnector shared) shared.AdvancingDeclared = true;
+            return;
+        }
         CloseDisplaced(cobolName);
         _files[cobolName] = new SequentialConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             lineSequential, varyMin, varyMax)
-        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), Edition = edition, RecordMax = recordMax, Transactions = Sequential };
+        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), Edition = edition, RecordMax = recordMax, Transactions = Sequential, AdvancingDeclared = printFile };
     }
 
     /// <summary>Register a SELECTed REPORT FILE (§2023:9.1.22; a file description entry with REPORT IS and, legally, no
@@ -405,7 +409,7 @@ public sealed class FileRegistry
         if (c.Status[0] != '0') return;   // §2023:14.9.27.4 GR25 a) — the file is not affected
         if (c is not SequentialConnector f)
             throw MisroutedVerb("OPEN REVERSED", name, c);
-        f.PositionReversed();
+        f.PositionReversed();   // self-guarding: §1985:VII.4.3.4 GR10 — a medium that cannot be positioned ignores the phrase
     }
 
     /// <summary>A keyed verb reached a connector of the wrong organization — the binder screens

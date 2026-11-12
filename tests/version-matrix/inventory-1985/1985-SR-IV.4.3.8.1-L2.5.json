@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "A record-name is a level-01 data-name. §2023:8.4.2.2.3 SR4 admits as data-name-2 any 'name associated with a level number to which the item being qualified is subordinate', which includes a level-01 record. Format 1 of §2023:8.4.2.2.2 takes any data-name-1, record-names included. Same programs accepted.",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "SR-8.4.2.2.3-4": "605a18790ec2",
+   "FMT-8.4.2.2.2": "3f817a52f31f"
+  }
  }
 }

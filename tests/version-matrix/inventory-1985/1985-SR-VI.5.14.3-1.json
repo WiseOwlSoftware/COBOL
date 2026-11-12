@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both exclude USAGE from entries with level-number 66 or 88. The 1985 box marks only level-2 content, which the instructions treat as no difference; the wording change is not substantive.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.60.3-1": "e160040dabd2"
+  }
  }
 }

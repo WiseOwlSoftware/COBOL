@@ -152,12 +152,12 @@ public sealed partial class SequentialConnector : FileConnector
     /// rule b)'s own value, and the first READ then takes the ordinary empty-file at-end path.</para>
     /// <para>The count is <see cref="CountRecords"/> — the ONE measurement of how many records the
     /// physical file holds, shared with the §2023:14.9.51.4 GR19 EXTEND ordinal base, never a second walk. A medium
-    /// that cannot be positioned (LINE SEQUENTIAL, a non-seekable stream) leaves the indicator at 0 and the
-    /// first backward READ reports the permanent error <see cref="SeekToOrdinal"/> already answers with — the
-    /// same posture <c>READ … PREVIOUS</c> takes, and unreachable from conforming source because COBOL2210
-    /// screens the organization at bind time.</para></summary>
+    /// that cannot be positioned (a non-seekable stream: a FIFO, a pipe) does not apply the phrase at all —
+    /// §1985:VII.4.3.4 GR10 ignores it, so the file reads forward (<see cref="_reversedInapplicable"/>). LINE
+    /// SEQUENTIAL is screened by COBOL2210 at bind time, so it never reaches here.</para></summary>
     internal void PositionReversed()
     {
+        if (_reversedInapplicable) return;   // §1985:VII.4.3.4 GR10 — the phrase is ignored; the file reads forward
         Reversed = true;
         _readOrdinal = _reversedRecordCount > 0 ? _reversedRecordCount + 1 : 0;
     }
@@ -175,6 +175,15 @@ public sealed partial class SequentialConnector : FileConnector
     /// the run unit instead of becoming the OPEN's '30' (kb/Work PB1512's sibling sweep). An absent OPTIONAL
     /// file counts none — THE ONE PRESENCE ANSWER PER OPEN (kb/Work PB323), never a second probe.</summary>
     private long _reversedRecordCount;
+
+    /// <summary>True when this OPEN carried REVERSED on a medium that cannot deliver its records in reversed order —
+    /// the opened stream cannot be positioned (a FIFO, a pipe, a terminal). §1985:VII.4.3.4 GR10: "The NO REWIND and
+    /// REVERSED phrases will be ignored if they do not apply to the storage medium on which the file resides."
+    /// (§1985:p.XVII-94 item 14 makes the phrase dependent on a device "having the capability of making records
+    /// available in the reversed order".) Decided inside the OPEN body, from the one handle the OPEN opened, and
+    /// cleared by every OPEN; <see cref="PositionReversed"/> then leaves the connector reading forward, and no
+    /// record count is taken (counting a stream that cannot be rewound would consume the records it counts).</summary>
+    private bool _reversedInapplicable;
 
     /// <inheritdoc/>
     /// <remarks>The record sequential organization's §2023:14.9.30.4 GR9 pre-read conflict target: the ordinal
@@ -1140,6 +1149,7 @@ public sealed partial class SequentialConnector : FileConnector
         // (kb/Work PB668). Without this, `OPEN INPUT F REVERSED. CLOSE F. OPEN INPUT F.` read backward.
         Reversed = false;
         _reversedRecordCount = 0;
+        _reversedInapplicable = false;
         _frameIndex = IsVarying ? new FrameIndex() : null;   // indexes THIS open's physical file
         // §2023:9.1.16 record-lock identity: this connector has released nothing yet. The MINT lives on the shared
         // physical-file state (kb/Work PB739), and only the OUTPUT and EXTEND arms below touch it — INPUT and
@@ -1181,7 +1191,12 @@ public sealed partial class SequentialConnector : FileConnector
                     NoticeIfLayoutDisagrees();
                     // OPEN INPUT … REVERSED: the count its position needs is taken HERE, inside the OPEN's try,
                     // so a host failure is this OPEN's '30' (see _reversedRecordCount).
-                    if (ReversedRequested) _reversedRecordCount = CountRecords(0, long.MaxValue, _frameIndex);
+                    if (ReversedRequested)
+                    {
+                        // §1985:VII.4.3.4 GR10: a medium that cannot be positioned ignores the phrase (see _reversedInapplicable).
+                        if (_reader.BaseStream.CanSeek) _reversedRecordCount = CountRecords(0, long.MaxValue, _frameIndex);
+                        else _reversedInapplicable = true;
+                    }
                     break;
 
                 case FileOpenMode.Output:
@@ -1502,13 +1517,22 @@ public sealed partial class SequentialConnector : FileConnector
     /// processor-dependent (Annex A.3 item 37), so this is a DETERMINATION of the implementor
     /// (<c>docs/CONFORMANCE.md</c> §4 "DETERMINATION — which files support vertical positioning"): a file does
     /// when its description carries a LINAGE clause (<paramref name="page"/> is the executing element's LINAGE
-    /// operands, null = none), and from the first WRITE that carries an ADVANCING phrase (<see cref="_printControl"/>,
-    /// set by <see cref="WriteAdvancingRecord"/>); a report file reaches the medium only through that WRITE. A file
-    /// of which neither is true has had no positioning asked of it, so its plain WRITE is the record and its line
+    /// operands, null = none), or when the program names an ADVANCING phrase on any WRITE of it
+    /// (<see cref="AdvancingDeclared"/>: a print file from its OPEN, kb/Work PB5201), or from the first WRITE that
+    /// carries one at run time (<see cref="_printControl"/>, set by <see cref="WriteAdvancingRecord"/>: the EXTERNAL
+    /// file another program positions); a report file reaches the medium only through that WRITE. A file
+    /// of which none is true has had no positioning asked of it, so its plain WRITE is the record and its line
     /// end (a line sequential record's delimiter, a record sequential file's raw block) — the shape GnuCOBOL
     /// writes by default and every ordinary text-file program relies on. It is one predicate so that a write
     /// arm cannot decide the question its own way.</summary>
-    private bool SupportsVerticalPositioning(LinagePage? page) => _printControl || page is not null;
+    private bool SupportsVerticalPositioning(LinagePage? page) => _printControl || AdvancingDeclared || page is not null;
+
+    /// <summary>The program wrote an ADVANCING phrase on at least one WRITE of this file (kb/Work PB5201): known when the
+    /// program is compiled and told at registration, so the file is a print file from its OPEN and a plain WRITE before
+    /// the first ADVANCING one is the automatic advance too (§1985:VII.4.7.4 GR16; §2023:14.9.51.4 GR25). An EXTERNAL
+    /// file is told by every describing program; <see cref="_printControl"/> still carries the run-time case of a program
+    /// that did not describe the file's use.</summary>
+    internal bool AdvancingDeclared { get; set; }
 
     /// <summary>⛔ THE ONE LENGTH DECISION OF A WRITE, asked by BOTH write arms — the plain record
     /// (<see cref="WriteRecord"/>) and the print-control line (<see cref="WriteAdvancingRecord"/>), which a

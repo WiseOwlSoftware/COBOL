@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 Permanent Error definition (unsuccessful from an error precluding further processing; exception procedures executed; condition persists unless an implementor-defined technique corrects it). §2023:9.1.13.1 repeats it verbatim ('The permanent error condition remains in effect for all subsequent input-output operations on the file'; prose, no catalog row, PB479). Catalog carriers of parts: §2023:9.1.13.6 GR1 ('A permanent error exists'), §2023:14.9.49.4 GR6 (procedures executed upon unsuccessful I-O). Same.",
-  "source": "adjudicate-712-r2/slice-07"
+  "source": "adjudicate-712-r2/slice-07",
+  "digests": {
+   "GR-9.1.13.6-1": "496b685aec5d",
+   "GR-14.9.49.4-6": "b41480584b33"
+  }
  }
 }

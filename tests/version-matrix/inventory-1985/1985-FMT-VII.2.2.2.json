@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"FILE-CONTROL. { file-control-entry } …\"; 2023: \"FILE-CONTROL. [ file-control-entry ] …\". 1985 braces require at least one file-control-entry. The 2023 brackets make it optional, so a FILE-CONTROL paragraph with no entries is now accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-12.4.4.2": "07586e6ff559"
+  }
  }
 }

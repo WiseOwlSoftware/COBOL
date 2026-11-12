@@ -9,6 +9,10 @@
    "FMT-10.6.1"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-10.7.2": "a443e1a6af4e",
+   "FMT-10.6.1": "985639fb1dfa"
+  }
  }
 }

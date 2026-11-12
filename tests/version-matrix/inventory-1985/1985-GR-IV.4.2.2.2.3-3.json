@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: '[ALL] HIGH-VALUE(S) Except in the SPECIAL-NAMES paragraph, represents one or more of the character that has the highest ordinal position in the program collating sequence'. 2023: 'The character that has the highest ordinal position in the program collating sequence is associated with the figurative constant HIGH-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph' (§2023:12.3.7.4 GR8), the [ALL] HIGH-VALUE(S) spellings in §2023:8.3.3.6.2, and §2023:8.3.3.6.4 GR6. The multiple-character, LC_COLLATE, national and runtime-sequence cases in GR6 apply only to locales, national contexts and SET of the collating sequence, which this 1985 rule neither allows nor refuses; for every program the 1985 rule governs the value is the same. 'One or more' (repetition) is the length rules, not this definition.",
-  "source": "adjudicate-712-r2/slice-01"
+  "source": "adjudicate-712-r2/slice-01",
+  "digests": {
+   "FMT-8.3.3.6.2": "11f4a32bad96",
+   "GR-12.3.7.4-8": "51f4dd9f3e04",
+   "GR-8.3.3.6.4-6": "61feedf29584"
+  }
  }
 }

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "First sentence is identical. GO TO/PERFORM are still allowed (NOTE 2), and an EXIT-only paragraph may still name procedure-name-2 (EXIT GR1). No program's acceptance or effect changes.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.28.4-6": "15a11152c14f",
+   "GR-14.9.14.4-1": "41ad90faaa49"
+  }
  }
 }

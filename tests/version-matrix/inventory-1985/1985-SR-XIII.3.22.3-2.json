@@ -15,6 +15,11 @@
   "reason": "Kept: a numeric literal within the PICTURE range without truncating nonzero digits (§2023:13.18.63.3 SR2 'without truncation of leading or trailing nonzero digits'; the float exceptions cannot arise for DISPLAY/NATIONAL report items) and an alphanumeric literal for an alphabetic, alphanumeric or alphanumeric-edited item not exceeding the explicit PICTURE (§2023:13.18.63.3 SR4). Changed: 1985 limits every nonnumeric literal, including the one a numeric-edited item requires (§1985:XIII.3.22.4 GR1 b), to the PICTURE size; for a numeric-edited item with an alphanumeric literal 2023 states only that 'the class of the literal shall conform to that of the data item' (§2023:13.18.63.3 SR7) and no size limit, so an over-long literal, refused in 1985, is no longer refused by any VALUE syntax rule: looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "source": "adjudicate-712/slice-34",
+  "digests": {
+   "SR-13.18.63.3-2": "6ecb7044eda1",
+   "SR-13.18.63.3-4": "695909fb4958",
+   "SR-13.18.63.3-7": "2fc8cdd54f76"
+  }
  }
 }

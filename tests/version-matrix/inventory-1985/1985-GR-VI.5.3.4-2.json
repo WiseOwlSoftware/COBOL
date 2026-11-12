@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'Format 3 is used for each condition-name'; separate level-88 entry; entries immediately follow the conditional variable; association allowed except another condition-name, a level 66 item, a group containing JUSTIFIED/SYNCHRONIZED/non-DISPLAY items, an index data item. §2023:13.16.3 SR24 keeps all of that ('Each condition-name requires a separate entry with level-number 88', 'shall immediately follow', exclusions a) to e)) but opens with 'Format 3 or 4 is used for each condition-name': a level-88 entry may now take the validation format, which by §2023:13.16.4 GR4 'has the same meaning as in Format 3'. §2023:13.16.4 GR3 restates that Format 3 'contains the name of the condition and the value, values, or range of values'. The added exclusions (message-tag, object, pointer, ANY LENGTH, STRONG, variable-length group) touch only 2023 features. Looser through the added format; no exception condition.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "SR-13.16.3-24": "f120f026bc81",
+   "GR-13.16.4-3": "c1c387785c92",
+   "GR-13.16.4-4": "10a84cb6d6f7"
+  }
  }
 }

@@ -1,0 +1,25 @@
+{
+  "batch": [685, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695, 696],
+  "pages_checked": [685, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695, 696],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p687-1",
+      "page": 687,
+      "kind": "incorrect-text",
+      "severity": "structural",
+      "pdf_says": "Column headings (printed rotated): RECEIVE | SEND input-output-cd | SEND output-cd | PURGE | ACCEPT MESSAGE COUNT | ENABLE INPUT | ENABLE INPUT I-O TERMINAL | ENABLE OUTPUT | ENABLE INPUT | DISABLE INPUT I-O TERMINAL | DISABLE OUTPUT | Status key value",
+      "markdown_says": "| RECEIVE | input-output-cd SEND | output-cd SEND | PURGE | COUNT MESSAGE ACCEPT | INPUT ENABLE | TERMINAL I-O INPUT ENABLE | OUTPUT ENABLE | INPUT ENABLE | TERMINAL I-O INPUT DISABLE | OUTPUT DISABLE | value<br>key<br>Status |  |",
+      "why_it_matters": "The rotated column headings of Table A.1 were transcribed with their words in reverse order (e.g. 'COUNT MESSAGE ACCEPT' for the ACCEPT MESSAGE COUNT statement, 'TERMINAL I-O INPUT DISABLE' for DISABLE INPUT I-O TERMINAL, 'value key Status' for Status key value). The headings no longer read as the statement forms they name; the X cells themselves match the PDF."
+    },
+    {
+      "id": "p688-1",
+      "page": 688,
+      "kind": "incorrect-text",
+      "severity": "structural",
+      "pdf_says": "Column headings (printed rotated): SEND | PURGE | ENABLE OUTPUT | DISABLE OUTPUT | Error key value",
+      "markdown_says": "| SEND | PURGE | OUTPUT ENABLE | OUTPUT DISABLE | value<br>key<br>Error |  |",
+      "why_it_matters": "The rotated column headings of Table A.2 were transcribed in reverse word order ('OUTPUT ENABLE', 'OUTPUT DISABLE', 'value key Error'), so they no longer name the ENABLE OUTPUT / DISABLE OUTPUT statement forms or the 'Error key value' column; the X cells match the PDF."
+    }
+  ]
+}

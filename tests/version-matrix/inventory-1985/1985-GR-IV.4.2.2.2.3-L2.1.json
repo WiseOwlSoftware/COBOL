@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993, its change for page IV-11: 'penultimate sentence, change in part') replaced 'This resultant string is then truncated from the right until it is equal to the number of character positions in the associated data item' with 'equal either to 1 or to the number of character positions in the associated data item, whichever is greater' (§1985:IV.4.2.2.2.3 GRL2.1): the difference the withdrawn CHANGED record rested on is gone. §2023:8.3.3.6.4 GR2 states the same rule: repeat character by character until the string is at least the size of the associated item, then truncate from the right to 'equal either to 1 or to the number of character positions in the associated data item, literal, or intermediate result, whichever is greater', before and independent of any JUSTIFIED clause. The 2023 wording 'in association with a fixed-length data item, literal, or intermediate result' changes no program the 1985 rule reaches: it excludes only variable-length items ('either a dynamic-capacity table or a dynamic-length elementary item', §2023:8.5.1.11.1; 'Any data item that is not variable-length is referred to as a fixed-length data item'), which 1985 lacks, and pairing a figurative constant with a literal or an intermediate result arises only where 1985 has no such context ('The relation condition must contain at least one reference to a variable', §1985:VI.6.3.1.1; the 1985 rule speaks of a constant that 'is associated with another data item'). The rule refuses no program in either edition, and every 1985 context yields the same string.",
-  "source": "readjudicate-amended-1985/slice-01"
+  "source": "readjudicate-amended-1985/slice-01",
+  "digests": {
+   "GR-8.3.3.6.4-2": "bf2459f07079"
+  }
  }
 }

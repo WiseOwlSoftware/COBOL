@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both say the category keywords used after REPLACING (category-name in 2023) correspond to a category of data under the class/category concept. The ALL rule covers the new VALUE phrase.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.20.4-2": "11fca55694bb"
+  }
  }
 }

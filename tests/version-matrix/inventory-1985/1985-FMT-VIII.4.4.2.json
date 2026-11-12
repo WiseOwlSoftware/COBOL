@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985 relative OPEN is {INPUT|OUTPUT|I-O|EXTEND} {file-name} ... repeated. §2023:14.9.27.2 keeps the four modes and repetition but adds the optional sharing-phrase and retry-phrase, which the 1985 format refuses; WITH NO REWIND remains unavailable to relative files (§2023:14.9.27.3 SR5 'The NO REWIND phrase may be specified only for sequential files'). Every 1985 form keeps its meaning; more forms are accepted. CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-14.9.27.2": "ba0f3d6b7e89",
+   "SR-14.9.27.3-5": "bf2e6c69fada"
+  }
  }
 }

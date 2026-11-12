@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "GR-16 sits among the format 2 (REPLACING) rules, with GR-10 covering TALLYING. Operands following ALL/FIRST/LEADING are the succeeding BY phrases, so the requirement is the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.22.4-16": "a9a612d8c239"
+  }
  }
 }

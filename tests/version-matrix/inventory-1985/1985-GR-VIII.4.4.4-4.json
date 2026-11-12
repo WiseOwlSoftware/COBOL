@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.27.4 GR8: 'an OPEN statement shall previously be successfully executed' before any permissible I-O statement; its Table 20 equals 1985 Table 2 entry for entry for relative files. §2023:14.9.27.4 GR4 'The open mode determines the input-output statements that are allowed'. Statuses 47-49 and WRITE GR3 are the consequence rules of other 1985 records, not part of this one.",
-  "source": "adjudicate-712-r2/slice-08"
+  "source": "adjudicate-712-r2/slice-08",
+  "digests": {
+   "GR-14.9.27.4-8": "85b040d1dbe8",
+   "GR-14.9.27.4-4": "301759431dca"
+  }
  }
 }

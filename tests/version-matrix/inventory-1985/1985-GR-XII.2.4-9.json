@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Amendment 1 (X3.23a-1989) completed the third paragraph's cut sentence: 'When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line' (§1985:XII.2.4 GR9); that adds one more debugging-line placement case and no 2023 rule carries any of them, 2023 having no debugging lines. The subject, where copied and replacement text words go in the resultant text, has a different requirement. 1985: each word 'is copied so as to start in the same area of the line in the resultant program as it begins in the line within the library', identifier-2, literal-2 and word-2 begin 'in the same area' as the matched word, and for a long literal 'additional continuation lines are introduced which contain the remainder of the literal'. §2023:7.2.3.4 GR11 instead: 'The resultant text after replacement shall be in logical free-form reference format', where 'additional spaces may be introduced only between text-words where there already exists a space or at the end of a source line'; there are no area A/B or continuation rules for the result. 'Library text must conform to the rules for COBOL reference format' survives as §2023:6.1 GR1 b) 'A COBOL compiler shall accept source text and library text written in reference format'.",
-  "source": "readjudicate-amended-1985/slice-08"
+  "source": "readjudicate-amended-1985/slice-08",
+  "digests": {
+   "GR-7.2.3.4-11": "cfa3b6e1e7e0",
+   "GR-6.1-1": "11fd4f5da5c1"
+  }
  }
 }

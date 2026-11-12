@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.35.4 GR20 keeps the bound: the record 'shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause', else unsuccessful with '44' (§2023:9.1.13.7 GR4 a)); §2023:14.9.35.4 GR14: 'no logical record updating takes place, the content of the record area is unaffected'. Literal-1, FILE and FORMAT are 2023-only. Same.",
-  "source": "adjudicate-712/slice-19"
+  "source": "adjudicate-712/slice-19",
+  "digests": {
+   "GR-14.9.35.4-20": "2162939d82b7",
+   "GR-14.9.35.4-14": "3ed6451c3be2",
+   "GR-9.1.13.7-4": "8cb702a5a928"
+  }
  }
 }

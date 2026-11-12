@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"superimposition of all receiving data items (except the REMAINDER data item) ... must not contain more than 18 digits\"; 2023: \"using all of the operands in the statement excluding the data item that follows the word REMAINDER ... not contain more than 31 digits\". 2023 raises the limit from 18 to 31 digits and counts all operands, not only receiving items. It applies only under native arithmetic and excludes binary, floating-point and function operands.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.12.3-4": "4e8604ecf41d",
+   "SR-14.7.7-2": "114856788742"
+  }
  }
 }

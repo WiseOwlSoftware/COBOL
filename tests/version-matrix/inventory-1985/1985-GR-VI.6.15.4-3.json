@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"If the value of identifier-1 is anything other than the positive or unsigned integers 1, 2, ... , n, then no transfer occurs\"; 2023: \"If the content of identifier-1 is not numeric, the EC-DATA-INCOMPATIBLE exception condition is set to exist. If checking ... is enabled, processing occurs\". 2023 keeps the 1..n transfer and the no-transfer fallback. Non-numeric content now sets EC-DATA-INCOMPATIBLE, and with checking enabled exception processing replaces no-transfer.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.17.4-2": "e4067afb4728"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "The full (level-2) 1985 rule lets the record length differ from the replaced record. 2023 GR18 says it 'may differ'. The level-1 restriction is only the level split, which is no difference.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.35.4-18": "2e708c5a8b73"
+  }
  }
 }

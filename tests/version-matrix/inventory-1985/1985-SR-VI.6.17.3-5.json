@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Identifier-1's class list omits index (SR-14.9.39.3-2 shows class index exists), so index items are refused. Identifier-2 must be a valid MOVE/SET sender.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.20.3-1": "f0714e834b97",
+   "SR-14.9.20.3-4": "73317e0120ce"
+  }
  }
 }

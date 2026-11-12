@@ -103,8 +103,16 @@ public readonly struct FunctionValueField
     }
 
     /// <summary>The temporary is an unsigned integer item of <paramref name="digits"/> digit positions (DATE-OF-INTEGER's eight,
-    /// DAY-OF-INTEGER's seven).</summary>
-    public static FunctionValueField OfDigits(CobolDec value, int digits) => OfLiteral(value, digits, 0, signed: false);
+    /// DAY-OF-INTEGER's seven), or of as many as the value has when it has more: the 1989 module's integer date form has no
+    /// upper bound on the year, so DATE-OF-INTEGER (3067672) at <c>--std 85</c> is the nine digits 100000101 (kb/Work PB5130),
+    /// and a temporary that dropped its leading digit would show a different date.</summary>
+    public static FunctionValueField OfDigits(CobolDec value, int digits)
+    {
+        // The integer digits of the (integer) value: its significand's, and an exponent's trailing zeros.
+        int written = value.Sig == 0 ? 1
+            : CobolDec.UAbs(value.Sig).ToString(System.Globalization.CultureInfo.InvariantCulture).Length + Math.Max(value.Exp, 0);
+        return OfLiteral(value, Math.Max(digits, written), 0, signed: false);
+    }
 
     /// <summary>The temporary is described by its value (<see cref="CobolNum.DeviceFunctionText"/>).</summary>
     public static FunctionValueField OfValue(CobolDec value)

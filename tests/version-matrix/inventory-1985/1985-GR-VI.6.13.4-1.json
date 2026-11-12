@@ -16,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "1985 'operates as if each selection subject and selection object were evaluated and assigned' a value. §2023:14.9.13.4 GR3 evaluates the subjects at the start but §2023:14.9.13.4 GR4 evaluates objects pair by pair: 'no more pairs in that WHEN phrase are evaluated' and later WHENs are not analyzed. A 1985 (X3.23a-1989) program whose skipped object references FUNCTION RANDOM (§1989:A.2.35.3 AR4 'return the next number in the current sequence') gets a different later value. Value, class and range assignment are kept (§2023:14.9.13.4 GR1, GR2, GR4).",
-  "source": "adjudicate-712/slice-11"
+  "source": "adjudicate-712/slice-11",
+  "digests": {
+   "GR-14.9.13.4-3": "d455c11da578",
+   "GR-14.9.13.4-4": "c1a80f2c0f29",
+   "GR-14.9.13.4-1": "388507c6b76f",
+   "GR-14.9.13.4-2": "71ba0d6ef864"
+  }
  }
 }

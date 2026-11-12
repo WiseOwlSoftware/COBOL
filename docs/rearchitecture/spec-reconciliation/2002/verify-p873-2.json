@@ -1,0 +1,13 @@
+{
+  "claim_id": "p873-2",
+  "claim_key": "bc7330179b844f8d",
+  "page": 873,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p873-2", "page": 873, "kind": "misplaced-content", "severity": "structural", "pdf_says": "    MULTIPLY statement 482\n    SUBTRACT statement 539\nNOT operator\n    In complex conditions 135\n    In negated conditions 135\nNOT phrase\n...\nNUMVAL-F function 626", "markdown_says": "   MULTIPLY statement 482 SUBTRACT statement 539 NOT operator\n\n   In complex conditions 135\\\n   In negated conditions 135\\\n   NOT phrase\\\n...\n   NUMVAL-F function 626", "why_it_matters": "Two sub-entries and the top-level NOT operator are merged on one line, and the right column down to NUMVAL-F is flattened to one indent level."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (PDF p873, printed 851, Index) shows the right column opening with two indented sub-entries 'MULTIPLY statement 482' and 'SUBTRACT statement 539' (continuing NOT ON SIZE ERROR phrase), then the headword 'NOT operator' at the left margin with indented sub-entries 'In complex conditions 135' and 'In negated conditions 135', then 'NOT phrase' / 'EVALUATE statement 441', and so on down to 'NUMVAL-F function 626' with three indent levels in use (e.g. 'Category of data' / 'Numeric-edited 111'). Markdown line 62 reads 'MULTIPLY statement 482 SUBTRACT statement 539 NOT operator' as one line, so three index entries at two levels are fused into one, and lines 64-98 put headwords and sub-entries at one indent with no hierarchy. No words or page numbers are lost, but a reader can no longer tell which locators belong to which headword, and the headword NOT operator reads as the tail of a SUBTRACT entry. The page is an index, so this is a structural defect, not a normative one. The pdf_says and markdown_says quotes match both sources.",
+    "corrected_description": "Accurate for the right column. The same defect also affects the left column: line 3 fuses 'NEXT GROUP clause 304' (a sub-entry) with the headword 'NEXT phrase', and lines 5-60 are flattened to one indent level as well. Only the O section (lines 102-117) keeps its hierarchy, using &emsp;."
+  }
+}

@@ -9,6 +9,10 @@
    "DOC-A.1-148"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.43.4-17": "757ad77f04e3",
+   "DOC-A.1-148": "af5b814c5fbc"
+  }
  }
 }

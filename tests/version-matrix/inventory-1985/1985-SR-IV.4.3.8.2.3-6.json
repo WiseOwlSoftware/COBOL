@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 SR6: 'Integer-1 may be signed and, if signed, it must be positive', a compile-time refusal of a negative literal subscript. In 2023 a literal subscript is an arithmetic-expression-1 (§2023:8.4.2.3.2), and no syntax rule limits its sign. §2023:8.4.2.3.4 GR2: 'If the value of the subscript is not a positive integer or is less than one', the EC-BOUND-SUBSCRIPT exception condition is set to exist. The refusal became a run-time exception condition (error mode c).",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "FMT-8.4.2.3.2": "5cbb1a7db079",
+   "GR-8.4.2.3.4-2": "9c3bd5247556"
+  }
  }
 }

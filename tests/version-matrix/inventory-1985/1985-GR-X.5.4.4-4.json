@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "§1985:X.5.4.4 GR4 is a rule X3.23b-1993 added in place (the printed general rules ended with rule 3; level 2, boxed): 'An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase is specified, except within a program called while executing within the range of that declarative procedure.' It is a run-time prohibition over the whole range of the declarative, beside the separate syntax rule §1985:X.5.4.3 SR2 ('must not appear in a declarative procedure in which the GLOBAL phrase is specified'). 2023 states the prohibition as a rule only in §2023:14.9.14.3 SR2 (Format 2, EXIT PROGRAM): 'The EXIT statement shall not be specified in a declarative procedure for which the GLOBAL phrase is specified in the associated USE statement' - 'specified in', not 'executed while executing within the range of', so an EXIT PROGRAM reached within the range from outside that declarative (a procedure of another declarative section it performs) is not refused by any 2023 rule. For that execution 2023 names a fatal exception condition instead, in Table 13 only (§2023:14.6.13.1.6: 'EC-FLOW-GLOBAL-EXIT | Fatal | EXIT PROGRAM in a global Declarative'): a refusal made an exception condition. No EXIT general rule sets it: §2023:14.9.14.4 GR3 refers only to 'GOBACK statement, General rules 3 and 4', and the rule that sets the sibling condition, §2023:14.9.18.4 GR6 ('the EC-FLOW-GLOBAL-GOBACK exception condition is set to exist'), is about GOBACK. The Table 13 row has no catalog row (kb/Work PB479), so SR-14.9.14.3-2 is the one rule id that carries part of the requirement. 1985's called-program exception needs no 2023 words: a called program's EXIT PROGRAM is not specified in the calling program's declarative.",
-  "source": "readjudicate-amended-1985/slice-12"
+  "source": "readjudicate-amended-1985/slice-12",
+  "digests": {
+   "SR-14.9.14.3-2": "1e057bdbafd0"
+  }
  }
 }

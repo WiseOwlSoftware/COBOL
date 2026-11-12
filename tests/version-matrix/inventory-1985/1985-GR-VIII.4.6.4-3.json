@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "The level-2 box is the full rule: the record length may differ from the replaced record. 2023 says the same. Level 1 is a subset and not a difference; bytes and character positions name the same measure.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.35.4-18": "2e708c5a8b73"
+  }
  }
 }

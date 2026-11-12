@@ -13,6 +13,9 @@
   "reason": "1985: a successful OPEN determines availability, sets an open mode and associates the file with the file-name through the file connector; 'A file is available if it is physically present and is recognized by the input-output control system', and Table 1 gives 'Normal open' for every mode on an available file. §2023:14.9.27.4 GR4 keeps the association, open mode, availability definition and the Table 18 rows (the optional INPUT row adding 'or invalid key condition'), but limits Table 18 to files 'that are not currently open by another file connector' and adds Table 19, where opening an available file already open by another connector is an 'Unsuccessful open' under the governing sharing and open modes (§2023:14.9.27.4 Table 19). 1985 has no rule refusing such an open, so a 1985 program that opens one physical file through two connectors may now fail: stricter.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-15"
+  "source": "adjudicate-712/slice-15",
+  "digests": {
+   "GR-14.9.27.4-4": "301759431dca"
+  }
  }
 }

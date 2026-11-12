@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 GR21: an unavailable optional file opened EXTEND or I-O is created 'as if' OPEN OUTPUT, CLOSE, then the OPEN; OPEN OUTPUT creates the file, which then 'contains no data records'. §2023:14.9.27.4 GR17 states the same creation sequence ('the OPEN statement creates the file' as if OPEN OUTPUT file-name-1. CLOSE file-name-1.), §2023:14.9.27.4 GR18 'After the creation of the file, the file contains no records', Table 18 in §2023:14.9.27.4 GR4 and status 05 in §2023:9.1.13.2 GR4 restate it (1985 had status 05 too). Page positioning in GR18 concerns only physical pages, outside 1985 GR21.",
-  "source": "adjudicate-712/slice-16"
+  "source": "adjudicate-712/slice-16",
+  "digests": {
+   "GR-14.9.27.4-17": "c29782e39335",
+   "GR-14.9.27.4-18": "f152580b4f96",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-9.1.13.2-4": "6687777bb08d"
+  }
  }
 }

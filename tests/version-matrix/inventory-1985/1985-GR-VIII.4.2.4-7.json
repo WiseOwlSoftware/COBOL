@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 restates the rule word for word. The added RESUME NEXT STATEMENT sentence concerns a feature 1985 lacks, so 1985 programs are accepted and run with the same effect.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.6.4-10": "8def0b9b7e19"
+  }
  }
 }

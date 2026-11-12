@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993) renumbered this rule (old GR3) and its range, 'In general rules 5 through 17' to 'in general rules 6 through 19': the same rules under their new numbers. §1985:VI.6.18.4 GR4 and §2023:14.9.22.4 GR5 state the same equivalence over the rules that follow, 2023 as 'In General rules 6 through 21, all references to literal-1, literal-2, literal-3, literal-4, or literal-5 apply equally to the content of the data item referenced by identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 respectively'; the 2023 rules outside that range (GR22, GR23) name identifier-6 and identifier-7 themselves.",
-  "source": "readjudicate-amended-1985/slice-04"
+  "source": "readjudicate-amended-1985/slice-04",
+  "digests": {
+   "GR-14.9.22.4-5": "1f1ce509573b"
+  }
  }
 }

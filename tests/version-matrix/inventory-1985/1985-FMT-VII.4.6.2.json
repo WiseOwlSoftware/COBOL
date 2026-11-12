@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"USE AFTER STANDARD {EXCEPTION|ERROR} PROCEDURE ON (AFTER, PROCEDURE underlined)\"; 2023: \"USE [ GLOBAL ] AFTER STANDARD ... PROCEDURE ON; AFTER and PROCEDURE printed without underlining\". Same structure, but 2023 adds an optional GLOBAL phrase absent from the 1985 format. AFTER and PROCEDURE, required words in 1985, are not underlined in 2023, so programs may omit them.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.49.2": "84ee6f5417ad"
+  }
  }
 }

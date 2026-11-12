@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: the OBJECT-COMPUTER program collating sequence decides nonnumeric comparisons in relation conditions, condition-name conditions and those implied by CONTROL. §2023:12.3.6.4 GR11 names the same three contexts ('Implicitly specified by the presence of a CONTROL clause in a report description entry') for alphanumeric comparisons; §2023:12.3.6.4 GR12 makes the sequences 'established by the OBJECT-COMPUTER paragraph' effective with the initial state of the runtime modules. National and LC_COLLATE cases need 2023-only features. Same.",
-  "source": "adjudicate-712-r2/slice-03"
+  "source": "adjudicate-712-r2/slice-03",
+  "digests": {
+   "GR-12.3.6.4-11": "1e62cfa792ea",
+   "GR-12.3.6.4-12": "d81749d55b46"
+  }
  }
 }

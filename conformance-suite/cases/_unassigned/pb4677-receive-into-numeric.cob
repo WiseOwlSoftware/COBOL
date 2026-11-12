@@ -4,7 +4,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB4677 - ISO/IEC 1989:2002 A.2.5.2 SR2: category alphanumeric.
+      *> kb/Work PB4677 - ISO/IEC 1989:2002 A.2.5.2 SR2: category
+      *> alphanumeric. A 2002 rule: X3.23-1985 prints none on
+      *> identifier-1 (kb/Work PB5278), so it is refused at 2002 only.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4677O1.
        DATA DIVISION.

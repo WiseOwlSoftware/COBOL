@@ -1,6 +1,6 @@
 {
   "batch": [418, 420, 426, 428, 430, 434, 438, 442, 443, 445, 446, 448],
-  "pages_checked": [418, 420, 426, 428, 430, 434, 438, 442, 443, 445, 446, 448],
+  "pages_checked": [418, 420, 426, 428, 430, 434, 438, 442, 443, 445, 446, 448], "pages_unread": [],
   "findings": [],
   "notes": [
     "Swept 2026-07-26. Renders produced by scripts/spec/page_workunit.py at 300 dpi into E:/Temp/specrecon/f19.",

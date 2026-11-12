@@ -1,10 +1,10 @@
 {
  "rule-id": "1989-AR-A.2.30.3-1",
  "rule-digest": "4aae135cc48e",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#InvalidCurrency; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalCDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
- "test-ref": "conformance:cases/A.2.30@1985-NUMVAL-C-FUNCTION/1989-AR-A_2_30_3-1",
- "notes": "No kb/Work note owns the fix. §1989:A.2.30.3 AR1 defines cs as \"the string of one or more characters specified by argument-2\", and §1989:A.2.30.3 AR4 asks only that argument-2 be \"a nonnumeric literal or alphanumeric data item\". The compiler applies §2023:15.68.3 AR2's content bans at every edition (\"Argument-2 shall not contain any of the digits 0 through 9\", the characters * + - , . and the letter pairs CR and DB): BindNumvalCFamily refuses such a literal argument-2 with COBOL1627, and the runtime InvalidCurrency makes NumvalCDec return 0 for such a data item. So at --std 85 a currency string such as \"CRC\" or \"Rs.\" is refused or yields 0 where argument-1 has the 1989 format. The rest of the rule conforms: the Verified row's class and category screen refuses numeric, alphabetic and edited argument-1, and NvScan accepts both 1989 formats (leading sign before cs, trailing + - CR DB, comma groups, \".75\"). The row's change record does not list this 2023 restriction. The witness uses the currency string \"$\".",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#CurrencyStringViolatesContentRules; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#NumvalCCurrencyContentRules",
+ "test-ref": "conformance:cases/A.2.30@1985-NUMVAL-C-FUNCTION/1989-AR-A_2_30_3-1; conformance:cases/A.2.30@1985-NUMVAL-C-FUNCTION/pb5161_numval_c_currency_content_85",
+ "notes": "kb/Work PB5161 (landed). §1989:A.2.30.3 AR1: \"cs is the string of one or more characters specified by argument-2\", with no rule on the characters. At --std 85 DialectBehavior.NumvalCCurrencyContentRules (2002) is inactive: BindNumvalCFamily applies no content screen to a literal, the binder sets BoundIntrinsicCall.CurrencyContentUnrestricted and NumvalCDec scans for the currency string as written (NvScan), so \"Fr.\", \"CRC\", \"C1\" and \"DB\" are currency strings, as literals and as data items. NvScan accepts both 1989 formats. Witnesses 1989-AR-A_2_30_3-1 and pb5161_numval_c_currency_content_85. Open for adjudication, not a divergence recorded here: the 1989 text gives no rule for argument-2's edge spaces, and the scan trims them as 2002 does. retired-witness: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#InvalidCurrency (kb/Work PB5161: the content screen's one copy is CobolIntrinsics.CurrencyStringViolatesContentRules, asked only from 2002)",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "The two content formats (spaces, sign, currency string, digits with grouping and decimal separators, trailing +/-/CR/DB) match §2023:15.68.3 AR4, and §2023:15.68.3 AR2 restates cs as argument-2's currency string. But 1989 allows only 'a nonnumeric literal or alphanumeric data item' with uppercase CR/DB, while 2023 allows 'category alphanumeric or national' (§2023:15.68.3 AR1) and CR/DB 'in uppercase or lowercase' (§2023:15.68.3 AR4), plus a LOCALE form (§2023:15.68.3 AR5). Looser.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "AR-15.68.3-1": "e2740f06a95f",
+   "AR-15.68.3-2": "61ad0f7d37ad",
+   "AR-15.68.3-4": "420b5c178738"
+  }
  }
 }

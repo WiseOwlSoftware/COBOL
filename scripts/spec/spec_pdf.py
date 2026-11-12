@@ -50,6 +50,8 @@ class Edition:
     folio_offset: int | None    # PDF page minus printed folio; None until measured from that edition's PDF
     body: str | None            # the line of the transcription that opens the body: everything before it is front matter
                                 # (the Preface and the acknowledgment); None while the edition has no transcription
+    pages: int                  # the PDF's page count, measured with PyMuPDF (2026-11-11, kb/Work PB5256): the whole book a
+                                # reconciliation ledger must cover before the edition counts as reconciled
 
 
 #: Each edition's files, named after its public transcription in specs/. 1985 is a scan (PB4812: 0 vector drawings and
@@ -61,10 +63,11 @@ class Edition:
 #: offset, 24, is measured the same way from the footer folio of each of its 926 arabic-numbered pages (PDF 25 to 951).
 #: 1985's is measured when its run needs it (PB4812), so a tool that needs it exits naming this table until then.
 EDITIONS: dict[int, Edition] = {
-    1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# SECTION I: INTRODUCTORY INFORMATION"),
-    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", 22, "# Clauses 1 to 16"),
-    2014: Edition("ISO_COBOL_2014.pdf", "ISO_COBOL_2014.md", "vector", 24, "# Clauses 1 to 16"),
-    2023: Edition("ISO_COBOL_2023.pdf", "ISO_COBOL_2023.md", "vector", 30, '<a id="section-1"></a>'),
+    1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# SECTION I: INTRODUCTORY INFORMATION",
+                    976),
+    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", 22, "# Clauses 1 to 16", 882),
+    2014: Edition("ISO_COBOL_2014.pdf", "ISO_COBOL_2014.md", "vector", 24, "# Clauses 1 to 16", 952),
+    2023: Edition("ISO_COBOL_2023.pdf", "ISO_COBOL_2023.md", "vector", 30, '<a id="section-1"></a>', 1261),
 }
 
 
@@ -72,6 +75,40 @@ EDITIONS: dict[int, Edition] = {
 #: block of prose, the Preface's notation note, and `║` columns in a general format, FIGURE-STYLE.md rule 9; kb/Work
 #: PB4850). It is notation, never part of a heading's number or title, so every reader of a heading skips it.
 BOX_SIDE = "║"
+
+#: The heading that opens PDF page N in a transcription that keeps its pages (`## Page N`: 1985 and 2002; 2023 dropped
+#: its pages). The ONE spelling every reader of a page uses (page_workunit, verify_publishable, sweep_figures, citation);
+#: multiline, so it finds a heading in a whole text and matches a single line alike.
+PAGE_HEADING = re.compile(r"^## Page (\d+)[ \t]*$", re.M)
+
+
+class PageHeadingError(ValueError):
+    """A transcription's `## Page N` headings do not run 1..N, each once."""
+
+
+def pages_of(text: str) -> dict[int, str]:
+    """The transcription's text by PDF page (`## Page N` opens page N, up to the next one); the text before page 1 is
+    page 0. A transcription that keeps no pages (2023) is all page 0.
+
+    The headings must run 1..N, each once, or this raises PageHeadingError naming the heading and its line: a
+    duplicated heading would give page N the later copy's text and drop the earlier one, and a heading out of order
+    would cut a page in the wrong place (kb/Work PB5255 review R1-6). This is the ONE owner of that rule; every reader
+    of the pages, and page_count, takes it from here."""
+    cuts = [(int(m.group(1)), m.start()) for m in PAGE_HEADING.finditer(text)]
+    for k, (page, at) in enumerate(cuts, start=1):
+        if page != k:
+            raise PageHeadingError(f"`## Page {page}` at line {text.count(chr(10), 0, at) + 1} is the transcription's "
+                                   f"page heading {k}; the headings must run 1..N, each once (expected `## Page {k}`)")
+    out = {0: text[:cuts[0][1]] if cuts else text}
+    for (page, at), (_, end) in zip(cuts, cuts[1:] + [(0, len(text))]):
+        out[page] = text[at:end]
+    return out
+
+
+def page_count(text: str) -> int:
+    """The transcription's page count: its last `## Page N` (0 for a transcription that keeps no pages). It is the
+    book's page count of a reconciliation ledger (merge_reconciliation, verify_publishable.check_ledger)."""
+    return len(pages_of(text)) - 1
 
 
 def path(edition: int = DEFAULT_EDITION, private: pathlib.Path = PRIVATE) -> pathlib.Path | None:
@@ -281,6 +318,20 @@ def self_test() -> int:
             check("an unnamed edition is an error", False)
         except KeyError:
             check("an unnamed edition is an error", True)
+    planted = "# Front\n## Page 1\none\n## Page 2 \ntwo\n### Page 3\n## Page 3x\n"
+    check("pages_of cuts at each `## Page N` heading, the front matter page 0, a lookalike heading inside its page",
+          pages_of(planted) == {0: "# Front\n", 1: "## Page 1\none\n", 2: "## Page 2 \ntwo\n### Page 3\n## Page 3x\n"})
+    check("a transcription that keeps no pages is all page 0", pages_of("# 2023\ntext\n") == {0: "# 2023\ntext\n"})
+    check("page_count is the last page of a transcription that keeps its pages, 0 for one that keeps none",
+          page_count(planted) == 2 and page_count("# 2023\ntext\n") == 0)
+    for name, bad, at in (("a duplicated heading", "## Page 1\na\n## Page 2\nb\n## Page 2\nc\n", "line 5"),
+                          ("a heading out of order", "## Page 1\na\n## Page 3\nb\n## Page 2\nc\n", "line 3"),
+                          ("a transcription that does not start at page 1", "x\n## Page 2\nb\n", "line 2")):
+        try:
+            pages_of(bad)
+            check(f"{name} is refused, naming the heading and its line", False)
+        except PageHeadingError as ex:
+            check(f"{name} is refused, naming the heading and its line", "`## Page " in str(ex) and at in str(ex))
     check("each edition names its own transcription in specs/",
           [markdown(e, pathlib.Path("r")).as_posix() for e in sorted(EDITIONS)]
           == ["r/specs/ANSI_COBOL_1985.md", "r/specs/ISO_COBOL_2002.md", "r/specs/ISO_COBOL_2014.md",

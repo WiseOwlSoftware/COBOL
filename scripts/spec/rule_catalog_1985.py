@@ -54,9 +54,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from citation import (AMENDMENT_85, APPENDIX_85, FOLIO_85, MARK_85, PAGE_85, PARAGRAPH_85,  # noqa: E402
+from citation import (AMENDMENT_85, APPENDIX_85, FOLIO_85, MARK_85, PARAGRAPH_85,  # noqa: E402
                       SCAN_REPEAT_85, SECTION_85, SECTIONS_85)  # (THE readers of the 1985 structure, kb/Work PB4887)
-from spec_pdf import BOX_SIDE  # noqa: E402  (THE side of a level-2 box, kb/Work PB4850)
+from spec_pdf import BOX_SIDE, PAGE_HEADING  # noqa: E402  (THE side of a level-2 box, kb/Work PB4850; THE page heading)
 # THE shapes of an editorial note (a correction, R66; a reconstruction's opening and closing, kb/Work PB4952): never rule
 # text. A reconstruction's own text IS read, its rows marked provisional (`reconstructed`).
 from cite import EDITORIAL_NOTE, RECONSTRUCTED, RECONSTRUCTED_END, reconstructed  # noqa: E402
@@ -86,7 +86,8 @@ BASE, AMENDMENT_1, AMENDMENT_2 = "X3.23-1985", "X3.23a-1989", "X3.23b-1993"
 YEAR_OF = {BASE: 1985, AMENDMENT_1: 1989, AMENDMENT_2: 1993}
 #: The section that carries no rule: the Index.
 NO_RULES = {"XVIII"}
-#: Rule-shaped paragraphs deliberately outside the denominator, each with its reason (the 2023 arm's EXCLUDED_BLOCKS).
+#: Rule-shaped paragraphs deliberately outside the denominator, each with its reason (the ISO arm's
+#: `IsoEdition.excluded_blocks`).
 EXCLUDED_BLOCKS = {
     "IV.3": "'RULES' defines the rule taxonomy itself (§1985:IV.3.1 and IV.3.2 are prose about what syntax rules and "
             "general rules ARE) and carries no numbered rule, as §2023:5.3 does for 2023",
@@ -116,7 +117,7 @@ EXCLUDED_BLOCKS = {
 #: compilation"). Admitting a paragraph is a data edit with its reason, never a code edit.
 #: The block kind of an admitted paragraph whose rules are not all one kind (its rows carry each rule's own kind).
 MIXED = "MIXED"
-#: Recognised blocks that rightly yield no numbered rule (the 2023 arm's KNOWN_EMPTY_BLOCKS).
+#: Recognised blocks that rightly yield no numbered rule (the ISO arm's `IsoEdition.known_empty_blocks`).
 KNOWN_EMPTY_BLOCKS = {
     "VI.5.9.6": "the PICTURE precedence rules are unnumbered prose and the chart on page VI-37 (§1985:VI.5.9.6 'The "
                 "chart on page VI-37 shows the order of precedence'): typed SR by KINDS, as 2023's, with no row",
@@ -243,7 +244,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     folio_of: dict[int, str] = {}
     page = 0
     for line in lines:
-        if PAGE_85.match(line):
+        if PAGE_HEADING.match(line):
             page = int(line.split()[-1])
         elif (f := FOLIO_85.match(line)) is not None:
             folio_of[page] = f.group(1)
@@ -315,7 +316,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     inside = [f is not None for f in recon_folio]
     drawn_from: set[bool] = set()
     for at, line in enumerate(lines):
-        if PAGE_85.match(line):
+        if PAGE_HEADING.match(line):
             page, page_top, repeat = int(line.split()[-1]), True, False
             continue
         if repeat or not line.strip():

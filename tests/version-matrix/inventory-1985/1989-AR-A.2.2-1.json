@@ -8,6 +8,9 @@
    "AR-15.3-10"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "AR-15.3-10": "32ceb1556cc2"
+  }
  }
 }

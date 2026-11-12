@@ -1,10 +1,10 @@
 {
   "batch": [970, 971, 972, 973, 974, 975, 976, 977, 978, 979, 980, 981],
-  "pages_checked": [970, 971, 972, 973, 974, 975, 976, 977, 978, 979, 980, 981],
+  "pages_checked": [970, 971, 972, 973, 974, 975, 976, 977, 978, 979, 980, 981], "pages_unread": [],
   "note": "NO general-format figures / syntax skeletons appear anywhere in this page range. PDF pages 940-951 (printed folio) cover the tail of 15.98 YEAR-TO-YYYY, all of clause 16 Standard classes (an interface-definition code listing, not a general format), and the start of Annex A A.1 Implementor-defined language element list (items 1-97). scripts/spec/page_workunit.py itself reported '0 with figure content' for all 12 pages. The choice-indicator / unclosed-brace / ellipsis-placement defect classes therefore have no instances to check here. Prose and the one COBOL code listing were transcribed faithfully; the only defects found are markdown heading-level inversions.",
   "findings": [
     {
-      "page": 972,
+      "id": "p972-1", "page": 972,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "16.2.1.2   General rules   ...   16.2.2   FactoryObject method   ...   16.2.2.1   General   ...   16.2.2.2   General rule",
@@ -13,7 +13,7 @@
       "suggested_repair": "Re-level to match the clause numbering used elsewhere in clause 16: '#### 16.2.1.2 General rules', '### 16.2.2 FactoryObject method', '#### 16.2.2.1 General', '#### 16.2.2.2 General rule'."
     },
     {
-      "page": 973,
+      "id": "p973-1", "page": 973,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "A.1   Implementor-defined language element list",

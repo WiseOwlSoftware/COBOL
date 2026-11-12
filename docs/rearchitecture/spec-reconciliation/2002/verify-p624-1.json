@@ -1,0 +1,13 @@
+{
+  "claim_id": "p624-1",
+  "claim_key": "647c0e8004dd0bae",
+  "page": 624,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p624-1", "page": 624, "kind": "table-restructured", "severity": "structural", "pdf_says": "Argument-1\ncharacteristics          Value returned", "markdown_says": "   Argument-1\n\n| characteristics | Value returned |", "why_it_matters": "The NOTE table's two-line column heading \"Argument-1 characteristics\" was split: \"Argument-1\" is left as a stray paragraph above the table and the column header reads only \"characteristics\". Informative NOTE; no normative rule changes."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (2002 p.602, PDF p.624, §2002:15.33.3 NOTE) shows the bold two-line column heading 'Argument-1 / characteristics' over 'Value returned'. The markdown keeps every word: 'Argument-1' sits on the line directly above the table and 'characteristics' heads the first column, in the same order. That is a line-wrap/layout artifact of a two-line heading, with no text missing and no change in meaning, in an informative NOTE. The claim quotes both sources correctly but describes only formatting. Separately, and outside this claim, the last two rows (BINARY-CHAR SIGNED/UNSIGNED) fell out of the markdown table as paragraphs. Their text is also present.",
+    "corrected_description": ""
+  }
+}

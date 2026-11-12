@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Rule 2 sits among the EXIT PROGRAM (RAISING) format rules, like the parallel GOBACK ban. It is the same ban on EXIT PROGRAM in a GLOBAL declarative, not an extension to plain EXIT.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.14.3-2": "1e057bdbafd0"
+  }
  }
 }

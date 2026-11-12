@@ -17,6 +17,16 @@
   "reason": "1985 Table 1 makes PICTURE mandatory in every format 3 row and permits JUSTIFIED, BLANK WHEN ZERO and GROUP INDICATE with SOURCE while COLUMN is optional; USAGE is not permitted on an unprintable SUM entry. 2023: 'The PICTURE clause may be omitted ... when an alphanumeric, boolean or national literal ... is specified in the VALUE clause' (§2023:13.15.3 SR14) - looser; 'If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified' (§2023:13.15.3 SR15) and GROUP INDICATE needs 'a COLUMN clause and a SOURCE or VALUE clause' (§2023:13.18.28.3 SR1) - stricter; USAGE is offered in every entry (§2023:13.15.2). Kept: PICTURE with SOURCE or SUM (§2023:13.15.3 SR12), COLUMN with VALUE (SR13), COLUMN needs SOURCE, VALUE or SUM (SR10), these clauses only in elementary entries (SR11). All compile-time.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "source": "adjudicate-712/slice-34",
+  "digests": {
+   "SR-13.15.3-10": "9c68018d516b",
+   "SR-13.15.3-11": "a3961a741d10",
+   "SR-13.15.3-12": "3d59615d3e5a",
+   "SR-13.15.3-13": "a9debe95846a",
+   "SR-13.15.3-14": "9e44968aa8d2",
+   "SR-13.15.3-15": "d4a9753242f3",
+   "SR-13.18.28.3-1": "d6996b354b57",
+   "FMT-13.15.2": "d2104b4e3f18"
+  }
  }
 }

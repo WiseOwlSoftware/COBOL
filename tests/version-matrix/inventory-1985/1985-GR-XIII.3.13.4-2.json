@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: 'is presented the first time its detail is presented after the INITIATE statement is executed. Thereafter spaces are supplied' (the item stays in the group, as spaces, and its LINE is presented). 2023: 'The GROUP INDICATE clause has the same effect as a PRESENT WHEN clause', whose false condition makes the item absent 'as though the entry were omitted from the description of the report group' (13.18.41.4 GR2 b): the entry and its LINE clause go. A 1985 format 3 entry may carry LINE beside GROUP INDICATE, so a program both editions accept prints one line fewer under 2023.",
-  "source": "sample-85/band refuter"
+  "source": "sample-85/band refuter",
+  "digests": {
+   "GR-13.18.28.4-1": "56ea4c885540"
+  }
  }
 }

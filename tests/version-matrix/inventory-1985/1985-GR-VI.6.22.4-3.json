@@ -16,6 +16,12 @@
   "reason": "1985 GR3: SEARCH ALL results 'are predictable only when' the table is ordered per the KEY phrase and 'the contents of the key(s) referenced in the WHEN phrase are sufficient to identify a unique table element'. 2023 keeps the ordering precondition (§2023:14.9.37.4 GR5 a), §2023:13.18.38.4 GR3 'shall be ordered when a SEARCH statement with the ALL phrase is executed') but defines both cases 1985 left unpredictable: with non-unique keys §2023:14.9.37.4 GR7 says 'the search operation is successful' with the index at one of the matches; with GR5 unmet §2023:14.9.37.4 GR6 limits the outcome to a match or an unsuccessful search with EC-RANGE-SEARCH-NO-MATCH. GR5 b) adds a subscript condition for nested tables. The requirement is looser: a 1985 program with duplicate keys now has a defined result.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "source": "adjudicate-712/slice-12",
+  "digests": {
+   "GR-14.9.37.4-5": "36cd32937bf3",
+   "GR-14.9.37.4-6": "d2434a6ada6c",
+   "GR-14.9.37.4-7": "fc96d5bff4ea",
+   "GR-13.18.38.4-3": "eb3a6c90ddfa"
+  }
  }
 }

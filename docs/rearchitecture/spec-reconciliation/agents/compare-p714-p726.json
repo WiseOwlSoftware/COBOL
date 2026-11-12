@@ -1,9 +1,9 @@
 {
   "batch": [714, 715, 716, 717, 718, 719, 720, 722, 723, 724, 725, 726],
-  "pages_checked": [714, 715, 716, 717, 718, 719, 720, 722, 723, 724, 725, 726],
+  "pages_checked": [714, 715, 716, 717, 718, 719, 720, 722, 723, 724, 725, 726], "pages_unread": [],
   "findings": [
     {
-      "page": 722,
+      "id": "p722-1", "page": 722,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "READ statement, Format 1 (sequential): the AT END / NOT AT END group is printed as a tall BRACKET with a pair of vertical CHOICE-INDICATOR BARS just inside it, spanning both stacked alternatives:  [|  AT END imperative-statement-1  |]  /  [|  NOT AT END imperative-statement-2  |]",
@@ -12,7 +12,7 @@
       "suggested_repair": "In specs/ISO_COBOL.md lines 29461-29462 replace the nested brackets with the choice-indicator form already used elsewhere:\n⎡|  AT END imperative-statement-1      |⎤\n⎣|  NOT AT END imperative-statement-2  |⎦\nand add the standard '> **Figure notes (ISO 5.2.6.4)**' callout stating that both AT END and NOT AT END may be specified, in any order."
     },
     {
-      "page": 722,
+      "id": "p722-2", "page": 722,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "READ statement, Format 2 (random): the INVALID KEY / NOT INVALID KEY group is printed as a tall BRACKET with a pair of vertical CHOICE-INDICATOR BARS just inside it, spanning both stacked alternatives:  [|  INVALID KEY imperative-statement-3  |]  /  [|  NOT INVALID KEY imperative-statement-4  |]",
@@ -21,7 +21,7 @@
       "suggested_repair": "In specs/ISO_COBOL.md lines 29480-29481 replace the nested brackets with:\n⎡|  INVALID KEY imperative-statement-3      |⎤\n⎣|  NOT INVALID KEY imperative-statement-4  |⎦\nand add the standard '> **Figure notes (ISO 5.2.6.4)**' callout."
     },
     {
-      "page": 722,
+      "id": "p722-3", "page": 722,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "READ statement, Format 2 (random): a single tall optional BRACKET encloses the whole KEY IS phrase, spanning BOTH rows of the inner brace - [ KEY IS { data-name-1 / record-key-name-1 } ] - with the bracket's lower arm printed below the 'record-key-name-1' row.",
@@ -30,7 +30,7 @@
       "suggested_repair": "In specs/ISO_COBOL.md lines 29477-29478 repeat the outer bracket on the second row and align the braces:\n    [ KEY IS { data-name-1       } ]\n    [        { record-key-name-1 } ]"
     },
     {
-      "page": 714,
+      "id": "p714-1", "page": 714,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.28.4   General rules   (a fourth-level clause, printed in the same style and at the same level as 14.9.28.1 General, 14.9.28.2 General formats and 14.9.28.3 Syntax rules, all subordinate to 14.9.28 PERFORM statement)",
@@ -39,7 +39,7 @@
       "suggested_repair": "In specs/ISO_COBOL.md change line 29212 from '## 14.9.28.4 General rules' to '### 14.9.28.4 General rules' (and, in the same sweep, line 29150 '## 14.9.28.3 Syntax rules' -> '###')."
     },
     {
-      "page": 723,
+      "id": "p723-1", "page": 723,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.30.3   Syntax rules   (a fourth-level clause subordinate to 14.9.30 READ statement, printed in the same style as 14.9.30.1 General and 14.9.30.2 General formats on page 722)",
@@ -48,7 +48,7 @@
       "suggested_repair": "In specs/ISO_COBOL.md change line 29496 from '## 14.9.30.3 Syntax rules' to '### 14.9.30.3 Syntax rules'."
     },
     {
-      "page": 724,
+      "id": "p724-1", "page": 724,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.30.4   General rules   (a fourth-level clause subordinate to 14.9.30 READ statement, printed in the same style as 14.9.30.1 General and 14.9.30.2 General formats)",

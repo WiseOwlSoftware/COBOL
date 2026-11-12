@@ -3651,6 +3651,12 @@ check("PB3476: a HEAD field that gives no sha ('see the trailing commit') takes 
 check("PB3476: ... a header with a HEAD sha keeps it, the stamp notwithstanding",
       head_of("w1136d-PB3472-report.md", f"Status: DONE\n{STAMP}\n**Branch:** worktree-x-2\n**HEAD:** 1234567abc\n"),
       "1234567abc")
+check("PB5334: the combined `Base/Head: <base> / <head>` field gives the HEAD its SECOND sha (w20262000c's header)",
+      head_of("w1136f-PB3474-report.md", "Status: DONE\nBranch: worktree-x-4\n"
+              "Base/Head: 74bd6713166c0e8a247df36e8d25ab1dacdd4689 / 0a97e37a1c0b64c44342abcacde61ae5b0d33f21\n"),
+      "0a97e37a1c0b64c44342abcacde61ae5b0d33f21")
+check("PB5334: ... and the BASE its first",
+      parse_report(HD / "w1136f-PB3474-report.md").base, "74bd6713166c0e8a247df36e8d25ab1dacdd4689")
 check("PB3476: ... and a header with neither describes no commit",
       head_of("w1136e-PB3473-report.md", "Status: DONE\n**Branch:** worktree-x-3\n**HEAD:** see the trailing commit\n"),
       None)
@@ -3694,9 +3700,9 @@ check("PB3652: the scan fails on a planted direct call",
       replay_callers({"scripts/orchestrator/x.py": "prune_worktrees.replays(branches, carriers, rank, graph)"}),
       ["scripts/orchestrator/x.py"])
 
-# PB5100: A WAVE'S CONCURRENCY IS DERIVED FROM THE GATE POOL IT FEEDS, never hand-set. Expected from the note: a planted cap
-# of 3 with nothing held yields 3 workers; a held slot or a waiting ticket (another lane's gate) takes one away; never
-# fewer than 1; model_rules.json states no `concurrency` (a second, hand-set number that could exceed the cap).
+# PB5100/PB5303: A WAVE'S CONCURRENCY IS THE GATE POOL'S CAP IN FORCE, never hand-set and never reduced by the slots held at
+# planning time (an implementer codes far longer than it gates). Expected from the notes: a planted cap of 3 yields 3
+# workers whatever is held or waiting; never fewer than 1; model_rules.json states no `concurrency` (a second, hand-set number that could exceed the cap).
 import gate_slot  # noqa: E402
 
 
@@ -3709,11 +3715,13 @@ def pool_state(cap, held=0, waiting=0):
 check("PB5100: a planted cap of 3 with an idle pool yields 3 implementers", pw.wave_concurrency(pool_state(3))[0], 3)
 check("PB5100: the cap in force is the ceiling (5 -> 5, 2 -> 2)",
       (pw.wave_concurrency(pool_state(5))[0], pw.wave_concurrency(pool_state(2))[0]), (5, 2))
-check("PB5100: a held slot and a waiting ticket each take one worker away",
-      (pw.wave_concurrency(pool_state(3, held=1))[0], pw.wave_concurrency(pool_state(3, held=1, waiting=1))[0]), (2, 1))
-check("PB5100: a saturated pool still leaves one worker, so the wave progresses",
-      pw.wave_concurrency(pool_state(3, held=3, waiting=4))[0], 1)
-check("PB5100: the derivation is stated", "gate cap 3 - 1 slot(s) held" in pw.wave_concurrency(pool_state(3, held=1))[1], True)
+check("PB5303: slots held and tickets waiting at planning time do not reduce the concurrency (cap 3, 2 held, 1 waiting -> 3)",
+      (pw.wave_concurrency(pool_state(3, held=1))[0], pw.wave_concurrency(pool_state(3, held=2, waiting=1))[0],
+       pw.wave_concurrency(pool_state(3, held=3, waiting=4))[0]), (3, 3, 3))
+check("PB5303: a cap of 0 still leaves one worker, so the wave progresses", pw.wave_concurrency(pool_state(0))[0], 1)
+check("PB5303: the reason names the cap and says planning-time holds do not reduce it",
+      "cap in force (3)" in pw.wave_concurrency(pool_state(3, held=2))[1]
+      and "not reduced by the slots held" in pw.wave_concurrency(pool_state(3, held=2))[1], True)
 check("PB5100: model_rules.json carries no hand-set wave concurrency", "concurrency" in LIVE_RULES["wave"], False)
 check("PB5100: the planner passes the derived value, never a rules key",
       "rules[" + chr(34) + "wave" + chr(34) + "][" + chr(34) + "concurrency" + chr(34) + "]"

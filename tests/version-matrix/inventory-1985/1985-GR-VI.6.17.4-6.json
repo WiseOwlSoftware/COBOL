@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 keeps both orderings: each identifier-1 in the order specified, and elementary items in definition sequence. The added sentences cover other subjects, not this ordering rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.20.4-3": "c6e4eb367fc6",
+   "GR-14.9.20.4-8": "78d7f71a2d4c"
+  }
  }
 }

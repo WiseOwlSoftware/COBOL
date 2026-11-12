@@ -10,6 +10,10 @@
   "reason": "1985 RECORD DELIMITER GR6: for an external file connector 'all RECORD DELIMITER clauses in the run unit which are associated with that file connector must have the same specifications'. 1985 file control GR1c ('consistent specification for implementor-name-2 ... The implementor will specify the consistency rules') binds alongside it, so 1985 required both identity and consistency. 2023 keeps only §2023:12.4.5.3 GR1c 'Either the STANDARD-1 phrase or a consistent value of feature-name-1 in the RECORD DELIMITER clause. The implementor shall specify the consistency rules for feature-name-1' (documented per §2023:A.1, RECORD DELIMITER consistency rules); the RECORD DELIMITER clause rules of §2023:12.4.5.11.4 state no sameness requirement. Different but consistent feature-names now conform: looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-15"
+  "source": "adjudicate-712/slice-15",
+  "digests": {
+   "GR-12.4.5.3-1": "2743ca2ce512",
+   "DOC-A.1-149": "4ab2c554dbab"
+  }
  }
 }

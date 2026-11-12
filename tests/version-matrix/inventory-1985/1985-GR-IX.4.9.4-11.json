@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 GR11: 'Execution of a WRITE statement causes the content of the record area to be released' and the MSCS uses the record keys so the record can later be accessed by any of them. 2023 §2023:14.9.51.4 GR34: 'Successful execution of a WRITE statement causes the content of the record area to be released. The operating environment utilizes the contents of the record keys ...'; §2023:14.9.51.4 GR12 also states the release. 'Successful' adds nothing: 1985 GR8 and GR18 say a failed WRITE does not take place and leaves the record area unaffected. MSCS -> operating environment is wording. Same.",
-  "source": "adjudicate-712/slice-08"
+  "source": "adjudicate-712/slice-08",
+  "digests": {
+   "GR-14.9.51.4-34": "b6d57aa1dfd4",
+   "GR-14.9.51.4-12": "b54b956d4c8a"
+  }
  }
 }

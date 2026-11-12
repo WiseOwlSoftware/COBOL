@@ -1,0 +1,25 @@
+{
+  "batch": [553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564],
+  "pages_checked": [553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p562-1",
+      "page": 562,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(operand-1₁ + operand-1₂ + ... + operand-1ₙ)",
+      "markdown_says": "(operand-11 + operand-12 + ... + operand-1n)",
+      "why_it_matters": "14.8.40.3 SUBTRACT general rule 1 (format 1): the printed subscripts 1, 2 and n on operand-1 (the first, second and n-th occurrence of operand-1) were flattened onto the baseline, so the equivalent arithmetic expression for the initial evaluation reads as references to nonexistent operands named operand-11, operand-12 and operand-1n."
+    },
+    {
+      "id": "p562-2",
+      "page": 562,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(operand-2 – (operand-1₁ + operand-1₂ + ... + operand-1ₙ))",
+      "markdown_says": "(operand-2 – (operand-11 + operand-12 + ... + operand-1n))",
+      "why_it_matters": "14.8.40.3 SUBTRACT general rule 2 (format 2): the same flattened subscripts on operand-1 make the expression defining the GIVING result reference operand-11, operand-12 and operand-1n instead of the indexed occurrences of operand-1."
+    }
+  ]
+}

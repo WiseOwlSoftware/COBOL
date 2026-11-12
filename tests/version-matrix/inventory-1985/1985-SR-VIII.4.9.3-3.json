@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§1985:VIII.4.9.3 SR3: 'The INVALID KEY phrase must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name' (WRITE to a relative file). 2023 has no such syntax rule (§2023:14.9.51.3) and states the refused case: §2023:9.1.14 GR4: 'If the INVALID KEY phrase is not specified in the input-output statement and there are no applicable exception processing statements, control is transferred to the end of the input-output statement'; so too §2023:9.1.14 GR3: 'If control is returned from those statements or there are no applicable exception processing statements, control is transferred to the end of the input-output statement'. The WRITE statement's general rules have no rule naming the phrases optional (DELETE, REWRITE and START each have one), so 'to' holds the two §2023:9.1.14 rules alone. Words that differ: 1985 'must be specified'; 2023 'not specified ... there are no applicable ... exception processing statements, control is transferred to the end'. A statement 1985 refuses is accepted by 2023 with a stated run-time effect: a lifted refusal, so CHANGED (kb/Work PB5021), not REMOVED.",
-  "source": "pb5092/use-required-phrases"
+  "source": "pb5092/use-required-phrases",
+  "digests": {
+   "GR-9.1.14-3": "4d9f118d4cd2",
+   "GR-9.1.14-4": "fad5ee590e9d"
+  }
  }
 }

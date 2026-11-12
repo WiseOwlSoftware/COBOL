@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both are pointer rules with no requirement of their own: 1985 GR3 names Scope of Statements, ROUNDED, ON SIZE ERROR, the Arithmetic Statements, Overlapping Operands and Multiple Results; §2023:14.9.26.4 GR4 'Additional rules and explanations relative to this statement are given in 14.6.13.2, Incompatible data; 14.7.4, ROUNDED phrase; 14.7.5, SIZE ERROR phrase ... and 14.7.7, Arithmetic statements'. Changes in the referenced material are judged with those clauses' records; 14.7.7 GR4 carries the 1985 multiple-results rule, not this pointer.",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "adjudicate-712-r2/slice-05",
+  "digests": {
+   "GR-14.9.26.4-4": "98e92396418d"
+  }
  }
 }

@@ -662,6 +662,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Whether the signature of the method an invocation activates has a gated message-tag item: its RETURNING item or a formal.</summary>
     private static bool NamesGatedMessageTag(OoMethodSymbol method) => method.Binding?.SignatureItems.Any(IsGatedMessageTag) == true;
 
+    /// <summary>ENTER language-name-1 [routine-name-1] (§1985:VI.6.12.2): inert, and its routine-name declared as one
+    /// (§1985:IV.4.2.2.1.1: "All user-defined words ... can belong to one and only one of these disjoint sets").</summary>
+    private BoundNop BindEnter(Core.EnterStatementContext enter)
+    {
+        if (enter.routineName() is { } routine) data.DeclareUserWord(routine.GetText(), UserWordKind.RoutineName);
+        return new BoundNop();
+    }
+
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {
         _ when s.displayStatement() is { } d => Accept.BindDisplay(d),
@@ -745,8 +753,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             + "nested program, and CALL it"),
         // ENTER language-name [routine-name] (X3.23-1985 Nucleus, deleted by ISO 2002 — 0902-gated ≥2002 by
         // the version-conformance pass, VCR Table 7 row 7.16): comment-equivalent when only COBOL is supported — the
-        // conforming '85 posture; accepted-inert as a no-op.
-        _ when s.enterStatement() is not null => new BoundNop(),
+        // conforming '85 posture; accepted-inert as a no-op. Routine-name-1 is a user-defined word (§1985:VI.6.12.3 SR2) of
+        // its own disjoint set (§1985:IV.4.2.2.1.1), so it is declared through the one funnel (kb/Work PB5178).
+        _ when s.enterStatement() is { } enter => BindEnter(enter),
         // USE (ISO §2023:14.9.49.3 SR1 — kb/Work PB361). The ONE legal position, the first sentence of a declarative
         // section, is consumed by ProcedureTableBuilder.DeclCollectSection and never reaches this binder, so a USE
         // statement bound HERE is misplaced by construction: in a nondeclarative paragraph, in a declarative

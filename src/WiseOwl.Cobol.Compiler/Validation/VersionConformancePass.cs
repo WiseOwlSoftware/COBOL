@@ -1866,6 +1866,25 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>An INPUT-OUTPUT SECTION with no file-control-entry (kb/Work PB5167): the section without FILE-CONTROL and the
+        /// paragraph without an entry are ISO/IEC 1989:2002's brackets (§2023:12.4.2, §2023:12.4.4.2); X3.23-1985 prints FILE-CONTROL
+        /// unbracketed and its entry in braces (§1985:IV.6.2.3.1, §1985:VII.2.2.2). Fires once per written section.</summary>
+        public override object? VisitInputOutputSection(CobolParserCore.InputOutputSectionContext ctx)
+        {
+            if (ctx.fileControlParagraph() is not { } fileControl || fileControl.fileControlClauseGroup().Length == 0)
+                _p.Check(Constructs.FileControlEntryOptional2002, "an INPUT-OUTPUT SECTION with no file-control-entry");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The REPOSITORY paragraph is 2002's (§2023:12.3.8); every entry kind is gated by <see cref="VisitRepositoryEntry"/>, so
+        /// the header alone is asked only when it writes no entry, the one shape no entry gate sees (kb/Work PB5167).</summary>
+        public override object? VisitRepositoryParagraph(CobolParserCore.RepositoryParagraphContext ctx)
+        {
+            if (ctx.repositoryEntry().Length == 0)
+                _p.Check(Constructs.RepositoryParagraph2002, "the REPOSITORY paragraph");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>OBJECT-COMPUTER clauses WITHOUT computer-name-1 (ISO §2023:12.3.6.2 — the name is optional and the
         /// clauses may follow the period directly): a 2002 relaxation — X3.23-1985 hung MEMORY SIZE / PROGRAM COLLATING
         /// SEQUENCE / SEGMENT-LIMIT off a REQUIRED computer-name (kb/Work PB78). The empty paragraph is legal at every

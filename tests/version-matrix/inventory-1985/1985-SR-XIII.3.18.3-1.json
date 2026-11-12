@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: identifier-1 may be in any Data Division section; a Report Section item must be PAGE-COUNTER, LINE-COUNTER or a sum counter of the report containing the SOURCE clause. §2023:13.18.53.3 SR4: 'If identifier-1 specifies a report section item, it shall be a report counter identifier or a sum counter defined in the current report.'; §2023:8.4.3.15.3 SR1: 'In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause.' Same operands accepted and refused at compile time; the arithmetic-expression operand is new syntax. The report counter format states no part of this rule, so it is not in 'to'.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "SR-13.18.53.3-4": "35eadd3ffa70",
+   "SR-8.4.3.15.3-1": "7bbcb92a1718"
+  }
  }
 }

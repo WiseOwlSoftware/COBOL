@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: in START 'Data-name-1 may be qualified.' 2023's START clause (14.9.41) has no such sentence, but the general qualification rules apply to every reference: §2023:8.4.2.2.3 SR1 'uniqueness shall be established through a sequence of qualifiers' and §2023:8.4.2.2.3 SR2 'A name may be qualified even though it does not need qualification'. Nothing in 14.9.41.3 forbids qualifying data-name-1, so a qualified data-name-1 is accepted with the same meaning.",
-  "source": "adjudicate-712/slice-32"
+  "source": "adjudicate-712/slice-32",
+  "digests": {
+   "SR-8.4.2.2.3-1": "f514d35c893e",
+   "SR-8.4.2.2.3-2": "007b37ad4caf"
+  }
  }
 }

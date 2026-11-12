@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'The first line number on which a body group can be presented is the line number specified by the FIRST DETAIL phrase'. 2023 keeps it only conditionally: §2023:13.18.57.4 GR7 c) 'The upper limit for a body group, if there is no control heading defined in the report with the OR PAGE phrase, is the line given by the FIRST DETAIL integer', and adds d) 'If there is at least one control heading defined in the report with the OR PAGE phrase, the upper limit for a body group is determined as follows' (a lower control heading's limit follows the higher one). OR PAGE is accepted by 2023, refused by 1985: a case added.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-13.18.57.4-7": "e6482a3bdd53",
+   "GR-13.18.39.4-2": "e848559fd8d9"
+  }
  }
 }

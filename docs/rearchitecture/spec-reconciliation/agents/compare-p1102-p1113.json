@@ -1,10 +1,10 @@
 {
   "batch": [1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1113],
-  "pages_checked": [1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1113],
+  "pages_checked": [1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1113], "pages_unread": [],
   "notes": "All twelve pages are Annex D (informative): tail of D.10 (bit filler examples), D.11 Character sets, D.12 COBOL-WORDS directive, D.13 Collating sequences, and the head of D.14 Culturally-specific / culturally-adaptable applications. NO general-format or syntax-skeleton FIGURE appears on any page in this batch - there is no bracket, brace, choice-indicator bar, ellipsis-delimiter or underlined required word anywhere in the range (scripts/spec/page_workunit.py likewise reported '0 with figure content' for all twelve). The priority defect class therefore has no instances here; that is a negative result, not an omission. What the pages do carry is prose plus fixed-form COBOL code fragments, which were compared line by line against the 300 dpi render; the two implicit-filler examples on p1102 were re-cropped and zoomed at ~3x to confirm the transcription reproduces ISO's own inconsistency verbatim ('USAGE BIT PIC 1(5).' in the first example versus 'USAGE BIT PIC(6).' - no '1' - in the second). Other ISO-side oddities faithfully preserved by the markdown and deliberately NOT reported as defects: 'CURRENCY-SIGN IS' hyphenated on p1113, 'USAGE DISPLAY PIC N(80)' on p1113, 'Features in this Working Draft International Standard' on p1112, and the ungrammatical 'This can be useful when a change of compiler that includes new reserved words that conflict with existing code.' on p1106. Paragraphs split by the p1102/p1103 and p1112/p1113 page breaks are joined at the end of the earlier page's slice, which is the transcription's normal reflow convention. The only defects found are heading-level, and they are the same systemic promotion pattern already ledgered for the adjacent batch p1114-p1125.",
   "findings": [
     {
-      "page": 1103,
+      "id": "p1103-1", "page": 1103,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.11.2   Character set representations  ...  D.11.3   Programming to use alphanumeric and national character data  ...  D.11.4   Source code portability  ...  D.12.1   General  ...  D.12.2   EQUATE  ...  D.13.2   Methods of defining collating sequences  ...  D.13.3.2   Using a specific collating sequence  (each printed at the clause depth its number implies, and at the same visual depth as its own first sibling: D.11.1 General, D.12.1 General, D.13.1 General, D.13.3.1 Using the defaults)",
@@ -13,7 +13,7 @@
       "suggested_repair": "Derive the heading level from the clause-number depth rather than from position in the file: D.11.2 / D.11.3 / D.11.4 -> '###' (matching '### D.11.1'); D.12.1 / D.12.2 / D.12.3 / D.12.4 / D.12.5 -> '###' (under '## D.12'); D.13.2 / D.13.3 / D.13.4 / D.13.5 -> '###' (matching '### D.13.1'); D.13.3.2 / D.13.3.3 / D.13.3.4 -> '####' (matching '### D.13.3.1' once D.13.3 itself is at '###'). Leave the heading text and the <a id=\"...\"> anchors untouched - only the '#' count changes."
     },
     {
-      "page": 1113,
+      "id": "p1113-1", "page": 1113,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.14.2.3   Class test for characters in a particular alphabet.  ...  D.14.3   Culturally-adaptable applications  (D.14.2.3 printed at the same clause depth as its siblings D.14.2.1 General and D.14.2.2 Currency string and currency symbol on p1112; D.14.3 at the same depth as D.14.1 General and D.14.2)",

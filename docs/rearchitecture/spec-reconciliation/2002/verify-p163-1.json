@@ -1,0 +1,13 @@
+{
+  "claim_id": "p163-1",
+  "claim_key": "7997d4e92320bdfb",
+  "page": 163,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p163-1", "page": 163, "kind": "misplaced-content", "severity": "structural", "pdf_says": "EXPANDS | class-specifier and interface-specifier of the REPOSITORY paragraph", "markdown_says": "| EXPANDS | class-specifier and interface-specifier of the REPOSITORY |\n\nparagraph\n\n| FOREGROUND-COLOR | screen description entry |", "why_it_matters": "The wrapped second line of the EXPANDS context cell is detached from the table as a stray paragraph 'paragraph', so the EXPANDS row's context reads 'of the REPOSITORY' with no noun and the table is split in two."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 141 (PDF p163), §2002:8.10 table: the EXPANDS row's context cell reads 'class-specifier and interface-specifier of the REPOSITORY' and wraps to 'paragraph' on the next line inside the same cell. The transcription (page-163.md lines 24-29) closes the EXPANDS row after 'REPOSITORY', emits 'paragraph' as a standalone paragraph outside the table, then restarts a new table whose first row is '| FOREGROUND-COLOR | screen description entry |' followed by '|---|---|'. Both quotes in the claim match the sources. The word is not lost, but this is more than a wrapping difference: the table's structure is broken. A reader of the markdown table gets an EXPANDS context with no noun, and in GFM the FOREGROUND-COLOR row becomes the header row of a second table, so any tool that reads the context-sensitive-word table by rows drops FOREGROUND-COLOR as a data row and loses 'paragraph' from EXPANDS. This is a genuine structural transcription defect, not a normative change to the standard's meaning.",
+    "corrected_description": "Accurate as stated, with one addition: because the table restarts after the stray 'paragraph' line, the '|---|---|' separator follows the FOREGROUND-COLOR row, so FOREGROUND-COLOR is promoted to the header row of a second table rather than being a data row. Fix: put 'paragraph' back into the EXPANDS context cell and join the two tables into one."
+  }
+}

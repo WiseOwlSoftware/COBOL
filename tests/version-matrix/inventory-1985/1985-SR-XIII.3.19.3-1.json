@@ -12,6 +12,11 @@
   "reason": "Kept: subject not alphabetic (§2023:13.18.54.3 SR2 'shall be valid as the category of a receiving operand in a MOVE statement for a sending operand of the category numeric'), non-report addend numeric (§2023:13.18.54.3 SR5), and no UPON with a report-section addend (§2023:13.18.54.3 SR4 a). Changed: 1985 requires a Report Section addend to be a sum counter, in the same group or a lower-level control footing; §2023:13.18.54.3 SR4 accepts any 'numeric data item in the report section' and adds pairings ('The current report group may be a detail and data-name-1 may be defined in a different detail', report and page footings, other reports), while a same-group addend now 'shall be a repeating item' with more levels of repetition, so a 1985 non-repeating crossfoot within one control footing is refused. Both looser and stricter; compile-time throughout.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "source": "adjudicate-712/slice-34",
+  "digests": {
+   "SR-13.18.54.3-2": "93274565c78b",
+   "SR-13.18.54.3-4": "20da11e6490f",
+   "SR-13.18.54.3-5": "814bf3db81da"
+  }
  }
 }

@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "1985 RF first line: absolute integer; relative after a PF on the page = PF final LINE-COUNTER + integer, else FOOTING + integer; NEXT PAGE = own page; unpaged LINE-COUNTER + integer; no LINE, not presented. §2023:13.18.35.4 GR5 a) 'If in addition the NEXT PAGE phrase is present and the report group is a report footing, the first line is printed beginning on a new page', b) 5. 'if no page footing has been printed on the same page, the line number is given by (FOOTING integer + integer-2)' else LINE-COUNTER + integer-2, c) unpaged; LINE-COUNTER per §2023:8.4.3.15.4 GR4, §2023:13.18.37.4 GR5; alone per §2023:13.18.57.4 GR6 f); §2023:13.18.35.4 GR1, GR6. Same results.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-13.18.35.4-5": "8d7c40e355c7",
+   "GR-13.18.35.4-1": "8b6991986b24",
+   "GR-13.18.35.4-6": "b9b54a2483a7",
+   "GR-13.18.37.4-5": "f07c469cf7cc",
+   "GR-8.4.3.15.4-4": "cf9c288b45e0",
+   "GR-13.18.57.4-6": "60b5eeb0db8d"
+  }
  }
 }

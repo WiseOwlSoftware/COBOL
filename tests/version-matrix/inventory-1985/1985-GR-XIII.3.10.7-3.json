@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-30, kb/Work PB4952). The first line is printed at an absolute LINE integer, or relative to the report heading's last line or to the HEADING integer minus 1; a nonprintable group prints none. 2023 places the first line the same way, as for the report heading (1985-GR-XIII.3.10.6-3, KEPT into the same rules).",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "GR-13.18.35.4-5": "8d7c40e355c7",
+   "GR-13.18.35.4-1": "8b6991986b24",
+   "GR-8.4.3.15.4-3": "b939257bb3d9"
+  }
  }
 }

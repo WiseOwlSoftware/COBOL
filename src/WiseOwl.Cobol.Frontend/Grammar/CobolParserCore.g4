@@ -664,8 +664,11 @@ localePhrase
 // ⛔ PROGRAM IS AN OPTIONAL WORD TOO (kb/Work PB695): folio 285 prints `PROGRAM COLLATING SEQUENCE` with the
 // rule under SEQUENCE only, so `SEQUENCE IS REV.` and `COLLATING SEQUENCE IS REV.` are conforming spellings.
 // COLLATING was already relaxed and PROGRAM was not — the two-word head was half-measured.
+// ⛔ ALPHABET-NAME-2 IS NEVER THE NEXT CLAUSE (kb/Work PB5298): §1985:XVI.2.2.2 prints [SEGMENT-LIMIT IS segment-number]
+// right after this clause, and SEGMENT-LIMIT, MEMORY and CLASSIFICATION open their clauses as bare words, so the optional
+// second name asks the one clause-or-name question the computer-name slot asks.
 programCollatingSequenceClause
-    : PROGRAM? COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord cobolWord?)
+    : PROGRAM? COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord ({!objectComputerClauseAhead()}? cobolWord)?)
     ;
 
 computerName
@@ -1270,8 +1273,9 @@ roundingModeName
 // ADD (§2023:14.9.2)
 // ==========================================
 
-// Format 1 `ADD {identifier-1 | literal-1} … TO {identifier-2 [rounded]} …`, Format 2 `… [TO {identifier-2 |
-// literal-2}] GIVING …` and Format 3 CORRESPONDING. ArithmeticBinder narrows the union per format.
+// Format 1 `ADD {identifier-1 | literal-1} … TO {identifier-2 [rounded]} …`, Format 2 `… [TO] {identifier-2 |
+// literal-2} GIVING …` (only the word TO optional: without it the last sendingOperand is identifier-2) and Format 3
+// CORRESPONDING. ArithmeticBinder narrows the union per format, and refuses a Format 2 of one addend (kb/Work PB5203).
 addStatement
     : ADD (CORRESPONDING | CORR) dataReference TO receivingIdentifier roundedPhrase? conditionalPhrases END_ADD?
     | ADD sendingOperand+ addToPhrase? arithmeticGivingPhrase? conditionalPhrases END_ADD?
@@ -1375,7 +1379,7 @@ moveReceivingPhrase
 //     ALSO Format 2, and it is spelled exactly like Format 1's `CALL identifier-1`. That arm is genuinely
 //     SEMANTIC: the binder selects it when the bare word names a program-prototype declared by the REPOSITORY
 //     paragraph's program-specifier (§2023:12.3.8.2) and does not resolve as a data item (CallBinder.BindCall). No
-//     grammar change is needed for it — `callTarget → dataReference` already carries the word.
+//     grammar change is needed for it — `callTarget → sendingOperand → dataReference` already carries the word.
 callStatement
     : CALL callTarget
       callAsPhrase?
@@ -1386,9 +1390,12 @@ callStatement
 
     ;
 
+// identifier-1 or literal-1 is a SENDING operand, so the one sendingOperand rule: a function-identifier is an identifier
+// (§2023:8.4.3.1.2 Format 1) barred only from a receiving operand (§2023:8.4.3.2.3 SR1), and so is an inline method
+// invocation (§2023:8.4.3.4.3 SR1); X3.23-1985 Amendment 1 says the same of an alphanumeric function (§1985:IV.4.3.8.3.3
+// SR3). CallBinder asks §2023:14.9.4.3 SR1's category of every shape (kb/Work PB5240).
 callTarget
-    : literal
-    | dataReference
+    : sendingOperand
     ;
 
 // `AS NESTED` | `AS program-prototype-name-1`. ⚠ NESTED IS NOT LEXED AS A TOKEN and deliberately so: §2023:8.9 makes
@@ -1524,18 +1531,27 @@ entryStatement
 // ENTER language-name-1 [routine-name-1] — the other-language entry statement. Accepted-inert at 85
 // (comment-equivalent when only COBOL is supported — the conforming '85 posture; bound as a no-op);
 // the EditionValidator flags it COBOL0902 ≥2002 (`enter-removed-2002`, VCR Table 7 row 7.16).
-// The operands are deliberately NOT cobolWord: language-name-1 is a SYSTEM-name (`ENTER COBOL.` is the
-// canonical '85 switch-back and COBOL is an '85 reserved word — a cobolWord slot would trip the §2023:8.9
-// funnel 0901 on conforming source), and routine-name-1 names an external routine, not a word in the
-// program's name space. The classic `ENTER LINKAGE.` idiom collides with the LINKAGE SECTION keyword,
-// so LINKAGE is admitted explicitly.
+// language-name-1 is deliberately NOT cobolWord: it is a SYSTEM-name (`ENTER COBOL.` is the canonical '85
+// switch-back and COBOL is an '85 reserved word — a cobolWord slot would trip the §2023:8.9 funnel 0901 on
+// conforming source). The classic `ENTER LINKAGE.` idiom collides with the LINKAGE SECTION keyword, so LINKAGE
+// is admitted explicitly.
+// routine-name-1 IS a user-defined word (kb/Work PB5178): §1985:VI.6.12.3 SR2 "Routine-name-1 is a COBOL word", one of
+// §1985:IV.4.2.2.1's types, so it takes the user-defined-word slot's two arms — cobolWord, and reservedGatedWord for a
+// word a later edition reserves (FREE, UNLOCK, VALIDATE, GOBACK), which §2023:8.9's gate answers where it is reserved.
+// The format's separator period after the statement (§1985:VI.6.12.2, a required word by §1985:IV.2.1.6) is a
+// placement row (PlacementRules.EnterEndsSentence), since the period belongs to the sentence.
 enterStatement
-    : ENTER enterOperand enterOperand?
+    : ENTER enterOperand routineName?
     ;
 
 enterOperand
     : IDENTIFIER
     | LINKAGE
+    ;
+
+routineName
+    : cobolWord
+    | reservedGatedWord
     ;
 
 // ==========================================
@@ -1546,9 +1562,9 @@ cancelStatement
     : CANCEL cancelTarget+
     ;
 
+// The CALL target's rule, for the same reason (kb/Work PB5240); CallBinder.BindCancel asks §2023:14.9.5.3 SR1.
 cancelTarget
-    : literal
-    | dataReference
+    : sendingOperand
     ;
 
 // ==========================================

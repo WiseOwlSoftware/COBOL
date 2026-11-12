@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"STOP { RUN | literal-1 }\"; 2023: \"STOP RUN [ WITH { ERROR / NORMAL } STATUS [ identifier-1 / literal-1 ] ]\". The STOP literal-1 alternative without RUN is gone, so RUN is always required. 2023 adds an optional WITH ERROR/NORMAL STATUS phrase with an identifier or literal.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.42.2": "4a67afcbb27d"
+  }
  }
 }

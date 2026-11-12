@@ -15,6 +15,11 @@
   ],
   "reason": "1985: when the program is made available 'control is transferred to the called program'; after return 'the ON OVERFLOW or ON EXCEPTION phrase, if specified, is ignored' and control goes to the end of the CALL or to imperative-statement-2. §2023:14.9.4.4 GR3g and GR3i keep this path ('the ON EXCEPTION phrase, if specified, is ignored ... control is transferred to the end of the CALL statement or, if the NOT ON EXCEPTION phrase is specified, to imperative-statement-2'), with explicit transfers per §2023:14.6.3 GR3. Two differences: ON OVERFLOW is gone (§2023:14.9.4.2 has only ON EXCEPTION, so a 1985 CALL ... ON OVERFLOW is refused), and 'If an exception condition is propagated from the called program, execution continues as specified in 14.6.13.1', bypassing NOT ON EXCEPTION.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "GR-14.9.4.4-3": "04fde73bf906",
+   "FMT-14.9.4.2": "02ef50f0e383",
+   "GR-14.6.3-3": "77338b907c95"
+  }
  }
 }

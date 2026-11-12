@@ -1,9 +1,9 @@
 {
   "batch": [1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065],
-  "pages_checked": [1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065],
+  "pages_checked": [1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065], "pages_unread": [],
   "findings": [
     {
-      "page": 1063,
+      "id": "p1063-1", "page": 1063,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "Figure D.1 draws one tall brace \"}\" on the right-hand side of the flowchart. That single brace spans ALL THREE exit arrows -- the arrow leaving imperative-statement-1, the arrow leaving imperative-statement-2 and the arrow leaving imperative-statement-3 -- and the footnote reference \"**\" is printed to the right of the brace, vertically centred beside it. The footnote itself (page 1064) reads: \"**   Each of these control transfers is to the end of the SEARCH statement unless the flow of control of the imperative-statement contains an EXIT, GO TO, GOBACK, or RETURN statement.\"",
@@ -12,7 +12,7 @@
       "suggested_repair": "Re-render the figure so the three exit arrows are shown as one group carrying the \"**\" marker, e.g. put \"**\" on its own line covering the three imperative-statement rows (or repeat \"**\" on each of the three exit arrows) instead of appending it to the imperative-statement-2 row only."
     },
     {
-      "page": 1058,
+      "id": "p1058-1", "page": 1058,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.3.2   Table definition   (a clause subordinate to \"D.3   Tables and dynamic-length elementary items\", printed in the same style and at the same numbering depth as \"D.3.1   General\")",
@@ -21,7 +21,7 @@
       "suggested_repair": "Demote to \"### D.3.2 Table definition\". The same one-level-too-shallow defect repeats for the remaining siblings of D.3.1: \"## D.3.3 Values of tables\" and \"## D.3.4 References to table items\" (page 1059), \"## D.3.5 Subscripting\" (page 1060) and \"## D.3.6 Sorting tables\" (page 1064) -- all should be \"###\" to match \"### D.3.1 General\"."
     },
     {
-      "page": 1061,
+      "id": "p1061-1", "page": 1061,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.3.5.3   Subscripting example   (printed at the same numbering depth as \"D.3.5.1   General\" and \"D.3.5.2   Subscripting using index-names\")",

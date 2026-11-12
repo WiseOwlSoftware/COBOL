@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-AR-A.2.2-4",
  "rule-digest": "c04e081528dd",
- "test-ref": "conformance:cases/A.2@1985-GENERAL-DESCRIPTION/1989-AR-A_2_2-4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PowerWitness",
+ "test-ref": "conformance:cases/A.2@1985-GENERAL-DESCRIPTION/1989-AR-A_2_2-4; conformance:cases/15.3-Arguments/pb5208-power-negative-exponent; conformance:cases/15.3-Arguments/pb5208-power-fractional-exponent; conformance:cases/15.3-Arguments/pb5208-power-signed-exponent",
+ "notes": "kb/Work PB5208 (landed). §1989:A.2.2 AR4: \"An arithmetic expression which will always result in an integer value must be specified.\" IntegerViolation refuses a scaled or floating-point item, a numeric function, a non-integral literal, and (NotAlwaysIntegral) every expression with a witness valuation: a root quotient of a bare item by a literal, an additive spine with an uncancelled scaled item or a non-integral constant, and a root power over a bare numeric item whose exponent is a negative or non-integral literal or a different item that is signed, negated or scaled (PowerWitness): N ** -1, N ** 0.5 and N ** M with M signed are refused with COBOL1627 at --std 85 (witnesses pb5208-power-*). Every other shape fails open at compile time and the value is tested at run time (the §2023:15.3 integrality intake). The ALL subscript half holds (ORD-MAX and ORD-MIN over TC (ALL, ALL), TC (ALL, 2), an ODO range; witness 1989-AR-A_2_2-4).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "§1989:A.2.2 AR4, as amended in place by X3.23b-1993: out-of-range arguments - 'then the result of such a reference is undefined' (printed: 'the returned value for the function is undefined'), and an ALL subscript yielding no argument - 'otherwise the result of the reference to the function-identifier is undefined' (printed: 'otherwise the returned value is undefined'). The amendment changed what is undefined (the reference, not only the returned value); it changed no accepted program. §2023:15.3 AR14 keeps the ALL-subscript expansion word for word, including 'otherwise the result of the reference to the function-identifier is undefined', and §2023:8.4.2.3.4 GR1 restates it ('If ALL is specified, the subscript is all of the possible values of a subscript for the associated table'). But for out-of-range arguments 2023 replaces 'undefined' with 'the EC-ARGUMENT-FUNCTION exception condition is set to exist' and, when checking is not enabled, 'the implementor defines the result of the function reference': undefined made an exception condition and implementor-defined. 2023 also adds a case: 'If the subscript ALL is specified for a dynamic-capacity table, the range of values of the subscript is from 1 to the current capacity of the table'. The integer argument type is unchanged in substance: §2023:15.3 AR6 'An arithmetic expression that will always result in an integer value or an integer data item shall be specified' against 1989 'An arithmetic expression which will always result in an integer value must be specified' (an integer data item is such an expression).",
-  "source": "readjudicate-amended-1985/slice-12"
+  "source": "readjudicate-amended-1985/slice-12",
+  "digests": {
+   "AR-15.3-6": "1bd92724d69d",
+   "AR-15.3-14": "78bebec8f75a",
+   "GR-8.4.2.3.4-1": "0b81f0e4fad8"
+  }
  }
 }

@@ -1,0 +1,25 @@
+{
+  "batch": [505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516],
+  "pages_checked": [505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p514-1",
+      "page": 514,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "Format 2 (into-giving): DIVIDE { identifier-1 / literal-1 } INTO { identifier-2 / literal-2 } -- INTO printed on the middle line between the two two-row braces",
+      "markdown_says": "       ╭              ╮ <u>INTO</u>\n       │              │\n       │ identifier-1 │ ╭ identifier-2 ╮\n<u>DIVIDE</u> ┤              ├ ┤              ├\n       ╰ literal-1    ╯ ╰ literal-2    ╯",
+      "why_it_matters": "The drawn figure moves the keyword INTO above the brace pair and stretches the first brace to five rows with an empty top half, so INTO no longer sits between the dividend-choice brace and the divisor-choice brace. The token order can still be recovered, but a reader of the diagram sees INTO detached from its position; the figure should match Format 3's layout (DIVIDE {..} INTO {..} on one baseline)."
+    },
+    {
+      "id": "p514-2",
+      "page": 514,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "Format 4 (into-remainder): DIVIDE { identifier-1 / literal-1 } INTO { identifier-2 / literal-2 } -- INTO printed on the middle line between the two two-row braces",
+      "markdown_says": "       ╭              ╮ <u>INTO</u>\n       │              │\n       │ identifier-1 │ ╭ identifier-2 ╮\n<u>DIVIDE</u> ┤              ├ ┤              ├\n       ╰ literal-1    ╯ ╰ literal-2    ╯",
+      "why_it_matters": "Same layout defect as Format 2: INTO is drawn above the braces instead of between them, and the identifier-1/literal-1 brace is stretched with an empty upper portion, misrepresenting where INTO sits in the DIVIDE ... INTO ... GIVING ... REMAINDER format."
+    }
+  ]
+}

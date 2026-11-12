@@ -1,9 +1,9 @@
 {
   "batch": [609, 610, 611, 612, 614, 615, 616, 617, 620, 621, 622, 623],
-  "pages_checked": [609, 610, 611, 612, 614, 615, 616, 617, 620, 621, 622, 623],
+  "pages_checked": [609, 610, 611, 612, 614, 615, 616, 617, 620, 621, 622, 623], "pages_unread": [],
   "findings": [
     {
-      "page": 609,
+      "id": "p609-1", "page": 609,
       "kind": "other",
       "severity": "structural",
       "pdf_says": "FORMAT 3",
@@ -12,7 +12,7 @@
       "suggested_repair": "Change line 25360 of specs/ISO_COBOL.md from '## FORMAT 3' to the plain paragraph 'FORMAT 3', matching the 209 other FORMAT label lines. (The same fix applies to the other 7 promoted labels at lines 6280, 6284, 6288, 6298, 19800, 28029, 28033, which lie outside this batch.)"
     },
     {
-      "page": 614,
+      "id": "p614-1", "page": 614,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.2.3  Syntax rules  ...  14.9.2.4  General rules  (both printed in the same bold subclause style as 14.9.2.1 General and 14.9.2.2 General formats on page 613)",

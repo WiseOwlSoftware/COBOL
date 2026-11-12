@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"The storage area associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area.\"; 2023: \"14.6.10, Overlapping operands, and 14.9.25 ... apply to any cases in which the storage area identified by identifier-1 and the record area\". 1985 syntax rule forbids identifier-1 being the record area. 2023 drops the prohibition and applies the overlapping-operand MOVE rules, leaving the result undefined only if the MOVE is undefined.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.34.4-5": "59b1c9dcb94d"
+  }
  }
 }

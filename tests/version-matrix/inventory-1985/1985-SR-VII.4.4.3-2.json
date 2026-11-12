@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "§1985:VII.4.4.3 SR2: 'The AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1' (a compile-time refusal of a sequential READ). 2023 has no READ syntax rule requiring AT END (§2023:14.9.30.3) and states the refused case: §2023:14.9.30.4 GR24 d): 'If the AT END phrase is not specified in the input-output statement, any applicable at end exception processing statements are executed. If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement'. This record's own text names AT END only (the 1985 sequential READ has no INVALID KEY phrase), so 'to' holds the at end rule and neither §2023:9.1.14 rule. Words that differ: 1985 'must be specified'; 2023 'not specified ... there are no applicable ... exception processing statements, control is transferred to the end'. A statement 1985 refuses is accepted by 2023 with a stated run-time effect: a lifted refusal, so CHANGED (kb/Work PB5021), not REMOVED.",
-  "source": "pb5092/use-required-phrases"
+  "source": "pb5092/use-required-phrases",
+  "digests": {
+   "GR-14.9.30.4-24": "fc6732e2c178"
+  }
  }
 }

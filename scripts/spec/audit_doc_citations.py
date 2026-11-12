@@ -49,7 +49,7 @@ This is the same lesson the figure audits taught (`plan §0`: "MY CHECKERS WERE 
 76 findings went to 1 as three tool bugs came out). Confirm a measured defect before changing anything.
 
 FOUND BY THE FIRST RUN (all corrected in the same change set):
-  · `DESIGN.md` cited "§2023:12.3.7 GR7 k3 … distinct ascending" TWICE — a phrase that appears NOWHERE in the
+  · `DESIGN.md` cited "§2023:12.3.7 GR7 k3 … distinct ascending" TWICE — a phrase that appears NOWHERE in the (citation-audit: example)
     standard. A Phase-B agent inherited it into a fix-queue finding. The real rule is §2023:12.3.7.4 GR7 1.3.
   · `REDEFINES_DESIGN.md` cited §2023:13.18.60 for GR4/GR11 text really in §2023:13.18.60.4 — one level short,
     the CA37/CA38 shape.
@@ -195,9 +195,12 @@ def verdict_of(cited: citation.Citation, quote: str) -> tuple[str, str | int | N
     self-test re-implemented the MISFILED half beside it in four lines of its own — which is how the ELIDED arm
     could be added to `scan` and be invisible to `--self-test`: a gate arm nothing had ever seen fire
     (`feedback_green_gates_arent_evidence`). One ruling, two callers."""
+    # ⛔ THE CLAUSE HALF ONLY, ON PURPOSE (kb/Work PB5317): whether the quotation sits in the cited RULE (its ordinal, its
+    # sub-item) is `audit_code_citations.py` RESOLVE's ruling, made by the same `cite.resolve` over every citation of the
+    # repository, quoted or not, so the two audits never report one wrong rule number twice.
     lines, regions = _spec(cited.edition)
     region_only = dataclasses.replace(cited, rule=None)
-    if cite_mod.check(lines, regions, region_only, quote)[0] == 0:
+    if cite_mod.resolve(region_only, quote).ok:
         return "ok", None
     code, out = cite_mod.find(lines, regions, quote, cited.edition)
     head = out[0].splitlines()[0].strip() if out else ""
@@ -217,6 +220,37 @@ def _cited(m: re.Match) -> citation.Citation | None:
     return cited if len(cited.locator.split(".")) >= FLOOR_SEGMENTS else None
 
 
+def _leaves_parenthesis(gap: str) -> bool:
+    """Whether the text between a citation and the quote after it closes a bracket the citation stands inside: then the
+    citation closes the sentence before it (`"..." (§1985:VII.2.12.3 SR1), and ... "may only be used ..." (SR2)`) and the
+    quote is another rule's, so the two are no prefix pairing (kb/Work PB5317 review round 1: RESOLVE read SR1 against
+    SR2's text, PB5312). It is that shape exactly: the bracket closes and the sentence goes on past a `,`, `;` or `.`; a
+    parenthetical citation the quote follows at once (`(§2023:14.9.14.4 GR5a) "whichever ..."`) stays a pairing. The rule
+    and the sub-item labels written against the citation (`GR6 b) 1.`, `8) b)`) are part of it: their brackets close
+    nothing."""
+    gap = _OWN_LABELS.sub("", gap, count=1)
+    depth = 0
+    for k, ch in enumerate(gap):
+        depth += (ch in "([") - (ch in ")]")
+        if depth < 0:
+            return gap[k + 1:k + 2] in (",", ";", ".")
+    return False
+
+
+def names_another_rule(gap: str) -> bool:
+    """Whether the text between a citation and the quote after it names another rule (`§1985:VI.6.19.4 GR3 puts ... and
+    GR4 b moves it "as if ..."`): the quote is that rule's. The pairing still holds the CLAUSE (a bare `GR4` is the
+    citation's clause), so this audit keeps it; RESOLVE, which checks the rule, reads the citation without the quote
+    (kb/Work PB5317 review round 1, kb/Work PB5176)."""
+    return _ANOTHER_RULE.search(_OWN_LABELS.sub("", gap, count=1)) is not None
+
+
+#: A rule designator written in prose (`GR4`, `SR 2`, `RV1`).
+_ANOTHER_RULE = re.compile(r"\b(?:GR|SR|AR|RV)\s?L?\d")
+#: The rule designator and sub-item labels that follow a citation's locator (`SR1`, `GRL2.1`, `GR6 b) 1.`, `8) b)`).
+_OWN_LABELS = re.compile(r"^(?:\s*(?:(?:GR|SR|AR|RV)\s?L?\d+(?:\.\d+)?[a-z0-9.]*|\(?[a-z0-9]{1,2}[.)]))*")
+
+
 def citations(line: str):
     """Every checkable citation on ONE line, as (column, citation, quote, form), left to right.
 
@@ -228,11 +262,14 @@ def citations(line: str):
         claimed[m.span("q")] = (_cited(m), m.group("q"), "postfix")
     found = dict(claimed)
     for m in PAT.finditer(line):
-        if m.span("q") not in claimed:
+        if m.span("q") not in claimed and not _leaves_parenthesis(line[m.end("cite"):m.start("q")]):
             found[m.span("q")] = (_cited(m), m.group("q"), "prefix")
     for span in sorted(found):
         cited, quote, form = found[span]
-        if cited is not None and not any(t in quote for t in NOT_VERBATIM):
+        # A quotation of fewer than `cite.MIN_WORDS` real words proves nothing about where it was taken from (kb/Work
+        # PB5317: the one rule of every edition), so it is no checkable quotation: its citation is RESOLVE's alone.
+        if (cited is not None and not any(t in quote for t in NOT_VERBATIM)
+                and len(cite_mod.real_words(cite_mod.norm(quote))) >= cite_mod.MIN_WORDS):
             yield span[0], cited, quote, form
 
 
@@ -327,6 +364,11 @@ SELF_TEST = [
      'The COMMIT statement (§2023:8.6.6) "shall not be specified in the input or output procedure of a MERGE"'),
     ("edition form, postfix, correct", None,
      'It "shall not be specified in the input or output procedure of a MERGE" (§2023:14.9.7.3 SR2), it says.'),
+    # ⛔ A CITATION THAT CLOSES ITS OWN SENTENCE IS NOT THE NEXT QUOTE'S (`_leaves_parenthesis`, kb/Work PB5317 review
+    # round 1): read as a prefix pairing, 14.9.7.3 was blamed for EXIT PERFORM's words, which are §2023:14.9.14.4's.
+    ("a citation closing its sentence, not the next quote's", None,
+     'It "shall not be specified in the input or output procedure of a MERGE" (§2023:14.9.7.3 SR2), and EXIT PERFORM '
+     '"the most closely preceding, and as yet unterminated, inline PERFORM" (GR5a)'),
     ("1985, correct", None, 'Its entry (§1985:VI.5.3.1) "specifies the characteristics of a particular item of data"'),
     ("1985, misfiled", "misfiled",
      'Its entry (§1985:VI.5.4.1) "specifies the characteristics of a particular item of data"'),

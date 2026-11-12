@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'The format 2 REPLACE statement specifies that any text replacement currently in effect is discontinued.' 2023 keeps that for format 2 without LAST (§2023:7.2.4.4 GR7 d) 'cancels the active REPLACE statement and cancels all REPLACE statements in the queue'; GR6 b) no effect when none active; GR4 c) canceled) but adds REPLACE LAST OFF, accepted in 2023 and refused in 1985: §2023:7.2.4.4 GR7 c) 'A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement and pops the last statement that was pushed into the queue', which re-activates replacement instead of discontinuing it.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-7.2.4.4-4": "3f26ca380bbb",
+   "GR-7.2.4.4-6": "99bc8cf64bb4",
+   "GR-7.2.4.4-7": "b852ae2eee8b"
+  }
  }
 }

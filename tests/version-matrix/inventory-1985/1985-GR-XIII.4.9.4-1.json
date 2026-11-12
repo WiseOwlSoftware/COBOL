@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 restates the timing and naming: 'The declarative is invoked just before the named report group is produced during the execution of the runtime element. The report group is named by identifier-1 in the USE BEFORE REPORTING statement' (§2023:14.9.49.4 GR8); §2023:14.9.49.4 GR9 lists the same invocation points that 1985 left to its TYPE clause. No 2023 rule bars declaratives in contained source elements, so the nesting permission stands. §2023:14.9.49.4 GR4 orders selection for exception conditions only and does not state this rule. Same effect.",
-  "source": "adjudicate-712/slice-27"
+  "source": "adjudicate-712/slice-27",
+  "digests": {
+   "GR-14.9.49.4-8": "fe4c0afca299",
+   "GR-14.9.49.4-9": "decda7a3bc5e"
+  }
  }
 }

@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: an unavailable optional file opened EXTEND or I-O is created as if by OPEN OUTPUT; CLOSE; then the program's OPEN; OPEN OUTPUT creates a file with no data records. §2023:14.9.27.4 GR17 'This creation takes place as if the following statements were executed in the order shown'; §2023:14.9.27.4 GR18 'After the creation of the file, the file contains no records'; §2023:14.9.27.4 GR4 Table 18 (I-O optional, unavailable: created); §2023:9.1.13.2 GR4 'If the open mode is I-O or extend, the physical file has been created'. Status 05 is 1985 GR16's update.",
-  "source": "adjudicate-712-r2/slice-02"
+  "source": "adjudicate-712-r2/slice-02",
+  "digests": {
+   "GR-14.9.27.4-17": "c29782e39335",
+   "GR-14.9.27.4-18": "f152580b4f96",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-9.1.13.2-4": "6687777bb08d"
+  }
  }
 }

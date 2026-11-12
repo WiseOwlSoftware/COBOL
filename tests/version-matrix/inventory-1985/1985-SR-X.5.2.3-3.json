@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"Communication Section, or Linkage Section, and must be a level 01 data item, a level 77 data item, or an elementary data item\"; 2023: \"Identifier-2 shall reference an address-identifier or a data item defined in the file, working-storage, local-storage, or linkage section.\". 2023 drops the level 01/77/elementary limit, so subordinate group items are allowed. Communication Section is gone; local-storage and address-identifiers are added.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.4.3-3": "6eab278b14a2"
+  }
  }
 }

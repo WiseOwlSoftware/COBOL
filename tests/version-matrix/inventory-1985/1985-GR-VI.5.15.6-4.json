@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: no group VALUE when subordinates have 'JUSTIFIED, SYNCHRONIZED or USAGE (other than USAGE IS DISPLAY)'. §2023:13.18.63.3 SR14: subordinates 'shall not be described with a JUSTIFIED or SYNCHRONIZED clause, and all data items subordinate to an alphanumeric group item shall be ... usage DISPLAY'. Every group a 1985 program can declare is alphanumeric, so the same programs are refused. ADJUDICATED 2026-11-10 (band-85 slice 13): §2023:13.18.63.3 SR16 removed; it applies rule 14 to the table format, VALUE ... FROM ( subscript-1 ), which no 1985 program can write.",
-  "source": "band-85/slice-13"
+  "source": "band-85/slice-13",
+  "digests": {
+   "SR-13.18.63.3-14": "4c07c3dde162"
+  }
  }
 }

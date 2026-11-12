@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 record keys are alphanumeric, so 'same class, category, usage' matches 'category alphanumeric'. The SOURCE limit only touches 2023 features. The same 1985 programs are accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.41.3-6": "ce0e37ec0baa"
+  }
  }
 }

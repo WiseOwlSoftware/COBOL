@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "1985 format 3 (DIVIDE identifier-1 BY identifier-2 GIVING identifier-3): the first operand is divided by the second, stored in each identifier-3. The 2023 format 3 (§2023:14.9.12.2) names the first operand identifier-2 and the BY operand identifier-1, and §2023:14.9.12.4 GR2 'The dividend is identifier-2 or literal-2. The divisor is identifier-1 or literal-1.', so the written order means the same; §2023:14.9.12.4 GR1 forms the quotient, §2023:14.9.12.4 GR5 stores it 'in each identifier-3' per §2023:14.7.7 GR4.",
-  "source": "adjudicate-712/slice-11"
+  "source": "adjudicate-712/slice-11",
+  "digests": {
+   "GR-14.9.12.4-1": "019c8519190c",
+   "GR-14.9.12.4-2": "a2bc5bbc299f",
+   "GR-14.9.12.4-5": "aa16bdb880fd",
+   "GR-14.7.7-4": "cfc34ed7e634",
+   "FMT-14.9.12.2": "f2fdc70ccee7"
+  }
  }
 }

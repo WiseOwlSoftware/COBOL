@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: violation of the exponentiation rules 'always terminates the arithmetic operation and always causes a size error condition'. 2023: the size error condition exists 'if the rules for evaluation of exponentiation are violated' (§2023:14.7.5 GR1); §2023:8.8.1.2 GR6: 'the EC-SIZE-EXPONENTIATION exception condition is set to exist and the size error condition is raised'; with the phrase 'the values of all of the resultant data items remain unchanged from the values they had at the start of the execution of the arithmetic statement' (§2023:14.7.5, catalog L2.1), and §2023:14.7.7 GR4 'If the size error condition is raised during the initial evaluation, none of the resultant data items are changed'. Which values violate (VI.6.2.3 GR5) and the no-phrase EC handling (L3.1, vs 1985 GR3) are other records.",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "adjudicate-712-r2/slice-05",
+  "digests": {
+   "GR-14.7.5-1": "74be33ca0751",
+   "GR-8.8.1.2-6": "b0a598051024",
+   "GR-14.7.5-L2.1": "92ccc37c44b9",
+   "GR-14.7.7-4": "cfc34ed7e634"
+  }
  }
 }

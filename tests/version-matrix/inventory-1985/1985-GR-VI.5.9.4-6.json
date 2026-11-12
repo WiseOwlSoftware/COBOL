@@ -16,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "1985: numeric edited uses 'B', '/', 'P', 'V', 'Z', '0', '9', ',', '.', '*', '+', '-', 'CR', 'DB', cs; 'The number of digit positions ... must range from 1 to 18 inclusive'; at least one editing symbol. §2023:13.18.40.4 GR13 a) defines fixed-point numeric-edited by an equivalent symbol test, combinations per §2023:13.18.40.3 SR2, content per §2023:13.18.40.4 GR14, but §2023:13.18.40.3 SR14 allows 'from 1 through 31' digit positions for fixed-point numeric-edited items: 19 to 31 digit edited pictures refused in 1985 are accepted. Floating-point edited items (GR13 b) are new.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "GR-13.18.40.4-13": "7a700a953253",
+   "SR-13.18.40.3-14": "fea139985385",
+   "SR-13.18.40.3-2": "2b126086704c",
+   "GR-13.18.40.4-14": "afd0f88fdb6d"
+  }
  }
 }

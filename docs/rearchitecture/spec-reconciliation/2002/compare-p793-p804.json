@@ -1,0 +1,25 @@
+{
+  "batch": [793, 794, 795, 796, 797, 798, 799, 800, 801, 802, 803, 804],
+  "pages_checked": [793, 794, 795, 796, 797, 798, 799, 800, 801, 802, 803, 804],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p795-1",
+      "page": 795,
+      "kind": "image-lost",
+      "severity": "cosmetic",
+      "pdf_says": "Figure E.6 draws three boxes, Person, Employee and Manager, stacked vertically, with an arrow from Manager up to Employee and from Employee up to Person (the inheritance direction).",
+      "markdown_says": "Person\n\nEmployee\n\nManager\n\nFigure E.6 — Manager class",
+      "why_it_matters": "The figure's arrows (the subclass-to-superclass relationships) are lost; only the three box labels survive as loose paragraphs. Informative annex E; the following prose restates the hierarchy, so no normative content is lost."
+    },
+    {
+      "id": "p796-1",
+      "page": 796,
+      "kind": "image-lost",
+      "severity": "structural",
+      "pdf_says": "Figure E.7 draws an Account box (data items account-number, balance, date-opened; methods deposit, withdraw, balance) with callouts \"Data items\" and \"Methods\" pointing at its two compartments, and arrows up to it from a CheckingAccount box (charges; displayCharges, calculateCharges) and a SavingAccount box (interest-rate; calculateInterest).",
+      "markdown_says": "account-number\\\nData items balance\\\ndate-opened\n\ndeposit\\\nMethods\\\nwithdraw\\\nbalance\n\n| CheckingAccount | SavingAccount |\n|---|---|\n| charges | interest-rate |\n| displayCharges | calculateInterest |\n\ncalculateCharges",
+      "why_it_matters": "The diagram is restructured lossily: the callout labels \"Data items\" and \"Methods\" are interleaved into the member lists (reading as if \"Methods\" were a method name), the CheckingAccount method calculateCharges is detached below the table instead of sitting in the CheckingAccount box, and the inheritance arrows are lost. Informative annex E; the prose below restates the members."
+    }
+  ]
+}

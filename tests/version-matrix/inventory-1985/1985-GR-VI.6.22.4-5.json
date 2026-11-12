@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both send control to the end of SEARCH after imperative-statement-1/2. 2023's broader explicit-transfer wording covers GO TO and statements like STOP RUN that branch by their own rules anyway.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.37.4-1": "511c366fa659"
+  }
  }
 }

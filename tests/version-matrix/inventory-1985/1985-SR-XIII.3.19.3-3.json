@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"A SUM clause can appear only in the description of a control footing report group.\"; 2023: \"The current report group may be a detail and data-name-1 may be defined in a different detail. The current report group may be a report footing\". 1985 limits SUM to control footings. 2023 also permits SUM in detail, report footing and page footing groups, and SR8 says 'If the current report group is a control footing', so the restriction is relaxed.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.54.3-4": "20da11e6490f",
+   "SR-13.18.54.3-8": "0e1fb517cf9d"
+  }
  }
 }

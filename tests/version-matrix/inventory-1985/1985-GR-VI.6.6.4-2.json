@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both sum the operands preceding GIVING and store the sum in each identifier-3. The added sentence covers only standard-decimal/standard-binary arithmetic, a mode 1985 lacks.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.2.4-2": "991f5093fae0"
+  }
  }
 }

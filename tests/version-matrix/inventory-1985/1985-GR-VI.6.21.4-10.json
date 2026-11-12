@@ -15,6 +15,15 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993, Errata C246) rewrote the fourth and fifth sentences of 10d: the FROM value now has to index the VARYING index-name's own table, §1985:VI.6.21.4 GR10 \"If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-1 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-1\" (likewise index-name-3), and augmentation \"must not result in the associated index being set to a value outside the range of the table\" except by one step at completion. 2023 keeps neither refusal: §2023:14.9.28.4 GR3 asks only that \"the data item shall have a positive value\", with EC-RANGE-PERFORM-VARYING otherwise, and §2023:13.18.38.4 GR2 lets an index hold any value in an implementor range (\"This range shall include at least the value corresponding to the occurrence number (1 - integer-2)\" through 2 * integer-2), raising EC-RANGE-INDEX only outside it. So 2023 accepts a PERFORM VARYING index-name whose FROM value or augmented value lies outside the table, which the amended 1985 rule refuses. Two more differences: §2023:14.9.28.4 GR12 adds a case, \"For any BY phrase that is omitted, the augment value is 1.\"; and for TEST BEFORE with AFTER, 1985 augments first, \"the content of the data item referenced by identifier-2 is augmented by literal-2 or the content of the data item referenced by identifier-4, the content of the data item referenced by identifier-5 is set to literal-3\", where §2023:14.9.28.4 GR13 e) lists the reset first, \"the induction variable associated with the current condition is set to its initialization value\", then \"the induction variable associated with the new current condition is incremented by its associated augment value\" (a different result when the AFTER variable's FROM operand is the VARYING variable). The rest carries over unchanged: 10a in §2023:14.9.28.4 GR8 (\"is executed once and then control passes to the end of the PERFORM statement\"), 10b in §2023:14.9.28.4 GR9 (\"is equal to zero or is negative, control passes to the end of the PERFORM statement\"), 10c in §2023:14.9.28.4 GR10 (\"the condition is tested after the specified set of statements has been executed\"), and the VARYING cycles, final values and the effect of changes made by the performed statements in §2023:14.9.28.4 GR12 and GR13 (1985 \"will be taken into consideration and will affect the operation of the PERFORM statement\"; 2023 \"have immediate effect\").",
-  "source": "readjudicate-amended-1985/slice-05"
+  "source": "readjudicate-amended-1985/slice-05",
+  "digests": {
+   "GR-14.9.28.4-8": "cd31cd0f85a7",
+   "GR-14.9.28.4-9": "6fac5fb893e4",
+   "GR-14.9.28.4-10": "db0d15ab4388",
+   "GR-14.9.28.4-12": "d3e49441db9e",
+   "GR-14.9.28.4-13": "f87cdb6b6571",
+   "GR-14.9.28.4-3": "68bb206737e7",
+   "GR-13.18.38.4-2": "de6d618b2de7"
+  }
  }
 }

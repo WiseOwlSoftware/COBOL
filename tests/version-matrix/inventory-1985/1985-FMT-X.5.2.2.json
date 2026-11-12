@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"║ [ ON OVERFLOW imperative-statement-1 ] ║ ... [ ON EXCEPTION imperative-statement-1 ] [ NOT ON EXCEPTION imperative-statement-2 ]\"; 2023: \"[ RETURNING identifier-3 ] ┌ │ ON EXCEPTION imperative-statement-1 │ ... │ NOT ON EXCEPTION imperative-statement-2 │ ┘ (choice indicators, any order)\". The CALL format is kept, but ON OVERFLOW is gone, so such CALLs are now refused. ON EXCEPTION and NOT ON EXCEPTION may appear in any order, and RETURNING and a prototype format are added.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.4.2": "02ef50f0e383"
+  }
  }
 }
