@@ -163,6 +163,11 @@ public sealed partial class FileControlBinder
     /// <item>SR4 a/b and SR5, across the paragraph: no file-name-2 twice among the RECORDS phrases, nor among the END
     /// OF REEL/UNIT phrases, and one CLOCK-UNITS phrase (COBOL6531).</item>
     /// </list></summary>
+    /// <summary>"Sequentially organized" for RERUN SR1 and SR2 (§1985:VII.2.12.3). A sort-merge file has no organization at
+    /// all: its file control entry admits only ASSIGN (§1985:XI.2.3.3 SR2), so <see cref="FileModel.IsSequential"/>'s
+    /// default of Sequential on an SD is not an organization the program chose (kb/Work PB5312).</summary>
+    private static bool IsSequentiallyOrganized(FileModel file) => file.IsSequential && !file.IsSortMerge;
+
     private void ScreenRerunClauses(IReadOnlyList<Core.RerunClauseContext> reruns)
     {
         var recordsFiles = new HashSet<FileModel>();
@@ -176,7 +181,7 @@ public sealed partial class FileControlBinder
             if (on is not null && _host.State.VisibleFiles.TryGetValue(on.GetText(), out var named))
             {
                 onFile = named;
-                if (!named.IsSequential)
+                if (!IsSequentiallyOrganized(named))
                     using (Edition.At(on))
                         Edition.Error(DiagnosticCatalog.RerunFileNotSequential,
                             $"the RERUN clause's ON phrase names '{named.CobolName}', whose organization is {named.OrganizationFace} "
@@ -188,7 +193,7 @@ public sealed partial class FileControlBinder
                 // The grammar requires the file on this arm; a parse that recovered without it has already been reported.
                 if (every.fileName() is not { } reelName || ResolveIoControlFile(reelName, "the RERUN clause") is not { } reel)
                     continue;
-                if (!reel.IsSequential)
+                if (!IsSequentiallyOrganized(reel))
                     Edition.Error(DiagnosticCatalog.RerunFileNotSequential,
                         $"the RERUN clause's END OF {(every.REEL() is not null ? "REEL" : "UNIT")} phrase names '{reel.CobolName}', "
                         + $"whose organization is {reel.OrganizationFace} (§1985:VII.2.12.3 SR2: \"The END OF REEL/UNIT phrase "
@@ -611,35 +616,54 @@ public sealed partial class FileControlBinder
     private static SameFileKind SameKindOf(FileModel f) =>
         f.IsSortMerge ? SameFileKind.SortMerge : f.IsReportFile ? SameFileKind.Report : SameFileKind.Other;
 
+    /// <summary>The standard's own words for one cell of <see cref="SameOccurrenceRule"/>: the limit, the citation that
+    /// prints it and the rule's text.</summary>
+    private readonly record struct SameLimit(int Max, string Cite, string Text);
+
     /// <summary>⛔ THE OCCURRENCE TABLE: how many SAME clauses of one format a file of one kind may be named in
     /// (§2023:12.4.6.4.3 SR5, SR6, SR7 — one rule shape, three rows) and the rule's own words. Both axes are switched
     /// BY AN UNREACHABLE-THROW arm only, so a new <see cref="SameFileKind"/> or <see cref="SameClauseKind"/> member
-    /// fails loudly on its first SAME clause instead of falling into a silently unlimited cell.</summary>
-    private static (int Max, int Sr, string Text) SameOccurrenceRule(SameFileKind kind, SameClauseKind format) => kind switch
+    /// fails loudly on its first SAME clause instead of falling into a silently unlimited cell.
+    /// <para>The EDITION is the third axis (kb/Work PB5250): below 2002 only the report-file row differs. §1985:XIII.2.4.3 SR2
+    /// lets a report file appear "in a SAME clause for which the RECORD phrase is not specified" — SAME AREA
+    /// (§1985:VII.2.13.3 SR3a limits it to one) and SAME SORT / SORT-MERGE AREA (§1985:XI.2.5.3 SR5b limits only a sort or merge
+    /// file, so a report file is named in as many as the program writes) — where §2002:12.3.6.2 SR5 and §2023:12.4.6.4.3 SR5 bar it
+    /// from the sort-merge-area format. The sort-merge and other rows are the same words at every edition
+    /// (§1985:VII.2.13.3 SR3a-b, §1985:XI.2.5.3 SR5a-b).</para></summary>
+    private SameLimit SameOccurrenceRule(SameFileKind kind, SameClauseKind format) => kind switch
     {
-        SameFileKind.Report => (format switch
+        SameFileKind.Report when Edition.Edition.Year < 2002 => new(format switch
+        {
+            SameClauseKind.Area => 1,
+            SameClauseKind.RecordArea => 0,
+            SameClauseKind.SortMergeArea => int.MaxValue,
+            _ => throw new System.Diagnostics.UnreachableException(),
+        }, "§1985:XIII.2.4.3 SR2", "a file-name that represents a report file can appear in a SAME clause for which the "
+            + "RECORD phrase is not specified, so in a SAME AREA clause (at most one) and in a SAME SORT or SORT-MERGE AREA "
+            + "clause, and in no SAME RECORD AREA clause"),
+        SameFileKind.Report => new(format switch
         {
             SameClauseKind.Area => 1,
             SameClauseKind.RecordArea => 0,
             SameClauseKind.SortMergeArea => 0,
             _ => throw new System.Diagnostics.UnreachableException(),
-        }, 5, "a given file-name that represents a report file may be specified in one file-area format SAME clause "
+        }, "ISO §2023:12.4.6.4.3 SR5", "a given file-name that represents a report file may be specified in one file-area format SAME clause "
             + "and shall not be specified in a record-area format or sort-merge-area format SAME clause"),
-        SameFileKind.SortMerge => (format switch
+        SameFileKind.SortMerge => new(format switch
         {
             SameClauseKind.Area => 0,
             SameClauseKind.RecordArea => 1,
             SameClauseKind.SortMergeArea => 1,
             _ => throw new System.Diagnostics.UnreachableException(),
-        }, 6, "a given file-name that represents a sort or merge file may be specified in one record-area format SAME "
+        }, "ISO §2023:12.4.6.4.3 SR6", "a given file-name that represents a sort or merge file may be specified in one record-area format SAME "
             + "clause and in one sort-merge-area SAME clause, and shall not be specified in a file-area format SAME clause"),
-        SameFileKind.Other => (format switch
+        SameFileKind.Other => new(format switch
         {
             SameClauseKind.Area => 1,
             SameClauseKind.RecordArea => 1,
             SameClauseKind.SortMergeArea => int.MaxValue,
             _ => throw new System.Diagnostics.UnreachableException(),
-        }, 7, "a given file-name that represents a file other than a report file or a sort or merge file may be "
+        }, "ISO §2023:12.4.6.4.3 SR7", "a given file-name that represents a file other than a report file or a sort or merge file may be "
             + "specified in one file-area format, in one record-area format, and in one or more sort-merge-area format "
             + "SAME clauses"),
         _ => throw new System.Diagnostics.UnreachableException(),
@@ -675,7 +699,7 @@ public sealed partial class FileControlBinder
             foreach (var f in site.Clause.Members)
             {
                 var role = SameKindOf(f);
-                var (max, sr, text) = SameOccurrenceRule(role, site.Clause.Kind);
+                var (max, cite, text) = SameOccurrenceRule(role, site.Clause.Kind);
                 count[(f, site.Clause.Kind)] = count.GetValueOrDefault((f, site.Clause.Kind)) + 1;
                 if (count[(f, site.Clause.Kind)] <= max) continue;
                 using var _ = Edition.At(site.Ctx);
@@ -683,7 +707,7 @@ public sealed partial class FileControlBinder
                     $"{site.Clause.Written}: {SameKindName(role)} '{f.CobolName}' "
                     + (max == 0 ? $"is named in a {SameFormatName(site.Clause.Kind)} format clause, which its kind bars"
                                 : $"is named in more than one {SameFormatName(site.Clause.Kind)} format clause")
-                    + $" (ISO §2023:12.4.6.4.3 SR{sr}: {text})");
+                    + $" ({cite}: {text})");
             }
 
         // §2023:13.18.27.3 SR2 (kb/Work PB1242): the GLOBAL clause is written on neither the file description entry nor a
@@ -712,7 +736,6 @@ public sealed partial class FileControlBinder
         }
 
         foreach (var area in sites.Where(s => s.Clause.Kind == SameClauseKind.Area))
-        {
             foreach (var record in sites.Where(s => s.Clause.Kind == SameClauseKind.RecordArea))
             {
                 var missing = SameMissingFrom(area.Clause, record.Clause);
@@ -724,8 +747,14 @@ public sealed partial class FileControlBinder
                     + "are also specified in a record-area format SAME clause, all of the file-names specified in the "
                     + "file-area format SAME clause shall also be specified in the record-area format SAME clause.\")");
             }
+
+        // SR10 asks the file-area format only. §1985:XI.2.5.3 SR5c says "that SAME clause" and could be read to take in
+        // SAME RECORD AREA, but the validated NIST program ST135A writes a record-area clause that shares USELESS-FILE
+        // with a SAME SORT clause and omits DEADWEIGHT-FILE, so that reading is not the standard's (kb/Work PB5250).
+        foreach (var area in sites.Where(s => s.Clause.Kind == SameClauseKind.Area))
+        {
             var reported = new HashSet<SameSite>();
-            foreach (var f in area.Clause.Members.Where(m => SameKindOf(m) == SameFileKind.Other))
+            foreach (var f in area.Clause.Members.Where(m => SameKindOf(m) != SameFileKind.SortMerge))
                 foreach (var sm in sites.Where(s => s.Clause.Kind == SameClauseKind.SortMergeArea && s.Clause.Members.Contains(f)))
                 {
                     var missing = SameMissingFrom(area.Clause, sm.Clause);
