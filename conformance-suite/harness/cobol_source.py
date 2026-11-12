@@ -16,7 +16,9 @@ the user and may consist of any character in the computer's coded character set"
 area; the program-text area begins in column 8 and ends at margin R, "a fixed position defined by the implementor"
 (§6.3.1). This reader ends it at column 72, the 85 position; the lint refuses program text past column 72 in a portable
 test and in the library text it copies, so no portable test depends on the choice. Free form (2002 on) has neither
-area. In both, `*>` begins a floating comment outside a literal.
+area. In both, `*>` begins a floating comment outside a literal. A comment-entry (the 85 edition's AUTHOR,
+INSTALLATION, DATE-WRITTEN, DATE-COMPILED and SECURITY paragraphs, fixed form) is no program text: a COPY in it is part
+of it (§1985:XII.2.3 SR10), so it is read as a comment from its paragraph header to the next line with a word in area A.
 """
 from __future__ import annotations
 
@@ -115,6 +117,15 @@ def _strip_floating(text: str, quote: str | None) -> tuple[str, str | None]:
     return "".join(out), quote
 
 
+#: Area A of the fixed form: "character positions 8, 9, 10, and 11" (§1985:IV.7.2), the start of the program-text area.
+AREA_A_WIDTH = 4
+#: A division header at the start of a line's program text, and the division it names.
+_DIVISION_HEADER = re.compile(r"\s*(IDENTIFICATION|ID|ENVIRONMENT|DATA|PROCEDURE)\s+DIVISION\b", re.IGNORECASE)
+#: A paragraph header of the Identification Division whose paragraph is a comment-entry (§1985:VI.3.2.1.1's general
+#: format: AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY), up to and including its period.
+_COMMENT_ENTRY_PARAGRAPH = re.compile(r"\s*(?:AUTHOR|INSTALLATION|DATE-WRITTEN|DATE-COMPILED|SECURITY)\s*\.",
+                                      re.IGNORECASE)
+
 #: A SOURCE FORMAT directive (ISO 7.3.24): `>>SOURCE [FORMAT] [IS] {FIXED | FREE}`.
 _SOURCE_FORMAT = re.compile(r"^>>\s*SOURCE(?:\s+FORMAT)?(?:\s+IS)?\s+(FIXED|FREE)\b", re.IGNORECASE)
 
@@ -126,6 +137,9 @@ def read_lines(text: str, source_format: str) -> list[SourceLine]:
     7.3.24.3 GR 1)."""
     lines: list[SourceLine] = []
     quote: str | None = None
+    #: inside the Identification Division, and inside a comment-entry there (fixed form: the 85 edition's, the only one
+    #: whose Identification Division has comment-entries)
+    identification = comment_entry = False
     for number, raw in enumerate(text.split("\n"), start=1):
         raw = raw.rstrip("\r")
         directive = _SOURCE_FORMAT.match((raw[SEQUENCE_AREA + 1:FIXED_TEXT_END] if source_format == "fixed"
@@ -149,6 +163,24 @@ def read_lines(text: str, source_format: str) -> list[SourceLine]:
                 lines.append(SourceLine(number, raw, "continuation", code))
                 continue
             code, quote = _strip_floating(area, None)
+            area_a = area[:AREA_A_WIDTH]
+            if area_a.strip():
+                # A word in area A begins a header, so it ends a comment-entry (§1985:IV.7.3.3: an entry of a paragraph
+                # begins "on the same line as the paragraph header or paragraph-name or in area B of the next nonblank
+                # line"); a division header opens or closes the Identification Division, the only place a
+                # comment-entry is written.
+                comment_entry = False
+                if (division := _DIVISION_HEADER.match(code)) is not None:
+                    identification = division.group(1).upper() in ("IDENTIFICATION", "ID")
+                elif identification and (opened := _COMMENT_ENTRY_PARAGRAPH.match(code)) is not None:
+                    # The rest of the line after the paragraph header is the comment-entry, and so is every line after
+                    # it whose area A is blank: "the comment-entry may be contained on one or more lines"
+                    # (§1985:VI.3.2.1.2 SR1), and "if the word COPY appears in a comment-entry ... it is considered part of the
+                    # comment-entry" (§1985:XII.2.3 SR10).
+                    code, comment_entry = opened.group(0), True
+            elif comment_entry and code.strip():
+                lines.append(SourceLine(number, raw, "comment", ""))
+                continue
         else:
             stripped = raw.lstrip()
             if stripped.startswith("*>"):

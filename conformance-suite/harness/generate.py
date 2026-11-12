@@ -2079,6 +2079,14 @@ def self_test() -> int:
               (b"\xff\xfe\x00\x00", "utf-32-le"), (b"\xef\xbb\xbf", "utf-8"), (b"", "utf-8"))))
     check("arm: a library text that is not well-formed is read leniently (its structure is all this reader needs)",
           cobol.decode(b"COPY A\xe9.") == "COPY Aé." and cobol.decode(b"\xef\xbb\xbfCOPY A\xe9.") == "COPY A�.")
+    entries = cobol.copy_statements(fixed_tokens(
+        "       IDENTIFICATION DIVISION.", "       PROGRAM-ID. P.", "       AUTHOR. COPY NOSUCH1.",
+        "           COPY NOSUCH2.", "       SECURITY.", "           COPY NOSUCH3.", "       DATA DIVISION.",
+        "       WORKING-STORAGE SECTION.", "           COPY REAL1.", "       PROCEDURE DIVISION.", "       AUTHOR.",
+        "           COPY REAL2."))
+    check("arm: COPY in a comment-entry is part of the comment-entry, which runs to the next line with a word in area "
+          "A (§1985:XII.2.3 SR10, §1985:IV.7.3.3); outside the Identification Division AUTHOR is no such paragraph",
+          [c.name for c in entries] == ["REAL1", "REAL2"], [c.name for c in entries])
     print("=== generate.py --self-test: " + ("ALL GREEN" if not rc else "FAILED") + " ===")
     return rc
 

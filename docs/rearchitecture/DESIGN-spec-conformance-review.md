@@ -1154,7 +1154,11 @@ outcome): an output draft is an accepted test (`Run.accept`), and a refused draf
 refusal counts only when it is the rule's: the draft names the line that violates the rule and carries a control (the
 program with that line made conforming), the control must compile and the diagnostic must be AT that line. Every stored
 draft names both, since the drafts pass's answer shape requires them; the 291 refused drafts written before it did were
-withdrawn (`audit_batch.py withdraw`) and drafted again (kb/Work PB4995). It writes `DIR/drafts/runs.json`: MATCH,
+withdrawn (`audit_batch.py withdraw`) and drafted again (kb/Work PB4995). A draft that COPYs carries its library texts
+as data, `files` (`{"<text-name>.cpy": text}`, or `<library-name>/<text-name>.cpy` for a text in a named library): one
+shape of a draft, `audit_batch.py draft_problem`, checks every pass's draft, and `run_drafts.tests_of` writes the texts
+beside the program and declares them on the test and its control, so the harness stages them for both (kb/Work PB5067).
+It writes `DIR/drafts/runs.json`: MATCH,
 MISMATCH or NO VERDICT per rule,
 naming the compiler binary (its `--version` and the digest of its assemblies, never a checkout's HEAD). A MATCH is a candidate witness, placed in the conformance suite only after the fleet checks the draft
 against the rule text; a MISMATCH is a defect or a suspect draft for the fleet to tell apart. The tool's rules:

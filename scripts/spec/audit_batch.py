@@ -207,8 +207,10 @@ the program's first line as 1) and a control, the same program with that line ma
 accept, so that a refusal is tied to the rule and never to another error.
 The JSON object: {"program": "the source text, lines separated by \\n", "expected": {"outcome": "refused|output",
 "output": ["each DISPLAYed line", ...], "line": the violating line's number, "control": "the conforming program"},
-"basis": "the words of the rule that decide the outcome, at most 200 characters"}; "output" is given for output only,
-"line" and "control" for refused only.""",
+"basis": "the words of the rule that decide the outcome, at most 200 characters", "files": {"NAME.cpy": "the library
+text"}}; "output" is given for output only, "line" and "control" for refused only, and "files" only when the program or its
+control COPYs a library text: each text the COPY statements name, as the file `<text-name>.cpy` (or `<library-name>/<text-
+name>.cpy` for COPY text-name OF library-name), lines separated by \\n.""",
     "adjudicate": COMMON + """
 Decide how ISO/IEC 1989:2023 carries one rule of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993). You get
 candidate 2023 rules, the 1985 rule, and two earlier readers' answers, which disagree or found a difference: judge the texts
@@ -935,6 +937,39 @@ def request(pass_name: str, cid: str, item: dict[str, Any], model: str, shapes: 
 
 # -- the answers ----------------------------------------------------------------------------------------------------------
 
+#: A draft's library text's name: a file name, or `<library>/<file name>` for a text in a named library (a folder beside
+#: the program, WiseOwl's DOC-A.1-40 mechanism). Never absolute, never `..`, never deeper than one library.
+DRAFT_FILE = re.compile(r"\A(?:[A-Za-z0-9][A-Za-z0-9_-]*/)?[A-Za-z0-9][A-Za-z0-9_.-]*\Z")
+
+
+def draft_problem(draft: Any) -> str:
+    """Why `draft` is not a draft, or "" when it is: THE shape of a draft, whichever pass wrote it (the drafts pass's
+    answer, parse_answer; a later pass's record, which run_drafts.py `tests_of` refuses on the same rule). A program and
+    the outcome the rule requires; a refused draft's violating line and control (what the harness's flagged-test judge
+    needs, run_drafts.py; run.py Run.flagged); and the library texts the program and its control COPY, `files`, each by
+    its name (DRAFT_FILE) with its text (kb/Work PB5067)."""
+    if not isinstance(draft, dict):
+        return "not a draft"
+    exp = draft.get("expected")
+    ok = (isinstance(draft.get("program"), str) and draft["program"].strip() and isinstance(exp, dict)
+          and exp.get("outcome") in ("refused", "output")
+          and (exp["outcome"] == "refused" or isinstance(exp.get("output"), list)))
+    if not ok:
+        return "not a draft"
+    if exp["outcome"] == "refused":
+        line, control = exp.get("line"), exp.get("control")
+        if not (type(line) is int and 1 <= line <= len(draft["program"].splitlines())):
+            return "a refused draft names the line of its program that violates the rule"
+        if not (isinstance(control, str) and control.strip() and control.strip() != draft["program"].strip()):
+            return "a refused draft carries its control, the program with that line made conforming"
+    files = draft.get("files", {})
+    if not (isinstance(files, dict) and all(isinstance(name, str) and DRAFT_FILE.match(name) and isinstance(text, str)
+                                            for name, text in files.items())):
+        return ("a draft's files map each library text's name (a file name, or <library>/<file name>) to its text, "
+                f"not {json.dumps(files)[:120]}")
+    return ""
+
+
 def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[str, Any] | None, str]:
     """The reply as the pass's answer, or None and why it is not one. The answer is the ONE JSON value that starts at the
     reply's first `{`, read to its own end (`raw_decode`), so a fence, prose or a stray brace after it is never part of it:
@@ -951,19 +986,8 @@ def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[
     if not isinstance(obj, dict):
         return None, "not an object"
     if pass_name == "drafts":
-        exp = obj.get("expected")
-        ok = (isinstance(obj.get("program"), str) and obj["program"].strip() and isinstance(exp, dict)
-              and exp.get("outcome") in ("refused", "output")
-              and (exp["outcome"] == "refused" or isinstance(exp.get("output"), list)))
-        if not ok:
-            return None, "not a draft"
-        if exp["outcome"] == "refused":   # what the harness's flagged-test judge needs (run_drafts.py; run.py Run.flagged)
-            line, control = exp.get("line"), exp.get("control")
-            if not (type(line) is int and 1 <= line <= len(obj["program"].splitlines())):
-                return None, "a refused draft names the line of its program that violates the rule"
-            if not (isinstance(control, str) and control.strip() and control.strip() != obj["program"].strip()):
-                return None, "a refused draft carries its control, the program with that line made conforming"
-        return obj, ""
+        why = draft_problem(obj)
+        return (None, why) if why else (obj, "")
     if obj.get("verdict") not in verdicts(pass_name):
         return None, f"verdict {obj.get('verdict')!r}"
     if pass_name == "route":
