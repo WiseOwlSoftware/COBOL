@@ -1,0 +1,12 @@
+{
+ "id": "replace-anywhere-2002",
+ "description": "A REPLACE statement anywhere a character-string may appear, with no separator period before it (§2002:7.1.3.2 SR1 \"A REPLACE statement may be specified anywhere in source text or in library text that a character-string or a separator, other than the closing delimiter of a literal, may appear\"). ANSI X3.23-1985 required the opposite (§1985:XII.3.3 SR1: \"It must be preceded by a separator period except when it is the first statement in a separately compiled program\"); ISO/IEC 1989:2002 Annex F.2 item 113 lists the relaxation as a 2002 addition (\"Previously, a REPLACE statement was required to follow a separator period when it was other than the first statement in an outermost program\"). The introduction gate is CopyProcessor.ApplyReplaceStatements (kb/Work PB5085), asked of a REPLACE whose preceding text-word is no separator period.",
+ "display": "a REPLACE statement not preceded by a separator period",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§2002:7.1.3.2 SR1; §1985:XII.3.3 SR1",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "§2002:7.1.3.2 SR1; ISO/IEC 1989:2002 Annex F.2 item 113",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRAN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 AA PIC X(2) VALUE \"AA\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"A\" REPLACE ==XX== BY ==AA==. DISPLAY XX.\n    STOP RUN.\n"
+}

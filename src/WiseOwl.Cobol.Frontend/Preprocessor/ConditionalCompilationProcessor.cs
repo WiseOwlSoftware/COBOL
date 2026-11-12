@@ -98,11 +98,12 @@ public static partial class ConditionalCompilationProcessor
         var run = new Run(leaveDirectives, diagnostics, sourcePath, copyProcessor,
             dialectLevel, permissive, inputs, implicitOps);
         var expanded = run.Render(text, new DivisionCursor(startsInIdentificationDivision: true));   // a source text begins in an IDENTIFICATION DIVISION
-        var resultant = CopyProcessor.ApplyReplaceStatements(expanded, diagnostics, EditionInfo.Of(dialectLevel, permissive));   // Step 3 — REPLACE over the expanded compilation group
+        var edition = EditionInfo.Of(dialectLevel, permissive);
+        var resultant = CopyProcessor.ApplyReplaceStatements(expanded, edition, diagnostics);   // Step 3 — REPLACE over the expanded compilation group
         if (run.Encounters.Count == 0) return new ConditionalCompilationResult(resultant, [], []);
         // Each encounter's line in the driver's OUTPUT frame, carried through REPLACE (which may drop and join lines)
         // to the RESULTANT frame the parser's tokens use — and each compilation-variable event's, which is an encounter's.
-        int[] resultantLine = CopyProcessor.ReplaceLineMap(expanded.Text);
+        int[] resultantLine = CopyProcessor.ReplaceLineMap(expanded.Text, edition);
         var encounters = run.Encounters
             .Select(e => new DirectiveEncounter(resultantLine[e.Line] + 1, e.ChangesState)).ToArray();
         var compilationVariables = run.CompilationVariables

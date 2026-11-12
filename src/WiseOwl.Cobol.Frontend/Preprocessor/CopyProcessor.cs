@@ -104,16 +104,40 @@ public sealed class CopyProcessor(
     /// REPLACE statement"). MAPPED (kb/Work PB82): a REPLACE statement's own text vanishes from the resultant text, the
     /// kept text keeps its origins, and a replacement's lines take the origin of the line its match started on.
     /// <para>A non-pseudo-text operand (kb/Work R39) draws COBOL1641: REPLACE's operands were never literals in any
-    /// ISO edition (§2023:7.2.4.2; §2023:7.2.4.3 SR7). <paramref name="edition"/> (null: no edition gate — the line-map replay)
-    /// gates the ALSO and LAST phrases at their introducing edition (constructs row replace-also-last-2002).</para>
+    /// ISO edition (§2023:7.2.4.2; §2023:7.2.4.3 SR7). <paramref name="edition"/> gates the ALSO and LAST phrases at their introducing edition (constructs row
+    /// replace-also-last-2002), a REPLACE that follows no separator period below 2002 (replace-anywhere-2002), and ends a
+    /// statement's scope at the edition's own boundary (<see cref="EditionInfo.ReplaceScopeEndsWithSeparatelyCompiledProgram"/>);
+    /// the diagnostics are reported only when <paramref name="diagnostics"/> is given (the line-map replay passes none).</para>
     /// </summary>
-    internal static MappedText ApplyReplaceStatements(MappedText mapped, DiagnosticBag? diagnostics = null,
-        EditionInfo? edition = null)
+    internal static MappedText ApplyReplaceStatements(MappedText mapped, EditionInfo edition,
+        DiagnosticBag? diagnostics = null)
     {
         string text = mapped.Text;
         var w = new OriginWriter();
         var states = new ReplaceStates();
         int pos = 0;
+
+        // The scope of a REPLACE statement (kb/Work PB5277): the edition's own end — the separately compiled program
+        // (§1985:XII.3.4 GR3) before 2002, the compilation group (§2002:7.1.3.3 GR5; §2023:7.2.4.4 GR5) from it. The ends are
+        // offsets in the text, so the text between two REPLACE statements is applied in the pieces each scope leaves.
+        int[] scopeEnds = edition.ReplaceScopeEndsWithSeparatelyCompiledProgram ? SeparatelyCompiledProgramEnds(text) : [];
+        int nextEnd = 0;
+
+        void ApplyActive(int from, int to)
+        {
+            for (; nextEnd < scopeEnds.Length && scopeEnds[nextEnd] <= to; nextEnd++)
+            {
+                if (scopeEnds[nextEnd] > from)
+                {
+                    w.AppendMapped(ApplyReplacements(mapped.Slice(from, scopeEnds[nextEnd] - from), states.Active,
+                        ReplaceResultRule, diagnostics));
+                    from = scopeEnds[nextEnd];
+                }
+                states.EndScope();
+            }
+            if (to > from)
+                w.AppendMapped(ApplyReplacements(mapped.Slice(from, to - from), states.Active, ReplaceResultRule, diagnostics));
+        }
 
         while (pos < text.Length)
         {
@@ -124,11 +148,11 @@ public sealed class CopyProcessor(
                 + "except when it is the first statement in a compilation group\"", mapped.LocateAt(glued), default));
             if (replaceIdx < 0)
             {
-                w.AppendMapped(ApplyReplacements(mapped.Slice(pos, text.Length - pos), states.Active, ReplaceResultRule, diagnostics));
+                ApplyActive(pos, text.Length);
                 break;
             }
 
-            w.AppendMapped(ApplyReplacements(mapped.Slice(pos, replaceIdx - pos), states.Active, ReplaceResultRule, diagnostics));
+            ApplyActive(pos, replaceIdx);
 
             // The statement is parsed over text-words (§2023:7.2.4.2 general format) through its separator period — a
             // period INSIDE pseudo-text is a text-word of the operand, never the statement's end (kb/Work PB1354).
@@ -140,10 +164,19 @@ public sealed class CopyProcessor(
                     + "§2023:7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space except when it is the first "
                     + "statement in a compilation group\"");
 
+            // §1985:XII.3.3 SR1: "It must be preceded by a separator period except when it is the first statement in a
+            // separately compiled program" — the rule §2002:7.1.3.2 SR1 relaxed (the constructs row replace-anywhere-2002).
+            if (diagnostics is not null && !ConstructRegistry.IsAvailable(edition, Constructs.ReplaceAnywhere2002)
+                && !FollowsSeparatorPeriod(mapped, replaceIdx))
+                ConstructRegistry.Check(edition, new BagSink(diagnostics, mapped.LocateAt(replaceIdx)),
+                    Constructs.ReplaceAnywhere2002, "REPLACE does not follow a separator period — §1985:XII.3.3 SR1: "
+                    + "\"It must be preceded by a separator period except when it is the first statement in a separately "
+                    + "compiled program\"");
+
             void Gate(in TextWord phrase)
             {
-                if (edition is { } e && diagnostics is not null)
-                    ConstructRegistry.Check(e, new BagSink(diagnostics, mapped.LocateAt(phrase.Start)),
+                if (diagnostics is not null)
+                    ConstructRegistry.Check(edition, new BagSink(diagnostics, mapped.LocateAt(phrase.Start)),
                         Constructs.ReplaceAlsoLast2002, $"REPLACE {phrase.Value.ToUpperInvariant()}");
             }
 
@@ -228,6 +261,15 @@ public sealed class CopyProcessor(
             _active = operands;
         }
 
+        /// <summary>The end of the scope every statement met so far is in effect to (§1985:XII.3.4 GR3 "the end of the
+        /// separately compiled program"; §2002:7.1.3.3 GR5 and §2023:7.2.4.4 GR5 "the end of the compilation group"): the
+        /// active statement and the queue of inactive ones are all gone.</summary>
+        public void EndScope()
+        {
+            _active = null;
+            _inactive.Clear();
+        }
+
         /// <summary>A format 2 REPLACE statement, <paramref name="last"/> when it has the LAST phrase.</summary>
         public void Off(bool last)
         {
@@ -241,14 +283,55 @@ public sealed class CopyProcessor(
         }
     }
 
-    /// <summary>Where each line of <paramref name="text"/> lands in the text <see cref="ApplyReplaceStatements(MappedText, DiagnosticBag?, string)"/>
+    /// <summary>Whether the REPLACE keyword at <paramref name="replaceIdx"/> is the first text of its text or follows a
+    /// separator period (§1985:XII.3.3 SR1). Text that came from a different file than the REPLACE is library text, and the
+    /// COPY statement that brought it in ended with its own separator period, which is not part of the resultant text.</summary>
+    private static bool FollowsSeparatorPeriod(MappedText mapped, int replaceIdx)
+    {
+        string text = mapped.Text;
+        int before = replaceIdx - 1;
+        while (before >= 0 && CobolSpace.IsSeparator(text[before])) before--;
+        return before < 0 || text[before] == '.'
+            || mapped.PointAt(before).Origin.File != mapped.PointAt(replaceIdx).Origin.File;
+    }
+
+    /// <summary>The offsets just past each <c>END PROGRAM name.</c> header that ends a SEPARATELY COMPILED program — one
+    /// not contained in another (kb/Work PB5277) — read as text-words, so pseudo-text and literals are never
+    /// mistaken for a header. A program begins at its PROGRAM-ID paragraph and the header closes the innermost one open.</summary>
+    private static int[] SeparatelyCompiledProgramEnds(string text)
+    {
+        var ends = new List<int>();
+        var words = TextWordScanner.Scan(text);
+        int open = 0;
+        for (int i = 0; i < words.Count; i++)
+        {
+            var word = words[i];
+            if (word.Kind == TextWordKind.PseudoTextDelimiter)
+            {
+                while (++i < words.Count && words[i].Kind != TextWordKind.PseudoTextDelimiter) { }
+            }
+            else if (word.Kind == TextWordKind.CharacterString && word.IsWord("PROGRAM-ID") && i + 1 < words.Count
+                && words[i + 1].IsSeparatorPeriod)
+                open++;
+            else if (word.Kind == TextWordKind.CharacterString && word.IsWord("END") && i + 3 < words.Count
+                && words[i + 1].IsWord("PROGRAM") && words[i + 3].IsSeparatorPeriod)
+            {
+                if (open > 0) open--;
+                if (open == 0) ends.Add(words[i + 3].End);
+                i += 3;
+            }
+        }
+        return [.. ends];
+    }
+
+    /// <summary>Where each line of <paramref name="text"/> lands in the text <see cref="ApplyReplaceStatements(MappedText, EditionInfo, DiagnosticBag?)"/>
     /// makes of it: element <c>i</c> is the 0-based RESULTANT line holding input line <c>i</c> (kb/Work PB1066). A
     /// kept line maps to itself shifted by the lines REPLACE removed above it; a line REPLACE removed (a REPLACE
     /// statement's own) or joined into a replacement maps to the resultant line where that text now starts — the
     /// replacement's first line, which takes the origin of the line its match started on. The identity when the
     /// text holds no REPLACE statement. The same pass run over line-index origins, without diagnostics, so it can
     /// never disagree with the real one.</summary>
-    internal static int[] ReplaceLineMap(string text)
+    internal static int[] ReplaceLineMap(string text, EditionInfo edition)
     {
         var inputOrigins = MappedText.Identity(text, "").Lines;   // origin Line = 1-based input line
         var map = new int[inputOrigins.Length];
@@ -257,7 +340,7 @@ public sealed class CopyProcessor(
             for (int i = 0; i < map.Length; i++) map[i] = i;
             return map;
         }
-        var resultant = ApplyReplaceStatements(new MappedText(text, inputOrigins)).Lines;
+        var resultant = ApplyReplaceStatements(new MappedText(text, inputOrigins), edition).Lines;
         int j = 0;
         for (int i = 0; i < map.Length; i++)
         {
@@ -521,7 +604,19 @@ public sealed class CopyProcessor(
         // not). Detection uses the SAME FindStatementKeyword the expander splices by, so the report and the
         // recursion can never disagree about what counts as a COPY statement. Expansion continues after the
         // report — the diagnostic is the verdict; the splice keeps the downstream parse coherent.
-        if (statement.ReplacingSpecified && FindStatementKeyword(normalized, 0, "COPY") >= 0)
+        bool libraryHoldsCopy = FindStatementKeyword(normalized, 0, "COPY") >= 0;
+        // Before 2002 the combination is not the only violation: §1985:XII.2.4 GR12 forbids ANY COPY statement in the
+        // text a COPY statement produces, so the edition's own introduction gate speaks for both arms (kb/Work PB5126),
+        // at the OUTER statement the library text belongs to.
+        var edition = EditionInfo.Of(dialectLevel, permissive);
+        if (libraryHoldsCopy && !edition.Has(2002))
+        {
+            if (_diagnostics is not null)
+                ConstructRegistry.Check(edition, new BagSink(_diagnostics, at), Constructs.CopyNestedLibraryText2002,
+                    $"COPY {libraryName} — §1985:XII.2.4 GR12: \"The text produced as a result of the complete processing "
+                    + "of a COPY statement must not contain a COPY statement\"");
+        }
+        else if (statement.ReplacingSpecified && libraryHoldsCopy)
             _diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyReplacingNestedCopy.Code,
                 $"COPY {libraryName} REPLACING: the library text contains a COPY statement — ISO §2023:7.2.3.4 "
                 + "GR10 forbids the combination (\"If the REPLACING phrase is specified, the library text "
@@ -993,6 +1088,20 @@ public sealed class CopyProcessor(
                 Constructs.ReplacingPartialWord2002, $"{Rules.Statement} REPLACING {phrase.Value.ToUpperInvariant()}");
         }
 
+        /// <summary>COBOL7006 — the word COPY as word-1 or word-2 of a COPY REPLACING phrase (kb/Work PB5085): each of
+        /// §1985:XII.2.3 SR6, §2002:7.1.2.2 SR10 and §2014:7.2.2.2 SR10 says "Word-1 or word-2 may be any single COBOL
+        /// word except 'COPY'". 2023 removed the word operand forms altogether, so it draws COBOL0902 there
+        /// (<see cref="OnNonPseudoTextOperand"/>) and this rule adds nothing. COPY only: a REPLACE statement takes no word
+        /// operand at any edition (COBOL1641).</summary>
+        public void CopyWord(in TextWord word)
+        {
+            if (edition is not { Year: < 2023 } e || diagnostics is null || Rules.Statement != "COPY") return;
+            string clause = e.Year == 85 ? "§1985:XII.2.3 SR6" : e.Year == 2002 ? "§2002:7.1.2.2 SR10" : "§2014:7.2.2.2 SR10";
+            diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyReplacingWordIsCopy.Code,
+                $"COPY statement: the word COPY is written as a REPLACING operand — {clause}: \"Word-1 or word-2 may be any "
+                + "single COBOL word except 'COPY'\"", mapped.LocateAt(word.Start), default);
+        }
+
         /// <summary>COBOL2572 — an operand whose content breaks one of <see cref="Rules"/>.</summary>
         public void Content(int at, int rule, string quoted, string what)
             => diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.ReplacingOperandContent.Code,
@@ -1131,6 +1240,7 @@ public sealed class CopyProcessor(
         }
 
         nonPseudoText?.Invoke(w.Start);
+        if (w.Kind == TextWordKind.CharacterString && w.IsWord("COPY")) screen.CopyWord(w);
         if (w.Kind == TextWordKind.Literal)
         {
             c.Advance(w);

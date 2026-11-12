@@ -31,6 +31,12 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// positions).</summary>
     public int MaxDigits => Year < 2002 ? 18 : 31;
 
+    /// <summary>Where a REPLACE statement's effect ends (kb/Work PB5277): at the end of the separately compiled program at
+    /// COBOL-85 (§1985:XII.3.4 GR3, "until the next occurrence of the statement or the end of the separately compiled
+    /// program"), at the end of the compilation group from 2002 (§2002:7.1.3.3 GR5; §2023:7.2.4.4 GR5), a group of one or more
+    /// programs.</summary>
+    public bool ReplaceScopeEndsWithSeparatelyCompiledProgram => Year < 2002;
+
     /// <summary>True when the targeted edition is at or after <paramref name="introducedIn"/> — the one
     /// predicate behind the grammar's <c>{isXXXX()}?</c> introduction gates and every version-varying bind
     /// decision.</summary>
