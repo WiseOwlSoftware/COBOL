@@ -1,0 +1,5 @@
+**2026-11-12, about 11:40 PST: the owner reset account 1 and approved Mythos outside the attended session for this week.**
+
+- The owner's words: "Fable reset done". `python scripts/orchestrator/budget.py` then read "account1: weekly ≈ 45.0 % of an allowance of 71.5 % (day 5) ... go", so the no-borrow rule of this note applies again as written and the hold of the morning is over.
+- The Mythos session asked him one question: "Account 1 now reads 45 % all-model and 0 % Mythos, with about 62 hours to the Sunday 02:00 reset. Your rule requires your approval for each Mythos dispatch. May Mythos run outside this session for the rest of this week?" He chose the option "Loop units + hard workers (Recommended)", whose text was: "Orchestrator loop units on account 1 run on Mythos, and I may put a worker on Mythos when the job is Mythos-grade (a hard defect, a held-row adjudication, an architecture decision). Routine workers stay on Opus or Sonnet."
+- Scope: account 1 only, until its reset on Sunday 2026-11-15 at 02:00 PST. Account 2 is unchanged: Mythos there still needs his approval for each dispatch. After Sunday the per-dispatch rule applies again on account 1.
