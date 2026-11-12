@@ -1806,7 +1806,8 @@ verdict line `=== <file>: PASS|FAIL (n cases, m expectations) ===` and the exit 
 expectations are (the layout rule holds both to the cases). The scratch directories a case makes through
 `scratch_repo.scratch_dir` are removed when the process ends, whatever the way out (that function's own `atexit`), so
 the collector holds no cleanup list of its own. A test file
-ends `if __name__ == "__main__": sys.exit(selftest_cases.run(sys.modules[__name__]))`. No decorator, no registry, no
+ends `if __name__ == "__main__":` with `ensure_utf8()` (the UTF-8 switch every entry point calls first, kb/Work PB3637) and
+`sys.exit(selftest_cases.run(sys.modules[__name__]))`. No decorator, no registry, no
 plug-in. Sorted order makes the insertion point of a new case its name, so two branches that add cases meet only when
 their names are adjacent — PB3723's append-point conflict, which met every pair, becomes a rare one.
 

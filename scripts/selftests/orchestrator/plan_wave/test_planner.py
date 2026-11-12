@@ -10,6 +10,7 @@ The cases run in name order over ONE world (`fixtures.plant`, bound by case_000)
 Run: python scripts/self_tests.py --only scripts/selftests/orchestrator/plan_wave/test_planner.py   (no build, no git; the
 campaign section needs the tools/claude-skills submodule, and its absence is a FAIL)."""
 import selftest_cases
+from standard_streams import ensure_utf8
 
 pw = selftest_cases.subject(__file__)   # scripts/orchestrator/plan_wave.py
 import fixtures  # noqa: E402
@@ -4385,4 +4386,5 @@ def case_232_pb5100_plan_main_reads_the_gate_pool_bef(expect):
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

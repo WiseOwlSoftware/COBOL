@@ -5,6 +5,7 @@
 A case file (`<root>/selftests/<path>/<name>/test_<world>.py`) holds one `case_<name>(expect)` function per case and ends
 
     if __name__ == "__main__":
+        ensure_utf8()                      # from standard_streams: the entry point's own first statement (kb/Work PB3637)
         sys.exit(selftest_cases.run(sys.modules[__name__]))
 
 `run` finds every `case_*` function the module defines and runs them in NAME order (the order the file keeps them in:
@@ -34,7 +35,6 @@ from pathlib import Path
 from types import ModuleType
 
 import selftest_layout
-from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -65,7 +65,6 @@ def case_functions(module: ModuleType) -> list[tuple[str, Callable[[Expect], Non
 
 def run(module: ModuleType) -> int:
     """Run every case of `module` (module docstring); the process's exit code."""
-    ensure_utf8()
     file = Path(module.__file__).resolve()
     try:
         shown = file.relative_to(REPO).as_posix()

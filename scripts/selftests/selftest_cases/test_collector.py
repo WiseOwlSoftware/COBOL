@@ -11,6 +11,7 @@ import types
 from pathlib import Path
 
 import selftest_cases
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[3]
 PLANT = str(REPO / "scripts" / "selftests" / "planted" / "test_p.py")
@@ -99,4 +100,5 @@ def case_07_a_case_file_run_bare_fails_at_its_import(expect):
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

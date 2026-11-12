@@ -5,6 +5,7 @@ import re
 import sys
 
 import selftest_cases
+from standard_streams import ensure_utf8
 
 layout = selftest_cases.subject(__file__)   # scripts/selftest_layout.py
 
@@ -154,4 +155,5 @@ def case_11_remaining_is_one_sorted_path_per_line(expect):
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))
