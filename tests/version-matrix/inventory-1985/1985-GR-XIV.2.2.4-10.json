@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-10",
  "rule-digest": "2c8894c8f7c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#KnowsCommunicationTerminal; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitReceive",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-10",
+ "notes": "GR10 asks for 'the symbolic name of the communication terminal that is the source of the message', and spaces when that name is not known to the MCS. D1 in the refuter's probe is a destination, which 1985 defines as 'the symbolic identification of the RECEIVER of a transmission from a queue'; the name GR10 wants is the source's, 'the symbolic identification of the ORIGINATOR of a transmission to a queue'. A destination's own name is therefore not the name of the message's source, and a program's message that the MCS routes from a destination into an input queue has whatever source the MCS's definitions give it. In WiseOwl's MCS that is the destination's `source` when one is defined (probe src1: T1), a source that happens to share the name (src2: D1), and otherwise none, so spaces. That is GR10 applied to the MCS's knowledge, which is the implementor's to define (item 74; docs/CONFORMANCE.md section 3.3 'The source of a received message', kb/Work PB5280). The refuter's second point (the stored spelling src1 for SRC1) it found does not overturn: system-names are COBOL words, upper and lower case are equivalent, and the formation of the name is implementor-defined. Implementor choice: already recorded: docs/CONFORMANCE.md section 3.3 'The source of a received message (§1985:XIV.2.2.4 GR10; kb/Work PB5280)'; the MCS's routing of a destination into an input queue is the implementor's MCS (precedence yields nothing: GnuCOBOL 3.2 does not implement the module); documented in docs/CONFORMANCE.md section 3.3.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

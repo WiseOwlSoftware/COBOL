@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.3.4-6",
  "rule-digest": "3508396e6d52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Enable; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#Admits; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPaths; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOne; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput",
  "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-6",
+ "notes": "The ENABLE form of 1985-GR-XIV.3.2.4-7, answered once there: ENABLE shares SetPath and Admits with DISABLE, the written-KEY behaviour is right (r3: ENA IO lower 40; key1: ENA KEY QPW 00), and an omitted phrase is honored under the same recorded implementor choice, whose CONFORMANCE.md ground needs the same correction. Implementor choice: the choice recorded on 1985-GR-XIV.3.2.4-7 (one question, both statements); documented in docs/CONFORMANCE.md section 3.3.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

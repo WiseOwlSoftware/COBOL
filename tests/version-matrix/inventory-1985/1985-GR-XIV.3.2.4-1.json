@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.2.4-1",
  "rule-digest": "3a4fd0a82794",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput",
  "test-ref": "conformance:cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1",
+ "notes": "Overturn confirmed. GR1 asks whether a destination is already disconnected when the DISABLE statement is executed. GR6 deactivates the set of destinations the occurrences specify. Appendix B's account of the new status 15 says the same: 'at the time a DISABLE or ENABLE statement is executed'. A destination named in two occurrences and connected when the statement starts is not already disconnected, so the statement deactivates it with status 00 and error keys 0 and 0. SetOutput instead tests each occurrence against the state the earlier occurrence of the same statement has just changed. Rerun r1.cob: DIS D3D3 15 05 and ENA D3D3 15 05, where 00 00 is expected for both. The decision PB5306 (a destination named twice in a SEND table takes the message once per occurrence, each error key set on its own) agrees: each occurrence gets its own error key, judged against the destination's state at the start of the statement. Own probe r3own.cob: with D3 already disabled, D3,D3 gives 15 55, and ENABLE D3,D2,D2 (D3 off, D2 on) gives 15 055. Both are right under either reading, so the defect is only the duplicate-of-a-connected-destination arm. The note PB5376 is right in its citations, its expected results and its site. It should name PB5306 (the per-occurrence decision it is consistent with) and PB5315 (landed, the earlier PARTIAL on this row, the logical-path arm) as related. kb/Work PB5376 holds the defect (adjudication: held-85/set5/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
