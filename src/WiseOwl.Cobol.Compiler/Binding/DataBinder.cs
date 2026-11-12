@@ -3287,8 +3287,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// "known" is the one determination both rules share (docs/CONFORMANCE.md §3, D-RANGE-KNOWN): every sequence
     /// this processor fixes at compile time is known, and only a LOCALE sequence (SR26 NOTE, "<i>The runtime
     /// collating sequence is unknown when the collating sequence is defined by a locale</i>") is not, so a range
-    /// ordered by a locale is left to §2023:14.7.8's run-time EC-RANGE-INVALID arm. An operand with no compile-time
-    /// value (a figurative other than ZERO, an <c>ALL</c> literal, a symbolic-character) is skipped, as in SR27.</para></summary>
+    /// ordered by a locale is left to §2023:14.7.8's run-time EC-RANGE-INVALID arm. A figurative constant or an
+    /// <c>ALL</c> literal is a literal wherever a format prints "literal" (§2023:8.3.3.6.1; §1985:IV.4.2.2.2.3), and
+    /// <see cref="ConditionValueOf"/> gives it its character value — the sequence's fill character (HIGH-VALUE and
+    /// LOW-VALUE the sequence's extremes), repeated to the common width of the pair (§2023:8.3.3.6.4 GR2) — so
+    /// <c>HIGH-VALUE THRU LOW-VALUE</c> and <c>ALL "Z" THRU ALL "A"</c> are refused like <c>"Z" THRU "A"</c>
+    /// (kb/Work PB5181).</para></summary>
     private void CheckRangesAscending(Condition88 cond, DataItem parent)
     {
         ConditionValueOrder? ord = null;
@@ -3296,16 +3300,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             if (hi is null) continue;
             int? order;
-            if (parent.OperandPic is { Category: PicCategory.Numeric }
-                || (StringValue(lo) is null && StringValue(hi) is null
-                    && WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(lo.Trim()).Kind is null
-                    && WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(hi.Trim()).Kind is null))
+            if (parent.OperandPic is { Category: PicCategory.Numeric } || (IsNumericLiteralOperand(lo) && IsNumericLiteralOperand(hi)))
                 order = NumericLiteralValue(lo) is { } a && NumericLiteralValue(hi) is { } b ? a.CompareTo(b) : null;   // a)
             else
             {
                 ord ??= new ConditionValueOrder(this, cond, parent);
                 if (!ord.Known) continue;                                                                             // b)
-                order = CompareConditionValues(ord, ConditionValueOf(parent, lo), ConditionValueOf(parent, hi));
+                int width = ValueWidth(parent, lo, hi);
+                order = CompareConditionValues(ord, ConditionValueOf(parent, lo, width), ConditionValueOf(parent, hi, width));
             }
             if (order >= 0)
                 Edition.Error(DiagnosticCatalog.ValueThroughNotAscending, $"condition-name '{cond.Name}': the VALUE "
@@ -3335,19 +3337,22 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// drops the screen, and it drops it rather than guessing. The ordering itself is the runtime's own
     /// <c>CobolCollation.Compare</c>, reached through <c>CollatingTable.Collation</c>: one §2023:8.8.4.2.7 comparison,
     /// not a compile-time paraphrase of it.</para>
-    /// <para>⚠ An operand whose VALUE is not known at compile time — a figurative constant, an <c>ALL</c> literal,
-    /// a symbolic-character — is skipped rather than guessed at: SR27 speaks of "the value of literal-4", and a
-    /// screen that invented one would reject conforming source. The figuratives ZERO/ZEROS/ZEROES over a NUMERIC
-    /// subject are the exception, because §2023:8.3.3.6.4 GR3 gives them the value zero exactly.</para></summary>
+    /// <para>A figurative constant, an <c>ALL</c> literal or a symbolic-character has a value this screen can weigh
+    /// (kb/Work PB5181): <see cref="ConditionValueOf"/> gives it the fill character of its kind under the program
+    /// collating sequence, repeated to the comparison's width (§2023:8.3.3.6.4 GR2), the figurative ZERO family over a
+    /// NUMERIC subject keeping its algebraic zero (GR3). Only an operand of NO value — a figurative on a numeric
+    /// subject other than ZERO, which SR2 refuses — stays unweighed rather than guessed at.</para></summary>
     private void CheckFalseValueDistinct(Condition88 cond, DataItem parent, string where)
     {
         if (cond.FalseValue is not { } raw || cond.Values.Count == 0) return;
         var ord = new ConditionValueOrder(this, cond, parent);
-        var v4 = ConditionValueOf(parent, raw);
 
         foreach (var (lo, hi) in cond.Values)
         {
-            var vlo = ConditionValueOf(parent, lo);
+            // One width per comparison (§2023:8.3.3.6.4 GR2): literal-4 and the range's ends are sized together.
+            int width = ValueWidth(parent, raw, lo, hi);
+            var v4 = ConditionValueOf(parent, raw, width);
+            var vlo = ConditionValueOf(parent, lo, width);
             // ⛔ THE SUB-RULES KEY ON LITERAL-2's VALUE, WHICH IS WHAT "the value of" MEANS ON THIS SUBJECT.
             // SR27 a) opens "when literal-2 is of a class other than alphanumeric or national" and b) "when
             // literal-2 is of class alphanumeric or national", per occurrence — so the arm is chosen from the
@@ -3367,7 +3372,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // test is skipped rather than inverted. SR26 refuses the inversion ITSELF (CheckRangesAscending,
             // COBOL2961, under the same Known), so an inverted pair reaches here only behind its error.
             if (vlo.Str is not null && !ord.Known) continue;
-            var vhi = ConditionValueOf(parent, hi);
+            var vhi = ConditionValueOf(parent, hi, width);
             if (CompareConditionValues(ord, vlo, vhi) <= 0
                 && CompareConditionValues(ord, v4, vlo) >= 0
                 && CompareConditionValues(ord, v4, vhi) <= 0) Report(lo, hi);
@@ -3398,13 +3403,51 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// readers). A null from it — a PICTURE format-2 (LOCALE) subject, whose image exists only at run time, or
     /// a figurative ZERO below 2023 — falls back to the literal's own value rather than guessing.</para>
     /// </summary>
-    private (decimal? Num, string? Str) ConditionValueOf(DataItem parent, string raw)
+    private (decimal? Num, string? Str) ConditionValueOf(DataItem parent, string raw, int width)
     {
         if (parent.OperandPic is { Category: PicCategory.NumericEdited } npic
             && WiseOwl.Cobol.CodeGen.ValueInitializer.EditedImageOfNumericValue(
                    Edition.DialectLevel, parent, npic, raw) is { } edited)
             return (null, edited);
+        // A FIGURATIVE CONSTANT OR ALL LITERAL ON A NON-NUMERIC SUBJECT IS A CHARACTER VALUE (kb/Work PB5181): the fill
+        // character the one figurative service names for the kind under this program's collating sequence, repeated to
+        // the comparison's width (§2023:8.3.3.6.4 GR2 — "equal either to 1 or to the size of the associated operand,
+        // whichever is greater"). On a numeric subject the figurative ZERO keeps its algebraic zero and every other
+        // figurative names no value (SR2 refuses it there).
+        if (parent.OperandPic is not { Category: PicCategory.Numeric })
+        {
+            var fig = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw);
+            if (fig.Kind is { } kind)
+            {
+                var cat = parent.OperandPic?.Category;
+                char fill = WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar(kind, State.Configuration.Collating,
+                    cat is PicCategory.National or PicCategory.Boolean ? cat : null, State.Configuration.NationalCollating);
+                return (null, WiseOwl.Cobol.Runtime.CobolString.FigToWidth(fill.ToString(), width));
+            }
+            if (fig.AllLiteral is { } all)
+                return (null, WiseOwl.Cobol.Runtime.CobolString.FigToWidth(CobolLiteral.Decode(all), width));
+        }
         return (NumericLiteralValue(raw), StringValue(raw));
+    }
+
+    /// <summary>The width a comparison of VALUE-clause operands sizes its figurative constants to — the associated
+    /// operand's size, at least one (§2023:8.3.3.6.4 GR2): the conditional variable's picture length where it has
+    /// one, and the longest literal among <paramref name="operands"/>.</summary>
+    private static int ValueWidth(DataItem parent, params string?[] operands)
+    {
+        int width = Math.Max(parent.OperandPic?.Length ?? 0, 1);
+        foreach (string? raw in operands)
+            if (raw is not null && StringValue(raw) is { } str) width = Math.Max(width, str.Length);
+        return width;
+    }
+
+    /// <summary>True when a VALUE-clause operand is a NUMERIC literal — not a nonnumeric literal, a figurative constant
+    /// or an <c>ALL</c> literal (the character operands <see cref="ConditionValueOf"/> weighs by sequence).</summary>
+    private static bool IsNumericLiteralOperand(string raw)
+    {
+        if (StringValue(raw) is not null) return false;
+        var fig = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw.Trim());
+        return fig.Kind is null && fig.AllLiteral is null;
     }
 
     /// <summary>Order two operand VALUES: negative / zero / positive as the first is less than, equal to or
