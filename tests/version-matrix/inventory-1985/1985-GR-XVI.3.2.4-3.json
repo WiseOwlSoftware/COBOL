@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.3.2.4-3",
  "rule-digest": "80d6179fe2ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SegmentNumber.cs#IsIndependent; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#SegmentsPerPc; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitSegmentState; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckAlter",
  "test-ref": "conformance:cases/XVI.3.2@1985-SEGMENT-NUMBERS/1985-GR-XVI_3_2_4-3",
+ "notes": "§1985:XVI.3.2.4 GR3: 'Segments with segment-number 50 through 99 are independent segments', whose state §1985:XVI.1.4.3 defines (initial on a transfer from a segment with a different segment-number, last-used on an implicit return or EXIT PROGRAM). SegmentNumber.IsIndependent classifies 50 and above, SegmentsPerPc builds the per-pc map when any section is independent, EmitSegmentState resets an independent segment's alterable GO TOs in __EnterSegment, and EmitDispatchMethod calls it whenever the dispatcher enters a pc of another segment and restores the caller's segment in a finally (the last-used return); CheckAlter (COBOL6877) keeps an ALTER from another segment out. Probes at 85: (b/d) segments 49, 50, 51, 99 performed twice print 49 FIRST/ALTERED, 50 FIRST/FIRST, 99 FIRST/FIRST, and 51,50,51 each FIRST; PERFORM of a paragraph range, GO TO from the fixed portion, fall-through from section 10, and SORT INPUT PROCEDURE (e) in segment 70 run twice each re-enter initial; a PERFORM of a fixed paragraph from inside segment 60, a same-segment PERFORM and a GO TO within the segment keep the ALTER (last-used); a contained program called three times prints FIRST, ALTERED, ALTERED; an ALTER in segment 10 of a GO TO in 60 is COBOL6877. The witness performs a segment-50 section twice and sees its initial state both times.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

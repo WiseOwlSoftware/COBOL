@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.9.3-8",
  "rule-digest": "d13b7abdaf8c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportUsage",
  "test-ref": "conformance:cases/XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/1985-SR-XIII_3_9_3-8",
+ "notes": "§1985:XIII.3.9.3 SR8: \"In the Report Section, the USAGE clause is used only to declare the usage of printable items\": a. in a format 3 entry \"that entry must define a printable item\"; b. in a format 1 or format 2 entry at least one subordinate entry must. ReportSectionBinder#ScreenReportEntryFormats (85 only) refuses USAGE on a PICTURE (format 3) entry with no COLUMN clause, and on a level-01 or format 2 entry none of whose subordinates (any depth, up to the next entry at its level) has a COLUMN clause, COBOL2247; #ScreenReportUsage keeps the usage to DISPLAY (NATIONAL is gated 2002). Probes at 85: refused the witness (SUM counter TOT with USAGE DISPLAY, no COLUMN), USAGE on an 01 over only a sum counter, on a format 2 entry over only a sum counter, USAGE COMP on a counter (plus COBOL2198), USAGE written twice (COBOL2423), USAGE NATIONAL (COBOL0900); accepted and printed 00005 with USAGE on a COLUMN SUM entry, on an 01 or 02 over a COLUMN entry, on a COLUMN SOURCE entry. At 2002 USAGE on the 01 over a counter compiles.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.18.3-9",
  "rule-digest": "7b386c4c6392",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectLiteralSizes; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectOperandSize; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectLiteralSize; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectSizeRulesCoverDataItems; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KnownWidth",
  "test-ref": "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/1985-SR-VI_6_18_3-9",
+ "notes": "§1985:VI.6.18.3 SR9: 'The size of literal-5 or the data item referenced by identifier-7 must be equal to the size of literal-4 or the data item referenced by identifier-6', a figurative literal-5 taking literal-4's size. BindPhraseOperands calls CheckInspectLiteralSizes(converting: true) for the CONVERTING pair; below 2002 a data item is measured through KnownWidth, a figurative literal-4 is one character (SR3) and a figurative literal-5 is exempt, reporting COBOL0846. Probes at 85: (b) 'AB' TO 'X', SPACE TO 'XY', WS-2 TO WS-3, 'AB' TO WS-3(2:1) and an ODO element OE(3) TO 'Z' are COBOL0846; ALL 'Z' as literal-5 is COBOL0900 (2002). (d) 'ABC' TO ZERO runs '000D000D', 'ABC' TO a 9.9 edited item runs, WS-2 TO TE(1) runs; (a) OE(3) TO 'ZW' runs 'ABZWABZW'; AFTER 'C' BEFORE 'D' runs. (c) at --std 2002 WS-2 TO WS-3 compiles. Under-rejects: 'AB' TO WS-3(3:) runs 'ZBCDZBCD', 'AB' TO FUNCTION UPPER-CASE(WS-1) runs '0BCD0BCD' and FUNCTION UPPER-CASE(WS-3) TO 'XY' runs unchanged, no diagnostic. The witness's W-FROM (2) TO W-TO1 (1) is COBOL0846. kb/Work PB5425 holds the defect (code read: coderead-85/out-read3/rd-04.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

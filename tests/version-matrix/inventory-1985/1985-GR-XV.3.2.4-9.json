@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-9",
  "rule-digest": "c59a1404a2fe",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugSectionSubject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-9",
+ "notes": "§1985:XV.3.2.4 GR9: a reference to an operand 'as a qualifier does not constitute reference to that item for the debugging'. The data and file arms conform (d12: MOVE TO G1 OF G, DISPLAY G1 IN H, MOVE TO G1 OF H, MOVE TO FK IN FR IN F: no run; OPEN and CLOSE F, MOVE TO G, DISPLAY H: run), as do PERFORM P2 OF S2 and ALTER P3 OF S2 for a later paragraph, and the witness. But a qualified reference to a subject section's FIRST paragraph runs it under the section's name (d13). ProcedureTableBuilder.AddDebugSectionSubject records a section-name subject as a trigger at the section's FIRST pc, and DispatchEmitter.EmitDispatchMethod fires every subject at its pc on every entry to that pc, so any transfer to the section's first PARAGRAPH (GO TO P1, GO TO P1 OF S2, PERFORM P1, a loop back to it) runs the section's debugging section under the section's name. docs/CONFORMANCE.md D-DEBUG-PROCEDURE encodes this ('runs it once, when control reaches the section's first paragraph'); PB5083 (landed) fixed only the later-paragraph case. No kb/Work note owns it: to be filed. kb/Work PB5414 holds the defect (code read: coderead-85/out-read3/rd-07.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

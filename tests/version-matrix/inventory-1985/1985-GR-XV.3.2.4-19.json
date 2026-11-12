@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-19",
  "rule-digest": "1fc57292f03f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#EmitDebugCause; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDebugRunner; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#ContentsFor",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-19",
+ "notes": "§1985:XV.3.2.4 GR19: for the SORT or MERGE reference to procedure-name-1 in its INPUT or OUTPUT phrase, DEBUG-LINE the statement and DEBUG-CONTENTS 'SORT INPUT', 'SORT OUTPUT' or 'MERGE OUTPUT'. SortEmitter.EmitSort/EmitMerge set the cause and the statement's line (EmitDebugCause) before the implicit transfer, and __RunDebug renders DebugItem.ContentsFor. Probes: witness matches; d6 (MERGE OUTPUT PROCEDURE MO: MERGE OUTPUT line 34; SORT INPUT IP-A THRU IP-B: IP-A SORT INPUT line 36, IP-B FALL THROUGH (GR22); paragraph OUTPUT subject: SORT OUTPUT line 36; sequential USING files); 2002/2023 COBOL0902. Its GO TO MO-1 loop re-running section MO is the GR3 defect.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

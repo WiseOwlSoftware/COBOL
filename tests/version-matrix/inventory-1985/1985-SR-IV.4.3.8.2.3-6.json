@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.2.3-6",
  "rule-digest": "c528731cfd35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSubscriptPart; src/WiseOwl.Cobol.Frontend/Parsing/Cobol85OperandForms.cs#IsSubscript; src/WiseOwl.Cobol.Frontend/Parsing/Cobol85OperandForms.cs#IsInteger",
  "test-ref": "conformance:cases/IV.4.3.8.2@1985-Subscripting/1985-SR-IV_4_3_8_2_3-6",
+ "notes": "§1985:IV.4.3.8.2.3 SR6: 'Integer-1 may be signed and, if signed, it must be positive', with §1985:III.2's 'neither signed nor zero unless explicitly allowed' for zero. VersionConformancePass.VisitSubscriptPart asks Cobol85OperandForms.IsSubscript of every subscript of a data reference (including a qualified one and a function argument), which takes integer-1 through IsInteger with Cobol85IntegerSign.Positive (a + sign touching nonzero integer digits passes; - , zero at any sign, a fraction or a detached sign fail), and anything else is the 2002 arithmetic-expression construct, COBOL0900 at 85. The witness writes ELEM (-1). Probes at 85: refused (-2), (+0), (0), (-0), (+1.0), (- 1), CELL (1, -1), a condition-name ISABC (-1) in IF and SET, ELEM (-1) (1:1), an ODO element OE (-3), FUNCTION LENGTH (ELEM (-1)), ELEM OF TBL (-1), N - -1, N + +1; accepted (+1), CELL (+2, +1), (+000000000000000002) and N + 1, each printing the right element; at 2023 ELEM (-2) compiles (c).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.20.3-3",
  "rule-digest": "5cb9d95f65f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply",
  "test-ref": "conformance:cases/VI.6.20@1985-MULTIPLY-STATEMENT/1985-SR-VI_6_20_3-3",
+ "notes": "§1985:VI.6.20.3 SR3: the MULTIPLY composite is \"the superimposition of all receiving data items of a given statement aligned on their decimal points\" and \"must not contain more than 18 digits\". ArithmeticBinder.BindMultiply passes CompositeMembers.ReceivingItems85 for both formats, so StatementValidation.CheckComposite counts only the receivers below 2002 and caps at Edition.MaxDigits (18 at 85; COBOL0805). Probes at --std 85: MULTIPLY I10 BY F9 (9(10) by V9(9), one receiver) and MULTIPLY 1234567890 BY F9 accepted; MULTIPLY I9 BY I10 F9 refused (19); GIVING I9 F9 accepted (18), GIVING F9 from 9(10) sending accepted; a numeric-edited receiver Z(9)9.99 with F8 accepted (18) and with F9 refused (19); at --std 2002 and 2023 the 19-digit receiver set is accepted (31-digit cap). Witness: GIVING C D (10 integer + 9 fraction receivers), refused COBOL0805.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-21",
  "rule-digest": "e4e7d289aad0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDebugRunner; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DebugsUseProcedure; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddAllProceduresSubjects; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#ContentsFor",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-21",
+ "notes": "§1985:XV.3.2.4 GR21: for a USE procedure about to run, 'DEBUG-LINE identifies the statement that causes execution of the USE procedure' and DEBUG-CONTENTS 'USE PROCEDURE'. EmitRunUseBody sets the UseProcedure cause for a declarative id before the bounded dispatch, and DebugsUseProcedure makes each statement record its line. Probes: witness matches; d10 (sequential READ at end, relative READ invalid key 23, indexed duplicate WRITE 22, READ of a closed file 47, none with its phrase: USE PROCEDURE, DEBUG-LINE the I-O statement, the next statement runs; a paragraph subject in the USE section too); d9 (ALL PROCEDURES, failed OPEN INPUT 35: section and paragraph, DEBUG-LINE the OPEN); 2002/2023 COBOL0902.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

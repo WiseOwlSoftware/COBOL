@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.23.3-2",
  "rule-digest": "71efbbc19636",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#IndexAssignmentSenderOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#GateCobol85IndexAmount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#IsCobol85IndexAmount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandClassScreen",
  "test-ref": "conformance:cases/VI.6.23@1985-SET-STATEMENT/1985-SR-VI_6_23_3-2",
+ "notes": "§1985:VI.6.23.3 SR2: \"Identifier-1 and identifier-2 must each reference an index data item or an elementary item described as an integer\" (an integer item has no digit positions right of the decimal point, §1985:III.2). Identifier-1 is SetBinder.ScreenIndexAssignmentReceiver's OperandClassScreen row (COBOL2326 for a PIC 9V9, SVPP9, edited, alphanumeric, group or reference-modified receiver, also inside a receiver list); identifier-2 is IndexAssignmentSenderOf (COBOL2326 for edited, alphanumeric, group) plus the 85-only GateCobol85IndexAmount/IsCobol85IndexAmount, which refuses a scaled numeric sender (the witness's PIC 9V9, SVPP9) and any function or expression with COBOL0900, a refusal --std 2002 lifts. Probes at 85: index data item, signed S9(4), 9(18), COMP, COMP-3, 9PP, a subscripted table integer and an ODO-table index all accepted and run with correct values; N(1:1) COBOL0844; an unsubscripted table element COBOL2270.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.15.3-4",
  "rule-digest": "25e40e4c33a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataDescriptionEntry; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs",
  "test-ref": "conformance:cases/VI.5.15@1985-VALUE-CLAUSE/1985-SR-VI_5_15_3-4",
+ "notes": "§1985:VI.5.15.3 SR4: \"The VALUE clause must not be specified in any entry which is part of the description or redefinition of an external data record\", while it \"may be specified for condition-name entries\". VersionConformancePass#VisitDataDescriptionEntry marks the whole record (the level-01 EXTERNAL entry, or a level-01 REDEFINES naming one) and #VisitValueClause checks construct value-clause-linkage-file-external-2002 (since 2002) on every non-88 VALUE inside it, so 85 refuses COBOL0900 and 2002 on accepts. Probes at 85: witness (05 under EXTERNAL) refused; VALUE on the 01 EXTERNAL itself, at level 15 of a nested group, signed scaled -12.5, edited, ALL \"A\", ZERO in PIC 9(18), an ODO object and an ODO table all refused; 01 REDEFINES of the external record with VALUE refused (plus COBOL2406); 88 VALUE/THRU entries under it accepted and run (\"88 OK\"); a following local 01 and 77 VALUE and a contained program's local VALUE beside its EXTERNAL record accepted. At 2002/2023 the witness compiles.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

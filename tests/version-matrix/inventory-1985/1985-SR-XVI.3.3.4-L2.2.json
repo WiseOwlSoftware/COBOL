@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.3.3.4-L2.2",
  "rule-digest": "c8cf6c3ad18c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#CheckSegmentation",
  "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_4-L2_2",
+ "notes": "§1985:XVI.3.3.4 SRL2.2: a SORT in an independent segment may name input or output procedures 'Wholly within the same independent segment as that SORT statement' (else totally non-independent). SortBinder.CheckSegmentation asks Segmentation.CheckProcedures of each procedure range at COBOL-85 (RulesInForce); RangeAllowed admits all-fixed or one independent segment equal to the statement's, COBOL6877. Probes (SORT in 60): input 60 THRU 10 refused; output 70, paragraph in 70, input 50 and a reversed-order THRU spanning 70 refused; input 60 with output 10, and 49 with 0, accepted and sorted A,B; witness refused; --std 2002: COBOL0902.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

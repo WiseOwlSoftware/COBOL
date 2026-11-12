@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.24.3-1",
  "rule-digest": "f81ac491b046",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindStop",
  "test-ref": "conformance:cases/VI.6.24@1985-STOP-STATEMENT/1985-SR-VI_6_24_3-1",
+ "notes": "§1985:VI.6.24.3 SR1: \"Literal-1 must not be a figurative constant that begins with the word ALL.\" ControlFlowBinder.BindStop calls ScreenStopLiteral, which runs where the STOP literal statement exists (Constructs.StopLiteralRemoved2002: 85 only) and reports COBOL6817 when the literal's figurativeConstant carries ALL; the witness is STOP ALL \"A\". Probes (work-rd-09/stop): b) refused COBOL6817: ALL \"A\", ALL 'XY', ALL ZERO, ALL SPACES, ALL QUOTES, ALL symbolic-character, 1.5, 1.0, .5, -1, +1; accepted and run: ZERO, SPACE, QUOTE, HIGH-VALUE, \"HELLO\", 0, the 18-digit 123456789012345678 (each printed, then 'AFTER'); c) X\"41\" is COBOL0900 at 85, and the whole STOP literal statement is COBOL0902 at --std 2002. Outside this rule (the general format with §1985:IV.4.2.2.2.3): STOP BEL, a symbolic-character without ALL, is refused as parse error COBOL5506 ('expected &') though DISPLAY BEL compiles; no kb/Work note found for it.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

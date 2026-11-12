@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-VII.2.8.4-6",
  "rule-digest": "5678f80eae1b",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+ "test-ref": "conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
+ "notes": "kb/Work PB5373 class 3, decided 2026-11-12 (the codebase is the deciding session's, CLAUDE.md Ownership). §1985:VII.2.8.4 GR6 asks that for an external file connector \"all RECORD DELIMITER clauses in the run unit which are associated with that file connector must have the same specifications\". WiseOwl declines the whole RECORD DELIMITER clause (docs/CONFORMANCE.md section 2 row 26: STANDARD-1 needs a tape drive and no reel device is provided, §1985:I.1.5.2.5.1; the implementor-named methods are an empty set, DOC-A.1-150), and FileControlBinder.BindFileControl accepts it inert with the Warning COBOL1778 (DiagnosticCatalog.RecordDelimiterUnsupported) at every edition on both arms, so the clause specifies nothing two programs could disagree on. kb/Work PB4995 described the row as refused; it is a warning, and the witness is that warning at --std 85: DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec and RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec compile the construct at 85 and require COBOL1778 on the non-failing channel with the program still compiling (the Theory runs 85, 2002, 2014 and 2023). Contingent: re-adjudicate if a method for the clause is ever provided.",
  "next": {
   "kind": "CHANGED",
   "to": [

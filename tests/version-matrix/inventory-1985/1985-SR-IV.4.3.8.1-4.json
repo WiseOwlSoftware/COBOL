@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.1-4",
  "rule-digest": "a196b5f1f64a",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.NameUniqueness.cs#ScreenGlobalNameUniqueness; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGlobalNameUniquenessPass.cs#Run",
  "test-ref": "conformance:cases/IV.4.3.8@1985-Uniqueness-of-Reference/1985-SR-IV_4_3_8_1-4",
+ "notes": "§1985:IV.4.3.8.1 SR4 has two bars. The GLOBAL half ('The same data-name must not be used as the name of an item possessing the global attribute and as the name of any other data item described in the program') is DataBinder.ScreenGlobalNameUniqueness (CheckGlobalNameUniquenessPass), COBOL6862 at every edition with a 1985 message arm: probes at 85 refused an elementary and a group-subordinate reuse of a GLOBAL 01 (u4), two GLOBAL 01s of one name (u4), and a WS item named like a record of a GLOBAL FD (u6); the witness is a GLOBAL 01 reused under a group. The EXTERNAL half ('the same data-name must not be used as the name of an external record and as the name of any other external data item described in any program contained within or containing the program which describes that external data record') has no check anywhere: u2 (outer 01 EXR EXTERNAL; contained program 01 OTHER-EXT EXTERNAL / 05 EXR) compiles and runs at 85 and at 2023, and u5 binds the inner EXR to a different 4-byte external area. Open reading, not counted here: the screen asks only of the entry that writes GLOBAL, though §1985:X.4.6.4 GR1 says 'All data-names subordinate to a global name are global names' (u3, a GLOBAL 01's subordinate SUBN reused under a local 01, compiles). Classes a, e, f do not reach a declaration-uniqueness rule. kb/Work PB5427 holds the defect (code read: coderead-85/out-read3/rd-08.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

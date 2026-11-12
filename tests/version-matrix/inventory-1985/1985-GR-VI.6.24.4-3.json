@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.24.4-3",
  "rule-digest": "1f30f9147c0d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Dispose; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#PartlyReceivedFrom; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Dialogue.Release",
+ "test-ref": "unit:MessageControlTests.AMessagePartlyReceivedByARunUnitThatEnded_IsNotCounted; unit:MessageControlTests.APortionSentAndNotEnded_IsPurgedWhenTheRunUnitEnds_AndNeverReachesTheDestination",
+ "notes": "kb/Work PB5373 class 4, decided 2026-11-12. §1985:VI.6.24.4 GR3: STOP RUN \"causes the message control system (MCS) to eliminate from the queue any message partially received by that run unit. Any portion of a message transferred from the run unit via a SEND statement, but not terminated by an EMI or EGI, is purged from the system.\" The purge is seen only by a second run unit over the same MCS, so the witnesses are two-session unit tests named in DESIGN-communication-facility.md. Received half: a run unit that took the first portion of a message and ended (MessageControlSession.Dispose, what RunUnit.Terminate does) leaves a PartialReceives row whose owner is dead, and a second run unit's ACCEPT MESSAGE COUNT drops the row (MessageStoreState.PartlyReceivedFrom) and counts 0. Sent half: a SEND of the portion HEL with no EMI/EGI is held by the sending session (Dialogue.Release returns no message), so after it ends the destination queue Q2 counts 0 for the second run unit, and that run unit's next complete message arrives alone (RECEIVE returns OK, not HELOK).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
