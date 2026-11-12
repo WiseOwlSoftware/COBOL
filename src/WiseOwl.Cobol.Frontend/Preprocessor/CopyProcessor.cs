@@ -168,7 +168,7 @@ public sealed class CopyProcessor(
             // §1985:XII.3.3 SR1: "It must be preceded by a separator period except when it is the first statement in a
             // separately compiled program" — the rule §2002:7.1.3.2 SR1 relaxed (the constructs row replace-anywhere-2002).
             if (diagnostics is not null && !ConstructRegistry.IsAvailable(edition, Constructs.ReplaceAnywhere2002)
-                && !FollowsSeparatorPeriod(mapped, replaceIdx))
+                && !FollowsSeparatorPeriod(text, replaceIdx))
                 ConstructRegistry.Check(edition, new BagSink(diagnostics, mapped.LocateAt(replaceIdx)),
                     Constructs.ReplaceAnywhere2002, "REPLACE does not follow a separator period — §1985:XII.3.3 SR1: "
                     + "\"It must be preceded by a separator period except when it is the first statement in a separately "
@@ -284,16 +284,23 @@ public sealed class CopyProcessor(
         }
     }
 
-    /// <summary>Whether the REPLACE keyword at <paramref name="replaceIdx"/> is the first text of its text or follows a
-    /// separator period (§1985:XII.3.3 SR1). Text that came from a different file than the REPLACE is library text, and the
-    /// COPY statement that brought it in ended with its own separator period, which is not part of the resultant text.</summary>
-    private static bool FollowsSeparatorPeriod(MappedText mapped, int replaceIdx)
+    /// <summary>Whether the REPLACE keyword at <paramref name="replaceIdx"/> of the COPY-expanded text is the first text of
+    /// that text or follows a separator period (§1985:XII.3.3 SR1). The question is asked of the RESULTANT text, whatever
+    /// file each character came from (kb/Work PB5422): a COPY statement and its separator period are not part of it, so a
+    /// REPLACE that begins library text follows what preceded the COPY statement (<c>DISPLAY "X" COPY LIBR.</c> puts it
+    /// after <c>"X"</c>). A debugging line's carrier (<see cref="ReferenceFormatProcessor.DebugLineCarrier"/>) stands in
+    /// for the line's indicator area and is no text, so it is stepped over like the separators.</summary>
+    private static bool FollowsSeparatorPeriod(string text, int replaceIdx)
     {
-        string text = mapped.Text;
+        string carrier = ReferenceFormatProcessor.DebugLineCarrier;
         int before = replaceIdx - 1;
-        while (before >= 0 && CobolSpace.IsSeparator(text[before])) before--;
-        return before < 0 || text[before] == '.'
-            || mapped.PointAt(before).Origin.File != mapped.PointAt(replaceIdx).Origin.File;
+        while (before >= 0)
+        {
+            if (before + 1 >= carrier.Length && StartsWithCarrier(text, before + 1 - carrier.Length)) before -= carrier.Length;
+            else if (CobolSpace.IsSeparator(text[before])) before--;
+            else break;
+        }
+        return before < 0 || text[before] == '.';
     }
 
     /// <summary>The offsets just past each <c>END PROGRAM name.</c> header that ends a SEPARATELY COMPILED program — one
