@@ -1,0 +1,5 @@
+# PB5339 finding 2026-11-12: a session disposed then reopened in one process draws a new run unit id
+
+Source: PB5315 landing report (wave 20262004 group D, w20262004d-PB5315-report.md), New defects item 1.
+
+A session disposed (`MessageStore.Dispose`) and then reopened by another statement inside one process draws a new run unit id from `McsStore.DrawRunUnit`, so the `Dialogue`'s earlier partial-receive rows, written under the old id, count as dead (their owner is no longer alive) and are dropped or returned to the queue. The report says it is not reachable by a compiled program, because the session ends with the run unit, and that it shares its root with this note: the partial-receive rows are keyed by a run unit id whose liveness decides their fate. The store-level partial-message row this note plans (`PutPartialReceive`, `DeletePartialReceive`, `OwnerIsAlive`) should key its owner on an identity that survives a dispose and reopen in one process, or state that it does not. Sites: `src/WiseOwl.Cobol.Runtime/Communication/McsStore.cs` (`DrawRunUnit`, `OwnerIsAlive`). The same report's unbounded retry in `DrawRunUnit` is its own note, PB5364.
