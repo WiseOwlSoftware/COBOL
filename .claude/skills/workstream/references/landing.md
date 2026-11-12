@@ -8,11 +8,13 @@
   of the branch's own local gate instead of gating (a commit gated GREEN, or a head that differs from it only by main's
   commits, clean merges and register-only commits (DEVLOG and kb/Work notes), is not gated again, and no gate runs on Linux:
   kb/Work PB3612, PB4327, MANDATORY-PRACTICES L2), merges main in again when
-  it moved meanwhile (no second gate: the merge group runs the whole population, both operating systems, on the current main), stamps the
+  it moved meanwhile (no second gate: the merge group runs, on the current main, every target on Linux in Release and,
+  on Windows in Debug, each target with no pass at the merged tree's key on the store ref, kb/Work PB5235), stamps the
   branch's `DEVLOG/pending-<slug>.md` (`devlog.py stamp`, the number from `alloc.py devlog`), runs the landing checks
   (`devlog.py check` 6, `landing_check.py` 3, the merged head's own `work.py check` 6; none depends on what else is queued, kb/Work PB3107, PB3123) and hands
   the branch to GitHub's merge queue
-  (`enqueue.py queue`: the PR titled from the DEVLOG entry, its body the entry and the commits; the queue's merge commit
+  (`enqueue.py queue`: it pushes the branch, publishes this host's passes to origin's `refs/cobol-build-store/passes`
+  (a failed publish is exit 16, STORE NOT PUBLISHED, retried once, kb/Work PB5235), and queues the PR titled from the DEVLOG entry, its body the entry and the commits; the queue's merge commit
   keeps the branch's commits ancestors of main). Main takes only queued pull requests, so while `ruleset.py check` does
   not report the queue ACTIVE it refuses before merging or gating anything. Every run ends on one `=== ENQUEUE: ` line:
   run it in the background and block on that line. Exits: 4 conflict (before or after the gate) · 5 a gate not GREEN ·

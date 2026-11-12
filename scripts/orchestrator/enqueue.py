@@ -109,8 +109,11 @@ Every outcome ends on ONE line `=== ENQUEUE: <OUTCOME> … ===` for a caller to 
      it in; exit 2 otherwise).
   3. `checks` (below) on origin/main..HEAD.
   4. Push HEAD to the branch of the same name on origin (forced: the branch is this landing's own and moves on a
-     rebase), reuse the branch's open pull request or open one (`gh pr create`), and queue it (`gh pr merge --auto`; the
-     merge method is the queue's own, MERGE, so the branch's commits stay ancestors of main).
+     rebase), then PUBLISH THIS HOST'S PASSES to origin's `refs/cobol-build-store/passes` (`buildgraph.publish`, kb/Work
+     PB5235: the merge group's plan runs on Windows only the targets with no pass at the merged tree's key; a publish
+     that fails is exit 16, STORE NOT PUBLISHED, with no pull request opened), then reuse the branch's open pull request
+     or open one (`gh pr create`), and queue it (`gh pr merge --auto`; the merge method is the queue's own, MERGE, so the
+     branch's commits stay ancestors of main).
   5. Print `ENQUEUED pr=<n> sha=<sha> branch=<branch> url=<url>`, write the landing's measurement record (kb/Work
      PB3028, landing_measure.py: each carried change's DONE from git (landing_measure.done_times), enqueued now, the
      worktree's local gate seconds;
@@ -177,6 +180,7 @@ from typing import Callable, NamedTuple
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
+import buildgraph  # noqa: E402  (scripts/: the build store and its transport to CI, kb/Work PB5235)
 import abi_pin  # noqa: E402  (scripts/: the ABI pin's Failure, the class a merge that could not be completed carries, kb/Work PB3673)
 import coord  # noqa: E402
 import devlog  # noqa: E402  (scripts/: the one definition of a landing's new entry, its pending entries and its stamp)
@@ -197,6 +201,7 @@ EXIT_GATE_BUSY = 12   # a gate of the worktree is running (it holds its gate loc
 EXIT_LAND_BUSY = 13   # another `land` of this branch holds the worktree's land lock: nothing ran, nothing is red (PB3310)
 EXIT_UNTESTED = 14    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
 EXIT_PREDECESSOR_QUEUED = 15   # the branch carries a stamped DEVLOG entry of a still-open pull request: nothing is wrong, main will have it (kb/Work PB3145)
+EXIT_STORE_UNPUBLISHED = 16   # the branch is pushed but this host's passes could not be published to the store ref: no pull request is opened (kb/Work PB5235)
 #: THE LAND LOCK (kb/Work PB3310): `<worktree git dir>/cobol-land.lock`, an exclusive OS lock (gate_slot.ExclusiveLock,
 #: freed when its holder dies, so a dead run never blocks a branch) that one `land` of a branch holds from before its first
 #: read to its outcome line. A branch is checked out in exactly one worktree, so the worktree's lock IS the branch's. Two
@@ -250,6 +255,14 @@ CHECKS = (Check("devlog.py check", ("devlog.py", "check"), 6),
 Say = Callable[[str], None]
 Gh = Callable[[list[str]], tuple[int, str, str]]
 Measure = Callable[[str, int], None]   # (branch, pull-request number): write the landing's record (kb/Work PB3028)
+Publish = Callable[[pathlib.Path, "Say"], None]   # (worktree, say): publish this host's passes to the store ref, or raise
+
+
+def publish_passes(cwd: pathlib.Path, say: Say) -> None:
+    """THE LANDING PUBLISHES ITS PASSES (kb/Work PB5235; DESIGN-test-build-ci.md section 3.14.14): every pass this host's
+    store holds goes to origin's `refs/cobol-build-store/passes`, where the merge group's plan (scripts/ci_plan.py) reads
+    the pass of each target at the merged tree's key. Raises when it cannot."""
+    buildgraph.publish(cwd, buildgraph.Store.for_repo(cwd), "origin", say=say)
 
 
 def run_checks(rev: str, base: str, run: Callable[[Check, list[str]], int], say: Say = print) -> int:
@@ -300,7 +313,7 @@ def measure_landing(cwd: pathlib.Path, branch: str, pr: int, changes: int | None
 
 def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Callable[[], tuple[str, str]],
           checks: Callable[[str, str], int], measure: Measure | None = None, dry_run: bool = False,
-          say: Say = print) -> int:
+          publish: Publish = publish_passes, say: Say = print) -> int:
     # 1. THE GUARD — before every other step, so a refusal has pushed and opened nothing.
     st, detail = state()
     if st != ruleset.ACTIVE:
@@ -344,13 +357,23 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
         return rc
     # 4. Push, open (or reuse), queue.
     if dry_run:
-        say(f"enqueue (dry run): would push {sha[:12]} to origin/{branch}, open or reuse its pull request into main "
-            f"titled {title!r}, and queue it with `gh pr merge --auto`.")
+        say(f"enqueue (dry run): would push {sha[:12]} to origin/{branch}, publish this host's passes to origin's "
+            f"{buildgraph.STORE_REF}, open or reuse its pull request into main titled {title!r}, and queue it with "
+            "`gh pr merge --auto`.")
         return 0
     p = _git(cwd, "push", "--quiet", "--force", "origin", f"{sha}:refs/heads/{branch}")
     if p.returncode != 0:
         say(f"⛔ enqueue: could not push {branch} (git exit {p.returncode}): {p.stderr.strip()} — main untouched.")
         return EXIT_GITHUB
+    # The passes, before the pull request: the merge group's plan reads them once the pull request is queued, and a
+    # merge group that finds none runs every target, so a publish that fails is a named stop, never a silent one.
+    try:
+        publish(cwd, say)
+    except Exception as e:  # noqa: BLE001  — every cause is named, and the landing stops
+        say(f"⛔ enqueue: STORE NOT PUBLISHED — {branch} is pushed, but this host's passes could not be published to "
+            f"origin's {buildgraph.STORE_REF} ({type(e).__name__}: {str(e).strip() or 'no message'}). No pull request "
+            "was opened or queued; re-run once `python scripts/buildgraph.py publish` succeeds.")
+        return EXIT_STORE_UNPUBLISHED
     rc, out, err = gh(["pr", "list", "--head", branch, "--base", "main", "--state", "open",
                        "--json", "number,url", "--jq", ".[0] | select(.) | \"\\(.number) \\(.url)\""])
     if rc != 0:
@@ -1028,6 +1051,22 @@ def self_test() -> int:
                [c for c, _ in codes] == [6, 7, 3] and all(not log for _, log in codes)
                and "land-train" not in scratch.git("ls-remote", "--heads", "origin"), str(codes))
 
+        def broken_publish(cwd: pathlib.Path, say: Say) -> None:
+            raise RuntimeError("the lease was lost 3 times")
+        log = []
+        rc_unpublished = queue(wt, "T", str(body), gh=fake_gh([], log), state=active, checks=passing,
+                               publish=broken_publish, say=lines.append)
+        expect("a publish of the passes that fails is exit 16, STORE NOT PUBLISHED, naming its cause, with the branch "
+               "pushed and no pull request listed, opened or queued (kb/Work PB5235)",
+               rc_unpublished == EXIT_STORE_UNPUBLISHED and log == []
+               and "STORE NOT PUBLISHED" in lines[-1] and "the lease was lost 3 times" in lines[-1]
+               and scratch.git("ls-remote", "origin", "refs/heads/land-train").split()[:1] == [scratch.git("rev-parse", "HEAD")],
+               f"rc={rc_unpublished} log={log} last={lines[-1:]}")
+
+        planted_key = "5" * 64
+        buildgraph.Store.for_repo(wt).record("unit", planted_key, {
+            "assembly": "Unit", "facets": {"platform": "windows"}, "run": "000001", "head": "a" * 40, "tree": "b" * 40,
+            "when": f"{dt.datetime.now(dt.timezone.utc):%Y-%m-%dT%H:%M:%SZ}", "counts": {"ran": 1}})
         prs: list[str] = []
         log = []
         rc = queue(wt, "Train 9: subject", str(body), gh=fake_gh(prs, log), state=active, checks=passing,
@@ -1035,10 +1074,13 @@ def self_test() -> int:
         head = scratch.git("rev-parse", "HEAD")
         pushed = scratch.git("ls-remote", "origin", "refs/heads/land-train").split()[:1]
         verbs = [a[:2] for a in log]
-        expect("an ACTIVE queue pushes the branch, opens one pull request and queues it with --auto",
+        published_ref = buildgraph.fetch_published(wt, "origin")
+        expect("an ACTIVE queue pushes the branch, opens one pull request and queues it with --auto, having published "
+               "this host's passes to origin's store ref between the push and the pull request (kb/Work PB5235)",
                rc == 0 and pushed == [head] and verbs == [["pr", "list"], ["pr", "create"], ["pr", "merge"]]
-               and log[2] == ["pr", "merge", "17", "--auto"] and lines[-1].startswith("ENQUEUED pr=17 sha=" + head),
-               f"rc={rc} pushed={pushed} log={log} last={lines[-1:]}")
+               and log[2] == ["pr", "merge", "17", "--auto"] and lines[-1].startswith("ENQUEUED pr=17 sha=" + head)
+               and published_ref.lookup("unit", planted_key) is not None,
+               f"rc={rc} pushed={pushed} log={log} last={lines[-1:]} published={sorted(published_ref.records)}")
 
         (wt / "a.txt").write_text("three", encoding="utf-8", newline="\n")
         scratch.git("commit", "--quiet", "--amend", "-am", "the landing, rebased")   # the branch moves: a forced push

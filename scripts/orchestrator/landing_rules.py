@@ -273,6 +273,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'the queue not ACTIVE (ABSENT, DRIFT or SKIPPED) refuses with exit 8 before anything is checked, pushed or '
             'opened',
         "a landing check's refusal stops the queue with its own exit code and opens nothing",
+        'a publish of the passes that fails is exit 16, STORE NOT PUBLISHED',   # kb/Work PB5235
         'an ACTIVE queue pushes the branch, opens one pull request and queues it with --auto',
         "a re-run reuses the branch's open pull request, moves its head and queues it again",
         "GitHub's refusal of the pull request list, the pull request or the queue is exit 9, never 0",

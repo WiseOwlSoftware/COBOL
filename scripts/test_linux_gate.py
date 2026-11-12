@@ -19,9 +19,13 @@ the FACTS of its text against the workflows, which a shell self-test cannot read
     (gate.py, enqueue.py, land_lane.py, build-local.{ps1,sh}) starts linux-gate.sh, the driver has no Linux leg and no
     `--plan-leg`, and linux-gate.sh has no mode but its legs.
   THE HARNESS LOG (kb/Work PB3108; DESIGN-test-build-ci.md §3.10): every `dotnet test` step of build-and-test.yml sets
-    WISEOWL_COBOL_HARNESS_LOG to `harness-observations.log` in its own `--results-directory`, and its job uploads that
-    file (the directory, or the file by name) through ./.github/actions/upload-results, so a CI retry or non-observation
-    can be read after the run (on a hosted runner the temp directory's file was gone with the runner).
+    WISEOWL_COBOL_HARNESS_LOG to ITS HOST'S OWN log in its own `--results-directory`, `<assembly>.observations.log`
+    (buildgraph.observation_log, the name the gate's run directory uses; its assembly is the build target whose project
+    the step tests), and its job uploads that file (the directory, or the file by name) through
+    ./.github/actions/upload-results, so a CI retry or non-observation can be read after the run (on a hosted runner the
+    temp directory's file was gone with the runner). One log per host, never one per shard: `ci_plan.py handed` reads
+    the Conformance host's own log, and a shared one made the Unit host's own generation of the suite a Conformance red
+    (kb/Work PB5235, the bounce of #1530).
 
 ⛔ WHY HERE (kb/Work PB4395 item 1): these were two C# classes in the compiler's test assembly (LinuxGateDriftTests,
 CiHarnessLogDriftTests), so a workflow or gate-script edit could only be checked by a build.
@@ -33,6 +37,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import buildgraph  # noqa: E402  (scripts/: the targets, and the one name of a host's observation log)
 import ci_workflow  # noqa: E402  (scripts/: the one reader of a workflow's shape)
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -41,7 +46,6 @@ SCRIPTS = REPO / "scripts"
 WORKFLOWS = REPO / ".github" / "workflows"
 GATE = SCRIPTS / "linux-gate.sh"
 UPLOAD_ACTION = "./.github/actions/upload-results"
-LOG_NAME = "harness-observations.log"
 #: The scripts that start a gate or a landing: none may start the Linux tool.
 CALLERS = ("gate.py", "orchestrator/enqueue.py", "orchestrator/land_lane.py", "build-local.ps1", "build-local.sh")
 
@@ -125,10 +129,6 @@ def caller_offenders(callers: dict[str, str], driver: str, gate: str) -> list[st
 
 # ── THE HARNESS LOG ───────────────────────────────────────────────────────────────────────────────────────────────
 
-#: A path as the workflow spells it: a run of non-blank characters and `${{ … }}` expressions, which hold blanks.
-WORKFLOW_PATH = r"((?:\$\{\{[^}]*\}\}|[^\s$])+)"
-RESULTS_DIRECTORY = re.compile(r"--results-directory\s+" + WORKFLOW_PATH)
-HARNESS_LOG = re.compile(r"^\s*WISEOWL_COBOL_HARNESS_LOG:\s*\$\{\{\s*github\.workspace\s*\}\}/" + WORKFLOW_PATH + r"\s*$")
 
 
 def upload_paths(job: ci_workflow.Job) -> list[str]:
@@ -153,10 +153,11 @@ def upload_paths(job: ci_workflow.Job) -> list[str]:
     return out
 
 
-def harness_log_offenders(workflow: str) -> tuple[int, list[str]]:
-    """(the `dotnet test` steps, those whose harness log is not written into their results directory or not
-    uploaded)."""
+def harness_log_offenders(workflow: str, graph: buildgraph.Graph) -> tuple[int, list[str]]:
+    """(the `dotnet test` steps, those whose harness log is not their host's own in their results directory, or is not
+    uploaded). The host is the test target of `graph` whose project the step tests."""
     seen, out = 0, []
+    assembly = {t.project.rstrip("/"): t.assembly for t in graph.by_assembly().values()}
     for job in ci_workflow.jobs(workflow):
         uploaded = upload_paths(job)
         for step in job.steps:
@@ -165,16 +166,21 @@ def harness_log_offenders(workflow: str) -> tuple[int, list[str]]:
                 continue
             seen += 1
             name = step.lines[0].strip()
-            results = next((m[1] for m in map(RESULTS_DIRECTORY.search, code) if m), None)
-            log = next((m[1] for m in map(HARNESS_LOG.search, code) if m), None)
+            results = next((m[1] for m in map(ci_workflow.RESULTS_DIRECTORY.search, code) if m), None)
+            log = next((m[1] for m in map(ci_workflow.HARNESS_LOG.search, code) if m), None)
+            project = next((m[1] for m in map(DOTNET_TEST_PROJECT.search, code) if m), "")
+            asm = assembly.get(str(Path(project).parent.as_posix()))
+            want = buildgraph.observation_log(Path(results), asm).as_posix() if results and asm else None
             if results is None:
                 out.append(f"  {name}: names no --results-directory")
+            elif asm is None:
+                out.append(f"  {name}: tests {project or 'no project'}, which no build target's project names")
             elif log is None:
                 out.append(f"  {name}: sets no WISEOWL_COBOL_HARNESS_LOG")
-            elif log != f"{results}/{LOG_NAME}":
-                out.append(f"  {name}: WISEOWL_COBOL_HARNESS_LOG is {log}, not {results}/{LOG_NAME}")
-            elif f"{results}/" not in uploaded and f"{results}/{LOG_NAME}" not in uploaded:
-                out.append(f"  {name}: its job uploads neither {results}/ nor {results}/{LOG_NAME}")
+            elif log != want:
+                out.append(f"  {name}: WISEOWL_COBOL_HARNESS_LOG is {log}, not its host's own {want}")
+            elif f"{results}/" not in uploaded and want not in uploaded:
+                out.append(f"  {name}: its job uploads neither {results}/ nor {want}")
     return seen, out
 
 
@@ -211,14 +217,14 @@ PLANTED_LOG = """jobs:
     steps:
       - name: tests
         env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/x/harness-observations.log
-        run: dotnet test p.csproj --results-directory TestResults/x
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/x/Unit.observations.log
+        run: dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --results-directory TestResults/x
       - name: Upload
         uses: ./.github/actions/upload-results
         with:
           path: |
             TestResults/x/*.trx
-            TestResults/x/harness-observations.log
+            TestResults/x/Unit.observations.log
 """
 
 
@@ -259,20 +265,24 @@ def main() -> int:
                ({"gate.py": 'subprocess.run(["bash", "scripts/linux-gate.sh"])\n'}, "", g),
                (callers, "class LinuxLeg:\n", g), (callers, "", g + "  --probe) probe ;;\n"))], [1, 1, 1, 1])
 
-    log = PLANTED_LOG
-    expect("a test step that writes its log into its results directory, which its job uploads, is clean",
-           harness_log_offenders(log), (1, []))
-    expect("a step with no log, a log in another directory and a log not uploaded are each an offender",
-           [n(harness_log_offenders(x)) for x in (
-               log.replace("WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/x/harness-observations.log",
+    log, targets = PLANTED_LOG, buildgraph.load_targets(SCRIPTS / "build_targets.json")
+    expect("a test step that writes its host's own log into its results directory, which its job uploads, is clean",
+           harness_log_offenders(log, targets), (1, []))
+    expect("a step with no log, a log in another directory, a log not uploaded, the shard's one shared log (the bounce "
+           "of #1530) and a project no build target names are each an offender",
+           [n(harness_log_offenders(x, targets)) for x in (
+               log.replace("WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/x/Unit.observations.log",
                            "OTHER: x"),
-               log.replace("/TestResults/x/harness-observations.log", "/TestResults/y/harness-observations.log"),
-               log.replace("\n            TestResults/x/harness-observations.log", ""))], [(1, 1), (1, 1), (1, 1)])
+               log.replace("/TestResults/x/Unit.observations.log", "/TestResults/y/Unit.observations.log"),
+               log.replace("\n            TestResults/x/Unit.observations.log", ""),
+               log.replace("/TestResults/x/Unit.observations.log", "/TestResults/x/harness-observations.log"),
+               log.replace("tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj", "tests/P/P.csproj"))],
+           [(1, 1)] * 5)
     expect("an upload of the whole results directory carries the log", harness_log_offenders(log.replace(
-        "path: |\n            TestResults/x/*.trx\n            TestResults/x/harness-observations.log",
-        "path: TestResults/x/")), (1, []))
+        "path: |\n            TestResults/x/*.trx\n            TestResults/x/Unit.observations.log",
+        "path: TestResults/x/"), targets), (1, []))
     expect("a step with no results directory is an offender",
-           n(harness_log_offenders(log.replace(" --results-directory TestResults/x", ""))), (1, 1))
+           n(harness_log_offenders(log.replace(" --results-directory TestResults/x", ""), targets)), (1, 1))
 
     # The real tree. A reader that read nothing is a failure, never a clean tree.
     gate = _read(GATE)
@@ -285,8 +295,8 @@ def main() -> int:
     expect("linux-gate.sh reads the tree with the tree's own git and never refreshes its index", wgit_offenders(gate), [])
     expect("no gate script starts linux-gate.sh, and it has no mode but its legs", caller_offenders(
         {c: _read(SCRIPTS / c) for c in CALLERS}, _read(SCRIPTS / "gate.py"), gate), [])
-    steps, bad = harness_log_offenders(build)
-    expect("every CI test step writes the harness log where its job uploads it", (steps > 0, bad), (True, []))
+    steps, bad = harness_log_offenders(build, targets)
+    expect("every CI test step writes its host's own harness log where its job uploads it", (steps > 0, bad), (True, []))
     print(f"=== LINUX GATE FACTS: {'PASS' if not fails else f'FAIL — {len(fails)}'} "
           f"({projects} Linux test project(s), {len(scripts)} Linux script(s), {steps} CI test step(s)) ===")
     return 1 if fails else 0

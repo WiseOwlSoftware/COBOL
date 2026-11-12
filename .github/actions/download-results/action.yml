@@ -5,28 +5,48 @@
 # listings), so a download that never succeeds fails the job. A TRANSIENT failure of the artifact service is not a
 # verdict, though, so a download is tried three times (30 s, then 90 s apart, into an emptied destination each time)
 # and only the third attempt's failure fails the step.
+#
+# THE LAYOUT is actions/download-artifact's: an artifact fetched by `name` is extracted directly into `path`; a
+# `pattern` puts each artifact it matches in `<path>/<artifact name>/` when it matches SEVERAL, but extracts a single
+# match flat into `path` (download-artifact's `artifacts.length === 1` rule). So a job that needs one known artifact
+# names it (`name`), and a pattern is for a set of artifacts whose consumer reads them recursively (kb/Work PB5235: the
+# shards looked for `<path>/generated-linux/` after a one-artifact pattern had extracted the suite flat).
 name: Download results
-description: Download the artifacts matching a pattern, retried; the third failed attempt fails the job.
+description: Download one named artifact, or the artifacts matching a pattern, retried; the third failed attempt fails the job.
 inputs:
+  name:
+    description: The one artifact to download, extracted directly into `path`. Exactly one of `name` and `pattern`.
+    required: false
+    default: ''
   pattern:
-    description: The glob of artifact names to download.
-    required: true
+    description: The glob of artifact names to download (several matched, each in its own subdirectory; one, flat).
+    required: false
+    default: ''
   path:
-    description: The destination directory (each artifact in its own subdirectory).
+    description: The destination directory.
     required: true
 runs:
   using: composite
   steps:
+    - shell: bash
+      env:
+        NAME: ${{ inputs.name }}
+        PATTERN: ${{ inputs.pattern }}
+      run: |
+        if { [ -n "$NAME" ] && [ -n "$PATTERN" ]; } || { [ -z "$NAME" ] && [ -z "$PATTERN" ]; }; then
+          echo "::error::download-results takes exactly one of name ('$NAME') and pattern ('$PATTERN')"; exit 1
+        fi
     - id: attempt1
       continue-on-error: true
       uses: actions/download-artifact@v8
       with:
+        name: ${{ inputs.name }}
         pattern: ${{ inputs.pattern }}
         path: ${{ inputs.path }}
     - if: ${{ !cancelled() && steps.attempt1.outcome == 'failure' }}
       shell: bash
       env:
-        PATTERN: ${{ inputs.pattern }}
+        PATTERN: ${{ inputs.name || inputs.pattern }}
         DEST: ${{ inputs.path }}
       run: echo "::warning::download of '$PATTERN' failed (attempt 1 of 3); retrying in 30 s" && rm -rf -- "$DEST" && sleep 30
     - id: attempt2
@@ -34,12 +54,13 @@ runs:
       continue-on-error: true
       uses: actions/download-artifact@v8
       with:
+        name: ${{ inputs.name }}
         pattern: ${{ inputs.pattern }}
         path: ${{ inputs.path }}
     - if: ${{ !cancelled() && steps.attempt2.outcome == 'failure' }}
       shell: bash
       env:
-        PATTERN: ${{ inputs.pattern }}
+        PATTERN: ${{ inputs.name || inputs.pattern }}
         DEST: ${{ inputs.path }}
       run: echo "::warning::download of '$PATTERN' failed (attempt 2 of 3); retrying in 90 s" && rm -rf -- "$DEST" && sleep 90
     # The last attempt carries no `continue-on-error`: its failure is the step's, and so the job's.
@@ -47,5 +68,6 @@ runs:
       if: ${{ !cancelled() && steps.attempt2.outcome == 'failure' }}
       uses: actions/download-artifact@v8
       with:
+        name: ${{ inputs.name }}
         pattern: ${{ inputs.pattern }}
         path: ${{ inputs.path }}
