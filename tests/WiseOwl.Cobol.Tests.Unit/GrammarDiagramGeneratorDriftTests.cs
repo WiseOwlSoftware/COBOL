@@ -16,8 +16,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// Requires <c>pwsh</c> and <c>java</c> on PATH (both already build prerequisites for the ANTLR generation).
 /// </summary>
 /// <remarks>
-/// The run happens under a HOSTILE temp directory (kb/Work PB5447): this test points the generator's <c>TMP</c>/<c>TEMP</c>
-/// at a directory of its own and, from this process, opens every file that appears there for read-write with
+/// The run happens under a HOSTILE temp directory (kb/Work PB5447): this test points the generator's temp directory
+/// (<c>TMP</c>/<c>TEMP</c> on Windows, <c>TMPDIR</c> on Unix; <see cref="PointTempAt"/>) at a directory of its own and, from this process, opens every file that appears there for read-write with
 /// read-write-delete sharing and holds it to the end of the run — what a real-time scanner or indexer can do to any
 /// fresh file in <c>%TEMP%</c>. A generator that hands rr's output back through a file there and re-reads it
 /// (<c>File.ReadAllText</c> asks for <c>FileShare.Read</c>, which a held write access refuses) exits 1 with "being
@@ -42,8 +42,7 @@ public sealed class GrammarDiagramGeneratorDriftTests
             UseShellExecute = false,
             WorkingDirectory = TestRepo.Root,
         };
-        psi.Environment["TMP"] = temp;  // Path.GetTempPath reads TMP first, then TEMP
-        psi.Environment["TEMP"] = temp;
+        PointTempAt(psi, temp);
 
         int exitCode;
         string stdout, stderr;
@@ -62,8 +61,19 @@ public sealed class GrammarDiagramGeneratorDriftTests
             $"STDOUT:\n{stdout}\nSTDERR:\n{stderr}");
         Assert.Contains("grammar-diagram note", stdout); // sanity: it reported a generation summary
         // The holder was live: the -Check run writes its notes under the temp directory, and each was taken and held.
-        // Zero would mean the generator ignored TMP/TEMP, and the hostile-directory half of this test proved nothing.
+        // Zero would mean the generator ignored the temp variables, and the hostile-directory half of this test proved nothing.
         Assert.True(held > 0, $"no file appeared under {temp}: the generator did not write where this test held files");
+    }
+
+    /// <summary>
+    /// Points the child's <see cref="Path.GetTempPath"/> at <paramref name="directory"/> on every platform the gate and
+    /// the merge group run. The variables it reads differ by OS: on Windows <c>GetTempPath2</c> reads <c>TMP</c>, then
+    /// <c>TEMP</c>; on Unix .NET reads <c>TMPDIR</c> alone and falls back to <c>/tmp/</c>. Setting only the Windows pair
+    /// sends a Linux run to <c>/tmp</c>, where no file is held (kb/Work PB5447 review R2-1).
+    /// </summary>
+    private static void PointTempAt(ProcessStartInfo psi, string directory)
+    {
+        foreach (string name in new[] { "TMP", "TEMP", "TMPDIR" }) psi.Environment[name] = directory;
     }
 
     /// <summary>
