@@ -1183,8 +1183,10 @@ so a Unit drift test names the arms it requires and `SelfTestArmSource.AssertDec
 string literals. A drift test that ran the self-test again did so under the test harness's fixed 120 s per-process budget and
 went red under load with every arm passing.
 
-**The case layout (kb/Work PB3726).** A converted script's self-test is a directory of case files under `scripts/selftests/`,
-found by this runner's rule (b); the layout, its collector and its drift test are DESIGN-orchestrator-loop.md §16.2.
+**The case layout (kb/Work PB3726).** A converted script's self-test is a directory of case files under `<root>/selftests/`,
+found by this runner's rule (b) and held by the layout rule the runner calls before it runs anything
+(`scripts/selftest_layout.py`, with its ratchet); the layout, its collector, the rule and the end state are
+DESIGN-orchestrator-loop.md §16.2.
 
 **5. The clock proof (kb/Work PB4358).** *The defect it removes.* PB4353's self-test planted merge-group runs dated the
 day before it was written and read them through a real 24-hour window. It passed on its branch, in its merge group and
@@ -2055,7 +2057,8 @@ demand and not committed.
   block embedded in `VERSION_CHANGE_REFERENCE.md`.
 - **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh pull request, never inside a fix
   pull request; a fix edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md`
-  becomes one source file per determination with a rendered index (DESIGN-orchestrator-loop.md §16.8, kb/Work PB3726, PB3738).
+  becomes one source file per entry under `docs/conformance/`, read by one module and rendered whole as a view
+(DESIGN-orchestrator-loop.md §16.8, kb/Work PB3726, PB5395, PB3738).
 
 #### 3.17.5 The loop's units and the fleet (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
 
