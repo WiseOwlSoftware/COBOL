@@ -300,17 +300,19 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal (ReportModel Report, ReportSumFamily Family)? SumCounterReportOf(DataItem item)
     {
         if (item is not { Level: 49, Parent: null }) return null;
-        foreach (var report in State.Reports.Declared)
+        // Every report this unit can name (ReportScope.Visible): a nested program's COBOL-85 clause may name its container's
+        // GLOBAL counter, whose place renders through the __outer chain Depth measures (PB5310 review R1-1 sweep).
+        foreach (var report in State.Reports.Visible)
             foreach (var family in report.SumFamilies)
                 if (ReferenceEquals(family.Register, item)) return (report, family);
         return null;
     }
 
-    /// <summary>The registers of this forest's non-repeating sum counters (<see cref="SumCounterPlaceOf"/>): the items a
-    /// COBOL-85 data-division clause may name besides <see cref="PlaceableItems"/> (kb/Work PB5310), so the place table holds
-    /// them too.</summary>
+    /// <summary>The registers of the non-repeating sum counters of every report this unit can name, its own and its containers'
+    /// GLOBAL ones (<see cref="ReportScope.Visible"/>, <see cref="SumCounterPlaceOf"/>): the items a COBOL-85 data-division
+    /// clause may name besides <see cref="PlaceableItems"/> (kb/Work PB5310), so the place table holds them too.</summary>
     internal IEnumerable<DataItem> SumCounterRegisters() =>
-        State.Reports.Declared.SelectMany(r => r.SumFamilies).Select(f => f.Register).Where(r => r.SubscriptArity == 0);
+        State.Reports.Visible.SelectMany(r => r.SumFamilies).Select(f => f.Register).Where(r => r.SubscriptArity == 0);
 
 
     /// <summary>The compilation group's pass-1 class symbol table (OO deep-dive D1) — set by the run-unit

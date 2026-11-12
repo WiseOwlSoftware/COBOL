@@ -4438,15 +4438,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// applies, §2023:13.8.6.2.3 ("Report items shall not be accessed or referred to by any clauses in any other section of
     /// the data division"), is ISO/IEC 1989:2002's (§2002:13.7.5.1.3) and has no 1985 counterpart. Returns the counter's
     /// register (<see cref="ReportSumFamily.Register"/>, which the place builder answers with the counter's place) when the
-    /// edition is COBOL-85 and the written reference names exactly one sum counter of a non-repeating entry, its qualifiers
-    /// walked as a procedure-division reference walks them (<see cref="CounterResolver"/>); null otherwise, leaving the caller's
-    /// own verdict. Two counters the qualifiers do not tell apart are §2023:8.4.2.2.3 SR1's ambiguity, reported here.
+    /// edition is COBOL-85 and the written reference names exactly one sum counter of a non-repeating entry, found by the ONE
+    /// lookup a procedure-division reference uses (<see cref="ReportScope.SumCountersNamed"/>: the qualifier walk, then the
+    /// nearest declaring program, §1985:X.1.3.8.2 GR3a "the object in program B is the referenced object", so a nested
+    /// program's own counter hides its container's GLOBAL one); null otherwise, leaving the caller's own verdict. Two counters
+    /// of one program the qualifiers do not tell apart are §2023:8.4.2.2.3 SR1's ambiguity, reported here.
     /// Asked only where the ordinary lookup found no data item, so a data item of the same name keeps its reference.</summary>
     internal DataItem? SumCounterOperand85(string name, IReadOnlyList<string> qualifiers, string subject)
     {
-        if (Edition.DialectLevel >= 2002 || !_scope.SumCounters.TryGetValue(name, out var homonyms)) return null;
-        var matches = homonyms.Where(h => DataBinder.QualifierWalk(h.Family.Qualification, qualifiers,
-            q => CobolNames.Same(q, h.Report.Name))).ToList();
+        if (Edition.DialectLevel >= 2002 || _scope.SumCountersNamed(name, qualifiers) is not { } matches) return null;
         if (matches.Count > 1)
         {
             Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"{subject}: the reference is ambiguous — {matches.Count} "

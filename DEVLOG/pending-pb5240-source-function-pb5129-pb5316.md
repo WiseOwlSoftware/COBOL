@@ -53,6 +53,14 @@ of a non-counter entry cites SR10d. Goldens: `XIII.3.9@1985-REPORT-GROUP-DESCRIP
 (85: `[ABC] 3`, then `[ABCDE] 5` after a GENERATE adds 2 to the counter), `13.8.6.2.3-Report-Items/pb5310-sum-counter-as-occurs-depending-object`
 (refused from 2002).
 
+Branch review round 1 (R1-1) found `SumCounterOperand85` re-deriving the sum-counter name lookup without its scope step
+(§1985:X.1.3.8.2 GR3a): a nested program's own counter KTOT and its container's GLOBAL report's KTOT were reported ambiguous
+(COBOL2145, then COBOL5092). The lookup now lives once, `ReportScope.SumCountersNamed` (qualifier walk, current-report filter,
+nearest declaring program), read by `CounterResolver.SumCounterFamilyFor` and `SumCounterOperand85`. The sweep found a sibling:
+`DataBinder.SumCounterReportOf` and `SumCounterRegisters` read only the unit's DECLARED reports, so a nested program naming its
+container's GLOBAL counter at 85 generated C# naming a field it does not have (CS0103); both now read `ReportScope.Visible`.
+Goldens: `pb5310_nested_sum_counter_hides_global` and `pb5310_nested_global_sum_counter_odo_object` (85: `[ABCD]` then `[AB]`).
+
 ### Gate reds of the first gate (000001), fixed at the root
 
 `EditionGateArmDriftTests`: report-source-expression-2002 now fires from the parse arm (expressions) and the bound arm (a

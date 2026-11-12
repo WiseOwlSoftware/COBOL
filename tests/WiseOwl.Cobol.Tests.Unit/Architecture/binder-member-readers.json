@@ -584,7 +584,6 @@
       "WiseOwl.Cobol.Binding.ReferenceResolver"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::QualifierWalk": [
-      "WiseOwl.Cobol.Binding.CounterResolver",
       "WiseOwl.Cobol.Binding.ReportScope",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
