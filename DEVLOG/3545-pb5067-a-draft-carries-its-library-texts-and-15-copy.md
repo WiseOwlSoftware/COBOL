@@ -1,4 +1,4 @@
-## PB5067: a draft carries its library texts, and 15 COPY witnesses of 1985 are placed
+## Entry 3545 — 2026-11-12 14:11 PST — PB5067: a draft carries its library texts, and 15 COPY witnesses of 1985 are placed
 
 **What was wrong.** A draft of the 1985 audit had no place for the library texts its COPY statements name. `run_drafts.py` wrote every test with `"files": []`, so each of the 15 COPY drafts of PB4995's triage ran MISMATCH with "copybook not found". `place_witnesses.py` skipped any draft whose program held a COPY, a guess read from the program text. That guess also skipped `1985-SR-XII.2.3-10`, whose only COPY lies in an AUTHOR comment-entry. The harness staged a declared file flat, so a text in a library folder lost its library. The in-process runner keeps the folder.
 
@@ -17,3 +17,4 @@
 - 1 skipped (`1985-SR-IV.4.3.8.1-L2.7`, a library folder).
 
 The five warning-only refusals (the four USE statements' GR2 and `1985-SR-XV.3.2.3-2`) are no under-rejections: "The results of violating the formats or rules of Standard COBOL are undefined unless otherwise specified" (§1985:I.1.6). A 1985 compiler may accept them with WiseOwl's warning. Their witness is a flagged test, which waits for the clause pass, so they are held. kb/Work/PB4995/2026-11-12-drafts-85n.md has the counts.
+
