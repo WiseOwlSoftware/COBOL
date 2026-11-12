@@ -1,4 +1,4 @@
-## PB5240 the report SOURCE site, PB5129, PB5316 and PB5310: four 1985 edition edges of identifier-1, the report entry formats and the sum counter reference
+## Entry 3520 — 2026-11-11 18:32 PST — PB5240 the report SOURCE site, PB5129, PB5316 and PB5310: four 1985 edition edges of identifier-1, the report entry formats and the sum counter reference
 
 ### PB5240: a function-identifier is SOURCE identifier-1
 
@@ -74,3 +74,4 @@ Self-review: `SoleOperand.TemporaryIdentifier` overlaps `ConditionBinder.SoleOoI
 one pattern test. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance up to date (run 000002-20261112T014116Z of
 wf_16f7f780-4b5-2, 24,170 cases) · Unit 40,773/40,773 ran · Characterization up to date (run 000002-20261112T014116Z of
 wf_16f7f780-4b5-2, 37 cases) (skipped 0) … (1 class(es) first; run 000003-20261112T015254Z) ===`.
+
