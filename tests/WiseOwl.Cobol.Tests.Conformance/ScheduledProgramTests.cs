@@ -96,7 +96,7 @@ public sealed class ScheduledProgramTests
 
     /// <summary>§1985:XIV.2.2.4 GR25: the first RECEIVE referencing the INITIAL input-output CD of a scheduled program returns the message that caused the scheduling: terminal T1's head message, never T2's, with
     /// the terminal name in data-name-3 and status 00. GR30: the program then changes data-name-3 to T2, and the next RECEIVE is unsuccessful with status 21 ("Symbolic source is unknown. No action taken.",
-    /// the status table of §1985:XIV.2.2.4) and delivers nothing; restoring T1 makes the statement succeed again and return T1's next message.</summary>
+    /// the status table of §1985:XIV.2.2.5) and delivers nothing; restoring T1 makes the statement succeed again and return T1's next message.</summary>
     [Fact]
     public void TheScheduledProgram_FirstReceiveReturnsTheSchedulingMessage_AndAChangedTerminalMakesTheStatementUnsuccessful()
     {
