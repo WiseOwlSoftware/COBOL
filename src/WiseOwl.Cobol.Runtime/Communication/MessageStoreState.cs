@@ -82,16 +82,22 @@ internal sealed class MessageStoreState
 {
     private readonly MessageDefinitions _definitions;
     private readonly McsTables? _tables;
+    private readonly ulong _runUnit;
+    private readonly Func<ulong, bool> _ownerIsAlive;
     private readonly List<(string Device, StoredMessage Message)> _transmissions = [];
 
-    internal MessageStoreState(MessageDefinitions definitions, McsTables? tables)
+    /// <param name="runUnit">The run unit this statement is for: the owner of the partly received messages it records.</param>
+    /// <param name="ownerIsAlive">Whether another run unit's session is alive (<see cref="McsStore"/>'s liveness byte); a partly received message whose owner is not is dropped.</param>
+    internal MessageStoreState(MessageDefinitions definitions, McsTables? tables, ulong runUnit, Func<ulong, bool> ownerIsAlive)
     {
         _definitions = definitions;
         _tables = tables;
+        _runUnit = runUnit;
+        _ownerIsAlive = ownerIsAlive;
     }
 
     /// <summary>The state of an MCS nobody defined: every symbolic name is unknown, so no finder reaches a table.</summary>
-    internal static MessageStoreState Undefined() => new(MessageDefinitions.None, tables: null);
+    internal static MessageStoreState Undefined() => new(MessageDefinitions.None, tables: null, runUnit: 0, ownerIsAlive: _ => false);
 
     /// <summary>A.1.2.3 GR5 (<see cref="MessageDefinitions.FindQueue"/>): the queue the path designates. Null when the structure is unknown to the MCS.</summary>
     internal QueueNode? FindQueue(string[] path) => _definitions.FindQueue(path) is { } queue ? new QueueNode(queue, _tables!) : null;
@@ -158,10 +164,42 @@ internal sealed class MessageStoreState
     internal (string[] Path, StoredMessage Message)? TakeFromQueue(string[] path) =>
         _definitions.FindQueue(path) is { } queue ? _tables!.TakeQueueMessage(queue.Path) : null;
 
-    /// <summary>§1985:XIV.3.3.4 GR4: ENABLE I-O TERMINAL activates the logical path between the terminal and the program, and
-    /// DISABLE I-O TERMINAL deactivates it (§1985:XIV.3.2.4 GR5): a disabled terminal gives a RECEIVE no message, which stays queued for the ENABLE.</summary>
+    /// <summary>Whether <paramref name="level"/>, the queue level a message was found at, lies in the queue structure <paramref name="specified"/> designates: "If less than all the
+    /// levels of the queue hierarchy are specified, the MCS determines the next message" (A.1.2.3 GR5), so the specified levels (up to the first blank one) are a prefix.</summary>
+    internal static bool LevelIsUnder(string[] level, string[] specified)
+    {
+        for (int at = 0; at < specified.Length && specified[at].Length > 0; at++)
+            if (at >= level.Length || !string.Equals(specified[at], level[at], StringComparison.Ordinal))
+                return false;
+        return true;
+    }
+
+    /// <summary>A RECEIVE of the run unit has taken the message numbered <paramref name="serial"/> from the queue at <paramref name="level"/> and returned only its first portion. The
+    /// message leaves <c>QueueMessages</c> but "exists in the queue structure" until its last portion is returned (§1985:XIV.3.1.4 GR1), to every run unit's ACCEPT MESSAGE COUNT.</summary>
+    internal void BeginPartialReceive(ulong serial, string[] level) => _tables!.PutPartialReceive(_runUnit, serial, level);
+
+    /// <summary>The last portion of the message numbered <paramref name="serial"/> was returned: it no longer exists in the queue structure.</summary>
+    internal void EndPartialReceive(ulong serial) => _tables!.DeletePartialReceive(_runUnit, serial);
+
+    /// <summary>The messages partly received, by any live run unit, from the queue structure <paramref name="specified"/> designates (§1985:XIV.3.1.4 GR1). A run unit that is gone took
+    /// its remainders with it (§1985:VI.6.24.4 GR3: STOP RUN removes "any message partially received by that run unit" from the queue; ISO/IEC 1989:2002 14.5.10 rule 2 for the
+    /// abnormal end alike), so its rows are dropped here, where they are found, and never counted.</summary>
+    internal int PartlyReceivedFrom(string[] specified)
+    {
+        int count = 0;
+        foreach (var (owner, serial, level) in _tables!.PartialReceives())
+        {
+            if (owner != _runUnit && !_ownerIsAlive(owner)) _tables.DeletePartialReceive(owner, serial);
+            else if (LevelIsUnder(level, specified)) count++;
+        }
+        return count;
+    }
+
+    /// <summary>The next message the terminal holds, removed. Whether the terminal is enabled is not asked here: DISABLE I-O TERMINAL deactivates the terminal's link to the MCS
+    /// (§1985:XIV.3.2.4 GR5), while "the logical path for the transfer of data between the COBOL programs and the MCS is not affected by the DISABLE statement" (§1985:XIV.3.2.4 GR1),
+    /// so a message the MCS already holds is still the program's to receive. Where a disabled terminal acts is where its input enters the MCS (<see cref="Deliver"/>).</summary>
     internal (string[] Path, StoredMessage Message)? TakeFromTerminal(string name) =>
-        FindTerminal(name) is { Enabled: true } && _tables!.TakeTerminalMessage(name) is { } message ? ([name], message) : null;
+        FindTerminal(name) is not null && _tables!.TakeTerminalMessage(name) is { } message ? ([name], message) : null;
 
     internal void TransmitLater(string device, StoredMessage message) => _transmissions.Add((device, message));
 
@@ -182,8 +220,11 @@ internal sealed class MessageStoreState
             }
             else if (target.StartsWith(MessageDefinitions.TerminalTarget, StringComparison.Ordinal))
             {
+                // §1985:XIV.3.3.4 GR4: until ENABLE I-O TERMINAL activates the path between the terminal and the program, a message bound for the terminal stays in the output queue.
+                string terminal = target[MessageDefinitions.TerminalTarget.Length..];
+                if (FindTerminal(terminal) is { Enabled: false }) continue;
                 foreach (var message in _tables.TakeOutbound(definition.Name))
-                    _tables.AddTerminalMessage(target[MessageDefinitions.TerminalTarget.Length..], message.From(definition.SourceName));
+                    _tables.AddTerminalMessage(terminal, message.From(definition.SourceName));
             }
             else if (_definitions.FindQueue(target.Split('/')) is { } queue && PathOpen(definition.SourceName, queue))
             {

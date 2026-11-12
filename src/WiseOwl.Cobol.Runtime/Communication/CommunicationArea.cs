@@ -52,8 +52,19 @@ internal sealed class CommunicationArea(string image)
         SetText(at + 6, 8, time);
         if (format is CommunicationFormat.Input) SetText(62, NameLength, source);
         SetTextLength(format, length);
-        _chars[format is CommunicationFormat.Input ? 78 : 30] = endKey;
+        SetEndKey(format, endKey);
     }
+
+    /// <summary>A RECEIVE that transfers no message: the end key is set to 0 when "less than a message is transferred" (§1985:XIV.2.2.4 GR12 a 3, and GR12 b 4 for a segment),
+    /// and the CD's items "are appropriately updated by the message control system (MCS) at each execution of a RECEIVE statement" (§1985:XIV.3.5.4 GR6), so the end key does not keep
+    /// the previous RECEIVE's value. The text length is 0 too: nothing was transferred.</summary>
+    internal void SetNothingReceived(CommunicationFormat format)
+    {
+        SetTextLength(format, 0);
+        SetEndKey(format, '0');
+    }
+
+    private void SetEndKey(CommunicationFormat format, char endKey) => _chars[format is CommunicationFormat.Input ? 78 : 30] = endKey;
 
     /// <summary>GR2 h, GR16 b, GR24 d: the text length, whose written value the SEND statement reads and whose filled count the
     /// RECEIVE statement writes. Null when it is no unsigned integer, which no size can admit.</summary>
