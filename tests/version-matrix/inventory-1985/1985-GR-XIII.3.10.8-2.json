@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.3.10.8-2",
  "rule-digest": "af2c870293cc",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#LowerLimit; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody",
  "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_8-2",
+ "notes": "§1985:XIII.3.10.8 GR2: a control heading or detail ends by 'the line number specified by the LAST DETAIL phrase', a control footing by 'the line number specified by the FOOTING phrase' (also §1985:XIII.3.8.4 GR1 d/e). For 1985 source this holds: with no LAST CONTROL HEADING phrase BindReportDescriptionClauses sets LastControlHeading equal to LAST DETAIL in every default case, GroupLimits gives CH/DE/CF (FD, LCH|LD|FOOTING), ScreenReportGroupLines refuses (COBOL2199) an absolute line past them, and the runtime fit test (PresentBody against LowerLimit) uses the same integers. Probes at 85: CH 13/DE 13 with LD 12 and CF 17 with FOOTING 16 refused; CF at 16 and CH at 12 accepted and printed there; relative CF PLUS 2 printed on line 14 (past LD, within FOOTING) while the next CH PLUS 1 (trial 15 > LD 12) advanced the page; LD omitted gives LD = FOOTING. Missing part: the 2002 LAST CONTROL HEADING phrase is accepted at --std 85 and then sets the CH limit apart from LAST DETAIL. kb/Work PB5242 holds the defect (code read: coderead-85/out-pipe/slice-51.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

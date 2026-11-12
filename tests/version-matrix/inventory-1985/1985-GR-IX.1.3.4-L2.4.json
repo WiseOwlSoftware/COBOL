@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.1.3.4-L2.4",
  "rule-digest": "0961f411bcbe",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
  "test-ref": "conformance:cases/IX.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-IX_1_3_4-L2_4",
+ "notes": "Status 38 is owed for an OPEN of a FILE closed with lock, and II.2 fixes 'file' as the physical file regardless of the file-name. Two indexed SELECTs assigned to the same name are one physical file in this runtime (a record written through F1 is read through F2). After CLOSE F1 WITH LOCK, OPEN INPUT F1 gives 38 but OPEN INPUT F2 gives 00 and READ F2 returns AAAA: the lock is kept per file connector. Statuses 30, 35, 37 and 39 held. kb/Work PB5210 holds the defect (code read: held-85/set2/decisions.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

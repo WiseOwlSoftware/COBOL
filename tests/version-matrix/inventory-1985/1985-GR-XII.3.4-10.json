@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XII.3.4-10",
  "rule-digest": "dda56d297364",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#Run; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-GR-XII_3_4-10",
+ "notes": "GR10's first sentence directs the implementor to place inserted words according to the rules for reference format, and GR11 (introduced lines, and the continuation lines the compiler must itself introduce for a long literal) shows the placement is the compiler's active job, not a freezing of each word at the matched text's column. In RA3 pseudo-text-2 puts P2 on its own line, so the resultant program has an introduced line on which P2 can and must be placed in area A, and GR9 judges syntax only on that resultant text. The compiler instead maps each inserted token to the matched XXX (line 9, column 12) and refuses the legal program with COBOL3734 (it runs at 2002: A B D C). The second sentence (no added spaces) holds (RA6 and the reader's probes a-f). RA5 (a single-word P2. replacing XXX written in area B, no line introduced) is the arguable case; moving P2 left adds no space, so it is likely legal too, but this verdict rests on RA3. kb/Work PB5313 holds the defect (code read: held-85/set3/decisions.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.3.19.2",
  "rule-digest": "009354e008b2",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumGroup; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumReset; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportValueOperand; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindSumClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumAddendRef; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveSumAddend",
  "test-ref": "conformance:cases/XIII.3.19@1985-SUM-CLAUSE/1985-FMT-XIII_3_19_2",
+ "notes": "§1985:XIII.3.19.2 prints '{ SUM { identifier-1 } … [ UPON { data-name-1 } … ] } … [ RESET ON { data-name-2 | FINAL } ]', identifier-1 referencing a numeric data item (§1985:XIII.3.19.3 SR1): no OF word, no arithmetic-expression or literal addend, no ROUNDED phrase. reportSumGroup/reportSumClause parse the 2023 superset ('SUM OF', reportValueOperand = arithmetic-expression, roundedPhrase) and BindSumClause/SumAddendRef/ResolveSumAddend bind it with no edition arm, and VersionConformancePass has no SUM visitor (VisitReportSourceClause gates the same operand only for SOURCE), so at 85 SUM OF WS-A, SUM WS-A + 1, SUM (WS-A), SUM 5, SUM ZERO, SUM FUNCTION LENGTH(WS-T) and SUM WS-A ROUNDED compile and run. The 1985 forms conform: probes at 85 with two DTL and one DT2 GENERATE: SUM WS-A -00036, SUM WS-A WS-B / 'WS-A, WS-B' -00015, UPON DTL -00024, UPON DTL DT2 00021, a repeated SUM group -00017, RESET ON FINAL -00036, a same-group crossfoot -00015, -ZZ,ZZ9 '-    36', X(4) subject '0021', S9V99 '-003.75', 17-digit addend into 18-digit counter; bare SUM, 'SUM UPON DTL' (the witness), empty UPON and RESET ON COBOL0001, alphanumeric addend COBOL2045, alphabetic subject COBOL2750. kb/Work PB5242 holds the defect (code read: coderead-85/out-pipe/slice-49.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

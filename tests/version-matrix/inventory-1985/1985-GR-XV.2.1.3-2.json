@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.2.1.3-2",
  "rule-digest": "2241f7b70241",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeclarativeSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
  "test-ref": "conformance:cases/XV.2.1@1985-WITH-DEBUGGING-MODE-CLAUSE/1985-GR-XV_2_1_3-2",
+ "notes": "§1985:XV.2.1.3 GR2: without WITH DEBUGGING MODE \"any USE FOR DEBUGGING statements and all associated debugging sections are compiled as if they were comment lines\". The comment treatment is applied AFTER parsing: ProcedureTableBuilder.DeclCollectSection returns before binding a debugging section when DebuggingModeDeclared is false, and VersionConformancePass.VisitDeclarativeSection visits only the USE statement, so a well-formed body's semantics are ignored (probes: an undefined name, DEBUG-* references, an undefined procedure subject, GO TO a nondeclarative paragraph and a paragraph-name reused outside all compile, and no section runs; EXHIBIT NAMED and READY TRACE parse). But the section's text still has to parse: a body line that is not COBOL syntax is refused, though comment lines may hold any text. Witness: a well-formed section that must not run. kb/Work PB5291 holds the defect (code read: coderead-85/out-pipe/slice-67.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

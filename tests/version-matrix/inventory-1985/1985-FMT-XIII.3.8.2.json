@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.3.8.2",
  "rule-digest": "50a92f5b9428",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageSubclause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#PagePhraseOf",
  "test-ref": "conformance:cases/XIII.3.8@1985-PAGE-CLAUSE/1985-FMT-XIII_3_8_2",
+ "notes": "§1985:XIII.3.8.2 (rendered PDF p599) is `PAGE [LIMIT IS | LIMITS ARE] integer-1 [LINE | LINES] [HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]`, phrases in any order (§1985:XIII.3.8.3 SR1): integer-1 is mandatory, there is no page width, no LAST CONTROL HEADING, no IS before a phrase integer and no DE/CH abbreviations. The grammar reportPageClause/reportPageSubclause is the 2023 format and BindReportDescriptionClauses/ScreenReportPageIntegers apply the 2023 rules at every edition; VersionConformancePass has no PAGE arm. The 1985 forms are bound right and the witness passes. Probes at --std 85: (b) all four phrases in any order with LIMITS ARE ... LINE runs; HEADING written twice COBOL2423; `PAGE LINES.` (no integer-1) COBOL5506; HEADING 0 COBOL2386; HEADING 5 FIRST DETAIL 3 COBOL2744 (SR4 order, correct). (f) PAGE LIMIT IS 1000 LINES runs (four digits, already PB5078 under SR2); 999 runs. (c) FAILS: `PAGE 20 LINES 80 COLUMNS`, `PAGE 80 COLS` (no integer-1), `LAST CONTROL HEADING 10`, `LAST CH 10`, `FIRST DE 3` and `HEADING IS 2` each compile and run at 85. (a)(d)(e) do not reach an RD clause of integer literals. LIMIT/IS/LINE are unemphasized optional words in the 1985 bracket, so `PAGE LIMIT 20` and `PAGE IS 20` were not counted as defects. kb/Work PB5242 holds the defect (code read: coderead-85/out-pipe/slice-50.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

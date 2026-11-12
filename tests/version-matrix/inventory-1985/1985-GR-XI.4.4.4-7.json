@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.4.4-7",
  "rule-digest": "334c438c23a0",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#EnterProcedure; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReturnStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Init",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-GR-XI_4_4_4-7",
+ "notes": "§1985:XI.4.4.4 GR7 defines the input procedure's range dynamically (statements reached by CALL, EXIT, GO TO, PERFORM, and declaratives executed from it) and says 'The range of the input procedure must not cause the execution of any MERGE, RETURN, or SORT statement', with no stated result; §1985:XI.4.4.3 SR1 lets a SORT appear anywhere outside the declaratives. The range half conforms: SortEmitter.EmitSort enters the input phase (CobolSort.EnterProcedure) before the procedure, so a RELEASE PERFORMed outside the section (witness: 1 ALPHA / 2 BRAVO / 3 CHARL) or issued by a USE procedure fired by a failed OPEN in the range (probe inrange: USE FS=35 RELEASING DDD, then RET AAA CCC DDD) is released; an executed RETURN in the range is undefined at 85 (retinin: AT END, then the sort completes) and CobolSort's EC-SORT-MERGE-ACTIVE tests net it when checking is on. The defect is the compile-time half shared with GR10: VersionConformancePass.GateSortMergeProcedures reports COBOL2700 at every edition for a file SORT written in an input procedure (§2023:14.9.40.3 SR3), so an unexecuted SORT in a 1985 input procedure is refused (c3/sortinip.cob: COBOL2700 at 85). A MERGE written there compiles at 85 (c7/inrange, gated only from 2023), which is correct. Probes: b) sortinip, inrange; c) c3/tablesort (COBOL0870); e) inrange's failed OPEN (35) whose USE procedure RELEASEs; range via PERFORM (witness, retinin). kb/Work PB5274 holds the defect (code read: coderead-85/out-pipe/slice-46.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

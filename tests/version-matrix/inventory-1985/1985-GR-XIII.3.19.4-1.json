@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.3.19.4-1",
  "rule-digest": "8c2dd642322b",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterDigits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumFamilyOf; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SumCounterItem; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddSum",
  "test-ref": "conformance:cases/XIII.3.19@1985-SUM-CLAUSE/1985-GR-XIII_3_19_4-1",
+ "notes": "§1985:XIII.3.19.4 GR1 sizes the signed sum counter from the entry: a) numeric, its size and decimal point; b) numeric edited, its digit positions and decimal point; c) alphanumeric or alphanumeric edited, 'the size of that data item, excluding any editing characters, or 18 characters, whichever is smaller, and the sum counter is an integer'. SumFamilyOf builds the counter through SumCounterItem(SumCounterDigits(pic), scale) with no edition arm. Probes at 85 (u1): S9(3)V99 SIGN LEADING SEPARATE summing 1.005 twice printed +00200 (a); ZZ9.99- printed 7.38- (b, two decimals kept); X(5) printed 00006 and XXBXX printed 00 02 and X(3)/X printed 000/8 (c, integer, editing characters excluded); A(5) refused (COBOL2750, §1985:XIII.3.19.3 SR1). Missing part: SumCounterDigits takes every non-insertion position of an alphanumeric item (the 2023 §2023:13.18.54.4 GR1 rule) and never applies the 1985 18-character limit, so X(20) gets a 20-digit counter. kb/Work PB5247 holds the defect (code read: coderead-85/out-pipe/slice-51.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

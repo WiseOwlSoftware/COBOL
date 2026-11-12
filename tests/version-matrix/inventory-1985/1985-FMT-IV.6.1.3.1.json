@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-IV.6.1.3.1",
  "rule-digest": "558b98d1e0e7",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.CommentEntryRuns.cs#ConvertCommentEntryCandidate; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph",
  "test-ref": "conformance:cases/IV.6.1.3@1985-Structure/1985-FMT-IV_6_1_3_1",
+ "notes": "The format prints each optional paragraph header with its separator period, which IV.2.1.6 makes a required word, and the glossary defines a paragraph header as the reserved word followed by the separator period. At --std 85 in fixed form 'AUTHOR AUDIT READER.' and a bare 'INSTALLATION' line compile and run, so the missing required word is not diagnosed. Order, repetition and the PROGRAM-ID rules held under the refuter's probes. docs/CONFORMANCE.md D-CE1's optional period covers free form only, so it does not license this. kb/Work PB5168 holds the defect (code read: held-85/set2/decisions.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

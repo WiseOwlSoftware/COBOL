@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-IV.4.3.8.4.2",
  "rule-digest": "9345b71e39f7",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#ReadRefMod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#IllegalPositionMessage",
  "test-ref": "conformance:cases/IV.4.3.8.4@1985-Reference-Modification/1985-FMT-IV_4_3_8_4_2",
+ "notes": "SHARED QUESTION Q1 (with 1985-FMT-IV.4.3.8.5.2): may a reference-modifier follow an ALL subscript in a function argument at 85? Yes. SR4 lets data-name-1 be subscripted, SR7 admits ALL in a function argument, and Amendment 1's GR3a defines exactly that combination. The compiler refuses it (COBOL2363) while admitting TE (ALL) alone, so one legal shape of the format is rejected. The rest of the format (positions, omitted length, function base, the refusals the read lists) was not disputed by the refuter. kb/Work PB5209 holds the defect (code read: held-85/set2/decisions.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
