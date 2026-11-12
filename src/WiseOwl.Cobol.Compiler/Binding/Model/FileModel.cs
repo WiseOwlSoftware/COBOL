@@ -589,6 +589,11 @@ public sealed class FileModel
     /// default is no record locking).</summary>
     public LockModeInfo? LockMode { get; set; }
 
+    /// <summary>The file description clauses the X3.23-1985 external-connector agreement rules compare across the run unit's entries (LABEL RECORDS, BLOCK CONTAINS,
+    /// CODE-SET, VALUE OF; <see cref="FileDescriptionIdentity"/> names the keys and reads the LINAGE clause from <see cref="Linage"/>), each as the value the entry
+    /// specifies and the clause's position, for the clauses the entry writes; kb/Work PB5300.</summary>
+    public Dictionary<string, FdClauseValue> FdClauses { get; } = new(StringComparer.Ordinal);
+
     /// <summary>The RESERVE clause's integer-1 (ISO §2023:12.4.5.14), or null when the entry writes no RESERVE clause.
     /// It has two readers: the connector's input-output area count (§2023:12.4.5.14.3 GR1 — "the number of input-output
     /// areas allocated is equal to the value of integer-1"; <c>SequentialIoEmitter.EmitReserveRegistration</c>,
@@ -1221,3 +1226,6 @@ public sealed record LinageInfo(LinageOperand Body, LinageOperand? Footing, Lina
         }
     }
 }
+
+/// <summary>What an entry specifies in one file description clause (<see cref="FileModel.FdClauses"/>) and where it wrote it.</summary>
+public readonly record struct FdClauseValue(string Value, WiseOwl.Cobol.Editions.DiagnosticCursor At);

@@ -1107,9 +1107,11 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.ExitProgramArchaic2023, "the EXIT PROGRAM statement");
                 // ISO/IEC 1989:2002 Annex F.2 item 50: "EXIT PROGRAM is allowed to appear as other than the last
                 // statement in a consecutive sequence of imperative statements" (exit-program-not-last-2002; kb/Work
-                // PB4305). A sequence is a sentence or a statement block, so a statement after it in its parent is one.
-                if (ctx.Parent is CobolParserCore.StatementContext stmt && stmt.Parent is Antlr4.Runtime.ParserRuleContext sequence
-                    && sequence.children.SkipWhile(c => !ReferenceEquals(c, stmt)).Skip(1).Any(c => c is CobolParserCore.StatementContext))
+                // PB4305). §1985:X.5.4.3 SR1 asks that EXIT PROGRAM be the last statement of a consecutive sequence of
+                // IMPERATIVE statements, so a conditional statement after it (an IF without END-IF, READ ... AT END)
+                // ends the imperative run and is no violation: the one predicate the GO TO rule asks (kb/Work PB2610,
+                // PB5272).
+                if (ctx.Parent is CobolParserCore.StatementContext stmt && !StatementPosition.Of(stmt).EndsImperativeRun)
                     _p.Check(Constructs.ExitProgramNotLast2002, "an EXIT PROGRAM statement that another statement of its sequence follows");
             }
             else if (ctx.SECTION() is not null)   // §2023:14.9.14 Format 4 — a COBOL-2002 structured-exit introduction
