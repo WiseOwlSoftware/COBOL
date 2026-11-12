@@ -118,6 +118,17 @@ CLASSES = ("@inert", "@tooling-lane")
 OWN_GENERATION = "GENERATED-OWN"
 #: Compiled code a traced run may open: never inside the worktree, where nothing the key covers is its source (`undeclared`).
 COMPILED = (".pyc", ".pyo", ".pyd", ".so")
+#: The name of a test host's harness observation log in its results directory (`observation_log`).
+OBSERVATIONS = ".observations.log"
+
+
+def observation_log(directory: Path, assembly: str) -> Path:
+    """⛔ ONE HOST, ONE OBSERVATION LOG (kb/Work PB5235, bounce of #1530): where the `assembly` host's harness
+    observation log (tests/_shared/HarnessLog.cs, WISEOWL_COBOL_HARNESS_LOG) goes in `directory`, the gate's run
+    directory (gate.py) and a CI shard's results directory (build-and-test.yml) alike. `GeneratedTarget.recorded_own`
+    reads ONE host's log, so a host that may generate its own output without depending on it (the Unit host reads the
+    suite's manifest, and its key covers the suite's inputs) never writes into the log a dependent's check reads."""
+    return directory / f"{assembly}{OBSERVATIONS}"
 
 
 class GraphError(ValueError):

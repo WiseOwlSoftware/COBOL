@@ -74,3 +74,11 @@ manifest where it was handed one; they now download it by name into `TestResults
 `ci_wiring` refuses a pattern download. Main's stricter self-test tracer (PB5227) refused ci_plan.py's
 `git ls-tree … HEAD^{tree}` as unkeyed; `ls-tree` is now a declared history read (kb/Work PB5235
 `2026-11-11-bounce-1530.md`).
+
+**Bounced twice more (merge groups 43130044782, 43132487649), fixed on the branch.** Every shard's hosts wrote one
+shared harness log, so the Unit host, which reads the suite's manifest without depending on the generated target and so
+generates its own, put a `GENERATED-OWN` line where `ci_plan.py handed` read it as the Conformance host's: Linux shards
+2-5 and Windows shards 2-7 went red at that step with every test passed. Each host now writes its own
+`<assembly>.observations.log` (`buildgraph.observation_log`, the name the gate's run directory already used), `handed
+--results` reads only the dependent's, and `ci_wiring` and `test_linux_gate.py` hold every test step to it (kb/Work
+PB5235 `2026-11-12-bounce-1530-shared-log.md`).

@@ -1626,8 +1626,13 @@ reads to Conformance. Three checks hold it:
   generation that does not reproduce it is `Nondeterministic`: the merge group then proves the local host's suite is the
   one its key names.
 - After the hosts, each shard runs `ci_plan.py handed`, gate.py's `_check_generated` in CI: the output still has the
-  digest the generation wrote, and no host's harness log records generating its own (`GeneratedTarget.recorded_own`, the
-  one test of the mark, which the gate uses too).
+  digest the generation wrote, and no dependent host's OWN harness log records generating its own
+  (`GeneratedTarget.recorded_own`, the one test of the mark, which the gate uses too). Each host writes its own log,
+  `<results directory>/<assembly>.observations.log` (`buildgraph.observation_log`, the one name, the gate's run directory
+  and CI's results directory alike; `ci_wiring` and `scripts/test_linux_gate.py` hold every test step to it), and
+  `handed --results` reads only the dependent's. One log per shard made the Unit host's own generation (it reads the
+  suite's manifest and depends on no generated target, its key covering the suite's inputs) a Conformance red, and
+  bounced #1530 twice (merge-group runs 43130044782, 43132487649).
 - `test_population.py audit-callers` lets a workflow set a generated target's hand-off variable only where it also runs
   that check, as it lets the shard variable be set only beside the union check.
 

@@ -44,6 +44,12 @@ STEPS_KEY = re.compile(r"^\s*steps:[ \t]*(?:#.*)?$")
 INLINE_STEPS = re.compile(r"^\s*steps:[ \t]*[^\s#]")
 KEY = re.compile(r"^(?P<key>[A-Za-z0-9_.-]+):(?:[ \t]+(?P<value>.*))?$")
 TRAILING_COMMENT = re.compile(r"[ \t]+#.*$")
+#: A path as a step spells it: a run of non-blank characters and `${{ … }}` expressions, which hold blanks.
+PATH = r"((?:\$\{\{[^}]*\}\}|[^\s$])+)"
+#: A `dotnet test` step's `--results-directory`, and the harness log its env names under the workspace (a line of
+#: its code): the two readers of a test step's results (scripts/test_linux_gate.py, scripts/ci_plan.py `ci_wiring`).
+RESULTS_DIRECTORY = re.compile(r"--results-directory\s+" + PATH)
+HARNESS_LOG = re.compile(r"^\s*WISEOWL_COBOL_HARNESS_LOG:\s*\$\{\{\s*github\.workspace\s*\}\}/" + PATH + r"\s*$")
 
 
 def lines_of(text: str) -> list[str]:

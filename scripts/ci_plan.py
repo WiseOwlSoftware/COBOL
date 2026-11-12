@@ -7,7 +7,7 @@ stage 6 of PB5207; PB5231; DESIGN-test-build-ci.md §3.14.14).
     python scripts/ci_plan.py plan --no-records [...]                                             # any other event
     python scripts/ci_plan.py generate --leg L --expect JSON [--github-output F]   # a leg's generated targets, once
     python scripts/ci_plan.py list --targets JSON --configuration C --generated DIR --out-dir D   # the populations
-    python scripts/ci_plan.py handed --targets JSON --generated DIR --digests JSON --log F   # the hosts ran them
+    python scripts/ci_plan.py handed --targets JSON --generated DIR --digests JSON --results DIR   # the hosts ran them
     python scripts/ci_plan.py --self-test
 
 A LEG (`CI_LEGS`) is one platform and configuration the merge group tests on. For each leg, the plan computes every
@@ -260,6 +260,7 @@ def ci_wiring(repo: Path) -> list[str]:
             bad.append(f"{job.id}: the populations are not listed from the plan's set in its configuration, handed the "
                        f"leg's generated outputs (--generated \"{leg.handed_root}\")")
         test_steps = [s for s in steps if re.search(r"\bdotnet test tests/", s.code)]
+        results_dirs: set[str] = set()
         for s in test_steps:
             m = re.search(r"\bdotnet test (tests/[^/\s]+/)", s.code)
             gated = re.search(rf"contains\(fromJSON\({re.escape(out)}\), '(\w+)'\)", s.value("if") or "")
@@ -272,6 +273,16 @@ def ci_wiring(repo: Path) -> list[str]:
                          None)
             if m and owner is None:
                 bad.append(f"{job.id}: `{s.label}` is gated on {gated.group(1)!r}, not on its own project's target")
+            # ⛔ ONE HOST, ONE OBSERVATION LOG (buildgraph.observation_log; the bounce of #1530): a log the shard's hosts
+            # share turns the Unit host's own generation of the suite into a Conformance red at `handed`.
+            results = ci_workflow.RESULTS_DIRECTORY.search(s.code)
+            log = next((m for m in map(ci_workflow.HARNESS_LOG.search, s.code.splitlines()) if m), None)
+            if owner is not None and results is not None:
+                results_dirs.add(results.group(1))
+                want_log = buildgraph.observation_log(Path(results.group(1)), owner.assembly).as_posix()
+                if log is None or log.group(1) != want_log:
+                    bad.append(f"{job.id}: `{s.label}` does not write its harness log to {want_log}, its host's own "
+                               f"(buildgraph.observation_log): another host's own generation would read as this one's")
             for var, directory in (graph.handed(owner.name, Path("@")) if owner else {}).items():
                 want = f"{var}: {leg.handed_root}/{Path(directory).name}"
                 if want not in s.code:
@@ -280,11 +291,16 @@ def ci_wiring(repo: Path) -> list[str]:
         for t in tests.values():
             if t.project not in tested:
                 bad.append(f"{job.id}: no test step of {t.project} for target {t.name}: the leg would never run it")
+        if len(results_dirs) != 1:
+            bad.append(f"{job.id}: its test steps write into {sorted(results_dirs) or 'no'} results directory, not one, "
+                       "so `ci_plan.py handed` cannot read each host's own log")
         if any(t.depends for t in tests.values()) and not any(
                 "scripts/ci_plan.py handed" in s.code and f"needs.{leg.name}-generate.outputs.digests" in s.code
-                and f'--generated "{leg.handed_root}"' in s.code for s in steps):
+                and f'--generated "{leg.handed_root}"' in s.code
+                and any(f"--results {d}" in s.code for d in results_dirs) for s in steps):
             bad.append(f"{job.id}: no step checks after the hosts that they ran the outputs they were handed "
-                       f"(`ci_plan.py handed`, from needs.{leg.name}-generate.outputs.digests)")
+                       f"(`ci_plan.py handed`, from needs.{leg.name}-generate.outputs.digests, reading the hosts' own "
+                       f"logs in --results {' '.join(sorted(results_dirs))})")
         if gate is None or out not in gate.code:
             bad.append(f"ci-gate's population check does not read the {leg.name} leg's plan ({out})")
     return bad
@@ -418,12 +434,15 @@ def list_main(repo: Path, targets: str, configuration: str, generated: Path, out
     return 0
 
 
-def handed_main(repo: Path, targets: str, generated: Path, digests: str, log: Path, say=print,
+def handed_main(repo: Path, targets: str, generated: Path, digests: str, results: Path, say=print,
                 graph: buildgraph.Graph | None = None) -> int:
     """`handed`: THE HOSTS RAN THE OUTPUTS THEY WERE HANDED (gate.py `_check_generated`, in CI): for each assembly of
     `targets` the shard ran, each generated target its target depends on still has, in `generated/<target>`, the digest
-    its generation wrote (`digests`), and the shard's harness observation log `log` does not record that a host generated
-    its own (`GeneratedTarget.recorded_own`). Each failure is a named `::error::`; exit 1 when any."""
+    its generation wrote (`digests`), and THAT assembly's own harness observation log in the shard's results directory
+    (`buildgraph.observation_log(results, asm)`) does not record that its host generated its own
+    (`GeneratedTarget.recorded_own`). Another host's log is never read: the Unit host generates the suite it reads
+    without depending on it, and one log shared by the shard's hosts turned that into a Conformance red (the bounce of
+    #1530, runs 43130044782 and 43132487649). Each failure is a named `::error::`; exit 1 when any."""
     graph = graph if graph is not None else _graph(repo)
     made: dict[str, str] = json.loads(digests or "{}")
     by_asm = graph.by_assembly()
@@ -442,8 +461,8 @@ def handed_main(repo: Path, targets: str, generated: Path, digests: str, log: Pa
             if now != made.get(d):
                 bad.append(f"GENERATED OUTPUT CHANGED: {d}'s output in {generated / d} is {now[:60]} after the {asm} "
                            f"host, not the {str(made.get(d))[:12]} its generation wrote")
-            if g.recorded_own(log):
-                bad.append(f"GENERATED BY THE HOST: a {asm} host generated its own {d} instead of the one handed it "
+            if g.recorded_own(log := buildgraph.observation_log(results, asm)):
+                bad.append(f"GENERATED BY THE HOST: the {asm} host generated its own {d} instead of the one handed it "
                            f"({log}), so it ran a suite its key does not name")
             checked.append(f"{asm} <- {d} {str(made.get(d))[:12]}")
     for b in bad:
@@ -581,21 +600,30 @@ def self_test() -> int:
         made = json.loads(dict(ln.split("=", 1) for ln in
                                g_out.read_text(encoding="utf-8").splitlines()[-1:])["digests"])
         gen_root = repo.path / buildgraph.GENERATED_ROOT
-        log = root / "harness.log"
-        log.write_text("RAN  some test\n", encoding="utf-8", newline="\n")
+        shard_results = root / "shard-results"
+        shard_results.mkdir()
+        conf_log, unit_log = (buildgraph.observation_log(shard_results, a) for a in ("Conformance", "Unit"))
+        own_line = f"RAN  x\n{suite.own_mark} :: /tmp/s :: no WISEOWL_COBOL_GATE_SUITE was handed\n"
+        conf_log.write_text("RAN  some test\n", encoding="utf-8", newline="\n")
         h_said: list[str] = []
-        clean = handed_main(repo.path, '["Conformance", "Unit"]', gen_root, json.dumps(made), log, h_said.append, graph)
-        log.write_text(f"RAN  x\n{suite.own_mark} :: /tmp/s :: no WISEOWL_COBOL_GATE_SUITE was handed\n", encoding="utf-8", newline="\n")
-        own = handed_main(repo.path, '["Conformance"]', gen_root, json.dumps(made), log, h_said.append, graph)
-        log.write_text("", encoding="utf-8", newline="\n")
+        clean = handed_main(repo.path, '["Conformance", "Unit"]', gen_root, json.dumps(made), shard_results, h_said.append, graph)
+        # The bounce of #1530: the Unit host, which reads the suite's manifest and depends on no generated target, was
+        # handed nothing and generated its own; that line in ITS log is no Conformance red.
+        unit_log.write_text(own_line, encoding="utf-8", newline="\n")
+        unit_own = handed_main(repo.path, '["Conformance", "Unit"]', gen_root, json.dumps(made), shard_results, h_said.append,
+                               graph)
+        conf_log.write_text(own_line, encoding="utf-8", newline="\n")
+        own = handed_main(repo.path, '["Conformance"]', gen_root, json.dumps(made), shard_results, h_said.append, graph)
+        conf_log.write_text("", encoding="utf-8", newline="\n")
         (gen_root / "suite" / "suite" / "manifest.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        changed = handed_main(repo.path, '["Conformance"]', gen_root, json.dumps(made), log, h_said.append, graph)
-        unit_only = handed_main(repo.path, '["Unit"]', gen_root, json.dumps(made), log, h_said.append, graph)
-        arm("`handed`: a shard whose hosts ran the handed suite is GREEN; a host log recording its own generation and an "
-            "output changed after the hosts are each a named red; a shard that ran no dependent target checks nothing",
-            clean == 0 and own == 1 and changed == 1 and unit_only == 0
-            and any("GENERATED BY THE HOST" in s for s in h_said) and any("GENERATED OUTPUT CHANGED" in s for s in h_said),
-            str(h_said))
+        changed = handed_main(repo.path, '["Conformance"]', gen_root, json.dumps(made), shard_results, h_said.append, graph)
+        unit_only = handed_main(repo.path, '["Unit"]', gen_root, json.dumps(made), shard_results, h_said.append, graph)
+        arm("`handed`: a shard whose hosts ran the handed suite is GREEN, and so is one whose Unit host (no dependent) "
+            "logged generating its own in its own log; the Conformance host's own log recording its own generation and "
+            "an output changed after the hosts are each a named red; a shard that ran no dependent target checks nothing",
+            clean == 0 and unit_own == 0 and own == 1 and changed == 1 and unit_only == 0
+            and any("the Conformance host generated its own suite" in s and str(conf_log) in s for s in h_said)
+            and any("GENERATED OUTPUT CHANGED" in s for s in h_said), str(h_said))
         listed: list[tuple[str, dict]] = []
 
         def fake_lister(project, configuration, cwd=None, handed=None):
@@ -690,13 +718,21 @@ def self_test() -> int:
         by_name = f"          name: {linux.artifact}\n          path: {linux.handed_dir}\n"
         by_pattern = wf.replace(by_name, f"          pattern: {linux.artifact}\n          path: {HANDED}\n", 1)
         found_p = planted("by-pattern", by_pattern)
+        # merge groups 43130044782 and 43132487649: one harness log for the shard's hosts, so the Unit host's own
+        # generation of the suite read as the Conformance host's
+        own_log = "TestResults/${{ runner.os }}-shard/Unit.observations.log"
+        shared = wf.replace(own_log, "TestResults/${{ runner.os }}-shard/harness-observations.log", 1)
+        found_s = planted("shared-log", shared)
         arm("the wiring check names a Windows Unit step that runs whatever the plan says, a Windows Conformance step "
-            "not handed the leg's generated suite, and a Linux shard that downloads its leg's artifact by a pattern",
+            "not handed the leg's generated suite, a Linux shard that downloads its leg's artifact by a pattern, and a "
+            "Linux Unit step writing the shard's one shared harness log",
             ungated != wf and any("windows-shard: `Unit, this shard` runs whatever the plan says" in f for f in found)
             and unhanded != wf and any("windows-shard: `Conformance, this shard` is not handed" in f for f in found_h)
             and by_pattern != wf and any(f"linux-shard: it does not download {linux.artifact} by name" in f
-                                         for f in found_p),
-            f"{found} {found_h} {found_p}")
+                                         for f in found_p)
+            and shared != wf and any("linux-shard: `Unit, this shard` does not write its harness log to "
+                                     f"{own_log}" in f for f in found_s),
+            f"{found} {found_h} {found_p} {found_s}")
     finally:
         remove_tree(root)
     bad = [n for n, ok, _ in results if not ok]
@@ -729,7 +765,8 @@ def main(argv: list[str] | None = None) -> int:
     h.add_argument("--targets", required=True, help="the plan's <leg>_targets output")
     h.add_argument("--generated", required=True, type=Path, help="the directory holding each generated output")
     h.add_argument("--digests", required=True, help="the generate job's `digests` output")
-    h.add_argument("--log", required=True, type=Path, help="the shard's harness observation log")
+    h.add_argument("--results", required=True, type=Path,
+                   help="the shard's results directory, holding each host's <assembly>.observations.log")
     args = ap.parse_args(argv)
     if args.self_test:
         return self_test()
@@ -740,7 +777,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "list":
         return list_main(REPO, args.targets, args.configuration, args.generated, args.out_dir)
     if args.cmd == "handed":
-        return handed_main(REPO, args.targets, args.generated, args.digests, args.log)
+        return handed_main(REPO, args.targets, args.generated, args.digests, args.results)
     ap.error("name a command: plan, generate or handed (or --self-test)")
     return 2
 

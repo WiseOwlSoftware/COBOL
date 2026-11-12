@@ -62,10 +62,12 @@ concurrency:
 # and its job uploads them with `if: always()` as artifact test-results-<OS>-<job> (14-day retention) — a
 # red is diagnosable from the artifact without a re-run (kb/Work PB108). The two OSes share shard NUMBERS, so the
 # artifact name carries both: a shard's is test-results-<OS>-shard-<k>, the exact pattern `ci-gate`'s name check
-# downloads and scripts/shard_weights.py reads. Each such step also sets WISEOWL_COBOL_HARNESS_LOG to
-# <its results directory>/harness-observations.log and its job uploads that file with the TRX: the test harness's every
-# retry and non-observation of a child process, with the budget, the work it covered and the host's load, so a
-# non-observation on CI is read from the artifact (kb/Work PB3108; scripts/test_linux_gate.py).
+# downloads and scripts/shard_weights.py reads. Each such step also sets WISEOWL_COBOL_HARNESS_LOG to its HOST'S OWN
+# <its results directory>/<assembly>.observations.log (buildgraph.observation_log, the gate's name) and its job uploads
+# that file with the TRX: the test harness's every retry and non-observation of a child process, with the budget, the
+# work it covered and the host's load, so a non-observation on CI is read from the artifact (kb/Work PB3108;
+# scripts/test_linux_gate.py). One log per host, never one per shard: `ci_plan.py handed` reads the Conformance host's
+# own, and a shared log made the Unit host's own generation of the suite a Conformance red (kb/Work PB5235, #1530).
 #
 # ⛔ AN ARTIFACT NEVER DECIDES A VERDICT (kb/Work PB3140; CiArtifactDriftTests): every upload goes through ONE step,
 # ./.github/actions/upload-results (tried three times; when all fail it warns and passes), and every download through
@@ -725,20 +727,20 @@ jobs:
       - name: Unit, this shard
         if: contains(fromJSON(needs.changes.outputs.linux_targets), 'Unit')
         env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/Unit.observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --configuration ${{ needs.changes.outputs.linux_configuration }} --logger "trx;LogFileName=Unit.trx" --results-directory TestResults/${{ runner.os }}-shard
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
       # WISEOWL_COBOL_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
       - name: Characterization snapshots (behavior-neutrality gate), this shard
         if: ${{ !cancelled() && contains(fromJSON(needs.changes.outputs.linux_targets), 'Characterization') }}
         env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/Characterization.observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --configuration ${{ needs.changes.outputs.linux_configuration }} --logger "trx;LogFileName=Characterization.trx" --results-directory TestResults/${{ runner.os }}-shard
       - name: Conformance, this shard
         if: ${{ !cancelled() && contains(fromJSON(needs.changes.outputs.linux_targets), 'Conformance') }}
         env:
           WISEOWL_COBOL_GATE_SUITE: ${{ github.workspace }}/TestResults/handed/generated-linux/conformance-suite
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/Conformance.observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration ${{ needs.changes.outputs.linux_configuration }} --logger "trx;LogFileName=Conformance.trx" --results-directory TestResults/${{ runner.os }}-shard
       # ── INV-1-STRONG (VERSION_TEST_MATRIX_DESIGN §8; rearch P3 step 8), A STEP OF EVERY LINUX SHARD: the full NIST golden
       # battery must re-run BYTE-EXACT at the shipping default edition in migration mode (--std 2023 --permissive) — the
@@ -756,7 +758,7 @@ jobs:
           WISEOWL_COBOL_NIST_STD: "2023"
           WISEOWL_COBOL_NIST_PERMISSIVE: "1"
           WISEOWL_COBOL_GATE_SUITE: ${{ github.workspace }}/TestResults/handed/generated-linux/conformance-suite
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/Conformance.observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration ${{ needs.changes.outputs.linux_configuration }} --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-shard
       # ── THE HOSTS RAN WHAT THEY WERE HANDED (kb/Work PB5231 R1-2; gate.py `_check_generated`, in CI): each generated
       # output still has the digest linux-generate wrote, and no host's harness log records generating its own. ──
@@ -770,7 +772,7 @@ jobs:
           set -euo pipefail
           . scripts/python-resolve.sh
           "$PY" scripts/ci_plan.py handed --targets "$TARGETS" --digests "$DIGESTS" \
-            --generated "${{ github.workspace }}/TestResults/handed/generated-linux" --log TestResults/${{ runner.os }}-shard/harness-observations.log
+            --generated "${{ github.workspace }}/TestResults/handed/generated-linux" --results TestResults/${{ runner.os }}-shard
       - name: Upload test results (TRX + shard 1's population listings + harness log)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results
@@ -898,18 +900,18 @@ jobs:
       - name: Unit, this shard
         if: contains(fromJSON(needs.changes.outputs.windows_targets), 'Unit')
         env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/Unit.observations.log
         run: dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --configuration ${{ needs.changes.outputs.windows_configuration }} --logger "trx;LogFileName=Unit.trx" --results-directory TestResults/${{ runner.os }}-shard
       - name: Characterization snapshots (behavior-neutrality gate), this shard
         if: ${{ !cancelled() && contains(fromJSON(needs.changes.outputs.windows_targets), 'Characterization') }}
         env:
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/Characterization.observations.log
         run: dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --configuration ${{ needs.changes.outputs.windows_configuration }} --logger "trx;LogFileName=Characterization.trx" --results-directory TestResults/${{ runner.os }}-shard
       - name: Conformance, this shard
         if: ${{ !cancelled() && contains(fromJSON(needs.changes.outputs.windows_targets), 'Conformance') }}
         env:
           WISEOWL_COBOL_GATE_SUITE: ${{ github.workspace }}/TestResults/handed/generated-windows/conformance-suite
-          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/Conformance.observations.log
         run: dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration ${{ needs.changes.outputs.windows_configuration }} --logger "trx;LogFileName=Conformance.trx" --results-directory TestResults/${{ runner.os }}-shard
       # ── THE HOSTS RAN WHAT THEY WERE HANDED (kb/Work PB5231 R1-2; gate.py `_check_generated`, in CI): each generated
       # output still has the digest windows-generate wrote, and no host's harness log records generating its own. ──
@@ -923,7 +925,7 @@ jobs:
           set -euo pipefail
           . scripts/python-resolve.sh
           "$PY" scripts/ci_plan.py handed --targets "$TARGETS" --digests "$DIGESTS" \
-            --generated "${{ github.workspace }}/TestResults/handed/generated-windows" --log TestResults/${{ runner.os }}-shard/harness-observations.log
+            --generated "${{ github.workspace }}/TestResults/handed/generated-windows" --results TestResults/${{ runner.os }}-shard
       - name: Upload test results (TRX + shard 1's population listings + harness log)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results
