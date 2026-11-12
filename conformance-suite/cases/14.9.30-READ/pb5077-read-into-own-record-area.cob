@@ -6,7 +6,7 @@
       *>---
       *> kb/Work PB5077 - 1985:VII.4.4.3 SR1: "The storage area associated with identifier-1 and the record area associated with file-name-1
       *>   must not be the same storage area." (cite.py: OK); 2002:14.8.29.2 SR2 says the same with "shall". SREC is the only record of SF, so
-      *>   it IS the record area. COBOL-2023 drops the rule for its overlapping-operand rules (2023:14.6.10).
+      *>   it IS the record area. COBOL-2014 drops the rule (2014:E.3 item 21) for the overlapping-operand rules (kb/Work PB5270).
       *>   conformance:pb5077_from_into_outside_the_record_area is the legal side.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5077N1.
