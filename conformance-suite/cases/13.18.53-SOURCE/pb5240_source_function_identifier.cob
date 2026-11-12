@@ -17,6 +17,10 @@
       *> 13.18.53.4 GR1 to an alphanumeric printable item. It was
       *> refused at every edition as an arithmetic expression whose
       *> entry is not numeric (COBOL2141, COBOL0844; at 85 COBOL0900).
+      *> ISO/IEC 1989:2002 Annex F.2 item 127 lists "The sending operand
+      *> may be a function-identifier" as a 2002 change; the annex is
+      *> informative, and no 1985 SOURCE rule prohibits a function, so
+      *> SR3's normative text decides at 85.
       *> DERIVATION (WS-T = "hello", WS-P = "AB", WS-Q = "CD"):
       *>   col 1  UPPER-CASE(WS-T)        = HELLO
       *>   col 7  REVERSE(WS-T)           = olleh

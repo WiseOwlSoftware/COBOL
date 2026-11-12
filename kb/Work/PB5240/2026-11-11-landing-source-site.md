@@ -19,3 +19,9 @@ is arithmetic-expression-1 there.
 Goldens: `cases/13.18.53-SOURCE/pb5240_source_function_identifier` (accepted at 85, 2002, 2014, 2023: UPPER-CASE, REVERSE,
 a reference-modified UPPER-CASE and MAX of alphanumeric arguments print `HELLO olleh ELL CD`) and
 `pb5240-source-numeric-function-85` (refused at 85, COBOL0900).
+
+The 85 reading. ISO/IEC 1989:2002 Annex F.2 item 127 lists "SOURCE clause in a report description entry. The sending
+operand may be a function-identifier." as a 2002 change. The annex is informative; the normative 1985 text with
+Amendment 1 admits an alphanumeric function "anywhere in the general formats that an identifier is permitted and where the
+rules associated with the general formats do not specifically prohibit reference to functions" (§1985:IV.4.3.8.3.3 SR3),
+and §1985:XIII.3.18.3 prohibits none (SR1 says only where identifier-1 "may be defined"), so the 85 compiler admits it.
