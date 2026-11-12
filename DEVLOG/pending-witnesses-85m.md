@@ -11,6 +11,12 @@ is a reserved word. I renamed the file and left the expectation unchanged. The s
 `place_witnesses.py` placed the 13 matches (11 output tests and 2 refusals, COBOL1746 and COBOL0900).
 `record_verdicts.py --edition 1985` recorded 13 witness-only test-refs. The 1985 GAP stayed at 321.
 
+Merging main found a second test of `1985-GR-VI.6.3.1.2-5` under the same name: PB5122 had placed the slice-04 draft
+there. Both expected outputs follow the rule's text, and `place_witnesses.py` places one test per rule, so the branch kept
+main's test and dropped its own. The branch now places 12 tests and records 13 test-refs; the 13th points at main's test,
+which main had placed but not recorded. Main's test does not exercise GR5's function-identifier sentence, which this
+branch's draft did.
+
 The six mismatches are compiler suspects, and each draft held when I checked it against the text again. I appended the
 repros to PB5115 (BLOCK CONTAINS 4 TO 4 refused at 85), PB5116 (TYPE CH with no operand accepted), PB5118 (PIC V(1)
 accepted) and PB5108 (MOVE FUNCTION MAX accepted). I filed two new notes. PB5445 covers a RECORD KEY or ALTERNATE RECORD

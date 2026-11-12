@@ -12,8 +12,9 @@ namespace WiseOwl.Cobol.Binding;
 ///     exceed the size indicated by an explicit PICTURE clause".</item>
 ///   <item><see cref="Group"/> — a group-level VALUE (§2023:13.18.63.3 SR13 sentence 1). SR4/SR5/SR10 <b>sentence 3</b>
 ///     is its size rule: "… shall not exceed the size of the group item".</item>
-///   <item><see cref="ConditionName"/> — a Format-3 (condition-name) VALUE clause. It has <b>NO</b> size rule; see
-///     the remarks on <see cref="ForConditionName"/>.</item>
+///   <item><see cref="ConditionName"/> — a Format-3 (condition-name) VALUE clause. It has <b>NO</b> size rule from
+///     COBOL-2002 on, and the conditional variable's PICTURE size at COBOL-85; see the remarks on
+///     <see cref="ForConditionName"/>.</item>
 /// </list></summary>
 internal enum ValueSubjectKind
 {
@@ -54,6 +55,16 @@ internal readonly record struct ValueSubject(ValueSubjectKind Kind, int? SizePos
     /// error on both dialect axes (kb/Work PB206).</summary>
     public bool IsGroup => Kind is ValueSubjectKind.Group;
 
+    /// <summary>The rule that bounds a CHARACTER literal by <see cref="SizePositions"/>, cited by the size arms of
+    /// <see cref="DataBinder.ValidateValueCategory"/>. An item's (elementary or group) is §2023:13.18.63.3 SR4. A
+    /// condition-name is sized only below COBOL-2002 (<see cref="ForConditionName"/>), where the rule is
+    /// §1985:VI.5.15.3 SR3, "Nonnumeric literals in a VALUE clause of an item must not exceed the size indicated by the
+    /// PICTURE clause"; SR4 of 2023 bounds only "an elementary item" and "an alphanumeric group item", so citing it on
+    /// an 88 would send the reader to a rule that does not reach the entry refused (kb/Work PB5190, review R1-2).</summary>
+    public string CharacterSizeRule => Kind is ValueSubjectKind.ConditionName
+        ? "§1985:VI.5.15.3 SR3, the conditional variable's PICTURE"
+        : "ISO §2023:13.18.63.3 SR4";
+
     /// <summary>An ELEMENTARY item's VALUE clause (§2023:13.18.63 formats 1, 2 and 4). Its size is "the size indicated
     /// by an explicit PICTURE clause" (§2023:13.18.63.3 SR4/SR5/SR10 sentence 2).
     /// <para>⛔ The <see langword="null"/> arm is not a defensive nicety: for a DYNAMIC LENGTH item,
@@ -83,8 +94,9 @@ internal readonly record struct ValueSubject(ValueSubjectKind Kind, int? SizePos
         new(ValueSubjectKind.Group, sizePositions);
 
     /// <summary>⛔ A CONDITION-NAME — the subject of a Format-3 VALUE clause (§2023:13.18.63.3 SR33: "Formats 3 and 5
-    /// may be specified only when the level-number of the subject of the entry is 88"). It indicates NO SIZE, so
-    /// the SR4/SR5/SR10 size sentences do not reach it and the size arms of the screen stay dark.
+    /// may be specified only when the level-number of the subject of the entry is 88"). From COBOL-2002 on it
+    /// indicates NO SIZE, so the SR4/SR5/SR10 size sentences do not reach it and the size arms of the screen stay
+    /// dark; at COBOL-85 its size is the conditional variable's (the last paragraph).
     ///
     /// <para><b>The derivation</b> (kb/Work PB598). Each of the three size sentences names the subject it bounds,
     /// and names only two: "Alphanumeric literals in the VALUE clause of <b>an elementary item</b> shall not exceed
@@ -104,7 +116,22 @@ internal readonly record struct ValueSubject(ValueSubjectKind Kind, int? SizePos
     /// so a literal longer than the conditional variable simply never compares equal — a permanently-false
     /// condition; and <c>SET condition-name TO TRUE</c> places the literal "according to the rules for the VALUE
     /// clause" (§2023:14.9.39.4 GR6) → aligned per §2023:13.18.63.4 GR7 → §2023:14.6.8.5, "aligned at the leftmost character
-    /// position in the data item with space fill or <b>truncation to the right</b>, as required".</para></summary>
-    public static ValueSubject ForConditionName() =>
-        new(ValueSubjectKind.ConditionName, null);
+    /// position in the data item with space fill or <b>truncation to the right</b>, as required".</para>
+    ///
+    /// <para><b>The 1985 edition reads it the other way</b> (kb/Work PB5190). §1985:VI.5.15.3 SR3 (cite.py --check OK):
+    /// "Nonnumeric literals in a VALUE clause of an item must not exceed the size indicated by the PICTURE clause."
+    /// It names "an item", not an elementary item, and no EXPLICIT PICTURE; its first sentence ("All numeric
+    /// literals in a VALUE clause of an item") already reaches the condition-name entry at 85 (<c>88 NC VALUE 123</c>
+    /// under <c>PIC 99</c> is COBOL1625), and §1985:VI.5.15.5 GR1 gives the entry its PICTURE: "The characteristics of a
+    /// condition-name are implicitly those of its conditional variable." So below 2002 (the first edition whose text
+    /// says "elementary item" and "explicit PICTURE", §2002:13.16.61.2 SR4) the subject's size is the conditional
+    /// variable's, and <c>88 XC VALUE "cd"</c> under <c>PIC X</c> is refused as the item entry's own literal is. Only the categories COBOL-85 has are sized: national and boolean data are 2002
+    /// introductions, so at 85 their source is refused by the category gate, and a size diagnostic beside it would be a
+    /// second report of one entry.</para></summary>
+    /// <param name="conditionalVariable">The conditional variable's operand picture — the size source at COBOL-85 only.</param>
+    /// <param name="dialectLevel">The targeted edition (<see cref="EditionContext.DialectLevel"/>).</param>
+    public static ValueSubject ForConditionName(PicInfo conditionalVariable, int dialectLevel) =>
+        new(ValueSubjectKind.ConditionName,
+            dialectLevel < 2002 && conditionalVariable.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                ? conditionalVariable.Length : null);
 }

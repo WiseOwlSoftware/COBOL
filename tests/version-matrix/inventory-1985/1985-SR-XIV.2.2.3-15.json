@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-15",
  "rule-digest": "58020bb5b762",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdSeriesName",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-15",
+ "notes": "The Format 3 form of 1985-SR-XIV.2.2.3-6, answered there once: 'this series' is the second option (GR2's series of data-names); Format 2's SR10 carries no FILLER grant where no series exists. MESSAGE DATE IS FILLER is rightly COBOL6169; FILLER members of the six-name series are accepted (f2 prints 0003 0004). Implementor choice: the choice recorded on 1985-SR-XIV.2.2.3-6 (one question, both formats); documented in docs/CONFORMANCE.md section 3.3, row \"FILLER in a CD entry\".",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,0 +1,12 @@
+{
+ "id": "report-control-operand-forms-2002",
+ "description": "The 2002 forms of the TYPE clause's CONTROL HEADING / CONTROL FOOTING operand: the operand omitted, the optional word ON or FOR before it, and the OR PAGE phrase (kb/Work PB5116). §1985:XIII.3.9.2 Format 1 (printed folio XIII-20) braces the operand, {CONTROL HEADING | CH} {data-name-1 | FINAL} and {CONTROL FOOTING | CF} {data-name-2 | FINAL}, with no ON, FOR or OR PAGE; the ISO/IEC 1989:2002 format (13.16.53) brackets the operand, prints [ON | FOR] before it and OR PAGE after the heading's, and Annex F.2 item 87 QUOTES the OR PAGE addition. Gated in ONE place, VersionConformancePass.ParseArm.VisitReportGroupType (the omission and OR PAGE) and VisitReportControlName (ON, FOR), once per written form (VCR row 7.45).",
+ "display": "a 2002 form of the TYPE CONTROL HEADING/FOOTING operand (report group description)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.57.2 Format 2, §2023:13.18.57.3 SR11; §1985:XIII.3.9.2 Format 1 braces the operand; ISO/IEC 1989:2002 Annex F.2 item 87 (OR PAGE)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.45 (e) - the TYPE clause's control operand forms (85->2002)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRCO.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"VMRCO.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WK PIC 9 VALUE 1.\nREPORT SECTION.\nRD R1 CONTROL IS WK PAGE LIMIT IS 10 LINES.\n01 CH1 TYPE CONTROL HEADING LINE PLUS 1.\n    02 COLUMN 1 PIC X(2) VALUE \"CH\".\n01 DA TYPE DETAIL LINE PLUS 1.\n    02 COLUMN 1 PIC X(2) VALUE \"DE\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+}

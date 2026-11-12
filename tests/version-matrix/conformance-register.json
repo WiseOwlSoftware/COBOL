@@ -839,271 +839,316 @@
    "key": "DRV-GR-14.9.5.4-11",
    "arm": "undefined-A.2",
    "names": "A.2 item 4",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.30.4-3",
    "arm": "undefined-A.2",
    "names": "A.2 item 41",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.34.4-2",
    "arm": "undefined-A.2",
    "names": "A.2 item 46",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.11.4-11",
    "arm": "unpopulatable-antecedent",
    "names": "the DISPLAY device set is closed at two members — System.Console and System.Console.Error, admitted by the output-capable device rows of ImplementorNames (read by AcceptDisplayBinder.MnemonicDevice) and emitted by a two-valued ternary in AcceptDisplayEmitter.EmitDisplay",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.30.4-20",
    "arm": "unpopulatable-antecedent",
    "names": "the physical-file set is closed at one host path per connector — FileConnector.HostPath resolves exactly one, on a mass-storage medium with no reel or unit model, and FileRegistry.CloseReelUnit is the matching no-op",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-RV-15.50.4-9",
    "arm": "indistinguishable-consequent",
    "names": "RV-15.50.4-5",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-DOC-A.1-19",
    "arm": "indistinguishable-consequent",
    "names": "GR-14.9.5.4-7",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.27.4-12",
    "arm": "unpopulatable-antecedent",
    "names": "the physical-file category set is closed at the two `PhysicalFileCategory` values any connector can report — `SequentialConnector` answers (a) Non-unit and `RelativeConnector`/`IndexedConnector` answer (d), so no medium permits rewinding",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.20.4-9",
    "arm": "undefined-A.2",
    "names": "A.2 item 20",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-4.4-1",
    "arm": "definitional",
    "names": "defines the conforming run unit — a property of the USER's run unit (that each of its runtime modules results from a successful compilation of a conforming compilation unit), not an obligation of the implementation",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-4.4-2",
    "arm": "definitional",
    "names": "defines the conforming run unit's runtime-behaviour half and the standing of undefined results — properties of the USER's run unit, not obligations of the implementation",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.28.4-2",
    "arm": "undefined-A.2",
    "names": "A.2 item 37",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-RV-15.4.1-4",
    "arm": "unpopulatable-antecedent",
    "names": "the set item 4 governs is CLOSED by the standard itself and is EMPTY: the functions that have an equivalent arithmetic expression are exactly §2023:15.7 ABS, §2023:15.9 ANNUITY, §2023:15.17 COMBINED-DATETIME, §2023:15.23 DATE-TO-YYYYMMDD, §2023:15.25 DAY-TO-YYYYDDD, §2023:15.36 FACTORIAL, §2023:15.60 MEAN, §2023:15.74 PRESENT-VALUE, §2023:15.79 SECONDS-FROM-FORMATTED-TIME, §2023:15.81 SIGN, §2023:15.86 STANDARD-DEVIATION, §2023:15.88 SUM, §2023:15.98 VARIANCE and §2023:15.100 YEAR-TO-YYYY — the fourteen clauses containing “The equivalent arithmetic expression is as follows” — and NOT ONE of those fourteen function clauses contains the words “implementor-defined”, “implementor defines” or “defined by the implementor” anywhere in it",
-   "signature": "owner: 2026-09-03"
+   "signature": "owner: 2026-09-03",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-13.18.10.4-3",
    "arm": "unpopulatable-antecedent",
    "names": "the set of run-time consumers of a physical-record size is empty: BLOCK CONTAINS is claimed inert under A.3 item 5 (FileControlBinder.BindBlockContainsClause screens SR1 and models nothing), and the minimum and maximum physical record size is outside the A.1 item 129 OPEN-validated fixed-attribute set",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-13.18.10.4-4",
    "arm": "unpopulatable-antecedent",
    "names": "the set of run-time consumers of a physical-record size is empty: BLOCK CONTAINS is claimed inert under A.3 item 5 (FileControlBinder.BindBlockContainsClause screens SR1 and models nothing), and the minimum and maximum physical record size is outside the A.1 item 129 OPEN-validated fixed-attribute set",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-7.3.9.3-3",
    "arm": "unpopulatable-antecedent",
    "names": "the call-convention set is closed at one member, COBOL: CompilerDirectiveCatalog admits only >>CALL-CONVENTION COBOL, and any call-convention-name-1 is refused (COBOL1911; owner 2026-10-03, kb/Work PB1383/PB1945), so the directive has no second value whose other details could differ from the default's",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-8.1.3.2-5",
    "arm": "unpopulatable-antecedent",
    "names": "the set of COBOL-repertoire characters this implementation cannot represent graphically is empty: source text and every alphanumeric and national item are held as UTF-16 (ISO/IEC 10646), which encodes every Table 1 basic character and every Annex B extended letter (§7's A.1 item 25)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-13.18.16.4-6",
    "arm": "definitional",
    "names": "defines a constraint on the USER's run unit (a CONTROL operand shall not reference a group whose length at run time is zero), and no rule gives its violation a consequence, so §2023:4.4 2) leaves the result undefined and obliges the implementation to nothing",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-7.2.3.4-4",
    "arm": "unpopulatable-antecedent",
    "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-7.2.3.4-5",
    "arm": "unpopulatable-antecedent",
    "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-7.3.4-4",
    "arm": "unpopulatable-antecedent",
    "names": "the set of implementor-defined IMP directives is empty: CompilerDirectiveCatalog has no IMP row (§7's A.1 item 30, condition absent), and a >>IMP line is refused at every edition",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-11.9.7.4-4",
    "arm": "unpopulatable-antecedent",
    "names": "the entry-convention set is closed at one member, COBOL: OptionsBinder.ScreenEntryConvention refuses every other entry-convention-name (COBOL2385, A.1 item 64), and an INHERITS clause names only classes and interfaces of the compilation group (COBOL0821), so no parent can carry a convention other than the COBOL that arm c) gives",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-9.1.13.3-1",
    "arm": "unpopulatable-antecedent",
    "names": "the set of 0x I-O status values this implementation provides is empty: FileStatus defines the successful values 00, 02, 04, 05, 06, 07 and 09 only, and no runtime site produces a 0 followed by a letter (§7's A.1 item 106, not provided)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-7.3.18.3-2",
    "arm": "unpopulatable-antecedent",
    "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-7.3.18.3-3",
    "arm": "unpopulatable-antecedent",
    "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-7.3.18.3-4",
    "arm": "unpopulatable-antecedent",
    "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-7.3.18.3-5",
    "arm": "unpopulatable-antecedent",
    "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.24.4-10",
    "arm": "definitional",
    "names": "defines a constraint on the USER's run unit (no statement executed in a MERGE output procedure may manipulate file-name-2 or file-name-3 or access their record areas), with no exception condition and no result, so §2023:4.4 2) leaves a violation undefined and obliges the implementation to nothing",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.24.4-11",
    "arm": "definitional",
    "names": "defines a constraint on the USER's run unit (no statement executed in a USE procedure invoked during a MERGE may manipulate file-name-2, file-name-3 or file-name-4 or access their record areas), with no exception condition and no result, so §2023:4.4 2) leaves a violation undefined and obliges the implementation to nothing",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-9.3.6-L3.2",
    "arm": "unpopulatable-antecedent",
    "names": "the calling-convention set is closed at one member, COBOL, on both sides of an invocation: >>CALL-CONVENTION admits only COBOL (COBOL1911) and ENTRY-CONVENTION admits only COBOL (COBOL2385), so an invocation and its method can never be under different conventions",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-7.3.19.4-2",
    "arm": "unpopulatable-antecedent",
    "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.2.3-7",
    "arm": "undefined-A.2",
    "names": "A.2 item 39",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.35.4-8",
    "arm": "indistinguishable-consequent",
    "names": "GR-14.9.35.4-7",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-13.18.49.4-4",
    "arm": "unpopulatable-antecedent",
    "names": "the antecedent is EMPTY by the standard: SR7 restricts data-name-1 to an elementary item or a level 1 group item, so a data-name-1 subordinate to a group is elementary and gives an elementary subject, while a group subject needs a level 1 data-name-1 that is subordinate to nothing",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-DOC-A.1-169",
    "arm": "unpopulatable-antecedent",
    "names": "the set of statements that may reference a non-sort file's storage while a SORT or MERGE may hold it is empty by the standard: §2023:12.4.6.4.4 GR5 requires every non-sort file of the clause to be closed for the whole SORT or MERGE, and a closed file's record area is unavailable (§2023:14.9.6.4 GR7)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.40.4-4",
    "arm": "undefined-A.2",
    "names": "A.2 item 52",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-12.3.5.4-2",
    "arm": "definitional",
    "names": "defines the source computer of the USER's source unit (the computer on which the user compiles it when the paragraph is absent), a term no other rule of the standard reads, so it obliges the implementation to nothing",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-12.3.5.4-3",
    "arm": "definitional",
    "names": "defines the source computer of the USER's source unit (the computer on which the user compiles it when the paragraph names no computer), a term no other rule of the standard reads, so it obliges the implementation to nothing",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-SR-8.4.2.3.3-7",
    "arm": "unpopulatable-antecedent",
    "names": "the set of contexts that admit both the subscript ALL and a condition-name is EMPTY by the standard: SR6 admits ALL only in an intrinsic function argument and as a table subscript in the SORT table format, no AR-15.3 argument type (1 to 14) is a condition-name, and the SORT table operand is a data-name",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-8.5.1.11.3-1",
    "arm": "unpopulatable-antecedent",
    "names": "the set of statements that can reference a data item of a destroyed instance object is EMPTY by the standard: §2023:9.3.14.3 destroys an instance only when it cannot take part in the continued execution of the run unit, or when the run unit terminates",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-8.5.1.11.3-3",
    "arm": "indistinguishable-consequent",
    "names": "GR-14.9.42.4-6",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-DOC-A.1-220",
    "arm": "indistinguishable-consequent",
    "names": "GR-8.5.1.11.3-7",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-14.9.51.4-16",
    "arm": "unpopulatable-antecedent",
    "names": "the set of resources a WRITE needs that another run unit can hold locked is empty: the record being written does not yet exist, so no connector holds its lock (the invalid key condition for an existing key is decided regardless of locks, §2023:14.9.51.4 GR33 and GR42); file-level contention is decided at OPEN by Table 19; and the implementor defines no other locked-record circumstance (§7's A.1 item 152, condition absent)",
-   "signature": "owner: 2026-10-08"
+   "signature": "owner: 2026-10-08",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-12.4.6.4.4-3",
    "arm": "definitional",
    "names": "defines a constraint on the USER's run unit (which files one SAME RECORD AREA clause may name while an APPLY COMMIT clause names them), with no consequence given for a violation, so §2023:4.4 2) leaves the result undefined and obliges the implementation to nothing",
-   "signature": "owner: 2026-10-23"
+   "signature": "owner: 2026-10-23",
+   "refuter": "—"
   },
   {
    "key": "DRV-GR-12.4.5.9.4-2",
    "arm": "unpopulatable-antecedent",
    "names": "the set of file connectors for which this processor does not support record locking is empty: every organization (sequential, the LINE SEQUENTIAL extension among them, relative and indexed) sets and honours record locks through PhysicalFileTable.LockRecord and PhysicalFileTable.HolderOf, answering '51' to another connector in the same run unit and in a different one, and every host carries the cross-run-unit half (HostRegionLocks.HostOfThisProcess: HandleRegionLocks on Windows and Linux, SidecarRegionLocks on every other host)",
-   "signature": "owner: 2026-10-23"
+   "signature": "owner: 2026-10-23",
+   "refuter": "—"
   }
  ],
  "declinedCodes": {
@@ -1124,6 +1169,7 @@
    "COBOL1802",
    "COBOL1803",
    "COBOL1954",
+   "COBOL2386",
    "COBOL2424"
   ],
   "A4": [

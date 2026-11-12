@@ -257,7 +257,10 @@ internal sealed record FileControlKeyRule(
 /// <para>EDITIONS. Every rule here is present in all four supported editions (85 · 2002 · 2014 · 2023) — the
 /// RECORD KEY, ALTERNATE RECORD KEY and RELATIVE KEY clauses and their syntax rules all predate COBOL-85 — so
 /// the table needs no edition column and the negatives reject at every edition. A rule that arrived with a later
-/// edition would add one, and its gate would ride <c>EditionContext</c> exactly as every other introduction does.</para>
+/// edition would add one, and its gate would ride <c>EditionContext</c> exactly as every other introduction does.
+/// The one edition arm is the SORT-MERGE entry's: below COBOL-2002 it is SELECT and ASSIGN only (§1985:XI.2.3.3 SR2),
+/// one rule that answers every clause the SD rows would, so <see cref="Screen"/> asks it instead of them there
+/// (kb/Work PB5071; <see cref="FileModel.BeyondAssign"/>).</para>
 /// <para>⚖ THE SIBLING SITE. Entry rules that are decidable from the CLAUSES ALONE — §2023:12.4.5.5.2 SR2 (no DYNAMIC
 /// or RANDOM on a sequential file, kb/Work PB692) and the §2023:12.4.5.9.3 SR2 screen beside it — stay inline in
 /// <c>FileControlBinder.BindFileControl</c>, because they need nothing resolved and can report as the entry is read.
@@ -793,6 +796,24 @@ internal static class FileControlKeyRules
         // now, so a global veto here would silence exactly the two rows written for the case (kb/Work PB742).
         // The kind is computed ONCE per entry; every row's set is tested against it.
         var kind = KindOf(file);
+        // ⛔ THE 1985 SORT-MERGE ENTRY IS SELECT AND ASSIGN ONLY (kb/Work PB5071). §1985:XI.2.3.2 prints
+        // `SELECT file-name-1 ASSIGN TO {implementor-name-1 | literal-1} …` and §1985:XI.2.3.3 SR2 says "Since
+        // file-name-1 represents a sort or merge file, only the ASSIGN clause is permitted to follow file-name-1 in
+        // the FILE-CONTROL paragraph." — Format 4's OPTIONAL and [ORGANIZATION IS] SEQUENTIAL are COBOL-2002's. That one
+        // rule answers every clause an SD's entry writes, so below 2002 it REPLACES the 2023 sort-merge rows
+        // (§2023:12.4.5.2 SR8, SR9, SR11, SR13: each is a clause beyond the 1985 entry) rather than reporting beside them.
+        bool sortMerge1985 = kind == FileKinds.SortMerge && edition.DialectLevel < 2002;
+        // One report per clause, as the 2002+ rows report one per clause beyond Format 4.
+        foreach (var beyond in file.BeyondAssign)
+        {
+            if (!sortMerge1985) break;
+            using var at = edition.At(beyond.At);
+            edition.Error(DiagnosticCatalog.FileControlFormatOnSortMerge, $"file '{file.CobolName}' is described by a "
+                + $"sort-merge file description entry, but its file control entry writes {beyond.Written}; §1985:XI.2.3.3 "
+                + "SR2: \"Since file-name-1 represents a sort or merge file, only the ASSIGN clause is permitted to follow "
+                + "file-name-1 in the FILE-CONTROL paragraph.\" (§1985:XI.2.3.2 prints SELECT file-name-1 ASSIGN TO and "
+                + "nothing else)");
+        }
         // The entry's REQUIRED members first (§2023:12.4.5.1: a clause printed with no bracket): an entry that lacks its
         // ASSIGN clause is told so before any rule over the clauses it did write.
         foreach (var required in RequiredClauses)
@@ -814,7 +835,7 @@ internal static class FileControlKeyRules
                 if (op is { Item: null, Name: { } refused } && refusedOperands?.Contains(refused) == true) continue;
                 foreach (var rule in Rules)
                 {
-                    if (rule.Role != role || (rule.ScreenedOn & kind) == 0
+                    if (rule.Role != role || (rule.ScreenedOn & kind) == 0 || sortMerge1985
                         || !rule.Applies(file) || !rule.Violated(file, op)) continue;
                     using var _ = edition.At(file.ClauseOrEntryAt(op.At));
                     edition.Error(rule.Diagnostic, rule.Message(file, op));

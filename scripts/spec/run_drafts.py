@@ -43,7 +43,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 sys.path.insert(0, str(REPO / "conformance-suite" / "harness"))
 import config  # noqa: E402  (the conformance harness's adapter and profile formats)
 import run as harness  # noqa: E402  (THE compile, run and judge of one program: harness.Run)
-from audit_batch import Pass, answers_by_id, custom_id, write_plan  # noqa: E402  (the audit run's passes)
+from audit_batch import Pass, answers_by_id, custom_id, draft_problem, write_plan  # noqa: E402  (the audit run's passes)
 from message_batches import write_atomic  # noqa: E402
 sys.path.append(str(REPO / "scripts"))
 from standard_streams import ensure_utf8  # noqa: E402
@@ -60,24 +60,35 @@ DEFAULT_COBOL = REPO / "src" / "WiseOwl.Cobol.Cli" / "bin" / "Debug" / "net10.0"
 
 
 def tests_of(root: pathlib.Path, rule_id: str, draft: dict[str, Any]) -> list[dict[str, Any]]:
-    """A draft as conformance-harness tests (the manifest's shape, DESIGN-conformance-suite.md §4), its files written under
-    `cases/drafts/` of the run's scratch root: the draft's own test first, then its control when it has one. An output draft
-    is an accepted test; a refused draft a flagged test at the line it names, with its control."""
+    """A draft as conformance-harness tests (the manifest's shape, DESIGN-conformance-suite.md §4), its files written in
+    a folder of its own, `cases/drafts/<stem>/` of the run's scratch root: the draft's own test first, then its control
+    when it has one. An output draft is an accepted test; a refused draft a flagged test at the line it names, with its
+    control. The draft's library texts (`files`, audit_batch.py `draft_problem`) lie beside its programs and both tests
+    declare them, so the harness stages them for the program and its control alike (kb/Work PB5067). A draft that is no
+    draft is refused, naming the rule."""
+    why = draft_problem(draft)
+    if why:
+        raise SystemExit(f"{TOOL}: the draft of {rule_id}: {why}")
     stem = "d" + rule_id.replace(".", "_").replace("-", "_")
+    folder = f"cases/drafts/{stem}"
     expected = draft["expected"]
+    (root / folder).mkdir(parents=True, exist_ok=True)
+    declared = []
+    for name, text in sorted(draft.get("files", {}).items()):
+        (root / folder / name).parent.mkdir(parents=True, exist_ok=True)
+        (root / folder / name).write_text(text, encoding="utf-8", newline="\n")
+        declared.append(f"{folder}/{name}")
 
     def test(test_id: str, program: str, **shape: Any) -> dict[str, Any]:
-        source = f"cases/drafts/{test_id}.cob"
-        (root / source).parent.mkdir(parents=True, exist_ok=True)
+        source = f"{folder}/{test_id}.cob"
         (root / source).write_text(program.rstrip("\n") + "\n", encoding="utf-8", newline="\n")
         return {"id": test_id, "clause": "drafts", "source": source, "source-format": "fixed", "rules": [rule_id],
-                "files": [], "requires": [], "words": [], **shape}
+                "files": declared, "requires": [], "words": [], **shape}
 
     if expected["outcome"] == "output":
-        (root / "cases" / "drafts").mkdir(parents=True, exist_ok=True)
-        (root / f"cases/drafts/{stem}.out").write_text("\n".join(expected["output"]), encoding="utf-8", newline="\n")
+        (root / f"{folder}/{stem}.out").write_text("\n".join(expected["output"]), encoding="utf-8", newline="\n")
         return [test(stem, draft["program"], expect="accept", **{"implementor-defined": [],
-                                                                   "expected-output": {"": f"cases/drafts/{stem}.out"}})]
+                                                                   "expected-output": {"": f"{folder}/{stem}.out"}})]
     control = test(f"{stem}_control", expected["control"], expect="accept", **{"implementor-defined": [],
                                                                                "expected-output": {}})
     return [test(stem, draft["program"], expect="flag", flag="syntax", line=expected["line"], control=control["id"]),
@@ -203,22 +214,42 @@ def self_test() -> int:
                   "1985-SR-A.1-4": (two, {"outcome": "refused", "line": 1, "control": clean}),
                   "1985-SR-A.1-5": (two, {"outcome": "refused", "line": 2, "control": "*> STUB refuse"}),
                   "1985-SR-A.1-7": ("*> STUB run out X", {"outcome": "refused", "line": 1, "control": clean}),
-                  "1985-SR-A.1-8": ("*> STUB crash", {"outcome": "output", "output": ["X"]})}
+                  "1985-SR-A.1-8": ("*> STUB crash", {"outcome": "output", "output": ["X"]}),
+                  # drafts that COPY a library text (the stub's `need`: the compile fails without the file), carried as
+                  # the draft's `files` (kb/Work PB5067): an output draft, and a refusal whose program and control both
+                  # need a text in a library folder
+                  "1985-GR-A.1-9": ("*> STUB need LIB1.cpy\n*> STUB run out COPIED",
+                                    {"outcome": "output", "output": ["COPIED"]}),
+                  "1985-SR-A.1-10": ("*> STUB need LIBA/TEXT1.cpy\n*> STUB diag 2",
+                                     {"outcome": "refused", "line": 2,
+                                      "control": "*> STUB need LIBA/TEXT1.cpy\n*> STUB run out ok"})}
+        files = {"1985-GR-A.1-9": {"LIB1.cpy": "       01  W PIC X.\n"},
+                 "1985-SR-A.1-10": {"LIBA/TEXT1.cpy": "       01  W PIC X.\n"}}
         p = Pass(state, "drafts")
         write_plan(p, [{"id": rid} for rid in drafts])
         p.answers_dir.mkdir(parents=True)
         for rid, (program, expected) in drafts.items():
             p.answer_file(custom_id("drafts", rid)).write_text(json.dumps(
-                {"id": rid, "answer": {"program": program, "expected": expected, "basis": "planted"}}),
+                {"id": rid, "answer": {"program": program, "expected": expected, "basis": "planted",
+                                       **({"files": files[rid]} if rid in files else {})}}),
                 encoding="utf-8", newline="\n")
         planted = {"version": "planted", "commit": None, "assemblies": "0" * 64}
         record = run_drafts(state, root / "adapters" / "stub.json", {}, "85", 2, planted)
         got = {rid: r["verdict"] for rid, r in record["runs"].items()}
         ok(got == {"1985-GR-A.1-1": MATCH, "1985-GR-A.1-2": MISMATCH, "1985-SR-A.1-3": MATCH, "1985-SR-A.1-4": MISMATCH,
                    "1985-SR-A.1-5": MISMATCH, "1985-SR-A.1-7": MISMATCH,
-                   "1985-SR-A.1-8": NO_VERDICT},
+                   "1985-SR-A.1-8": NO_VERDICT, "1985-GR-A.1-9": MATCH, "1985-SR-A.1-10": MATCH},
            "the harness judges each draft: output matched and mismatched; a refusal a MATCH only with a diagnostic at its "
-           f"violating line and a control that compiles; a crash no verdict ({got})")
+           "violating line and a control that compiles; a crash no verdict; a draft that COPYs a library text runs with "
+           f"its files, the program and its control, a library folder kept (kb/Work PB5067) ({got})")
+        for bad in ({"../LIB1.cpy": "x"}, {"/abs.cpy": "x"}, {"A/B/C.cpy": "x"}, ["LIB1.cpy"], {"LIB1.cpy": 1}):
+            try:
+                tests_of(root / "bad", "1985-GR-A.1-11", {"program": "x", "expected": {"outcome": "output",
+                                                                                         "output": []}, "files": bad})
+                ok(False, f"a draft whose files are {bad!r} is refused, naming its rule")
+            except SystemExit as e:
+                ok("1985-GR-A.1-11" in str(e) and "files" in str(e), f"a draft whose files are {bad!r} is refused, "
+                                                                     f"naming its rule")
         runs = record["runs"]
         ok("HELLO" in runs["1985-GR-A.1-2"]["reason"] and "marked line 1" in runs["1985-SR-A.1-4"]["reason"]
            and "control" in runs["1985-SR-A.1-5"]["reason"] and runs["1985-SR-A.1-7"]["reason"],

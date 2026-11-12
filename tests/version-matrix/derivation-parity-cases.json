@@ -9,7 +9,8 @@
   "falsifiable, rather than a sentence in a commit message.",
   "",
   "It is a WORLD plus a list of CASES. Each engine builds the world (a fabricated docs/CONFORMANCE.md §8",
-  "register, a fabricated §7 item set, a fabricated Annex A.2 resolution and a fabricated catalog), evaluates",
+  "register, a fabricated §7 item set, a fabricated Annex A.2 resolution, fabricated catalogs of two editions,",
+  "each rule-id with its text, and fabricated cobol-refuter record files, kb/Work PB5374), evaluates",
   "every case, and asserts BOTH the derived `state` and the exact set of refusal CODES. Comparing codes rather",
   "than a boolean is the point: two evaluators that reject one row for two different reasons look identical",
   "under 'it was refused', which is the shape PB315 hid behind for months.",
@@ -48,15 +49,70 @@
    {"key": "DRV-RV-15.50.4-7", "arm": "indistinguishable-consequent", "names": "RV-99.99.99-1",
     "argument": "names a rule the catalog does not have", "signature": "owner: 2026-09-03"},
    {"key": "DRV-DOC-A.1-19", "arm": "indistinguishable-consequent", "names": "GR-14.9.5.4-7",
-    "argument": "the not-located path is byte-identical", "signature": "owner: 2026-09-03"}
+    "argument": "the not-located path is byte-identical", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-XIV.3.6.4-5", "arm": "undefined-in-rule",
+    "names": "\"referenced by identifier-1 is undefined\"",
+    "argument": "the 1985 rule's own text declares the effect undefined; the 1985 standard has no Annex A.2",
+    "signature": "claude: 2026-11-12", "refuter": "—"},
+   {"key": "DRV-1985-GR-XIV.3.6.4-6", "arm": "undefined-in-rule",
+    "names": "\"the results are undefined\"",
+    "argument": "a real quotation of the word, but not of THIS rule's text", "signature": "claude: 2026-11-12"},
+   {"key": "DRV-GR-14.9.5.4-17", "arm": "undefined-in-rule",
+    "names": "\"the program-pointer is undefined\"",
+    "argument": "Annex A.2 lists the rule, so its arm is undefined-A.2", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-XIV.3.6.4-7", "arm": "undefined-in-rule",
+    "names": "\"the effect is unspecified here\"",
+    "argument": "a quotation that declares nothing undefined", "signature": "claude: 2026-11-12"},
+   {"key": "DRV-1985-GR-VII.4.7.4-15", "arm": "unpopulatable-antecedent",
+    "names": "the medium set is closed at mass storage — no connector models a reel",
+    "argument": "argued, signed by the deciding session, refuted and upheld", "signature": "claude: 2026-11-12",
+    "refuter": "adjudication/pb5373-1985/refute.jsonl"},
+   {"key": "DRV-1985-GR-VII.4.7.4-16", "arm": "unpopulatable-antecedent",
+    "names": "the medium set is closed at mass storage — no connector models a reel",
+    "argument": "argued, signed by the deciding session, with no refuter record", "signature": "claude: 2026-11-12",
+    "refuter": "—"},
+   {"key": "DRV-1985-GR-VII.4.7.4-17", "arm": "unpopulatable-antecedent",
+    "names": "the medium set is closed at mass storage — no connector models a reel",
+    "argument": "argued, signed by the deciding session, the refuter OVERTURNED it", "signature": "claude: 2026-11-12",
+    "refuter": "adjudication/pb5373-1985/refute.jsonl"},
+   {"key": "DRV-1985-GR-VII.4.7.4-18", "arm": "indistinguishable-consequent", "names": "GR-14.9.5.4-7",
+    "argument": "names a rule of ANOTHER edition's catalog", "signature": "owner: 2026-09-03"}
   ],
   "register-items": ["DOC-A.1-19"],
   "undefined": {
    "$note": "GR-14.9.5.4-14 is covered so that the bad-signature case fails for the SIGNATURE alone — a case with two causes cannot show which check fired.",
-   "4": ["GR-14.9.5.4-11", "GR-14.9.5.4-14", "GR-14.9.5.4-16"],
+   "4": ["GR-14.9.5.4-11", "GR-14.9.5.4-14", "GR-14.9.5.4-16", "GR-14.9.5.4-17"],
    "41": ["GR-14.9.30.4-3"]
   },
-  "catalog-rule-ids": ["GR-14.9.5.4-7", "GR-14.9.5.4-11", "GR-14.9.30.4-3", "RV-15.50.4-5", "DOC-A.1-19"]
+  "catalogs": {
+   "$note": "Each held edition's rules, id -> text (kb/Work PB5374). The rule-exists arm needs the row's own id AND the named id in ONE edition; the undefined-in-rule arm reads the row's own text. GR-14.9.5.4-17 is listed by the A.2 item 4 so the a2-lists-rule case has that one cause.",
+   "2023": {
+    "GR-14.9.5.4-7": "If the program to be canceled is not located, no action is taken.",
+    "GR-14.9.5.4-11": "If a program-pointer has been set to point to the program to be canceled, the result of referencing the program-pointer in a subsequent CALL statement is undefined.",
+    "GR-14.9.5.4-17": "If the program-pointer is undefined after the cancel, its content is undefined.",
+    "GR-14.9.30.4-3": "the content of any data item, where any part of that data item lies beyond the range of the current record, is undefined",
+    "RV-15.50.4-5": "The returned length shall include the number of implicit FILLER positions, if any, in argument-1.",
+    "RV-15.50.4-8": "The returned value is an integer.",
+    "RV-15.50.4-9": "the returned value is rounded to the next larger integer value",
+    "DOC-A.1-19": "Result of canceling a non-COBOL program."
+   },
+   "1985": {
+    "1985-GR-XIV.3.6.4-5": "The effect of having special control characters within the content of the data item referenced by identifier-1   is undefined.",
+    "1985-GR-XIV.3.6.4-6": "The SEND statement transmits the content of the data item referenced by identifier-1.",
+    "1985-GR-XIV.3.6.4-7": "The effect is unspecified here and the results are undefined.",
+    "1985-GR-VII.4.7.4-15": "When a file is on a reel, the reel is positioned at its beginning.",
+    "1985-GR-VII.4.7.4-16": "When a file is on a unit, the unit is positioned at its beginning.",
+    "1985-GR-VII.4.7.4-17": "When a file is on a reel, the next reel is mounted.",
+    "1985-GR-VII.4.7.4-18": "When the program to be canceled is not located, no action is taken."
+   }
+  },
+  "refuter-records": {
+   "$note": "A refuter record file -> {rule-id -> outcome}, as each JSON line of the file carries them.",
+   "adjudication/pb5373-1985/refute.jsonl": {
+    "1985-GR-VII.4.7.4-15": "UPHELD",
+    "1985-GR-VII.4.7.4-17": "OVERTURNED"
+   }
+  }
  },
 
  "cases": [
@@ -199,6 +255,22 @@
    "row": {"rule-id": "GR-14.9.5.4-11", "section": "14.9.5.4", "kind": "GR", "ordinal": 11,
            "subject": "CANCEL statement", "verdict": "CONFORMS",
            "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer"},
-   "state": "GAP", "refusals": []}
+   "state": "GAP", "refusals": []},
+
+  {"name": "the undefined-in-rule arm CLOSES a 1985 row whose own text declares the result undefined, whitespace runs compared as one, and as a MECHANICAL arm it needs no refuter under the deciding session's signature", "row": {"rule-id": "1985-GR-XIV.3.6.4-5", "section": "XIV.3.6.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIV.3.6.4-5"}, "state": "OK", "refusals": []},
+
+  {"name": "an undefined-in-rule quotation that is not in THIS rule's text is refused", "row": {"rule-id": "1985-GR-XIV.3.6.4-6", "section": "XIV.3.6.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIV.3.6.4-6"}, "state": "GAP", "refusals": ["quote-not-in-rule"]},
+
+  {"name": "an undefined-in-rule arm on a row Annex A.2 lists is refused — the row keeps undefined-A.2 (one fact, one arm)", "row": {"rule-id": "GR-14.9.5.4-17", "section": "14.9.5.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.5.4-17"}, "state": "GAP", "refusals": ["a2-lists-rule"]},
+
+  {"name": "an undefined-in-rule quotation that declares nothing undefined is refused by its shape", "row": {"rule-id": "1985-GR-XIV.3.6.4-7", "section": "XIV.3.6.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIV.3.6.4-7"}, "state": "GAP", "refusals": ["names-shape"]},
+
+  {"name": "an ARGUED arm signed by the deciding session CLOSES on an UPHELD refuter record of the row", "row": {"rule-id": "1985-GR-VII.4.7.4-15", "section": "VII.4.7.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VII.4.7.4-15"}, "state": "OK", "refusals": []},
+
+  {"name": "an ARGUED arm signed by the deciding session with NO refuter record is refused", "row": {"rule-id": "1985-GR-VII.4.7.4-16", "section": "VII.4.7.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VII.4.7.4-16"}, "state": "GAP", "refusals": ["no-refuter-record"]},
+
+  {"name": "an ARGUED arm signed by the deciding session whose refuter OVERTURNED it is refused", "row": {"rule-id": "1985-GR-VII.4.7.4-17", "section": "VII.4.7.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VII.4.7.4-17"}, "state": "GAP", "refusals": ["refuter-not-upheld"]},
+
+  {"name": "the indistinguishable-consequent arm of a 1985 row naming a rule of ANOTHER edition's catalog is refused", "row": {"rule-id": "1985-GR-VII.4.7.4-18", "section": "VII.4.7.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VII.4.7.4-18"}, "state": "GAP", "refusals": ["unknown-rule"]}
  ]
 }
