@@ -3449,15 +3449,15 @@ public static class DiagnosticCatalog
         + "only), a SOURCE FORMAT directive, or a comment.",
         "ISO §2023:7.2.3.4 GR13 / §2023:7.2.4.4 GR9");
 
-    /// <summary>COBOL7006 — the word COPY written as word-1 or word-2 of a COPY statement's REPLACING phrase at an edition
-    /// that still admits the word operand forms (kb/Work PB5085): §1985:XII.2.3 SR6, §2002:7.1.2.2 SR10 and
-    /// §2014:7.2.2.2 SR10 each say "Word-1 or word-2 may be any single COBOL word except 'COPY'". At 2023 the word forms
-    /// are removed altogether (COBOL0902), so the rule has no clause of its own there. The ==pseudo-text== spelling of the
-    /// same text is COBOL2451's.</summary>
+    /// <summary>COBOL7006 — a word barred from word-1 or word-2 of a COPY statement's REPLACING phrase at an edition that
+    /// still admits the word operand forms (kb/Work PB5085): COPY (§1985:XII.2.3 SR6, §2002:7.1.2.2 SR10, §2014:7.2.2.2
+    /// SR10), plus the compiler directive indicator (2002, 2014) and the floating debug indicator (2002). At 2023 the word
+    /// forms are removed altogether (COBOL0902), so the rule has no clause of its own there. The ==pseudo-text== spelling
+    /// of the same text is COBOL2451's.</summary>
     public static readonly DiagnosticDescriptor CopyReplacingWordIsCopy = new(
         "COBOL7006", "copy-replacing-word-is-copy", EditionSeverity.Error,
-        "The word COPY is written as word-1 or word-2 of a COPY statement's REPLACING phrase, which may be any single "
-        + "COBOL word except COPY.",
+        "The word COPY, the compiler directive indicator or the floating debug indicator is written as word-1 or word-2 "
+        + "of a COPY statement's REPLACING phrase, which may be any single COBOL word except those.",
         "§1985:XII.2.3 SR6; §2002:7.1.2.2 SR10; §2014:7.2.2.2 SR10");
 
     // ── The INVOKE twins of the PB132 CALL operand screens (kb/Work PB1137): the rules are written in the same

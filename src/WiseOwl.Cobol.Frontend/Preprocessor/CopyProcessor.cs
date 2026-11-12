@@ -1088,18 +1088,43 @@ public sealed class CopyProcessor(
                 Constructs.ReplacingPartialWord2002, $"{Rules.Statement} REPLACING {phrase.Value.ToUpperInvariant()}");
         }
 
-        /// <summary>COBOL7006 — the word COPY as word-1 or word-2 of a COPY REPLACING phrase (kb/Work PB5085): each of
-        /// §1985:XII.2.3 SR6, §2002:7.1.2.2 SR10 and §2014:7.2.2.2 SR10 says "Word-1 or word-2 may be any single COBOL
-        /// word except 'COPY'". 2023 removed the word operand forms altogether, so it draws COBOL0902 there
-        /// (<see cref="OnNonPseudoTextOperand"/>) and this rule adds nothing. COPY only: a REPLACE statement takes no word
+        /// <summary>COBOL7006 — a word that may not be word-1 or word-2 of a COPY REPLACING phrase (kb/Work PB5085). Each
+        /// edition that has the word operand forms bars a set: §1985:XII.2.3 SR6 "Word-1 or word-2 may be any single COBOL
+        /// word except 'COPY'"; §2002:7.1.2.2 SR10 adds the compiler directive indicator <c>&gt;&gt;</c>, the floating debug
+        /// indicator <c>&gt;&gt;D</c> and the comment indicator; §2014:7.2.2.2 SR10 drops the debug indicator. 2023 removed
+        /// the word operand forms (COBOL0902), so the 2014 set applies there only where <c>--permissive</c> still accepts
+        /// the removed form (a strict 2023 compile already refuses the operand once). The comment indicator <c>*&gt;</c>
+        /// never reaches here: the scanner reads it as a comment, not a word. COPY only: a REPLACE statement takes no word
         /// operand at any edition (COBOL1641).</summary>
         public void CopyWord(in TextWord word)
         {
-            if (edition is not { Year: < 2023 } e || diagnostics is null || Rules.Statement != "COPY") return;
-            string clause = e.Year == 85 ? "§1985:XII.2.3 SR6" : e.Year == 2002 ? "§2002:7.1.2.2 SR10" : "§2014:7.2.2.2 SR10";
+            if (edition is not { } e || diagnostics is null || Rules.Statement != "COPY"
+                || (e.Year == 2023 && !e.Permissive)) return;
+            bool isCopy = word.IsWord("COPY");
+            bool isDirective = e.Year >= 2002 && word.Span.Equals(">>", StringComparison.Ordinal);
+            bool isDebug = e.Year == 2002 && word.Span.Equals(">>D", StringComparison.OrdinalIgnoreCase);
+            if (!isCopy && !isDirective && !isDebug) return;
+            string clause, quoted;
+            if (e.Year == 85)
+            {
+                clause = "§1985:XII.2.3 SR6";
+                quoted = "Word-1 or word-2 may be any single COBOL word except 'COPY'";
+            }
+            else if (e.Year == 2002)
+            {
+                clause = "§2002:7.1.2.2 SR10";
+                quoted = "Word-1 or word-2 may be any single COBOL word except 'COPY', the compiler directive indicator, "
+                    + "the floating debug indicator, or the comment indicator";
+            }
+            else
+            {
+                clause = "§2014:7.2.2.2 SR10";
+                quoted = "Word-1 or word-2 may be any single COBOL word except 'COPY', the compiler directive indicator, "
+                    + "or the comment indicator";
+            }
             diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyReplacingWordIsCopy.Code,
-                $"COPY statement: the word COPY is written as a REPLACING operand — {clause}: \"Word-1 or word-2 may be any "
-                + "single COBOL word except 'COPY'\"", mapped.LocateAt(word.Start), default);
+                $"COPY statement: '{word.Value}' is written as a REPLACING operand — {clause}: \"{quoted}\"",
+                mapped.LocateAt(word.Start), default);
         }
 
         /// <summary>COBOL2572 — an operand whose content breaks one of <see cref="Rules"/>.</summary>
@@ -1240,7 +1265,7 @@ public sealed class CopyProcessor(
         }
 
         nonPseudoText?.Invoke(w.Start);
-        if (w.Kind == TextWordKind.CharacterString && w.IsWord("COPY")) screen.CopyWord(w);
+        if (w.Kind == TextWordKind.CharacterString) screen.CopyWord(w);
         if (w.Kind == TextWordKind.Literal)
         {
             c.Advance(w);

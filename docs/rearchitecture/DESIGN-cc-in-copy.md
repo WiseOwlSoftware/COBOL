@@ -225,7 +225,9 @@ COBOL-85 and the editions from 2002 differ in three rules of this stage, each as
   header) and `ReplaceStates.EndScope` drops every statement in effect. A contained program lies inside its separately compiled program.
 
 The word COPY as word-1 or word-2 of a COPY REPLACING phrase is refused by COBOL7006 at 85, 2002 and 2014 (§1985:XII.2.3 SR6, §2002:7.1.2.2 SR10,
-§2014:7.2.2.2 SR10); 2023 removed the word forms (COBOL0902).
+§2014:7.2.2.2 SR10), and so are the compiler directive indicator `>>` (2002, 2014) and the floating debug indicator `>>D` (2002); the comment
+indicator is a comment to the scanner and never a word. 2023 removed the word forms (COBOL0902); under `--permissive`, which still accepts them,
+the 2014 set applies (`OperandScreen.CopyWord`).
 
 ## §4 Wiring (greenfield only)
 

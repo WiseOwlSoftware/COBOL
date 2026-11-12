@@ -23,3 +23,8 @@ Goldens: `1985-SR-XII_3_3-1`, `pb5085-replace-not-after-period`, `1985-SR-XII_2_
 `pb5277-replace-scope-separately-compiled`, `pb5277-replace-scope-ended`, `pb5277_replace_scope_compilation_group`; `pb1358_replace_anywhere` now
 accepts from 2002 (it compiled at 85 only because of this defect). Design: DESIGN-cc-in-copy.md section 3.6. The three notes close no
 inventory row (the 1985 inventory has no verdict rows, PB5094).
+
+Review round 1: `OperandScreen.CopyWord` now also bars the compiler directive indicator (`>>`, 2002 and 2014) and the floating debug
+indicator (`>>D`, 2002) as word-1/word-2 (§2002:7.1.2.2 SR10, §2014:7.2.2.2 SR10), and applies the 2014 set at 2023 under `--permissive`.
+Golden `pb5085-replacing-directive-indicator` (refuse 2002, 2014), unit test `CopyReplacingBarredWordTests`. The landing paragraphs of the three
+notes moved to `kb/Work/<id>/2026-11-12-landed.md` (rule 8).
