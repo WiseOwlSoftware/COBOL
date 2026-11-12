@@ -1,7 +1,8 @@
-## PB4996: held sets 6 and 7 recorded, 24 verdicts and the new PB5442 (1985 GAP 329 to 326)
+## Entry 3539 — 2026-11-12 13:20 PST — PB4996: held sets 6 and 7 recorded, 24 verdicts and the new PB5442 (1985 GAP 329 to 326)
 
 Held set 6 (nine DOUBTFUL rows, decided by a Mythos adjudicator) and set 7 (fourteen OVERTURNED rows, confirmed by an Opus adjudicator) went into the 1985 inventory through `record_verdicts.py --edition 1985`, merged by `coderead-85/held_batch_set67.py`: 4 CONFORMS, 18 PARTIAL and 1 DIVERGES ("rows changed : 23", "GAP : 329 → 325"). A second batch re-recorded `1985-SR-VII.4.4.3-2` CONFORMS to PARTIAL on PB5413 after I reran the adjudicator's LINAGE probe `linx.cob` (it compiles with no diagnostic; expected COBOL6826): "GAP : 325 → 326". `inventory_view.py --summary`: 1985 783 adjudicated (CONFORMS 574, PARTIAL 181, DIVERGES 24), 326 GAP.
 
 New note PB5442: COBOL6877 refuses a PERFORM whose named span holds a section of another segment that no execution of the range reaches (`Segmentation.CheckProcedures` reads the physical span; the 1985 restriction is over the executed range, §1985:VI.6.21.4 GR11). Probes s1 to s5 reproduced. Its fix rewrites the `docs/CONFORMANCE.md` section 3.8 row the adjudication shows wrong.
 
 Dated addenda on PB5413 (adds the indexed DELETE row and the LINAGE file; names D31(a), the `HasApplicableUse` comment and the section 3.5 row), PB5416 (the 19-digit arm is not a 1985 violation), PB5417, PB5418, PB5419 (the ELSE claim did not reproduce; MOVE -5 TO a group gives `[-5]` or `[5 ]` depending on unrelated lines), PB5420, and PB4950 (COBOL2372 and COBOL6169's FILLER arm cite 2023 and 2002 rules at --std 85). `docs/CONFORMANCE.md` gains two section 3.3 rows (FILLER in a CD entry; the I-O TERMINAL path) and the ALTER trigger in D-DEBUG-PROCEDURE. Record: `kb/Work/PB4996/2026-11-12-held-rows-set6-set7.md`.
+
