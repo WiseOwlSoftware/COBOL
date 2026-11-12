@@ -3540,6 +3540,26 @@ the source program"), and implements the two rules a program can observe. The de
 | SEGMENT-LIMIT and fixed overlayable segments | A null facility in function: a fixed overlayable segment "is always made available in its last used state" (§1985:XVI.1.4.2), which is what a resident segment is. Its range is checked (COBOL6819) |
 | --permissive at a later edition | The segment-number is a removed construct, accepted with a warning; it keeps its 1985 run-time meaning (as ALTER does), and the 1985 restrictions are not asked |
 
+### 3.9 The language level at COBOL-85: level 2, so no level 1 restriction is enforced (kb/Work PB5142, PB4885)
+
+X3.23-1985 divides nine of its modules into level 1 and level 2 elements (§1985:I.1.2), and a conforming implementation (§1985:I.1.5.2) must support one of the three
+subsets of §1985:I.1.5.1 in full. `--std 85` claims the HIGH subset, the highest level of every required module (owner decision, kb/Work PB4885), so it is a LEVEL 2
+processor and has no level axis: a level 1 restriction is a restriction on the programs of a LOWER level, and a level 2 processor accepts the program that breaks it.
+
+| Item | Determination |
+|---|---|
+| INSPECT's one-character literals and data items (§1985:VI.6.18.3 SR5: "In level 1, literal-1, literal-2, and literal-3, and the data items referenced by identifier-3, identifier-4, and identifier-5 must be one character in length. Except as specifically noted in syntax and general rules, this restriction on length does not apply to level 2.") | Not enforced, at any edition. The rule lifts itself at level 2, so refusing it at `--std 85` would reject legal level 2 source. The "noted in syntax and general rules" exceptions are enforced where they are stated: SR7 and SR9 (the pair sizes), SR8 (CHARACTERS BY one character) and SR10 (the repeated character of literal-4), COBOL0846 and COBOL6859 (kb/Work PB5089, PB5103) |
+| A level 1 only mode | None. No option selects the intermediate or the minimum subset, so no level 1 rule has a place to be enforced; the compiler states its claim and a program written for level 1 is a program of level 2 |
+
+### 3.10 Figurative constants and ALL literals opposite a numeric item, at COBOL-85 (kb/Work PB5176, PB5187)
+
+| Item | Determination |
+|---|---|
+| MOVE ALL "digits" to a numeric or numeric-edited receiver, `--std 85` | The string is repeated to the receiver's SIZE in standard data format characters (§1985:IV.4.2.2.2.3: its digit count, plus the sign position of a SIGN SEPARATE item, or every character position of a numeric-edited picture, the decimal point and insertion characters included), and the digits are an unsigned INTEGER, aligned by decimal point and edited as the receiver says (§1985:VI.6.19.4 GR3, GR4 b 3): `ALL "12"` into `PIC 9(3)V99` holds 121.00, into `PIC 9(3).99` holds 212.00 (121212), into `PIC S9(3) SIGN LEADING SEPARATE` holds +212 (1212). The nonnumeric literal of the same characters moves the same way |
+| The same, COBOL-2002 on (reached under --permissive, COBOL0902 otherwise) | §2023:14.9.25.4 GR6 d 3 b gives the figurative constant "the same number of digits as the number of digits in the receiving operand", "both those to the right and the left of the decimal point" for a noninteger receiver: the digits span the receiver's digit positions at its scale (kb/Work PB426), so `ALL "12"` into `PIC 9(3)V99` holds 121.21. A numeric-edited receiver is EDITED from that value at every edition; the repeated characters are never its image |
+| A figurative constant of category alphanumeric (QUOTE, HIGH-VALUE, LOW-VALUE, a nonnumeric ALL literal) moved to a numeric item that is not usage DISPLAY | Legal at COBOL-85 (§1985:VI.6.19.4 GR3 e) and its value undefined (§1985:VI.6.4.7). The value is the one the receiver's storage bytes hold with the fill characters laid over them, read in the item's byte form: LOW-VALUES give 0, HIGH-VALUES all one bits (minus one in a signed binary item), ALL "AB" into S9(4) COMP the raw 16706, with no digit truncation. A floating-point receiver is not served and stops the run unit with the unimplemented-feature exception |
+| The numeric operand of a relation opposite a nonnumeric operand, `--std 85` | An alphanumeric temporary of the numeric item's SIZE in standard data format characters (§1985:VI.6.3.1.1.2 GR1, GR2), which excludes a P scaling position (§1985:VI.5.9.4 GR8): `PIC 99PP` holding 1200 compares as "12". From 2002 the temporary is as long as the integer has digits (§2023:8.8.4.2.5), P positions included: "1200" |
+
 ## 4. Documented non-support facilities (§2023:4.2.6 / §2023:4.2.7 / §2023:4.2.13)
 
 The following facilities are **not implemented** (commit and rollback only for the sequential organizations, item 2),

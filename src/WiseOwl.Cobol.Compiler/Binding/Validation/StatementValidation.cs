@@ -971,7 +971,7 @@ internal sealed class StatementValidation(DataBinder data)
             : InspectSizeRulesCoverDataItems && rep is BoundFieldOperand ? IntrinsicBinder.KnownWidth(rep)
             : null;
         if (size is null or 1) return true;
-        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT REPLACING CHARACTERS BY {InspectOperandImage(rep, size.Value)} "
+        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT REPLACING CHARACTERS BY {InspectOperandImage(rep, size.Value, "literal-3", "identifier-5")} "
             + $"— the replacement shall be one character in length ({InspectRuleCitation("SR7", "SR8")})");
         return false;
     }
@@ -992,12 +992,16 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (replacement.Figurative || InspectOperandSize(pattern) is not { } patternSize
             || InspectOperandSize(replacement) is not { } replacementSize || patternSize == replacementSize) return true;
-        var (rule, phrase, names) = converting
-            ? (InspectRuleCitation("SR9", "SR9"), "CONVERTING", ("literal-4", "literal-5"))
-            : (InspectRuleCitation("SR6", "SR7"), "REPLACING", ("literal-1", "literal-3"));
-        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT {phrase}: {names.Item1} {InspectOperandImage(pattern.Op, patternSize)} "
-            + $"and {names.Item2} {InspectOperandImage(replacement.Op, replacementSize)} differ in size "
-            + $"({rule} — the same size unless {names.Item2} is a figurative constant)");
+        // Each operand is named by what it IS (kb/Work PB5141): the standard's literal slot for a literal, its identifier slot
+        // for a data item (§1985:VI.6.18.3 Formats 2 and 4: literal-1 / identifier-3 BY literal-3 / identifier-5;
+        // literal-4 / identifier-6 TO literal-5 / identifier-7), never a data item called a literal.
+        var (rule, phrase, patternSlots, replacementSlots) = converting
+            ? (InspectRuleCitation("SR9", "SR9"), "CONVERTING", ("literal-4", "identifier-6"), ("literal-5", "identifier-7"))
+            : (InspectRuleCitation("SR6", "SR7"), "REPLACING", ("literal-1", "identifier-3"), ("literal-3", "identifier-5"));
+        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT {phrase}: "
+            + $"{InspectOperandImage(pattern.Op, patternSize, patternSlots.Item1, patternSlots.Item2)} "
+            + $"and {InspectOperandImage(replacement.Op, replacementSize, replacementSlots.Item1, replacementSlots.Item2)} differ in size "
+            + $"({rule} — the same size unless {replacementSlots.Item1} is a figurative constant)");
         return false;
     }
 
@@ -1036,12 +1040,15 @@ internal sealed class StatementValidation(DataBinder data)
         : operand.Op is BoundStringLiteral literal ? literal.Value.Length
         : null;
 
-    private static string InspectOperandImage(BoundOperand operand, int size) =>
+    /// <summary>How a diagnostic names an INSPECT operand: its slot in the general format by what it is (kb/Work PB5141) —
+    /// <paramref name="literalSlot"/> for a literal or a figurative constant, <paramref name="identifierSlot"/> for a data
+    /// item — then the operand itself.</summary>
+    private static string InspectOperandImage(BoundOperand operand, int size, string literalSlot, string identifierSlot) =>
         operand switch
         {
-            BoundStringLiteral literal => $"'{literal.Value}' ({size} character{(size == 1 ? "" : "s")})",
-            BoundFieldOperand field => $"the data item '{field.Place.Item.CobolName}' ({size} character{(size == 1 ? "" : "s")})",
-            _ => "(a figurative constant, an implicit one-character item by SR3)",
+            BoundStringLiteral literal => $"{literalSlot} '{literal.Value}' ({size} character{(size == 1 ? "" : "s")})",
+            BoundFieldOperand field => $"{identifierSlot} (the data item '{field.Place.Item.CobolName}', {size} character{(size == 1 ? "" : "s")})",
+            _ => $"{literalSlot} (a figurative constant, an implicit one-character item by SR3)",
         };
 
     /// <summary>⛔ THE ONE ELEMENTARY ARM OF INSPECT'S USAGE RULES (kb/Work PB856). ISO §2023:14.9.22.3 SR1 and SR2 end in
@@ -1050,23 +1057,27 @@ internal sealed class StatementValidation(DataBinder data)
     /// diagnostic quoted the rule that admits it. Both rules read this predicate; the usage half is the ONE
     /// "described implicitly or explicitly as usage display or national" predicate
     /// (<see cref="ItemCategory.IsDisplayOrNationalUsage"/>, which STRING SR1 asks too; kb/Work PB3228), so an item
-    /// inside a GROUP-USAGE NATIONAL group answers its implicit usage.</summary>
-    internal static bool IsInspectElementaryCharacterItem(DataItem item) =>
-        !ItemCategory.IsGroupItem(item) && ItemCategory.IsDisplayOrNationalUsage(item);
+    /// inside a GROUP-USAGE NATIONAL group answers its implicit usage.
+    /// <para>⛔ IT IS ASKED OF THE REFERENCE, NOT OF ITS BASE ITEM (kb/Work PB5216): a reference-modified group
+    /// (<c>G (1:2)</c>) is the elementary item reference modification creates (§1985:IV.4.3.8.4.4 GR5;
+    /// <see cref="ItemCategory.IsElementaryReference"/>), of the base item's usage, and was refused COBOL0847 as the
+    /// group its base is.</para></summary>
+    internal static bool IsInspectElementaryCharacterItem(Place place) =>
+        ItemCategory.IsElementaryReference(place) && ItemCategory.IsDisplayOrNationalUsage(place.Item);
 
     /// <summary>ISO §2023:14.9.22.3 SR1 — identifier-1 "shall reference either an alphanumeric or national group item or
     /// an elementary item described implicitly or explicitly as usage display or national": the group kinds by
     /// the ONE group classifier (a bit, strongly-typed or variable-length group is none of the two named), the
     /// elementary arm shared with SR2.</summary>
-    internal static bool IsInspectIdentifier1(DataItem item) =>
-        (ItemCategory.GroupKindsOf(item) & (GroupKinds.Alphanumeric | GroupKinds.National)) != 0
-        || IsInspectElementaryCharacterItem(item);
+    internal static bool IsInspectIdentifier1(Place place) =>
+        (ItemCategory.GroupKindsOf(place.Item) & (GroupKinds.Alphanumeric | GroupKinds.National)) != 0
+        || IsInspectElementaryCharacterItem(place);
 
     /// <summary>SR2 — identifier-3 … identifier-n (every TALLYING / REPLACING / BEFORE / AFTER / CONVERTING
     /// identifier) shall reference an elementary item of usage display or national.</summary>
     public bool CheckInspectOperandUsage(Place p, string refText)
     {
-        if (IsInspectElementaryCharacterItem(p.Item)) return true;
+        if (IsInspectElementaryCharacterItem(p)) return true;
         data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT operand '{refText}' shall reference an elementary item "
             + "described implicitly or explicitly as usage display or national (ISO §2023:14.9.22.3 SR2)");
         return false;
@@ -1191,16 +1202,18 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>Arm b) applied to identifier-1. A REFERENCE-MODIFIED or level-66 RENAMES receiver is admitted
-    /// WITHOUT reading the item behind it: §2023:8.4.3.3.4 GR6 makes the unique data item a ref-mod identifies "an
-    /// elementary item of class and category alphanumeric" whatever identifier-1 is described as, and a level-66
-    /// THROUGH alias is "an alphanumeric group item" by §2023:13.18.45.4 GR2 — the FIRST alternative arm b) admits,
-    /// not the elementary one — so asking the underlying entry's category would reject a legal
-    /// <c>READ F INTO WS-NUM(1:4)</c> on a rule that does not reach it. Both places are admitted, by two
-    /// different clauses; the alias is a group item, NOT a composed elementary view (kb/Work PB430). The same
-    /// reading <c>MoveTable16.OperandItem</c> takes of the alias for SR9 (kb/Work PB907).</summary>
+    /// <summary>Arm b) applied to identifier-1. A level-66 THROUGH alias is "an alphanumeric group item" by
+    /// §2023:13.18.45.4 GR2 — the FIRST alternative arm b) admits, not the elementary one — and is admitted without
+    /// reading the entry behind it; the alias is a group item, NOT a composed elementary view (kb/Work PB430; the same
+    /// reading <c>MoveTable16.OperandItem</c> takes of the alias for SR9, kb/Work PB907). A REFERENCE-MODIFIED receiver
+    /// is read through its VIEW's category, the ONE reader <see cref="ItemCategory.IsAlphanumericOrNational(Place)"/>
+    /// (kb/Work PB5211): §2023:8.4.3.3.4 GR6 and §1985:IV.4.3.8.4.4 GR5 give the unique data item "the same class and
+    /// category as that defined for" identifier-1 and rewrite only the edited and numeric categories to alphanumeric
+    /// (national under a national usage), so <c>READ F INTO WS-NUM(1:4)</c> is admitted while
+    /// <c>READ F INTO WS-ALPHA(1:4)</c> over a category-alphabetic item draws the refusal its unsliced twin draws.
+    /// A blanket "every reference-modified place is alphanumeric" admitted the alphabetic slice.</summary>
     private static bool AdmitsIntoOperand(Place p) =>
-        p is RefModPlace or RenamesPlace || AdmitsIntoRecord(p.Item);
+        p is RenamesPlace || ItemCategory.IsAlphanumericOrNational(p);
 
     /// <summary>Arm b) applied to ONE record-name — "an alphanumeric group item or an elementary item of category
     /// alphanumeric or category national", which is exactly <see cref="ItemCategory.IsAlphanumericOrNational"/>:
