@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.3.9.3-1",
  "rule-digest": "862aacdb659a",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#ResolveValueOfDataNames",
  "test-ref": "conformance:cases/VII.3.9@1985-VALUE-OF-CLAUSE/1985-SR-VII_3_9_3-1",
+ "notes": "Overturn confirmed. SR1 bars 'an item described with the USAGE IS INDEX clause'. USAGE may be written in any data description entry (VI.5.14.3 SR1), at group level too (GR1), so a group whose own entry carries USAGE IS INDEX is an item described with that clause. The same clause shows the standard writes 'elementary' when it means it (VI.5.14.3 SR7: 'An elementary data item described with a USAGE IS INDEX clause'); SR1 says 'an item'. ResolveValueOfDataNames asks only item.Pic is { Usage: Usage.Index }, the elementary usage, so v04 (01 G-IX USAGE INDEX, VALUE OF ID IS G-IX) compiles and runs FS=00 while its subordinate A-IX is refused COBOL6849 (v05). Own probe g1.cob: the same at level 03 under 01 G-OUT (03 G-IX USAGE IS INDEX) also compiles and runs FS=00, so it is not a level-01 quirk. Own probe g2.cob names the enclosing G-OUT, whose own entry has no USAGE clause: the text does not reach it (it is not 'described with' the clause), and the compiler accepts it, which is consistent. The rest of the rule is right (subscript, table element, Working-Storage, per the reader). Note PB5417 is right in citation, expected result (COBOL6849 for v04) and harm flags (under_rejects, MINOR); its fix phrase 'or an ancestor's' is already covered for elementary items by their inherited usage, so the change needed is the group item's own USAGE clause. kb/Work PB5417 holds the defect (adjudication: held-85/set7/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
