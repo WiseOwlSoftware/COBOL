@@ -1,4 +1,4 @@
-## PB5373: eight of the 21 no-witness 1985 rows recorded (classes 3 to 6), 1985 GAP 381 to 373
+## Entry 3537 — 2026-11-12 13:00 PST — PB5373: eight of the 21 no-witness 1985 rows recorded (classes 3 to 6), 1985 GAP 381 to 373
 
 kb/Work PB5373 decided how the 21 UNDECIDED rules of PB4995 close. This change records the rows of its classes 3 to 6 that need no new tooling; classes 1 and 2 wait for PB5374 and the ENTER rows for PB5308.
 
@@ -14,3 +14,4 @@ Three rows had witnesses already and were recorded on them: `1985-GR-VII.2.8.4-6
 `1985-GR-VI.3.4.4-1` (DATE-COMPILED) is class 2, not 5: WiseOwl produces no source listing, so the row waits for PB5374's `unpopulatable-antecedent` derivation.
 
 Recorded through `record_verdicts.py --edition 1985`: 7 CONFORMS and 1 DOCUMENTED-NON-SUPPORT, 1985 GAP 381 to 373.
+
