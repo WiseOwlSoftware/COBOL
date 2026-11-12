@@ -1,4 +1,4 @@
-## PB5279, PB5282, PB5295: RECEIVE identifies its receiver first, only the scheduled program takes the scheduling names, and a debugging section runs at the end of its statement
+## Entry 3507 — 2026-11-11 16:00 PST — PB5279, PB5282, PB5295: RECEIVE identifies its receiver first, only the scheduled program takes the scheduling names, and a debugging section runs at the end of its statement
 
 Three mechanisms in the communication and debugging emitters, each re-probed on this build first and each reproducing as the notes describe.
 
