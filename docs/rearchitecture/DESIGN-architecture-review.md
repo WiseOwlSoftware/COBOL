@@ -901,7 +901,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   refused until the note is reopened or the note that removes the rest is named in its place. The rule stays strict:
   no landed remover is ever accepted on a row, so a row is deleted only when an observer measures it gone. Both
   refusals name this path (`work.py`'s `EDGES_CENSUS_LANDING` and the checker's `ArchitectureEdges.CensusLanding`;
-  `work.py` names the ratchet by the drift test's `RatchetCommand`, its one spelling, which `test_plan_wave.py` checks), and the drift test
+  `work.py` names the ratchet by the drift test's `RatchetCommand`, its one spelling, which the plan_wave cases checks), and the drift test
   `TheRemoversLanding_RecordsACensus_TheOnlyWayACensusOnlyRowEnds` plants the shape.
 - It is seen failing once, on a planted edge, before it lands (`brent-tools:architecture-audit` Phase 3), through
   self-tests that feed the checker a synthetic edge set: a planted edge, a planted pair inside a tolerated row (growth),
@@ -909,7 +909,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   what-if re-key and cut, and the census observer's growth and unadmitted edge
   (`TheChecker_FailsOnEveryPlantedViolation_AndPassesTheCleanInput`); the ratchet over an added pair, the review's
   swapped pair, a new row and a grown census count, each still red after it, and over every fall
-  (`TheRatchet_OnlyFalls_AndNeverAdmitsAPairARowOrAGrownCount`); and, in `scripts/orchestrator/test_plan_wave.py`, a
+  (`TheRatchet_OnlyFalls_AndNeverAdmitsAPairARowOrAGrownCount`); and, in the plan_wave cases (`scripts/selftests/orchestrator/plan_wave/`), a
   remover kb/Work lacks, a landed one (a pair's, a census-only row's last, and one beside an open remover), one whose
   Removes line omits the row or names only a longer row, and a plan's missing note (`edges_remover_problems`); and the
   landing of a remover in the PB4319 shape (`TheRemoversLanding_RecordsACensus_TheOnlyWayACensusOnlyRowEnds`, above);
@@ -2126,7 +2126,7 @@ were seen failing on a planted collision, then green (PB2118 Draft 6). Their fir
 folder rule never saw: five Delete notes on slice files (PB2170, PB2175, PB2178, PB2183, PB2228) and six designed waves
 (PB2396, PB2398, PB2404, PB2406, PB2407, PB2421); each now names its slice. Draft 7's corrected slice set found six
 more (PB2155, PB2160, PB2180, PB2311, PB2314, PB2323); each names the last slice that edits its file, in §21's order.
-`test_plan_wave.py` sections 9d and 11 hold both readers: the two in-flight misses and the refuter's four slice plants
+the plan_wave cases sections 9d and 11 hold both readers: the two in-flight misses and the refuter's four slice plants
 (`BindSession.cs`, `GroupRepository.cs`, `OoConformance.cs`, `NonCobolActivatorReturnTests.cs`) each fail Draft 6's
 code and pass this one. A grammar wave needs §4 item 3 built
 (PB2350); a runtime wave that renames an emitted member lists its oracle differences in the brief before it runs.

@@ -6,7 +6,14 @@
     python scripts/self_tests.py --built    # the ones that read the BUILT test assemblies (after a solution build)
     python scripts/self_tests.py --list     # print what discovery found, and how each would run here
     python scripts/self_tests.py --budget 8 # one phase at another budget width: a measurement only (THE BUDGET)
+    python scripts/self_tests.py --only scripts/selftests/orchestrator/plan_wave/test_planner.py   # named files, by hand
     python scripts/self_tests.py --self-test
+
+THE CASE LAYOUT (kb/Work PB5428; DESIGN-orchestrator-loop.md section 16.2): every run first calls
+scripts/selftest_layout.py over the tracked tree, and a refusal is the run's verdict (`=== SELF-TESTS: RED — layout: … ===`),
+so no gate, CI job or hand run runs the self-tests of a tree that breaks it. A file under a `<root>/selftests/` tree runs
+as any `test_*.py` does (rule b), with `PYTHONPATH` = `scripts/` prepended in `Runner.run_one`, the one place, so its
+`import selftest_cases` resolves; run bare it fails at that import. `--only <path> ...` runs the named discovered files.
 
 ⛔ WHY ONE RUNNER, AND WHY DISCOVERY. Until PB2563 the gates ran self-tests from hand lists: the gate driver's AUDITS
 named five, CI's audits job named those five plus `landing_check.py`, linux-gate.sh named three, and eleven of the
@@ -149,6 +156,7 @@ from typing import Callable, Iterator
 import process_job  # this directory's: the self-test's whole process tree, stopped as one (kb/Work PB5098)
 import sharedfile  # this directory's: the one Windows share-retry rule for files several processes read and replace
 import live_tools  # this directory's: the one list of the live tools' trees, which discovery reads
+import selftest_layout  # this directory's: the case layout rule, called first by every run (kb/Work PB5428)
 import inert_lane  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
 import self_test_inputs as inputs  # this directory's: what a self-test read, and the tracer that records it
 import self_test_clock as clocks  # this directory's: the clock a self-test's PASS is proven against (kb/Work PB4358)
@@ -161,7 +169,7 @@ from standard_streams import ensure_utf8
 REPO = Path(__file__).resolve().parents[1]
 FLAG = "--self-test"
 VERDICT = "=== SELF-TESTS: "
-#: The submodule `check_practices.py` lives in (test_plan_wave.py imports it).
+#: The submodule `check_practices.py` lives in (the plan_wave fixtures import it).
 SUBMODULE = "tools/claude-skills"
 #: ⛔ A HANG DETECTOR, NEVER A VERDICT ON SPEED (module docstring): counted from the moment the self-test holds its
 #: budget place, so waiting behind other gates never counts, and set far above every PASS measured — the slowest,
@@ -691,6 +699,8 @@ class Runner:
                    PYTHONUTF8="1")
         if temp is not None:  # CI's Windows runner's TEMP is an alias of its directory; so is this one (aliased_temp)
             env.update({name: str(temp) for name in TEMP_VARS})
+        if selftest_layout.in_tree(test.path):  # a case file's `import selftest_cases` resolves against scripts/ (§16.2)
+            env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(self.repo / "scripts"), env.get("PYTHONPATH")]))
         env = inputs.traced_env(env, tracer, trace, self.repo)
         asked = time.monotonic()
         with self.budget.place(f"self-test {test.path} of {self.by}"):
@@ -950,16 +960,36 @@ def main(argv: list[str] | None = None) -> int:
                          "gate's takes the places above that gate's width too; no gate or CI job passes it")
     ap.add_argument("--reuse", action="store_true",
                     help="report a self-test REUSED while a recorded PASS's inputs are unchanged (every gate)")
+    ap.add_argument("--only", nargs="+", metavar="PATH", default=[],
+                    help="run only the named discovered files (repository paths), their headers honoured: the way to "
+                         "run a case file by hand (kb/Work PB5428)")
     ap.add_argument("--self-test", action="store_true", help="prove the discovery rule and the verdict")
     args = ap.parse_args(argv)
     if args.self_test:
         return self_test()
     platform = this_platform()
     try:
+        refused = selftest_layout.check_repo(py_handles_flag, REPO, git_env())
+    except (OSError, subprocess.CalledProcessError) as e:
+        print(f"{VERDICT}NOT RUN — the case layout cannot be read: {e} ===")
+        return 2
+    if refused:  # no gate, CI job or hand run runs the self-tests of a tree that breaks the layout (§16.2)
+        for line in refused:
+            print(f"layout: {line}")
+        print(f"{VERDICT}RED — layout: {len(refused)} refusal(s), the first: {refused[0]} ===")
+        return 1
+    try:
         tests = discover(REPO)
     except (OSError, subprocess.CalledProcessError) as e:
         print(f"{VERDICT}NOT RUN — discovery failed: {e} ===")
         return 2
+    if args.only:
+        known = {t.path: t for t in tests}
+        unknown = [p for p in args.only if p not in known]
+        if unknown:
+            print(f"{VERDICT}NOT RUN — --only names no discovered self-test: {', '.join(unknown)} ===")
+            return 2
+        tests = [known[p] for p in dict.fromkeys(args.only)]
     if args.list:
         for t in tests:
             where = "here" if t.runs_on(platform) else f"NOT on {platform} ({t.platform}-only: {t.platform_reason})"
@@ -1123,6 +1153,16 @@ def self_test() -> int:
         check("arm: a failing self-test is RED", (by["scripts/test_red.py"].state, by["scripts/test_red.py"].rc), (RED, 1))
         check("arm: a failing self-test's output reaches the console", any("planted failure" in s for s in said), True)
         check("arm: a self-test for another platform is NOT RUN, not run", by["scripts/elsewhere.py"].state, NOT_RUN)
+        # kb/Work PB5428: a file under a selftests/ tree runs with scripts/ first on PYTHONPATH; no other file does
+        (root / "scripts" / "selftests" / "tool").mkdir(parents=True)
+        (root / "scripts" / "selftests" / "tool" / "test_c.py").write_text(
+            "import os\nprint('path=' + os.environ.get('PYTHONPATH', ''))\n", encoding="utf-8", newline="\n")
+        scratch.git("add", "-A")
+        case = next(t for t in discover(root) if t.path == "scripts/selftests/tool/test_c.py")
+        ran = runner.run([case])[0]
+        paths = next((ln[5:] for ln in ran.output.splitlines() if ln.startswith("path=")), "")
+        check("arm: a case file under selftests/ is run with the repository's `scripts/` on its PYTHONPATH (kb/Work PB5428)",
+              (ran.state, str(root / "scripts") in paths.split(os.pathsep)), (GREEN, True))
         rc, line = verdict(results, this_platform(), 1.0)
         check("arm: one red makes the verdict RED", (rc, line.startswith(VERDICT + "RED")), (1, True))
         check("arm: the verdict names the red and the not-run one with its reason",
@@ -1135,6 +1175,30 @@ def self_test() -> int:
         check("arm: a GREEN line names the budget and how busy the host's processors were (kb/Work PB3585)",
               "(budget 3 places machine-wide; 0s waited for places; the host's 4 processors 97% busy)" in line, True)
 
+    # kb/Work PB5428: the layout rule is the run's first step, and `--only` names discovered files
+    import contextlib  # noqa: PLC0415
+    import io  # noqa: PLC0415
+
+    def main_says(*argv: str) -> tuple[int, str]:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = main(list(argv))
+        return code, out.getvalue()
+
+    real_layout = selftest_layout.check_repo
+    selftest_layout.check_repo = lambda *a, **k: ["scripts/x.py: a planted breach of the layout"]
+    try:
+        rc, said_layout = main_says("--list")
+    finally:
+        selftest_layout.check_repo = real_layout
+    check("arm: a layout refusal is the run's RED verdict, before any self-test is found or run (kb/Work PB5428)",
+          (rc, said_layout.strip().splitlines()[-1].startswith(VERDICT + "RED — layout: 1 refusal(s)")), (1, True))
+    rc, said_only = main_says("--only", "scripts/no_such_selftest.py")
+    check("arm: `--only` naming no discovered self-test is NOT RUN, never an empty GREEN",
+          (rc, "names no discovered self-test: scripts/no_such_selftest.py" in said_only), (2, True))
+    rc, said_only = main_says("--only", "scripts/self_tests.py", "--list")
+    check("arm: `--only` narrows the list to the named discovered files",
+          (rc, said_only.strip().splitlines()[-1]), (0, "1 self-tests"))
     # kb/Work PB3585: the host's processor reading, on both platforms the runner supports, and the --budget width
     a, b = HostCpu(100, 1000), HostCpu(400, 2000)  # 1,000 ticks elapsed, 300 of them idle: 70 % busy
     check("arm: the busy share is 1 - idle/total between two readings",
