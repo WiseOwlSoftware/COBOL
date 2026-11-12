@@ -324,21 +324,24 @@ public sealed class FileControlKeyRuleSpecTests
     /// ORGANIZATION-only rows are the ones no per-key-clause screen could ever reach — they are why the table has
     /// a rule stated about the ENTRY. The last row is the BOUNDARY and is the load-bearing half of this test:
     /// the screen used to skip every sort-merge file with a blanket early return, so a legal Format-4 entry has
-    /// to keep drawing nothing now that the return is gone.</para></summary>
+    /// to keep drawing nothing now that the return is gone.</para>
+    /// <para>At 85 the 1985 entry is narrower (§1985:XI.2.3.3 SR2, only ASSIGN, kb/Work PB5071), so Format 4's own
+    /// ORGANIZATION IS SEQUENTIAL is refused there: <paramref name="expected85"/>.</para></summary>
     [Theory]
-    [InlineData("        RECORD KEY IS F-KEY.", 1)]
-    [InlineData("        ALTERNATE RECORD KEY IS F-KEY.", 1)]
-    [InlineData("        ORGANIZATION IS INDEXED.", 1)]
-    [InlineData("        ORGANIZATION IS RELATIVE.", 1)]
-    [InlineData("        ORGANIZATION IS SEQUENTIAL.", 0)]   // Format 4's own optional clause
-    [InlineData("        .", 0)]                             // Format 4 with the clause omitted
-    public void AFormat1Or2ClauseOnASortMergeEntry_IsRefusedAtEveryEdition(string clauses, int expected)
+    [InlineData("        RECORD KEY IS F-KEY.", 1, 1)]
+    [InlineData("        ALTERNATE RECORD KEY IS F-KEY.", 1, 1)]
+    [InlineData("        ORGANIZATION IS INDEXED.", 1, 1)]
+    [InlineData("        ORGANIZATION IS RELATIVE.", 1, 1)]
+    [InlineData("        ORGANIZATION IS SEQUENTIAL.", 0, 1)]   // Format 4's own optional clause, a 2002 one
+    [InlineData("        .", 0, 0)]                             // Format 4 with the clause omitted: the 1985 entry too
+    public void AFormat1Or2ClauseOnASortMergeEntry_IsRefusedAtEveryEdition(string clauses, int expected, int expected85)
     {
         foreach (int edition in AllEditions)
         {
             int hits = Diagnostics(SortMerge(clauses), edition)
                 .Count(e => e.Contains("COBOL1900", StringComparison.Ordinal));
-            Assert.True(hits == expected, $"[SD + {clauses.Trim()}] @ {edition}: COBOL1900 {hits}×, expected {expected}");
+            int want = edition == 85 ? expected85 : expected;
+            Assert.True(hits == want, $"[SD + {clauses.Trim()}] @ {edition}: COBOL1900 {hits}×, expected {want}");
         }
     }
 
@@ -401,7 +404,8 @@ public sealed class FileControlKeyRuleSpecTests
     {
         foreach (int edition in AllEditions)
         {
-            var d = Diagnostics(SortMerge("        ORGANIZATION IS SEQUENTIAL."), edition);
+            // The 1985 entry is SELECT and ASSIGN alone (§1985:XI.2.3.3 SR2); ORGANIZATION IS SEQUENTIAL is Format 4's from 2002.
+            var d = Diagnostics(SortMerge(edition == 85 ? "        ." : "        ORGANIZATION IS SEQUENTIAL."), edition);
             Assert.DoesNotContain(d, e => e.Contains("COBOL0863", StringComparison.Ordinal));
             Assert.DoesNotContain(d, e => e.Contains("COBOL1900", StringComparison.Ordinal));
         }
@@ -411,16 +415,17 @@ public sealed class FileControlKeyRuleSpecTests
     /// §2023:12.4.5.1 Format 4 (SELECT, ASSIGN, <c>[ [ ORGANIZATION IS ] SEQUENTIAL ]</c>) is refused by exactly ONE
     /// row, under the rule that fits it (COBOL1900, kb/Work PB773): a clause only Format 3 prints names that
     /// format (SR11), one that several formats print names none (SR13). The minimum edition is where the clause
-    /// itself exists, because an edition error for the clause would otherwise be what the case measures.</summary>
+    /// itself exists, because an edition error for the clause would otherwise be what the case measures, and never
+    /// below 2002: at 85 the 1985 rule answers every clause instead (<see cref="EveryClauseBeyondAssign_OnASortMergeEntry_IsRefusedAt85"/>).</summary>
     [Theory]
-    [InlineData("        FILE STATUS IS F-FS.", "SR13", 85)]
-    [InlineData("        ACCESS MODE IS SEQUENTIAL.", "SR13", 85)]
-    [InlineData("        RESERVE 2 AREAS.", "SR13", 85)]
-    [InlineData("        ACCESS MODE IS RANDOM.", "SR13", 85)]   // also a §2023:12.4.5.5.2 SR2 error: two rules, two sentences
+    [InlineData("        FILE STATUS IS F-FS.", "SR13", 2002)]
+    [InlineData("        ACCESS MODE IS SEQUENTIAL.", "SR13", 2002)]
+    [InlineData("        RESERVE 2 AREAS.", "SR13", 2002)]
+    [InlineData("        ACCESS MODE IS RANDOM.", "SR13", 2002)]   // also a §2023:12.4.5.5.2 SR2 error: two rules, two sentences
     [InlineData("        LOCK MODE IS MANUAL.", "SR13", 2002)]
     [InlineData("        LOCK MODE IS MANUAL WITH LOCK ON MULTIPLE RECORDS.", "SR13", 2002)]
     [InlineData("        SHARING WITH NO OTHER.", "SR13", 2002)]
-    [InlineData("        RECORD DELIMITER IS STANDARD-1.", "SR11", 85)]
+    [InlineData("        RECORD DELIMITER IS STANDARD-1.", "SR11", 2002)]
     public void AClauseBeyondFormat4_OnASortMergeEntry_IsRefusedByTheRuleThatFitsIt(
         string clauses, string rule, int minEdition)
     {
@@ -438,12 +443,32 @@ public sealed class FileControlKeyRuleSpecTests
     [Fact]
     public void ASortMergeEntryWithTwoClausesBeyondFormat4_IsRefusedOncePerClause()
     {
-        foreach (int edition in AllEditions)
+        foreach (int edition in AllEditions.Where(e => e >= 2002))
         {
             var d = Diagnostics(SortMerge("        FILE STATUS IS F-FS\n        RECORD DELIMITER IS STANDARD-1."), edition);
             Assert.Equal(1, d.Count(e => e.Contains("(ISO §2023:12.4.5.2 SR13)", StringComparison.Ordinal)));
             Assert.Equal(1, d.Count(e => e.Contains("(ISO §2023:12.4.5.2 SR11)", StringComparison.Ordinal)));
         }
+    }
+
+    /// <summary>⛔ §1985:XI.2.3.3 SR2 — "Since file-name-1 represents a sort or merge file, only the ASSIGN clause is permitted to
+    /// follow file-name-1 in the FILE-CONTROL paragraph." (kb/Work PB5071). At 85 every clause an SD's entry writes beyond
+    /// ASSIGN, and the OPTIONAL phrase §1985:XI.2.3.2 does not print, is refused once, under the 1985 rule and not beside a 2023
+    /// row; two clauses are two reports.</summary>
+    [Theory]
+    [InlineData("SELECT F ASSIGN TO \"fckr-sd.tmp\"\n        ORGANIZATION IS SEQUENTIAL.", 1)]
+    [InlineData("SELECT F ASSIGN TO \"fckr-sd.tmp\"\n        FILE STATUS IS F-FS.", 1)]
+    [InlineData("SELECT F ASSIGN TO \"fckr-sd.tmp\"\n        ORGANIZATION IS INDEXED.", 1)]
+    [InlineData("SELECT F ASSIGN TO \"fckr-sd.tmp\"\n        FILE STATUS IS F-FS\n        RECORD DELIMITER IS STANDARD-1.", 2)]
+    [InlineData("SELECT OPTIONAL F ASSIGN TO \"fckr-sd.tmp\".", 1)]
+    [InlineData("SELECT F ASSIGN TO \"fckr-sd.tmp\".", 0)]
+    public void EveryClauseBeyondAssign_OnASortMergeEntry_IsRefusedAt85(string select, int expected)
+    {
+        string source = SortMerge("").Replace("SELECT F ASSIGN TO \"fckr-sd.tmp\"", select, StringComparison.Ordinal);
+        var d = Diagnostics(source, 85);
+        Assert.Equal(expected, d.Count(e => e.Contains("COBOL1900", StringComparison.Ordinal)
+            && e.Contains("§1985:XI.2.3.3 SR2", StringComparison.Ordinal)));
+        Assert.DoesNotContain(d, e => e.Contains("(ISO §2023:12.4.5.2 SR", StringComparison.Ordinal));
     }
 
     /// <summary>§2023:12.4.5.2 SR11 SENTENCE 1 — <i>"Format 3 shall be specified only for a sequential file or a report

@@ -1,0 +1,13 @@
+{
+ "id": "initialize-replacing-category-set-2002",
+ "description": "An INITIALIZE REPLACING item naming more than one category (REPLACING NUMERIC ALPHANUMERIC DATA BY ZERO) - a COBOL-2002 relaxation of a COBOL-85 restriction. §1985:VI.6.17.2 prints the five category words of a REPLACING item in plain braces with no choice indicators, so each item takes one (§1985:IV.2.1.4: \"one of the options contained within the braces must be either explicitly specified or implicitly selected\"); the ISO/IEC 1989:2002 format (14.8.19.1) encloses the category-name words in braces carrying choice indicators, as §2023:14.9.20.2 does (§2023:5.2.6.4). Read from the printed formats, as the rows of VCR row 7.52 are (kb/Work PB5180). Gated in ONE place, VersionConformancePass.ParseArm.VisitInitializeReplacingItem, at the item's second category word; the 1985 spelling of the same request is one item per category.",
+ "display": "an INITIALIZE REPLACING item naming more than one category",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.20.2 (category-name, choice indicators) / §2023:5.2.6.4; ISO/IEC 1989:2002 14.8.19.1; §1985:VI.6.17.2 and §1985:IV.2.1.4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "status": "active",
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.52 (d) - the INITIALIZE REPLACING category set, a COBOL-85 restriction read from the printed formats",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMIRCS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n  05 N PIC 9(3) VALUE 123.\n  05 X PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE G REPLACING NUMERIC ALPHANUMERIC DATA BY ZERO.\n    STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "initialize-variable-occurrence-2002",
+ "description": "INITIALIZE of an identifier-1 whose data description, or the description of an item subordinate to it, contains the DEPENDING phrase of the OCCURS clause - a COBOL-2002 relaxation of a COBOL-85 restriction. §1985:VI.6.17.3 SR4: \"The description of the data item referenced by identifier-1 or any items subordinate to identifier-1 may not contain the DEPENDING phrase of the OCCURS clause.\" The ISO/IEC 1989:2002 syntax rules of INITIALIZE (14.8.19.2) carry no such rule, nor does §2023:14.9.20.3 (kb/Work PB5088). Gated in ONE place, the bound arm of the version-conformance pass (VersionConformancePass.GateCobol85VariableOccurrence), once per implicit INITIALIZE of the place identifier-1 resolved to; an item the reference does not resolve is refused by its own rule and is not asked.",
+ "display": "INITIALIZE of an item with or containing an OCCURS DEPENDING ON clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.20.3; ISO/IEC 1989:2002 14.8.19.2; §1985:VI.6.17.3 SR4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "status": "active",
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.52 (e) - INITIALIZE of a variable-occurrence item, a COBOL-85 restriction the 2002 syntax rules lift",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMIODO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 3.\n01 G.\n  05 E PIC X OCCURS 1 TO 5 TIMES DEPENDING ON N.\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE G.\n    STOP RUN.\n"
+}

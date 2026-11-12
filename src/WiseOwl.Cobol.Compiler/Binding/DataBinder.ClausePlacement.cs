@@ -340,6 +340,19 @@ public sealed partial class DataBinder
         return null;
     }
 
+    /// <summary>§1985:VI.5.14.3 SR6 — "The BLANK WHEN ZERO, JUSTIFIED, PICTURE, SYNCHRONIZED, and VALUE clauses must not
+    /// be specified for data items whose usage is INDEX." The other four are refused at every edition (a usage-INDEX item
+    /// has no category either of them admits, and its PICTURE and VALUE are barred by their own rules); SYNCHRONIZED is the
+    /// one that was not, because the 2002 and later texts state no usage exclusion for it and leave an index item's alignment
+    /// to the implementor (§2002:13.16.58.3 GR9). So the rule is asked of the edition (kb/Work PB5189); the usage is the
+    /// item's, written or inherited (§1985:VI.5.14.4 GR1).</summary>
+    internal static string? SynchronizedViolation(PicInfo pic, int dialectLevel) =>
+        dialectLevel < 2002 && pic.Usage is Usage.Index
+            ? "the SYNCHRONIZED clause must not be specified for a data item whose usage is INDEX (§1985:VI.5.14.3 SR6: "
+                + "\"The BLANK WHEN ZERO, JUSTIFIED, PICTURE, SYNCHRONIZED, and VALUE clauses must not be specified for data items "
+                + "whose usage is INDEX\")"
+            : null;
+
     internal static string? JustifiedViolation(PicInfo pic)
     {
         if (pic.Category is not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)

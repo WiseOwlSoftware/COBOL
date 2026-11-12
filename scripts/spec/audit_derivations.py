@@ -20,6 +20,10 @@ This script is both of those costs, on the Python side:
     for shape as the register, the catalog and the spec change underneath a determination recorded sessions ago.
     It also asserts its own POPULATION — a run that evaluated nothing would report "no findings" about nothing,
     and a MISSING observation is not a NEGATIVE one (`feedback_verdict_evidence_invariant`).
+  · It reads EVERY held edition's rows (kb/Work PB5374), each against its own edition's catalog, and refuses a §8 row
+    that no row of any held edition claims: a derivation on a row of an edition the checker did not open would be
+    SKIPPED, and a skipped row is a row nobody checked. It checks the `signatures` map itself too
+    (`Derivation.signature_findings`: a known signer each, and a decision note for the deciding session's keys).
   · `--parity` evaluates `tests/version-matrix/derivation-parity-cases.json`, the fixture the C# gate evaluates
     too. Both engines must produce the same `state` AND the same refusal CODES for every case; comparing codes
     rather than a boolean is the point, because two evaluators refusing one row for two different reasons look
@@ -32,8 +36,8 @@ import json
 import pathlib
 import sys
 
-from inventory_schema import NEWEST, DerivationRow, load_schema
-from inventory_view import inventory
+from inventory_schema import DerivationRow, load_schema
+from inventory_view import edition_views
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -55,9 +59,11 @@ def schema_for(world: dict):
     if d is None:
         raise SystemExit("inventory-schema.json declares no `derivation` — there is nothing to evaluate")
     d._register = {r["key"]: DerivationRow(r["key"], r["arm"], r["names"], r.get("argument", ""),
-                                           r["signature"]) for r in world["register"]}
+                                           r["signature"], r.get("refuter", "")) for r in world["register"]}
     d._undefined = {int(k): set(v) for k, v in world["undefined"].items() if not k.startswith("$")}
-    schema._rule_ids = set(world["catalog-rule-ids"])
+    d._refuters = {path: dict(records) for path, records in world["refuter-records"].items() if not path.startswith("$")}
+    schema._catalog = {rid: (int(year), text) for year, rules in world["catalogs"].items() if not year.startswith("$")
+                       for rid, text in rules.items()}
     schema._register_items = set(world["register-items"])
     return schema
 
@@ -90,7 +96,8 @@ def parity_findings(fixture: dict, answers: list[dict]) -> list[str]:
 
 
 def live_findings(schema, rows: list[dict]) -> tuple[list[str], list[str]]:
-    """Every live row that CLAIMS a derivation, and every reason one of them does not stand."""
+    """Every live row that CLAIMS a derivation, and every reason one of them does not stand. `rows` are EVERY held
+    edition's (kb/Work PB5374)."""
     claimed, findings = [], []
     for row in rows:
         if not (row.get(schema.derivation.field) or "").strip():
@@ -98,6 +105,16 @@ def live_findings(schema, rows: list[dict]) -> tuple[list[str], list[str]]:
         claimed.append(row["rule-id"])
         findings += [f'{row["rule-id"]}: [{r.code}] {r.message}' for r in schema.derivation.refusals(row, schema)]
     return claimed, findings
+
+
+def unclaimed_register_rows(schema, claimed: list[str]) -> list[str]:
+    """Every §8 row no row of a held edition claims: its rule is in no edition this checker opened, or no row names it.
+    Either way it was never checked, and an unchecked determination is refused, never skipped (kb/Work PB5374)."""
+    d = schema.derivation
+    keys = {d.key_for({"rule-id": rid}) for rid in claimed}
+    return [f"{key}: docs/CONFORMANCE.md {d.heading.strip('# ')} carries this row, and no row of a held edition "
+            f"({', '.join(str(e.year) for e in schema.all_editions if e.held)}) claims it, so nothing checked it"
+            for key in sorted(set(d.register) - keys)]
 
 
 # ── self-test ────────────────────────────────────────────────────────────────────────────────────────
@@ -117,7 +134,8 @@ def self_test() -> int:
     codes = {c for a in answers for c in a["refusals"]}
     want_codes = {"a2-does-not-cover", "a2-no-such-item", "bad-signature", "unknown-arm", "no-register-row",
                   "not-computed-anchor", "names-shape", "self-indistinguishable", "unknown-rule",
-                  "has-spec-derived-test", "verdict-does-not-resolve", "determination-not-stated"}
+                  "has-spec-derived-test", "verdict-does-not-resolve", "determination-not-stated",
+                  "a2-lists-rule", "quote-not-in-rule", "no-refuter-record", "refuter-not-upheld"}
     check("EVERY refusal code the evaluator can emit is driven by a case",
           codes == want_codes, f"missing {sorted(want_codes - codes)}, extra {sorted(codes - want_codes)}")
 
@@ -136,6 +154,34 @@ def self_test() -> int:
     blinded["world"]["undefined"] = {}
     check("emptying the fabricated Annex A.2 list breaks the A.2 arm (the world is load-bearing)",
           bool(parity_findings(blinded, evaluate_fixture(blinded))))
+    # …the refuter records too: a world with none must break every claude-signed argued case that closes.
+    unrefuted = json.loads(json.dumps(fixture))
+    unrefuted["world"]["refuter-records"] = {}
+    check("emptying the fabricated refuter records breaks the argued arms the deciding session signed",
+          bool(parity_findings(unrefuted, evaluate_fixture(unrefuted))))
+    # …and the catalogs: a world whose 1985 catalog is gone must break the undefined-in-rule arm.
+    uncatalogued = json.loads(json.dumps(fixture))
+    uncatalogued["world"]["catalogs"].pop("1985")
+    check("dropping the fabricated 1985 catalog breaks the arms that read the row's own edition",
+          bool(parity_findings(uncatalogued, evaluate_fixture(uncatalogued))))
+
+    # The live gate's two population checks, against a fabricated register and inventory.
+    schema = schema_for(fixture["world"])
+    claimed = ["GR-14.9.5.4-11"]
+    orphans = unclaimed_register_rows(schema, claimed)
+    check("a §8 row no held edition's row claims is a finding (never skipped)",
+          any(o.startswith("DRV-1985-GR-XIV.3.6.4-5:") for o in orphans) and not any(
+              o.startswith("DRV-GR-14.9.5.4-11:") for o in orphans), "; ".join(orphans[:3]))
+    d = schema.derivation
+    saved = dict(d.signatures)
+    d.signatures["nobody: 2026-11-12"] = "kb/Work PB5373"
+    d.signatures["claude: 2026-11-13"] = "a decision recorded nowhere"
+    d.signatures["claude: 2026-11-14"] = "kb/Work PB5374 — a defect note, not a decision"
+    sig = d.signature_findings()
+    d.signatures.clear()
+    d.signatures.update(saved)
+    check("a signature with an unknown signer, or a deciding-session key with no decision note, is a finding",
+          len(sig) == 3 and not d.signature_findings(), "; ".join(sig))
 
     for name, ok, detail in cases:
         print(f"  {'PASS' if ok else 'FAIL'}  {name}" + (f"  — {detail}" if not ok and detail else ""))
@@ -169,12 +215,16 @@ def main() -> int:
         if schema.derivation is None:
             print("⛔ inventory-schema.json declares no `derivation` — §1.1's evidence kind is gone")
             return 1
-        rows = inventory()
+        views = edition_views(schema)
+        rows = [r for year_rows in views.values() for r in year_rows]
         claimed, live = live_findings(schema, rows)
         findings += live
+        findings += unclaimed_register_rows(schema, claimed)
+        findings += schema.derivation.signature_findings()
         closed = [r["rule-id"] for r in rows
                   if (r.get(schema.derivation.field) or "").strip() and r["state"] == "OK"]
-        print(f"inventory     : {len(rows)} rows from the view of {NEWEST.store}")
+        print(f"inventory     : {len(rows)} rows from the views of "
+              + ", ".join(f"{year} ({len(v)})" for year, v in views.items()))
         print(f"  claiming a derivation : {len(claimed)}")
         print(f"  closed on one         : {len(closed)}  {sorted(closed)}")
         # ⛔ POPULATION BEFORE VERDICT. "No findings" over zero rows is a statement about nothing.

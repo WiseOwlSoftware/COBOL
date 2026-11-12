@@ -65,6 +65,15 @@ public static class CobolInspect
     /// the operand is NEVER eligible (GR9c — an empty region). BEFORE: eligibility ends at the first occurrence of
     /// its delimiter ENCOUNTERED FROM the AFTER-derived start; absent ⇒ as if BEFORE were not specified (GR9b — the
     /// asymmetry with AFTER is deliberate spec text).</para>
+    /// <para>⛔ BEFORE COBOL-2023 THE BEFORE DELIMITER IS MEASURED FROM THE LEFTMOST POSITION
+    /// (<paramref name="beforeFromLeftmost"/>, <see cref="DialectBehavior.InspectBeforeFromFirstEligiblePosition"/>,
+    /// kb/Work PB5120). §1985:VI.6.18.4 GR8 b, the 2002 text and the 2014 text give BEFORE the portion "from its
+    /// leftmost character position up to, but not including, the first occurrence of literal-2 within the content
+    /// of the data item referenced by identifier-1", and AFTER its own portion; an operand with both participates in
+    /// their intersection, which is EMPTY when the BEFORE delimiter's first occurrence lies left of the AFTER
+    /// boundary (AYAAXAA with AFTER "X" BEFORE "Y" tallies 0). §2023:14.9.22.4 GR9 b reworded it with BACKWARD:
+    /// "the first character position that is eligible to participate up to, but not including, the first
+    /// occurrence encountered of literal-2", so from 2023 the search starts at the AFTER-derived position.</para>
     /// <para>BACKWARD — the same two rules with "first occurrence encountered" read in the direction of the scan
     /// (GR3 NOTE 1; GR9b, GR9c 1): the delimiter is compared left-to-right at each position (GR8 NOTE 2), so its
     /// first occurrence encountered is the RIGHTMOST one. AFTER: eligibility runs from the position immediately
@@ -72,7 +81,8 @@ public static class CobolInspect
     /// eligible position (the AFTER-derived right edge) down to, not including, the rightmost occurrence lying
     /// wholly inside the remainder — the region is [p + length, AFTER's edge).</para>
     /// </summary>
-    private static (int Start, int End) Region(string text, string? before, string? after, bool backward)
+    private static (int Start, int End) Region(string text, string? before, string? after, bool backward,
+        bool beforeFromLeftmost)
     {
         int start = 0;
         int end = text.Length;
@@ -98,7 +108,7 @@ public static class CobolInspect
         }
         if (before is { Length: > 0 })
         {
-            int idx = text.IndexOf(before, start, StringComparison.Ordinal);
+            int idx = text.IndexOf(before, beforeFromLeftmost ? 0 : start, StringComparison.Ordinal);
             if (idx >= 0) end = idx;                        // not found ⇒ whole remainder (GR9b)
         }
         return start > end ? (end, end) : (start, end);
@@ -118,8 +128,8 @@ public static class CobolInspect
     /// match at all (a zero-length pattern; a REPLACING pair the runtime must treat as never matching — GR14).
     /// </summary>
     private static void RunCycle(
-        string t, bool backward, Adjective[] adjectives, string?[] patterns, string?[] befores, string?[] afters,
-        bool[] never, MatchSink sink)
+        string t, bool backward, bool beforeFromLeftmost, Adjective[] adjectives, string?[] patterns,
+        string?[] befores, string?[] afters, bool[] never, MatchSink sink)
     {
         int n = adjectives.Length;
         var regionStart = new int[n];
@@ -128,7 +138,7 @@ public static class CobolInspect
         var expectedPos = new int[n];  // LEADING: the position the next contiguous match must occupy (-1 = not started)
         for (int k = 0; k < n; k++)
         {
-            (regionStart[k], regionEnd[k]) = Region(t, befores[k], afters[k], backward);
+            (regionStart[k], regionEnd[k]) = Region(t, befores[k], afters[k], backward, beforeFromLeftmost);
             live[k] = true;
             expectedPos[k] = -1;
         }
@@ -190,13 +200,14 @@ public static class CobolInspect
     /// null pattern.
     /// </summary>
     public static long[] Tally(
-        string? text, int[] kinds, string?[] patterns, string?[] befores, string?[] afters, bool backward = false)
+        string? text, int[] kinds, string?[] patterns, string?[] befores, string?[] afters, bool backward = false,
+        bool beforeFromLeftmost = false)
     {
         var counts = new long[kinds.Length];
         var never = new bool[kinds.Length];
         for (int k = 0; k < kinds.Length; k++)
             never[k] = (patterns[k] ?? "").Length == 0;
-        RunCycle(text ?? "", backward, TallyAdjectives(kinds), patterns, befores, afters, never,
+        RunCycle(text ?? "", backward, beforeFromLeftmost, TallyAdjectives(kinds), patterns, befores, afters, never,
             (k, _, _) => counts[k]++);
         return counts;
     }
@@ -237,7 +248,8 @@ public static class CobolInspect
     /// </summary>
     public static string Replace(
         string? text, int[] kinds, string?[] patterns, string?[] replacements,
-        string?[] befores, string?[] afters, bool backward = false, bool[]? figurative = null)
+        string?[] befores, string?[] afters, bool backward = false, bool[]? figurative = null,
+        bool beforeFromLeftmost = false)
     {
         string t = text ?? "";
         CheckReplacingSizes(kinds, patterns, replacements, figurative);
@@ -250,7 +262,7 @@ public static class CobolInspect
             bool fill = figurative is not null && figurative[k];
             never[k] = pat.Length == 0 || !fill && pat.Length != (replacements[k] ?? "").Length;   // GR14 unchecked: never matches
         }
-        RunCycle(t, backward, ReplaceAdjectives(kinds), patterns, befores, afters, never, (k, pos, size) =>
+        RunCycle(t, backward, beforeFromLeftmost, ReplaceAdjectives(kinds), patterns, befores, afters, never, (k, pos, size) =>
         {
             string repl = replacements[k] ?? "";
             if (kinds[k] == ReplaceCharacters)
@@ -312,14 +324,14 @@ public static class CobolInspect
     /// </summary>
     public static string Convert(
         string? text, string fromSet, string toSet, string? before, string? after, bool backward = false,
-        bool toFigurative = false)
+        bool toFigurative = false, bool beforeFromLeftmost = false)
     {
         string t = text ?? "";
         if (!toFigurative && fromSet.Length != toSet.Length)
             ExceptionState.RangeInspectSizeError(
                 $"INSPECT CONVERTING a {fromSet.Length}-character set to a {toSet.Length}-character set; ISO "
                 + "§2023:14.9.22.4 GR22 requires equal sizes");
-        var (start, end) = Region(t, before, after, backward);
+        var (start, end) = Region(t, before, after, backward, beforeFromLeftmost);
         int mapLen = toFigurative ? fromSet.Length : Math.Min(fromSet.Length, toSet.Length);
         var chars = t.ToCharArray();
         for (int i = start; i < end; i++)

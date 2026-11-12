@@ -43,8 +43,24 @@ The measured population before the door opened was **eight rows** — every CONF
 except `DOC-A.1-93`, which is a real defect (`kb/Work/PB383`).
 
 A **derivation** is a determination recorded in `docs/CONFORMANCE.md` §8, keyed by the inventory `rule-id`,
-naming ONE of four arms and signed by the owner. It stands in place of §1(c) **and of nothing else**: (a) and
+naming ONE of five arms and signed by a dated decision. It stands in place of §1(c) **and of nothing else**: (a) and
 (b) are paid in full, and a `kind: DOC` row still pays its register anchor and its observability cost.
+
+**Every edition's rows** (`kb/Work/PB5374`). §8 holds rows of every held edition, keyed `DRV-<rule-id>`; a rule-id
+of an older edition carries its year (`DRV-1985-GR-XIV.3.6.4-5`), and rule-ids are unique across the catalogs, so
+the id names the edition. Each row is checked against its OWN edition's catalog. The checkers read every held
+edition's store (`audit_derivations.py --check`, `SpecTraceabilityInventoryDriftTests.EveryDerivation_StandsUnderItsOwnArm`),
+and a §8 row that no row of a held edition claims is refused: a derivation on a row of an edition a checker did not
+open would otherwise be skipped, never checked.
+
+**Who signs** (`kb/Work/PB5373`, 2026-11-12). A `Signed` cell is a key `<signer>: <date>` of the schema's
+`signatures` map, and its signer is a key of `signers`. The owner signed every row through 2026-10 (`owner:`); from
+PB5373 on, the session that decided the rows signs them (`claude:`), each such key mapped to the `kind: decision`
+note that read the rows (`audit_derivations.py --check` holds both). The owner's signature was the independent read
+of an ARGUED arm; for a `claude:` signature that read is a `cobol-refuter` pass that tried to write the witness the
+derivation says cannot exist: the row's `Refuted` cell names the refuter's record file, and the checker requires a
+record of the row's rule-id in it reading UPHELD. An overturned derivation becomes a test. The MECHANICAL arms
+(`undefined-A.2`, `undefined-in-rule`) need no refuter: the checker is the reader. The owner's rows are unchanged.
 
 | arm | what it claims | how it is CHECKED |
 |---|---|---|
@@ -52,6 +68,7 @@ naming ONE of four arms and signed by the owner. It stands in place of §1(c) **
 | `unpopulatable-antecedent` | the antecedent is false for every state this implementation can reach | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must STATE the closed set that makes it unreachable (≥20 characters — a dash or an `n/a` is refused). The argument itself has a reader, and the owner's signature is that reader. |
 | `indistinguishable-consequent` | the consequent is byte-identical to another rule's, so no conforming program can distinguish them | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must be a `rule-id` that EXISTS in the catalog and is not this row's own. |
 | `definitional` | the rule DEFINES a property of the user's program (§2023:4.4's conforming run unit) and obliges the implementation to nothing — owner decision `kb/Work/R43` item 4, extending `PB386` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must open `defines` and state the property and whose it is (≥20 characters after the word). A rule whose subject is the implementation or the implementor is never this arm. |
+| `undefined-in-rule` | the rule's OWN text declares the result undefined or unpredictable — how an edition with no Annex A.2 says it (the 1985 standard); `kb/Work/PB5373` class 1 | **MECHANICAL.** The `Names` cell is a quotation in double quotes, of four or more words, containing `undefined` or `unpredictable`; the checker requires it to lie inside the row's own catalog text in its edition (each whitespace run compared as one space). A row an Annex A.2 item resolves to is refused here: it keeps `undefined-A.2`, so one fact has one arm. |
 
 **What is REFUSED, by the writer and by the gate.** Each of these is a bound the owner set, encoded rather than
 described:
@@ -63,12 +80,15 @@ described:
 3. a derivation on a row of a kind that **obliges a register determination which `docs/CONFORMANCE.md` does not
    carry** — the documentation obligation is not yet stated, so there is nothing for the derivation to be about;
 4. an `undefined-A.2` arm naming an item that **does not resolve to this row**;
-5. a **missing or unknown owner signature**: the `Signed` cell must be a key of the schema's `signatures` map, one
-   key per dated owner decision that signed rows (`owner: 2026-09-03`, PB386 and the rows signed under it through
-   2026-09-25; `owner: 2026-10-08`, the PB1636 batch). A new batch signing adds its key in the change that writes
-   its rows, so the cell records WHEN its argument was read;
+5. a **missing or unknown signature**: the `Signed` cell must be a key of the schema's `signatures` map, one
+   key per dated decision that signed rows (`owner: 2026-09-03`, PB386 and the rows signed under it through
+   2026-09-25; `owner: 2026-10-08`, the PB1636 batch; `claude: 2026-11-12`, PB5373). A new batch signing adds its key
+   in the change that writes its rows, so the cell records WHEN its argument was read;
 6. a `derivation` field that is not the anchor **COMPUTED** from the row's own rule-id, or for which
-   `docs/CONFORMANCE.md` §8 carries **no row**.
+   `docs/CONFORMANCE.md` §8 carries **no row**;
+7. an `undefined-in-rule` arm whose quotation is **not in the row's own catalog text**, or on a row an Annex A.2
+   item resolves to;
+8. an ARGUED arm signed by a signer whose `refuter` is set with **no UPHELD refuter record** of the row.
 
 ⚖ **How this coexists with `PB280` Q2 ("no" for anchor-only DOC rows), which it does NOT reverse.** A DOC row
 asks the implementor to STATE a choice, so "there is nothing to observe" is unfalsifiable there and cannot close

@@ -36,6 +36,8 @@
       *> named by ALL REFERENCES is not referenced by a READ whose INTO
       *> move did not run (rule 5, last sentence): DBX fires on the
       *> READ that delivered a record only.
+      *> The debugging sections come first in DECLARATIVES: §1985:XV.3.2.3
+      *> SR1 puts them immediately after the header (kb/Work PB5081).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4811FF.
        ENVIRONMENT DIVISION.
@@ -70,14 +72,6 @@
        01 X1 PIC X(8).
        PROCEDURE DIVISION.
        DECLARATIVES.
-       USES SECTION.
-           USE AFTER STANDARD ERROR PROCEDURE ON SF.
-       USES-B.
-           DISPLAY "  USE SF " FS1.
-       USEU SECTION.
-           USE AFTER STANDARD ERROR PROCEDURE ON KU.
-       USEU-B.
-           DISPLAY "  USE KU " FS3.
        DBS SECTION.
            USE FOR DEBUGGING ON SF.
        DBS-B.
@@ -95,6 +89,14 @@
            USE FOR DEBUGGING ON ALL REFERENCES OF X1.
        DBX-B.
            DISPLAY "  DBX".
+       USES SECTION.
+           USE AFTER STANDARD ERROR PROCEDURE ON SF.
+       USES-B.
+           DISPLAY "  USE SF " FS1.
+       USEU SECTION.
+           USE AFTER STANDARD ERROR PROCEDURE ON KU.
+       USEU-B.
+           DISPLAY "  USE KU " FS3.
        END DECLARATIVES.
        MAIN SECTION.
        M1.

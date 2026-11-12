@@ -384,10 +384,10 @@ public sealed class SequentialFileIoSpecTests
     /// appear. Record 2's four bytes into an X(5) JUSTIFIED receiver are §2023:13.18.32.4 GR2's right alignment with
     /// one leading space fill, which also proves the zero-length read left the file position indicator on the
     /// next record rather than consuming or skipping one.</para>
-    /// <para>Edition-invariant, and asserted so rather than assumed: no `docs/VERSION_CHANGE_REFERENCE.md` row
-    /// touches §2023:13.18.43, so the same bytes are required at all four editions.</para></summary>
+    /// <para>From 2002 (kb/Work PB5196): the zero minimum is §2002:13.16.41.2 SR6, the first text to permit it, and the
+    /// same bytes are required at 2002, 2014 and 2023. COBOL-85 has no such rule and §1985:III.2 bars a zero integer, so
+    /// `--std 85` refuses the program (COBOL2386; pb5196-record-varying-zero-minimum-1985).</para></summary>
     [Theory]
-    [InlineData(85)]
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]

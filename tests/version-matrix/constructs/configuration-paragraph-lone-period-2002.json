@@ -1,0 +1,12 @@
+{
+ "id": "configuration-paragraph-lone-period-2002",
+ "description": "A SOURCE-COMPUTER, OBJECT-COMPUTER or SPECIAL-NAMES paragraph written as its header, its period and a second separator period with no entry between them (SOURCE-COMPUTER. .) - a COBOL-2002 spelling read from the printed formats. The 1985 formats (§1985:VI.4.3.2, §1985:VI.4.4.2, §1985:VI.4.5.2, printed pages VI-10, VI-11 and VI-13) print the second period INSIDE the bracket that holds the paragraph's entries, so it is written only with an entry, and §1985:IV.4.2.1 rule 3 allows a period only at a sentence's end \"or as shown in formats\"; the ISO/IEC 1989:2002 formats print it outside the bracket, with 12.2.4.2 SR1, 12.2.5.2 SR4 and 12.2.6.2 SR27 letting it be omitted when nothing is written (§2023:12.3.5.3 SR1, §2023:12.3.6.3 SR4, §2023:12.3.7.3 SR31). kb/Work PB5170. Gated in ONE place, VersionConformancePass.ParseArm.GateLonePeriod, from the three paragraphs' visits through the one reader ParagraphPeriods.LonePeriod (VCR row 7.52).",
+ "display": "a configuration paragraph with a second separator period and no entry",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.5.3 SR1, §2023:12.3.6.3 SR4, §2023:12.3.7.3 SR31; §1985:VI.4.3.2, §1985:VI.4.4.2 and §1985:VI.4.5.2 print the period inside the bracket",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.52 (f) - the lone second period of a configuration paragraph, read from the printed formats",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMLPD.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSOURCE-COMPUTER. .\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"K\".\n    STOP RUN.\n"
+}

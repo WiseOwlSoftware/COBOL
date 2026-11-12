@@ -100,9 +100,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// </summary>
     private sealed record KindRule(string AnchorTemplate, Regex? Implementation, string[] AnchorExemptVerdicts);
 
-    /// <summary>One arm of the <c>derivation</c> rule: the shape its <c>Names</c> cell must have, and the
-    /// check that shape feeds.</summary>
-    private sealed record DerivationArm(Regex Names, string Check);
+    /// <summary>One arm of the <c>derivation</c> rule: the shape its <c>Names</c> cell must have, the check that shape
+    /// feeds, and whether it is a reviewed ARGUMENT (<paramref name="Argued"/>) rather than a mechanical check.</summary>
+    private sealed record DerivationArm(Regex Names, string Check, bool Argued);
 
     /// <summary>
     /// One reason a claimed derivation does not stand — a STABLE CODE plus the sentence a reviewer reads. The
@@ -124,15 +124,21 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// <param name="Field">the inventory field carrying the claim</param>
     /// <param name="AnchorTemplate">the §8 anchor, COMPUTED from the row's own rule-id</param>
     /// <param name="Heading">the §8 register heading, so the section can be renamed in one place</param>
-    /// <param name="Signatures">every owner signature a determination may carry — one per dated owner decision</param>
-    /// <param name="Arms">the three grounds the owner accepted</param>
+    /// <param name="Signatures">every signature a determination may carry — one per dated decision, <c>&lt;signer&gt;: &lt;date&gt;</c></param>
+    /// <param name="RefuterSigners">the signers (the schema's <c>signers</c>) whose ARGUED rows stand only on an UPHELD
+    /// refuter record (kb/Work PB5373)</param>
+    /// <param name="Arms">the grounds the schema accepts</param>
     /// <param name="Register">docs/CONFORMANCE.md §8, parsed — injectable so the self-test is hermetic</param>
     /// <param name="Undefined">Annex A.2 item → the rule-ids it covers, from the generated artifact</param>
+    /// <param name="RefuterRecords">a refuter record file (repository-relative) → its records' rule-id → outcome, or
+    /// null when the file does not exist — injectable so the self-test is hermetic</param>
     private sealed record DerivationRule(
         string Field, string AnchorTemplate, string Heading, IReadOnlySet<string> Signatures,
+        IReadOnlySet<string> RefuterSigners,
         IReadOnlyDictionary<string, DerivationArm> Arms,
         IReadOnlyDictionary<string, ConformanceRegister.DerivationRow> Register,
-        IReadOnlyDictionary<int, IReadOnlySet<string>> Undefined);
+        IReadOnlyDictionary<int, IReadOnlySet<string>> Undefined,
+        Func<string, IReadOnlyDictionary<string, string>?> RefuterRecords);
 
     private sealed record Schema(
         IReadOnlyDictionary<string, Verdict> Verdicts,
@@ -161,8 +167,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
         //: §1.1's owner-signed alternative to §1(c)'s test — `null` when the schema declares none, so removing
         //: the object from the JSON closes the door in both engines at once.
         DerivationRule? Derivation,
-        //: Every rule-id the catalog knows, for the `indistinguishable-consequent` arm.
-        IReadOnlySet<string> CatalogRuleIds,
+        //: Every held edition's catalog, rule-id → (its edition's year, its text): the arms that read a catalog read the
+        //: row's OWN edition's (kb/Work PB5374). Twin of `inventory_schema.Schema.catalog`.
+        IReadOnlyDictionary<string, (int Year, string Text)> Catalog,
         //: The schema's `next` kind whose verdict is its CHAIN's (`chained`: KEPT): an older row of that kind has the state of
         //: the rules it carries into (kb/Work PB4994). Twin of `inventory_schema.Schema.next.chained`.
         string ChainedKind);
@@ -246,7 +253,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             anchored,
             ConformanceRegister.Determinations.Keys.ToHashSet(StringComparer.Ordinal),
             root.TryGetProperty("derivation", out var derivation) ? LoadDerivation(derivation) : null,
-            CatalogIds.Value,
+            Catalogs.Value,
             root.GetProperty("next").GetProperty("kinds").EnumerateObject()
                 .Single(k => !k.Name.StartsWith('$') && k.Value.GetProperty("chained").GetBoolean()).Name);
     }
@@ -268,7 +275,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
         {
             if (p.Name.StartsWith('$')) continue;
             arms[p.Name] = new DerivationArm(
-                new Regex(Str(p.Value, "names-pattern"), RegexOptions.Compiled), Str(p.Value, "check"));
+                new Regex(Str(p.Value, "names-pattern"), RegexOptions.Compiled), Str(p.Value, "check"),
+                p.Value.GetProperty("argued").GetBoolean());
         }
 
         string heading = Str(d, "register-heading");
@@ -291,17 +299,55 @@ public sealed class SpecTraceabilityInventoryDriftTests
         var signatures = d.GetProperty("signatures").EnumerateObject()
             .Where(p => !p.Name.StartsWith('$')).Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
 
+        var refuterSigners = d.GetProperty("signers").EnumerateObject()
+            .Where(p => !p.Name.StartsWith('$') && p.Value.GetProperty("refuter").GetBoolean())
+            .Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+
         return new DerivationRule(
-            Str(d, "field"), Str(d, "anchor-template"), heading, signatures, arms,
-            ConformanceRegister.Derivations(), undefined);
+            Str(d, "field"), Str(d, "anchor-template"), heading, signatures, refuterSigners, arms,
+            ConformanceRegister.Derivations(), undefined, ReadRefuterRecords);
+    }
+
+    /// <summary>The refuter record file <paramref name="rel"/> (JSON lines, each with a <c>rule-id</c> and an
+    /// <c>outcome</c>) as rule-id → outcome, or null when the tree has no such file. Twin of
+    /// <c>inventory_schema.Derivation.refuter_outcome</c>.</summary>
+    private static IReadOnlyDictionary<string, string>? ReadRefuterRecords(string rel)
+    {
+        string path = Path.Combine(TestRepo.Root, rel.Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(path)) return null;
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (string line in File.ReadLines(path))
+        {
+            if (line.Trim().Length == 0) continue;
+            using var rec = JsonDocument.Parse(line);
+            if (rec.RootElement.ValueKind == JsonValueKind.Object && rec.RootElement.TryGetProperty("rule-id", out var id))
+                map[id.GetString()!] = Str(rec.RootElement, "outcome");
+        }
+        return map;
     }
 
     /// <summary>
-    /// Every rule-id the catalog knows, read ONCE per test assembly from the view, which has one row per rule:
-    /// <c>LoadSchema()</c> runs a dozen times a gate, and the <c>indistinguishable-consequent</c> arm needs the ids alone.
+    /// Every held edition's catalog rules, rule-id → (year, text), read ONCE per test assembly: <c>LoadSchema()</c> runs a
+    /// dozen times a gate. A rule-id names one edition (the ids are unique across catalogs; a repeat throws, as it would
+    /// make a row's edition ambiguous). Twin of <c>inventory_schema.Schema.catalog</c>.
     /// </summary>
-    private static readonly Lazy<IReadOnlySet<string>> CatalogIds =
-        new(() => TraceabilityInventory.Rows.Select(r => r.RuleId).ToHashSet(StringComparer.Ordinal));
+    private static readonly Lazy<IReadOnlyDictionary<string, (int Year, string Text)>> Catalogs = new(() =>
+    {
+        var map = new Dictionary<string, (int Year, string Text)>(StringComparer.Ordinal);
+        foreach (var edition in TraceabilityInventory.Editions)
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllBytes(
+                Path.Combine(TestRepo.Root, edition.Catalog.Replace('/', Path.DirectorySeparatorChar))));
+            foreach (var rule in doc.RootElement.GetProperty("rules").EnumerateArray())
+            {
+                string id = rule.GetProperty("id").GetString()!;
+                if (!map.TryAdd(id, (edition.Year, rule.GetProperty("text").GetString()!)))
+                    throw new InvalidDataException($"rule-id {id} is in the {map[id].Year} and the {edition.Year} catalogs: "
+                        + "a rule-id names one edition");
+            }
+        }
+        return map;
+    });
 
     /// <summary>
     /// The Python view's state of every rule (<c>inventory_view.py --states</c>), run once per test assembly. The run is
@@ -470,12 +516,13 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 $"{r.RuleId}: docs/CONFORMANCE.md {d.Heading.Trim('#', ' ')} carries no row keyed '{key}'"));
             return bad;
         }
-        if (!d.Signatures.Contains(entry.Signature))
+        bool signed = d.Signatures.Contains(entry.Signature);
+        if (!signed)
         {
             bad.Add(new("bad-signature",
                 $"{r.RuleId}: determination '{key}' is signed '{entry.Signature}', not one of "
-                + $"[{string.Join(", ", d.Signatures.Order(StringComparer.Ordinal))}] — a derivation is the "
-                + "OWNER's, and the signature records which owner decision read it"));
+                + $"[{string.Join(", ", d.Signatures.Order(StringComparer.Ordinal))}] — the signature records which "
+                + "dated decision read it"));
         }
         if (!d.Arms.TryGetValue(entry.Arm, out var arm))
         {
@@ -483,6 +530,26 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 $"{r.RuleId}: determination '{key}' names arm '{entry.Arm}', not one of "
                 + string.Join('/', d.Arms.Keys.Order())));
             return bad;
+        }
+        // ⛔ REFUSAL 8 — an ARGUED arm signed by a signer that is not its own reader (kb/Work PB5373) stands only on an
+        // UPHELD refutation: the refuter tried to write the witness the derivation says cannot exist, and failed.
+        if (signed && arm.Argued && d.RefuterSigners.Contains(SignerOf(entry.Signature)))
+        {
+            string path = entry.Refuter.Trim();
+            string? outcome = path is "" or "—" or "-" ? null
+                : d.RefuterRecords(path) is { } records && records.TryGetValue(r.RuleId, out var o) ? o : null;
+            if (outcome is null)
+            {
+                bad.Add(new("no-refuter-record",
+                    $"{r.RuleId}: determination '{key}' argues arm {entry.Arm} under '{entry.Signature}', whose signer "
+                    + $"needs a refuter record, and its Refuted cell '{entry.Refuter}' names no record of the rule"));
+            }
+            else if (outcome != "UPHELD")
+            {
+                bad.Add(new("refuter-not-upheld",
+                    $"{r.RuleId}: determination '{key}': the refuter record in {path} reads '{outcome}', not UPHELD — "
+                    + "an overturned derivation becomes a test"));
+            }
         }
         var m = arm.Names.Match(entry.Names);
         if (!m.Success)
@@ -518,10 +585,30 @@ public sealed class SpecTraceabilityInventoryDriftTests
                     bad.Add(new("self-indistinguishable",
                         $"{r.RuleId}: determination '{key}': a rule cannot be indistinguishable from itself"));
                 }
-                else if (!s.CatalogRuleIds.Contains(named))
+                else if (!s.Catalog.TryGetValue(named, out var other) || !s.Catalog.TryGetValue(r.RuleId, out var own)
+                         || other.Year != own.Year)
                 {
                     bad.Add(new("unknown-rule",
-                        $"{r.RuleId}: determination '{key}': names '{named}', not a rule in the catalog"));
+                        $"{r.RuleId}: determination '{key}': names '{named}', not a rule of the catalog of its own edition"));
+                }
+                break;
+            case "quoted-in-rule":
+                if (d.Undefined.Values.Any(covered => covered.Contains(r.RuleId)))
+                {
+                    bad.Add(new("a2-lists-rule",
+                        $"{r.RuleId}: determination '{key}': Annex A.2 lists this rule, so the row keeps the undefined-A.2 "
+                        + "arm (one fact, one arm)"));
+                }
+                else if (!s.Catalog.TryGetValue(r.RuleId, out var self))
+                {
+                    bad.Add(new("unknown-rule",
+                        $"{r.RuleId}: determination '{key}': the rule is in no held catalog"));
+                }
+                else if (!Spaced(self.Text).Contains(Spaced(m.Groups[1].Value), StringComparison.Ordinal))
+                {
+                    bad.Add(new("quote-not-in-rule",
+                        $"{r.RuleId}: determination '{key}': the quotation '{m.Groups[1].Value}' is not in the rule's text "
+                        + "in its edition's catalog"));
                 }
                 break;
             default:
@@ -533,6 +620,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
         return bad;
     }
+
+    /// <summary>The signer of a signature key <c>&lt;signer&gt;: &lt;date&gt;</c>. Twin of <c>Derivation.signer_of</c>.</summary>
+    private static string SignerOf(string signature) => signature.Split(':', 2)[0].Trim();
+
+    /// <summary><paramref name="text"/> with each whitespace run as one space, the form an <c>undefined-in-rule</c>
+    /// quotation is compared in. Twin of <c>inventory_schema.spaced</c>.</summary>
+    private static string Spaced(string text) =>
+        string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
     /// <summary>Every live row whose <c>derivation</c> claim does not stand — the gate over §1.1.</summary>
     private static List<string> BadDerivations(IEnumerable<TraceabilityInventory.Row> rows, Schema s) =>
@@ -1267,15 +1362,24 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// stands for". This is where that cost is charged continuously, as the register, the catalog and the spec
     /// change underneath a determination recorded sessions ago.
     /// </remarks>
+    /// <para>⛔ EVERY HELD EDITION'S ROWS (kb/Work PB5374): each against its own edition's catalog, and a §8 row that no
+    /// row of any held edition claims is refused, since a derivation on a row of an edition this test did not open would
+    /// otherwise be SKIPPED — never checked, and never reported.</para>
     [Fact]
     public void EveryDerivation_StandsUnderItsOwnArm()
     {
-        var rows = LoadInventory();
+        var rows = TraceabilityInventory.Editions.SelectMany(TraceabilityInventory.RowsOf).ToList();
         var s = LoadSchema();
         Assert.True(s.Derivation is not null,
             "inventory-schema.json declares no `derivation` — §1.1's evidence kind is gone, so this gate would "
             + "measure nothing and the schema, not the gate, is what changed.");
         var bad = BadDerivations(rows, s);
+        var claimed = rows.Where(r => r.Derivation.Trim().Length > 0)
+            .Select(r => DerivationAnchor(r, s)[(DerivationAnchor(r, s).IndexOf('#') + 1)..])
+            .ToHashSet(StringComparer.Ordinal);
+        bad.AddRange(s.Derivation!.Register.Keys.Where(k => !claimed.Contains(k)).Order(StringComparer.Ordinal)
+            .Select(k => $"{k}: docs/CONFORMANCE.md §8 carries this row and no row of a held edition claims it, so nothing "
+                         + "checked it"));
         Assert.True(bad.Count == 0, Report("row(s) whose derivation does not stand", bad, rows.Count));
     }
 
@@ -1379,7 +1483,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
         ];
 
         var s = LoadSchema();
-        var closed = LoadInventory()
+        // EVERY held edition's rows (kb/Work PB5374): a 1985 row closed on a derivation is a row of this population too.
+        var closed = TraceabilityInventory.Editions.SelectMany(TraceabilityInventory.RowsOf)
             .Where(r => r.Derivation.Trim().Length > 0 && DerivedState(r, s) == "OK")
             .Select(r => r.RuleId).Order(StringComparer.Ordinal).ToList();
 
@@ -1387,8 +1492,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "the set of rows closed on an owner-signed derivation is not the measured population.\n"
             + $"    expected: [{string.Join(", ", population.Order(StringComparer.Ordinal))}]\n"
             + $"    actual  : [{string.Join(", ", closed)}]\n"
-            + "    A row added here is a row the burn-down moves without a test. It needs an owner-signed §8 "
-            + "determination AND a deliberate edit to this list (kb/Work PB386).");
+            + "    A row added here is a row the burn-down moves without a test. It needs a signed §8 determination "
+            + "AND a deliberate edit to this list (kb/Work PB386, PB5373).");
     }
 
     /// <summary>
@@ -1490,7 +1595,22 @@ public sealed class SpecTraceabilityInventoryDriftTests
         foreach (var r in Field("register").EnumerateArray())
         {
             register[Str(r, "key")] = new ConformanceRegister.DerivationRow(
-                Str(r, "key"), Str(r, "arm"), Str(r, "names"), Str(r, "argument"), Str(r, "signature"));
+                Str(r, "key"), Str(r, "arm"), Str(r, "names"), Str(r, "argument"), Str(r, "signature"), Str(r, "refuter"));
+        }
+
+        var refuters = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
+        foreach (var f in Field("refuter-records").EnumerateObject())
+        {
+            if (f.Name.StartsWith('$')) continue;
+            refuters[f.Name] = f.Value.EnumerateObject().ToDictionary(x => x.Name, x => x.Value.GetString()!, StringComparer.Ordinal);
+        }
+
+        var catalog = new Dictionary<string, (int Year, string Text)>(StringComparer.Ordinal);
+        foreach (var year in Field("catalogs").EnumerateObject())
+        {
+            if (year.Name.StartsWith('$')) continue;
+            foreach (var rule in year.Value.EnumerateObject())
+                catalog.Add(rule.Name, (int.Parse(year.Name, System.Globalization.CultureInfo.InvariantCulture), rule.Value.GetString()!));
         }
 
         var undefined = new Dictionary<int, IReadOnlySet<string>>();
@@ -1503,9 +1623,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
         return s with
         {
-            Derivation = s.Derivation! with { Register = register, Undefined = undefined },
-            CatalogRuleIds = Field("catalog-rule-ids").EnumerateArray().Select(x => x.GetString()!)
-                .ToHashSet(StringComparer.Ordinal),
+            Derivation = s.Derivation! with
+            {
+                Register = register, Undefined = undefined, RefuterRecords = f => refuters.GetValueOrDefault(f),
+            },
+            Catalog = catalog,
             RegisterItems = Field("register-items").EnumerateArray().Select(x => x.GetString()!)
                 .ToHashSet(StringComparer.Ordinal),
         };
@@ -1920,21 +2042,22 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // So the register and the Annex A.2 list are FABRICATED here, and every refusal is driven with a
         // positive control beside it — a checker that rejected everything would satisfy the negatives alone.
         var d = s.Derivation!;
-        string signed = d.Signatures.Order(StringComparer.Ordinal).First();
+        // An OWNER-read signature (no refuter needed): the argued arms below close on the signature alone.
+        string signed = d.Signatures.Order(StringComparer.Ordinal).First(k => !d.RefuterSigners.Contains(SignerOf(k)));
         var fakeRegister = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
         {
-            ["DRV-GR-14.9.5.4-11"] = new("DRV-GR-14.9.5.4-11", "undefined-A.2", "A.2 item 4", "…", signed),
-            ["DRV-GR-14.9.5.4-12"] = new("DRV-GR-14.9.5.4-12", "undefined-A.2", "A.2 item 41", "…", signed),
-            ["DRV-GR-14.9.5.4-13"] = new("DRV-GR-14.9.5.4-13", "undefined-A.2", "A.2 item 999", "…", signed),
+            ["DRV-GR-14.9.5.4-11"] = new("DRV-GR-14.9.5.4-11", "undefined-A.2", "A.2 item 4", "…", signed, "—"),
+            ["DRV-GR-14.9.5.4-12"] = new("DRV-GR-14.9.5.4-12", "undefined-A.2", "A.2 item 41", "…", signed, "—"),
+            ["DRV-GR-14.9.5.4-13"] = new("DRV-GR-14.9.5.4-13", "undefined-A.2", "A.2 item 999", "…", signed, "—"),
             ["DRV-GR-14.9.5.4-14"] = new("DRV-GR-14.9.5.4-14", "unpopulatable-antecedent",
-                                         "the two-valued DISPLAY device set", "…", signed),
-            ["DRV-GR-14.9.5.4-15"] = new("DRV-GR-14.9.5.4-15", "unpopulatable-antecedent", "—", "…", signed),
+                                         "the two-valued DISPLAY device set", "…", signed, "—"),
+            ["DRV-GR-14.9.5.4-15"] = new("DRV-GR-14.9.5.4-15", "unpopulatable-antecedent", "—", "…", signed, "—"),
             ["DRV-GR-14.9.5.4-16"] = new("DRV-GR-14.9.5.4-16", "indistinguishable-consequent",
-                                         "GR-14.9.5.4-7", "…", signed),
+                                         "GR-14.9.5.4-7", "…", signed, "—"),
             ["DRV-GR-14.9.5.4-17"] = new("DRV-GR-14.9.5.4-17", "indistinguishable-consequent",
-                                         "GR-99.99.99.4-1", "…", signed),
-            ["DRV-GR-14.9.5.4-18"] = new("DRV-GR-14.9.5.4-18", "undefined-A.2", "A.2 item 4", "…", "owner: 1999"),
-            ["DRV-GR-14.9.5.4-19"] = new("DRV-GR-14.9.5.4-19", "made-it-up", "A.2 item 4", "…", signed),
+                                         "GR-99.99.99.4-1", "…", signed, "—"),
+            ["DRV-GR-14.9.5.4-18"] = new("DRV-GR-14.9.5.4-18", "undefined-A.2", "A.2 item 4", "…", "owner: 1999", "—"),
+            ["DRV-GR-14.9.5.4-19"] = new("DRV-GR-14.9.5.4-19", "made-it-up", "A.2 item 4", "…", signed, "—"),
         };
         var fakeA2 = new Dictionary<int, IReadOnlySet<string>>
         {
@@ -1946,7 +2069,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
         var ds = s with
         {
             Derivation = d with { Register = fakeRegister, Undefined = fakeA2 },
-            CatalogRuleIds = new HashSet<string>(StringComparer.Ordinal) { "GR-14.9.5.4-7" },
+            Catalog = new Dictionary<string, (int Year, string Text)>(StringComparer.Ordinal)
+            {
+                ["GR-14.9.5.4-7"] = (2023, "…"), ["GR-14.9.5.4-16"] = (2023, "…"), ["GR-14.9.5.4-17"] = (2023, "…"),
+                ["DOC-A.1-19"] = (2023, "…"),
+            },
         };
         TraceabilityInventory.Row Derived(string id, string subject = "CANCEL statement") => new(
             id, "14.9.5.4", "GR", 11, subject, "CONFORMS",
@@ -1997,7 +2124,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
                     Register = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
                     {
                         ["DRV-GR-14.9.5.4-11"] = new("DRV-GR-14.9.5.4-11", "undefined-A.2", "A.2 item 4", "…",
-                                                     signature),
+                                                     signature, "—"),
                     },
                 },
             };
@@ -2015,12 +2142,16 @@ public sealed class SpecTraceabilityInventoryDriftTests
         var docReg = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
         {
             ["DRV-DOC-A.1-19"] = new("DRV-DOC-A.1-19", "indistinguishable-consequent", "GR-14.9.5.4-7", "…",
-                                     signed),
+                                     signed, "—"),
         };
         var docS = s with
         {
             Derivation = d with { Register = docReg, Undefined = fakeA2 },
-            CatalogRuleIds = new HashSet<string>(StringComparer.Ordinal) { "GR-14.9.5.4-7" },
+            Catalog = new Dictionary<string, (int Year, string Text)>(StringComparer.Ordinal)
+            {
+                ["GR-14.9.5.4-7"] = (2023, "…"), ["GR-14.9.5.4-16"] = (2023, "…"), ["GR-14.9.5.4-17"] = (2023, "…"),
+                ["DOC-A.1-19"] = (2023, "…"),
+            },
             RegisterItems = new HashSet<string>(StringComparer.Ordinal) { "DOC-A.1-19" },
         };
         const string Drv19 = "docs/CONFORMANCE.md#DRV-DOC-A.1-19";

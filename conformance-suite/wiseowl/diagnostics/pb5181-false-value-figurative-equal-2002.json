@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL2048: condition-name 'C1' (WHEN SET TO FALSE): the FALSE-phrase literal \" \" is equal to the VALUE literal SPACE"}

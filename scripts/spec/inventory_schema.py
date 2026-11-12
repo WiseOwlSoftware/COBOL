@@ -53,11 +53,13 @@ SCHEMA_PATH = REPO / SCHEMA_REL
 #: determinations are keyed by that id plus a letter (`DOC-A.1-92b`, kb/Work PB3840); no inventory row anchors on those.
 REGISTER_PATH = REPO / "docs" / "CONFORMANCE.md"
 #: THE REGISTERS' EXTRACT: what the tests and the state rule read of docs/CONFORMANCE.md's §7 and §8 (each §7 row's key
-#: and determination lead; each §8 row's key, arm, names and signature), written from the Markdown by this module's one
-#: parser (`doc_audits.py --write-register`) and held fresh by the DOC AUDITS audit (kb/Work PB4453). The state rule reads
+#: and determination lead; each §8 row's key, arm, names, signature and refuter file), written from the Markdown by this
+#: module's one parser (`doc_audits.py --write-register`) and held fresh by the DOC AUDITS audit (kb/Work PB4453). The state rule reads
 #: the EXTRACT, never the Markdown: a document is inert, so no compiler test, nor the Python it runs, may open one
 #: (PB4992's merge-queue bounce: the conformance manifest's generator computed states and opened CONFORMANCE.md).
 REGISTER_EXTRACT_REL = "tests/version-matrix/conformance-register.json"
+#: What a §8 row's `Refuted` cell holds when it names no refuter record file.
+NO_REFUTER = frozenset({"", "—", "-"})
 REGISTER_HEADING = "## 7. Annex A.1"
 #: The label in the §7 table's own header row, so the reader can tell a header from a determination.
 REGISTER_HEADER_CELL = "A.1 item"
@@ -69,11 +71,16 @@ class Tree:
     the repository at `root`. The state rule reads more than the store: the schema, the catalog, docs/CONFORMANCE.md's
     registers and the Annex A.2 list. A view of a commit reads each of them as that commit has it, and a view of another
     worktree reads that worktree's (branch review R1-3, R1-4). `files`, when given, are the commit's files already read
-    (by path), as a reader that reads many commits' blobs in one batch has them (`gen_ledger.measure_commits`); a path it
-    does not hold is a file the commit lacks."""
+    (by path), as a reader that reads many commits' blobs in one batch has them (`gen_ledger.measure_commits`,
+    `read_view_ahead`): every path it was ASKED, its text or None for a file the commit lacks.
+
+    ⛔ A PATH IT WAS NOT ASKED IS `NotReadAhead`, never None (kb/Work PB5374 branch review R1-1). The view's inputs grow
+    (the older catalogs, then the refuter record files a §8 row names), and when a read-ahead list missed one the commit's
+    view answered "the commit has no such file" and computed GAP where the live view computed OK: silently, because a
+    missing file is a legal answer. A reader that reads a file it did not read ahead now fails by name."""
     root: pathlib.Path = REPO
     rev: str | None = None
-    files: Mapping[str, str] | None = None
+    files: Mapping[str, str | None] | None = None
 
     def git(self, *args: str, stdin: bytes | None = None) -> bytes | None:
         """`git <args>`'s stdout in `root`, or None when it fails (a revision or a path the commit lacks)."""
@@ -83,7 +90,10 @@ class Tree:
     def text(self, rel: str) -> str | None:
         """The file `rel` (repository-relative, `/`-separated) in this tree, or None when the tree has none."""
         if self.files is not None:
-            return self.files.get(rel)
+            if rel not in self.files:
+                raise NotReadAhead(f"{rel} at {self.rev}: the view read a file its reader did not read ahead; every "
+                                   f"file the view reads is `Schema.view_files` or `refuter_files` (`read_view_ahead`)")
+            return self.files[rel]
         if self.rev is None:
             p = self.root / rel
             return p.read_text(encoding="utf-8") if p.is_file() else None
@@ -97,12 +107,22 @@ class Tree:
     def read_ahead(self, rels: Iterable[str]) -> Tree:
         """This commit with the files `rels` read in one batch (`git_batch`): every file a reader will ask for, so a
         partial clone (CI's `filter: blob:none`) fetches the commit's missing blobs in ONE request, not one per file (the
-        merge-queue bounce of kb/Work PB4992). A working tree reads its files directly and is returned as it is."""
+        merge-queue bounce of kb/Work PB4992). A file the commit lacks is read as None; the files already read are kept, so
+        a reader reads ahead in stages (`read_view_ahead`). A working tree reads its files directly and is returned as it is."""
         if self.rev is None:
             return self
-        ids = git_batch.path_ids(self.root, self.rev, list(dict.fromkeys(rels))) or {}   # trees only: no blob fetched
+        held = self.files or {}
+        asked = [rel for rel in dict.fromkeys(rels) if rel not in held]
+        if not asked:
+            return self if self.files is not None else Tree(self.root, self.rev, {})
+        ids = git_batch.path_ids(self.root, self.rev, asked) or {}   # trees only: no blob fetched
         data = dict(git_batch.blobs(self.root, ids.values()))
-        return Tree(self.root, self.rev, {rel: data[i].decode("utf-8") for rel, i in ids.items()})
+        return Tree(self.root, self.rev, {**held, **{rel: data[ids[rel]].decode("utf-8") if rel in ids else None
+                                                      for rel in asked}})
+
+
+class NotReadAhead(RuntimeError):
+    """A read-ahead tree (`Tree.files`) was asked for a file it was not given: its reader's read-ahead list is short."""
 
 
 WORKING_TREE = Tree()
@@ -557,7 +577,8 @@ class DerivationRow(NamedTuple):
     arm: str        #: which of the three §1.1 grounds this determination stands on
     names: str      #: the arm's OBJECT — `A.2 item <n>` / the closed set / the indistinguishable rule-id
     argument: str   #: the derivation itself, written for a reader
-    signature: str  #: the owner's signature, one of the keys of `derivation.signatures` in the schema
+    signature: str  #: the signature, one of the keys of `derivation.signatures` in the schema (`<signer>: <date>`)
+    refuter: str    #: the refuter record file an argued arm signed by a refuter-bound signer names; '—' or '' for none
 
 
 def register_cells(line: str) -> list[str]:
@@ -862,7 +883,13 @@ class Derivation:
     not because nobody has written the golden but because any golden would pin an IMPLEMENTATION CHOICE as though
     it were the standard's answer, which is precisely what `test-ref.spec-derived` exists to prevent. Such a row
     may instead close on a DETERMINATION recorded in `docs/CONFORMANCE.md` §8, keyed by the row's own rule-id,
-    naming one of three grounds and signed by the owner.
+    naming one of the schema's arms and signed by a dated decision (`signatures`, each `<signer>: <date>`).
+
+    ⚙ EVERY EDITION'S ROWS (kb/Work PB5374). A row of any held edition is checked against ITS OWN edition's catalog
+    (`Schema.catalog` keys each rule-id to the one held catalog that carries it). The `undefined-in-rule` arm is the
+    1985 edition's mechanical arm, as that standard has no Annex A.2: the rule's own text declares the result undefined.
+    A signer whose `refuter` is set (the deciding session, kb/Work PB5373) signs an ARGUED arm only beside an UPHELD
+    `cobol-refuter` record of the row (`refuter_outcome`), which keeps the independent read the owner's signature gave.
 
     ⛔ CHECKABLE, NOT A FREE-TEXT ESCAPE HATCH — the note's own second consequence, and the reason this is a
     predicate rather than a convention. The `undefined-A.2` arm is MECHANICAL: Annex A.2 is the standard's own
@@ -885,17 +912,57 @@ class Derivation:
         self.anchor_template: str = raw["anchor-template"]
         self.heading: str = raw["register-heading"]
         self.header_cell: str = raw.get("register-header-cell", "Rule")
-        #: Every signature the owner has given — one dated decision each, mapped to where it is recorded.
+        #: Who may sign (`signers`): each signer's `refuter` and `decision-note` obligations (kb/Work PB5373). A schema of a
+        #: commit before kb/Work PB5374 has none, and every signature it lists is the owner's, which needs no refuter.
+        self.signers: dict[str, dict[str, Any]] = {k: v for k, v in raw.get("signers", {}).items() if not k.startswith("$")}
+        #: Every signature given — one dated decision each (`<signer>: <date>`), mapped to where it is recorded.
         self.signatures: dict[str, str] = {k: v for k, v in raw["signatures"].items() if not k.startswith("$")}
         self.undefined_list: str = raw["undefined-list"]
         self.arms: dict[str, dict[str, Any]] = {
-            name: {"names": re.compile(arm["names-pattern"]), "check": arm["check"]}
+            name: {"names": re.compile(arm["names-pattern"]), "check": arm["check"], "argued": arm.get("argued")}
             for name, arm in raw["arms"].items() if not name.startswith("$")
         }
-        #: Injectable so a self-test drives the predicate against a FABRICATED register and a fabricated A.2
-        #: list — the arms cannot be falsified against today's document, where every row is correct.
+        #: Injectable so a self-test drives the predicate against a FABRICATED register, a fabricated A.2 list and
+        #: fabricated refuter records — the arms cannot be falsified against today's document, where every row is correct.
         self._register = register
         self._undefined = undefined
+        self._refuters: dict[str, dict[str, str] | None] = {}
+
+    @staticmethod
+    def signer_of(signature: str) -> str:
+        """The signer of a signature key `<signer>: <date>` (the text before the first colon)."""
+        return signature.partition(":")[0].strip()
+
+    def refuter_outcome(self, path: str, rule_id: str) -> str | None:
+        """The `outcome` the refuter record file `path` (repository-relative JSON lines) records for `rule_id`, or None
+        when the tree has no such file or the file holds no record of the rule. Read once per file."""
+        if path not in self._refuters:
+            text = self.tree.text(path)
+            self._refuters[path] = None if text is None else {
+                rec["rule-id"]: rec.get("outcome", "") for rec in map(json.loads, filter(str.strip, text.splitlines()))
+                if isinstance(rec, dict) and "rule-id" in rec}
+        records = self._refuters[path]
+        return None if records is None else records.get(rule_id)
+
+    def signature_findings(self) -> list[str]:
+        """What is wrong with the `signatures` map itself: a key whose signer `signers` does not name, or a key of a
+        `decision-note` signer whose value does not open `kb/Work <id>` naming an existing `kind: decision` note. Read by
+        `audit_derivations.py --check` (a gate audit, in every lane), never by the state rule: a note is a document."""
+        out = []
+        for key, value in self.signatures.items():
+            signer = self.signers.get(self.signer_of(key))
+            if signer is None:
+                out.append(f"signature '{key}': signer '{self.signer_of(key)}' is not one of {sorted(self.signers)}")
+                continue
+            if not signer.get("decision-note"):
+                continue
+            m = re.match(r"kb/Work (PB[0-9]+|R[0-9]+)\b", value)
+            note = None if m is None else self.tree.text(f"kb/Work/{m.group(1)}.md")
+            if note is None:
+                out.append(f"signature '{key}': its value must open 'kb/Work <id>' naming a note that exists, not {value!r}")
+            elif not re.search(r"(?m)^kind:\s*decision\s*$", note.partition("\n---")[0]):
+                out.append(f"signature '{key}': kb/Work {m.group(1)} is not a `kind: decision` note")
+        return out
 
     def anchor_for(self, row: dict[str, Any]) -> str:
         """The derivation anchor this row would carry — COMPUTED from its own rule-id, never chosen."""
@@ -910,7 +977,8 @@ class Derivation:
         """The §8 register as this tree's extract has it (`REGISTER_EXTRACT_REL`): key, arm, names and signature; the
         argument is prose, not data, and is not in it."""
         if self._register is None:
-            self._register = {d["key"]: DerivationRow(d["key"], d["arm"], d["names"], "", d["signature"])
+            self._register = {d["key"]: DerivationRow(d["key"], d["arm"], d["names"], "", d["signature"],
+                                                         d.get("refuter", ""))
                               for d in register_extract(self.tree)["derivations"]}
         return self._register
 
@@ -976,17 +1044,32 @@ class Derivation:
                                f"docs/CONFORMANCE.md {self.heading.strip('# ')} carries no row keyed "
                                f"'{self.key_for(row)}'"))
             return out
-        if entry.signature not in self.signatures:
+        signed = entry.signature in self.signatures
+        if not signed:
             out.append(Refusal("bad-signature",
                                f"determination '{entry.key}' is signed '{entry.signature}', not one of "
-                               f"{sorted(self.signatures)} — a derivation is the OWNER's, and the signature "
-                               f"records which owner decision read it"))
+                               f"{sorted(self.signatures)} — the signature records which dated decision read it"))
         arm = self.arms.get(entry.arm)
         if arm is None:
             out.append(Refusal("unknown-arm",
                                f"determination '{entry.key}' names arm '{entry.arm}', not one of "
                                f"{sorted(self.arms)}"))
             return out
+        # ⛔ REFUSAL 8 — an ARGUED arm signed by a signer that is not its own reader (kb/Work PB5373) stands only on an
+        # UPHELD refutation: the refuter tried to write the witness the derivation says cannot exist, and failed.
+        signer = self.signers.get(self.signer_of(entry.signature), {})
+        if signed and signer.get("refuter") and arm["argued"] is not False:
+            path = entry.refuter.strip()
+            outcome = None if path in NO_REFUTER else self.refuter_outcome(path, row.get("rule-id", ""))
+            if outcome is None:
+                out.append(Refusal("no-refuter-record",
+                                   f"determination '{entry.key}' argues arm {entry.arm} under '{entry.signature}', whose "
+                                   f"signer needs a refuter record, and its Refuted cell {entry.refuter!r} names no "
+                                   f"record of {row.get('rule-id')}"))
+            elif outcome != "UPHELD":
+                out.append(Refusal("refuter-not-upheld",
+                                   f"determination '{entry.key}': the refuter record of {row.get('rule-id')} in "
+                                   f"{path} reads {outcome!r}, not UPHELD — an overturned derivation becomes a test"))
         m = arm["names"].match(entry.names)
         if m is None:
             out.append(Refusal("names-shape",
@@ -1017,18 +1100,39 @@ class Derivation:
             if named == rid:
                 return [Refusal("self-indistinguishable",
                                 f"determination '{entry.key}': a rule cannot be indistinguishable from itself")]
-            if named not in schema.rule_ids:
+            own, other = schema.catalog_entry(rid), schema.catalog_entry(named)
+            if other is None or own is None or other[0] != own[0]:
                 return [Refusal("unknown-rule",
-                                f"determination '{entry.key}': names '{named}', not a rule in the catalog")]
+                                f"determination '{entry.key}': names '{named}', not a rule of the catalog of "
+                                f"{rid}'s own edition")]
+            return []
+        if check == "quoted-in-rule":
+            if any(rid in covered for covered in self.undefined.values()):
+                return [Refusal("a2-lists-rule",
+                                f"determination '{entry.key}': Annex A.2 lists {rid}, so the row keeps the "
+                                f"undefined-A.2 arm (one fact, one arm)")]
+            own = schema.catalog_entry(rid)
+            if own is None:
+                return [Refusal("unknown-rule",
+                                f"determination '{entry.key}': {rid} is not a rule of any held catalog")]
+            if spaced(m.group(1)) not in spaced(own[1]):
+                return [Refusal("quote-not-in-rule",
+                                f"determination '{entry.key}': the quotation {m.group(1)!r} is not in the text of "
+                                f"{rid} in its edition's catalog")]
             return []
         return [Refusal("unknown-check",
                         f"determination '{entry.key}': arm {entry.arm} declares check '{check}', which this "
                         "evaluator does not implement — the schema and the writer disagree")]
 
 
+def spaced(text: str) -> str:
+    """`text` with each whitespace run as one space, the form an `undefined-in-rule` quotation is compared in."""
+    return " ".join(text.split())
+
+
 def derivation_rows(text: str, heading: str, header_cell: str = "Rule") -> list[DerivationRow]:
     """Every data row of the §8 derivation register, in document order."""
-    return [DerivationRow(c[0], c[1], _cell(c, 2), _cell(c, 3), _cell(c, 4))
+    return [DerivationRow(c[0], c[1], _cell(c, 2), _cell(c, 3), _cell(c, 4), _cell(c, 5))
             for c in register_section(text, heading, header_cell)]
 
 
@@ -1074,9 +1178,11 @@ class Schema:
         #: declares none — the door is DATA, so removing the object closes it everywhere at once.
         self.derivation: Derivation | None = (Derivation(raw["derivation"], tree=tree) if "derivation" in raw
                                               else None)
-        #: The catalog rule-ids, for the `indistinguishable-consequent` arm. Lazy, because only that arm needs
-        #: them and every other consumer of this class would otherwise pay a 4,311-rule parse it never reads.
-        self._rule_ids: set[str] | None = None
+        #: Every held edition's catalog, for the arms that read one (`catalog`). Lazy, because only those arms need it
+        #: and every other consumer of this class would otherwise pay a parse of every catalog it never reads.
+        self._catalog: dict[str, tuple[int, str]] | None = None
+        #: Each held edition's catalog as `catalog_entry` has parsed it, by year.
+        self._catalogs: dict[int, dict[str, str]] = {}
         #: The §7 register, injectable — see `register_items`.
         self._register_items: set[str] | None = None
 
@@ -1100,10 +1206,47 @@ class Schema:
         return [e for e in self.all_editions if e.held][-1]
 
     @property
-    def rule_ids(self) -> set[str]:
-        if self._rule_ids is None:
-            self._rule_ids = {r["id"] for r in self.newest.rules(self.tree)}
-        return self._rule_ids
+    def catalog(self) -> dict[str, tuple[int, str]]:
+        """`{rule-id -> (its edition's year, its text)}` over EVERY held edition's catalog (kb/Work PB5374): a derivation is
+        checked against its own edition's rules, and a rule-id names one edition (the ids are unique across catalogs;
+        a repeated one is a SystemExit, as it would make a row's edition ambiguous)."""
+        if self._catalog is None:
+            catalog: dict[str, tuple[int, str]] = {}
+            for ed in self.all_editions:
+                if not ed.held:
+                    continue
+                for rid, text in self._catalog_of(ed).items():
+                    if rid in catalog:
+                        raise SystemExit(f"rule-id {rid} is in the {catalog[rid][0]} and the {ed.year} catalogs: "
+                                         "a rule-id names one edition")
+                    catalog[rid] = (ed.year, text)
+            self._catalog = catalog
+        return self._catalog
+
+    def view_files(self) -> list[str]:
+        """Every file the view of this schema's tree reads besides its store that the SCHEMA names: itself, the registers'
+        extract, every held edition's catalog (a derivation reads its rule's own edition, `catalog_entry`) and the Annex
+        A.2 list. The refuter record files are the rest, named by the register (`refuter_files`, `read_view_ahead`)."""
+        return [SCHEMA_REL, REGISTER_EXTRACT_REL, *(e.catalog for e in self.all_editions if e.held),
+                *((self.derivation.undefined_list,) if self.derivation else ())]
+
+    def catalog_entry(self, rule_id: str) -> tuple[int, str] | None:
+        """`(year, text)` of `rule_id` in the held catalog that carries it, or None: what the derivation arms ask. It opens
+        the held catalogs NEWEST FIRST and stops at the one that has the id, so a 2023 row and the 2023 rule it names cost
+        the one catalog the newest view already reads (a history reader measures the newest view, kb/Work PB4992), and
+        an older edition's catalog is parsed only for a row of that edition."""
+        if self._catalog is not None:
+            return self._catalog.get(rule_id)
+        for ed in reversed(self.all_editions):
+            if ed.held and (text := self._catalog_of(ed).get(rule_id)) is not None:
+                return ed.year, text
+        return None
+
+    def _catalog_of(self, ed: Edition) -> dict[str, str]:
+        """`ed`'s catalog as `{rule-id -> text}`, parsed once."""
+        if ed.year not in self._catalogs:
+            self._catalogs[ed.year] = {r["id"]: r["text"] for r in ed.rules(self.tree)}
+        return self._catalogs[ed.year]
 
     def locations(self, row: dict[str, Any]) -> list[str]:
         """The row's `code-location` list, split on the schema's own separator."""
@@ -1373,6 +1516,24 @@ def register_extract(tree: Tree) -> dict[str, Any]:
         raise SystemExit(f"{REGISTER_EXTRACT_REL} not found in {tree.rev or tree.root} — "
                          "run: python scripts/doc_audits.py --write-register")
     return doc
+
+
+def refuter_files(extract: dict[str, Any] | None) -> list[str]:
+    """The refuter record files the registers' extract `extract` names in its §8 rows' `Refuted` cells (none for None):
+    inputs of the view that its schema does not name, because the register names them (`Derivation.refuter_outcome`)."""
+    return sorted({(d.get("refuter") or "").strip() for d in (extract or {}).get("derivations", [])} - NO_REFUTER)
+
+
+def read_view_ahead(tree: Tree) -> Tree:
+    """`tree` (a commit) with EVERY file its view reads besides the store read ahead, in two batches: the files its schema
+    names (`Schema.view_files`), then the refuter record files its register extract names (`refuter_files`). The one
+    list of a commit's view inputs, read by `inventory_view.inventory_at`; `gen_ledger.measure_commits` reads the same
+    two stages for many commits at once. A file both miss is `NotReadAhead` when the view reads it. A working tree is
+    returned as it is."""
+    if tree.rev is None:
+        return tree
+    tree = tree.read_ahead(load_schema(tree).view_files())
+    return tree.read_ahead(refuter_files(tree.json(REGISTER_EXTRACT_REL)))
 
 
 def load_schema(tree: Tree = WORKING_TREE) -> Schema:

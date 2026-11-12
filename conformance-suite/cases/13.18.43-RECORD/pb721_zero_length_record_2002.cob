@@ -1,25 +1,19 @@
       *>--- conformance-case
-      *> id: pb721_zero_length_record_85
+      *> id: pb721_zero_length_record_2002
       *> rules: [SR-13.18.43.3-7]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> The COBOL-85 half of the Annex A.3 item 43 claim (the 2023 witness is
+      *> The COBOL-2002 half of the Annex A.3 item 43 claim (the 2023 witness is
       *> conformance-suite/cases/8.5.4-Zero-length-items/pb721_zero_length_record.cob, which carries the full
-      *> derivation). It exists because the capability and 13.18.43.3 SR7's permission
-      *> to write a ZERO minimum are NOT edition-dependent, and the way that fact fails
-      *> is a gate leaking downward: a >=2023 gate written on RECORD IS VARYING IN SIZE
-      *> FROM 0 would reject legal COBOL-85 here and nowhere else.
-      *>
-      *> The edition question was settled before the code, not after: Annex E is the
-      *> COMPLETE 2014->2023 delta and carries no entry for a zero minimum record size
-      *> or for zero-length records generally (its only zero-length entry, E.2 item 23,
-      *> is reference modification), so SR7 is not a 2023 introduction; and
-      *> docs/VERSION_CHANGE_REFERENCE.md records that this repository's spec cannot
-      *> speak for the 85<->2002 delta at all, so any gate below 2014 would be INVENTED
-      *> rather than derived. Determination: no edition gate anywhere - which is what
-      *> this program measures. kb/Work PB721.
+      *> derivation). §2002:13.16.41.2 SR6 (cite.py --check OK): "Integer-2 shall be greater than or equal
+      *> to zero." is the first text to permit a zero minimum, so RECORD IS VARYING IN SIZE FROM 0 is legal
+      *> from 2002 and a zero-length record round-trips on a sequential and a relative file. COBOL-85 has no
+      *> such rule (§1985:VII.3.8.3) and §1985:III.2 bars a zero integer, so --std 85 refuses it
+      *> (kb/Work PB5196; pb5196-record-varying-zero-minimum-1985). Until PB5196 this program was the
+      *> accepted-at-85 twin, on the reading that no edition gate existed; the 1985 text, now in the
+      *> repository, says otherwise.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB721-ZERO-LEN-85.
        ENVIRONMENT DIVISION.
