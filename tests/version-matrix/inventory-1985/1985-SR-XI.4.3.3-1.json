@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XI.4.3.3-1",
  "rule-digest": "cbc42648a33c",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckIntoReceiver; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckPhraseOperandIsNotRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Model/StorageSharing.cs#IsRecordAreaOf; src/WiseOwl.Cobol.Compiler/Binding/Validation/RecordAreaRule.cs#InForce",
  "test-ref": "conformance:cases/XI.4.3@1985-RETURN-STATEMENT/1985-SR-XI_4_3_3-1",
+ "notes": "§1985:XI.4.3.3 SR1: \"The storage area associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area.\" RETURN INTO reaches CheckIntoReceiver, whose CheckPhraseOperandIsNotRecordArea refuses (COBOL6827, below 2023 via RecordAreaRule.InForce) when StorageSharing.IsRecordAreaOf holds: any 01 of the SD, or a subordinate at offset 0 of the record's full width. Probes at --std 85: INTO the 01 (witness), a second 01 of the SD, the full-width only child SRT-KEY, and an 01 holding an OCCURS DEPENDING ON table are refused; INTO a WS item runs (GOT AAAAA / GOT BBBBB); a shorter tail item is accepted (not the same area); --std 2023 accepts. Gap: IsRecordAreaOf answers false for EVERY reference-modified operand and every item under an OCCURS, so a literal reference modification covering the whole record, RETURN SRT-FILE INTO SRT-REC (1:5) over a 5-character record, and INTO E (1) where 01 SRT-REC3. 05 E OCCURS 1 PIC X(5), both the identical storage area, compile and run. kb/Work PB5412 holds the defect (code read: coderead-85/out-read3/rd-03.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

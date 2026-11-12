@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.1.4.3-2",
  "rule-digest": "ed194666b080",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitSegmentState; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#SegmentsPerPc; src/WiseOwl.Cobol.Compiler/Binding/Model/SegmentNumber.cs#IsIndependent",
  "test-ref": "conformance:cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-2",
+ "notes": "§1985:XVI.1.4.3 GR2: an independent segment is in its initial state when control reaches it by 'the implicit transfer of control between a SORT or MERGE statement, in a segment with a different segment-number, and an associated input or output procedure in that independent segment'. A SORT/MERGE procedure runs as a nested __Dispatch call; EmitDispatchMethod saves the caller's __seg, and the loop's __SegOf[__pc] != __seg test calls __EnterSegment (AlterSwitchEmitter.EmitSegmentState) on the procedure's first pc, resetting its ALTERed GO TOs, while the finally restores the caller's segment (last-used on return). The witness runs one SORT twice with an INPUT PROCEDURE in SECTION 60 and sees FIRST twice; probe seg1 at 85 did the same for an OUTPUT PROCEDURE in SECTION 70 (OUT-INIT, OUT-ALT, OUT-INIT, OUT-ALT), and seg4 showed a procedure in the statement's own segment is not reset. Classes a, d, f do not reach the rule; c: the segment-number is COBOL0902 at 2002.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

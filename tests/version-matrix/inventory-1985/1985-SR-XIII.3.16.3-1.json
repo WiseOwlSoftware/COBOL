@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.16.3-1",
  "rule-digest": "e2ceea85eec1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
  "test-ref": "conformance:cases/XIII.3.16@1985-NEXT-GROUP-CLAUSE/1985-SR-XIII_3_16_3-1",
+ "notes": "§1985:XIII.3.16.3 SR1: \"A report group entry must not contain a NEXT GROUP clause unless the description of that report group contains at least one LINE NUMBER clause.\" BindNextGroupClauses runs once per RD after every group is built and, below 2002, refuses a group carrying NEXT GROUP whose model has no line (g.Lines empty; COBOL2284). Probes at --std 85: a CONTROL FOOTING FINAL with NEXT GROUP and no LINE (witness) and a DETAIL with NEXT GROUP PLUS 2 and no LINE are refused; a detail with the LINE at level 01 plus NEXT GROUP PLUS 2, a CF FINAL with NEXT GROUP NEXT PAGE and its LINE at level 05, and NEXT GROUP 10 with LINE 5 at level 05 all ran (lines 2 and 5 for the details, the CF FINAL total 00010 on line 8); at --std 2002 the witness draws only the LABEL RECORDS removal (COBOL0902), not COBOL2284.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.26.3-3",
  "rule-digest": "94b1c7ce1cc4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch",
  "test-ref": "conformance:cases/VI.6.26@1985-SUBTRACT-STATEMENT/1985-SR-VI_6_26_3-3",
+ "notes": "§1985:VI.6.26.3 SR3: the SUBTRACT composite \"must not contain more than 18 digits\": format 1 over all operands, format 2 excluding the GIVING items, and \"In format 3 the composite of operands is determined separately for each pair of corresponding data items.\" ArithmeticBinder.BindSubtract hands CheckComposite the minuends with the FROM receivers (format 1) or the minuends and the FROM operand with no receivers (format 2); CorrespondingBinder.CorrMatch checks each matched pair alone; the cap is Edition.MaxDigits, 18 at 85 (COBOL0805). Probes at --std 85: SUBTRACT 9(10) FROM V9(9) refused, 9(9) FROM V9(9) accepted; literal 0.123456789 FROM 9(10) refused, 0.12345678 accepted; format 2 with a V9(9) GIVING receiver accepted, with V9(9) among the subtrahends refused; SUBTRACT CORRESPONDING refused where one pair spans 19 and accepted (and ran) where pairs span 15 and 14 but the whole statement 19; SIZE ERROR fired on -999999999999999999 minus 1; 2002/2023 accept the 19-digit composite. Witness: SUBTRACT 9(10) FROM V9(9), refused COBOL0805.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
