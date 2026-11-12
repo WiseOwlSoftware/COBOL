@@ -67,3 +67,10 @@ local gate. The session probe's first line is the latest scheduled nightly's ver
 **Not in this change** (PB5235 stays open): the per-target dynamic input proof on the Linux shards, the nightly's jobs as
 graph targets, and CI recording its own Linux passes.
 
+
+**Bounced once (#1530, merge group 43116013863), fixed on the branch.** The shards downloaded the leg's generated suite
+by a pattern, which download-artifact extracts flat when it matches one artifact, so every Conformance host found no
+manifest where it was handed one; they now download it by name into `TestResults/handed/generated-<leg>`, and
+`ci_wiring` refuses a pattern download. Main's stricter self-test tracer (PB5227) refused ci_plan.py's
+`git ls-tree … HEAD^{tree}` as unkeyed; `ls-tree` is now a declared history read (kb/Work PB5235
+`2026-11-11-bounce-1530.md`).

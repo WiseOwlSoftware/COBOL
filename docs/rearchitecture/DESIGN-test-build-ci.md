@@ -1613,7 +1613,11 @@ target runs. A crash fails `changes`, so `ci-gate` is red.
 **Generated targets in CI: made once per leg, handed to every shard** (kb/Work PB5231, PB5235). A leg whose running
 targets depend on a generated target makes it ONCE, in its `<leg>-generate` job (`ci_plan.py generate`), with the gate's own
 traced `buildgraph.bring_up_to_date`, and uploads `TestResults/generated/` as `generated-<leg>`. Every shard of the leg
-downloads it into `TestResults/handed/generated-<leg>/`. The shard's listing is handed it (`ci_plan.py list`, through
+downloads it BY NAME into `TestResults/handed/generated-<leg>/` (`ci_plan.Leg.handed_dir`): download-artifact
+extracts a named artifact directly into its path, while a pattern that matches ONE artifact extracts it flat and one
+that matches several nests each under its name, so a pattern download of the one artifact put the suite at
+`TestResults/handed/conformance-suite/` and every shard's Conformance host found no manifest (merge group 43116013863;
+`.github/actions/download-results` states the layout). The shard's listing is handed it (`ci_plan.py list`, through
 `buildgraph.Graph.handed`), and so is each host of a dependent target: its step sets the generated
 target's variable (`WISEOWL_COBOL_GATE_SUITE` for `conformance-suite`) to that directory. Without the hand-off each host
 would generate its own suite (`SuiteManifest`), a run no key names, and the Linux inert watch would charge the generator's

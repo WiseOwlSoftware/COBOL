@@ -708,8 +708,8 @@ jobs:
         if: needs.changes.outputs.linux_generate != '{}'
         uses: ./.github/actions/download-results
         with:
-          pattern: generated-linux
-          path: TestResults/handed
+          name: generated-linux
+          path: TestResults/handed/generated-linux
       - name: List the discovered populations (shard 1; ci_plan.py list, scrubbed, handed the generated outputs)
         if: matrix.shard == 1
         shell: bash
@@ -881,8 +881,8 @@ jobs:
         if: needs.changes.outputs.windows_generate != '{}'
         uses: ./.github/actions/download-results
         with:
-          pattern: generated-windows
-          path: TestResults/handed
+          name: generated-windows
+          path: TestResults/handed/generated-windows
       - name: List the discovered populations (shard 1; ci_plan.py list, scrubbed, handed the generated outputs)
         if: matrix.shard == 1
         shell: bash

@@ -48,7 +48,10 @@ import buildgraph  # noqa: E402  — the targets, their keys and the store's tra
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
-#: Where a shard downloads its leg's generated outputs: `<HANDED>/generated-<leg>/<generated target>/`.
+#: Where a shard downloads its leg's generated outputs: `<HANDED>/generated-<leg>/<generated target>/`. The shard
+#: downloads the leg's ONE artifact by NAME into `<HANDED>/generated-<leg>` (`Leg.handed_dir`), which
+#: actions/download-artifact extracts directly into that path; a PATTERN download's layout depends on how many artifacts
+#: it matched (one: extracted flat into the path; several: each in `<path>/<name>/`), so it never fetches a known one.
 HANDED = "TestResults/handed"
 
 
@@ -71,9 +74,14 @@ class Leg:
         return f"generated-{self.name}"
 
     @property
+    def handed_dir(self) -> str:
+        """The repository-relative directory a shard of this leg downloads its artifact into, by name."""
+        return f"{HANDED}/{self.artifact}"
+
+    @property
     def handed_root(self) -> str:
         """The workflow's spelling of the directory a shard of this leg downloads them into."""
-        return f"${{{{ github.workspace }}}}/{HANDED}/{self.artifact}"
+        return f"${{{{ github.workspace }}}}/{self.handed_dir}"
 
 
 #: ⛔ THE ONE STATEMENT OF WHAT EACH MERGE-GROUP LEG RUNS. The workflow's shard jobs read the configuration and the
@@ -242,9 +250,10 @@ def ci_wiring(repo: Path) -> list[str]:
         builds = [s for s in steps if "dotnet build WiseOwl.Cobol.sln" in s.code]
         if not builds or any(conf not in s.code for s in builds):
             bad.append(f"{job.id}: the solution is not built in the plan's configuration ({conf})")
-        if not any(s.input("pattern") == leg.artifact and s.input("path") == HANDED and gen_out in (s.value("if") or "")
-                   for s in steps):
-            bad.append(f"{job.id}: it does not download {leg.artifact} into {HANDED} when the plan generates for it")
+        if not any(s.input("name") == leg.artifact and s.input("path") == leg.handed_dir and s.input("pattern") is None
+                   and gen_out in (s.value("if") or "") for s in steps):
+            bad.append(f"{job.id}: it does not download {leg.artifact} by name into {leg.handed_dir} when the plan "
+                       "generates for it (a pattern's layout depends on how many artifacts it matched)")
         lists = [s for s in steps if "scripts/ci_plan.py list" in s.code]
         if not lists or any(out not in s.code or conf not in s.code
                             or f'--generated "{leg.handed_root}"' not in s.code for s in lists):
@@ -675,11 +684,19 @@ def self_test() -> int:
         hand = f"          WISEOWL_COBOL_GATE_SUITE: {CI_LEGS['windows'].handed_root}/conformance-suite\n"
         unhanded = wf.replace(hand, "", 1)
         found_h = planted("unhanded", unhanded)
-        arm("the wiring check names a Windows Unit step that runs whatever the plan says, and a Windows Conformance step "
-            "not handed the leg's generated suite",
+        # merge group 43116013863: a PATTERN download of the one artifact extracts it flat into the path, not under
+        # its name, so every host found no suite where it was handed one
+        linux = CI_LEGS["linux"]
+        by_name = f"          name: {linux.artifact}\n          path: {linux.handed_dir}\n"
+        by_pattern = wf.replace(by_name, f"          pattern: {linux.artifact}\n          path: {HANDED}\n", 1)
+        found_p = planted("by-pattern", by_pattern)
+        arm("the wiring check names a Windows Unit step that runs whatever the plan says, a Windows Conformance step "
+            "not handed the leg's generated suite, and a Linux shard that downloads its leg's artifact by a pattern",
             ungated != wf and any("windows-shard: `Unit, this shard` runs whatever the plan says" in f for f in found)
-            and unhanded != wf and any("windows-shard: `Conformance, this shard` is not handed" in f for f in found_h),
-            f"{found} {found_h}")
+            and unhanded != wf and any("windows-shard: `Conformance, this shard` is not handed" in f for f in found_h)
+            and by_pattern != wf and any(f"linux-shard: it does not download {linux.artifact} by name" in f
+                                         for f in found_p),
+            f"{found} {found_h} {found_p}")
     finally:
         remove_tree(root)
     bad = [n for n, ok, _ in results if not ok]
