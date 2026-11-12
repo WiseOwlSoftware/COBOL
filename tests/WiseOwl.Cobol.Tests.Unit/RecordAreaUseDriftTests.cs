@@ -18,7 +18,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// scaled sending image; the goldens <c>pb5309-read-into-odo-first-record</c>, <c>pb5377-receive-into-group-with-own-odo</c> and
 /// <c>pb5375-inspect-scaled-numeric-characters</c> cover the behaviour.</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class RecordAreaUseDriftTests
 {
     private static string Code(string relative) =>
