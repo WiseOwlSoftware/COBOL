@@ -258,11 +258,11 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         string name = area.Destination(occurrence);
         int earlier = 0;
         for (int i = 1; i < occurrence; i++)
-            if (string.Equals(area.Destination(i), name, StringComparison.Ordinal)) earlier++;
-        return $"D:{name}\u0001{earlier}";
+            if (McsNames.Comparer.Equals(area.Destination(i), name)) earlier++;
+        return $"D:{McsNames.Key(name)}\u0001{earlier}";
     }
 
-    private static string TerminalKey(string name) => "T:" + name;
+    private static string TerminalKey(string name) => "T:" + McsNames.Key(name);
 
     /// <summary>A.2.5.3. A remainder this run unit holds answers first (GR10: "only subsequent execution of RECEIVE statements in that
     /// run unit shall cause the remaining portion of the message to be returned").</summary>
@@ -381,7 +381,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         internal bool LockedTerminalChanged(string cd, CommunicationArea area, CommunicationFormat format)
         {
             string name = area.SourceName(format);
-            if (Terminals.TryGetValue(cd, out string? first)) return !string.Equals(first, name, StringComparison.Ordinal);
+            if (Terminals.TryGetValue(cd, out string? first)) return !McsNames.Comparer.Equals(first, name);
             Terminals[cd] = name;
             return false;
         }
@@ -420,7 +420,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         internal bool Answers(string[] specified)
         {
             for (int level = 0; level < specified.Length && specified[level].Length > 0; level++)
-                if (level >= path.Length || !string.Equals(specified[level], path[level], StringComparison.Ordinal))
+                if (level >= path.Length || !McsNames.Comparer.Equals(specified[level], path[level]))
                     return false;
             return true;
         }

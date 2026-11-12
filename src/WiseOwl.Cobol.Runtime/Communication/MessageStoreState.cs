@@ -109,7 +109,7 @@ internal sealed class MessageStoreState
     private bool PathOpen(string sourceName, QueueDefinition queue) =>
         _definitions.Source(sourceName) is not { } source
             ? new QueueNode(queue, _tables!).Enabled
-            : _tables!.Path(sourceName, queue.Path) ?? (new QueueNode(queue, _tables).Enabled && new SourceEndpoint(source, _tables).Enabled);
+            : _tables!.Path(source.Name, queue.Path) ?? (new QueueNode(queue, _tables).Enabled && new SourceEndpoint(source, _tables).Enabled);
 
     private bool SetPaths(QueueDefinition queue, IEnumerable<SourceDefinition> sources, bool enable)
     {
@@ -161,7 +161,7 @@ internal sealed class MessageStoreState
     /// <summary>§1985:XIV.3.3.4 GR4: ENABLE I-O TERMINAL activates the logical path between the terminal and the program, and
     /// DISABLE I-O TERMINAL deactivates it (§1985:XIV.3.2.4 GR5): a disabled terminal gives a RECEIVE no message, which stays queued for the ENABLE.</summary>
     internal (string[] Path, StoredMessage Message)? TakeFromTerminal(string name) =>
-        FindTerminal(name) is { Enabled: true } && _tables!.TakeTerminalMessage(name) is { } message ? ([name], message) : null;
+        FindTerminal(name) is { Enabled: true } terminal && _tables!.TakeTerminalMessage(terminal.Name) is { } message ? ([terminal.Name], message) : null;
 
     internal void TransmitLater(string device, StoredMessage message) => _transmissions.Add((device, message));
 
@@ -183,7 +183,7 @@ internal sealed class MessageStoreState
             else if (target.StartsWith(MessageDefinitions.TerminalTarget, StringComparison.Ordinal))
             {
                 foreach (var message in _tables.TakeOutbound(definition.Name))
-                    _tables.AddTerminalMessage(target[MessageDefinitions.TerminalTarget.Length..], message.From(definition.SourceName));
+                    _tables.AddTerminalMessage(_definitions.Terminal(target[MessageDefinitions.TerminalTarget.Length..])!.Name, message.From(definition.SourceName));
             }
             else if (_definitions.FindQueue(target.Split('/')) is { } queue && PathOpen(definition.SourceName, queue))
             {

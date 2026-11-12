@@ -19,6 +19,27 @@ internal static class MessageJson
     internal static string Text(JsonNode? node) => Node(node).GetValue<string>();
 }
 
+/// <summary>
+/// ⛔ THE ONE COMPARISON OF AN MCS SYMBOLIC NAME (kb/Work PB5284). The queue, sub-queue, source, destination and terminal names of a CD "must follow the rules for the
+/// formation of system-names" (§1985:XIV.2.2.4 GR4), and in those rules "Each lowercase letter is considered to be equivalent to its corresponding uppercase letter"
+/// (§1985:p.A-9, the Amendment 1 text that replaces paragraph IV.4.2.2.1), so <c>q</c> designates the queue <c>Q</c> and a definition that holds both is a duplicate.
+/// The fold is the one every COBOL word takes (<see cref="CobolNames"/>); every table of names, and every comparison of a name a CD holds with one the definitions
+/// or the store hold, goes through here, so no spelling of a name can reach a second row.
+/// </summary>
+internal sealed class McsNames : IEqualityComparer<string>, IComparer<string>
+{
+    internal static McsNames Comparer { get; } = new();
+
+    /// <summary>The spelling every row and every key of the store carries for <paramref name="name"/>.</summary>
+    internal static string Key(string name) => CobolNames.UpperFold(name);
+
+    public bool Equals(string? x, string? y) => CobolNames.Same(x, y);
+
+    public int GetHashCode(string name) => Key(name).GetHashCode();
+
+    public int Compare(string? x, string? y) => string.CompareOrdinal(x is null ? null : Key(x), y is null ? null : Key(y));
+}
+
 /// <summary>A queue as the user defined it (ISO/IEC 1989:2002 E.5.5.4): one level of the hierarchy, its seed messages and its sub-queues.</summary>
 internal sealed class QueueDefinition(string name, string? key, bool enabled, string[] path, IReadOnlyList<StoredMessage> messages)
 {
@@ -27,7 +48,7 @@ internal sealed class QueueDefinition(string name, string? key, bool enabled, st
     internal bool Enabled => enabled;
     internal string[] Path => path;
     internal IReadOnlyList<StoredMessage> Messages => messages;
-    internal SortedDictionary<string, QueueDefinition> Children { get; } = new(StringComparer.Ordinal);
+    internal SortedDictionary<string, QueueDefinition> Children { get; } = new(McsNames.Comparer);
 
     internal IEnumerable<QueueDefinition> SelfAndDescendants()
     {
@@ -60,11 +81,11 @@ internal sealed record TerminalDefinition(string Name, string? Key, bool Enabled
 internal sealed class MessageDefinitions
 {
     private const string TerminalPrefix = "terminal:";
-    private readonly SortedDictionary<string, QueueDefinition> _queues = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, SourceDefinition> _sources = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, DestinationDefinition> _destinations = new(StringComparer.Ordinal);
+    private readonly SortedDictionary<string, QueueDefinition> _queues = new(McsNames.Comparer);
+    private readonly Dictionary<string, SourceDefinition> _sources = new(McsNames.Comparer);
+    private readonly Dictionary<string, DestinationDefinition> _destinations = new(McsNames.Comparer);
     private readonly List<DestinationDefinition> _destinationOrder = [];
-    private readonly Dictionary<string, TerminalDefinition> _terminals = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, TerminalDefinition> _terminals = new(McsNames.Comparer);
 
     /// <summary>The definitions of an MCS nobody defined: every symbolic name is unknown.</summary>
     internal static MessageDefinitions None { get; } = new();
