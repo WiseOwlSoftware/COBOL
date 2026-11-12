@@ -1,7 +1,8 @@
-## PB4996: the 1985 read 3 merged, 70 verdicts recorded and 16 new notes (1985 GAP 372 to 329)
+## Entry 3536 — 2026-11-12 12:57 PST — PB4996: the 1985 read 3 merged, 70 verdicts recorded and 16 new notes (1985 GAP 372 to 329)
 
 The third 1985 read covered the 93 rules that got a witness test today, in 11 slices, with one refuter case for every CONFORMS. I merged it with `coderead-85/merge-pipe-3.py out-read3 rd 1,...,11 rd3`. Of 66 closing verdicts, 43 were upheld, 14 overturned and 9 doubtful; 27 reads were non-conforming. `record_verdicts.py --edition 1985` recorded the 43 upheld CONFORMS ("GAP : 372 → 329") and the 27 non-conforming reads, 23 PARTIAL and 4 DIVERGES, each naming an open note ("GAP : 329 → 329"). `inventory_view.py --summary`: 1985 760 adjudicated, 329 GAP.
 
 The 23 overturned and doubtful rows are recorded as nothing and held in `coderead-85/held-8.json`, each with its question. Every non-conforming root's repro was rerun on the pinned compiler (73 programs, `coderead-85/reprobe-85i/`), and every repro reproduces.
 
 Sixteen new notes, PB5412 to PB5427, hold the new roots, grouped by mechanism. Ten readers found the same record-area gap: a FROM or INTO operand that names the whole record by reference modification compiles (PB5412). Four refuters overturned nine CONFORMS on one mechanism: a USE ON EXTEND procedure excuses the INVALID KEY phrase on a file that can never be open EXTEND (PB5413). Two notes are wrong answers. A section-name debugging subject runs on every transfer to its first paragraph (PB5414). A signed literal compared with a group is compared as its source text (PB5419). PB5412, PB5413 and PB5414 each contradict a recorded design reading (FILES_DESIGN D31(b), D31(a), CONFORMANCE D-DEBUG-PROCEDURE), which each note's fix direction says to correct. Five open notes got a dated addendum: PB5384, PB5242, PB5379, PB5108 and PB5217. The full account is `kb/Work/PB4996/2026-11-12-read-3.md`.
+
