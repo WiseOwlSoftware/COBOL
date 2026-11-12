@@ -79,7 +79,7 @@ public sealed partial class FileControlBinder
                 else if (clause.recordClause() is { } rc)
                     BindRecordClause(rc, file);   // RECORD VARYING / m TO n → FileModel.Varying (ISO §2023:13.18.43)
                 else if (clause.blockContainsClause() is { } bcc)
-                    BindBlockContainsClause(bcc, name);   // ISO §2023:13.18.10 — the integers are screened, the clause models nothing
+                    BindBlockContainsClause(bcc, name, file);   // ISO §2023:13.18.10 — the integers are screened; the values are what the 1985 agreement rule compares
                 else if (clause.codeSetClause() is { } cs)
                     BindCodeSetClause(cs, file, records);   // ISO §2023:13.18.13 (kb/Work PB110)
                 else if (clause.formatClause() is { } fmt)
@@ -95,7 +95,9 @@ public sealed partial class FileControlBinder
                 else if (clause.dataRecordsClause() is { } drc)
                     ScreenDataRecords(drc, records, name);   // §1985:VII.3.5.3 SR1 (kb/Work PB5070)
                 else if (clause.valueOfClause() is { } voc)
-                    CaptureValueOf(voc);   // §1985:VII.3.9.3 SR1, SR2, screened post-build (kb/Work PB5070)
+                    CaptureValueOf(voc, file);   // §1985:VII.3.9.3 SR1, SR2, screened post-build (kb/Work PB5070)
+                else if (clause.labelRecordsClause() is { } lr)
+                    CaptureLabelRecords(lr, file);   // §1985:VII.3.6.3 GR4, compared across an external connector's entries (kb/Work PB5300)
                 else if (clause.reportClause() is { } rep)
                     // REPORT(S) clause (ISO §2023:13.18.46): the FD hosts these reports — a report FILE (§2023:9.1.22,
                     // legally record-less). Names resolve to ReportModels post-build (ResolveReports).
@@ -379,7 +381,7 @@ public sealed partial class FileControlBinder
     /// <c>integer-n</c> is an operand a constant-name may stand for (§2023:13.10.3 SR2), and a constant that is not an integer,
     /// is zero or is undefined is the program's error whether or not the clause changes the I-O, so each goes through
     /// THE integer-n reader like every other position (kb/Work PB1948). The pair is ORDERED: §2023:13.18.10.3 SR1 (kb/Work PB1217).</summary>
-    private void BindBlockContainsClause(Core.BlockContainsClauseContext bc, string fileName)
+    private void BindBlockContainsClause(Core.BlockContainsClauseContext bc, string fileName, FileModel file)
     {
         using var _ = Edition.At(bc);
         var values = new List<long?>();
@@ -392,6 +394,9 @@ public sealed partial class FileControlBinder
         if (values is [{ } integer1, { } integer2] && integer2 <= integer1)
             Edition.Error(DiagnosticCatalog.FileClauseSizeRange, $"file '{fileName}': the BLOCK CONTAINS clause states "
                 + $"{integer1} TO {integer2}; integer-2 shall be greater than integer-1 (ISO §2023:13.18.10.3 SR1)");
+        // §1985:VII.3.3.3 GR5: an external connector's BLOCK CONTAINS clauses "must have the same value for integer-1 and integer-2" (kb/Work PB5300).
+        if (values.All(v => v is not null))
+            file.FdClauses[FileDescriptionIdentity.Block] = new(string.Join("..", values), Edition.Cursor);
     }
 
     /// <summary>Bind a LINAGE clause into <see cref="FileModel.Linage"/> (ISO §2023:13.18.34: <c>LINAGE IS
@@ -533,6 +538,10 @@ public sealed partial class FileControlBinder
         // CheckCodeSetRecordItemsPass, at PassPhase.SignResolved.
         if (alnumName is not null || natName is not null)
             file.CodeSetRecordClass = natName is not null;
+        // §1985:VII.3.4.4 GR3: an external connector's CODE-SET clauses "must have the same character set": the SET each name denotes (a name is the program's
+        // own and two programs may name one set differently), not the name (kb/Work PB5300).
+        if (alnumSet is not null || natSet is not null)
+            file.FdClauses[FileDescriptionIdentity.CodeSet] = new($"{alnumSet?.Phrase}/{natSet?.Phrase}", Edition.Cursor);
     }
 
     /// <summary>§2023:13.16.3 SR7's SECOND half — "…or for record descriptions associated with a file description entry

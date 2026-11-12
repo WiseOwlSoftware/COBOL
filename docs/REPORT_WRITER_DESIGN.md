@@ -471,6 +471,18 @@ off-by-one through every later counter check.
   §2023:13.18.16.3 SR2's and a PRESENT WHEN condition §2023:13.15.3 SR16's (COBOL1559). A clause refused in the data phase is not
   bound again in the procedure phase (`ReportScope.PresentWhenRefused`; a CODE operand binds only once its base item
   resolved), so each reference draws one verdict.
+  **COBOL-85 has no section rule** (kb/Work PB5310): §2023:13.8.6.2.3 is ISO/IEC 1989:2002's (§2002:13.7.5.1.3), and
+  §1985:XIII.3.9.3 SR10d ("Data-name-1 may be referenced only if the entry defines a sum counter") limits only which
+  entry a reference names. So below 2002 the data-division OCCURS … DEPENDING ON lookup and `ResolveClauseOperand` (outside
+  the report section) ask `ReportSectionBinder.SumCounterOperand85` before the refusal: a reference that names one
+  non-repeating sum counter resolves to the counter's register (`ReportSumFamily.Register`), whose place the ONE place
+  builder answers as the counter's `ReportSumCounterPlace` (`IPlaceFacts.SumCounterPlaceOf`; the place table holds the
+  registers, `DataBinder.SumCounterRegisters`), and the clause's own rules judge it — an ODO object is an integer, a LINAGE
+  or RECORD DEPENDING operand must be unsigned and the register is signed (`PicInfo.SumCounterItem`). The refusal of a
+  non-counter entry cites SR10d at 85. The name is found by the ONE sum-counter lookup a procedure-division reference uses,
+  `ReportScope.SumCountersNamed` (the qualifier walk, then the nearest declaring program, §1985:X.1.3.8.2 GR3a), so a nested
+  program's own counter hides its container's GLOBAL one; and the register's report is sought among every report the unit
+  can name (`ReportScope.Visible`), so a container's GLOBAL counter is placed through the `__outer` chain (PB5310 review R1-1).
   **The ambiguity among data items is told first** (kb/Work PB3767): a reference that reaches SEVERAL data items breaks
   §2023:8.4.2.2.3 SR1 whether or not a report entry spells the same. **A report entry takes part in §2023:8.4.6.2.1 3) with the
   data items, in the lookup itself** (kb/Work PB4196): `SymbolTable.NearestDeclaringData` and

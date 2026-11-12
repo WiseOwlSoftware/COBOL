@@ -66,7 +66,7 @@ internal sealed class UnitEmitters
         Brackets = new ReceiverBracketEmitter(Ctx);
         Move = new MoveEmitter(Ctx, Num, Places, Brackets);
         Ec = new EcEmitter(Ctx, ecState, dispatchState);
-        Arith = new ArithmeticEmitter(Ctx, Num, ecState, Ec, Brackets);
+        Arith = new ArithmeticEmitter(Ctx, Num, ecState, Ec, Brackets, Debug);
         AlterSwitch = new AlterSwitchEmitter(Ctx, dispatchState);
         AcceptDisplay = new AcceptDisplayEmitter(Ctx, Num, Move);
         Evaluate = new EvaluateEmitter(Ctx, Cond);

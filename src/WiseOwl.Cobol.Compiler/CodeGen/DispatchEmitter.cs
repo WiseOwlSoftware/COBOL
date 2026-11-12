@@ -45,6 +45,11 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // scaffolding (zero-scaffolding invariant — a non-debug program is byte-identical).
         dispatchState.DebugActive = bound.DebugSubjects is { Count: > 0 } || bound.DebugTargets is { Count: > 0 };
         dispatchState.DebugByPc = (bound.DebugSubjects ?? []).ToLookup(s => s.SubjectPc);
+        dispatchState.DebugSectionRanges =
+        [
+            .. (bound.DebugSubjects ?? []).Select(s => (s.SectionStartPc, s.SectionEndPc)),
+            .. (bound.DebugTargets ?? []).Select(t => (t.SectionStartPc, t.SectionEndPc)),
+        ];
         dispatchState.DebugUseProcedure = (bound.DebugSubjects ?? []).Any(s => s.SubjectPc < bound.EntryPc);
         w.Line();
         // The dispatcher internals use a `__` prefix — COBOL data-names cannot contain a double underscore — so they
@@ -64,7 +69,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 w.Line($"private static readonly NumProfile {sub.ProfileName} = {sub.Pic!.ProfileInitializer(ctx.SignEncoding)};   // {sub.CobolName}");
             w.Line("private DebugCause __dbgCause;   // the transfer-of-control cause of the next debug trigger (default Transfer → SPACES)");
             w.Line("private int __dbgLine;   // the CAUSING statement's source line — DEBUG-LINE for a non-START-PROGRAM trigger");
-            w.Line("private bool __dbgBusy;   // a debugging declarative is not itself debugged (re-entrancy guard)");
+            w.Line("private bool __dbgRaisedInSection;   // the statement last begun lies in a debugging section (recorded with __dbgLine where a debugging section monitors a USE procedure)");
+            w.Line("private bool __dbgInSection;   // the transfer of control that set __dbgCause was written in a debugging section, which causes no debugging section (§1985:XV.3.2.4 GR1)");
         }
         w.Line();
         using (w.Block("public void __Activate()"))
@@ -258,20 +264,21 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// <summary>Emit the X3.23-1985 debug trigger runner (VCR Table 7 row 7.17): space-fill DEBUG-ITEM, set
     /// DEBUG-LINE/DEBUG-NAME/DEBUG-CONTENTS for the triggering occurrence, then run the debugging declarative body
     /// over the bounded pc range. Guarded by the OBJECT-TIME switch (<c>RunUnit.DebugMode</c>, default ON — the CCVS
-    /// posture) and a re-entrancy flag (a debugging declarative is not itself debugged). Emitted ONLY for a
-    /// debug-active program.</summary>
+    /// posture) and by the causing statement's place: a statement appearing in a debugging section causes no debugging section (§1985:XV.3.2.4 GR1;
+    /// <see cref="EmitterState.EmitDebugCause"/> records it at each transfer), so a statement of a USE procedure the section PERFORMs does (kb/Work
+    /// PB5292). Emitted ONLY for a debug-active program.</summary>
     private void EmitDebugRunner(CodeWriter w)
     {
         using (w.Block("private void __RunDebug(string __nm, int __subjLine, int __ds, int __de)"))
         {
             w.Line("if (!RunUnit.Current.DebugMode) return;   // the X3.23-1985 object-time debug switch (default ON)");
-            // ⛔ THIS RE-ENTRANCY GUARD IS NOT §2023:14.9.49.4 GR2's, and deliberately raises no EC-FLOW-USE (kb/Work
+            // ⛔ THIS GUARD IS NOT §2023:14.9.49.4 GR2's, and deliberately raises no EC-FLOW-USE (kb/Work
             // PB368 asked the question of both guards). The two are EDITION-DISJOINT: USE FOR DEBUGGING is the
             // X3.23-1985 declarative ISO 2002 deleted (`use-for-debugging-removed-2002`, COBOL0902), and
             // EC-FLOW-USE is a 2002 EC-model name — at --std 85 there is no exception-name to set, and at 2002+
-            // there is no debugging declarative to re-enter. GR2's guard is EmitRunUseBody's.
-            w.Line("if (__dbgBusy) return;");
-            w.Line("__dbgBusy = true;");
+            // there is no debugging declarative to re-enter. GR2's guard is EmitRunUseBody's. This one is
+            // §1985:XV.3.2.4 GR1's, asked of the statement that transferred control here.
+            w.Line("if (__dbgInSection) return;");
             // DEBUG-LINE: START PROGRAM has no causing statement — it is the subject's own first executable
             // statement (DB101A START-PROGRAM-TEST :257-264); every other cause is the causing (transferring)
             // statement, carried in __dbgLine by the transfer site.
@@ -280,18 +287,19 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // The debugging section's own PERFORMs and GO TOs set the cause of the transfer they make; the cause this
             // trigger found is the next trigger's too when one procedure-name pair shares the pc (a section and its
             // first paragraph, §1985:XV.3.2.4 GR3 a), so it is restored.
-            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine;");
-            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgBusy = false; __dbgCause = __savedCause; __dbgLine = __savedLine; }");
+            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; bool __savedRaised = __dbgRaisedInSection;");
+            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgRaisedInSection = __savedRaised; __dbgInSection = false; }");
         }
         w.Line();
-        // The data-name, ALL REFERENCES OF and cd-name triggers (docs/CONTROL_FLOW_DESIGN.md D20): the same guards as __RunDebug, named
-        // __DebugReady so a fire evaluates its DEBUG-CONTENTS operand only when the section will run.
-        w.Line("private bool __DebugReady => RunUnit.Current.DebugMode && !__dbgBusy;   // the object-time switch, and a debugging section is not itself debugged");
+        // The data-name, ALL REFERENCES OF and cd-name triggers (docs/CONTROL_FLOW_DESIGN.md D20), named __DebugReady so a fire evaluates its
+        // DEBUG-CONTENTS operand only when the section will run. The planner gives a statement of a debugging section no fire (§1985:XV.3.2.4 GR1),
+        // so no run-time guard stands in for it: a statement of a USE procedure the section PERFORMs does run the section that monitors what it changes.
+        w.Line("private bool __DebugReady => RunUnit.Current.DebugMode;   // the object-time switch");
         using (w.Block("private void __RunDebugRef(int __line, string __nm, string __contents, int __ds, int __de, params long[] __occ)"))
         {
-            w.Line("__dbgBusy = true;");
             w.Line("__dbgItem.PopulateReference(__line, __nm, __contents, __occ);");
-            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgBusy = false; }");
+            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; bool __savedIn = __dbgInSection; bool __savedRaised = __dbgRaisedInSection;");
+            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgRaisedInSection = __savedRaised; __dbgInSection = __savedIn; }");
         }
         w.Line();
     }
@@ -425,7 +433,9 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         if (dispatchState.DebugActive)
         {
             string useTest = dispatchState.F3HandlerBasePc is not null ? $"if (__id < {dispatchState.DeclCount}) " : "";
-            w.Line($"{useTest}__dbgCause = DebugCause.UseProcedure;");
+            // The statement that raised the procedure is a debugging section's or not (§1985:XV.3.2.4 GR1): StatementEmitter records it with the line
+            // in a program with a debugging section on a USE procedure, the only one that can run for this cause.
+            w.Line($"{useTest}{{ __dbgCause = DebugCause.UseProcedure; __dbgInSection = __dbgRaisedInSection; }}");
         }
         if (ecModel)
         {

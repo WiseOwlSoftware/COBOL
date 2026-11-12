@@ -2369,9 +2369,15 @@ every edition (COBOL6847 at the first entry that differs from the first describe
 and a clause an edition does not have leaves its segment empty in every entry, so no row carries an edition window. The externality
 conjunct reads `DataItem.ExternalItemIdentity` (a model member, so the emitter no longer calls the binder driver): RELATIVE KEY at
 every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The PADDING CHARACTER clause
-is captured (`FileModel.Padding`, `FileControlBinder.CapturePadding`) for its syntax rules and its segment; it changes no I-O. **Not yet
-compared:** the file DESCRIPTION entry's own agreement rules (§1985:VII.3.6.3 GR4 LABEL RECORDS, BLOCK CONTAINS, CODE-SET, the RECORD
-clause, VALUE OF, the report file), which need an FD identity beside this one (registered in kb/Work, see the PB5069 note).
+is captured (`FileModel.Padding`, `FileControlBinder.CapturePadding`) for its syntax rules and its segment; it changes no I-O. **The file DESCRIPTION
+entries** (kb/Work PB5300): `FileDescriptionIdentity.Rules` is the same table for the FD, one row per 1985 clause that states its own
+agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 GR5, CODE-SET §1985:VII.3.4.4 GR3, LINAGE §1985:VII.3.8.4 GR2, VALUE OF
+§1985:VII.3.9.4 GR2): the binder captures what each entry writes (`FileModel.FdClauses`, LINAGE read from `FileModel.Linage`), and
+`ExternalFileConnectorRules.CheckFileDescriptions` compares, at COBOL-85 only (the later texts state none of these rules for their descendants of the
+clauses), each entry that writes a clause with the first entry that writes it (COBOL6847, at the clause). The identity is compile-time only; the
+run time's fingerprint stays the file control entry's. An omitted clause is no clause ("all LABEL RECORDS clauses in the run unit"), so it agrees
+with anything. **Entry identity compares effective values** (kb/Work PB5311): an omitted RESERVE is the implementor's one area and an omitted
+RECORD DELIMITER the implementor's one method (DOC-A.1-164, DOC-A.1-151), so they agree with RESERVE 1 AREA and STANDARD-1, at compile and run time.
 Witnesses: `12.4.5-File-control/pb5069_*` and `pb5069-*`, `pb5070_padding_one_character` and the two `pb5070-padding-*` refusals.
 
 ## C# mapping

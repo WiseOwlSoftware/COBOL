@@ -142,9 +142,11 @@ public enum DebugWhen
 /// <paramref name="Phrases"/> are the indices (<see cref="IBoundEvaluatedPhrases"/>) of the conditional phrases the referenced operand is written in, or null when
 /// the statement evaluates the operand outright: the section runs only when one of those phrases was evaluated (rules 5 and 6: "If identifier-1 is
 /// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed"). A file-name fire references no
-/// place: <paramref name="Referenced"/> is null and <paramref name="Contents"/> says what DEBUG-CONTENTS holds (general rule 23 c and d).</summary>
+/// place: <paramref name="Referenced"/> is null and <paramref name="Contents"/> says what DEBUG-CONTENTS holds (general rule 23 c and d).
+/// <paramref name="WhenStored"/>: the fire of the item alone (general rule 6 c: the statement "causes the content of the data item … to be changed"), which an
+/// ON SIZE ERROR path that left the item unchanged does not cause (§1985:VI.6.4.2): it runs only when the statement stored into the item (kb/Work PB5296).</summary>
 public sealed record DebugFire(BoundDebugTarget Target, Place? Referenced, DebugWhen When, int Level = 0, IReadOnlyList<int>? Phrases = null,
-    DebugContents Contents = DebugContents.Referenced);
+    DebugContents Contents = DebugContents.Referenced, bool WhenStored = false);
 
 /// <summary>What DEBUG-CONTENTS holds for a <see cref="DebugFire"/> (X3.23-1985 USE FOR DEBUGGING general rules 23 and 24).</summary>
 public enum DebugContents
@@ -1805,7 +1807,13 @@ public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement, IBo
 /// condition-name-1</i>" — is what lets the groups flatten into ONE ordered list here instead of a node per
 /// group.</para></summary>
 public sealed record BoundSetConditions(
-    IReadOnlyList<(Place Parent, Condition88 Condition, bool ToTrue)> Sets) : BoundStatement;
+    IReadOnlyList<(Place Parent, Condition88 Condition, bool ToTrue)> Sets) : BoundStatement, IBoundImplicitOperands
+{
+    /// <summary>The conditional variables: the statement names a condition-name, and its store into the variable is the statement's meaning, not an
+    /// explicit reference to it (§1985:IV.4.4.1: an explicit reference is "the name of the referenced item … written in a Procedure Division statement";
+    /// X3.23-1985 USE FOR DEBUGGING general rules 5 and 6; kb/Work PB5296).</summary>
+    IEnumerable<object> IBoundImplicitOperands.ImplicitOperands => Sets.Select(set => set.Parent);
+}
 
 /// <summary>ONE receiving operand of SET Format 7, as §2023:14.9.39.2's printed brace writes it —
 /// <c>{ ADDRESS OF data-name-1 | identifier-5 }</c> — carrying its OWN kind (kb/Work PB450).

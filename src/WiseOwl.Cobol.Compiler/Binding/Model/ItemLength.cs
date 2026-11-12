@@ -46,4 +46,18 @@ internal static class ItemLength
         }
         return item.ByteWidth;                                                              // r3 — alphanumeric positions ≡ bytes
     }
+
+    /// <summary>⛔ THE X3.23-1985 SIZE OF AN ITEM: "The size of an elementary data item or a group item is the number of characters in standard data format of
+    /// the item. Synchronization and usage may cause a difference between this size and the size of the storage the item occupies" (§1985:IV.4.3.4), the size every
+    /// 1985 rule that names a size reads (the Communication Section records, kb/Work PB5290). An elementary item is its characters in standard data format: the
+    /// positions of a DISPLAY item (its separate sign included), the digits of a numeric item of any other usage (a COMP 9(8) is 8, not the 4 bytes it occupies); a
+    /// group is the sum of its subordinate items' sizes, each table counted for its occurrences and a redefining entry for nothing (its storage is its target's), so the
+    /// slack bytes SYNCHRONIZED adds are not in it. An item whose standard data format the 1985 text leaves to the implementor (an index data item, a floating-point
+    /// one) is its storage size.</summary>
+    internal static int StandardDataFormatCharacters(DataItem item)
+    {
+        if (item.Pic is { } pic && !item.IsGroup)
+            return pic is { Category: PicCategory.Numeric, Usage: Usage.Binary or Usage.Packed or Usage.Comp5 } ? pic.Digits : item.ByteWidth;
+        return item.Children.Where(child => child.RedefinesTarget is null).Sum(child => StandardDataFormatCharacters(child) * (child.Occurs ?? 1));
+    }
 }

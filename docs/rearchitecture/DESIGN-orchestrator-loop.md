@@ -960,7 +960,8 @@ D5), because it changes the landing contract.
   `counted_token_kinds`).
 - **Weekly estimate** = anchor weekly % + points since the anchor.
 - **Allowance** = day N × 14.3 % (day 1 starts at the account's weekly reset), plus `--borrow-days` days the owner
-  allowed, capped at the weekly cap (`weekly_cap_pct`, 97 by the owner's 2026-10-07 instruction, kb/Work R69 §6).
+  allowed for that run (none stands since 2026-11-11, kb/Work PB5357: an account above its day line holds until the
+  line passes its reading, and spends its remainder by the late evening before its own reset), capped at the weekly cap (`weekly_cap_pct`, 97 by the owner's 2026-10-07 instruction, kb/Work R69 §6).
 - **The quota in force** is `Account.quota_at(now)`: the shared quota, the account row's `quota` keys, then each of
   the row's `quota_overrides` whose window holds `now` (`from` <= now < `until`). An override is the owner's dated
   special case: it carries the keys it sets and `_source`, the owner's words. `account.py` refuses an entry with no

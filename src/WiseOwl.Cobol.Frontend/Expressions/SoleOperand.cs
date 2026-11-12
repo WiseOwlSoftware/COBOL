@@ -59,6 +59,18 @@ public static class SoleOperand
     public static Core.DataReferenceContext? DataRef(Core.ArithmeticExpressionContext? expr) =>
         Primary(expr)?.dataReference();
 
+    /// <summary>The sole primary of <paramref name="expr"/> when it is an identifier that references a TEMPORARY rather than
+    /// a declared data item — a function-identifier (§2023:8.4.3.1.2 Format 1's <c>FUNCTION</c> form), an inline method
+    /// invocation (Format 4), an object-view (Format 5) or SELF / SUPER (Format 6) — else null. It is
+    /// <see cref="DataRef"/>'s twin for the positions whose general format prints identifier beside arithmetic-expression
+    /// and whose operand is an identifier whenever it is written as one (the SOURCE clause, kb/Work PB5240): §2023:15.2
+    /// lets a function "be used anywhere a sending data item of that class and category may be specified".</summary>
+    public static Antlr4.Runtime.ParserRuleContext? TemporaryIdentifier(Core.ArithmeticExpressionContext? expr) =>
+        Primary(expr) is { } p
+            ? (Antlr4.Runtime.ParserRuleContext?)p.functionCall() ?? p.inlineMethodInvocation()
+              ?? (Antlr4.Runtime.ParserRuleContext?)p.objectView() ?? p.selfAndSuper()
+            : null;
+
     /// <summary>⛔ THE ONE "does this operand CONSIST OF A SINGLE NUMERIC LITERAL?" TEST — the operand's literal
     /// text INCLUDING a leading sign, or <see langword="null"/> when the operand is anything else.
     ///

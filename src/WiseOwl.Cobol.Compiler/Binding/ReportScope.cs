@@ -94,6 +94,27 @@ public sealed class ReportScope
         return true;
     }
 
+    /// <summary>⛔ THE ONE NAME-AND-QUALIFIER LOOKUP OF A SUM COUNTER (kb/Work PB5310 review R1-1): the SUM entries carrying
+    /// <paramref name="name"/> (<see cref="SumCounters"/>) — only those of <paramref name="within"/> when a report's own clause
+    /// writes the reference (§2023:13.18.53.3 SR4, "defined in the current report") — that the written
+    /// <paramref name="qualifiers"/> reach through the ONE §2023:8.4.2.2.3 SR4 walk (<see cref="DataBinder.QualifierWalk"/>, the
+    /// report-name last), narrowed to the nearest declaring source element (§2023:8.4.6.2.1 rule 3, <see cref="NearestInScope{T}"/>;
+    /// §1985:X.1.3.8.2 GR3a at COBOL-85), so a counter of this unit's own report hides a same-named counter of a container's GLOBAL
+    /// report and only candidates of one source element can be ambiguous. Null when the name is no eligible counter's at all;
+    /// empty when it is, but the qualifiers reach none. Read by the procedure division's reference (<c>CounterResolver</c>) and
+    /// the COBOL-85 data division operand (<c>ReportSectionBinder.SumCounterOperand85</c>): a second copy of this walk had
+    /// dropped the scope step and called a nested program's own counter ambiguous with its container's.</summary>
+    internal List<(ReportModel Report, ReportSumFamily Family)>? SumCountersNamed(
+        string name, IReadOnlyList<string> qualifiers, ReportModel? within = null)
+    {
+        if (!_sumCounters.TryGetValue(name, out var homonyms)) return null;
+        IEnumerable<(ReportModel Report, ReportSumFamily Family)> eligible =
+            within is null ? homonyms : homonyms.Where(h => ReferenceEquals(h.Report, within));
+        if (!eligible.Any()) return null;
+        return NearestInScope(eligible.Where(h => DataBinder.QualifierWalk(h.Family.Qualification, qualifiers,
+            q => CobolNames.Same(q, h.Report.Name))), h => h.Report);
+    }
+
     /// <summary>Record <paramref name="family"/>'s sum counter under <paramref name="name"/>: a list per name, a
     /// duplicated name being legal to declare (kb/Work PB882).</summary>
     internal void AddSumCounter(string name, ReportModel report, ReportSumFamily family)

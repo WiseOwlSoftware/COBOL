@@ -44,7 +44,8 @@ description: Use BEFORE dispatching any fleet, finisher, implementer or adjudica
 > - **The context policy** (PB2597): past the soft cap (200k) a unit gets `STOP-UNIT` only, so a running fleet finishes
 >   and no new one launches (`dispatch_guard.py` refuses it); the fleet stop comes only with `STOP` or the hard cap (500k).
 > - **The planner** (`plan_wave.py`) plans from branches and worktrees, never from remembered reports; the quota estimate is
->   `budget.py` (with the owner's `-BorrowDays`).
+>   `budget.py`. `-BorrowDays` is passed only on a grant the owner made for that run; none stands since 2026-11-11
+>   (kb/Work PB5357: no borrowed days on either account, each waits for its day line).
 
 The orchestrator (the session model) dispatches, reconciles, gates and commits; every other job — probe, implement,
 validate, adversarial review, land — is a subagent, and ⭐ **THE MODEL FOLLOWS THE ROLE** (MANDATORY-PRACTICES P1,
