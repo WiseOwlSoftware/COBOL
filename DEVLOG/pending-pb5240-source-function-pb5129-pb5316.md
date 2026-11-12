@@ -1,4 +1,4 @@
-## PB5240 the report SOURCE site, PB5129 and PB5316: three 1985 edition edges of identifier-1 and the report entry formats
+## PB5240 the report SOURCE site, PB5129, PB5316 and PB5310: four 1985 edition edges of identifier-1, the report entry formats and the sum counter reference
 
 ### PB5240: a function-identifier is SOURCE identifier-1
 
@@ -39,3 +39,22 @@ which prints none of the format 3 clauses. `ScreenReportEntryFormats` now refuse
 any of them, naming the clauses, and a format 2 entry at level 49 under SR3 alone. Goldens in
 `13.15-Report-group-description`: `pb5316_level_49_format_3` (85-2023, prints `-03`), two refusals at 85 and the
 level-01 entry's 2002-and-later legal twin.
+
+### PB5310: at 85 a data-division clause may name a sum counter
+
+At --std 85 a working-storage `OCCURS 1 TO 5 DEPENDING ON KTOT`, KTOT a CF FINAL sum counter, was refused COBOL5092 under
+§2023:13.8.6.2.3, the section rule ISO/IEC 1989:2002 introduced (§2002:13.7.5.1.3). 1985's rule is §1985:XIII.3.9.3 SR10d
+alone ("Data-name-1 may be referenced only if the entry defines a sum counter"). `ReportSectionBinder.SumCounterOperand85`
+resolves the name among the sum counters below 2002, and `OdoResolvePass` and `DataBinder.ResolveClauseOperand` ask it before
+the refusal, so the counter's register is data-name-1 and each clause's own rules judge it. The register's place is the
+engine's: `IPlaceFacts.SumCounterPlaceOf` makes the one place builder answer a `ReportSumCounterPlace`, and the place table
+holds the registers. The SR18 GLOBAL test reads the counter's report (`DataBinder.SumCounterReportOf`), and at 85 the refusal
+of a non-counter entry cites SR10d. Goldens: `XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/pb5310_sum_counter_occurs_depending_object`
+(85: `[ABC] 3`, then `[ABCDE] 5` after a GENERATE adds 2 to the counter), `13.8.6.2.3-Report-Items/pb5310-sum-counter-as-occurs-depending-object`
+(refused from 2002).
+
+### Gate reds of the first gate (000001), fixed at the root
+
+`EditionGateArmDriftTests`: report-source-expression-2002 now fires from the parse arm (expressions) and the bound arm (a
+sole function by its bound category); both tables record why. `pb3969_format1_numeric_function_value` passed function
+values BY CONTENT at 85, which §1985:X.5.2.3 SR4 forbids: it is accepted from 2002.

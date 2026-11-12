@@ -122,10 +122,15 @@ internal sealed class OdoResolvePass : IBindPass
             // data item or several (a declaration's is asked by each clone, below), before the ambiguity, which it leaves
             // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's order, kept by the lookup itself since PB4196,
             // ISO §2023:8.4.6.2.1 3) a)).
-            if (!declaration && tier.Count != 1
+            // At COBOL-85 that rule is not the edition's: §1985:XIII.3.9.3 SR10d lets a sum counter be referenced, wherever the
+            // reference is written, so a counter is data-name-1 (kb/Work PB5310).
+            var counter = !declaration && tier.Count == 0
+                ? binder.ReportSection.SumCounterOperand85(depName, spec.DependingQualifiers, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'")
+                : null;
+            if (counter is null && !declaration && tier.Count != 1
                 && binder.ReportSection.ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
                 continue;
-            if (tier.Count == 0)
+            if (counter is null && tier.Count == 0)
             {
                 if (declaration) continue;   // placed, and so checked, by each clone (above)
                 // Nor is a name declared as something other than a data item (kb/Work PB1906): the one query of what it is.
@@ -147,7 +152,7 @@ internal sealed class OdoResolvePass : IBindPass
             // --permissive's first-declared reading still binds the clone's counter) instead of reporting it again.
             bool ambiguityIsDeclarationFact = tier.Count > 1 && item.IsCopiedUnder(placedAt)
                 && !tier.Any(c => !c.IsCopiedUnder(placedAt));
-            if (binder.UniqueOrReportAmbiguous(tier, depFace, writtenDep, out bool _, report: !ambiguityIsDeclarationFact)
+            if ((counter ?? binder.UniqueOrReportAmbiguous(tier, depFace, writtenDep, out bool _, report: !ambiguityIsDeclarationFact))
                 is not { } dep) continue;
 
             // ⛔ THE LINK IS RECORDED ONLY WHEN data-name-1 IS WHAT §2023:13.18.38.3 REQUIRES OF IT (kb/Work PB3510): an
@@ -269,7 +274,9 @@ internal sealed class OdoResolvePass : IBindPass
     /// <see cref="HasExternalAttribute"/> attribute.</para></summary>
     private static string? DependingAttributeFault(DataBinder binder, DataItem table, DataItem dep)
     {
-        if (binder.IsGlobalRecord(table.Root) && !binder.IsGlobalRecord(dep.Root))
+        // A sum counter (kb/Work PB5310) is a global name when its report is (§2023:13.18.27.4 GR1), whatever its register's root.
+        bool globalDep = binder.SumCounterReportOf(dep) is ({ } counterReport, _) ? counterReport.IsGlobal : binder.IsGlobalRecord(dep.Root);
+        if (binder.IsGlobalRecord(table.Root) && !globalDep)
             return $"the table's record '{table.Root.CobolName}' is global and data-name-1 is not a global name — \"If "
                 + "the OCCURS clause is specified in an entry subordinate to one containing the GLOBAL clause, "
                 + "data-name-1, if specified, shall be a global name\" (ISO §2023:13.18.38.3 SR18)";

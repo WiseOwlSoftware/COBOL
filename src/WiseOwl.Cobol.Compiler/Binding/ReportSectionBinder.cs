@@ -4430,6 +4430,34 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             : 0;
     }
 
+    /// <summary>⛔ THE COBOL-85 ARM OF THE REPORT-ITEM REFERENCE RULE (kb/Work PB5310): a sum counter named by a clause of another
+    /// section of the data division. §1985:XIII.3.9.3 SR10d — "Data-name-1 may be referenced only if the entry defines a sum
+    /// counter" — restricts which report entries a reference may name and says nothing of where it may be written, so at
+    /// COBOL-85 a sum counter is a data-name of the program wherever a clause prints one (an OCCURS DEPENDING ON object that
+    /// "must describe an integer", §1985:VI.5.8.3 SR6, may be one). The section rule <see cref="ReportEntryReferenceRefused"/>
+    /// applies, §2023:13.8.6.2.3 ("Report items shall not be accessed or referred to by any clauses in any other section of
+    /// the data division"), is ISO/IEC 1989:2002's (§2002:13.7.5.1.3) and has no 1985 counterpart. Returns the counter's
+    /// register (<see cref="ReportSumFamily.Register"/>, which the place builder answers with the counter's place) when the
+    /// edition is COBOL-85 and the written reference names exactly one sum counter of a non-repeating entry, its qualifiers
+    /// walked as a procedure-division reference walks them (<see cref="CounterResolver"/>); null otherwise, leaving the caller's
+    /// own verdict. Two counters the qualifiers do not tell apart are §2023:8.4.2.2.3 SR1's ambiguity, reported here.
+    /// Asked only where the ordinary lookup found no data item, so a data item of the same name keeps its reference.</summary>
+    internal DataItem? SumCounterOperand85(string name, IReadOnlyList<string> qualifiers, string subject)
+    {
+        if (Edition.DialectLevel >= 2002 || !_scope.SumCounters.TryGetValue(name, out var homonyms)) return null;
+        var matches = homonyms.Where(h => DataBinder.QualifierWalk(h.Family.Qualification, qualifiers,
+            q => CobolNames.Same(q, h.Report.Name))).ToList();
+        if (matches.Count > 1)
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"{subject}: the reference is ambiguous — {matches.Count} "
+                + $"entries establish a sum counter named '{name}'. A reference shall uniquely identify one resource (ISO "
+                + "§2023:8.4.2.2.1, §2023:8.4.2.2.3 SR1); qualify it by report group entry or report-name.");
+            return null;
+        }
+        // A COBOL-85 report entry has no OCCURS clause, so a counter is never a table there; the guard keeps the 2002 shapes out.
+        return matches is [var (_, family)] && family.Register.SubscriptArity == 0 ? family.Register : null;
+    }
+
     /// <summary>⛔ THE ONE REFUSAL OF A REFERENCE TO A REPORT SECTION ENTRY WHERE NONE IS ADMITTED (kb/Work PB1046) — a
     /// procedure division statement, a clause of any section of the data division other than the report section, or a
     /// report section clause whose operand §2023:13.15.3 SR7 does not list (<paramref name="inReportSection"/>). ISO §2023:13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
@@ -4466,7 +4494,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         Edition.Error(DiagnosticCatalog.ReportItemReference,
             $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "
             + "here may not name. "
-            + (inReportSection
+            + (!entry.IsSumCounter && Edition.DialectLevel < 2002
+                // COBOL-85 has no section rule (SumCounterOperand85); its rule is the entry's: "Data-name-1 may be referenced only
+                // if the entry defines a sum counter" (kb/Work PB5310), and this entry defines none.
+                ? "ISO §1985:XIII.3.9.3 SR10d: \"Data-name-1 may be referenced only if the entry defines a sum counter\", and the "
+                  + "entry defines none."
+                : inReportSection
                 ? sr7 + (entry.IsSumCounter
                     ? " A sum counter is admitted in the report section only by a SOURCE clause (ISO §2023:13.18.53.3 SR4) or a "
                       + "SUM clause."
