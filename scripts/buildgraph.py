@@ -7,6 +7,8 @@
     python scripts/buildgraph.py digest --target NAME DIR   # the output digest of a generated target's output directory
     python scripts/buildgraph.py check          # the BUILD TARGETS audit: every repository read a test source names
                                                 # lies in its assembly's declared inputs (or is its dependency's run)
+    python scripts/buildgraph.py publish [--remote R]   # send this host's passes to R's refs/cobol-build-store/passes
+                                                # (the landing's push; CI's plan, scripts/ci_plan.py, reads them)
     python scripts/buildgraph.py --self-test
 
 THE MODEL (owner 2026-11-10: "This is precisely what the Unix make and Windows MSBuild utilities are for. They rerun only
@@ -85,8 +87,9 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, replace
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import ClassVar
 
@@ -115,6 +118,17 @@ CLASSES = ("@inert", "@tooling-lane")
 OWN_GENERATION = "GENERATED-OWN"
 #: Compiled code a traced run may open: never inside the worktree, where nothing the key covers is its source (`undeclared`).
 COMPILED = (".pyc", ".pyo", ".pyd", ".so")
+#: The name of a test host's harness observation log in its results directory (`observation_log`).
+OBSERVATIONS = ".observations.log"
+
+
+def observation_log(directory: Path, assembly: str) -> Path:
+    """⛔ ONE HOST, ONE OBSERVATION LOG (kb/Work PB5235, bounce of #1530): where the `assembly` host's harness
+    observation log (tests/_shared/HarnessLog.cs, WISEOWL_COBOL_HARNESS_LOG) goes in `directory`, the gate's run
+    directory (gate.py) and a CI shard's results directory (build-and-test.yml) alike. `GeneratedTarget.recorded_own`
+    reads ONE host's log, so a host that may generate its own output without depending on it (the Unit host reads the
+    suite's manifest, and its key covers the suite's inputs) never writes into the log a dependent's check reads."""
+    return directory / f"{assembly}{OBSERVATIONS}"
 
 
 class GraphError(ValueError):
@@ -220,8 +234,16 @@ class GeneratedTarget(Target):
     def own_mark(self) -> str:
         """What a dependent's host records in the harness observation log (tests/_shared/HarnessLog.cs) when it was
         handed no output and generated its own (kb/Work PB5231 R1-2): a gate whose host log holds it is RED
-        (gate.py `_check_generated`), and the hand-off site must spell it (`scan`)."""
+        (gate.py `_check_generated`; CI's `ci_plan.py handed`), and the hand-off site must spell it (`scan`)."""
         return f"{OWN_GENERATION}  {self.name}"
+
+    def recorded_own(self, log: Path | None) -> bool:
+        """Whether a host's observation log records `own_mark`: the host generated its own output instead of the one it
+        was handed (a missing log records nothing). THE ONE TEST of it, the gate's and CI's."""
+        try:
+            return log is not None and self.own_mark in log.read_text(encoding="utf-8-sig", errors="replace")
+        except OSError:
+            return False
 
     def argv(self, out: Path) -> list[str]:
         """The command's arguments after the program, `{out}` replaced by `out`."""
@@ -299,6 +321,25 @@ class Graph:
     def by_assembly(self) -> dict[str, TestTarget]:
         """The test targets by the assembly each runs."""
         return {t.assembly: t for t in self.tests().values()}
+
+    def handed(self, name: str, root: Path) -> dict[str, str]:
+        """What the host of target `name` is handed when each generated target's output lies in `root/<generated
+        target>` (as `GENERATED_ROOT` lays a worktree's out): for each target it depends on, that target's variable and
+        directory. CI's listing and hosts (`ci_plan.py list`, ci_plan's wiring) read it; the gate
+        hands the directories it generated (`Gate._handed`)."""
+        return {self.targets[d].env: str(root / d) for d in self.targets[name].depends
+                if isinstance(self.targets[d], GeneratedTarget)}
+
+    def needs_generated(self, names: Iterable[str]) -> set[str]:
+        """Every generated target the targets `names` depend on, directly or through another generated target."""
+        seen: set[str] = set()
+        todo = [d for n in names for d in self.targets[n].depends]
+        while todo:
+            d = todo.pop()
+            if d not in seen:
+                seen.add(d)
+                todo += self.targets[d].depends
+        return seen
 
 
 def _topological(targets: Mapping[str, Target]) -> tuple[str, ...]:
@@ -449,8 +490,20 @@ class Store:
             rec = json.loads(self._path(target, k).read_text(encoding="utf-8"))
         except (OSError, ValueError):
             return None
-        return rec if isinstance(rec, dict) and rec.get("result") == "pass" and rec.get("key") == k \
-            and rec.get("target") == target else None
+        return rec if is_pass(rec, target, k) else None
+
+    def records(self) -> dict[tuple[str, str], dict]:
+        """Every pass this store holds, by (target, key): what `publish` sends."""
+        out: dict[tuple[str, str], dict] = {}
+        if not self.dir.is_dir():
+            return out
+        for path in sorted(self.dir.glob("*/*.json")):
+            target, k = path.parent.name, path.stem
+            rec = self.lookup(target, k)
+            if rec is not None:
+                out[(target, k)] = rec
+        return out
+
 
     def up_to_date(self, target: str, k: str) -> bool:
         """THE ONE RULE: the store holds a record at this key (for a generated target `generate` also asks its disk)."""
@@ -467,6 +520,175 @@ class Store:
             fh.write(json.dumps(body, indent=1, sort_keys=True) + "\n")
         os.replace(tmp, path)
         return path
+
+
+def is_pass(rec: object, target: str, k: str) -> bool:
+    """THE ONE ACCEPTANCE RULE of a record, wherever it was read (this host's store or the store ref): a pass of exactly
+    this target at exactly this key."""
+    return isinstance(rec, dict) and rec.get("result") == "pass" and rec.get("key") == k and rec.get("target") == target
+
+
+# ── the transport: the store's records travel to CI on one ref (kb/Work PB5235; DESIGN-test-build-ci.md §3.14.14) ────
+#
+# THE REF holds one commit, with no parent, whose tree is `<target>/<key>.json`: the store's own layout, so a record is
+# found by the key CI computes and by nothing else. A record there is the PUBLISHED projection of a host's record (the
+# fields below): the evidence (the run directory, the worktree) stays on the host that made it. `publish` (the landing,
+# when it pushes its branch) sends the union of the ref's records and this host's, less those older than PRUNE_DAYS, as a
+# new parentless commit pushed with a lease on the commit it read, so two publishers never lose each other's records
+# (the loser re-reads and re-sends) and the ref's history is one commit deep. `fetch_published` (CI's plan, scripts/ci_plan.py) reads it.
+
+#: The ref of the repository the records travel on.
+STORE_REF = "refs/cobol-build-store/passes"
+#: What a published record carries (PB5207: target, key, platform, configuration, toolchain, counts; a generated target's
+#: output digest and file count, which a dependent's key is computed from; and where it came from, by commit and run, so
+#: a CI log can name the record it accepted).
+PUBLISHED_FIELDS = ("target", "key", "result", "assembly", "facets", "counts", "outputs", "files", "head", "tree",
+                    "run", "when")
+#: A record older than this is pruned when the ref is next published: a branch gated earlier than that re-runs its
+#: targets in CI, which costs minutes and never a verdict.
+PRUNE_DAYS = 21
+#: The identity of the ref's commits (they are data, never a person's work).
+_STORE_IDENTITY = {"GIT_AUTHOR_NAME": "cobol-build-store", "GIT_AUTHOR_EMAIL": "cobol-build-store@localhost",
+                   "GIT_COMMITTER_NAME": "cobol-build-store", "GIT_COMMITTER_EMAIL": "cobol-build-store@localhost"}
+_RECORD_PATH = re.compile(r"([\w.-]+)/([0-9a-f]{64})\.json")
+
+
+def published(rec: dict) -> dict:
+    """A host record as the ref carries it: PUBLISHED_FIELDS only."""
+    return {f: rec[f] for f in PUBLISHED_FIELDS if f in rec}
+
+
+def _when(rec: dict) -> datetime | None:
+    try:
+        return datetime.strptime(str(rec.get("when")), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+
+
+def _git(repo: Path, *args: str, input: bytes | None = None, env: dict[str, str] | None = None,
+         check: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=repo, input=input, capture_output=True, check=check,
+                          env={**os.environ, **(env or {})})
+
+
+class StoreRefError(RuntimeError):
+    """The store ref names something that is not a commit of records (a blob, a tree, a tag)."""
+
+
+class Published:
+    """The records one commit of the store ref holds, read once (`git ls-tree` and one `git cat-file --batch`). Its
+    `lookup` asks `is_pass`, the store's own rule. `refused`: each entry of the commit's tree that is no pass, as
+    `<path>: <why>` (a path that is not `<target>/<key>.json`, a body that is not JSON, a record that is not a pass of the
+    target and key its path names), so a reader can say what it ignored."""
+
+    def __init__(self, records: dict[tuple[str, str], dict], commit: str | None, refused: tuple[str, ...] = ()):
+        self.records, self.commit, self.refused = records, commit, refused
+
+    @classmethod
+    def read(cls, repo: Path, commit: str | None) -> "Published":
+        if not commit:
+            return cls({}, None)
+        kind = _git(repo, "cat-file", "-t", commit).stdout.decode().strip()
+        if kind != "commit":
+            raise StoreRefError(f"{STORE_REF} names a {kind} ({commit[:12]}), not a commit of records")
+        listing = _git(repo, "ls-tree", "-r", "-z", "--full-tree", commit).stdout.decode("utf-8", "surrogateescape")
+        wanted: list[tuple[str, str, str]] = []
+        refused: list[str] = []
+        for entry in listing.split("\0"):
+            meta, tab, path = entry.partition("\t")
+            if not tab:
+                continue
+            m = _RECORD_PATH.fullmatch(path)
+            if m and meta.split()[1] == "blob":
+                wanted.append((m.group(1), m.group(2), meta.split()[2]))
+            else:
+                refused.append(f"{path}: not <target>/<64-hex key>.json")
+        out = _git(repo, "cat-file", "--batch", input="".join(f"{oid}\n" for *_, oid in wanted).encode()).stdout
+        records: dict[tuple[str, str], dict] = {}
+        at = 0
+        for target, k, _ in wanted:
+            nl = out.index(b"\n", at)
+            size = int(out[at:nl].split()[2])
+            body = out[nl + 1:nl + 1 + size]
+            at = nl + 1 + size + 1
+            path = f"{target}/{k}.json"
+            try:
+                rec = json.loads(body.decode("utf-8"))
+            except ValueError:
+                refused.append(f"{path}: not JSON")
+                continue
+            if is_pass(rec, target, k):
+                records[(target, k)] = rec
+            else:
+                refused.append(f"{path}: not a pass of {target} at the key its path names")
+        return cls(records, commit, tuple(refused))
+
+    def lookup(self, target: str, k: str) -> dict | None:
+        rec = self.records.get((target, k))
+        return rec if is_pass(rec, target, k) else None
+
+
+def remote_store_commit(repo: Path, remote: str) -> str | None:
+    """The commit the remote's store ref names, or None when it has none; raises CalledProcessError when the remote
+    cannot be read (a caller must not read that as "no records" and publish over them)."""
+    out = _git(repo, "ls-remote", remote, STORE_REF).stdout.decode().split()
+    return out[0] if out else None
+
+
+def fetch_published(repo: Path, remote: str) -> Published:
+    """The remote's store ref, fetched with its blobs (`--no-filter`: CI's checkout is a blob:none partial clone, which
+    would otherwise fetch each record on demand), and read."""
+    commit = remote_store_commit(repo, remote)
+    if commit is None:
+        return Published({}, None)
+    _git(repo, "fetch", "--quiet", "--no-tags", "--no-filter", remote, f"+{STORE_REF}:{STORE_REF}")
+    return Published.read(repo, commit)
+
+
+def write_records(repo: Path, records: dict[tuple[str, str], dict]) -> str:
+    """A parentless commit whose tree is `<target>/<key>.json` for each record, written through a private index."""
+    with tempfile.TemporaryDirectory(prefix="build-store-") as tmp:
+        index = {"GIT_INDEX_FILE": str(Path(tmp) / "index")}
+        lines = []
+        for (target, k), rec in sorted(records.items()):
+            body = (json.dumps(rec, indent=1, sort_keys=True) + "\n").encode("utf-8")
+            oid = _git(repo, "hash-object", "-w", "--stdin", input=body).stdout.decode().strip()
+            lines.append(f"100644 {oid}\t{target}/{k}.json\n")
+        _git(repo, "update-index", "--add", "--index-info", input="".join(lines).encode(), env=index)
+        tree = _git(repo, "write-tree", env=index).stdout.decode().strip()
+    return _git(repo, "commit-tree", tree, "-m", f"cobol-build-store: {len(records)} pass record(s) (kb/Work PB5235)",
+                env=_STORE_IDENTITY).stdout.decode().strip()
+
+
+def publish(repo: Path, store: Store, remote: str = "origin", now: datetime | None = None, attempts: int = 3,
+            say=print) -> str | None:
+    """PUBLISH THIS HOST'S PASSES: the union of the remote ref's records and `store`'s (projected), less those older
+    than PRUNE_DAYS, pushed as one parentless commit with a lease on the commit read, re-read and re-sent when another
+    publisher moved the ref first; every record pruned leaves the ref naming an empty tree. Returns the ref's commit;
+    None when the remote has no ref and this host no pass. Raises on a remote that cannot be read or a lease lost
+    `attempts` times."""
+    now = now or datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=PRUNE_DAYS)
+    local = {tk: published(rec) for tk, rec in store.records().items()}
+    for _ in range(attempts):
+        theirs = fetch_published(repo, remote)
+        merged = {tk: rec for tk, rec in {**theirs.records, **local}.items() if (_when(rec) or cutoff) > cutoff}
+        if merged == theirs.records:
+            say(f"build store: {remote} {STORE_REF} already holds every pass ({len(merged)} record(s)); nothing pushed")
+            return theirs.commit
+        if not merged and theirs.commit is None:
+            say("build store: no pass to publish")
+            return None
+        commit = write_records(repo, merged)
+        pushed = _git(repo, "push", "--quiet", f"--force-with-lease={STORE_REF}:{theirs.commit or ''}", remote,
+                      f"{commit}:{STORE_REF}", check=False)
+        if pushed.returncode == 0:
+            added = len(set(merged) - set(theirs.records))
+            say(f"build store: published {len(merged)} record(s) to {remote} {STORE_REF} ({added} new, "
+                f"{len(theirs.records) + added - len(merged)} pruned) at {commit[:12]}")
+            return commit
+        say(f"build store: {remote} {STORE_REF} moved while publishing ({pushed.stderr.decode().strip()}); re-reading")
+    raise RuntimeError(f"could not publish {STORE_REF} to {remote}: the lease was lost {attempts} times")
 
 
 # ── generated targets ───────────────────────────────────────────────────────────────────────────────────────────────
@@ -798,15 +1020,17 @@ def generate(repo: Path, target: GeneratedTarget, k: str, store: Store, tracked:
 
 def bring_up_to_date(repo: Path, graph: Graph, entries: list[tuple[bytes, str]], facets: Mapping[str, str],
                      store: Store, *, stable: Callable[[], bool] | None = None,
-                     run: Callable[[Path, GeneratedTarget, Path], Trace] = traced_run) -> dict[str, Generation]:
-    """Every generated target of `graph`, in topological order, brought up to date (`generate`) at the tree `entries`
-    lists; a dependent's key is made from the output digests its dependencies have just been given. Raises the first
-    BuildError."""
+                     run: Callable[[Path, GeneratedTarget, Path], Trace] = traced_run,
+                     only: Iterable[str] | None = None) -> dict[str, Generation]:
+    """Every generated target of `graph` (of `only`, when given: a set closed under dependency, `Graph.needs_generated`),
+    in topological order, brought up to date (`generate`) at the tree `entries` lists; a dependent's key is made from
+    the output digests its dependencies have just been given. Raises the first BuildError."""
     tracked = {p for _, p in entries}
+    wanted = None if only is None else set(only)
     done: dict[str, Generation] = {}
     for name in graph.order:
         t = graph.targets[name]
-        if isinstance(t, GeneratedTarget):
+        if isinstance(t, GeneratedTarget) and (wanted is None or name in wanted):
             k = key(t, entries, facets, {n: g.outputs for n, g in done.items()})
             done[name] = generate(repo, t, k, store, tracked, stable=stable, run=run)
     return done
@@ -1077,6 +1301,94 @@ if (here / "READ_DOCS").exists():
 """
 
 
+def transport_arms(root: Path, arm) -> None:
+    """The store ref, end to end, on fixtures (a bare remote, a publishing clone, a second publisher and a blob:none
+    clone as CI checks out): never the live repository or its remote."""
+    from scratch_repo import ScratchRepo  # noqa: PLC0415
+    host = ScratchRepo.init(root / "t-host")
+    remote = host.origin(root / "t-remote.git")
+    remote.git("config", "uploadpack.allowFilter", "true")
+    host.commit("base", {"src/A.cs": "class A {}\n"})
+    host.git("push", "-q", "origin", "HEAD:refs/heads/main")
+    k1, k2 = "1" * 64, "2" * 64
+    now = datetime(2026, 11, 10, 12, 0, tzinfo=timezone.utc)
+    stamp = f"{now:%Y-%m-%dT%H:%M:%SZ}"
+    facets = {"platform": "windows", "configuration": "Debug", "toolchain": "t1"}
+    store = Store(root / "t-store")
+    store.record("conformance", k1, {
+        "assembly": "Conformance", "facets": facets, "worktree": "E:/secret/wt", "evidence": "E:/secret/wt/run",
+        "run": "000007", "head": "f" * 40, "tree": "a" * 40, "when": stamp,
+        "counts": {"discovered": 9, "ran": 9, "skipped": 0, "carried": 0}})
+    said: list[str] = []
+    first = publish(host.path, store, "origin", now, say=said.append)
+    ci = ScratchRepo.clone(f"file://{remote.path.as_posix()}", root / "t-ci")
+    ci.git("config", "remote.origin.partialclonefilter", "blob:none")  # the partial clone CI's `changes` checkout is
+    ci.git("config", "remote.origin.promisor", "true")
+    got = fetch_published(ci.path, "origin")
+    rec = got.lookup("conformance", k1) or {}
+    arm("the transport: a pass published from the host's store is read back from the remote ref by a partial clone, "
+        "carrying only the published fields (no worktree or evidence path), at its key and at no other",
+        first is not None and got.commit == first and sorted(rec) == sorted(
+            ("assembly", "counts", "facets", "head", "key", "result", "run", "target", "tree", "when"))
+        and got.lookup("conformance", k2) is None and got.lookup("unit", k1) is None,
+        f"{first} {got.commit} {sorted(rec)}")
+    forged = Published({("unit", k1): {"target": "unit", "key": k2, "result": "pass"},
+                        ("conformance", k1): {"target": "conformance", "key": k1, "result": "red"}}, "x")
+    arm("a record read from the ref is held to the store's one rule (`is_pass`): one filed under a key it does not "
+        "name, or one that is not a pass, is no pass",
+        forged.lookup("unit", k1) is None and forged.lookup("conformance", k1) is None
+        and Store(root / "t-store").lookup("conformance", k1) is not None)
+    other = Store(root / "t-store-2")
+    other.record("unit", k2, {"assembly": "Unit", "facets": facets, "run": "000002", "head": "e" * 40,
+                              "tree": "b" * 40, "when": stamp, "counts": {"ran": 4}})
+    second = publish(host.path, other, "origin", now, say=said.append)
+    both = fetch_published(ci.path, "origin")
+    stale = _git(host.path, "push", "--quiet", f"--force-with-lease={STORE_REF}:{first}", "origin",
+                 f"{write_records(host.path, {})}:{STORE_REF}", check=False)
+    again = publish(host.path, other, "origin", now, say=said.append)
+    # a lost lease INSIDE publish (review R1-3): another publisher lands between this call's read and its push
+    k3, k4 = "3" * 64, "4" * 64
+    mine, racer = Store(root / "t-store-mine"), Store(root / "t-store-racer")
+    for st, kk in ((mine, k3), (racer, k4)):
+        st.record("unit", kk, {"assembly": "Unit", "facets": facets, "run": "000003", "head": "d" * 40,
+                               "tree": "c" * 40, "when": stamp, "counts": {"ran": 1}})
+    module = globals()
+    real_git, raced = module["_git"], []
+
+    def racing_git(repo: Path, *args: str, **kw) -> subprocess.CompletedProcess:
+        if args[:1] == ("push",) and not raced:
+            raced.append(True)
+            module["_git"] = real_git
+            try:
+                publish(host.path, racer, "origin", now, say=said.append)
+            finally:
+                module["_git"] = racing_git
+        return real_git(repo, *args, **kw)
+
+    module["_git"] = racing_git
+    try:
+        recovered = publish(host.path, mine, "origin", now, say=said.append)
+    finally:
+        module["_git"] = real_git
+    after_race = fetch_published(ci.path, "origin")
+    arm("a publisher that loses its lease to another mid-publish re-reads and re-sends: the ref ends holding both "
+        "publishers' records and every earlier one",
+        bool(raced) and recovered == after_race.commit and any("re-reading" in s for s in said)
+        and set(after_race.records) == {("conformance", k1), ("unit", k2), ("unit", k3), ("unit", k4)},
+        f"{raced} {recovered} {after_race.commit} {sorted(after_race.records)} {said}")
+    later = publish(host.path, Store(root / "t-store-empty"), "origin", now + timedelta(days=PRUNE_DAYS + 1),
+                    say=said.append)
+    pruned = fetch_published(ci.path, "origin")
+    arm("two publishers' records are a union on the ref (neither loses the other's); a push leased on a commit the ref "
+        "no longer names is refused; publishing nothing new pushes nothing; a record older than PRUNE_DAYS is pruned, "
+        "leaving the ref on an empty tree",
+        set(both.records) == {("conformance", k1), ("unit", k2)} and stale.returncode != 0
+        and again == second and any("nothing pushed" in s for s in said)
+        and later is not None and later != second and pruned.commit == later and pruned.records == {}
+        and remote_store_commit(ci.path, "origin") == later,
+        f"{sorted(both.records)} stale={stale.returncode} {again} {second} {later} {pruned.commit} {said}")
+
+
 def self_test() -> int:
     from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: PLC0415
     isolate()
@@ -1183,6 +1495,7 @@ def self_test() -> int:
         arm("a listing pattern (scripts/guard*.sh) matches a differently cased file and not one below or beside it, and "
             "adding scripts/Guard-legacy.sh changes the key",
             cased == [True, True, True, False, False] and g0 != g1, f"{cased} {g0} {g1}")
+        transport_arms(root, arm)
         real_graph = load_targets()
         rt = real_graph.targets
         arm("the real targets file loads: unit, conformance, characterization and the generated conformance-suite, which "
@@ -1404,12 +1717,17 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--target", required=True)
     d.add_argument("directory")
     sub.add_parser("check", help="the BUILD TARGETS audit")
+    pub = sub.add_parser("publish", help=f"send this host's passes to the remote's {STORE_REF} (the landing's push)")
+    pub.add_argument("--remote", default="origin")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args(argv)
     if args.self_test:
         return self_test()
     if args.cmd == "check":
         return check()
+    if args.cmd == "publish":
+        publish(REPO, Store.for_repo(REPO), args.remote)
+        return 0
     if args.cmd == "digest":
         t = load_targets().generated().get(args.target)
         if t is None:

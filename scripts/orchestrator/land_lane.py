@@ -84,7 +84,8 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                 nothing red                                          unit's
        exit 2 (main moved under every catch-up, the branch could not be read, or a clean merge of main could not be
                 completed for a cause in the ENVIRONMENT, kb/Work PB3673), exit 9 (GitHub refused the push, the PR or
-                the queue), or a runner that DIED                 retried ONCE at this head (enqueue.md's own rule)
+                the queue), exit 16 (STORE NOT PUBLISHED: the passes could not reach origin's store ref, kb/Work
+                PB5235), or a runner that DIED                   retried ONCE at this head (enqueue.md's own rule)
        exit 8 — QUEUE NOT ACTIVE                                   HALT (above); relaunched once the halt is cleared
        anything else — CONFLICT 4, MERGE NOT COMPLETED BRANCH-CARRIED 5, a DEVLOG/register/prefix refusal 6,
                 UNREVIEWED 11, UNTESTED 14 (no recorded GREEN local gate covers the tip, kb/Work PB3612), an exit
@@ -140,8 +141,8 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
 from enqueue import (EXIT_CONFLICT, EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY,
-                     EXIT_PREDECESSOR_QUEUED, EXIT_QUEUE_NOT_ACTIVE, PR_LIST_FIELDS, QUEUED_LINE,
-                     land_lock_path)  # noqa: E402  (the landing's contract)
+                     EXIT_PREDECESSOR_QUEUED, EXIT_QUEUE_NOT_ACTIVE, EXIT_STORE_UNPUBLISHED, PR_LIST_FIELDS,
+                     QUEUED_LINE, land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
 import verdict_line  # noqa: E402  (scripts/: the one home of the `=== ENQUEUE: ` verdict line, kb/Work PB3714)
@@ -264,7 +265,7 @@ def classify(a: dict[str, Any]) -> str:
         return DONE
     if rc in WAITS:
         return FREE
-    if rc in (EXIT_STATE, EXIT_GITHUB):
+    if rc in (EXIT_STATE, EXIT_GITHUB, EXIT_STORE_UNPUBLISHED):
         return ONCE
     if rc == EXIT_QUEUE_NOT_ACTIVE:
         return HALTED

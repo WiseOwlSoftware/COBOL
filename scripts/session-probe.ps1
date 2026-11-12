@@ -7,6 +7,28 @@ Set-Location $root
 
 Write-Host "=== SESSION PROBE ($(Get-Date -Format 'yyyy-MM-dd HH:mm')) ==="
 
+# 0. THE NIGHTLY, FIRST (kb/Work PB5235; PB5207: "a red one is shown by the session probe as the first line"). The
+# nightly (.github/workflows/nightly.yml) runs the slow work no landing waits for — the NIST corpus through the CLI, the
+# GnuCOBOL differential, every self-test on both OSes — and blocks nothing, so its red is read here or nowhere. Its record
+# is the workflow's own run history; this prints the latest scheduled run's verdict, naming each red job.
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+    try {
+        $nightly = & gh run list --workflow nightly.yml --event schedule --limit 1 --json databaseId,conclusion,status,createdAt 2>$null | ConvertFrom-Json
+        if (-not $nightly) {
+            Write-Host "nightly: no scheduled run found — the nightly verdict is UNREAD (do not infer green)"
+        } elseif ($nightly.status -ne 'completed') {
+            Write-Host "nightly: the run of $($nightly.createdAt) is $($nightly.status) — no verdict yet"
+        } elseif ($nightly.conclusion -eq 'success') {
+            Write-Host "nightly: the run of $($nightly.createdAt) = success"
+        } else {
+            $red = & gh run view $nightly.databaseId --json jobs --jq '[.jobs[] | select(.conclusion != "success" and .conclusion != "skipped") | .name] | join(", ")' 2>$null
+            Write-Host "nightly: ⛔ the run of $($nightly.createdAt) = $($nightly.conclusion) — red: $red (gh run view $($nightly.databaseId) --log-failed)"
+        }
+    } catch { Write-Host "nightly: gh unavailable — the nightly verdict is UNREAD (do not infer green)" }
+} else {
+    Write-Host "nightly: gh unavailable — the nightly verdict is UNREAD (do not infer green)"
+}
+
 # 1. Branch + HEAD + cleanliness
 $branch = git rev-parse --abbrev-ref HEAD
 $head = git rev-parse --short HEAD

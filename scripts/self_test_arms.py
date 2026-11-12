@@ -53,6 +53,11 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a record that is not a pass is not up to date',
         'every worktree of a repository has the ONE store',
         'the BUILD TARGETS audit: sources whose reads lie in the declared inputs are clean',
+        # kb/Work PB5235: the store's transport, the ref
+        "the transport: a pass published from the host's store is read back from the remote ref by a partial clone",
+        "a record read from the ref is held to the store's one rule",
+        "two publishers' records are a union on the ref (neither loses the other's)",
+        'a publisher that loses its lease to another mid-publish re-reads and re-sends',
         'the real targets file loads',
         # kb/Work PB5231: generated targets, their output digests and the dependencies keyed on them
         "a generated target's first run is traced and recorded",
@@ -71,6 +76,23 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'the static check refuses an existence probe of a path outside the inputs',
         "the generator's program is reached through the dependency only at its ONE hand-off site",
         'a module loaded by spec_from_file_location + exec_module (never in sys.modules), with a warm cache',
+    ),
+    # kb/Work PB5235: the merge group's plan over the store ref, and the workflow held to it
+    'scripts/ci_plan.py': (
+        "the Windows leg keys Conformance on the generator's output digest the ref records at the generator's key",
+        "a change to the GENERATOR's inputs (inv/) moves its key off its record",
+        'a record is accepted only at the key CI computes',
+        "a pass whose facets are not the leg's, and a record filed under a key it does not name, are refused",
+        '--no-records reads no ref and runs every test target',
+        # kb/Work PB5235 round 2: a leg's generated targets, made once and handed to its shards
+        "`generate` makes the plan's generated targets once, traced",
+        'a generation that does not reproduce the digest the plan keyed on is a named Nondeterministic red',
+        '`handed`: a shard whose hosts ran the handed suite is GREEN',
+        "`list` lists each assembly of the plan's set from its target's project, handing a dependent target's",
+        'the store ref is read loudly',
+        'the real workflow runs each leg as CI_LEGS states it',
+        'the wiring check names a Windows Unit step that runs whatever the plan says',
+        "a Windows Conformance step not handed the leg's generated suite",
     ),
     'scripts/gate.py': (
         'a whole planted population is GREEN, every assembly EXACT',
@@ -177,6 +199,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'red_classes: the class of every definition with a Failed result',
         'the XML range is stated once, as escapes',
         'audit-callers flags every unscrubbed shape',
+        "a generated target's hand-off variable is set only beside",
     ),
     'scripts/test_leg_report.py': (
         'calibration: the retired build-local.ps1 filter DROPS the planted message',

@@ -559,7 +559,8 @@ def traced_env(env: dict[str, str], tracer_dir: Path, trace_out: Path, repo: Pat
 #: never read as an argument), what its positional arguments are, and what it reads. A subcommand, option or argument
 #: form not declared here is NOT UNDERSTOOD, and its read is UNKEYED: the runner fails the self-test (the owner
 #: 2026-11-10), never keys a guess. Declared: the subcommands the self-tests run in the real checkout (a traced run of
-#: the whole phase, 2026-11-11: `ls-files`, `rev-parse`) and `log` and `grep`, cheap to model exactly.
+#: the whole phase, 2026-11-11: `ls-files`, `rev-parse`; `ls-tree`, which ci_plan.py's self-test runs on the real
+#: HEAD's tree to plan the real targets file) and `log` and `grep`, cheap to model exactly.
 #:
 #: HISTORY. A command that reads history (`log`, `rev-parse <rev>`, a `<rev>:<path>`) answers from COMMITS, which no
 #: working-tree key holds, and a ref moves on every commit. Its read is keyed by what it names: each REVISION it
@@ -575,7 +576,8 @@ class GitGrammar:
     (grep: its first positional is a PATTERN unless `-e` gives it). `verb`: the one sub-subcommand modelled, which must
     be the first positional (`remote get-url`); "" for none. `modes`: for a "key" subcommand, each READ mode flag with
     the fewest and most positionals it takes (`config --get-regexp <pattern> [<value-pattern>]`, `config --list`); with
-    no mode flag it takes exactly one (`config <name>`, an implicit `--get`). A second positional with no mode is a
+    no mode flag it takes exactly one (`config <name>`, an implicit `--get`), or "tree-ish" (`ls-tree`: exactly one revision, then pathspecs that
+    narrow what it lists of that revision's tree, so they parse but key nothing). A second positional with no mode is a
     value WRITTEN, and every writing flag (`--add`, `--unset`, `--replace-all`, `--edit`, …) is undeclared, so a write
     is never keyed."""
     reads: str
@@ -603,6 +605,10 @@ GIT_GRAMMAR = {
         location_flags=frozenset({"--show-toplevel", "--absolute-git-dir", "--git-dir", "--git-common-dir",
                                   "--show-prefix", "--show-cdup", "--is-inside-work-tree", "--is-bare-repository",
                                   "--is-inside-git-dir", "--path-format=absolute", "--path-format=relative"})),
+    "ls-tree": GitGrammar(   # a revision's tree: immutable, so keyed by the revision it names, as `rev-parse` is
+        "history", "tree-ish",
+        flags=frozenset({"-r", "-t", "-d", "-z", "-l", "--long", "--name-only", "--name-status", "--object-only",
+                         "--full-name", "--full-tree"})),
     "log": GitGrammar(
         "history", "revisions",
         flags=frozenset({"--oneline", "--no-merges", "--reverse", "--first-parent", "-p", "--stat", "--name-only",
@@ -821,6 +827,10 @@ def git_reads(args: list[str], where: str, root: Path) -> list[tuple[str, str]] 
             positional = positional[1:]   # the PATTERN, never a path
         if grammar.positionals == "pattern" and positional:
             return unkeyed(f"`git {sub}` over a revision is not modelled")
+        if grammar.positionals == "tree-ish":   # one revision, then pathspecs within its tree
+            if not positional:
+                return unkeyed(f"`git {sub}` with no revision is not modelled")
+            positional, specs = positional[:1], positional[1:] + specs
         for a in positional:
             if after is None and (any(c in a for c in WILDCARDS) or a.startswith(":")):
                 return unkeyed(f"{a!r} before `--` could be a revision or a pathspec: give `--`")
@@ -1097,8 +1107,8 @@ def self_test() -> int:
         check("arm: THREE OUTCOMES, RESOLVED — by the declared grammar: an absolute path inside the repository made "
               "relative to it, literal or wildcard, with either separator; `:(top)`/`:/` from the root, `:(literal)` "
               "literal, an exclusion narrowing nothing; an ls-files positional is a pathspec; an option's value never "
-              "an argument; a revision (`rev-parse`, `log`) keyed by what it names, `HEAD` for a log naming none; "
-              "grep's pattern never a path (kb/Work PB5227 review round 2)",
+              "an argument; a revision (`rev-parse`, `log`, `ls-tree`'s tree-ish, its paths keying nothing) keyed by "
+              "what it names, `HEAD` for a log naming none; grep's pattern never a path (kb/Work PB5227 review round 2)",
               [outcome(c, w) for c, w in (
                   (["ls-files", "--", f"{posix_root}/scripts/*.py"], ""),
                   (["ls-files", "-z", "--", str(root / "docs")], "scripts"),
@@ -1114,13 +1124,16 @@ def self_test() -> int:
                   (["grep", "-l", "-e", "kb/Work", "--", "docs"], ""),
                   (["rev-parse", "HEAD"], ""), (["rev-parse", "--short", "origin/main"], ""),
                   (["rev-parse", "--verify", "--quiet", "abc^{tree}"], ""), (["rev-parse", "HEAD:./x"], "docs"),
-                  (["log", "--format=%H", "--", "scripts/x.py"], ""), (["log", "-1", "--format", "%s", "a..b"], ""))],
+                  (["log", "--format=%H", "--", "scripts/x.py"], ""), (["log", "-1", "--format", "%s", "a..b"], ""),
+                  (["ls-tree", "-r", "-z", "--full-tree", "HEAD^{tree}"], ""),
+                  (["ls-tree", "--name-only", "HEAD", "docs", "scripts/x.py"], ""))],
               [[("paths", "scripts")], [("paths", "docs")], [("paths", "scripts/o")], [("paths", "docs")],
                [("paths", "scripts/o*")], [("paths", "scripts")], [("paths", "scripts/o")], [("paths", ".github")],
                [("content", "src"), ("content", "tests")], [("paths", "docs/x")],
                [("content", "")], [("content", "docs")],
                [("rev", "HEAD")], [("rev", "origin/main")], [("rev", "abc^{tree}")], [("rev", "HEAD:docs/x")],
-               [("rev", "HEAD")], [("rev", "a"), ("rev", "b")]])
+               [("rev", "HEAD")], [("rev", "a"), ("rev", "b")],
+               [("rev", "HEAD^{tree}")], [("rev", "HEAD")]])
         check("arm: THREE OUTCOMES, NOTHING OR THE WHOLE TREE BY MEANING — a location query reads nothing; no pathspec, "
               "a wildcard at the root and only exclusions read the whole tree: that is the read set, not a fallback",
               [outcome(c, w) for c, w in (
@@ -1148,6 +1161,7 @@ def self_test() -> int:
             (["rev-parse", "--git-path", "x"], ""), (["rev-parse"], ""), (["rev-parse", "--show-toplevel", "HEAD"], ""),
             (["log", "--since=1.day", "HEAD"], ""), (["log", "-n"], ""), (["log", "*.py"], ""),
             (["grep", "-f", "patterns.txt"], ""), (["grep", "foo", "HEAD"], ""), (["grep"], ""),
+            (["ls-tree", "-r"], ""), (["ls-tree", "--format=%(path)", "HEAD"], ""), (["ls-tree", "HEAD", "../x"], ""),
             (["config", "user.name", "x"], ""), (["config", "--unset", "user.name"], ""),
             (["remote", "-v"], ""), (["remote", "add", "x", "y"], ""), (["remote", "get-url"], ""),
             (["remote", "get-url", "--expire", "origin"], ""),

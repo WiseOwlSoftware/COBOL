@@ -93,8 +93,9 @@ kb/Work PB2526), each population then checked by name against its `--list-tests`
 A branch is gated locally ONCE, at its head, by its implementer or finisher: that run is the whole definition of "tested
 locally". `enqueue.py land` does not gate the merge with main and does not gate again when main moves: it READS the
 worktree's newest `TestResults/build-local/*/verdict.json` runs and refuses (exit 14, UNTESTED) a tip none of them covers
-GREEN (a finisher gates the tip). The merge queue's `ci-gate` runs the whole population on the exact
-merge, on both operating systems, before `main` moves: it is the FIRST run of the merged tree, a true textual merge in
+GREEN (a finisher gates the tip). The merge queue's `ci-gate` runs, on the exact merge and before `main` moves, every
+target on Linux (Release) and, on Windows (Debug), each target with no pass at the merged tree's key on the store ref
+the landing publishes (kb/Work PB5235): it is the FIRST run of the merged tree, a true textual merge in
 a shared file included (kb/Work PB4331), and the landing lane classifies every red it bounces against this record
 (INFRA and RUNNER re-queued once, MERGE and GENUINE to a finisher, kb/Work PB4271). A gate of the worktree that
 runs when the landing would write it is exit 12, GATE BUSY, whatever record exists (kb/Work PB4204).
