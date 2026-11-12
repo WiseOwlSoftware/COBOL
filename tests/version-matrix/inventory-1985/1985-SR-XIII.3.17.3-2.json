@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.17.3-2",
  "rule-digest": "e4558c058a02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry",
+ "test-ref": "conformance:cases/XIII.3.17@1985-SIGN-CLAUSE/1985-SR-XIII_3_17_3-2",
+ "notes": "kb/Work PB5373 class 6, decided 2026-11-12. §1985:XIII.3.17.3 SR2: \"The numeric data description entries to which the SIGN clause applies must be described, implicitly or explicitly, as USAGE IS DISPLAY.\" In the Report Section every violation of it also violates §1985:XIII.3.21.3 SR3 (\"The USAGE clause for a report group item can specify only USAGE IS DISPLAY\"), so the rule cannot be broken alone. DataBinder.SignClauseElementaryDefect, asked of every elementary report entry by ReportSectionBinder.BindReportEntry, refuses a SIGN clause on a non-DISPLAY entry with COBOL2422 (its second arm, the usage test) and the usage clause's own rule reports COBOL2198 at the same line. The witness is one refusal test at 85: a COMPUTATIONAL S9(3) entry with SIGN IS LEADING SEPARATE CHARACTER (SR1 and SR3 kept) is refused and wiseowl/diagnostics/1985-SR-XIII_3_17_3-2.json pins COBOL2422, the rule's OWN code among those at the violating line (the harness pins a code at a line without requiring it to be the only one). Probe at --std 85 (this build): errors COBOL2198 and COBOL2422 at the entry's line, nothing else.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
