@@ -1,4 +1,4 @@
-## PB4996: the 139 untouched 1985 rows accounted for; 37 non-conforming verdicts recorded (1985 GAP 443, unchanged)
+## Entry 3528 — 2026-11-12 10:49 PST — PB4996: the 139 untouched 1985 rows accounted for; 37 non-conforming verdicts recorded (1985 GAP 443, unchanged)
 
 On origin/main 447ae77637, 139 of the 443 open 1985 rows had a test and no verdict. Two new scripts in `E:/COBOL-coord/scratch/coderead-85` (`records_85e_gather.py`, `records_85e_table.py`) gather every read, refute and held-85 adjudication of those rows and build one table, `records-85e-table.json` and `.md`, with the latest verdict, its refuter, the held decision and the kb/Work notes that name each row.
 
@@ -11,3 +11,4 @@ The 32 CONFORMS reads that no held file names were all OVERTURNED by their refut
 - 2 wait on a decision.
 - 1 is DOUBTFUL.
 - `1985-GR-IX.4.5.4-18` is adjudicated DIVERGES, but its note PB5238 is retired.
+
