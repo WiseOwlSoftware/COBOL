@@ -1,4 +1,4 @@
-## PB5315, PB5339, PB5314: the message store's terminal take, partly received messages and the no-data end key
+## Entry 3518 — 2026-11-11 17:37 PST — PB5315, PB5339, PB5314: the message store's terminal take, partly received messages and the no-data end key
 
 Three defects shared one root, the communication runtime's rows (`MessageStoreState`, `McsTables`, `MessageControlSession`).
 
@@ -9,3 +9,4 @@ Three defects shared one root, the communication runtime's rows (`MessageStoreSt
 **PB5339.** ACCEPT MESSAGE COUNT of another run unit missed a message partly received by a different run unit, because the store let go of the message at its first portion and only the receiver's own `Dialogue` remembered it. The store now has a `PartialReceives` table (tag `R`: owner run unit id, serial, queue level). A RECEIVE of an input CD that returns only a first portion writes the row in the statement that took the message; the RECEIVE that returns the last portion deletes it. `MessageStoreState.PartlyReceivedFrom` counts the rows under the CD's queue structure for every run unit, replacing `Dialogue.PartlyReceivedFrom` (one mechanism, no second copy). A run unit's id is random over 60 bits; its session holds `HostRegionLocks.McsRunUnitLivenessByte(id)` through its writable handle (the keyed store's dead-owner probe), and a row whose owner is dead is dropped by the statement that finds it, which is STOP RUN's removal of a partly received message (§1985:VI.6.24.4 GR3). Unit tests `AMessagePartlyReceived_IsCountedByEveryRunUnitUntilItsLastPortion` and `AMessagePartlyReceivedByARunUnitThatEnded_IsNotCounted` run two sessions on one store. DESIGN-communication-facility.md §6 and CONFORMANCE.md §3.3 now describe the new table and the lifted limit.
 
 No inventory row closes: the rules are 1985 rules and `work.py` does not accept them yet (PB5094). Self-review found nothing to change beyond a doc comment that had paraphrased GR12 as the text length's rule.
+
