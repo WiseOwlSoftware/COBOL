@@ -2104,6 +2104,9 @@ internal static class RuntimeApi
     private static string MessageControlFacade =>
         $"global::{typeof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl).FullName}";
 
+    /// <summary>The type of a program instance's per-CD state (<c>CdActivation</c>).</summary>
+    public static string CdActivationType => $"global::{typeof(global::WiseOwl.Cobol.Runtime.Communication.CdActivation).FullName}";
+
     /// <summary>A value of a run-time enumeration of the facility, spelled so a rename breaks here.</summary>
     public static string CommunicationEnum<T>(T value) where T : struct, System.Enum => $"global::{typeof(T).FullName}.{value}";
 

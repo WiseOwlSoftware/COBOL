@@ -22,6 +22,10 @@ public sealed class MessageControlTests : IDisposable
     private readonly string _root = ScratchDirectory.Create("WiseOwlCobol_Mcs_");
     private readonly List<MessageControlSession> _sessions = [];
     private MediumFault? _fault;
+    private readonly Dictionary<string, CdActivation> _cds = [];
+
+    /// <summary>The communication description entry a statement of this test names: one activation of it, the same on every statement of the test (§1985:XIV.2.2.4 GR31).</summary>
+    private CdActivation Cd(string name) => _cds.TryGetValue(name, out var cd) ? cd : _cds[name] = new CdActivation();
 
     /// <summary>The bytes of a file a session may hold open: read with the sharing the store's own handle admits.</summary>
     private static byte[] Bytes(string path)
@@ -87,8 +91,8 @@ public sealed class MessageControlTests : IDisposable
     {
         var session = Open();
         Assert.Equal("20", InputStatus(session.AcceptMessageCount(InputArea("Q1"))));
-        Assert.Equal("20", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D1"), "A", SendIndicator.EndOfMessage)));
-        Assert.Equal("21", InOutStatus(session.Receive("C", CommunicationFormat.InputOutput, InOutArea("T1"), false, "X", noDataPhrase: false).Area));
+        Assert.Equal("20", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D1"), "A", SendIndicator.EndOfMessage)));
+        Assert.Equal("21", InOutStatus(session.Receive(Cd("C"), CommunicationFormat.InputOutput, InOutArea("T1"), false, "X", noDataPhrase: false).Area));
         Assert.False(File.Exists(Path.Combine(_root, "mcs.store")), "an MCS nobody defined creates no store");
     }
 
@@ -157,10 +161,10 @@ public sealed class MessageControlTests : IDisposable
     {
         var session = Session(definitions);
         Assert.Equal("91", InputStatus(session.AcceptMessageCount(InputArea("Q"))));
-        Assert.Equal("91", InputStatus(session.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q"), null, enable: true)));
-        Assert.Equal("91", OutputStatus(session.Purge("C", CommunicationFormat.Output, OutputArea(1, "D"))));
-        Assert.Equal("91", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D"), "A", SendIndicator.EndOfMessage)));
-        var receipt = session.Receive("C", CommunicationFormat.Input, InputArea("Q"), false, "XY", noDataPhrase: true);
+        Assert.Equal("91", InputStatus(session.SetPath(Cd("C"), CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q"), null, enable: true)));
+        Assert.Equal("91", OutputStatus(session.Purge(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D"))));
+        Assert.Equal("91", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D"), "A", SendIndicator.EndOfMessage)));
+        var receipt = session.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q"), false, "XY", noDataPhrase: true);
         Assert.Equal("91", InputStatus(receipt.Area));
         Assert.True(receipt.DataAvailable, "an MCS that cannot answer takes no action and does not run NO DATA");
         Assert.Equal("XY", receipt.Into);
@@ -192,7 +196,7 @@ public sealed class MessageControlTests : IDisposable
     public void NamesThatShareNoDeviceFile_DifferingOnlyInCaseAreDefined(string definitions)
     {
         var session = Session(definitions);
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D1"), "A", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D1"), "A", SendIndicator.EndOfMessage)));
     }
 
     /// <summary>§1985:XIV.2.2.4 GR4, GR10 and GR20 with §1985:p.A-9 ("Each lowercase letter is considered to be equivalent to its corresponding uppercase letter"): the
@@ -211,9 +215,9 @@ public sealed class MessageControlTests : IDisposable
         area = session.AcceptMessageCount(InputArea("Q".PadRight(12) + "b"));
         Assert.Equal("00", InputStatus(area));
         Assert.Equal("000001", InputCount(area));
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "d2"), "A", SendIndicator.EndOfMessage)));
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "d3"), "A", SendIndicator.EndOfMessage)));
-        Assert.Equal("00", InOutStatus(session.Receive("C", CommunicationFormat.InputOutput, InOutArea("t1"), false, "X", noDataPhrase: false).Area));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "d2"), "A", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "d3"), "A", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", InOutStatus(session.Receive(Cd("C"), CommunicationFormat.InputOutput, InOutArea("t1"), false, "X", noDataPhrase: false).Area));
     }
 
     [Fact]
@@ -222,12 +226,12 @@ public sealed class MessageControlTests : IDisposable
         var session = Session();
         using (RefusedState())
         {
-            var receipt = session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "XXXX", noDataPhrase: false);
+            var receipt = session.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "XXXX", noDataPhrase: false);
             Assert.Equal("92", InputStatus(receipt.Area));
             Assert.Equal("XXXX", receipt.Into);
-            Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.EndOfMessage)));
+            Assert.Equal("92", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.EndOfMessage)));
         }
-        Assert.Equal("SEED", session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "XXXX", noDataPhrase: true).Into);
+        Assert.Equal("SEED", session.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "XXXX", noDataPhrase: true).Into);
         Assert.Equal("000000", InputCount(session.AcceptMessageCount(InputArea("Q2"))));
     }
 
@@ -252,7 +256,7 @@ public sealed class MessageControlTests : IDisposable
         byte[] before = Bytes(path);
         var session = Open();
         Assert.Equal("92", InputStatus(session.AcceptMessageCount(InputArea("Q1"))));
-        Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.EndOfMessage)));
+        Assert.Equal("92", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.EndOfMessage)));
         Assert.Equal(before, Bytes(path));
     }
 
@@ -262,31 +266,31 @@ public sealed class MessageControlTests : IDisposable
     public void Purge_FollowsTheTables()
     {
         var session = Session("""{ "destinations": [ { "name": "OFF", "enabled": false } ], "terminals": [ { "name": "T1" } ] }""");
-        Assert.Equal("10", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "OFF"), "A", SendIndicator.None)));
-        string purged = session.Purge("C", CommunicationFormat.Output, OutputArea(1, "OFF"));
+        Assert.Equal("10", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "OFF"), "A", SendIndicator.None)));
+        string purged = session.Purge(Cd("C"), CommunicationFormat.Output, OutputArea(1, "OFF"));
         Assert.Equal("10", OutputStatus(purged));
         Assert.Equal('2', purged[10]);
-        Assert.Equal("70", OutputStatus(session.Purge("C", CommunicationFormat.Output, OutputArea(1, "OFF"))));
-        session.Send("C", CommunicationFormat.Output, OutputArea(1, "OFF"), "A", SendIndicator.None);
+        Assert.Equal("70", OutputStatus(session.Purge(Cd("C"), CommunicationFormat.Output, OutputArea(1, "OFF"))));
+        session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "OFF"), "A", SendIndicator.None);
         string two = "0002" + "0001" + "99" + " " + "NOPE".PadRight(12) + " " + "OFF".PadRight(12);
-        string combined = session.Purge("C", CommunicationFormat.Output, two);
+        string combined = session.Purge(Cd("C"), CommunicationFormat.Output, two);
         Assert.Equal("80", OutputStatus(combined));
         Assert.Equal('1', combined[10]);
         Assert.Equal('2', combined[23]);
-        session.Send("I", CommunicationFormat.InputOutput, InOutArea("T1", 1), "A", SendIndicator.None);
-        session.SetPath("I", CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("T1"), null, enable: false);
-        Assert.Equal("10", InOutStatus(session.Purge("I", CommunicationFormat.InputOutput, InOutArea("T1"))));
+        session.Send(Cd("I"), CommunicationFormat.InputOutput, InOutArea("T1", 1), "A", SendIndicator.None);
+        session.SetPath(Cd("I"), CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("T1"), null, enable: false);
+        Assert.Equal("10", InOutStatus(session.Purge(Cd("I"), CommunicationFormat.InputOutput, InOutArea("T1"))));
     }
 
     [Fact]
     public void SendTheStoreRefuses_KeepsThePortionTheRunUnitHad()
     {
         var session = Session();
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.None)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.None)));
         using (RefusedState())
-            Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "B", SendIndicator.EndOfMessage)));
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "C", SendIndicator.EndOfMessage)));
-        Assert.Equal("ACX", session.Receive("R", CommunicationFormat.Input, InputArea("Q2"), false, "XXX", noDataPhrase: true).Into);
+            Assert.Equal("92", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D2"), "B", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D2"), "C", SendIndicator.EndOfMessage)));
+        Assert.Equal("ACX", session.Receive(Cd("R"), CommunicationFormat.Input, InputArea("Q2"), false, "XXX", noDataPhrase: true).Into);
     }
 
     /// <summary>The host refuses every read, write and flush of <c>mcs.store</c> until the scope ends: the store can neither be entered nor landed on. The end of the scope lets the
@@ -309,17 +313,17 @@ public sealed class MessageControlTests : IDisposable
     {
         var session = Session("""{ "destinations": [ { "name": "DEV" } ] }""");
         string device = Path.Combine(_root, "DEV.out");
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(5, "DEV"), "FIRST", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(5, "DEV"), "FIRST", SendIndicator.EndOfMessage)));
         string first = "FIRST" + Environment.NewLine;
         Assert.Equal(first, File.ReadAllText(device));
         string area = OutputArea(5, "DEV");
         using (RefusedState())
             for (int attempt = 0; attempt < 2; attempt++)
             {
-                Assert.Equal(area[..8] + "92" + area[10..], session.Send("C", CommunicationFormat.Output, area, "HELLO", SendIndicator.EndOfMessage));
+                Assert.Equal(area[..8] + "92" + area[10..], session.Send(Cd("C"), CommunicationFormat.Output, area, "HELLO", SendIndicator.EndOfMessage));
                 Assert.Equal(first, File.ReadAllText(device));
             }
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, area, "HELLO", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, area, "HELLO", SendIndicator.EndOfMessage)));
         Assert.Equal(first + "HELLO" + Environment.NewLine, File.ReadAllText(device));
     }
 
@@ -330,7 +334,7 @@ public sealed class MessageControlTests : IDisposable
         var session = Session("""{ "terminals": [ { "name": "T1" } ] }""");
         using (RefusedState())
         {
-            Assert.Equal("92", InOutStatus(session.Send("I", CommunicationFormat.InputOutput, InOutArea("T1", 2), "XY", SendIndicator.EndOfMessage)));
+            Assert.Equal("92", InOutStatus(session.Send(Cd("I"), CommunicationFormat.InputOutput, InOutArea("T1", 2), "XY", SendIndicator.EndOfMessage)));
             Assert.False(File.Exists(Path.Combine(_root, "T1.out")));
         }
     }
@@ -342,12 +346,12 @@ public sealed class MessageControlTests : IDisposable
         var session = Session("""{ "destinations": [ { "name": "GOOD" }, { "name": "BAD" } ] }""");
         string good = Path.Combine(_root, "GOOD.out"), bad = Path.Combine(_root, "BAD.out");
         string two = "0002" + "0002" + "99" + " " + "GOOD".PadRight(12) + " " + "BAD".PadRight(12);
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "GOOD"), "0", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "GOOD"), "0", SendIndicator.EndOfMessage)));
         Directory.CreateDirectory(bad);
-        Assert.Equal(two[..8] + "92" + two[10..], session.Send("C", CommunicationFormat.Output, two, "AB", SendIndicator.EndOfMessage));
+        Assert.Equal(two[..8] + "92" + two[10..], session.Send(Cd("C"), CommunicationFormat.Output, two, "AB", SendIndicator.EndOfMessage));
         Assert.Equal("0" + Environment.NewLine, File.ReadAllText(good));
         Directory.Delete(bad);
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, two, "AB", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, two, "AB", SendIndicator.EndOfMessage)));
         Assert.Equal("0" + Environment.NewLine + "AB" + Environment.NewLine, File.ReadAllText(good));
         Assert.Equal("AB" + Environment.NewLine, File.ReadAllText(bad));
     }
@@ -362,7 +366,7 @@ public sealed class MessageControlTests : IDisposable
         File.WriteAllText(device, "DELIVERED" + Environment.NewLine);
         Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea("Q"))));
         Assert.Equal("DELIVERED" + Environment.NewLine, File.ReadAllText(device));
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(3, "D1"), "NEW", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(3, "D1"), "NEW", SendIndicator.EndOfMessage)));
         Assert.Equal("DELIVERED" + Environment.NewLine + "NEW" + Environment.NewLine, File.ReadAllText(device));
     }
 
@@ -373,7 +377,7 @@ public sealed class MessageControlTests : IDisposable
     {
         var session = Session("""{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D1" } ] }""");
         string device = Path.Combine(_root, "D1.out");
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(3, "D1"), "ONE", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(3, "D1"), "ONE", SendIndicator.EndOfMessage)));
         string delivered = File.ReadAllText(device);
         session.Dispose();
         File.SetAttributes(device, FileAttributes.ReadOnly);
@@ -403,12 +407,12 @@ public sealed class MessageControlTests : IDisposable
         string area = InputArea("Q1");
         using (RefusedState())
         {
-            var receipt = session.Receive("C", CommunicationFormat.Input, area, false, "XXXX", noDataPhrase: true);
+            var receipt = session.Receive(Cd("C"), CommunicationFormat.Input, area, false, "XXXX", noDataPhrase: true);
             Assert.Equal(area[..79] + "92" + area[81..], receipt.Area);
             Assert.Equal("XXXX", receipt.Into);
             Assert.True(receipt.DataAvailable);
         }
-        var healed = session.Receive("C", CommunicationFormat.Input, area, false, "XXXX", noDataPhrase: true);
+        var healed = session.Receive(Cd("C"), CommunicationFormat.Input, area, false, "XXXX", noDataPhrase: true);
         Assert.Equal("00", InputStatus(healed.Area));
         Assert.Equal("SEED", healed.Into);
     }
@@ -418,10 +422,10 @@ public sealed class MessageControlTests : IDisposable
     public void ReceiveOfARemainderTheStoreRefuses_KeepsItsPlace()
     {
         var session = Session();
-        Assert.Equal("SE", session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("SE", session.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
         using (RefusedState())
-            Assert.Equal("..", session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
-        Assert.Equal("ED", session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+            Assert.Equal("..", session.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("ED", session.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
     }
 
     /// <summary>kb/Work PB5339, §1985:XIV.3.1.4 GR1: ACCEPT MESSAGE COUNT counts "the number of complete messages that exist in the queue structure", and a message a run unit has begun
@@ -432,11 +436,11 @@ public sealed class MessageControlTests : IDisposable
         var receiver = Session();
         var other = Open();
         Assert.Equal("000001", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
-        Assert.Equal("SE", receiver.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("SE", receiver.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
         Assert.Equal("000001", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
         Assert.Equal("000001", InputCount(receiver.AcceptMessageCount(InputArea("Q1"))));
         Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q2"))));
-        Assert.Equal("ED", receiver.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("ED", receiver.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
         Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
         Assert.Equal("000000", InputCount(receiver.AcceptMessageCount(InputArea("Q1"))));
     }
@@ -448,7 +452,7 @@ public sealed class MessageControlTests : IDisposable
     {
         var receiver = Session();
         var other = Open();
-        Assert.Equal("SE", receiver.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("SE", receiver.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
         Assert.Equal("000001", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
         receiver.Dispose();
         Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q1"))));
@@ -463,12 +467,12 @@ public sealed class MessageControlTests : IDisposable
     {
         var sender = Session();
         var other = Open();
-        Assert.Equal("00", OutputStatus(sender.Send("C", CommunicationFormat.Output, OutputArea(3, "D2"), "HEL", SendIndicator.None)));
+        Assert.Equal("00", OutputStatus(sender.Send(Cd("C"), CommunicationFormat.Output, OutputArea(3, "D2"), "HEL", SendIndicator.None)));
         sender.Dispose();
         Assert.Equal("000000", InputCount(other.AcceptMessageCount(InputArea("Q2"))));
-        Assert.Equal("00", OutputStatus(other.Send("C", CommunicationFormat.Output, OutputArea(2, "D2"), "OK", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(other.Send(Cd("C"), CommunicationFormat.Output, OutputArea(2, "D2"), "OK", SendIndicator.EndOfMessage)));
         Assert.Equal("000001", InputCount(other.AcceptMessageCount(InputArea("Q2"))));
-        Assert.Equal("OK", other.Receive("C", CommunicationFormat.Input, InputArea("Q2"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("OK", other.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q2"), false, "..", noDataPhrase: true).Into);
     }
 
     /// <summary>PURGE with a store that refuses keeps the portion and the error keys.</summary>
@@ -477,11 +481,11 @@ public sealed class MessageControlTests : IDisposable
     {
         var session = Session();
         string area = OutputArea(1, "D2");
-        session.Send("C", CommunicationFormat.Output, area, "A", SendIndicator.None);
+        session.Send(Cd("C"), CommunicationFormat.Output, area, "A", SendIndicator.None);
         using (RefusedState())
-            Assert.Equal(area[..8] + "92" + area[10..], session.Purge("C", CommunicationFormat.Output, area));
-        Assert.Equal("00", OutputStatus(session.Purge("C", CommunicationFormat.Output, area)));
-        Assert.Equal("70", OutputStatus(session.Purge("C", CommunicationFormat.Output, area)));
+            Assert.Equal(area[..8] + "92" + area[10..], session.Purge(Cd("C"), CommunicationFormat.Output, area));
+        Assert.Equal("00", OutputStatus(session.Purge(Cd("C"), CommunicationFormat.Output, area)));
+        Assert.Equal("70", OutputStatus(session.Purge(Cd("C"), CommunicationFormat.Output, area)));
     }
 
     /// <summary>ENABLE and DISABLE with a store that refuses: the path stays as it was, an output CD's error keys are not written, and A.1.2.3 GR30's "first statement" is not one that took no action.</summary>
@@ -492,11 +496,11 @@ public sealed class MessageControlTests : IDisposable
         string area = OutputArea(0, "D2");
         using (RefusedState())
         {
-            Assert.Equal(area[..8] + "92" + area[10..], session.SetPath("C", CommunicationFormat.Output, CommunicationPath.Output, area, null, enable: false));
-            Assert.Equal("92", InOutStatus(session.SetPath("I", CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("NOPE"), null, enable: false)));
+            Assert.Equal(area[..8] + "92" + area[10..], session.SetPath(Cd("C"), CommunicationFormat.Output, CommunicationPath.Output, area, null, enable: false));
+            Assert.Equal("92", InOutStatus(session.SetPath(Cd("I"), CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("NOPE"), null, enable: false)));
         }
-        Assert.Equal("15", OutputStatus(session.SetPath("C", CommunicationFormat.Output, CommunicationPath.Output, area, null, enable: true)));
-        Assert.Equal("15", InOutStatus(session.SetPath("I", CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("T1"), null, enable: true)));
+        Assert.Equal("15", OutputStatus(session.SetPath(Cd("C"), CommunicationFormat.Output, CommunicationPath.Output, area, null, enable: true)));
+        Assert.Equal("15", InOutStatus(session.SetPath(Cd("I"), CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("T1"), null, enable: true)));
     }
 
     /// <summary>ACCEPT MESSAGE COUNT with a store the host refuses: the count stays the program's.</summary>
@@ -533,28 +537,28 @@ public sealed class MessageControlTests : IDisposable
     public void HostWhoseLocksAreUnavailable_IsStatus92_ForEveryStatement_AndLeavesTheFilesAsTheyWere()
     {
         var first = Session("""{ "queues": [ { "name": "Q1", "messages": [ "SEED" ] } ], "destinations": [ { "name": "DEV" } ], "terminals": [ { "name": "T1" } ] }""");
-        Assert.Equal("00", OutputStatus(first.Send("C", CommunicationFormat.Output, OutputArea(3, "DEV"), "OLD", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(first.Send(Cd("C"), CommunicationFormat.Output, OutputArea(3, "DEV"), "OLD", SendIndicator.EndOfMessage)));
         first.Dispose();
         byte[] store = Bytes(Path.Combine(_root, "mcs.store")), device = Bytes(Path.Combine(_root, "DEV.out"));
         using (HostRegionLocks.Forcing(new UnavailableHost()))
         {
             var session = Open();
             string output = OutputArea(3, "DEV"), input = InputArea("Q1"), inOut = InOutArea("T1", 2);
-            Assert.Equal(output[..8] + "92" + output[10..], session.Send("C", CommunicationFormat.Output, output, "NEW", SendIndicator.EndOfMessage));
-            Assert.Equal(output[..8] + "92" + output[10..], session.SetPath("C", CommunicationFormat.Output, CommunicationPath.Output, output, null, enable: false));
-            Assert.Equal(output[..8] + "92" + output[10..], session.Purge("C", CommunicationFormat.Output, output));
+            Assert.Equal(output[..8] + "92" + output[10..], session.Send(Cd("C"), CommunicationFormat.Output, output, "NEW", SendIndicator.EndOfMessage));
+            Assert.Equal(output[..8] + "92" + output[10..], session.SetPath(Cd("C"), CommunicationFormat.Output, CommunicationPath.Output, output, null, enable: false));
+            Assert.Equal(output[..8] + "92" + output[10..], session.Purge(Cd("C"), CommunicationFormat.Output, output));
             Assert.Equal(input[..79] + "92" + input[81..], session.AcceptMessageCount(input));
-            Assert.Equal(input[..79] + "92" + input[81..], session.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, input, null, enable: false));
-            var receipt = session.Receive("C", CommunicationFormat.Input, input, false, "XXXX", noDataPhrase: true);
+            Assert.Equal(input[..79] + "92" + input[81..], session.SetPath(Cd("C"), CommunicationFormat.Input, CommunicationPath.Input, input, null, enable: false));
+            var receipt = session.Receive(Cd("C"), CommunicationFormat.Input, input, false, "XXXX", noDataPhrase: true);
             Assert.Equal(input[..79] + "92" + input[81..], receipt.Area);
             Assert.Equal("XXXX", receipt.Into);
-            Assert.Equal(inOut[..31] + "92", session.Send("I", CommunicationFormat.InputOutput, inOut, "XY", SendIndicator.EndOfMessage));
+            Assert.Equal(inOut[..31] + "92", session.Send(Cd("I"), CommunicationFormat.InputOutput, inOut, "XY", SendIndicator.EndOfMessage));
         }
         Assert.Equal(store, Bytes(Path.Combine(_root, "mcs.store")));
         Assert.Equal(device, Bytes(Path.Combine(_root, "DEV.out")));
         Assert.False(File.Exists(Path.Combine(_root, "T1.out")));
         var after = Open();
-        Assert.Equal("SEED", after.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true).Into);
+        Assert.Equal("SEED", after.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true).Into);
     }
 
     /// <summary>A store file the host cannot open (the MCS directory is gone) is status 92 at once, and nothing waits.</summary>
@@ -566,7 +570,7 @@ public sealed class MessageControlTests : IDisposable
         File.WriteAllText(Path.Combine(gone, "mcs.json"), Definitions);
         var session = Open(gone);
         ScratchDirectory.Remove(gone);
-        Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
+        Assert.Equal("92", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
     }
 
     /// <summary>⛔ A STATEMENT REFUSED AT ANY WRITE ANSWERS COMPLETED OR NO ACTION, NEVER BOTH (§6 "Status 92 takes no action"): for every write of a SEND, the host refuses it and every later
@@ -584,7 +588,7 @@ public sealed class MessageControlTests : IDisposable
             var session = Open(root);
             Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea("Q"))));
             _fault!.RefuseWritesFrom = from;
-            string status = OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D"), "M", SendIndicator.EndOfMessage));
+            string status = OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D"), "M", SendIndicator.EndOfMessage));
             _fault.RefuseWritesFrom = null;
             string count = InputCount(session.AcceptMessageCount(InputArea("Q")));
             if (status == "00")
@@ -609,7 +613,7 @@ public sealed class MessageControlTests : IDisposable
         _fault!.RefuseWritesFrom = 0;
         _fault.ReadsFailAfterARefusedWrite = true;
         string area = OutputArea(1, "D");
-        Assert.Equal(area[..8] + "93" + area[10..], session.Send("C", CommunicationFormat.Output, area, "M", SendIndicator.EndOfMessage));
+        Assert.Equal(area[..8] + "93" + area[10..], session.Send(Cd("C"), CommunicationFormat.Output, area, "M", SendIndicator.EndOfMessage));
         _fault.RefuseWritesFrom = null;
         _fault.ReadsFailAfterARefusedWrite = false;
         Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea("Q"))));
@@ -642,21 +646,21 @@ public sealed class MessageControlTests : IDisposable
         File.WriteAllText(Path.Combine(_root, "mcs.json"),
             """{ "queues": [ { "name": "Q1", "key": "OLD", "messages": [ "A" ] }, { "name": "Q2", "messages": [ "GONE" ] } ] }""");
         var first = Open();
-        Assert.Equal("00", InputStatus(first.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q1"), "OLD", enable: false)));
+        Assert.Equal("00", InputStatus(first.SetPath(Cd("C"), CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q1"), "OLD", enable: false)));
         Assert.Equal("000001", InputCount(first.AcceptMessageCount(InputArea("Q2"))));
         File.WriteAllText(Path.Combine(_root, "mcs.json"),
             """{ "queues": [ { "name": "Q1", "key": "NEW", "messages": [ "IGNORED" ] }, { "name": "Q3", "messages": [ "N" ] } ] }""");
         var second = Open();
-        Assert.Equal("40", InputStatus(second.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q1"), "OLD", enable: true)));   // the new key
-        Assert.Equal("00", InputStatus(second.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q1"), "NEW", enable: true)));   // it was kept disabled
+        Assert.Equal("40", InputStatus(second.SetPath(Cd("C"), CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q1"), "OLD", enable: true)));   // the new key
+        Assert.Equal("00", InputStatus(second.SetPath(Cd("C"), CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q1"), "NEW", enable: true)));   // it was kept disabled
         Assert.Equal("000001", InputCount(second.AcceptMessageCount(InputArea("Q1"))));   // A, not IGNORED
         Assert.Equal("000001", InputCount(second.AcceptMessageCount(InputArea("Q3"))));
         Assert.Equal("20", InputStatus(second.AcceptMessageCount(InputArea("Q2"))));
         string[] queues = [.. McsInspector.Rows(_root).Where(r => r.Key[0] is (byte)'M' or (byte)'N').Select(r => System.Text.Encoding.UTF8.GetString(r.Key, 1, r.Key.Length - 1))];
         Assert.DoesNotContain(queues, q => q.StartsWith("Q2", StringComparison.Ordinal));
         McsInspector.AssertCountsEqualARecount(_root);
-        Assert.Equal("N", second.Receive("C", CommunicationFormat.Input, InputArea("Q3"), false, ".", noDataPhrase: true).Into);
-        Assert.False(Open().Receive("C", CommunicationFormat.Input, InputArea("Q3"), false, ".", noDataPhrase: true).DataAvailable);   // the third run unit seeded nothing again
+        Assert.Equal("N", second.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q3"), false, ".", noDataPhrase: true).Into);
+        Assert.False(Open().Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q3"), false, ".", noDataPhrase: true).DataAvailable);   // the third run unit seeded nothing again
     }
 
     /// <summary>⛔ DEVICES (§6 "Devices"): a message is written at the device's committed end, so a tail a dead statement left past it is overwritten by the next transmission, and the first statement of a
@@ -666,9 +670,9 @@ public sealed class MessageControlTests : IDisposable
     {
         string device = Path.Combine(_root, "DEV.out");
         var first = Session("""{ "destinations": [ { "name": "DEV" } ] }""");
-        Assert.Equal("00", OutputStatus(first.Send("C", CommunicationFormat.Output, OutputArea(3, "DEV"), "ONE", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(first.Send(Cd("C"), CommunicationFormat.Output, OutputArea(3, "DEV"), "ONE", SendIndicator.EndOfMessage)));
         File.AppendAllText(device, "JUNK-OF-A-DEAD-STATEMENT");
-        Assert.Equal("00", OutputStatus(first.Send("C", CommunicationFormat.Output, OutputArea(3, "DEV"), "TWO", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(first.Send(Cd("C"), CommunicationFormat.Output, OutputArea(3, "DEV"), "TWO", SendIndicator.EndOfMessage)));
         Assert.Equal("ONE" + Environment.NewLine + "TWO" + Environment.NewLine, File.ReadAllText(device));
         File.AppendAllText(device, "MORE-JUNK");
         Assert.Equal("000000", InputCount(Open().AcceptMessageCount(InputArea("Q"))));
@@ -692,9 +696,9 @@ public sealed class MessageControlTests : IDisposable
     [Fact]
     public void Message_OutlivesTheRunUnitThatSentIt()
     {
-        Session().Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage);
+        Session().Send(Cd("C"), CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage);
         var other = Session();
-        var receipt = other.Receive("C", CommunicationFormat.Input, InputArea("Q2"), false, "......", noDataPhrase: true);
+        var receipt = other.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q2"), false, "......", noDataPhrase: true);
         Assert.True(receipt.DataAvailable);
         Assert.Equal("ABCD..", receipt.Into);
         Assert.Equal("00", InputStatus(receipt.Area));
@@ -706,29 +710,29 @@ public sealed class MessageControlTests : IDisposable
     public void SeededMessage_EntersTheQueueOnce()
     {
         var first = Session();
-        var receipt = first.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true);
+        var receipt = first.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true);
         Assert.Equal("SEED", receipt.Into);
         Assert.Equal("260102", receipt.Area.Substring(48, 6));
         Assert.Equal("03040506", receipt.Area.Substring(54, 8));
-        Assert.False(Session().Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true).DataAvailable);
+        Assert.False(Session().Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true).DataAvailable);
     }
 
     /// <summary>ISO/IEC 1989:2002 14.5.10 rule 2: "Any portions of messages transferred from the run unit by a SEND statement, and not terminated by an EMI or EGI, are purged from the system."</summary>
     [Fact]
     public void PortionNotEnded_IsPurgedWithTheRunUnit()
     {
-        Assert.Equal("00", OutputStatus(Session().Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.None)));
+        Assert.Equal("00", OutputStatus(Session().Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.None)));
         var next = Session();
-        Assert.Equal("00", OutputStatus(next.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "B", SendIndicator.EndOfMessage)));
-        Assert.Equal("BX", next.Receive("C", CommunicationFormat.Input, InputArea("Q2"), false, "XX", noDataPhrase: true).Into);
+        Assert.Equal("00", OutputStatus(next.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D2"), "B", SendIndicator.EndOfMessage)));
+        Assert.Equal("BX", next.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q2"), false, "XX", noDataPhrase: true).Into);
     }
 
     /// <summary>The same rule's other half: "remaining portions of any partially-received messages are eliminated from the queue."</summary>
     [Fact]
     public void RemainderNotReceived_IsEliminatedWithTheRunUnit()
     {
-        Assert.Equal("SE", Session().Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
-        Assert.False(Session().Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).DataAvailable);
+        Assert.Equal("SE", Session().Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.False(Session().Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).DataAvailable);
     }
 
     /// <summary>A.2.5.3 GR5 b): "If the NO DATA phrase is not specified ... execution of the run unit is suspended until data is made available". Another run unit makes it available while this
@@ -741,9 +745,9 @@ public sealed class MessageControlTests : IDisposable
         var waiter = Open(awaitData: () =>
         {
             waits++;
-            Assert.Equal("00", OutputStatus(sender.Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
+            Assert.Equal("00", OutputStatus(sender.Send(Cd("C"), CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
         });
-        var receipt = waiter.Receive("C", CommunicationFormat.Input, InputArea("Q2"), false, "....", noDataPhrase: false);
+        var receipt = waiter.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q2"), false, "....", noDataPhrase: false);
         Assert.Equal(1, waits);
         Assert.Equal("ABCD", receipt.Into);
         Assert.True(receipt.DataAvailable);
@@ -753,8 +757,8 @@ public sealed class MessageControlTests : IDisposable
     public void DeliveryToATerminal_ReachesItsReceive()
     {
         var session = Session();
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(2, "T9"), "HI", SendIndicator.EndOfGroup)));
-        var receipt = session.Receive("I", CommunicationFormat.InputOutput, InOutArea("T1"), false, "..", noDataPhrase: true);
+        Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(2, "T9"), "HI", SendIndicator.EndOfGroup)));
+        var receipt = session.Receive(Cd("I"), CommunicationFormat.InputOutput, InOutArea("T1"), false, "..", noDataPhrase: true);
         Assert.Equal("HI", receipt.Into);
         Assert.Equal('3', receipt.Area[30]);
         Assert.Equal("0002", receipt.Area.Substring(26, 4));
@@ -765,9 +769,9 @@ public sealed class MessageControlTests : IDisposable
     public void Transmission_AppendsTheWholeMessageToTheDevice()
     {
         var session = Session("""{ "destinations": [ { "name": "DEV" } ], "terminals": [ { "name": "T1" } ] }""");
-        session.Send("C", CommunicationFormat.Output, OutputArea(2, "DEV"), "AB", SendIndicator.EndOfSegment);
-        session.Send("C", CommunicationFormat.Output, OutputArea(1, "DEV"), "C", SendIndicator.EndOfMessage);
-        session.Send("I", CommunicationFormat.InputOutput, InOutArea("T1", 2), "XY", SendIndicator.EndOfMessage);
+        session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(2, "DEV"), "AB", SendIndicator.EndOfSegment);
+        session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "DEV"), "C", SendIndicator.EndOfMessage);
+        session.Send(Cd("I"), CommunicationFormat.InputOutput, InOutArea("T1", 2), "XY", SendIndicator.EndOfMessage);
         Assert.Equal("ABC" + Environment.NewLine, File.ReadAllText(Path.Combine(_root, "DEV.out")));
         Assert.Equal("XY" + Environment.NewLine, File.ReadAllText(Path.Combine(_root, "T1.out")));
     }
@@ -776,11 +780,11 @@ public sealed class MessageControlTests : IDisposable
     [Fact]
     public void InitialArea_NamesWhatScheduledTheRunUnit_OrSpaces()
     {
-        string scheduled = Session(Definitions, "Q1", "SUB").InitialArea("C", CommunicationFormat.Input, InputArea("OLD"), scheduledProgram: true);
+        string scheduled = Session(Definitions, "Q1", "SUB").InitialArea(Cd("C"), CommunicationFormat.Input, InputArea("OLD"), scheduledProgram: true);
         Assert.Equal("Q1".PadRight(12) + "SUB".PadRight(12) + new string(' ', 24), scheduled[..48]);
-        string notScheduled = Session().InitialArea("C", CommunicationFormat.Input, InputArea("OLD"), scheduledProgram: true);
+        string notScheduled = Session().InitialArea(Cd("C"), CommunicationFormat.Input, InputArea("OLD"), scheduledProgram: true);
         Assert.Equal(new string(' ', 48), notScheduled[..48]);
-        Assert.Equal(new string(' ', 12), Session().InitialArea("I", CommunicationFormat.InputOutput, InOutArea("OLD"), scheduledProgram: true).Substring(14, 12));
+        Assert.Equal(new string(' ', 12), Session().InitialArea(Cd("I"), CommunicationFormat.InputOutput, InOutArea("OLD"), scheduledProgram: true).Substring(14, 12));
     }
 
     /// <summary>§1985:XIV.2.2.4 GR28 and GR6: only "a program scheduled by the MCS" - the one that establishes the run unit - receives the scheduling names; a CALLed program's INITIAL CD is
@@ -789,8 +793,8 @@ public sealed class MessageControlTests : IDisposable
     public void InitialArea_OfAProgramTheMcsDidNotSchedule_IsSpaces_AndTakesNoTerminalLock()
     {
         var session = Session(Definitions, "T1");
-        Assert.Equal(new string(' ', 12), session.InitialArea("S", CommunicationFormat.InputOutput, InOutArea("OLD"), scheduledProgram: false).Substring(14, 12));
-        Assert.Equal(new string(' ', 48), session.InitialArea("C", CommunicationFormat.Input, InputArea("OLD"), scheduledProgram: false)[..48]);
+        Assert.Equal(new string(' ', 12), session.InitialArea(Cd("S"), CommunicationFormat.InputOutput, InOutArea("OLD"), scheduledProgram: false).Substring(14, 12));
+        Assert.Equal(new string(' ', 48), session.InitialArea(Cd("C"), CommunicationFormat.Input, InputArea("OLD"), scheduledProgram: false)[..48]);
     }
 
     /// <summary>A.1.2.3 GR30: when the MCS scheduled the run unit, the terminal's name "shall not be changed by the program" from the first statement on.</summary>
@@ -798,9 +802,9 @@ public sealed class MessageControlTests : IDisposable
     public void ScheduledTerminal_ChangedBeforeTheFirstStatement_IsUnknown()
     {
         var session = Session(Definitions, "T1");
-        Assert.Equal("T1".PadRight(12), session.InitialArea("I", CommunicationFormat.InputOutput, InOutArea(""), scheduledProgram: true).Substring(14, 12));
-        Assert.Equal("21", InOutStatus(session.Receive("I", CommunicationFormat.InputOutput, InOutArea("T2"), false, ".", noDataPhrase: true).Area));
-        Assert.Equal("00", InOutStatus(session.Receive("I", CommunicationFormat.InputOutput, InOutArea("T1"), false, ".", noDataPhrase: true).Area));
+        Assert.Equal("T1".PadRight(12), session.InitialArea(Cd("I"), CommunicationFormat.InputOutput, InOutArea(""), scheduledProgram: true).Substring(14, 12));
+        Assert.Equal("21", InOutStatus(session.Receive(Cd("I"), CommunicationFormat.InputOutput, InOutArea("T2"), false, ".", noDataPhrase: true).Area));
+        Assert.Equal("00", InOutStatus(session.Receive(Cd("I"), CommunicationFormat.InputOutput, InOutArea("T1"), false, ".", noDataPhrase: true).Area));
     }
 
     /// <summary>A.1.2.3 GR5: "When a given level of the queue structure is specified all higher levels shall also be specified."</summary>
