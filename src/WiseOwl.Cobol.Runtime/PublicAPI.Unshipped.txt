@@ -151,6 +151,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.R
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly = 5 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.InspectFormat3LengthIdentifiedOnce = 7 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.RecordContainsRangeBindsRecordSize = 13 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool
@@ -1120,9 +1121,11 @@ WiseOwl.Cobol.Runtime.DebugCause.UseProcedure = 7 -> WiseOwl.Cobol.Runtime.Debug
 *REMOVED*WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply) -> void
 WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply, bool crossFoot) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.BeginOpen(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode) -> void
-static WiseOwl.Cobol.Runtime.IO.CobolFile.EndOpen(string! name) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.BeginClose(string! name) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.EndModeScope(string! name) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.BeginOpen(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode) -> void
-WiseOwl.Cobol.Runtime.IO.FileRegistry.EndOpen(string! name) -> void
+WiseOwl.Cobol.Runtime.IO.FileRegistry.BeginClose(string! name) -> void
+WiseOwl.Cobol.Runtime.IO.FileRegistry.EndModeScope(string! name) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void

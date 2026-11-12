@@ -1569,11 +1569,12 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   no runtime registry for local dispatch. The return is VOID only in an EC-FREE group (continue after the failing
   statement, GR7b); a group that uses the EC model gets the int-returning `__RunUse` and an int `__IoCheck` that hand
   the dispatch result back to the verb site (kb/Work PB141). One settled deviation: a successful
-  CLOSE resets the connector's open-mode view to none (§2023:9.1.4) — the mode an OPEN statement attempts is the file's
-  BEING-OPENED mode for GR6b scoping (`CobolFile.BeginOpen`/`EndOpen`, emitted around the OPEN, its status store and its
-  USE hook by `SequentialIoEmitter.EmitOpenScope`, the SORT/MERGE implicit opens too), set before the OPEN does anything
-  so a refused OPEN ('41', '38') has it, and ended with the statement so no later statement finds a failed OPEN's mode
-  (kb/Work PB5200).
+  CLOSE resets the connector's open-mode view to none (§2023:9.1.4), and so does a failed one (docs/CONFORMANCE.md DOC-A.1-105;
+  `FileConnector.Close` clears the mode whatever the outcome) — the mode an OPEN statement attempts, and the mode a CLOSE was issued
+  against, is the file's STATEMENT mode for GR6b scoping (`CobolFile.BeginOpen`/`BeginClose`/`EndModeScope`, emitted around the
+  statement, its status store and its USE hook by `SequentialIoEmitter.EmitOpenScope`/`EmitCloseScope`, the SORT/MERGE implicit opens
+  and closes too), set before the statement does anything so a refused OPEN ('41', '38') and a CLOSE that answers '30' have it, and
+  ended with the statement so no later statement finds a failed OPEN's or CLOSE's mode (kb/Work PB5200, PB5261).
   **⛔ THE PAIR HANDED TO `__RunUse` IS THE DECLARATIVE SECTION'S OWN `PcRange`, AND NOTHING SHORTENS IT**
   (`BoundDeclarative.Range`, rendered at the ONE site `DispatchState.RunUseCall`). §2023:14.9.49.3 SR1 makes the use
   procedure "the remainder of the section", §2023:14.4.2 ends that section only at the next section header or END
