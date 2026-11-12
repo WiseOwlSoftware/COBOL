@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-3",
  "rule-digest": "cb2c48143d11",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsTransferString; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#SendingGroupImage",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-3",
+ "notes": "Overturn confirmed. GR3's range test is against 'the size of the data item referenced by identifier-1'. The standard defines size for an elementary item and a group alike as the number of characters in standard data format (IV.4.3.4, Amendment 1). The same paragraph notes that usage may make this differ from the internal representation, so the storage reading is excluded by the text, not left open. Group GC (XX + 9(4) BINARY) therefore has size 6, and text length 6 is in range. The compiler answers 50 because the group arm measures storage (SendingGroupImage, 4 bytes), while the elementary arm measures the digit image (AsTransferString: 9(4) COMP takes length 4 with status 00 and sends [0012]). Own probe: the same 9(4) BINARY data sent as an elementary item with text length 4 gives 00, and as the only member of a group GB with text length 4 gives 50. GC with text length 5 gives 50 where 00 is expected. The note PB5378 is right on the IV.4.3.4 measure and its expected result (GC length 6 is 00). It is wrong to leave the storage measure open as an alternative ('Alternatively, measure storage character positions throughout'): IV.4.3.4 decides it, so the note's expected result should state only the standard-data-format answer. kb/Work PB5378 holds the defect (adjudication: held-85/set5/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

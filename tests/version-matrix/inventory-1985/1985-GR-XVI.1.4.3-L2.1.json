@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.1.4.3-L2.1",
  "rule-digest": "da3b30141f10",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitSegmentState",
  "test-ref": "conformance:cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-L2_1",
+ "notes": "Overturn confirmed. Under a PERFORM that iterates (TIMES, UNTIL, VARYING), IV.4.4.2 makes the transfer from the PERFORM's control mechanism to the first statement of the range an implicit transfer 'for each iterative execution'. The control mechanism belongs to the PERFORM statement, which lies in segment 0. An independent segment entered implicitly from a different segment-number, other than by fall-through between consecutive statements or SORT/MERGE procedure entry, is in its last-used state (GRL2.1). So the second and later iterations must see the range's own ALTER. Rerun p1-iter.cob: S60 INITIAL twice and T70 INITIAL 1 then 2. Own probe r7own.cob: two separate PERFORM S60 statements are each INITIAL, which is right (each PERFORM is an explicit transfer). PERFORM S60 UNTIL N > 2 gives INITIAL 1, 2 and 3, where 2 and 3 must be ALTERED. Cause: each iteration calls the dispatch method afresh, its finally restores __seg, and the loop head's __EnterSegment resets the segment's alterable GO TOs. The note PB5380 is right in its citations, its sites and its expected output. One reading point it should state: its 'S60 INITIAL' for the FIRST iteration treats the PERFORM's own entry as explicit (IV.4.4.2: an explicit transfer is caused by a procedure branching statement, which PERFORM is). IV.4.4.2 GR1's 'for each iterative execution' could also be read to cover the first pass, which would make even the first entry of a second PERFORM statement last-used. The verdict does not depend on that point, because the second and later iterations are implicit under either reading. kb/Work PB5380 holds the defect (adjudication: held-85/set5/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

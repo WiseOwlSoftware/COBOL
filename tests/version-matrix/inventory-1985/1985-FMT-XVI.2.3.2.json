@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XVI.2.3.2",
  "rule-digest": "4cf66f29766d",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ScreenSegmentNumber",
  "test-ref": "conformance:cases/XVI.2.3@1985-SEGMENT-LIMIT-CLAUSE/1985-FMT-XVI_2_3_2",
+ "notes": "Overturn confirmed, as PARTIAL (the format and SR1's value range are implemented; the form of the operand is not). The format's operand is a segment-number, and the standard defines that user-defined word: 'A segment-number may be expressed either as a one or two digit number' (III.2). SR1 bounds its value. No other text states a form, and none conflicts with the definition. III.1 says the glossary definitions are brief and leave detailed syntactical rules to Sections IV to XVI, but that does not make them non-normative. Here the definition is the only statement of what a segment-number looks like, so a three-digit word is not one. The same compiler enforces the identical one-or-two-digit form for level-numbers (COBOL1746 on '001'). Rerun: SEGMENT-LIMIT IS 010 and IS 001, and SECTION 020, compile and run. IS 09 compiles, which is right. Own probe: SECTION 007 compiles (it should be refused) and SECTION 07 compiles (right). ScreenSegmentNumber checks only the integer's value. Harm is under-rejection only; no program changes meaning. The note PB5379 is right in its citations, its expected result and its site. The section-header sibling it names (XVI.3.2.2 and XVI.3.2.3) belongs to the same fix. kb/Work PB5379 holds the defect (adjudication: held-85/set5/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

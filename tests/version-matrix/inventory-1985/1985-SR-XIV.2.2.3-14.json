@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-14",
  "rule-digest": "55c3e46457a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CheckRecords; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#FirstWithValue; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#StandardDataFormatCharacters; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckCommunicationRecordsPass.cs#Run",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-14",
+ "notes": "The input-output-CD (33-character) form of 1985-SR-XIV.2.2.3-5, answered once there: an ODO record of maximum 33 is a fixed-length record of 33 (VI.5.8.4 GR2b, GR5), and an 88 in a later record is a VALUE clause the rule bans. The scaled-item count is right (s5p refuses X(26)+9(4)P(3) BINARY, 30 characters).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

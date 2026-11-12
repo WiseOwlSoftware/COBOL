@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-9",
  "rule-digest": "0a7a5382b6d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CheckRecords; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#FirstWithValue; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BuildArea",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-9",
+ "notes": "The condition-name question of 1985-SR-XIV.2.2.3-5, answered once there: a later output-CD record's 88 entry is a VALUE clause that the record contains, and SR9, unlike REDEFINES SR9, writes no condition-name exception, so COBOL6169 is right. An 88 in the FIRST record is accepted (cd1), a VALUE or an 88 in a later one refused (s9v, cd2). The refuter confirmed the rest.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

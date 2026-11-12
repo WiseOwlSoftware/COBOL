@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.3.4-2",
  "rule-digest": "da60210f62a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Enable; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#SetQueuePaths; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#PathOpen; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#Deliver; src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#FindQueue",
  "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-2",
+ "notes": "The same question as 1985-GR-XIV.3.2.4-3, answered once there. GR2's activation of the queue structure and every associated source path is right on every probe (ENABLE Q1 reopens both sub-queues; a partly enabled structure answers 00 and opens the rest, which GR1 permits). The status-80 finding (ENABLE INPUT Q1/SX with Q1 already enabled answers 20, Table 1 and §1985:B.2.2 (41) e require 80) belongs to XIV.2.2.4 GR34 / XIV.3.3.4 GR1, recorded as the sibling defect below.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

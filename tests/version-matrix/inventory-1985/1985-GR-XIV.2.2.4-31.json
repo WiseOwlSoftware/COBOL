@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-31",
  "rule-digest": "1baf295181fd",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Dialogue",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-31",
+ "notes": "Overturn confirmed. GR31 fixes data-name-3 only after the first statement referencing cd-name-1. A program put back in its initial state, after CANCEL (X.2.4.2 GR2) or on every CALL of an initial program (GR3), is in 'the state of a program the first time it is called in a run unit' (X.2.4). In that state no statement referencing cd-name-1 has executed, and the cancelled instance has 'cease[d] to have any logical relationship to the run unit' (X.5.3.4 GR2). The compiler's lock lives in a run-unit dictionary in MessageControlSession.Dialogue (LockedTerminalChanged) that nothing clears, so it outlives the activation. Rerun: p31b ends SUB3 20 (expected 00). p28plain (initial program, plain I-O CD) shows the CD area reinitialised (ENTRY2 [            ]) yet answers SUB2 20 (expected 00). Own probe r8own.cob separates which name is locked: after CANCEL, the new activation's first SEND to T3 gives 20, and moving T2 (the cancelled activation's terminal) back gives 00. Expected: 00 (T3 locked anew), then 20. The note PB5381 is right in its citations, its expected results and its site. It leaves the refuter's second arm open. That arm is decided by the same text: GR31 tests whether the CONTENT of data-name-3 changed, and 't1' after a 'T1' lock is changed content (p31b: LOWER 00, expected 20). The case equivalence of lowercase letters applies to COBOL words in source text, not to the content of a data item. The note should add this arm, at the same site (the comparison that case-folds). kb/Work PB5381 holds the defect (adjudication: held-85/set5/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
