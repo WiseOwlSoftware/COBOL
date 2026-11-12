@@ -40,8 +40,10 @@ internal sealed class AlterSwitchEmitter(EmitContext ctx, DispatchState dispatch
     /// differs from <c>__seg</c> calls <c>__EnterSegment</c>, which returns that segment's alterable GO TOs to the targets
     /// they were written with; each <c>__Dispatch</c> call restores the caller's <c>__seg</c> when it returns, which is
     /// the last-used return (an EXIT PROGRAM returns to another program instance, whose <c>__seg</c> nothing changed).
-    /// §1985:XVI.3.3.1 lets only an ALTER of the segment's own sections set such a GO TO (COBOL6877), so the reset never
-    /// undoes an ALTER executed in the segment since control entered it. Emitted only where an independent segment holds
+    /// §1985:XVI.3.3.1 lets only an ALTER of the segment's own sections set such a GO TO (COBOL6877, asked at COBOL-85 and
+    /// under --permissive, <c>Segmentation.MeaningKept</c>, the only editions that reach here), so the reset never undoes an ALTER
+    /// executed in the segment since control entered it. The table is a byte per pc because the range screen (COBOL6819, same editions)
+    /// has refused every number above 99. Emitted only where an independent segment holds
     /// an alterable GO TO; returns whether it emitted.</summary>
     public bool EmitSegmentState(BoundProgram bound, CodeWriter w)
     {
