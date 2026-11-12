@@ -1,4 +1,4 @@
-## PB4995: first witnesses for 19 1985 rules that never had a draft (13 placed, 6 mismatches on 5 notes)
+## Entry 3548 — 2026-11-12 15:01 PST — PB4995: first witnesses for 19 1985 rules that never had a draft (13 placed, 6 mismatches on 5 notes)
 
 The locator's category F named 20 open 1985 rows that had no draft in any evidence. One of them, `1985-GR-XII.2.4-12`, got
 a test-ref this morning from witnesses-85g, so I dropped it. For each of the other 19, I wrote a draft from the rule's 1985
@@ -22,3 +22,4 @@ repros to PB5115 (BLOCK CONTAINS 4 TO 4 refused at 85), PB5116 (TYPE CH with no 
 accepted) and PB5108 (MOVE FUNCTION MAX accepted). I filed two new notes. PB5445 covers a RECORD KEY or ALTERNATE RECORD
 KEY that names a group containing an ODO table: it compiles at 85, and the 1985 rule refuses it. PB5446 covers `cite.py`
 suggesting a designator its own parser refuses. The details are in `kb/Work/PB4995/2026-11-12-drafts-85m.md`.
+
