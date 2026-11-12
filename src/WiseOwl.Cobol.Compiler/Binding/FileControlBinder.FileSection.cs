@@ -364,9 +364,13 @@ public sealed partial class FileControlBinder
         // FORMAT 2 vs FORMAT 3: the WORD VARYING is the discriminator, and it is load-bearing — §2023:13.18.43.4 GR16
         // (the READ/RETURN INTO sending size) sits under the FORMAT 2 heading and §2023:14.9.30.4 GR4 b) designates
         // the implied move an alphanumeric group move only for a RECORD IS VARYING clause (kb/Work PB339).
-        file.Varying = new VaryingRecordInfo(lo, hi, dep, VaryingClause: rc.VARYING() is not null)
+        bool varyingClause = rc.VARYING() is not null;
+        file.Varying = new VaryingRecordInfo(lo, hi, dep, VaryingClause: varyingClause)
         {
             DependingQualifiers = depQuals, DependingAt = depAt,
+            // Format 3's integers bound a WRITE/REWRITE only where the edition states GR19 (2002 on) (kb/Work PB5197).
+            BoundsEnforced = varyingClause
+                || DialectBehaviors.IsActive(DialectBehavior.RecordContainsRangeBindsRecordSize, Edition.DialectLevel),
         };
     }
 
