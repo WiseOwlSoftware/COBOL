@@ -2110,6 +2110,21 @@ internal static class RuntimeApi
     public static string McsPurge(string cd, string format, string area) =>
         $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.Purge)}({cd}, {format}, {area})";
 
+    /// <summary>The characters in standard data format (§1985:IV.4.3.4) of the group whose storage image is <paramref name="storage"/>,
+    /// composed from its layout (<see cref="ItemLength.StandardLayout"/>) by <c>CobolStandardData.Image</c> (kb/Work PB5378).</summary>
+    public static string StandardDataImage(string storage, IReadOnlyList<ItemLength.StandardPart> layout) =>
+        $"{nameof(CobolStandardData)}.{nameof(CobolStandardData.Image)}({storage}, {StandardParts(layout)})";
+
+    private static string StandardParts(IReadOnlyList<ItemLength.StandardPart> parts) =>
+        $"new {nameof(StandardDataPart)}[] {{ {string.Join(", ", parts.Select(StandardPart))} }}";
+
+    private static string StandardPart(ItemLength.StandardPart part) =>
+        $"new {nameof(StandardDataPart)}({part.Offset}, {part.Width}"
+        + (part.Converted is { } item ? $", profile: {item.ProfileName}" : "")
+        + (part.Count != 1 ? $", count: {part.Count}" : "")
+        + (part.Members is { } members ? $", members: {StandardParts(members)}" : "")
+        + ")";
+
     public static string McsSend(string cd, string format, string area, string text, string indicator) =>
         $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.Send)}({cd}, {format}, {area}, {text}, {indicator})";
 
