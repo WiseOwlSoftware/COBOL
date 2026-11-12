@@ -12361,13 +12361,13 @@ The SPECIAL-NAMES paragraph provides a means for:
 <u>SPECIAL-NAMES</u>.
 [ alphabet-name-clause ] …
 
-┌                    ┌     ╭ <u>ALPHANUMERIC</u> ╮ ┐                             ┐
-│ <u>CLASS</u> class-name-1 │ FOR ┤              ├ │                             │
-│                    └     ╰ <u>NATIONAL</u>     ╯ ┘                             │
-│                                                                         │ …
-│    ╭               ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
-│ IS ┤ literal-5     │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
-└    ╰               └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
+┌                      ┌     ╭ <u>ALPHANUMERIC</u> ╮ ┐                             ┐
+│ <u>CLASS</u> class-name-1   │ FOR ┤              ├ │                             │
+│                      └     ╰ <u>NATIONAL</u>     ╯ ┘                             │
+│                                                                           │ …
+│          ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
+│       IS ┤ literal-5 │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
+└          ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
 
 [ <u>CRT</u> <u>STATUS</u> IS data-name-2 ]
 
@@ -13109,7 +13109,7 @@ Format 1 (indexed):
 │ <u>ALTERNATE</u> <u>RECORD</u> KEY IS ┤                                               ├ │   │
 │                         ╰ record-key-name-1 <u>SOURCE</u> IS { data-name-3 } … ╯ │ … │
 │                                                                           │   │
-└ [ WITH <u>DUPLICATES</u> ] [ <u>SUPPRESS</u> WHEN literal-2 ]                           ┘   │
+└        [ WITH <u>DUPLICATES</u> ] [ <u>SUPPRESS</u> WHEN literal-2 ]                    ┘   │
                                                                                 │
 [ collating-sequence-clause ] …                                                 │
                                                                                 │
@@ -17090,8 +17090,8 @@ Format 1 (report-writer):
 <pre style="line-height:1">
                      ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮
 ╭ <u>LINE</u> NUMBER IS   ╮ │                            │
-│                  │ │ ╭ <u>PLUS</u> ╮                   │ …
-┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├
+│                  │ │ ╭ <u>PLUS</u> ╮                   │
+┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├ …
 │                  │ │ ╰ +    ╯                   │
 ╰ <u>LINES</u> ARE        ╯ │                            │
                      ╰ ON <u>NEXT</u> <u>PAGE</u>               ╯
@@ -18680,8 +18680,8 @@ Format 1 (fixed-length):
 Format 2 (variable-length):
 
 <pre style="line-height:1">
-<u>RECORD</u> IS <u>VARYING</u> IN SIZE ┌                                     ╭ BYTES      ╮ ┐
-                          │ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] ┤            ├ │
+                          ┌                                     ╭ BYTES      ╮ ┐
+<u>RECORD</u> IS <u>VARYING</u> IN SIZE │ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] ┤            ├ │
                           └                                     ╰ CHARACTERS ╯ ┘
 
 [ <u>DEPENDING</u> ON data-name-1 ]
@@ -28671,10 +28671,9 @@ The UNLOCK statement explicitly releases any record locks associated with a file
 ##### 14.9.47.2 General format
 
 <pre style="line-height:1">
-<u>UNLOCK</u>      ┌ RECORD  ┐
-            │         │
-file-name-1 │         │
-            └ RECORDS ┘
+                   ┌ RECORD  ┐
+<u>UNLOCK</u> file-name-1 │         │
+                   └ RECORDS ┘
 </pre>
 
 <a id="section-14-9-47-3"></a>

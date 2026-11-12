@@ -221,6 +221,12 @@ internal static class HostRegionLocks
     internal static long TransactionLivenessByte(ulong transaction) =>
         LivenessRegionBase + (long)(transaction & (ulong)RecordRegionMask);
 
+    /// <summary>⛔ THE BYTE THAT SAYS A MESSAGE-CONTROL RUN UNIT IS ALIVE (docs/rearchitecture/DESIGN-communication-facility.md §6 "The store", <c>PartialReceives</c>; kb/Work PB5339): one byte
+    /// per run unit's id on <c>mcs.store</c>, <c>2^62 + 2^61 + (id mod 2^60)</c>, held exclusively through the session's writable handle from its open until it is given back, so another
+    /// run unit reads "the owner of this partly received message is dead" as one free byte, exactly as it reads a keyed store's dead transaction (<see cref="TransactionLivenessByte"/>:
+    /// the same region, because the two kinds of file never share a physical file).</summary>
+    internal static long McsRunUnitLivenessByte(ulong runUnit) => TransactionLivenessByte(runUnit);
+
     /// <summary>The first byte of the WINDOWS Table 19 COLUMN region (<see cref="HandleColumnLockHost"/>, kb/Work PB3482):
     /// 2^62 + 2^61 + 2^60, past the transaction-liveness region's end. Linux publishes a column as the ONE byte at
     /// <see cref="RegionBase"/> + its wire number (<see cref="OfdColumnLockHost"/>); a Windows column is a RANGE, because

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 using WiseOwl.Cobol.Runtime.IO;
@@ -29,6 +30,10 @@ internal sealed class McsStore : IDisposable
     private readonly RegionLocks _regions;
     private PagedFile? _file;
 
+    /// <summary>This session's run unit id: the owner of the partly received messages it holds (<see cref="McsTables.PutPartialReceive"/>), alive for as long as the session holds
+    /// <see cref="HostRegionLocks.McsRunUnitLivenessByte"/>.</summary>
+    private readonly ulong _runUnit;
+
     /// <summary>Whether the run unit's first statement has landed: it seeds a new or changed store and cuts each device to its committed end.</summary>
     private bool _prepared;
 
@@ -39,7 +44,23 @@ internal sealed class McsStore : IDisposable
         _handle = stream.SafeFileHandle;
         _regions = HostRegionLocks.Open(_handle, stream.Name, writable: true);
         _regions.Hold(HostRegionLocks.McsPresenceByte, exclusive: false, wait: false);
+        _runUnit = DrawRunUnit(_regions);
     }
+
+    /// <summary>A run unit id nobody else holds the liveness byte of: random over 60 bits and taken exclusively without waiting, so a collision (2^-60) is a retry. A host that cannot carry
+    /// the lock answers <see cref="RegionLockResult.Unavailable"/> and refuses every statement (92) before any row is written, so the id is then never used.</summary>
+    private static ulong DrawRunUnit(RegionLocks regions)
+    {
+        while (true)
+        {
+            ulong id = BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(sizeof(ulong))) & ((1UL << 60) - 1);
+            if (id != 0 && regions.Hold(HostRegionLocks.McsRunUnitLivenessByte(id), exclusive: true, wait: false) != RegionLockResult.Held) return id;
+        }
+    }
+
+    /// <summary>Whether the run unit <paramref name="owner"/> is still alive: its liveness byte is held by another endpoint. A host that cannot tell is read as alive, so nothing is dropped on a guess.</summary>
+    private bool OwnerIsAlive(ulong owner) =>
+        owner == _runUnit || _regions.HeldByAnother(HostRegionLocks.McsRunUnitLivenessByte(owner)) != RegionLockResult.Ok;
 
     /// <summary>The session's store of the MCS directory <paramref name="root"/>: <c>mcs.store</c> opened, created when absent, and shared with every other run unit's handle.
     /// Throws what the host throws for a file it refuses, which <see cref="MessageStore"/> answers with status 92.</summary>
@@ -81,7 +102,7 @@ internal sealed class McsStore : IDisposable
                 claimed = file.LastClaim;
                 before = file.Meta.PrimeRoot;
             }
-            var state = new MessageStoreState(definitions.Parsed, tables);
+            var state = new MessageStoreState(definitions.Parsed, tables, _runUnit, OwnerIsAlive);
             status = action(state);
             tables.FlushMeta();
             if (tables.Tree.HasPendingChanges || state.HasTransmissions)

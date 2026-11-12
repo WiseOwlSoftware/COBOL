@@ -434,7 +434,30 @@ internal sealed class VersionConformancePass
                     using var _ = _sink.At(family.Register);   // the SUM entry's own position (Register.DeclaredAt, kb/Work PB1925)
                     Check(sumSkeletonId, family.SkeletonWhere);
                 }
+            GateReportSourceFunctions(report);
         }
+    }
+
+    /// <summary>The SOURCE operand that is a function-identifier or method invocation written as identifier-1 (kb/Work PB5240),
+    /// gated by its BOUND category: a numeric or integer function is the 2002 function operand ISO/IEC 1989:2002 Annex F.2
+    /// item 115 names ("SOURCE allows arithmetic expressions and functions") — at 85 "A function-identifier which
+    /// references an integer or numeric function may be used only in an arithmetic expression" (§1985:IV.4.3.8.3.3 SR4),
+    /// and the 85 SOURCE operand is identifier-1 alone — while an alphanumeric one is the 85 identifier-1 SR3 admits. The
+    /// parse arm (<c>VisitReportSourceClause</c>) leaves this operand to here because its category is not a fact of the
+    /// parse tree (MAX takes its arguments' category, a user function its RETURNING item's). Each operand once: a printable
+    /// entry's field and the occurrences of its entry share the source.</summary>
+    private void GateReportSourceFunctions(ReportModel report)
+    {
+        var asked = new HashSet<ReportFieldSource>(ReferenceEqualityComparer.Instance);
+        var sources = report.Groups.SelectMany(g => g.Lines).SelectMany(l => l.Fields).SelectMany(f => f.Sources)
+            .Concat(report.ItemOccurrences.Select(o => o.Source).OfType<ReportFieldSource>());
+        foreach (var source in sources)
+            if (source is FieldReferenceSource { Ref: not CobolParserCore.DataReferenceContext, Value: { } value } rs && asked.Add(rs)
+                && IntrinsicResultType.OperandCategory(value) is PicCategory.Numeric)
+            {
+                using var _ = _sink.At(rs.Ref);
+                Check(Constructs.ReportSourceExpression2002, "an arithmetic expression or function as a SOURCE operand (report group description)");
+            }
     }
 
     /// <summary>Gate one resolved DataItem's USAGE / PICTURE-category edition attribute. ⛔ At most ONE gate
@@ -732,14 +755,20 @@ internal sealed class VersionConformancePass
 
         /// <summary>⛔ THE SEGMENTATION MODULE'S RANGES (kb/Work PB5084): §1985:XVI.2.3.3 SR1 (SEGMENT-LIMIT, 1 through 49),
         /// §1985:XVI.3.2.3 SR1 (a section's segment-number, 0 through 99) and SR3 (a declarative section's, less than 50).
-        /// Asked only where the construct row is available (COBOL-85): from 2002 the clause and the number are removed
-        /// (COBOL0902), which is the whole answer there. The number is an <c>integerLiteral</c>, so it is unsigned and
+        /// Asked only where the construct row is available (COBOL-85), and for a section's number where --permissive keeps its
+        /// meaning (<see cref="Segmentation.MeaningKept"/>): from 2002 the clause and the number are removed (COBOL0902), which
+        /// is the whole answer there. The number is an <c>integerLiteral</c>, so it is unsigned and
         /// integral by the grammar; zero is §2023:5.5 1)'s question for SEGMENT-LIMIT (<c>IntegerOperandRules.Slots</c>),
         /// so only the upper bound can be broken there.</summary>
         private void ScreenSegmentNumber(CobolParserCore.IntegerLiteralContext? number, int min, int max, string construct,
             string where, string rule)
         {
-            if (number is null || !ConstructRegistry.IsAvailable(_p._edition, construct)) return;
+            if (number is null) return;
+            // A section's number is also screened where --permissive keeps its COBOL-85 meaning (Segmentation.MeaningKept, kb/Work
+            // PB5223): the emitter's per-pc table holds the number itself, so a number the module has no meaning for must be refused.
+            bool asked = construct == Constructs.SegmentNumbersRemoved2002
+                ? Segmentation.MeaningKept(_p._edition) : ConstructRegistry.IsAvailable(_p._edition, construct);
+            if (!asked) return;
             string text = number.GetText();
             int value = Segmentation.ValueOf(number);
             if (value <= max && (value >= min || value == 0)) return;   // a zero below min is the SEGMENT-LIMIT slot's COBOL2386
@@ -1078,9 +1107,11 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.ExitProgramArchaic2023, "the EXIT PROGRAM statement");
                 // ISO/IEC 1989:2002 Annex F.2 item 50: "EXIT PROGRAM is allowed to appear as other than the last
                 // statement in a consecutive sequence of imperative statements" (exit-program-not-last-2002; kb/Work
-                // PB4305). A sequence is a sentence or a statement block, so a statement after it in its parent is one.
-                if (ctx.Parent is CobolParserCore.StatementContext stmt && stmt.Parent is Antlr4.Runtime.ParserRuleContext sequence
-                    && sequence.children.SkipWhile(c => !ReferenceEquals(c, stmt)).Skip(1).Any(c => c is CobolParserCore.StatementContext))
+                // PB4305). §1985:X.5.4.3 SR1 asks that EXIT PROGRAM be the last statement of a consecutive sequence of
+                // IMPERATIVE statements, so a conditional statement after it (an IF without END-IF, READ ... AT END)
+                // ends the imperative run and is no violation: the one predicate the GO TO rule asks (kb/Work PB2610,
+                // PB5272).
+                if (ctx.Parent is CobolParserCore.StatementContext stmt && !StatementPosition.Of(stmt).EndsImperativeRun)
                     _p.Check(Constructs.ExitProgramNotLast2002, "an EXIT PROGRAM statement that another statement of its sequence follows");
             }
             else if (ctx.SECTION() is not null)   // §2023:14.9.14 Format 4 — a COBOL-2002 structured-exit introduction
@@ -1148,7 +1179,8 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>A section-header segment-number — the '85 Segmentation module's priority number, deleted
-        /// 2002. At 85 its range is checked here (<see cref="ScreenSegmentNumber"/>); the binder reads the number into the
+        /// 2002. At 85, and under --permissive where the number keeps that meaning (<see cref="Segmentation.MeaningKept"/>), its
+        /// range is checked here (<see cref="ScreenSegmentNumber"/>); the binder reads the number into the
         /// section (<see cref="Segmentation.ValueOf"/>) for the module's flow restrictions and the initial state of an
         /// independent segment (VCR row 7.18, kb/Work PB5084).</summary>
         public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
@@ -1553,7 +1585,12 @@ internal sealed class VersionConformancePass
             // expression, a function, a literal, even a parenthesized identifier — is §2023:13.18.53.2's
             // arithmetic-expression-1, and so is the rounded phrase (§2023:13.18.53.3 SR3). The SUM clause shares the
             // operand production but not this clause's edition history, so it is not asked here.
-            if (ctx.reportValueOperand().Any(o => SoleOperand.DataRef(o.arithmeticExpression()) is null))
+            // A function-identifier or method invocation written as the whole operand is identifier-1, not an
+            // expression (§2023:15.2; §1985:IV.4.3.8.3.3 SR3 admits an alphanumeric function wherever an identifier is,
+            // kb/Work PB5240): whether it is the 2002 function operand depends on its category, which only the bind
+            // knows, so the bound arm asks it (GateReportSourceFunctions).
+            if (ctx.reportValueOperand().Any(o => SoleOperand.DataRef(o.arithmeticExpression()) is null
+                                                  && SoleOperand.TemporaryIdentifier(o.arithmeticExpression()) is null))
                 _p.Check(Constructs.ReportSourceExpression2002, "an arithmetic expression or function as a SOURCE operand (report group description)");
             if (ctx.roundedPhrase() is not null)
                 _p.Check(Constructs.ReportSourceRounded2002, "the ROUNDED phrase of the SOURCE clause (report group description)");

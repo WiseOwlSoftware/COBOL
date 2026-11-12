@@ -3449,6 +3449,17 @@ public static class DiagnosticCatalog
         + "only), a SOURCE FORMAT directive, or a comment.",
         "ISO §2023:7.2.3.4 GR13 / §2023:7.2.4.4 GR9");
 
+    /// <summary>COBOL7006 — a word barred from word-1 or word-2 of a COPY statement's REPLACING phrase at an edition that
+    /// still admits the word operand forms (kb/Work PB5085): COPY (§1985:XII.2.3 SR6, §2002:7.1.2.2 SR10, §2014:7.2.2.2
+    /// SR10), plus the compiler directive indicator (2002, 2014) and the floating debug indicator (2002). At 2023 the word
+    /// forms are removed altogether (COBOL0902), so the rule has no clause of its own there. The ==pseudo-text== spelling
+    /// of the same text is COBOL2451's.</summary>
+    public static readonly DiagnosticDescriptor CopyReplacingWordIsCopy = new(
+        "COBOL7006", "copy-replacing-word-is-copy", EditionSeverity.Error,
+        "The word COPY, the compiler directive indicator or the floating debug indicator is written as word-1 or word-2 "
+        + "of a COPY statement's REPLACING phrase, which may be any single COBOL word except those.",
+        "§1985:XII.2.3 SR6; §2002:7.1.2.2 SR10; §2014:7.2.2.2 SR10");
+
     // ── The INVOKE twins of the PB132 CALL operand screens (kb/Work PB1137): the rules are written in the same
     // words for both activation statements and are checked by ONE screen (ActivationOperandScreen); each statement
     // keeps its own code because each has its own clause, exactly as COBOL2237 twins COBOL1685. ──
@@ -9333,7 +9344,8 @@ public static class DiagnosticCatalog
     /// <summary>COBOL6819 — an X3.23-1985 segment-number outside the range the Segmentation module gives it (kb/Work PB5084):
     /// SEGMENT-LIMIT 1 through 49, a section 0 through 99, a declarative section less than 50. Emitted by
     /// VersionConformancePass.ParseArm.ScreenSegmentNumber where the module's constructs exist (COBOL-85; from 2002 they are
-    /// COBOL0902, removed).</summary>
+    /// COBOL0902, removed), and for a section's number also where --permissive keeps its COBOL-85 meaning at a later edition
+    /// (<c>Segmentation.MeaningKept</c>, kb/Work PB5223).</summary>
     public static readonly DiagnosticDescriptor SegmentNumberOutOfRange = new(
         "COBOL6819", "segment-number-out-of-range", EditionSeverity.Error,
         "An X3.23-1985 segment-number is outside the range its syntax rule allows. §1985:XVI.2.3.3 SR1 (SEGMENT-LIMIT): "
@@ -9468,7 +9480,9 @@ public static class DiagnosticCatalog
     /// PERFORM, SORT or MERGE names span the fixed portion and an independent segment, two independent segments, or an
     /// independent segment other than the statement's own (§1985:XVI.3.3.2, XVI.3.3.3, XVI.3.3.4). One descriptor for the
     /// module's four restrictions, as COBOL6819 holds its three ranges. Emitted by
-    /// <c>Segmentation.CheckAlter</c> and <c>Segmentation.CheckProcedures</c> at COBOL-85, the one edition with segment-numbers.</summary>
+    /// <c>Segmentation.CheckAlter</c> and <c>Segmentation.CheckProcedures</c> at COBOL-85, the one edition with segment-numbers,
+    /// and by <c>CheckAlter</c> also where --permissive keeps the number's COBOL-85 meaning at a later edition
+    /// (<c>Segmentation.MeaningKept</c>, kb/Work PB5224).</summary>
     public static readonly DiagnosticDescriptor SegmentationFlowRestriction = new(
         "COBOL6877", "segmentation-flow-restriction", EditionSeverity.Error,
         "A statement breaks a restriction on program flow in a segmented program. §1985:XVI.3.3.1: \"A GO TO statement in a "

@@ -103,18 +103,13 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     internal (ReportModel Report, ReportSumFamily Family)? SumCounterFamilyFor(
         Core.DataReferenceContext dref, string name, List<string> qualifiers, bool report)
     {
-        if (!data.State.SumCounters.TryGetValue(name, out var homonyms)) return null;
         // §2023:13.18.53.3 SR4 — inside a report's own clauses the only sum counters a SOURCE operand may name are those "defined in
         // the current report", so a homonym of another report is no candidate: the reference is unambiguous by the rule
-        // and never needs a qualifier to say so (kb/Work PB1292).
-        if (refs.EnclosingReport is { } scope) homonyms = [.. homonyms.Where(h => ReferenceEquals(h.Report, scope))];
-        if (homonyms.Count == 0) return null;
-        // §2023:8.4.6.2.1 rule 3 — a counter of a report this source element declares hides a same-named counter of a
-        // container's GLOBAL report; only candidates of the NEAREST declaring element can be ambiguous.
-        var matches = data.State.Reports.NearestInScope(
-            homonyms.Where(h => DataBinder.QualifierWalk(h.Family.Qualification, qualifiers,
-                q => CobolNames.Same(q, h.Report.Name))),
-            h => h.Report);
+        // and never needs a qualifier to say so (kb/Work PB1292). §2023:8.4.6.2.1 rule 3 — a counter of a report this source
+        // element declares hides a same-named counter of a container's GLOBAL report; only candidates of the NEAREST
+        // declaring element can be ambiguous. Both are the ONE lookup's (ReportScope.SumCountersNamed).
+        if (!data.State.SumCounters.ContainsKey(name)
+            || data.State.Reports.SumCountersNamed(name, qualifiers, refs.EnclosingReport) is not { } matches) return null;
         if (matches.Count == 0)
         {
             // The qualifiers reach no counter of this name. When an ORDINARY item of the name does answer them

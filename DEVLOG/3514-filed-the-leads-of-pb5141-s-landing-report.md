@@ -1,0 +1,4 @@
+## Entry 3514 — 2026-11-11 16:52 PST — Filed the leads of PB5141's landing report
+
+The landing report of PB5141's branch (worktree-wf_07022f79-76e-2) held two new leads and three review leads, filed as five notes. PB5351: the 2023 reading of the ALL-literal rule for 9(3)V99 (121.00 or 121.21), sharing a root with PB5176 and PB426. PB5352: the READ INTO refusal at 85 cites a 2023 rule, sharing a root with PB5211. PB5353: the AdmitsIntoOperand doc comment attributes the 1985 wording to §2023:8.4.3.3.4 GR6. PB5354: numeric-edited receivers of an ALL literal are unpinned above 85. PB5355: HIGH-VALUES into PACKED-DECIMAL stores +0 without a stated rule. PB5356 is unused. The three source notes (PB5176, PB5211, PB426) are landed, so each lead is a new note that names them in `related`.
+

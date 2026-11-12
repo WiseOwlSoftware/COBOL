@@ -669,6 +669,17 @@ def main() -> int:
         check(f"PDF page {e['page']}: every stroke the eye counts is measured", all(got[k] == e[k] for k in got) and not rp.unclassified,
               f"got {got} want {({k: e[k] for k in got})} unclassified {rp.unclassified}")
 
+    # A rule is at least RULE_MIN_THICK thick on average: a 2.7 pt sliver 0.2 pt thick (1985 PDF page 905, under
+    # `WHEN-COMPILED`) clears the vector arm's 2.5 pt width floor but is no underline; a 5 pt rule 0.8 pt thick is.
+    scale = R.DPI / 72.0
+    def bar(x0_pt, w_pt, thick_pt):
+        x0, x1 = x0_pt * scale, (x0_pt + w_pt) * scale
+        return R.Component(x0, 100.0, x1, 100.0 + 1.0 * scale, round(thick_pt * scale * (x1 - x0)))
+    comps = [bar(10, 5.0, 0.8), bar(40, 2.7, 0.2)]
+    rules = [k for k, _ in R.find_rules(comps, set(), scale)]
+    total += 1
+    check("a sliver of a rule's edge is no underline, a rule is", rules == [1], f"got rules {rules}")
+
     for f in fails:
         print(f"FAIL: {f}")
     print(f"figure_raster self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))

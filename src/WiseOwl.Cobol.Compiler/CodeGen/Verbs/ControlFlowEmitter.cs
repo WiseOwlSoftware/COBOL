@@ -47,7 +47,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         w.Line($"int __dep{id} = {RuntimeApi.HostInt32(NumericRenderer.Align(num.AsNum(d.Selector, ReceiverContext.None), 0))};");
         // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): an in-range GO TO … DEPENDING transfer is DEBUG-CONTENTS SPACES,
         // DEBUG-LINE the GO TO DEPENDING statement's own line.
-        string cause = dispatch.DebugActive ? $" __dbgCause = DebugCause.Transfer; __dbgLine = {d.SourceLine};" : "";
+        string cause = dispatch.DebugActive ? $" {dispatch.DebugCauseAssignments("Transfer", d.SourceLine)}" : "";
         using (w.Block($"switch (__dep{id})"))
             for (int k = 0; k < d.Targets.Count; k++)
                 w.Line($"case {k + 1}:{cause} __pc = {d.Targets[k]}; break;");   // this `break` is the SELECTOR switch's own

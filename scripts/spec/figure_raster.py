@@ -115,6 +115,9 @@ BRACE_STACK_DX = 1.5           # the pieces of one tall brace share a left edge 
 BRACE_STACK_GAP = 4.0          # ... and are this far apart or less (the printer overstruck the glyphs; page 217: 1.8)
 FUSED_MIN_RUN = 9.0            # an underline fused to its word's glyphs is a run longer than any one glyph's stroke: the 8 pt heading face of page 196 reaches 8.3, so 7 read its serifs as rules
 RULE_MEAN_THICK = 1.5          # a printed underline is a thin ragged bar: its ink is at most this thick on average (area / width)
+RULE_MIN_THICK = 0.35          # ... and at least this thick: a rule measures 0.5 to 1.1 pt (page 196); a sliver flaking off a rule's
+                               # edge measures 0.2 pt, and on page 905 one 2.7 pt long passed the 2.5 pt width floor the vector arm needs
+                               # (figure_extract.MIN_RULE_W), was read as an underline and garbled `WHEN-COMPILED` (kb/Work PB5332)
 HYPHEN_MAX_W = 6.0             # a hyphen is a bar no wider than this (page 196: 4.5 to 5.0), standing between letters at mid height
 HYPHEN_GAP = 1.5               # ... with a glyph this close beside it
 BOX_MIN_W, BOX_MIN_H = 20.0, 9.0   # a box is at least this wide and tall, in points (page 389's smallest: 48 x 12.8)
@@ -864,13 +867,14 @@ def is_hyphen(c: Component, comps: list, scale: float) -> bool:
 def find_rules(comps: list, stem_labels: set, scale: float) -> list:
     """Underlines that are components of their own: a thin horizontal bar that is no hyphen. A printed rule is
     ragged and tilts a little, so its box is no measure of it (page 196: boxes filled 0.42 to 0.76); its MEAN
-    thickness, area over width, is: 0.5 to 1.1 pt for a rule, 2.7 pt for a letter."""
+    thickness, area over width, is: 0.5 to 1.1 pt for a rule, 2.7 pt for a letter, 0.2 pt for a sliver of a rule's edge."""
     out = []
     for k, c in enumerate(comps, start=1):
         if k in stem_labels:
             continue
         w, h = (c.x1 - c.x0) / scale, (c.y1 - c.y0) / scale
-        if (w >= FX.MIN_RULE_W and h <= FX.MAX_RULE_H and c.area <= RULE_MEAN_THICK * scale * (c.x1 - c.x0)
+        if (w >= FX.MIN_RULE_W and h <= FX.MAX_RULE_H
+                and RULE_MIN_THICK * scale * (c.x1 - c.x0) <= c.area <= RULE_MEAN_THICK * scale * (c.x1 - c.x0)
                 and not is_hyphen(c, comps, scale)):
             out.append((k, Rect(c.x0 / scale, c.y0 / scale, c.x1 / scale, c.y1 / scale)))
     return out

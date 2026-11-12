@@ -12,8 +12,9 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// <list type="bullet">
 /// <item>Rule 5 — ALL REFERENCES OF identifier-1: the section runs "for every statement that explicitly references identifier-1".
 /// Rule 6 — identifier-1 alone: it runs after a statement that "explicitly references and causes the content of the data item
-/// … to be changed" (<see cref="BoundStores.DirectStoreOf"/>: a store the statement's own ON SIZE ERROR path skipped is still a
-/// store, as GnuCOBOL decides).</item>
+/// … to be changed" (<see cref="BoundStores.DirectStoreOf"/> finds the store the statement writes; a store the statement's own ON SIZE ERROR
+/// path skipped changes nothing, so its fire is <see cref="DebugFire.WhenStored"/> and the emitter lands it only on the path that stored, kb/Work PB5296).
+/// A condition-name's conditional variable that SET condition-name TO TRUE stores into is no explicit reference (<see cref="IBoundImplicitOperands"/>).</item>
 /// <item>Rule 5 a / 6 a — WRITE and REWRITE: immediately before the I-O and after the implicit move of FROM
 /// (<see cref="DebugWhen.BeforeIo"/>), for either kind of target and whether or not the item changes.</item>
 /// <item>Rule 5 b — GO TO DEPENDING ON: immediately before control transfers (<see cref="DebugWhen.Before"/>), ALL REFERENCES only.</item>
@@ -109,7 +110,7 @@ internal static class DebugTriggerPlanner
         }
         // Rule 6 c: the item alone runs the section after a statement that CHANGES it.
         if (target.Item is { } item && BoundStores.DirectStoreOf(leaf, item) is { } stored && !(into?.Targets.Any(t => ReferenceEquals(t, stored)) ?? false))
-            fires.Add(FireFor(target, new Hit(stored), DebugWhen.After));
+            fires.Add(FireFor(target, new Hit(stored), DebugWhen.After) with { WhenStored = true });
     }
 
     /// <summary>The conditional phrases of an EVALUATE or SEARCH that reference an ALL REFERENCES target: ONE after-statement fire naming every phrase

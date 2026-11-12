@@ -26,8 +26,8 @@ the transcripts record them. They become weekly points at the Opus rate (every R
 
 THE ROOM (`budget.py`'s estimate for the running account): the session's is the soft stop less the session spent
 less `--session-reserve` (what other work running beside the batch, such as the orchestrator loop, will spend); the
-week's is the headroom of the allowance (`--borrow-days` raises it, never assumed: the owner's 2026-10-10 decision
-of the whole weekly quota is `--borrow-days 6`); a fresh session window holds the soft stop less the reserve.
+week's is the headroom of the allowance (`--borrow-days` raises it, never assumed: it is 0 unless the owner
+granted days for that run, and none stands since 2026-11-11, kb/Work PB5357); a fresh session window holds the soft stop less the reserve.
 
 THE SPLIT. The shards, in the order given (the operator orders them, the small ones first), are packed greedily:
 the first part into the room left now (or, when not even its first shard fits now, into the next window), each

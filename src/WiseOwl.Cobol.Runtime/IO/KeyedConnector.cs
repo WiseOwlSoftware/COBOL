@@ -841,7 +841,7 @@ public abstract partial class KeyedConnector : FileConnector
     protected sealed override string CloseCore()
     {
         // A refused promotion maps to '30' on FileConnector.Close (§2023:9.1.13.6 item 1 — the ONE mapping), which ends
-        // the open mode either way; ModeKnown then stays true for the USE-declarative scoping. The records survive it:
+        // the open mode either way (the CLOSE statement's own USE procedure finds it through BeginClose). The records survive it:
         // page 2 already names the last completed statement's trees (2.2.1.6), so the next OPEN adopts them.
         // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §2023:14.9.6.4 GR6 says the file position
         // indicator is unchanged; the next OPEN resets it (FileConnector.Open) — kb/Work PB140.
@@ -886,7 +886,6 @@ public abstract partial class KeyedConnector : FileConnector
         if (detached != StoreStatus.Ok)
             throw new IOException($"the medium refused the reader's re-adoption of '{HostPath}' at the CLOSE");
         _fileRemoved = false;
-        ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
     }
 

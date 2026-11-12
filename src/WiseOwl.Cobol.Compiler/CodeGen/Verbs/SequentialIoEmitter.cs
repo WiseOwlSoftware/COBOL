@@ -631,15 +631,24 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
 
     /// <summary>⛔ THE ONE RENDERING OF AN OPEN STATEMENT'S BEING-OPENED SCOPE (kb/Work PB5200), shared by the explicit OPEN and the
     /// SORT/MERGE implicit opens (§2023:14.9.40.4 GR12 a), GR15 a); §2023:14.9.24.4 GR7 a), GR12 a)): <c>CobolFile.BeginOpen</c>, then
-    /// a <c>try</c> holding the open, its status store and its USE hook, then <c>CobolFile.EndOpen</c> in the <c>finally</c> — so a
+    /// a <c>try</c> holding the open, its status store and its USE hook, then <c>CobolFile.EndModeScope</c> in the <c>finally</c> — so a
     /// procedure that transfers control away, or a fatal status that ends the run unit, leaves no mode behind. Dispose it after the
     /// hook is emitted.</summary>
-    internal IDisposable EmitOpenScope(FileModel file, BoundOpenMode mode)
+    internal IDisposable EmitOpenScope(FileModel file, BoundOpenMode mode) =>
+        EmitStatementScope(file, RuntimeApi.FileBeginOpen(FileKeyExpr(file), mode));
+
+    /// <summary>⛔ THE ONE RENDERING OF A CLOSE STATEMENT'S SCOPE (kb/Work PB5261), the OPEN scope's twin, shared by the explicit CLOSE and the
+    /// SORT/MERGE implicit closes (§2023:14.9.40.4 GR12 c), GR15 c); §2023:14.9.24.4 GR7 c), GR12 c)): the file stays in the mode it was open
+    /// in through the CLOSE's own USE procedure, then in none (§2023:14.9.49.4 GR6 b)–e)). Dispose it after the hook is emitted.</summary>
+    internal IDisposable EmitCloseScope(FileModel file) =>
+        EmitStatementScope(file, RuntimeApi.FileBeginClose(FileKeyExpr(file)));
+
+    private IDisposable EmitStatementScope(FileModel file, string begin)
     {
         var w = ctx.Writer;
-        w.Line($"{RuntimeApi.FileBeginOpen(FileKeyExpr(file), mode)};");
+        w.Line($"{begin};");
         var tryBlock = w.Block("try");
-        return new OpenScope(tryBlock, w, RuntimeApi.FileEndOpen(FileKeyExpr(file)));
+        return new OpenScope(tryBlock, w, RuntimeApi.FileEndModeScope(FileKeyExpr(file)));
     }
 
     private sealed class OpenScope(IDisposable tryBlock, CodeWriter w, string end) : IDisposable
@@ -744,9 +753,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 active = $"__rptAct{ctx.Names.NextEc()}";
                 w.Line($"bool {active} = {string.Join(" || ", reports.Select(r => $"{RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.Reports.Depth(r))}.IsActive"))};   // read BEFORE the close (§2023:14.9.6.4 GR5)");
             }
-            w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");
-            EmitStoreFileStatus(file);
-            EmitUseHook(file, "CLOSE");
+            using (EmitCloseScope(file))
+            {
+                w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");
+                EmitStoreFileStatus(file);
+                EmitUseHook(file, "CLOSE");
+            }
             if (active is not null)
                 using (w.Block($"if ({active})"))
                 {

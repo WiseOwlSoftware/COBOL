@@ -12,6 +12,11 @@ owner's time spent on work that did not need doing is a defect of the session th
 tier not yet approved), accounts and credentials, anything sent to people outside (ANSI, an upstream report, email),
 publishing or licensing the product, and deleting history or branches others use.
 
+**The quota plan in force (owner 2026-11-11, kb/Work PB5357):** no borrowed days on either account. `python
+scripts/orchestrator/budget.py` at borrow 0 is the line: an account above it starts no worker, fleet or landing until the
+line passes its reading, and each account spends its remainder by the late evening before its own weekly reset. A Mythos
+or Fable dispatch on either account needs the owner's explicit approval for that dispatch.
+
 ## The rules
 Each was earned by a correction. These eight are the SSOT; `PROMPT.md` holds the standing doctrine (mission, architectural
 commitments, the four required reviews) and does not restate them. Other documents cite them by number.

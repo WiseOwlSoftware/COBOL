@@ -218,6 +218,8 @@ internal static class BackendContract
             "Model.DynamicLengthStructure.KeyOf()", "Model.ObjectRefDescriptor.Identity",
             // a method's dispatch key: the roster's identity of a method, compared, never emitted as C# (kb/Work PB2402)
             "Model.OoMethodSymbol.DispatchKey",
+            // what a file description entry specifies in the clauses an external connector's entries agree in, compared across describers at compile time (kb/Work PB5300)
+            "Model.FileModel.FdClauses", "Model.FdClauseValue.Value",
         ]),
     ],
     [

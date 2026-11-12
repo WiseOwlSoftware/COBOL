@@ -51,6 +51,8 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     internal Place? PlaceForItem(DataItem item, IReadOnlyList<Position> indexExprs, out PlaceGap gap)
     {
         gap = new(null, item);
+        // A report SUM counter's register (kb/Work PB5310): the engine holds its value, so its place is the counter's.
+        if (facts.SumCounterPlaceOf(item) is { } counter) return counter;
         // A level-66 RENAMES entry (ISO §2023:13.18.45) is a data item of its own that owns no storage — its place is
         // composed from the places of the items it renames (kb/Work PB1380: it is built HERE, in the one builder,
         // so every caller — a reference-modified alias above all — receives it the same way).

@@ -80,6 +80,10 @@
       "vcrRow": "7.53"
     },
     {
+      "id": "record-contains-range-binds-record-size",
+      "vcrRow": "7.63"
+    },
+    {
       "id": "search-index-below-table-unsuccessful",
       "vcrRow": "7.56"
     },
@@ -895,7 +899,8 @@
     "COBOL6862",
     "COBOL6863",
     "COBOL6877",
-    "COBOL6973"
+    "COBOL6973",
+    "COBOL7006"
   ],
   "cliOptions": [
     "--copy",

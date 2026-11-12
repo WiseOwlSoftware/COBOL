@@ -69,7 +69,7 @@ Details of the software products used to create this PDF file can be found in th
 
 ## Page 3
 
-STANDARD 1989
+INTERNATIONAL STANDARD ISO/IEC 1989
 
 First edition 2002-12-01
 
@@ -920,7 +920,7 @@ ISO/IEC 10646-2, Information technology — Universal Multiple-Octet Coded Chara
 
 ISO/IEC 14651:2001, Information technology — International string ordering and comparison — Method for comparing character strings and description of the common template tailorable ordering (including AMD1)
 
-ISO/IEC TR 14652:—1), Information technology — Specification method for cultural conventions
+ISO/IEC TR 14652:—<sup>1)</sup>, Information technology — Specification method for cultural conventions
 
 _________________________
 
@@ -1550,21 +1550,13 @@ Any term listed below refers to an instance of the corresponding element as desc
 | Operand type | Described in | Term (n = 1, 2, 3, ... ) |
 |---|---|---|
 | Argument | 15.2, Arguments | argument-n |
-| Expression | 8.8, Expressions | arithmetic-expression-n |
-
-boolean-expression-n conditional-expression-n
-
+| Expression | 8.8, Expressions | arithmetic-expression-n<br>boolean-expression-n<br>conditional-expression-n |
 | Integer | 5.4, Integer operands | integer-n |
-|---|---|---|
 | Literal | 8.3.1.2, Literals | literal-n |
 | Reference | 8.4, References |  |
-| a) User-defined word, including | 8.3.1.1.1, User-defined words | Any of the types listed in 8.3.1.1.1 |
-| qualification and subscription if | 8.4.1.1, Qualification | suffixed by -n |
-| needed | 8.4.1.2, Subscripts |  |
+| a) User-defined word, including qualification and subscription if needed | 8.3.1.1.1, User-defined words<br>8.4.1.1, Qualification<br>8.4.1.2, Subscripts | Any of the types listed in 8.3.1.1.1 suffixed by -n |
 | b) Identifier | 8.4.2.1, Identifier | identifier-n |
-| c) Exception name | 14.5.12.1.5, Exception-names and | exception-name-1 |
-
-exception conditions
+| c) Exception name | 14.5.12.1.5, Exception-names and exception conditions | exception-name-1 |
 
 ##### 5.1.4 Level numbers
 
@@ -1644,7 +1636,7 @@ Some rules contain arithmetic expressions that specify part or all of the result
 
 ##### 5.3.1 Textually subscripted operands
 
-When an operand is textually subscripted, as operand-jn, the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.
+When an operand is textually subscripted, as operand-j<sub>n</sub>, the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.
 
    NOTE An example is in the returned value rules for 15.61, PRESENT-VALUE function.
 
@@ -1700,10 +1692,10 @@ Table 1 — Verbal forms
 
 | Provision | Verbal form | Alternative expressions |
 |---|---|---|
-| a requirement on an implementation or a pro-gram, strictly to be followed for compliance to the standard | shall<br>shall not | is required to<br>is, is to<br>is not permitted<br>is not allowed |
-| a permission expressed by the standard | may<br>need not | is permitted<br>is allowed<br>is not required to |
-| a recommendation expressed by the standard; it need not be followed | should<br>should not | it is recommended that<br>is recommended |
-| a capability or possibility open to the user of the standard | can<br>cannot | is able to<br>it is possible to<br>is possible |
+| a requirement on an implementation or a pro-gram, strictly to be followed for compliance to the standard | shall<br><br><br>shall not | is required to<br>is, is to<br><br>is not permitted<br>is not allowed |
+| a permission expressed by the standard | may<br><br><br>need not | is permitted<br>is allowed<br><br>is not required to |
+| a recommendation expressed by the standard; it need not be followed | should<br><br><br>should not | it is recommended that<br>is recommended |
+| a capability or possibility open to the user of the standard | can<br><br><br><br>cannot | is able to<br>it is possible to<br>is possible |
 | Alternative expressions are sometimes used to express other than a requirement; in such cases, the meaning is evident from context. |  |  |
 
 ## Page 44
@@ -1754,12 +1746,11 @@ Fixed indicators may be specified in the indicator area of fixed-form reference 
 
 ## Page 45
 
-d debugging indicator a debugging line
-
-\- (hyphen) continuation indicator a continuation line
-
-space source indicator any line that is not a comment line, a debugging line,\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;or a continuation line
+|  |  |  |
+|---|---|---|
+| d | debugging indicator | a debugging line |
+| - (hyphen) | continuation indicator | a continuation line |
+| space | source indicator | any line that is not a comment line, a debugging line, or a continuation line |
 
 Fixed indicators are characters in the implementor-defined coded character set or sets used for fixed-form reference format, and are not COBOL characters from the COBOL character repertoire.
 
@@ -1771,21 +1762,10 @@ Floating indicators may be used in fixed-form or free-form reference format. The
 
 | Character-string | Indicator name | Indicates |
 |---|---|---|
-| \*> | comment indicator | 1) a comment line when specified as the first |
-
-character-string in the program-text area;
-
-2\) an inline comment when specified following one or more character-strings in the program-text area, subject to the additional rules in 6.1.2.1, Syntax Rules.
-
-\>> compiler directive a compiler-directive line when followed by a compiler-directive word - with or without an intervening space, subject to additional rules in 7.2, Compiler directives.
-
-| "- | literal continuation | continuation of a literal when specified in an un-terminated |
-|---|---|---|
-| '- | indicator | literal with the same quotation symbol in its opening delimiter, |
-
-subject to additional rules in 6.1.2.1, Syntax Rules.
-
-\>>D debugging indicator a debugging line when followed by at least one space character
+| \*> | comment indicator | 1) a comment line when specified as the first character-string in the program-text area;<br>2) an inline comment when specified following one or more character-strings in the program-text area, subject to the additional rules in 6.1.2.1, Syntax Rules. |
+| \>> | compiler directive | a compiler-directive line when followed by a compiler-directive word - with or without an intervening space, subject to additional rules in 7.2, Compiler directives. |
+| "-<br>'- | literal continuation indicator | continuation of a literal when specified in an un-terminated literal with the same quotation symbol in its opening delimiter, subject to additional rules in 6.1.2.1, Syntax Rules. |
+| \>>D | debugging indicator | a debugging line when followed by at least one space character |
 
 ###### 6.1.2.1 Syntax Rules
 
@@ -1817,14 +1797,14 @@ subject to additional rules in 6.1.2.1, Syntax Rules.
 
 The format of a fixed-form reference format line is depicted in Figure 1 — Fixed-form reference format.
 
-| Margin |  |  |  |  | Margin |  | Margin |  | Margin |
-|---|---|---|---|---|---|---|---|---|---|
-| L |  |  |  |  | C |  | A |  | R |
-| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 10 11 12 13 | ... |
-
-Program-text Area Sequence Number Area
-
-Indicator Area
+```
+Margin             Margin   Margin                       Margin
+L                       C   A                                 R
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | ... |
+ \_____________________/  |  \_______________________________/
+  Sequence Number Area    ↓          Program-text Area
+                   Indicator Area
+```
 
 Figure 1 — Fixed-form reference format
 
@@ -2027,13 +2007,14 @@ The compilation stage completes the compilation process utilizing the structured
 
 The following are the compiler directing statements and compiler directives and the stage during which their actions take place:
 
-   Compiler directing statements Stage
-
-| COPY statement | Text manipulation |
+| Compiler directing statements | Stage |
 |---|---|
-| SUPPRESS option | Implementor-defined |
+| COPY statement | Text manipulation |
+| &emsp;SUPPRESS option | Implementor-defined |
 | REPLACE statement | Text manipulation |
+
 | Compiler directives | Stage |
+|---|---|
 | CALL-CONVENTION | Compilation |
 | DEFINE | Text manipulation |
 | EVALUATE | Text-manipulation |
@@ -3149,7 +3130,7 @@ Table 2 — COBOL character repertoire
 |---|---|---|
 | Basic letters | A, B, ... Z a, b, ... z | the basic Latin capital letters in ISO/IEC 646 or in ISO/IEC 10646-1<br>the basic Latin small letters in ISO/IEC 646 or in ISO/IEC 10646-1 |
 | Basic digits | 0, 1, ... 9 | digits |
-| Basic special character | +<br>–<br>\*<br>/<br>=<br>$<br>,<br>;<br>.<br>"<br>'<br>(<br>)<br>><br>&lt;<br>&<br>:<br>_ | space<br>plus sign<br>minus sign (hyphen)<br>asterisk<br>slant (slash, solidus)<br>equal sign<br>currency sign<br>comma<br>semicolon<br>period<br>quotation mark<br>apostrophe<br>left parenthesis<br>right parenthesis<br>greater than<br>less than<br>ampersand<br>colon<br>underscore |
+| Basic special character | <br>+<br>–<br>\*<br>/<br>=<br>$<br>,<br>;<br>.<br>"<br>'<br>(<br>)<br>><br>&lt;<br>&<br>:<br>_ | space<br>plus sign<br>minus sign (hyphen)<br>asterisk<br>slant (slash, solidus)<br>equal sign<br>currency sign<br>comma<br>semicolon<br>period<br>quotation mark<br>apostrophe<br>left parenthesis<br>right parenthesis<br>greater than<br>less than<br>ampersand<br>colon<br>underscore |
 | Extended letters |  | additional characters from the repertoire of ISO/IEC 10646-1 used in formation of user-defined words |
 
 ###### 8.1.2.1 General rules
@@ -3272,35 +3253,23 @@ The set of cultural elements constituting LC_ALL may include categories and cult
 
 Several locale field names are referenced in the COBOL specification in order to clarify processing. These and other relevant locale fields are defined in ISO/IEC 9945-2. The following locale field names are explicitly referenced:
 
-Category Field name Description
-
-LC_MONETARY
-
-| int_curr_symbol | international currency symbol |
-|---|---|
-| currency_symbol | local currency symbol |
-
-   mon_decimal_point decimal delimiter
-
-   mon_thousands_sep string used to group digits to the left of the decimal delimiter
-
-| mon_grouping | size of each group of digits |
-|---|---|
-| positive_sign | string used to indicate nonnegative valued quantities |
-| negative_sign | string used to indicate negative-valued quantities |
-| int_frac_digits | number of fractional digits to the right of the decimal delimiter |
-| frac_digits | number of fractional digits to the right of the decimal delimiter |
-| p_cs_precedes | indicator of whether the currency symbol precedes or succeeds the value for |
-
-a nonnegative quantity
-
-   n_cs_precedes indicator of whether the currency symbol precedes or succeeds the value for a negative quantity
-
-LC_TIME
-
-| d_fmt | date representation |
-|---|---|
-| t_fmt | time representation |
+| Category | Field name | Description |
+|---|---|---|
+| LC_MONETARY |  |  |
+|  | int_curr_symbol | international currency symbol |
+|  | currency_symbol | local currency symbol |
+|  | mon_decimal_point | decimal delimiter |
+|  | mon_thousands_sep | string used to group digits to the left of the decimal delimiter |
+|  | mon_grouping | size of each group of digits |
+|  | positive_sign | string used to indicate nonnegative valued quantities |
+|  | negative_sign | string used to indicate negative-valued quantities |
+|  | int_frac_digits | number of fractional digits to the right of the decimal delimiter |
+|  | frac_digits | number of fractional digits to the right of the decimal delimiter |
+|  | p_cs_precedes | indicator of whether the currency symbol precedes or succeeds the value for a nonnegative quantity |
+|  | n_cs_precedes | indicator of whether the currency symbol precedes or succeeds the value for a negative quantity |
+| LC_TIME |  |  |
+|  | d_fmt | date representation |
+|  | t_fmt | time representation |
 
 ## Page 88
 
@@ -3679,12 +3648,8 @@ Required words are of two types:
 | & | Concatenation operator |
 | > | Relational operator - greater than |
 | &lt; | Relational operator - less than |
-| = | Relational operator - equal |
-
-and assignment operator in COMPUTE
-
+| = | Relational operator - equal<br>&emsp;and assignment operator in COMPUTE |
 | == | Pseudo-text delimiter in COPY and REPLACE statements |
-|---|---|
 | >= | Relational operator - greater than or equal |
 | &lt;= | Relational operator - less than or equal |
 | \*> | Comment indicator |
@@ -5181,9 +5146,7 @@ When a source element, source element B, is directly contained within another so
 
    2\. The item in the containing source element if the name is not declared in source element A and is declared in the source element containing source element A. This rule is applied to further containing source elements until a single valid name has been found.
 
-###### 8.4.5.1.1 Scope of condition-names, constant-names, data-names, file-names, record-names,
-
-report-names, screen-names, and type-names
+###### 8.4.5.1.1 Scope of condition-names, constant-names, data-names, file-names, record-names, report-names, screen-names, and type-names
 
 A constant-name, file-name, record-name, report-name, screen-name, or type-name described with a GLOBAL clause is a global name. A constant-name, data-name or file-name declared in a source element for an object definition, whether factory or instance, is a global name. All data-names and screen-names subordinate to a global name are global names. All condition-names associated with a global name are global names.
 
@@ -5753,7 +5716,9 @@ There are five binary arithmetic operators and two unary arithmetic operators th
 | \* | Multiplication |
 | / | Division |
 | \*\* | Exponentiation |
+
 | Unary Arithmetic Operators | Meaning |
+|---|---|
 | + | The effect of multiplication by the numeric literal +1 |
 | – | The effect of multiplication by the numeric literal –1 |
 
@@ -5765,9 +5730,7 @@ A boolean operator specifies the type of boolean operation to be performed on on
 |---|---|
 | B-AND | AND operation (boolean conjunction) |
 | B-OR | Inclusive OR operation (boolean inclusive disjunction) |
-| B-XOR | Exclusive OR operation (boolean exclusive |
-
-disjunction)
+| B-XOR | Exclusive OR operation (boolean exclusive disjunction) |
 
 | Unary boolean operator | Meaning |
 |---|---|
@@ -5928,11 +5891,11 @@ When standard arithmetic is in effect the following rules apply:
 
 A standard intermediate data item has the unique value of zero or a value whose magnitude is in the range of
 
-   10–999 (1.000 000 000 000 000 000 000 000 000 000 0E-999)
+   10<sup>–999</sup> (1.000 000 000 000 000 000 000 000 000 000 0E-999)
 
 through
 
-   101000 – 10968 (9.999 999 999 999 999 999 999 999 999 999 9E+999)
+   10<sup>1000</sup> – 10<sup>968</sup> (9.999 999 999 999 999 999 999 999 999 999 9E+999)
 
 inclusive, with a precision of 32 decimal digits. A standard intermediate data item shall be truncated or rounded to fewer than 32 digits only as explicitly specified.
 
@@ -6254,9 +6217,7 @@ FORMAT 3
 
 For operands whose class is numeric, a comparison is made with respect to the algebraic value of the operands regardless of the manner in which their usage is described. The length of the literal or arithmetic expression operands, in terms of the number of digits represented, is not significant. Zero is considered a unique value regardless of the sign; an operand having the value zero is equal to any other operand having the value zero – whether positive, negative, or unsigned. When one or both of the operands is an operand for which native arithmetic applies, the comparison proceeds by the rules of native arithmetic regardless of the mode of arithmetic in effect. When standard arithmetic is used, the number of digits of the standard intermediate data item used and whether there is rounding shall be as specified in 8.8.1.3.1.3, Rounding rules.
 
-###### 8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or
-
-national
+###### 8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or national
 
 The numeric integer operand shall be an integer literal or an integer numeric data item of usage display or national. The other operand may be a literal or data item of class alphanumeric or national.
 
@@ -6558,13 +6519,9 @@ The logical operators and their meanings are:
 
 | Logical Operator | Meaning |
 |---|---|
-| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are |
-
-true; false if one or both of the conjoined conditions is false.
-
-   OR Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false.
-
-   NOT Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.
+| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false. |
+| OR | Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false. |
+| NOT | Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true. |
 
 ###### 8.8.4.2.1 Negated conditions
 
@@ -6682,8 +6639,9 @@ Parentheses, both explicit and implicit, denote a level of inclusiveness within 
 
 The following is the list of reserved words:
 
-| ACCEPT | CLASS | DIVISION |
+|  |  |  |
 |---|---|---|
+| ACCEPT | CLASS | DIVISION |
 | ACCESS | CLASS-ID | DOWN |
 | ACTIVE-CLASS | CLOSE | DUPLICATES |
 | ADD | CODE | DYNAMIC |
@@ -6736,13 +6694,13 @@ The following is the list of reserved words:
 | CF | DISABLE | FILE-CONTROL |
 | CH | DISPLAY | FILLER |
 | CHARACTER | DIVIDE | FINAL |
-
-   CHARACTERS
+| CHARACTERS |  |  |
 
 ## Page 161
 
-| FIRST | LIMIT | PAGE-COUNTER |
+|  |  |  |
 |---|---|---|
+| FIRST | LIMIT | PAGE-COUNTER |
 | FLOAT-EXTENDED | LIMITS | PERFORM |
 | FLOAT-LONG | LINAGE | PF |
 | FLOAT-SHORT | LINAGE-COUNTER | PH |
@@ -6764,11 +6722,8 @@ The following is the list of reserved words:
 | GROUP | MODE | QUEUE |
 | GROUP-USAGE | MOVE | QUOTE |
 |  | MULTIPLY | QUOTES |
-
-HEADING
-
+| HEADING |  |  |
 | HIGH-VALUE | NATIONAL | RAISE |
-|---|---|---|
 | HIGH-VALUES | NATIONAL-EDITED | RAISING |
 |  | NATIVE | RANDOM |
 | I-O | NEGATIVE | RD |
@@ -6806,8 +6761,9 @@ HEADING
 
 ## Page 162
 
-| SAME | TABLE | VAL-STATUS |
+|  |  |  |
 |---|---|---|
+| SAME | TABLE | VAL-STATUS |
 | SCREEN | TALLYING | VALID |
 | SD | TERMINAL | VALIDATE |
 | SEARCH | TERMINATE | VALIDATE-STATUS |
@@ -6838,19 +6794,18 @@ HEADING
 | START | USER-DEFAULT | \*> |
 | STATUS | USING | :: |
 | STOP |  | >> |
-
-STRING\
-SUB-QUEUE-1\
-SUB-QUEUE-2\
-SUB-QUEUE-3\
-SUBTRACT\
-SUM\
-SUPER\
-SUPPRESS\
-SYMBOLIC\
-SYNC\
-SYNCHRONIZED\
-SYSTEM-DEFAULT
+| STRING |  |  |
+| SUB-QUEUE-1 |  |  |
+| SUB-QUEUE-2 |  |  |
+| SUB-QUEUE-3 |  |  |
+| SUBTRACT |  |  |
+| SUM |  |  |
+| SUPER |  |  |
+| SUPPRESS |  |  |
+| SYMBOLIC |  |  |
+| SYNC |  |  |
+| SYNCHRONIZED |  |  |
+| SYSTEM-DEFAULT |  |  |
 
 ## Page 163
 
@@ -6875,12 +6830,8 @@ The following are context-sensitive words and are reserved in the specified lang
 | EOS | ERASE clause in a screen description entry |
 | ENTRY-CONVENTION | OPTIONS paragraph |
 | ERASE | screen description entry |
-| EXPANDS | class-specifier and interface-specifier of the REPOSITORY |
-
-paragraph
-
+| EXPANDS | class-specifier and interface-specifier of the REPOSITORY paragraph |
 | FOREGROUND-COLOR | screen description entry |
-|---|---|
 | FOREVER | RETRY phrase |
 | FULL | screen description entry |
 | HIGHLIGHT | screen description entry and SET attribute statement |
@@ -6906,12 +6857,8 @@ paragraph
 | NONE | DEFAULT clause |
 | NORMAL | STOP statement |
 | NUMBERS | COLUMN clause and LINE clause |
-| ONLY | Object-view, SHARING clause, SHARING phrase, and |
-
-USAGE clause
-
+| ONLY | Object-view, SHARING clause, SHARING phrase, and USAGE clause |
 | PARAGRAPH | EXIT statement |
-|---|---|
 | PREVIOUS | READ statement |
 | RECURSIVE | PROGRAM-ID paragraph |
 | RELATION | VALIDATE-STATUS clause |
@@ -6940,10 +6887,11 @@ All exception-names are context-sensitive because they may appear only following
 
 The following is the list of intrinsic function names:
 
-   ABS HIGHEST-ALGEBRAIC ORD-MIN ACOS
-
-| ANNUITY | INTEGER | PI |
+|  |  |  |
 |---|---|---|
+| ABS | HIGHEST-ALGEBRAIC | ORD-MIN |
+| ACOS |  |  |
+| ANNUITY | INTEGER | PI |
 | ASIN | INTEGER-OF-BOOLEAN | PRESENT-VALUE |
 | ATAN | INTEGER-OF-DATE |  |
 |  | INTEGER-OF-DAY | RANDOM |
@@ -6957,29 +6905,22 @@ The following is the list of intrinsic function names:
 |  | LOG10 | STANDARD-COMPARE |
 | DATE-OF-INTEGER | LOWER-CASE | STANDARD-DEVIATION |
 | DATE-TO-YYYYMMDD | LOWEST-ALGEBRAIC | SUM |
-
-   DAY-OF-INTEGER
-
+| DAY-OF-INTEGER |  |  |
 | DAY-TO-YYYYDDD | MAX | TAN |
-|---|---|---|
 | DISPLAY-OF | MEAN | TEST-DATE-YYYYMMDD |
 |  | MEDIAN | TEST-DAY-YYYYDDD |
 | E | MIDRANGE | TEST-NUMVAL |
 | EXCEPTION-FILE | MIN | TEST-NUMVAL-C |
 | EXCEPTION-FILE-N | MOD | TEST-NUMVAL-F |
-
-   EXCEPTION-LOCATION
-
+| EXCEPTION-LOCATION |  |  |
 | EXCEPTION-LOCATION-N | NATIONAL-OF | UPPER-CASE |
-|---|---|---|
 | EXCEPTION-STATEMENT | NUMVAL |  |
 | EXCEPTION-STATUS | NUMVAL-C | VARIANCE |
 | EXP | NUMVAL-F |  |
 | EXP10 |  | WHEN-COMPILED |
-
-ORD\
-FACTORIAL ORD-MAX YEAR-TO-YYYY\
-FRACTION-PART
+|  | ORD |  |
+| FACTORIAL | ORD-MAX | YEAR-TO-YYYY |
+| FRACTION-PART |  |  |
 
 ## Page 166
 
@@ -6987,8 +6928,9 @@ FRACTION-PART
 
 The following words are reserved in compiler directives:
 
-| ALL | FREE | SET |
+|  |  |  |
 |---|---|---|
+| ALL | FREE | SET |
 | AND | FUNCTION-ARGUMENT | SIZE |
 | AS |  | SOURCE |
 |  | GREATER | STANDARD-1 |
@@ -6996,36 +6938,24 @@ The following words are reserved in compiler directives:
 | B-NOT | IF |  |
 | B-OR | IMP | THAN |
 | B-XOR | IS | THROUGH |
-
-THRU
-
+|  |  | THRU |
 | CALL-CONVENTION | LEAP-SECOND | TO |
-|---|---|---|
 | CHECKING | LESS | TRUE |
 | COBOL | LISTING | TURN |
 | CORRESPONDING | LOCATION |  |
-
-WHEN\
-DE-EDITING MOVE WITH\
-DEFINE
-
+|  |  | WHEN |
+| DE-EDITING | MOVE | WITH |
+| DEFINE |  |  |
 | DEFINED | NOT | ZERO-LENGTH |
-|---|---|---|
 | DIVIDE | NUMVAL |  |
-
-\+
-
+|  |  | + |
 | ELSE | OFF | - |
-|---|---|---|
 | END-IF | ON | \* |
 | END-EVALUATE | OR | / |
 | EQUAL | OTHER | &lt;= |
 | EVALUATE | OVERRIDE | >= |
-
-&lt;
-
+|  |  | &lt; |
 | FIXED | PAGE | > |
-|---|---|---|
 | FLAG-85 | PARAMETER | = |
 | FLAG-NATIVE-ARITHMETIC | PROPAGATE | ( |
 | FORMAT |  | ) |
@@ -7223,16 +7153,14 @@ Certain classes of I-O status values indicate fatal exception conditions. These 
 
 Any I-O status associated with an unsuccessful completion is associated with an exception condition. Whether or not the exception condition is raised depends on whether or not checking for that exception condition is enabled. The exception condition depends on the first character of the I-O status value that results after the execution of an input-output statement. The exception-names and the first digit of their corresponding I-O status values are:
 
+|  |  |
+|---|---|
 | EC-I-O-AT-END | '1' |
-|---|---|
 | EC-I-O-INVALID-KEY | '2' |
-
-   EC-I-O-PERMANENT-ERROR '3'\
-   EC-I-O-LOGIC-ERROR '4'\
-   EC-I-O-RECORD-OPERATION '5'
-
+| EC-I-O-PERMANENT-ERROR | '3' |
+| EC-I-O-LOGIC-ERROR | '4' |
+| EC-I-O-RECORD-OPERATION | '5' |
 | EC-I-O-FILE-SHARING | '6' |
-|---|---|
 | EC-I-O-IMP | '9' |
 
 If the first character of the resulting I-O status value is one of the above values, the associated exception condition is set to exist. If the exception condition EC-I-O-AT-END or EC-I-O-INVALID-KEY exists and the input-output statement that caused the exception condition to exist is specified with an AT END or INVALID KEY phrase respectively, no USE procedure shall be executed. Otherwise, the exception condition that exists determines whether an applicable USE procedure shall be executed according to the rules in 14.8.45, USE statement.
@@ -8122,11 +8050,8 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | data-division | 13, Data division |
-
-environment-division 12, Environment division
-
+| environment-division | 12, Environment division |
 | options-paragraph | 11.8, OPTIONS paragraph |
-|---|---|
 | procedure-division | 14, Procedure division |
 
 ##### 10.5.2 Syntax rules
@@ -8251,16 +8176,12 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | class-id-paragraph | 11.2, CLASS-ID paragraph |
 | factory-paragraph | 11.3, FACTORY paragraph |
-
-function-id-paragraph 11.4, FUNCTION-ID paragraph\
-interface-id-paragraph 11.5, INTERFACE-ID paragraph\
-method-id-paragraph 11.6, METHOD-ID paragraph
-
+| function-id-paragraph | 11.4, FUNCTION-ID paragraph |
+| interface-id-paragraph | 11.5, INTERFACE-ID paragraph |
+| method-id-paragraph | 11.6, METHOD-ID paragraph |
 | object-paragraph | 11.7, OBJECT paragraph |
-|---|---|
 | options-paragraph | 11.8, OPTIONS paragraph |
-
-program-id-paragraph 11.9, PROGRAM-ID paragraph
+| program-id-paragraph | 11.9, PROGRAM-ID paragraph |
 
 ## Page 198
 
@@ -8889,13 +8810,13 @@ The SPECIAL-NAMES paragraph provides a means for:
 
 [ <u>ORDER</u> <u>TABLE</u> ordering-name-1 IS literal-9 ]
 
-┌                    ┌     ╭ <u>ALPHANUMERIC</u>  ╮ ┐                        ┐
-│ <u>CLASS</u> class-name-1 │ FOR ┤               ├ │                        │
-│                    └     ╰ <u>NATIONAL</u>      ╯ ┘                        │
-│                                                                     │ …
-│    ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
-│ IS ┤ literal-5 │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
-└    ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
+┌                    ┌     ╭ <u>ALPHANUMERIC</u>        ╮ ┐                        ┐
+│ <u>CLASS</u> class-name-1 │ FOR ┤                     ├ │                        │
+│                    └     ╰ <u>NATIONAL</u>            ╯ ┘                        │
+│                                                                           │ …
+│          ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
+│       IS ┤ literal-5 │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
+└          ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
 
 [ <u>CURRENCY</u> SIGN IS literal-7 [ WITH <u>PICTURE</u> <u>SYMBOL</u> literal-8 ] ] …
 
@@ -9628,14 +9549,13 @@ Format 3 (sequential):
 Format 4 (sort-merge):
 
 <pre style="line-height:1">
-                  ╭               ╮ …
-<u>SELECT</u> [ <u>OPTIONAL</u> │ ] file-name-1 │
-                  │               │
-       ╭          │ device-name-1 │                       ╮
-       │ TO       ┤               ├ [ <u>USING</u> data-name-1 ] │
-<u>ASSIGN</u> ┤          ╰ literal-1     ╯                       ├
-       │                                                  │
-       ╰ <u>USING</u> data-name-1                                ╯
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
+
+       ╭    ╭ device-name-1 ╮                         ╮
+       │ TO ┤               ├ … [ <u>USING</u> data-name-1 ] │
+<u>ASSIGN</u> ┤    ╰ literal-1     ╯                         ├
+       │                                              │
+       ╰ <u>USING</u> data-name-1                            ╯
 
 [ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] .
 </pre>
@@ -10341,8 +10261,7 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | constant-entry | 13.9, Constant entry |
-
-record-description-entry 13.10, Record description entry
+| record-description-entry | 13.10, Record description entry |
 
 ##### 13.3.2 Syntax rules
 
@@ -10525,7 +10444,7 @@ The sort-merge file description entry (SD entry) represents the highest level of
 │        │                                                                       │ │
 │        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] │ │
 │ <u>RECORD</u> ┤                                                                       ├ │ .
-│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │
+│        │     [ <u>DEPENDING</u> ON data-name-1 ]                                      │ │
 │        │                                                                       │ │
 └        ╰ CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS                            ╯ ┘
 </pre>
@@ -10566,8 +10485,7 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | 77-level-entry | 13.11, 77-level data description entry |
 | constant-entry | 13.9, Constant entry |
-
-record-description-entry 13.10, Record description entry
+| record-description-entry | 13.10, Record description entry |
 
 ##### 13.4.2 Syntax rules
 
@@ -10603,8 +10521,7 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | 77-level-entry | 13.11, 77-level data description entry |
 | constant-entry | 13.9, Constant entry |
-
-record-description-entry 13.10, Record description entry
+| record-description-entry | 13.10, Record description entry |
 
 ##### 13.5.2 Syntax rules
 
@@ -10640,8 +10557,7 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | 77-level-entry | 13.11, 77-level data description entry |
 | constant-entry | 13.9, Constant entry |
-
-record-description-entry 13.10, Record description entry
+| record-description-entry | 13.10, Record description entry |
 
 ##### 13.6.2 Syntax rules
 
@@ -10700,8 +10616,7 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | 77-level-entry | 13.11, 77-level data description entry |
-
-report-group-description-entry 13.7.4, Report group description entry
+| report-group-description-entry | 13.7.4, Report group description entry |
 
 ##### 13.7.2 Syntax rules
 
@@ -10774,8 +10689,7 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | constant-entry | 13.9, Constant entry |
-
-screen-description-entry 13.15, Screen description entry
+| screen-description-entry | 13.15, Screen description entry |
 
 ##### 13.8.2 Syntax rules
 
@@ -10793,7 +10707,7 @@ A constant entry defines a constant. A constant may be used in place of a litera
                                              ╭    ╭ arithmetic-expression-1    ╮ ╮
                                              │    │                            │ │
                                              │    │ <u>BYTE-LENGTH</u> OF data-name-1 │ │
-╭ 1  ╮                                       │ AS ┤                            ├ │
+╭ <u>1</u>  ╮                                       │ AS ┤                            ├ │
 ┤    ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL</u>] ┤    │ literal-1                  │ ├ .
 ╰ <u>01</u> ╯                                       │    │                            │ │
                                              │    ╰ <u>LENGTH</u> OF data-name-2      ╯ │
@@ -10876,23 +10790,23 @@ The report description entry names a report and describes its general physical a
 │ ┤              ├ ┤                         ├ │
 └ ╰ <u>CONTROLS</u> ARE ╯ ╰ <u>FINAL</u> [ data-name-1 ] … ╯ ┘
 
-┌                     ╭ integer-1                                         ╮ ┐
-│      ┌ LIMIT IS   ┐ │                                                   │ │
-│ <u>PAGE</u> │            │ ┤ ┌           ╭ <u>LINE</u>  ╮ ┐ ┌           ╭ <u>COLS</u>    ╮ ┐ ├ │
-│      └ LIMITS ARE ┘ │ │ integer-1 ┤       ├ │ │ integer-2 ┤         ├ │ │ │
-│                     ╰ └           ╰ <u>LINES</u> ╯ ┘ └           ╰ <u>COLUMNS</u> ╯ ┘ ╯ │
-│                                                                           │
-│ [ <u>HEADING</u> IS integer-3 ] ┌       ╭ <u>DE</u>     ╮              ┐                │
-│                          │ <u>FIRST</u> ┤        ├ IS integer-4 │                │ .
-│                          └       ╰ <u>DETAIL</u> ╯              ┘                │
-│                                                                           │
-│ ┌      ╭ <u>CH</u>              ╮                    ┐                           │
-│ │ <u>LAST</u> ┤                 ├       IS integer-5 │                           │
-│ └      ╰ <u>CONTROL</u> <u>HEADING</u> ╯                    ┘                           │
-│                                                                           │
-│ ┌      ╭ <u>DE</u>     ╮              ┐                                          │
-│ │ <u>LAST</u> ┤        ├ IS integer-6 │ [ <u>FOOTING</u> IS integer-7 ]                 │
-└ └      ╰ <u>DETAIL</u> ╯              ┘                                          ┘
+┌                     ╭ integer-1                                           ╮ ┐
+│      ┌ LIMIT IS   ┐ │                                                     │ │
+│ <u>PAGE</u> │            │ ┤ ┌           ╭ <u>LINE</u>    ╮ ┐ ┌           ╭ <u>COLS</u>    ╮ ┐ ├ │
+│      └ LIMITS ARE ┘ │ │ integer-1 ┤         ├ │ │ integer-2 ┤         ├ │ │ │
+│                     ╰ └           ╰ <u>LINES</u>   ╯ ┘ └           ╰ <u>COLUMNS</u> ╯ ┘ ╯ │
+│                                                                             │
+│   [ <u>HEADING</u> IS integer-3 ] ┌       ╭ <u>DE</u>     ╮              ┐                │
+│                            │ <u>FIRST</u> ┤        ├ IS integer-4 │                │ .
+│                            └       ╰ <u>DETAIL</u> ╯              ┘                │
+│                                                                             │
+│ ┌      ╭ <u>CH</u>              ╮                    ┐                             │
+│ │ <u>LAST</u> ┤                 ├       IS integer-5 │                             │
+│ └      ╰ <u>CONTROL</u> <u>HEADING</u> ╯                    ┘                             │
+│                                                                             │
+│ ┌      ╭ <u>DE</u>     ╮              ┐                                            │
+│ │ <u>LAST</u> ┤        ├ IS integer-6 │ [ <u>FOOTING</u> IS integer-7 ]                   │
+└ └      ╰ <u>DETAIL</u> ╯              ┘                                            ┘
 </pre>
 
 ##### 13.12.2 Syntax rules
@@ -11095,9 +11009,8 @@ where the following meta-language terms are described in the indicated subclause
 | picture-clause | 13.16.38, PICTURE clause |
 | select-when clause | 13.16.49, SELECT WHEN clause |
 | usage-clause | 13.16.58, USAGE clause |
-
-validate-status-clause 13.16.60, VALIDATE-STATUS clause\
-value-clause 13.16.61, VALUE clause (data-item or table format)
+| validate-status-clause | 13.16.60, VALIDATE-STATUS clause |
+| value-clause | 13.16.61, VALUE clause (data-item or table format) |
 
 Format 2 (renames):
 
@@ -12768,8 +12681,8 @@ Format 1 (report-writer):
 <pre style="line-height:1">
                      ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮
 ╭ <u>LINE</u> NUMBER IS   ╮ │                            │
-│                  │ │ ╭ <u>PLUS</u> ╮                   │ …
-┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├
+│                  │ │ ╭ <u>PLUS</u> ╮                   │
+┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├ …
 │                  │ │ ╰ +    ╯                   │
 ╰ <u>LINES</u> ARE        ╯ │                            │
                      ╰ ON <u>NEXT</u> <u>PAGE</u>               ╯
@@ -13048,13 +12961,11 @@ Format 1 (fixed-table):
 Format 2 (variable-table):
 
 <pre style="line-height:1">
-       ╭              ╮ KEY
-       │              │
-<u>OCCURS</u> │ integer-1 <u>TO</u> │ integer-2 TIMES <u>DEPENDING</u> ON data-name-1
-       │              │
-┌      │ <u>ASCENDING</u>    │                      ┐
-│      ┤              ├ IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
-└      ╰ <u>DESCENDING</u>   ╯                      ┘
+<u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-1
+
+┌ ╭ <u>ASCENDING</u>  ╮                          ┐
+│ ┤            ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
+└ ╰ <u>DESCENDING</u> ╯                          ┘
 </pre>
 
 Format 3 (report-writer):
@@ -13891,7 +13802,7 @@ Table 11 — Format 1 picture symbol order of precedence
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 |  |  | Simple, special, and fixed insertion symbols |  |  |  |  |  |  |  |  | Zero-suppression and floating insertion symbols |  |  |  |  |  | Other symbols |  |  |  |  |  |  |  |  |
 |  |  | B<br>0<br>/ | , | . | + | +<br>– | +<br>– | CR DB | cs | cs | Z<br>\* | Z<br>\* | +<br>– | +<br>– | cs | cs | 9 | A<br>X | S | V | P | P | 1 | N | E |
-| symbols<br>insertion<br>fixed<br>and<br>special,<br>Simple, | B 0 / | x | x | x |  | x |  |  | x |  | x | x | x | x | x | x | x | x |  | x |  | x |  | x |  |
+| Simple, special, and fixed insertion symbols | B 0 / | x | x | x |  | x |  |  | x |  | x | x | x | x | x | x | x | x |  | x |  | x |  | x |  |
 |  | , | x | x | x |  | x |  |  | x |  | x | x | x | x | x | x | x |  |  | x |  | x |  |  |  |
 |  | . | x | x |  |  | x |  |  | x |  | x |  | x |  | x |  | x |  |  |  |  |  |  |  |  |
 |  | + |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | x |
@@ -13900,13 +13811,13 @@ Table 11 — Format 1 picture symbol order of precedence
 |  | CR DB | x | x | x |  |  |  |  | x | x | x | x |  |  | x | x | x |  |  | x | x | x |  |  |  |
 |  | cs |  |  |  |  | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | cs | x | x | x |  | x |  |  |  |  | x | x |  |  |  |  | x |  |  | x | x | x |  |  |  |
-| floating<br>andsymbols Zero-suppression<br>insertion | Z<br>\* | x | x |  |  | x |  |  | x |  | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Zero-suppression and floating insertion symbols | Z<br>\* | x | x |  |  | x |  |  | x |  | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | Z<br>\* | x | x | x |  | x |  |  | x |  | x | x |  |  |  |  |  |  |  | x |  | x |  |  |  |
 |  | +<br>– | x | x |  |  |  |  |  | x |  |  |  | x |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | +<br>– | x | x | x |  |  |  |  | x |  |  |  | x | x |  |  |  |  |  | x |  |  |  |  |  |
 |  | cs | x | x |  |  | x |  |  |  |  |  |  |  |  | x |  |  |  |  |  |  |  |  |  |  |
 |  | cs | x | x | x |  | x |  |  |  |  |  |  |  |  | x | x |  |  |  | x |  |  |  |  |  |
-| symbols<br>Other | 9 | x | x | x | x | x |  |  | x |  | x |  | x |  | x |  | x | x | x | x |  | x |  |  | x |
+| Other symbols | 9 | x | x | x | x | x |  |  | x |  | x |  | x |  | x |  | x | x | x | x |  | x |  |  | x |
 |  | A<br>X | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  | x | x |  |  |  |  |  |  |  |
 |  | S |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | V | x | x |  |  | x |  |  | x |  | x |  | x |  | x |  | x |  | x |  | x |  |  |  |  |
@@ -17063,10 +16974,9 @@ FORMAT 2
 
 7\) DATE without the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display six digits in length, the character positions of which, numbered from left to right, are:
 
-   Character Positions Contents
-
-| 1-2 | The two low-order digits of the year in the Gregorian calendar. |
+| Character Positions | Contents |
 |---|---|
+| 1-2 | The two low-order digits of the year in the Gregorian calendar. |
 | 3-4 | Two numeric characters of the month of the year in the range 01 through 12. |
 | 5-6 | Two numeric characters of the day of the month in the range 01 through 31. |
 
@@ -17074,45 +16984,34 @@ FORMAT 2
 
 8\) DATE with the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length, the character positions of which, numbered from left to right, are:
 
-   Character Positions Contents
-
-| 1-4 | Four numeric characters of the year in the Gregorian calendar. |
+| Character Positions | Contents |
 |---|---|
+| 1-4 | Four numeric characters of the year in the Gregorian calendar. |
 | 5-6 | Two numeric characters of the month of the year in the range 01 through 12. |
 | 7-8 | Two numeric characters of the day of the month in the range 01 through 31. |
 
 9\) DAY without the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display five digits in length, the character positions of which, numbered from left to right, are:
 
-   Character Positions Contents
-
-| 1-2 | The two low-order digits of the year in the Gregorian calendar. |
+| Character Positions | Contents |
 |---|---|
+| 1-2 | The two low-order digits of the year in the Gregorian calendar. |
 | 3-5 | Three numeric characters of the day of the year in the range 001 through 366. |
 
 10\) DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length, the character positions of which, numbered from left to right, are:
 
-   Character Positions Contents
-
-| 1-4 | Four numeric characters of the year in the Gregorian calendar. |
+| Character Positions | Contents |
 |---|---|
+| 1-4 | Four numeric characters of the year in the Gregorian calendar. |
 | 5-7 | Three numeric characters of the day of the year in the range 001 through 366. |
 
 11\) TIME is based on the elapsed time since midnight on a 24-hour clock. If the system does not have the facility to provide fractional parts of a second the value zero is returned for those parts that are not available. TIME behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length, the characters positions of which, numbered from left to right, are:
 
-   Character Positions Contents
-
-| 1-2 | Two numeric characters of the hours past midnight in the range 00 through 23. |
+| Character Positions | Contents |
 |---|---|
+| 1-2 | Two numeric characters of the hours past midnight in the range 00 through 23. |
 | 3-4 | Two numeric characters of the minutes past the hour in the range 00 through 59. |
-| 5-6 | Two numeric characters of the seconds past the minute in the range: |
-
-a) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect
-
-b) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect.
-
-   7-8 Two numeric characters of the hundredths of a second past the second in the range\
-   &emsp;&emsp;&emsp;&emsp;00 through 99. 00 is returned if the system on which the ACCEPT statement is\
-   &emsp;&emsp;&emsp;&emsp;executed does not have the facility to provide the fractional part of a second.
+| 5-6 | Two numeric characters of the seconds past the minute in the range:<br>a) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect<br>b) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. |
+| 7-8 | Two numeric characters of the hundredths of a second past the second in the range 00 through 99. 00 is returned if the system on which the ACCEPT statement is executed does not have the facility to provide the fractional part of a second. |
 
 12\) DAY-OF-WEEK behaves as if it had been described as an unsigned elementary numeric integer data item one digit in length and of usage display. In DAY-OF-WEEK, the value 1 represents Monday, 2 represents Tuesday, 3 represents Wednesday, ... , 7 represents Sunday.
 
@@ -17126,11 +17025,8 @@ FORMAT 3
 |---|---|
 | Alphabetic | Alphanumeric SPACES |
 | Alphanumeric | Alphanumeric SPACES |
-
-   Alphanumeric-edited Alphanumeric SPACES
-
+| Alphanumeric-edited | Alphanumeric SPACES |
 | Boolean | ZEROS |
-|---|---|
 | National | National SPACES |
 | National-edited | National SPACES |
 | Numeric | ZEROS |
@@ -17202,7 +17098,7 @@ MOVE screen-item TO receiving-field
 
 ## Page 436
 
-2\. If the EC-DATA-INCOMPATIBLE exception condition does not exist, control is transferred to the end of the ACCEPT statement and the NOT ON EXCEPTION phrase, if specified, is ignored.
+   2\. If the EC-DATA-INCOMPATIBLE exception condition does not exist, control is transferred to the end of the ACCEPT statement and the NOT ON EXCEPTION phrase, if specified, is ignored.
 
 ## Page 437
 
@@ -17284,7 +17180,7 @@ Format 3 (corresponding):
 
    When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression
 
-   (operand-11 + operand-12 + ... + operand-1n)
+   (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>)
 
    where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the ADD statement. The result of the sum of the initial evaluation and the value of the data item referenced by identifier-2 is equivalent to the result of the arithmetic expression
 
@@ -17296,7 +17192,7 @@ Format 3 (corresponding):
 
    When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression
 
-   (operand-11 + operand-12 + ... + operand-1n + operand-2)
+   (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub> + operand-2)
 
    where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the ADD statement and the value of operand-2 is the value of either literal-2 or the data item referenced by identifier-2 in the ADD statement.
 
@@ -18055,11 +17951,9 @@ Format 1 (into):
 Format 2 (into-giving):
 
 <pre style="line-height:1">
-       ╭              ╮ <u>INTO</u>
-       │              │
-       │ identifier-1 │ ╭ identifier-2 ╮
-<u>DIVIDE</u> ┤              ├ ┤              ├
-       ╰ literal-1    ╯ ╰ literal-2    ╯
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
 <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
 
@@ -18089,11 +17983,9 @@ Format 3 (by-giving):
 Format 4 (into-remainder):
 
 <pre style="line-height:1">
-       ╭              ╮ <u>INTO</u>
-       │              │
-       │ identifier-1 │ ╭ identifier-2 ╮
-<u>DIVIDE</u> ┤              ├ ┤              ├
-       ╰ literal-1    ╯ ╰ literal-2    ╯
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
 <u>GIVING</u> identifier-3 [ <u>ROUNDED</u> ]
 <u>REMAINDER</u> identifier-4
@@ -18996,8 +18888,8 @@ Format 3 (tallying-and-replacing):
 Format 4 (converting):
 
 <pre style="line-height:1">
-<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ╭ identifier-6 ╮    ╭ identifier-7 ╮ [ after-before-phrase ]
-                                ┤              ├ <u>TO</u> ┤              ├
+                                ╭ identifier-6 ╮    ╭ identifier-7 ╮
+<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ┤              ├ <u>TO</u> ┤              ├ [ after-before-phrase ]
                                 ╰ literal-4    ╯    ╰ literal-5    ╯
 </pre>
 
@@ -19677,9 +19569,9 @@ Table 18 — Category of figurative constants used in the MOVE statement
 
 | Figurative constant | Category of<br>receiving operand | Category of<br>figurative constant |
 |---|---|---|
-| ALL literal, where literal is: Alphanumeric<br>Boolean<br>National | —<br>—<br>— | Alphanumeric<br>Boolean<br>National |
-| ALL symbolic character, where symbolic character is:<br>Alphanumeric<br>National | —<br>— | Alphanumeric<br>National |
-| HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited<br>Numeric<br>Numeric-edited<br>— if usage is display — if usage is national | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National<br>Alphanumeric<br>Alphanumeric<br>National |
+| ALL literal, where literal is:<br>&emsp;Alphanumeric<br>&emsp;Boolean<br>&emsp;National | <br>—<br>—<br>— | <br>Alphanumeric<br>Boolean<br>National |
+| ALL symbolic character, where symbolic character is:<br>&emsp;Alphanumeric<br>&emsp;National | <br>—<br>— | <br>Alphanumeric<br>National |
+| HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited<br>Numeric<br>Numeric-edited<br>&emsp;— if usage is display<br>&emsp;— if usage is national | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National<br>Alphanumeric<br><br>Alphanumeric<br>National |
 | SPACE, SPACES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National |
 | ZERO, ZEROS, ZEROES | Alphanumeric<br>Alphanumeric-edited<br>Boolean<br>National<br>National-edited<br>Numeric<br>Numeric-edited | Alphanumeric<br>Alphanumeric<br>Boolean<br>National<br>National<br>Numeric<br>Numeric |
 | — indicates the figurative constant category does not depend on the category of the receiving operand |  |  |
@@ -21873,11 +21765,9 @@ Format 1 (simple):
 Format 2 (giving):
 
 <pre style="line-height:1">
-         ╭              ╮ …
-         │              │
-         │ identifier-1 │      ╭ identifier-2 ╮
-<u>SUBTRACT</u> ┤              ├ <u>FROM</u> ┤              ├
-         ╰ literal-1    ╯      ╰ literal-2    ╯
+         ╭ identifier-1 ╮        ╭ identifier-2 ╮
+<u>SUBTRACT</u> ┤              ├ … <u>FROM</u> ┤              ├
+         ╰ literal-1    ╯        ╰ literal-2    ╯
 
 <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
 
@@ -21938,7 +21828,7 @@ FORMAT 3
 
    When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression
 
-   (operand-11 + operand-12 + ... + operand-1n)
+   (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>)
 
    where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the SUBTRACT statement. The result of the subtraction from the value of each data item referenced by identifier-2 is equivalent to the result of the arithmetic expression
 
@@ -21950,7 +21840,7 @@ FORMAT 3
 
    When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression
 
-   (operand-2 – (operand-11 + operand-12 + ... + operand-1n))
+   (operand-2 – (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>))
 
    where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the SUBTRACT statement and the value of operand-2 is the value of either literal-2 or the data item referenced by identifier-2 in the SUBTRACT statement.
 
@@ -22055,10 +21945,9 @@ The UNLOCK statement explicitly releases any record locks associated with a file
 ###### 14.8.43.1 General format
 
 <pre style="line-height:1">
-<u>UNLOCK</u>      ┌ RECORD  ┐
-            │         │
-file-name-1 │         │
-            └ RECORDS ┘
+                   ┌ RECORD  ┐
+<u>UNLOCK</u> file-name-1 │         │
+                   └ RECORDS ┘
 </pre>
 
 ###### 14.8.43.2 Syntax rules
@@ -23375,30 +23264,18 @@ The type of this function is alphanumeric.
 
 1\) The character positions returned, numbered from left to right, are:
 
-   Character Contents\
-   Positions
-
-| 1-4 | Four numeric digits of the year in the Gregorian calendar. |
+| Character Positions | Contents |
 |---|---|
+| 1-4 | Four numeric digits of the year in the Gregorian calendar. |
 | 5-6 | Two numeric digits of the month of the year, in the range 01 through 12. |
 | 7-8 | Two numeric digits of the day of the month, in the range 01 through 31. |
 | 9-10 | Two numeric digits of the hours past midnight, in the range 00 through 23. |
 | 11-12 | Two numeric digits of the minutes past the hour, in the range 00 through 59. |
-| 13-14 | Two numeric characters of the seconds past the minute in the range: |
-
-— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\
-— 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND\
-&emsp;directive with the ON phrase is in effect.
-
-   15-16 Two numeric digits of the hundredths of a second past the second, in the range 00 through
-
-99\. The value 00 is returned if the system on which the function is evaluated does not have the facility to provide the fractional part of a second.
-
-   17 Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal time. The character '0' is returned if the system on which this function is evaluated does not have the facility to provide the local time differential factor.
-
-   18-19 If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned.
-
-   20-21 Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.
+| 13-14 | Two numeric characters of the seconds past the minute in the range:<br>— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect<br>— 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. |
+| 15-16 | Two numeric digits of the hundredths of a second past the second, in the range 00 through 99. The value 00 is returned if the system on which the function is evaluated does not have the facility to provide the fractional part of a second. |
+| 17 | Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal time. The character '0' is returned if the system on which this function is evaluated does not have the facility to provide the local time differential factor. |
+| 18-19 | If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned. |
+| 20-21 | Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned. |
 
 ## Page 608
 
@@ -23897,18 +23774,15 @@ The type of this function depends upon the argument types as follows:
 
    NOTE The following illustrates the expected results for some values of argument-1.
 
-   Argument-1
-
-| characteristics | Value returned |
+| Argument-1<br>characteristics | Value returned |
 |---|---|
 | S999 | +999 |
 | S9(4) BINARY | +9999 |
 | 99V9(3) | +99.999 |
 | $\*\*,\*\*9.99BCR | +99999.99 |
 | $\*\*,\*\*9.99 | +99999.99 |
-
-   BINARY-CHAR SIGNED +127 (assuming an 8-bit representation)\
-   BINARY-CHAR UNSIGNED +255 (assuming an 8-bit representation)
+| BINARY-CHAR SIGNED | +127 (assuming an 8-bit representation) |
+| BINARY-CHAR UNSIGNED | +255 (assuming an 8-bit representation) |
 
 ## Page 625
 
@@ -24329,18 +24203,15 @@ The type of this function depends upon the argument types as follows:
 
    NOTE The following illustrates the expected results for some values of argument-1.
 
-   Argument-1
-
-| characteristics | Value returned |
+| Argument-1<br>characteristics | Value returned |
 |---|---|
 | S999 | –999 |
 | S9(4) BINARY | –9999 |
 | 99V9(3) | 0 |
 | $\*\*,\*\*9.99BCR | –99999.99 |
 | $\*\*,\*\*9.99 | 0 |
-
-   BINARY-CHAR SIGNED -128 (assuming an 8-bit twos-complement representation)\
-   BINARY-CHAR UNSIGNED 0 (assuming an 8-bit twos-compliment representation)
+| BINARY-CHAR SIGNED | -128 (assuming an 8-bit twos-complement representation) |
+| BINARY-CHAR UNSIGNED | 0 (assuming an 8-bit twos-compliment representation) |
 
 ## Page 638
 
@@ -24407,11 +24278,11 @@ The type of this function is numeric.
 
    b) For two occurrences of argument-1,
 
-   ((argument-11 + argument-12) / 2)
+   ((argument-1<sub>1</sub> + argument-1<sub>2</sub>) / 2)
 
    c) For n occurrences of argument-1,
 
-   ((argument-11 + argument-12 +... + argument-1n) / n)
+   ((argument-1<sub>1</sub> + argument-1<sub>2</sub> +... + argument-1<sub>n</sub>) / n)
 
 ## Page 640
 
@@ -24484,8 +24355,7 @@ The type of this function depends upon the argument types as follows:
 | Index | Index |
 | All arguments integer | Integer |
 | National | National |
-
-   Numeric (some arguments may be integer) Numeric
+| Numeric (some arguments may be integer) | Numeric |
 
 ##### 15.51.1 General format
 
@@ -24884,19 +24754,19 @@ The type of this function is numeric.
 
    b) For two occurrences of argument-2,
 
-   (argument-21 / (1 + argument-1) + argument-22 / (1 + argument-1) \*\* 2)
+   (argument-2<sub>1</sub> / (1 + argument-1) + argument-2<sub>2</sub> / (1 + argument-1) \*\* 2)
 
    c) For n occurrences of argument-2, the equivalent arithmetic expression is
 
    (FUNCTION SUM (
 
-(argument-21 / (1 + argument-1) \*\* 1)
+   &emsp;&emsp;(argument-2<sub>1</sub> / (1 + argument-1) \*\* 1)
 
-...
+   &emsp;&emsp;...
 
-(argument-2n / (1 + argument-1) \*\* n)))
+   &emsp;&emsp;(argument-2<sub>n</sub> / (1 + argument-1) \*\* n)))
 
-   where argument-1 and argument-2i in the terms of the SUM function are the same as the arguments for the PRESENT-VALUE function itself.
+   where argument-1 and argument-2<sub>i</sub> in the terms of the SUM function are the same as the arguments for the PRESENT-VALUE function itself.
 
 ## Page 654
 
@@ -25212,11 +25082,11 @@ The type of this function depends upon the argument types as follows:
 
    b) For two occurrences of argument-1,
 
-   (argument-11 + argument-12)
+   (argument-1<sub>1</sub> + argument-1<sub>2</sub>)
 
    c) For n occurrences of argument-1,
 
-   (argument-11 + argument-12 + ... + argument-1n)
+   (argument-1<sub>1</sub> + argument-1<sub>2</sub> + ... + argument-1<sub>n</sub>)
 
 ## Page 664
 
@@ -25530,20 +25400,20 @@ The type of this function is numeric.
 
    b) For two occurrences of argument-1,
 
-   ( ((argument-11 – FUNCTION MEAN (argument-list)) \*\* 2 +\
-   &emsp;&emsp;(argument-12– FUNCTION MEAN (argument-list)) \*\* 2) / 2 )
+   ( ((argument-1<sub>1</sub> – FUNCTION MEAN (argument-list)) \*\* 2 +\
+   &emsp;&emsp;(argument-1<sub>2</sub>– FUNCTION MEAN (argument-list)) \*\* 2) / 2 )
 
    c) For n occurrences of argument-1,
 
    (FUNCTION SUM (
 
-((argument-11 – FUNCTION MEAN (argument-list)) \*\* 2)
+   &emsp;&emsp;((argument-1<sub>1</sub> – FUNCTION MEAN (argument-list)) \*\* 2)
 
-...
+   &emsp;&emsp;...
 
-((argument-1n – FUNCTION MEAN (argument-list)) \*\* 2)) / n)
+   &emsp;&emsp;((argument-1<sub>n</sub> – FUNCTION MEAN (argument-list)) \*\* 2)) / n)
 
-   where argument-list is the argument-1 list for the VARIANCE function itself and argument-1i is the ith argument of the argument-1 list for the VARIANCE function itself.
+   where argument-list is the argument-1 list for the VARIANCE function itself and argument-1<sub>i</sub> is the ith argument of the argument-1 list for the VARIANCE function itself.
 
 ## Page 672
 
@@ -25563,31 +25433,18 @@ The type of this function is alphanumeric.
 
 1\) The character positions returned, numbered from left to right, are:
 
-   Character\
-   Positions Contents
-
-   1-4 Four numeric digits of the year in the Gregorian calendar.
-
-   5-6 Two numeric digits of the month of the year, in the range 01 through 12.
-
-   7-8 Two numeric digits of the day of the month, in the range 01 through 31.
-
-   9-10 Two numeric digits of the hours past midnight, in the range 00 through 23.
-
-   11-12 Two numeric digits of the minutes past the hour, in the range 00 through 59.
-
-   13-14 Two numeric characters of the seconds past the minute in the range:\
-   &emsp;&emsp;\- 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\
-   &emsp;&emsp;\- 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with\
-   &emsp;&emsp;the ON phrase is in effect.
-
-   15-16 Two numeric digits of the hundredths of a second past the second, in the range 00 through 99. The value 00 is returned if the system on which the compilation was done does not have the facility to provide the fractional part of a second.
-
-   17 Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal Time. The character '0' is returned if the system on which the compilation was done does not have the facility to provide the local time differential factor.
-
-   18-19 If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned.
-
-   20-21 Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.
+| Character Positions | Contents |
+|---|---|
+| 1-4 | Four numeric digits of the year in the Gregorian calendar. |
+| 5-6 | Two numeric digits of the month of the year, in the range 01 through 12. |
+| 7-8 | Two numeric digits of the day of the month, in the range 01 through 31. |
+| 9-10 | Two numeric digits of the hours past midnight, in the range 00 through 23. |
+| 11-12 | Two numeric digits of the minutes past the hour, in the range 00 through 59. |
+| 13-14 | Two numeric characters of the seconds past the minute in the range:<br>- 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect<br>- 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. |
+| 15-16 | Two numeric digits of the hundredths of a second past the second, in the range 00 through 99. The value 00 is returned if the system on which the compilation was done does not have the facility to provide the fractional part of a second. |
+| 17 | Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal Time. The character '0' is returned if the system on which the compilation was done does not have the facility to provide the local time differential factor. |
+| 18-19 | If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned. |
+| 20-21 | Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned. |
 
 2\) The returned value is the date and time of compilation of the compilation unit that contains this function. The returned value in a contained source unit is the compilation date and time associated with the compilation unit in which it is contained.
 
@@ -25794,11 +25651,13 @@ The communication section is located in the data division of a source program. T
 
 The general format of the communication section is shown below:
 
-COMMUNICATION SECTION .
+<pre style="line-height:1">
+<u>COMMUNICATION</u> <u>SECTION</u> .
 
-   communication-description-entry constant-entry . . .\
-   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;record-description-entry
-
+┌                                 ┌ constant-entry           ┐   ┐
+│ communication-description-entry │                          │ … │ …
+└                                 └ record-description-entry ┘   ┘
+</pre>
 ###### A.1.1.1 Communication description entry
 
 In a COBOL program the communication description entry (CD entry) represents the highest level of organization in the communication section.
@@ -25844,13 +25703,13 @@ Format 1 (input):
                                    │ │                                         │ │
                                    │ └ [ MESSAGE <u>COUNT</u> IS data-name-11 ]       ┘ │
                                    │                                             │
-                                   │ ┌ data-name-1 data-name-2 data-name-3 ┐     │
-                                   │ │                                     │     │
-                                   │ │ data-name-4 data-name-5 data-name-6 │     │
-                                   │ │                                     │     │
-                                   │ │ data-name-7 data-name-8 data-name-9 │     │
-                                   │ │                                     │     │
-                                   └ └ data-name-10 data-name-11           ┘     ┘
+                                   │ ┌ data-name-1 data-name-2 data-name-3    ┐  │
+                                   │ │                                        │  │
+                                   │ │    data-name-4 data-name-5 data-name-6 │  │
+                                   │ │                                        │  │
+                                   │ │    data-name-7 data-name-8 data-name-9 │  │
+                                   │ │                                        │  │
+                                   └ └    data-name-10 data-name-11           ┘  ┘
 </pre>
 
 Format 2 (output):
@@ -25870,21 +25729,21 @@ Format 2 (output):
 Format 3 (I-O):
 
 <pre style="line-height:1">
-                                 ┌ ┌ [ <u>MESSAGE</u> <u>DATE</u> IS data-name-1 ]      ┐ ┐
-                                 │ │                                      │ │
-                                 │ │ [ <u>MESSAGE</u> <u>TIME</u> IS data-name-2 ]      │ │
-                                 │ │                                      │ │
-                                 │ │ [ SYMBOLIC <u>TERMINAL</u> IS data-name-3 ] │ │
-                                 │ │                                      │ │
-                                 │ │ [ <u>TEXT</u> <u>LENGTH</u> IS data-name-4 ]       │ │
-<u>CD</u> cd-name-1 FOR [ <u>INITIAL</u> ] <u>I-O</u> │ │                                      │ │ .
-                                 │ │ [ <u>END</u> <u>KEY</u> IS data-name-5 ]           │ │
-                                 │ │                                      │ │
-                                 │ └ [ <u>STATUS</u> <u>KEY</u> IS data-name-6 ]        ┘ │
-                                 │                                          │
-                                 │ ┌ data-name-1 data-name-2 data-name-3 ┐  │
-                                 │ │                                     │  │
-                                 └ └ data-name-4 data-name-5 data-name-6 ┘  ┘
+                                 ┌ ┌ [ <u>MESSAGE</u> <u>DATE</u> IS data-name-1 ]      ┐   ┐
+                                 │ │                                      │   │
+                                 │ │ [ <u>MESSAGE</u> <u>TIME</u> IS data-name-2 ]      │   │
+                                 │ │                                      │   │
+                                 │ │ [ SYMBOLIC <u>TERMINAL</u> IS data-name-3 ] │   │
+                                 │ │                                      │   │
+                                 │ │ [ <u>TEXT</u> <u>LENGTH</u> IS data-name-4 ]       │   │
+<u>CD</u> cd-name-1 FOR [ <u>INITIAL</u> ] <u>I-O</u> │ │                                      │   │ .
+                                 │ │ [ <u>END</u> <u>KEY</u> IS data-name-5 ]           │   │
+                                 │ │                                      │   │
+                                 │ └ [ <u>STATUS</u> <u>KEY</u> IS data-name-6 ]        ┘   │
+                                 │                                            │
+                                 │ ┌ data-name-1 data-name-2 data-name-3    ┐ │
+                                 │ │                                        │ │
+                                 └ └    data-name-4 data-name-5 data-name-6 ┘ ┘
 </pre>
 
 ###### A.1.2.2 Syntax rules
@@ -26200,7 +26059,7 @@ Table A.1 —, Communication status key conditions, indicates the possible conte
 
 Table A.1 — Communication status key conditions
 
-| RECEIVE | input-output-cd SEND | output-cd SEND | PURGE | COUNT MESSAGE ACCEPT | INPUT ENABLE | TERMINAL I-O INPUT ENABLE | OUTPUT ENABLE | INPUT ENABLE | TERMINAL I-O INPUT DISABLE | OUTPUT DISABLE | value<br>key<br>Status |  |
+| RECEIVE | SEND input-output-cd | SEND output-cd | PURGE | ACCEPT MESSAGE COUNT | ENABLE INPUT | ENABLE INPUT I-O TERMINAL | ENABLE OUTPUT | ENABLE INPUT | DISABLE INPUT I-O TERMINAL | DISABLE OUTPUT | Status key value |  |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | X | X | X | X | X | X | X | X | X | X | X | 00 | No error detected. Action completed. |
 |  |  | X | X |  |  |  |  |  |  |  | 10 | One or more destinations disabled. Action completed. (See A.1.2.5, Error key values.) |
@@ -26225,7 +26084,7 @@ Table A.2 —, Error key values, indicates the possible content of the data item
 
 Table A.2 — Error key values
 
-| SEND | PURGE | OUTPUT ENABLE | OUTPUT DISABLE | value<br>key<br>Error |  |
+| SEND | PURGE | ENABLE OUTPUT | DISABLE OUTPUT | Error key value |  |
 |---|---|---|---|---|---|
 | X | X | X | X | 0 | No error. |
 | X | X | X | X | 1 | Symbolic destination unknown. |
@@ -27287,76 +27146,45 @@ The following list presents the characters identified in Annex A of TR 10176:200
 
    NOTE This repertoire includes combining marks specified for level 2 of ISO/IEC 10646-1. Combining marks of level 3 are excluded so as to avoid alternative representations of user-defined words.
 
-Script or\
-character
-
-| classification | Letters or range of letters |
+| Script or<br>character<br>classification | Letters or range of letters |
 |---|---|
-| Latin: | 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01F5, 01FA-0217, 0250- |
-
-02A8, 1E00-1E9B, 1EA0-1EF9, 207F
-
-Greek: 0386, 0388-038A, 038C, 038E-03A1, 03A3-03CE, 03D0-03D6, 03DA, 03DC, 03DE, 03E0, 03E2-03F3, 1F00-1F15, 1F18-1F1D, 1F20-1F45, 1F48-1F4D, 1F50-1F57, 1F59, 1F5B, 1F5D, 1F5F-1F7D,
+| Latin: | 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01F5, 01FA-0217, 0250-02A8, 1E00-1E9B, 1EA0-1EF9, 207F |
+| Greek: | 0386, 0388-038A, 038C, 038E-03A1, 03A3-03CE, 03D0-03D6, 03DA, 03DC, 03DE, 03E0, 03E2-03F3, 1F00-1F15, 1F18-1F1D, 1F20-1F45, 1F48-1F4D, 1F50-1F57, 1F59, 1F5B, 1F5D, 1F5F-1F7D, |
 
 ## Page 721
 
-1F80-1FB4, 1FB6-1FBC, 1FC2-1FC4, 1FC6-1FCC, 1FD0-1FD3, 1FD6-1FDB, 1FE0-1FEC, 1FF2-1FF4, 1FF6-1FFC
-
-Cyrillic: 0401-040C, 040E-044F, 0451-045C, 045E-0481, 0490-04C4, 04C7-04C8, 04CB-04CC, 04D0-04EB, 04EE-04F5, 04F8-04F9
-
+|  |  |
+|---|---|
+|  | 1F80-1FB4, 1FB6-1FBC, 1FC2-1FC4, 1FC6-1FCC, 1FD0-1FD3, 1FD6-1FDB, 1FE0-1FEC, 1FF2-1FF4, 1FF6-1FFC |
+| Cyrillic: | 0401-040C, 040E-044F, 0451-045C, 045E-0481, 0490-04C4, 04C7-04C8, 04CB-04CC, 04D0-04EB, 04EE-04F5, 04F8-04F9 |
 | Armenian: | 0531-0556, 0561-0587 |
-|---|---|
 | Hebrew: | 05B0-05B9, 05BB-05BD, 05BF, 05C1-05C2, 05D0-05EA, 05F0-05F2 |
-| Arabic: | 0621-063A, 0640-0652, 0670-06B7, 06BA-06BE, 06C0-06CE, 06D0-06D3, 06D5-06DC, 06E5- |
-
-06E8, 06EA-06ED
-
+| Arabic: | 0621-063A, 0640-0652, 0670-06B7, 06BA-06BE, 06C0-06CE, 06D0-06D3, 06D5-06DC, 06E5-06E8, 06EA-06ED |
 | Devanagari: | 0901-0903, 0905-0939, 093E-094D, 0950-0952, 0958-0963 |
-|---|---|
-| Bengali: | 0981-0983, 0985-098C, 098F-0990, 0993-09A8, 09AA-09B0, 09B2, 09B6-09B9, 09BE-09C4, |
-
-09C7-09C8, 09CB-09CD, 09DC-09DD, 09DF-09E3, 09F0-09F1
-
-Gurmukhi: 0A02, 0A05-0A0A, 0A0F-0A10, 0A13-0A28, 0A2A-0A30, 0A32-0A33, 0A35-0A36, 0A38-0A39, 0A3E-0A42, 0A47-0A48, 0A4B-0A4D, 0A59-0A5C, 0A5E, 0A74
-
-Gujarati: 0A81-0A83, 0A85-0A8B, 0A8D, 0A8F-0A91, 0A93-0AA8, 0AAA-0AB0, 0AB2-0AB3, 0AB5-0AB9, 0ABD-0AC5, 0AC7-0AC9, 0ACB-0ACD, 0AD0, 0AE0
-
-Oriya: 0B01-0B03, 0B05-0B0C, 0B0F-0B10, 0B13-0B28, 0B2A-0B30, 0B32-0B33, 0B36-0B39, 0B3E-0B43, 0B47-0B48, 0B4B-0B4D, 0B5C-0B5D, 0B5F-0B61
-
-Tamil: 0B82-0B83, 0B85-0B8A, 0B8E-0B90, 0B92-0B95, 0B99-0B9A, 0B9C, 0B9E-0B9F, 0BA3-0BA4, 0BA8-0BAA, 0BAE-0BB5, 0BB7-0BB9, 0BBE-0BC2, 0BC6-0BC8, 0BCA-0BCD
-
-Telugu: 0C01-0C03, 0C05-0C0C, 0C0E-0C10, 0C12-0C28, 0C2A-0C33, 0C35-0C39, 0C3E-0C44, 0C46-0C48, 0C4A-0C4D, 0C60-0C61
-
-Kannada: 0C82-0C83, 0C85-0C8C, 0C8E-0C90, 0C92-0CA8, 0CAA-0CB3, 0CB5-0CB9, 0CBE-0CC4, 0CC6-0CC8, 0CCA-0CCD, 0CDE, 0CE0-0CE1
-
-Malayalam: 0D02-0D03, 0D05-0D0C, 0D0E-0D10, 0D12-0D28, 0D2A-0D39, 0D3E-0D43, 0D46-0D48, 0D4A-0D4D, 0D60-0D61
-
+| Bengali: | 0981-0983, 0985-098C, 098F-0990, 0993-09A8, 09AA-09B0, 09B2, 09B6-09B9, 09BE-09C4, 09C7-09C8, 09CB-09CD, 09DC-09DD, 09DF-09E3, 09F0-09F1 |
+| Gurmukhi: | 0A02, 0A05-0A0A, 0A0F-0A10, 0A13-0A28, 0A2A-0A30, 0A32-0A33, 0A35-0A36, 0A38-0A39, 0A3E-0A42, 0A47-0A48, 0A4B-0A4D, 0A59-0A5C, 0A5E, 0A74 |
+| Gujarati: | 0A81-0A83, 0A85-0A8B, 0A8D, 0A8F-0A91, 0A93-0AA8, 0AAA-0AB0, 0AB2-0AB3, 0AB5-0AB9, 0ABD-0AC5, 0AC7-0AC9, 0ACB-0ACD, 0AD0, 0AE0 |
+| Oriya: | 0B01-0B03, 0B05-0B0C, 0B0F-0B10, 0B13-0B28, 0B2A-0B30, 0B32-0B33, 0B36-0B39, 0B3E-0B43, 0B47-0B48, 0B4B-0B4D, 0B5C-0B5D, 0B5F-0B61 |
+| Tamil: | 0B82-0B83, 0B85-0B8A, 0B8E-0B90, 0B92-0B95, 0B99-0B9A, 0B9C, 0B9E-0B9F, 0BA3-0BA4, 0BA8-0BAA, 0BAE-0BB5, 0BB7-0BB9, 0BBE-0BC2, 0BC6-0BC8, 0BCA-0BCD |
+| Telugu: | 0C01-0C03, 0C05-0C0C, 0C0E-0C10, 0C12-0C28, 0C2A-0C33, 0C35-0C39, 0C3E-0C44, 0C46-0C48, 0C4A-0C4D, 0C60-0C61 |
+| Kannada: | 0C82-0C83, 0C85-0C8C, 0C8E-0C90, 0C92-0CA8, 0CAA-0CB3, 0CB5-0CB9, 0CBE-0CC4, 0CC6-0CC8, 0CCA-0CCD, 0CDE, 0CE0-0CE1 |
+| Malayalam: | 0D02-0D03, 0D05-0D0C, 0D0E-0D10, 0D12-0D28, 0D2A-0D39, 0D3E-0D43, 0D46-0D48, 0D4A-0D4D, 0D60-0D61 |
 | Thai: | 0E01-0E3A, 0E40-0E4E, 0E50-0E59 |
-|---|---|
-| Lao: | 0E81-0E82, 0E84, 0E87-0E88, 0E8A, 0E8D, 0E94-0E97, 0E99-0E9F, 0EA1-0EA3, 0EA5, 0EA7, |
-
-0EAA-0EAB, 0EAD-0EAE, 0EB0-0EB9, 0EBB-0EBD, 0EC0-0EC4, 0EC6, 0EC8-0ECD, 0EDC-0EDD
-
-Tibetan: 0F00, 0F18-0F19, 0F35, 0F37, 0F39, 0F40-0F47, 0F49-0F69, 0F71-0F84, 0F86-0F8B, 0F90-0F95, 0F97, 0F99-0FAD, 0FB1-0FB7, 0FB9
-
+| Lao: | 0E81-0E82, 0E84, 0E87-0E88, 0E8A, 0E8D, 0E94-0E97, 0E99-0E9F, 0EA1-0EA3, 0EA5, 0EA7, 0EAA-0EAB, 0EAD-0EAE, 0EB0-0EB9, 0EBB-0EBD, 0EC0-0EC4, 0EC6, 0EC8-0ECD, 0EDC-0EDD |
+| Tibetan: | 0F00, 0F18-0F19, 0F35, 0F37, 0F39, 0F40-0F47, 0F49-0F69, 0F71-0F84, 0F86-0F8B, 0F90-0F95, 0F97, 0F99-0FAD, 0FB1-0FB7, 0FB9 |
 | Georgian: | 10A0-10C5, 10D0-10F6 |
-|---|---|
 | Hiragana: | 3041-3093 |
 | Katakana: | 30A1-30F6, 30FB-30FC |
 | Bopomofo: | 3105-312C |
-
-CJK Unified\
-Ideographs: 4E00-9FA5
+| CJK Unified<br>Ideographs: | 4E00-9FA5 |
 
 ## Page 722
 
-| Hangul: | AC00-D7A3 |
+|  |  |
 |---|---|
-| Digits: | 0030-0039, 0660-0669, 06F0-06F9, 0966-096F, 09E6-09EF, 0A66-0A6F, 0AE6-0AEF, 0B66-0B6F, |
-
-0BE7-0BEF, 0C66-0C6F, 0CE6-0CEF, 0D66-0D6F, 0E50-0E59, 0ED0-0ED9, 0F20-0F29
-
-Special characters: 00B5, 02B0-02B8, 02BB, 02BD-02C1, 02D0-02D1, 02E0-02E4, 037A, 0559, 093D, 0B3D, 1FBE, 203F-2040, 2102, 2107, 210A-2113, 2115, 2118-211D, 2124, 2126, 2128, 212A-2131, 2133-2138, 2160-2182, 3005-3007, 3021-3029
+| Hangul: | AC00-D7A3 |
+| Digits: | 0030-0039, 0660-0669, 06F0-06F9, 0966-096F, 09E6-09EF, 0A66-0A6F, 0AE6-0AEF, 0B66-0B6F, 0BE7-0BEF, 0C66-0C6F, 0CE6-0CEF, 0D66-0D6F, 0E50-0E59, 0ED0-0ED9, 0F20-0F29 |
+| Special characters: | 00B5, 02B0-02B8, 02BB, 02BD-02C1, 02D0-02D1, 02E0-02E4, 037A, 0559, 093D, 0B3D, 1FBE, 203F-2040, 2102, 2107, 210A-2113, 2115, 2118-211D, 2124, 2126, 2128, 212A-2131, 2133-2138, 2160-2182, 3005-3007, 3021-3029 |
 
 ##### C.2.2 Additional characters
 
@@ -28083,43 +27911,51 @@ WHEN condition-2 imperative-statement-3
 END-SEARCH
 </pre>
 
-Entrance
-
-   Index Setting:\
-   exceeds highest True (AT END)\* imperative-\
-   permissible occur- statement-1\
-   rence or is zero or\
-   &emsp;negative
-
-False
-
-True imperative- \*\* Condition-1
-
-statement-2
-
-False
-
-| \* |  | \* |
-|---|---|---|
-| True | imperative- |  |
-
-   Condition-2\
-   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;statement-3
-
-False
-
-Increment\
-index-name for\
-identifier-1
-
-Increment
-
-### \*
-
-   index-name-1\
-   (for a different\
-   &emsp;table)\
-   or identifier-2
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              │
+   ┌─────────────────────────►┤
+   │                          │
+   │                          ▼
+   │               ╭──────────┴──────────╮
+   │               │   Index Setting:    │
+   │               │   exceeds highest   │   True (AT END)   *  ┌─────────────┐          ╮
+   │               │ permissible occur-  ├─────────────────────►│ imperative- ├───────►  │
+   │               │ rence or is zero or │                      │ statement-1 │          │
+   │               │      negative       │                      └─────────────┘          │
+   │               ╰──────────┬──────────╯                                               │
+   │                          │ False                                                    │
+   │                          │                                                          │
+   │                          ▼                                                          │
+   │                   ╭──────┴──────╮   True                   ┌─────────────┐          │
+   │                   │ Condition-1 ├─────────────────────────►│ imperative- ├───────►  ├ **
+   │                   ╰──────┬──────╯                          │ statement-2 │          │
+   │                          │ False                           └─────────────┘          │
+   │                          │     *                                                    │
+   │                          ▼                                                  *       │
+   │                   ╭──────┴──────╮   True                   ┌─────────────┐          │
+   │                   │ Condition-2 ├─────────────────────────►│ imperative- ├───────►  │
+   │                   ╰──────┬──────╯                          │ statement-3 │          │
+   │                          │ False                           └─────────────┘          ╯
+   │                          │
+   │                          ▼
+   │                ┌─────────┴─────────┐
+   │                │     Increment     │
+   │                │  index-name for   │
+   │                │   identifier-1    │
+   │                └─────────┬─────────┘
+   │                          │
+   │                          │
+   │                          ▼
+   │                ┌─────────┴─────────┐
+   │                │     Increment     │
+   │                │   index-name-1    │  *
+   │                │ (for a different  │
+   └────────────────┤      table)       │
+                    │  or identifier-2  │
+                    └───────────────────┘
+</pre>
 
    \*These operations are options included only when specified in the SEARCH statement.
 
@@ -28331,29 +28167,57 @@ Figure E.2 — Compilation group sample structure example
 
 Figure E.3, Compilation group and run unit structures, shows schematically, in an example, the relationships between the components of a compilation group and their corresponding runtime entities. Note that runtime modules resulting from compilation units of the same compilation group need not be part of the same run unit, and runtime modules in the same run unit need not result from compilation units of the same compilation group.
 
-P-1
-
-Legend
-
-P-1-1 P-1-2 Compilation Group
-
-P-1-2-1 P-1-2-2
-
-Compilation Unit
-
-Source Unit
-
-Source Element
-
-| To other run unit | To other run unit |
-|---|---|
-| From other comp. group | From other comp. group |
-
-Run Unit
-
-Runtime Module
-
-Runtime Element
+<pre style="line-height:1">
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ┌─────────┐ ┌─────────────────────────────────────────┐ ┌─────────┐ ┃         Legend
+┃ │         │ │ ┌─ P-1 ───────────────────────────────┐ │ │         │ ┃
+┃ │         │ │ │ ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ │ │ │         │ ┃   ┏━━━━━━━━━━━━━━━━━━━━┓
+┃ │         │ │ │ ╎                                 ╎ │ │ │         │ ┃   ┃ Compilation Group  ┃
+┃ │         │ │ │ ╎                                 ╎ │ │ │         │ ┃   ┗━━━━━━━━━━━━━━━━━━━━┛
+┃ │         │ │ │ └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘ │ │ │         │ ┃
+┃ │         │ │ │ ┌─ P-1-1 ─────┐ ┌─ P-1-2 ─────────┐ │ │ │         │ ┃   ┌────────────────────┐
+┃ │         │ │ │ │ ┌╌╌╌╌╌╌╌╌╌┐ │ │ ┌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ │ │ │ │         │ ┃   │ Compilation Unit   │
+┃ │         │ │ │ │ ╎         ╎ │ │ └╌╌╌╌╌╌╌╌╌╌╌╌╌┘ │ │ │ │         │ ┃   └────────────────────┘
+┃ │         │ │ │ │ ╎         ╎ │ │ P-1-2-1 P-1-2-2 │ │ │ │         │ ┃
+┃ │         │ │ │ │ ╎         ╎ │ │ ┌─────┐ ┌─────┐ │ │ │ │         │ ┃   ┌────────────────────┐
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ┌╌┐ │ │ ┌╌┐ │ │ │ │ │         │ ┃   │ Source Unit        │
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃   └────────────────────┘
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃   ╎ Source Element     ╎
+┃ │         │ │ │ │ ╎         ╎ │ │ │ └╌┘ │ │ └╌┘ │ │ │ │ │         │ ┃   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+┃ │    │    │ │ │ │ └╌╌╌╌╌╌╌╌╌┘ │ │ └─────┘ └─────┘ │ │ │ │    │    │ ┃
+┃ │    │    │ │ │ └─────────────┘ └─────────────────┘ │ │ │    │    │ ┃
+┃ │    │    │ │ └─────────────────────────────────────┘ │ │    │    │ ┃
+┃ └────┼────┘ └─────────────────────────────────────────┘ └────┼────┘ ┃
+┗━━━━━━┿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┿━━━━━━┛
+       │     └────────────────────┬────────────────────┘       │
+       ▼                          │                            ▼
+To other run unit                 │                      To other run unit
+                                  │
+From other comp. group            │                  From other comp. group
+       │                          ▼                            │
+       │     ┌─────────────────────────────────────────┐       │
+┏━━━━━━┿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┿━━━━━━┓
+┃ ┌────┼────┐ ┌─────────────────────────────────────────┐ ┌────┼────┐ ┃
+┃ │    │    │ │                                         │ │    │    │ ┃
+┃ │    ▼    │ │   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐   │ │    ▼    │ ┃   ┏━━━━━━━━━━━━━━━━━━━━┓
+┃ │         │ │   ╎                                 ╎   │ │         │ ┃   ┃ Run Unit           ┃
+┃ │         │ │   ╎                                 ╎   │ │         │ ┃   ┗━━━━━━━━━━━━━━━━━━━━┛
+┃ │         │ │   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘   │ │         │ ┃
+┃ │         │ │                                         │ │         │ ┃   ┌────────────────────┐
+┃ │         │ │   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐   │ │         │ ┃   │ Runtime Module     │
+┃ │         │ │   ╎             ╎ └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘   │ │         │ ┃   └────────────────────┘
+┃ │         │ │   ╎             ╎                       │ │         │ ┃
+┃ │         │ │   ╎             ╎   ┌╌╌╌╌╌┐ ┌╌╌╌╌╌┐     │ │         │ ┃   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃   ╎ Runtime Element    ╎
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃
+┃ │         │ │   └╌╌╌╌╌╌╌╌╌╌╌╌╌┘   └╌╌╌╌╌┘ └╌╌╌╌╌┘     │ │         │ ┃
+┃ └─────────┘ └─────────────────────────────────────────┘ └─────────┘ ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+</pre>
 
 Figure E.3 — Compilation group and run unit structures
 
@@ -28810,62 +28674,52 @@ These relationships are shown in figure E.4, COBOL communication environment, an
 
 ## Page 758
 
-| COBOL Program | Message Control System | Communication |
-|---|---|---|
-|  | (MCS) | Devices |
+<pre style="line-height:1">
+  COBOL Program                  Message Control System           Communication
+                                         (MCS)                       Devices
 
-(communication using queues)
+                              (communication using queues)
 
-   . . . Input Queues\
-   . . .
-
-| . . . | . . . |
-|---|---|
-| RECEIVE | . . . |
-
-. . .\
-. . .\
-. . .\
-. . .\
-. . .\
-. . .\
-. . .\
-. . .\
-RECEIVE\
-. . .\
-. . .\
-. . .
-
-| SEND | (CD) |  |
-|---|---|---|
-| . . .<br>. . .<br>. . . | Descriptions . . . Output Queues | DISABLE |
-
-| . . . | . . . | / |
-|---|---|---|
-| . . .<br>. . .<br>. . . | . . .<br>. . .<br>. . .<br>. . . | ENABLE |
-| . . . | . . . | ENABLE |
-
-. . .
-
-| . . . | . . . |
-|---|---|
-| Communication ..SEND | . . . |
-
-   . . .\
-   . . .\
-   . . . RECEIVE\
-   . . . (transaction communication)\
-   . . .
-
-   . . .\
-   SEND\
-   . . .
-
-| COBOL/MCS | MCS/Communication Device |
-|---|---|
-| Interface | Interface |
+┌───────────────────┐   ┌─┐                                  ┌─┐
+│...................│   │C│             Input Queues         │ │
+│.................. │   │o│      ┌──────────────────────┐    │ │    ┌─────┐
+│ ................  │   │m│      │ ........   ........  │◄───┤ ├────┤     │
+│      RECEIVE      │◄──┤m├──────┤   .....     ........ │    │ │    │     │
+│...................│   │u│      │             ........ │    │ │    └─────┘
+│...................│   │n│      │             ........ │    │ │    ┌─────┐
+│...................│   │i│      │              ....... │◄───┤ ├────┤     │
+│...................│   │c│      │                      │    │E│    │     │
+│       ....        │   │a│      │                      │◄┐  │N│    └─────┘
+│      RECEIVE      │◄──┤t├──────┤                      │ │  │A│
+│...................│   │i│      └──────────────────────┘ │  │B│
+│...................│   │o│             Output Queues     │  │L│
+│...................│   │n│      ┌──────────────────────┐ │  │E│
+│       SEND        ├───┤ ├─────►│ ........     .....   │ │  │ │    ┌─────┐
+│...................│   │D│      │ ........             │ └──┤/├────┤     │
+│...................│   │e│      │ ........             ├────┤ ├───►│     │
+│...................│   │s│      │ ........             │    │D│    └─────┘
+│...................│   │c│      │ ........             │    │I│
+│...................│   │r│      │ ........             │    │S│    ┌─────┐
+│...................│   │i│      │                      │    │A│    │     │
+│      ......       │   │p│      │                      ├────┤B├───►│     │
+│      ..SEND       ├───┤t├─────►│                      │    │L│    └─────┘
+│...................│   │i│      └──────────────────────┘    │E│
+│...................│   │o│                                  │ │    ┌─────┐
+│   .....RECEIVE    │◄──┤n├──────────────────────────────────┤ ├────┤     │
+│...................│   │s│      (transaction communication) │ │  ┌►│     │
+│   ............    │   │ │                                  │ │  │ └─────┘
+│                   │   │(│                                  │ │  │
+│ ................  │   │C│                                  │ │  │
+│       SEND        ├───┤D├──────────────────────────────────┤ ├──┘
+│...................│   │)│                                  │ │
+└───────────────────┘   └┬┘                                  └┬┘
+                         ▲                                    ▲
+                  COBOL/MCS Interface             MCS/Communication Device Interface
+</pre>
 
 Figure E.4 — COBOL communication environment
+
+> **Figure notes (Figure E.4 — COBOL communication environment).** The printed figure draws the five communication devices as pictures of terminals, shown here as empty boxes; the labels of the two interface bars, `Communication Descriptions (CD)` and `ENABLE / DISABLE`, are printed rotated and are set here one character to a row; the printed arrows run diagonally and are routed here along rows, each joining the same two elements as on the page.
 
 ###### E.5.3.1 Invoking the run unit
 
@@ -28947,24 +28801,27 @@ control system may, upon prior specification by the user, dequeue on some other 
 
 In order to control more explicitly the messages being enqueued and dequeued, it is possible to define in the message control system a hierarchy of input queues, that is, queues containing queues. In COBOL, four levels of queues are available to the user. In order of decreasing significance, the queue levels are named queue, sub-queue-1, sub-queue-2, and sub-queue-3. The full queue structure is depicted in figure E.5, Hierarchy of queues, where queues and sub-queues have been named with the letters A through O. Messages have been named with a letter according to their source (X, Y, or Z) and with a sequential number.
 
-   QUEUE
-
-A
-
-SUB-QUEUE (1)
-
-| B |  |  | C |  |
-|---|---|---|---|---|
-| SUB-QUEUE (2)<br>D | E | F |  | G |
-
-| I | O |
-|---|---|
-
-| Z1 | X3 | X1 | Z6 | Y7 | Y1 | X6 | Z2 |
-|---|---|---|---|---|---|---|---|
-| X2 | X4 | Y3 | Z7 | Y8 | Y2 |  | Z3 |
-| MESSAGE | X5 | Y5 | Y6 |  |  |  | Z4 |
-|  |  | Z5 |  |  |  |  | Y4 |
+<pre style="line-height:1">
+                ╭                                 │
+         QUEUE  ┤                               A │
+                ╰                                 │
+                ╭                 ┌───────────────┴───────────────┐
+ SUB-QUEUE (1)  ┤                 │                               │
+                │               B │                             C │
+                ╰                 │                               │
+                ╭         ┌───────┴───────┐               ┌───────┴───────┐
+ SUB-QUEUE (2)  ┤         │               │               │               │
+                │       D │             E │             F │             G │
+                ╰         │               │               │               │
+                ╭     ┌───┴───┐       ┌───┴───┐       ┌───┴───┐       ┌───┴───┐
+ SUB-QUEUE (3)  ┤     │       │       │       │       │       │       │       │
+                │   H │     I │     J │     K │     L │     M │     N │     O │
+                ╰     │       │       │       │       │       │       │       │
+                ╭     Z1      X3      X1      Z6      Y7      Y1      X6      Z2
+       MESSAGE  ┤     X2      X4      Y3      Z7      Y8      Y2              Z3
+                │             X5      Y5      Y6                              Z4
+                ╰                     Z5                                      Y4
+</pre>
 
 Figure E.5 — Hierarchy of queues
 
@@ -30620,11 +30477,21 @@ One of the language features that separates object oriented languages from conve
 
 ## Page 795
 
-Person
-
-Employee
-
-Manager
+<pre style="line-height:1">
+    ┌───────────────┐
+    │    Person     │
+    └───────────────┘
+            ▲
+            │
+    ┌───────┴───────┐
+    │   Employee    │
+    └───────────────┘
+            ▲
+            │
+    ┌───────┴───────┐
+    │    Manager    │
+    └───────────────┘
+</pre>
 
 Figure E.6 — Manager class
 
@@ -30650,23 +30517,29 @@ A bank will have different kinds of accounts, and yet they are all accounts. If 
 
 and the savings account subclasses. Thus the account class defines what is common to all accounts; the checking account class defines what is specific to checking accounts; and the savings account class defines only what is specific to savings accounts. Any changes to the account class will be picked up by the inheriting classes automatically. These relationships can be represented as shown in figure E.7, Banking hierarchy.
 
-Account
-
-account-number\
-Data items balance\
-date-opened
-
-deposit\
-Methods\
-withdraw\
-balance
-
-| CheckingAccount | SavingAccount |
-|---|---|
-| charges | interest-rate |
-| displayCharges | calculateInterest |
-
-calculateCharges
+<pre style="line-height:1">
+                          ┌──────────────────┐
+                          │     Account      │
+                          ├──────────────────┤
+                          │  account-number  │
+  Data items  ───────────►│     balance      │
+                          │   date-opened    │
+                          ├──────────────────┤
+                          │     deposit      │
+  Methods  ──────────────►│     withdraw     │
+                          │     balance      │
+                          └──────────────────┘
+                             ▲          ▲
+                             │          │
+            ┌────────────────┴─┐    ┌───┴──────────────┐
+            │ CheckingAccount  │    │  SavingAccount   │
+            ├──────────────────┤    ├──────────────────┤
+            │     charges      │    │  interest-rate   │
+            ├──────────────────┤    ├──────────────────┤
+            │  displayCharges  │    │calculateInterest │
+            │ calculateCharges │    │                  │
+            └──────────────────┘    └──────────────────┘
+</pre>
 
 Figure E.7 — Banking hierarchy
 
@@ -31291,45 +31164,51 @@ The FOOTING phrase has two different functions:
 
 2\) When a page advance occurs, the line count is advanced to either the position specified in the FOOTING phrase or to the next line, whichever is greater, and the applicable page and report footings are printed.
 
-   PAGE clause phrases Report content
+<pre style="line-height:1">
+                          PAGE clause phrases   Report content
 
-   Physical Top the first line that can be printed\
-   of Form\
-   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&lt;blank>
-
-| Logical Top Heading | the first line of the report or page heading |
-|---|---|
-| of Form | &lt;(first page only) report header lines> |
-
-&lt;page heading lines>\
-First Detail the first line of a body group\
-&lt;Control Heading lines>\
-&lt;Detail lines>\
-&lt;Control Footing lines>\
-&lt;Control Heading lines>\
-&lt;Detail lines>\
-&lt;Control Footing lines>
-
-&lt;Control Heading lines>\
-&emsp;&lt;Detail lines>\
-&lt;Control Footing lines>\
-Last Control Heading the last line on which a control heading may print\
-&lt;Detail lines>
-
-   Last Detail the last line on which Detail lines will print\
-   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&lt;Control Footing lines>
-
-   Footing last line of Control footing or first line of a report or page footing &lt;page footing lines.
-
-&lt;(last page only) report footing lines>
-
-   Logical Page Limit the last line on a logical page\
-   Bottom of\
-   Form
-
-   Physical\
-   Bottom of\
-   Form the last line that can be printed
+Physical Top of Form    │                       the first line that can be printed
+                        │
+                        │                                             &lt;blank&gt;
+                        │
+Logical Top of Form     │ Heading               the first line of the report or page heading
+                        │                             &lt;(first page only) report header lines&gt;
+                        │                                      &lt;page heading lines&gt;
+                        │ First Detail          the first line of a body group
+                        │                                     &lt;Control Heading lines&gt;
+                        │                                         &lt;Detail lines&gt;
+                        │                                     &lt;Control Footing lines&gt;
+                        │                                     &lt;Control Heading lines&gt;
+                        │                                         &lt;Detail lines&gt;
+                        │                                     &lt;Control Footing lines&gt;
+                        │
+                        │
+                        │
+                        │
+                        │
+                        │                                     &lt;Control Heading lines&gt;
+                        │                                         &lt;Detail lines&gt;
+                        │                                     &lt;Control Footing lines&gt;
+                        │ Last Control Heading  the last line on which a control heading may print
+                        │                                         &lt;Detail lines&gt;
+                        │
+                        │ Last Detail           the last line on which Detail lines will print
+                        │                                     &lt;Control Footing lines&gt;
+                        │
+                        │ Footing               last line of Control footing or first line of a report or page footing
+                        │                                      &lt;page footing lines.
+                        │                             &lt;(last page only) report footing lines&gt;
+                        │
+Logical Bottom of Form  │ Page Limit            the last line on a logical page
+                        │
+                        │
+                        │
+                        │
+                        │
+Physical Bottom of Form │                       the last line that can be printed
+                        │
+                        │
+</pre>
 
 Figure E.8 — Example of page layout
 
@@ -31792,95 +31671,120 @@ The comments placed in these examples explain the use and effects of the various
 
 The following figures illustrate how conditional expressions are evaluated.
 
-Evaluate\
-condition-1
-
-Condition-1 yes\
-&emsp;false
-
-no
-
-Evaluate\
-condition-2
-
-Condition-2 yes\
-&emsp;false
-
-no
-
-Evaluate\
-condition-n
-
-Condition-n yes\
-&emsp;false
-
-no
-
-| Truth value | Truth value |
-|---|---|
-| is true | is false |
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────┐
+            │        false        │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-2     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-2     ├──────────────────────┤
+            │        false        │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-n     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-n     ├──────────────────────┤
+            │        false        │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+                       ▼                                 ▼
+                  Truth value                       Truth value
+                    is <u>true</u>                          is <u>false</u>
+</pre>
 
 Figure E.9 — Evaluation of the condition-1 AND condition-2 AND ... condition-n
 
 ## Page 819
 
-Evaluate\
-condition-1
-
-Condition-1 yes\
-&emsp;true
-
-no
-
-Evaluate\
-condition-2
-
-Condition-2 yes\
-&emsp;true
-
-no
-
-Evaluate\
-condition-n
-
-Condition-n yes\
-&emsp;true
-
-no
-
-| Truth value | Truth value |
-|---|---|
-| is false | is true |
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────┐
+            │        true         │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-2     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-2     ├──────────────────────┤
+            │        true         │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-n     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-n     ├──────────────────────┤
+            │        true         │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+                       ▼                                 ▼
+                  Truth value                       Truth value
+                   is <u>false</u>                           is <u>true</u>
+</pre>
 
 Figure E.10 — Evaluation of the condition-1 OR condition-2 OR ... condition-n
 
 ## Page 820
 
-Evaluate\
-condition-1
-
-Condition-1 yes\
-&emsp;true
-
-no
-
-Evaluate\
-condition-2
-
-yes Condition-2\
-&emsp;&emsp;&emsp;&emsp;false
-
-no
-
-Evaluate\
-condition-3
-
-yes Condition-3 no\
-&emsp;&emsp;&emsp;&emsp;&emsp;false
-
-| Truth value | Truth value |
-|---|---|
-| is false | is true |
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────┐
+            │        true         │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-2     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+        yes ╭──────────┴──────────╮                      │
+      ┌─────┤     Condition-2     │                      │
+      │     │        false        │                      │
+      │     ╰──────────┬──────────╯                      │
+      │                │ no                              │
+      │     ┌──────────┴──────────┐                      │
+      │     │      Evaluate       │                      │
+      │     │     condition-3     │                      │
+      │     └──────────┬──────────┘                      │
+      │                │                                 │
+      │ yes ╭──────────┴──────────╮    no                │
+      ├─────┤     Condition-3     ├──────────────────────┤
+      │     │        false        │                      │
+      │     ╰─────────────────────╯                      │
+      ▼                                                  ▼
+ Truth value                                        Truth value
+  is <u>false</u>                                            is <u>true</u>
+</pre>
 
 Figure E.11 — Evaluation of condition-1 OR condition-2 AND condition-3
 
@@ -31888,39 +31792,51 @@ Figure E.11 — Evaluation of condition-1 OR condition-2 AND condition-3
 
 ## Page 821
 
-Evaluate\
-condition-1
-
-Condition-1 yes\
-&emsp;true
-
-no
-
-Evaluate\
-condition-2
-
-Condition-2 yes\
-&emsp;false
-
-no Evaluate\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;condition-3
-
-yes Condition-3\
-&emsp;&emsp;&emsp;&emsp;&emsp;false
-
-no
-
-Evaluate\
-condition-4
-
-yes Condition-4\
-&emsp;&emsp;&emsp;&emsp;&emsp;false
-
-no
-
-| Truth value | Truth value |
-|---|---|
-| is false | is true |
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────────┐
+            │        true         │                          │
+            ╰──────────┬──────────╯                          │
+                       │ no                                  │
+            ┌──────────┴──────────┐                          │
+            │      Evaluate       │                          │
+            │     condition-2     │                          │
+            └──────────┬──────────┘                          │
+                       │                                     │
+            ╭──────────┴──────────╮    yes                   │
+            │     Condition-2     ├──────────────────────────┤
+            │        false        │                          │
+            ╰──────────┬──────────╯                          │
+                       │ no                                  │
+                       │                          ┌──────────┴──────────┐
+                       │                          │      Evaluate       │
+                       │                          │     condition-3     │
+                       │                          └──────────┬──────────┘
+                       │                                     │
+                       │     yes                  ╭──────────┴──────────╮
+                       ├──────────────────────────┤     Condition-3     │
+                       │                          │        false        │
+                       │                          ╰──────────┬──────────╯
+                       │                                     │ no
+                       │                          ┌──────────┴──────────┐
+                       │                          │      Evaluate       │
+                       │                          │     condition-4     │
+                       │                          └──────────┬──────────┘
+                       │                                     │
+                       │     yes                  ╭──────────┴──────────╮
+                       ├──────────────────────────┤     Condition-4     │
+                       │                          │        false        │
+                       │                          ╰──────────┬──────────╯
+                       │                                     │ no
+                       ▼                                     ▼
+                  Truth value                           Truth value
+                   is <u>false</u>                               is <u>true</u>
+</pre>
 
 Figure E.12 — Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4
 
@@ -32051,101 +31967,164 @@ INSPECT ITEM CONVERTING "ABCDEFGHIJKLMNOPQRSTUVWXYZ"-
 
 Representations of the actions of several types of PERFORM statements with varying-phrase specified are given in figures E.13, The VARYING option of a PERFORM statement with the TEST BEFORE phrase having one condition, E.14, The VARYING option of a PERFORM statement with the TEST BEFORE phrase having two conditions, E.15, The VARYING option of a PERFORM statement with the TEST AFTER phrase having one condition, and E.16, The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions. These are not intended to dictate implementation.
 
-Entrance
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │ Set identifier-2 equal  │
+                 │  to current FROM value  │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                      ╭───────┴───────╮   True
+      ┌──────────────►│  Condition-1  ├──────────────►  <u>Exit</u>
+      │               ╰───────┬───────╯
+      │                       │ False
+      │                       ▼
+      │          ┌────────────┴────────────┐
+      │          │    Execute specified    │
+      │          │    set of statements    │
+      │          └────────────┬────────────┘
+      │                       │
+      │                       ▼
+      │          ┌────────────┴────────────┐
+      └──────────┤  Augment identifier-2   │
+                 │  with current BY value  │
+                 └─────────────────────────┘
+</pre>
 
-Set identifier-2 equal\
-to current FROM value
-
-Condition-1 True Exit
-
-False
-
-Execute specified\
-set of statements
-
-Augment identifier-2\
-with current BY value
-
-Figure E.13 — The VARYING option of a PERFORM statement with theTEST BEFORE phrase having one condition
+Figure E.13 — The VARYING option of a PERFORM statement with the TEST BEFORE phrase having one condition
 
 ## Page 826
 
-Entrance
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │   Set identifier-2 to   │
+                 │   current FROM value    │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │   Set identifier-5 to   │
+                 │   current FROM value    │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                      ╭───────┴───────╮   True
+   ┌─────────────────►│  Condition-1  ├──────────────►  Exit
+   │                  ╰───────┬───────╯
+   │                          │ False
+   │                          ▼
+   │                  ╭───────┴───────╮   True
+   │    ┌────────────►│  Condition-2  ├───────────────────────────┐
+   │    │             ╰───────┬───────╯                           │
+   │    │                     │ False                             │
+   │    │                     ▼                                   ▼
+   │    │        ┌────────────┴────────────┐         ┌────────────┴────────────┐
+   │    │        │  Execute specified set  │         │  Augment identifier-2   │
+   │    │        │      of statements      │         │  with current BY value  │
+   │    │        └────────────┬────────────┘         └────────────┬────────────┘
+   │    │                     │                                   │
+   │    │                     ▼                                   ▼
+   │    │        ┌────────────┴────────────┐         ┌────────────┴────────────┐
+   │    └────────┤  Augment identifier-5   │         │   Set identifier-5 to   │
+   │             │  with current BY value  │         │   current FROM value    │
+   │             └─────────────────────────┘         └────────────┬────────────┘
+   │                                                              │
+   └──────────────────────────────────────────────────────────────┘
+</pre>
 
-Set identifier-2 to\
-current FROM value
-
-Set identifier-5 to\
-current FROM value
-
-True\
-Condition-1 Exit
-
-False
-
-True\
-Condition-2
-
-False
-
-| Execute specified set | Augment identifier-2 |
-|---|---|
-| of statements | with current BY value |
-| Augment identifier-5 | Set identifier-5 to |
-| with current BY value | current FROM value |
-
-Figure E.14 — The VARYING option of a PERFORM statement with theTEST BEFORE phrase having two conditions
+Figure E.14 — The VARYING option of a PERFORM statement with the TEST BEFORE phrase having two conditions
 
 ## Page 827
 
-Entrance
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │ Set identifier-2 equal  │
+                 │  to current FROM value  │
+                 └────────────┬────────────┘
+                              │
+      ┌──────────────────────►┤
+      │                       │
+      │                       ▼
+      │          ┌────────────┴────────────┐
+      │          │    Execute specified    │
+      │          │    set of statements    │
+      │          └────────────┬────────────┘
+      │                       │
+      │                       ▼
+      │               ╭───────┴───────╮   True
+      │               │  Condition-1  ├──────────────►  <u>Exit</u>
+      │               ╰───────┬───────╯
+      │                       │ False
+      │                       ▼
+      │          ┌────────────┴────────────┐
+      └──────────┤  Augment identifier-2   │
+                 │  with current BY value  │
+                 └─────────────────────────┘
+</pre>
 
-Set identifier-2 equal\
-to current FROM value
-
-Execute specified\
-set of statements
-
-True\
-Condition-1 Exit
-
-False
-
-Augment identifier-2\
-with current BY value
-
-Figure E.15 — TheVARYING option of a PERFORM statement with theTEST AFTER phrase having one condition
+Figure E.15 — The VARYING option of a PERFORM statement with the TEST AFTER phrase having one condition
 
 ## Page 828
 
-Entrance
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │   Set identifier-2 to   │
+                 │   current FROM value    │
+                 └────────────┬────────────┘
+                              │
+    ┌────────────────────────►┤
+    │                         │
+    │                         ▼
+    │            ┌────────────┴────────────┐
+    │            │   Set identifier-5 to   │
+    │            │   current FROM value    │
+    │            └────────────┬────────────┘
+    │                         │
+    │   ┌────────────────────►┤
+    │   │                     │
+    │   │                     ▼
+    │   │        ┌────────────┴────────────┐
+    │   │        │  Execute specified set  │
+    │   │        │      of statements      │
+    │   │        └────────────┬────────────┘
+    │   │                     │
+    │   │                     ▼
+    │   │             ╭───────┴───────╮   True
+    │   │             │  Condition-2  ├───────────┐
+    │   │             ╰───────┬───────╯           │
+    │   │                     │ False             │
+    │   │                     ▼                   │
+    │   │        ┌────────────┴────────────┐      │
+    │   └────────┤  Augment identifier-5   │      │
+    │            │  with current BY value  │      │
+    │            └─────────────────────────┘      │
+    │                                             │
+    │                         ┌───────────────────┘
+    │                         ▼
+    │                 ╭───────┴───────╮   True
+    │                 │  Condition-1  ├──────────────►  Exit
+    │                 ╰───────┬───────╯
+    │                         │ False
+    │                         ▼
+    │            ┌────────────┴────────────┐
+    └────────────┤  Augment identifier-2   │
+                 │  with current BY value  │
+                 └─────────────────────────┘
+</pre>
 
-Set identifier-2 to\
-current FROM value
-
-Set identifier-5 to\
-current FROM value
-
-Execute specified set\
-&emsp;of statements
-
-True\
-Condition-2
-
-False
-
-Augment identifier-5\
-with current BY value
-
-Condition-1 True\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Exit
-
-False
-
-Augment identifier-2\
-with current BY value
-
-Figure E.16 — TheVARYING option of a PERFORM statement with theTEST AFTER phrase having two conditions
+Figure E.16 — The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions
 
 ## Page 829
 
@@ -33274,10 +33253,10 @@ Numerics
 
 A
 
-A PICTURE symbol 313
-
-Abbreviated combined relation conditions 136 Abnormal run unit termination 391, 392, 393 ABS function 575
-
+A PICTURE symbol 313\
+Abbreviated combined relation conditions 136\
+Abnormal run unit termination 391, 392, 393\
+ABS function 575\
 ACCEPT MESSAGE COUNT statement 667\
 ACCEPT statement 196, 344, 366, 409\
 &emsp;FROM phrase 409\
@@ -33336,127 +33315,126 @@ ALL subscript 86\
 
 ## Page 860
 
-   SORT statement 526 ALLOCATE statement 116, 372, 418, 450 ALPHABET clause
-
-   SPECIAL-NAMES paragraph 195\
-   Alphabetic category 111, 315\
-   Alphabetic character 8\
-   Alphabetic class\
-   Class of data\
-   &emsp;Alphabetic 111\
-   Alphabetic data item 111\
-   ALPHABETIC phrase\
-   CLASS clause 269\
-   INITIALIZE statement 457\
-   ALPHABETIC-LOWER phrase\
-   CLASS clause 269\
-   ALPHABETIC-UPPER phrase\
-   CLASS clause 269\
-   Alphabet-name 66, 194, 369, 402, 441\
-   CODE-SET clause 271\
-   COLLATING SEQUENCE clause 218\
-   Definition 69\
-   FILE-CONTROL paragraph 210\
-   OBJECT-COMPUTER paragraph 191\
-   Scope of 103\
-   SPECIAL-NAMES paragraph 195\
-   Alphabets 62\
-   Alphanumeric category 111, 292, 315\
-   Alphanumeric character 8\
-   Alphanumeric character set 59, 751\
-   Alphanumeric class 111\
-   Alphanumeric coded character set 59, 751\
-   Alphanumeric data item 111\
-   Alphanumeric functions 566\
-   Alphanumeric literals 74\
-   Continuation of 25, 27\
-   ALPHANUMERIC phrase\
-   CODE-SET clause 271\
-   COLLATING SEQUENCE clause 218\
-   INITIALIZE statement 457\
-   MERGE statement 472\
-   SORT statement 524\
-   SPECIAL-NAMES paragraph 194, 195\
-   Alphanumeric-edited category 111, 316\
-   Alphanumeric-edited data item 111\
-   ALPHANUMERIC-EDITED phrase\
-   INITIALIZE statement 457\
-   ALSO phrase\
-   EVALUATE statement 441\
-   ALTERNATE RECORD KEY clause 217, 564\
-   FILE-CONTROL paragraph 210\
-   AND operator\
-   In combined conditions 135\
-   In complex conditions 135\
-   AND phrase\
-   SEARCH statement 512\
-   ANNUITY function 577\
-   ANY LENGTH clause 94, 260, 408, 422\
-   ANY phrase
-
-   EVALUATE statement 441\
-   Apostrophe 61\
-   Archaic language element flagging 5\
-   Archaic language elements 5, 833\
-   Continuation of COBOL words 833\
-   Identifier-n (text-n) in a COPY statement 834\
-   MOVE of nonnumeric figurative constants to nu-\
-   &emsp;&emsp;meric items 833\
-   NEXT SENTENCE phrase 455, 512, 833\
-   ON OVERFLOW phrase of CALL 834\
-   Arguments 19\
-   Arguments, intrinsic functions 566\
-   Arithmetic 118, 120\
-   Native 120\
-   Standard 120\
-   ARITHMETIC clause 121, 184\
-   Arithmetic compute 431\
-   Arithmetic expressions 20, 120\
-   COMPUTE statement 431\
-   EVALUATE statement 441\
-   Parenthesis in 120\
-   Sign condition 134\
-   Arithmetic Operators 118\
-   Arithmetic statements 401\
-   ADD statement 401, 415\
-   COMPUTE statement 401, 431\
-   Data conversion 401\
-   decimal point alignment 401\
-   DIVIDE statement 401, 438\
-   maximum operand size 401\
-   MULTIPLY statement 401, 482\
-   SUBTRACT statement 401, 539\
-   AS phrase\
-   CALL statement 421\
-   CLASS-ID paragraph 176\
-   EXTERNAL clause 234, 235, 283\
-   FUNCTION-ID paragraph 179\
-   INTERFACE-ID paragraph 180\
-   PROGRAM-ID paragraph 186\
-   REPOSITORY paragraph 204\
-   ASCENDING KEY phrase\
-   MERGE statement 472\
-   OCCURS clause 306\
-   SEARCH statement 515\
-   SORT statement 524\
-   ASIN function 578\
-   ASSIGN clause\
-   FILE-CONTROL paragraph 210\
-   Asterisk (\*) comment line 26\
-   At end condition 500, 501, 505\
-   Definition 399\
-   AT END phrase\
-   READ statement 496\
-   RETURN statement 505\
-   SEARCH statement 512\
-   AT END-OF-PAGE phrase\
-   WRITE statement 558\
-   AT EOP phrase
+&emsp;SORT statement 526\
+ALLOCATE statement 116, 372, 418, 450\
+ALPHABET clause\
+&emsp;SPECIAL-NAMES paragraph 195\
+Alphabetic category 111, 315\
+Alphabetic character 8\
+Alphabetic class\
+&emsp;Class of data\
+&emsp;&emsp;Alphabetic 111\
+Alphabetic data item 111\
+ALPHABETIC phrase\
+&emsp;CLASS clause 269\
+&emsp;INITIALIZE statement 457\
+ALPHABETIC-LOWER phrase\
+&emsp;CLASS clause 269\
+ALPHABETIC-UPPER phrase\
+&emsp;CLASS clause 269\
+Alphabet-name 66, 194, 369, 402, 441\
+&emsp;CODE-SET clause 271\
+&emsp;COLLATING SEQUENCE clause 218\
+&emsp;Definition 69\
+&emsp;FILE-CONTROL paragraph 210\
+&emsp;OBJECT-COMPUTER paragraph 191\
+&emsp;Scope of 103\
+&emsp;SPECIAL-NAMES paragraph 195\
+Alphabets 62\
+Alphanumeric category 111, 292, 315\
+Alphanumeric character 8\
+Alphanumeric character set 59, 751\
+Alphanumeric class 111\
+Alphanumeric coded character set 59, 751\
+Alphanumeric data item 111\
+Alphanumeric functions 566\
+Alphanumeric literals 74\
+&emsp;Continuation of 25, 27\
+ALPHANUMERIC phrase\
+&emsp;CODE-SET clause 271\
+&emsp;COLLATING SEQUENCE clause 218\
+&emsp;INITIALIZE statement 457\
+&emsp;MERGE statement 472\
+&emsp;SORT statement 524\
+&emsp;SPECIAL-NAMES paragraph 194, 195\
+Alphanumeric-edited category 111, 316\
+Alphanumeric-edited data item 111\
+ALPHANUMERIC-EDITED phrase\
+&emsp;INITIALIZE statement 457\
+ALSO phrase\
+&emsp;EVALUATE statement 441\
+ALTERNATE RECORD KEY clause 217, 564\
+&emsp;FILE-CONTROL paragraph 210\
+AND operator\
+&emsp;In combined conditions 135\
+&emsp;In complex conditions 135\
+AND phrase\
+&emsp;SEARCH statement 512\
+ANNUITY function 577\
+ANY LENGTH clause 94, 260, 408, 422\
+ANY phrase\
+&emsp;EVALUATE statement 441\
+Apostrophe 61\
+Archaic language element flagging 5\
+Archaic language elements 5, 833\
+&emsp;Continuation of COBOL words 833\
+&emsp;Identifier-n (text-n) in a COPY statement 834\
+&emsp;MOVE of nonnumeric figurative constants to nu-meric items 833\
+&emsp;NEXT SENTENCE phrase 455, 512, 833\
+&emsp;ON OVERFLOW phrase of CALL 834\
+Arguments 19\
+Arguments, intrinsic functions 566\
+Arithmetic 118, 120\
+&emsp;Native 120\
+&emsp;Standard 120\
+ARITHMETIC clause 121, 184\
+Arithmetic compute 431\
+Arithmetic expressions 20, 120\
+&emsp;COMPUTE statement 431\
+&emsp;EVALUATE statement 441\
+&emsp;Parenthesis in 120\
+&emsp;Sign condition 134\
+Arithmetic Operators 118\
+Arithmetic statements 401\
+&emsp;ADD statement 401, 415\
+&emsp;COMPUTE statement 401, 431\
+&emsp;Data conversion 401\
+&emsp;decimal point alignment 401\
+&emsp;DIVIDE statement 401, 438\
+&emsp;maximum operand size 401\
+&emsp;MULTIPLY statement 401, 482\
+&emsp;SUBTRACT statement 401, 539\
+AS phrase\
+&emsp;CALL statement 421\
+&emsp;CLASS-ID paragraph 176\
+&emsp;EXTERNAL clause 234, 235, 283\
+&emsp;FUNCTION-ID paragraph 179\
+&emsp;INTERFACE-ID paragraph 180\
+&emsp;PROGRAM-ID paragraph 186\
+&emsp;REPOSITORY paragraph 204\
+ASCENDING KEY phrase\
+&emsp;MERGE statement 472\
+&emsp;OCCURS clause 306\
+&emsp;SEARCH statement 515\
+&emsp;SORT statement 524\
+ASIN function 578\
+ASSIGN clause\
+&emsp;FILE-CONTROL paragraph 210\
+Asterisk (\*) comment line 26\
+At end condition 500, 501, 505\
+&emsp;Definition 399\
+AT END phrase\
+&emsp;READ statement 496\
+&emsp;RETURN statement 505\
+&emsp;SEARCH statement 512\
+AT END-OF-PAGE phrase\
+&emsp;WRITE statement 558\
+AT EOP phrase
 
 ## Page 861
 
-   WRITE statement 558 ATAN function 579
-
+&emsp;WRITE statement 558\
+ATAN function 579\
 ATTRIBUTE phrase\
 &emsp;SET statement, attribute setting 517\
 AUTO clause 261\
@@ -33467,8 +33445,9 @@ AUTOMATIC phrase\
 
 B
 
-B PICTURE symbol 313 BACKGROUND-COLOR clause 262 B-AND operator 118
-
+B PICTURE symbol 313\
+BACKGROUND-COLOR clause 262\
+B-AND operator 118\
 BASE class 652\
 BASED clause 116, 253, 263\
 Based data 116\
@@ -33510,10 +33489,10 @@ BLANK WHEN ZERO clause 266, 314, 373\
 BLINK clause 267\
 BLINK phrase\
 &emsp;SET statement, attribute setting 517\
-BLOCK CONTAINS clause 268
-
-   File description entry 234 Boolean category 111, 112, 292, 316 Boolean character 8
-
+BLOCK CONTAINS clause 268\
+&emsp;File description entry 234\
+Boolean category 111, 112, 292, 316\
+Boolean character 8\
 Boolean class 111\
 Boolean compute 431\
 Boolean condition 131\
@@ -33628,8 +33607,7 @@ Class of data\
 &emsp;National 111\
 &emsp;Numeric 111\
 &emsp;Object 111\
-&emsp;Pointer 111
-
+&emsp;Pointer 111\
 CLASS phrase\
 &emsp;USAGE clause 361\
 Class-definition 171\
@@ -33691,158 +33669,157 @@ Common program 117
 
 ## Page 863
 
-   Scope of 105\
-   Communication description entry 655, 656\
-   Communication error key 666\
-   Communication section 655\
-   Communication status key 664\
-   Communications facility 654, 734\
-   COMP phrase\
-   USAGE clause 361\
-   Comparison\
-   Between object reference identifiers 131\
-   Locale-based 129, 130\
-   Of alphanumeric operands 128\
-   Of boolean operands 129\
-   Of data-pointer operands 131\
-   Of index data items 131\
-   Of mixed operands 128\
-   Of national operands 130\
-   Of numeric operands 128\
-   Of strongly-typed group items 130\
-   Compatibility\
-   FLAG-85 directive 49\
-   Compilation group 168, 721\
-   Compilation stage 29\
-   Compilation unit 6, 168, 721\
-   Compilation variable name 45\
-   Compilation-variable-name 45, 66, 69, 106\
-   Compiler directing statement 30\
-   COPY statement 30\
-   REPLACE statement 30\
-   Compiler directive 40\
-   Compiler directive indicator 23\
-   Compiler-directive word 40, 66, 144\
-   Compile-time arithmetic expressions 41, 245\
-   Compile-time boolean expressions 41\
-   Complex conditions 135\
-   AND operator 135\
-   NOT operator 135\
-   OR operator 135\
-   Composite of operands 121, 401, 764\
-   ADD statement 415\
-   DIVIDE statement 439\
-   MULTIPLY statement 482\
-   SUBTRACT statement 539\
-   COMPUTATIONAL phrase\
-   USAGE clause 361\
-   COMPUTE statement 401, 431\
-   Computer's character set 59, 751\
-   Computer's coded character set 59, 107, 751\
-   Computer-name 72\
-   OBJECT-COMPUTER paragraph 191\
-   SOURCE-COMPUTER paragraph 190\
-   Concatenation expressions 125\
-   Concatenation operator 118\
-   Concepts 705\
-   CONDITION 549\
-   Condition 126\
-   Abbreviated combined relation condition 136\
-   Boolean condition 131
-
-   Class condition 131\
-   Complex 135\
-   Condition-name condition 133\
-   EVALUATE statement 441\
-   Evaluation order rules 135\
-   IF statement 455\
-   Omitted argument condition 134\
-   Sign condition 134\
-   Switch-status condition 134\
-   Condition handling 391\
-   Conditional compilation 52, 808\
-   Conditional expression 126, 490, 796\
-   EVALUATE statement 441\
-   Conditional phrase 382, 384\
-   Conditional statement 382\
-   Conditional variable 133\
-   Definition 101\
-   Conditionally-processed compilation group 30\
-   Condition-name 66, 69, 101, 133\
-   Qualified with subscripts 102\
-   Scope of 103, 104\
-   Subscripted 86\
-   Switch status 102\
-   Condition-name condition 133\
-   Configuration section 189\
-   Conformance 162\
-   Conformance for object orientation 162\
-   Conforming implementation 6, 7\
-   Conforming run unit 6\
-   Constant conditional expression 42\
-   Constant entry 245\
-   Constant-name 66, 69, 103, 245\
-   Scope of 104\
-   Contained source unit 168\
-   Contained statement 385\
-   CONTENT phrase\
-   INVOKE statement 468\
-   VALIDATE-STATUS clause 367\
-   Content validation 554\
-   Context-sensitive word 73\
-   Context-sensitive word list 141\
-   Continuation indicator 23\
-   Continuation of lines 25, 26\
-   CONTINUE statement 387, 432, 448, 456, 495, 513\
-   Continued line 27\
-   Control break 277, 291\
-   Control break processing 451\
-   CONTROL clause 277, 451, 552\
-   Report description entry 248\
-   CONTROL FOOTING phrase\
-   TYPE clause 354\
-   CONTROL HEADING phrase\
-   TYPE clause 354\
-   CONVERTING phrase\
-   INSPECT statement 462\
-   COPY statement 30, 32, 47, 52\
-   Nesting 35\
-   CORRESPONDING (CORR) phrase 401
+&emsp;Scope of 105\
+Communication description entry 655, 656\
+Communication error key 666\
+Communication section 655\
+Communication status key 664\
+Communications facility 654, 734\
+COMP phrase\
+&emsp;USAGE clause 361\
+Comparison\
+&emsp;Between object reference identifiers 131\
+&emsp;Locale-based 129, 130\
+&emsp;Of alphanumeric operands 128\
+&emsp;Of boolean operands 129\
+&emsp;Of data-pointer operands 131\
+&emsp;Of index data items 131\
+&emsp;Of mixed operands 128\
+&emsp;Of national operands 130\
+&emsp;Of numeric operands 128\
+&emsp;Of strongly-typed group items 130\
+Compatibility\
+&emsp;FLAG-85 directive 49\
+Compilation group 168, 721\
+Compilation stage 29\
+Compilation unit 6, 168, 721\
+Compilation variable name 45\
+Compilation-variable-name 45, 66, 69, 106\
+Compiler directing statement 30\
+&emsp;COPY statement 30\
+&emsp;REPLACE statement 30\
+Compiler directive 40\
+Compiler directive indicator 23\
+Compiler-directive word 40, 66, 144\
+Compile-time arithmetic expressions 41, 245\
+Compile-time boolean expressions 41\
+Complex conditions 135\
+&emsp;AND operator 135\
+&emsp;NOT operator 135\
+&emsp;OR operator 135\
+Composite of operands 121, 401, 764\
+&emsp;ADD statement 415\
+&emsp;DIVIDE statement 439\
+&emsp;MULTIPLY statement 482\
+&emsp;SUBTRACT statement 539\
+COMPUTATIONAL phrase\
+&emsp;USAGE clause 361\
+COMPUTE statement 401, 431\
+Computer's character set 59, 751\
+Computer's coded character set 59, 107, 751\
+Computer-name 72\
+&emsp;OBJECT-COMPUTER paragraph 191\
+&emsp;SOURCE-COMPUTER paragraph 190\
+Concatenation expressions 125\
+Concatenation operator 118\
+Concepts 705\
+CONDITION 549\
+Condition 126\
+&emsp;Abbreviated combined relation condition 136\
+&emsp;Boolean condition 131\
+&emsp;Class condition 131\
+&emsp;Complex 135\
+&emsp;Condition-name condition 133\
+&emsp;EVALUATE statement 441\
+&emsp;Evaluation order rules 135\
+&emsp;IF statement 455\
+&emsp;Omitted argument condition 134\
+&emsp;Sign condition 134\
+&emsp;Switch-status condition 134\
+Condition handling 391\
+Conditional compilation 52, 808\
+Conditional expression 126, 490, 796\
+&emsp;EVALUATE statement 441\
+Conditional phrase 382, 384\
+Conditional statement 382\
+Conditional variable 133\
+&emsp;Definition 101\
+Conditionally-processed compilation group 30\
+Condition-name 66, 69, 101, 133\
+&emsp;Qualified with subscripts 102\
+&emsp;Scope of 103, 104\
+&emsp;Subscripted 86\
+&emsp;Switch status 102\
+Condition-name condition 133\
+Configuration section 189\
+Conformance 162\
+Conformance for object orientation 162\
+Conforming implementation 6, 7\
+Conforming run unit 6\
+Constant conditional expression 42\
+Constant entry 245\
+Constant-name 66, 69, 103, 245\
+&emsp;Scope of 104\
+Contained source unit 168\
+Contained statement 385\
+CONTENT phrase\
+&emsp;INVOKE statement 468\
+&emsp;VALIDATE-STATUS clause 367\
+Content validation 554\
+Context-sensitive word 73\
+Context-sensitive word list 141\
+Continuation indicator 23\
+Continuation of lines 25, 26\
+CONTINUE statement 387, 432, 448, 456, 495, 513\
+Continued line 27\
+Control break 277, 291\
+Control break processing 451\
+CONTROL clause 277, 451, 552\
+&emsp;Report description entry 248\
+CONTROL FOOTING phrase\
+&emsp;TYPE clause 354\
+CONTROL HEADING phrase\
+&emsp;TYPE clause 354\
+CONVERTING phrase\
+&emsp;INSPECT statement 462\
+COPY statement 30, 32, 47, 52\
+&emsp;Nesting 35\
+CORRESPONDING (CORR) phrase 401
 
 ## Page 864
 
-   ADD statement 401, 415\
-   FILLER clause 401\
-   MOVE statement 401, 477\
-   OCCURS clause 401\
-   REDEFINES clause 401\
-   RENAMES clause 401\
-   SUBTRACT statement 401, 539\
-   COS function 584\
-   COUNT IN phrase\
-   UNSTRING statement 545\
-   COUNT phrase\
-   ACCEPT MESSAGE COUNT statement 667\
-   CR PICTURE symbol 313\
-   CRT status 158\
-   CRT STATUS clause\
-   SPECIAL-NAMES paragraph 194\
-   Cultural adaptability 756\
-   Cultural elements 64\
-   Currency sign 194\
-   CURRENCY SIGN clause\
-   SPECIAL-NAMES paragraph 194\
-   Currency symbol 194\
-   currency_symbol 65\
-   Current screen item 160\
-   Current volume pointer 149, 708\
-   CURRENT-DATE function 585\
-   Cursor 159\
-   CURSOR clause\
-   SPECIAL-NAMES paragraph 194\
-   Cursor locator 159\
-   CYCLE phrase\
-   EXIT statement 446
+&emsp;ADD statement 401, 415\
+&emsp;FILLER clause 401\
+&emsp;MOVE statement 401, 477\
+&emsp;OCCURS clause 401\
+&emsp;REDEFINES clause 401\
+&emsp;RENAMES clause 401\
+&emsp;SUBTRACT statement 401, 539\
+COS function 584\
+COUNT IN phrase\
+&emsp;UNSTRING statement 545\
+COUNT phrase\
+&emsp;ACCEPT MESSAGE COUNT statement 667\
+CR PICTURE symbol 313\
+CRT status 158\
+CRT STATUS clause\
+&emsp;SPECIAL-NAMES paragraph 194\
+Cultural adaptability 756\
+Cultural elements 64\
+Currency sign 194\
+CURRENCY SIGN clause\
+&emsp;SPECIAL-NAMES paragraph 194\
+Currency symbol 194\
+currency_symbol 65\
+Current screen item 160\
+Current volume pointer 149, 708\
+CURRENT-DATE function 585\
+Cursor 159\
+CURSOR clause\
+&emsp;SPECIAL-NAMES paragraph 194\
+Cursor locator 159\
+CYCLE phrase\
+&emsp;EXIT statement 446
 
 D
 
@@ -33867,66 +33844,65 @@ Data-name 281\
 &emsp;Qualified 88\
 &emsp;Scope of 104\
 &emsp;Subscripted 86, 88\
-Data-pointer 64, 418, 450
-
-   Definintion 365\
-   Data-pointer category 111, 112\
-   Data-pointer data item 112\
-   DATA-POINTER phrase\
-   INITIALIZE statement 457\
-   Date forms 569\
-   DATE phrase\
-   ACCEPT statement 409\
-   DATE-OF-INTEGER function 586\
-   DATE-TO-YYYYMMDD function 587\
-   DAY phrase\
-   ACCEPT statement 409\
-   DAY-OF-INTEGER function 588\
-   DAY-OF-WEEK phrase\
-   ACCEPT statement 409\
-   DAY-TO-YYYYDDD function 589\
-   DB PICTURE symbol 313\
-   DE phrase\
-   TYPE clause 354\
-   Debugging indicator 22, 23\
-   Debugging line 26, 27\
-   DEBUGGING MODE clause\
-   SOURCE-COMPUTER paragraph 190\
-   Decimal point 194\
-   Alignment 389\
-   Decimal point alignment 401\
-   DECIMAL POINT IS COMMA clause\
-   SPECIAL-NAMES paragraph 194\
-   DECIMAL-POINT IS COMMA clause 623, 625, 626\
-   Declarative statement 382\
-   USE statement 549\
-   DECLARATIVES 377, 381\
-   Declaratives 377, 381\
-   Normal completion 392\
-   De-editing 49, 479\
-   DEFAULT clause 279\
-   DEFAULT phrase\
-   INITIALIZE statement 457\
-   SET statement, locale 517\
-   DEFINE directive 45\
-   Defined condition 42\
-   Definitions 8\
-   DELETE statement 433\
-   DELIMITED BY phrase\
-   STRING statement 536\
-   UNSTRING statement 545\
-   Delimited scope statement 384\
-   DELIMITER IN phrase\
-   UNSTRING statement 545\
-   DEPENDING ON phrase\
-   GO TO statement 453\
-   OCCURS clause 306\
-   RECORD clause 333\
-   DESCENDING KEY phrase\
-   MERGE statement 472\
-   OCCURS clause 306\
-   SEARCH statement 515\
-   SORT statement 524
+Data-pointer 64, 418, 450\
+&emsp;Definintion 365\
+Data-pointer category 111, 112\
+Data-pointer data item 112\
+DATA-POINTER phrase\
+&emsp;INITIALIZE statement 457\
+Date forms 569\
+DATE phrase\
+&emsp;ACCEPT statement 409\
+DATE-OF-INTEGER function 586\
+DATE-TO-YYYYMMDD function 587\
+DAY phrase\
+&emsp;ACCEPT statement 409\
+DAY-OF-INTEGER function 588\
+DAY-OF-WEEK phrase\
+&emsp;ACCEPT statement 409\
+DAY-TO-YYYYDDD function 589\
+DB PICTURE symbol 313\
+DE phrase\
+&emsp;TYPE clause 354\
+Debugging indicator 22, 23\
+Debugging line 26, 27\
+DEBUGGING MODE clause\
+&emsp;SOURCE-COMPUTER paragraph 190\
+Decimal point 194\
+&emsp;Alignment 389\
+Decimal point alignment 401\
+DECIMAL POINT IS COMMA clause\
+&emsp;SPECIAL-NAMES paragraph 194\
+DECIMAL-POINT IS COMMA clause 623, 625, 626\
+Declarative statement 382\
+&emsp;USE statement 549\
+DECLARATIVES 377, 381\
+Declaratives 377, 381\
+&emsp;Normal completion 392\
+De-editing 49, 479\
+DEFAULT clause 279\
+DEFAULT phrase\
+&emsp;INITIALIZE statement 457\
+&emsp;SET statement, locale 517\
+DEFINE directive 45\
+Defined condition 42\
+Definitions 8\
+DELETE statement 433\
+DELIMITED BY phrase\
+&emsp;STRING statement 536\
+&emsp;UNSTRING statement 545\
+Delimited scope statement 384\
+DELIMITER IN phrase\
+&emsp;UNSTRING statement 545\
+DEPENDING ON phrase\
+&emsp;GO TO statement 453\
+&emsp;OCCURS clause 306\
+&emsp;RECORD clause 333\
+DESCENDING KEY phrase\
+&emsp;MERGE statement 472\
+&emsp;OCCURS clause 306\
+&emsp;SEARCH statement 515\
+&emsp;SORT statement 524
 
 ## Page 865
 
@@ -33978,18 +33954,16 @@ EC-BOUND-SUBSCRIPT exception 87, 394, 521\
 EC-DATA exception 392, 394, 761\
 EC-DATA-CONVERSION exception 394, 479, 590, 622\
 EC-DATA-IMP exception 394\
-EC-DATA-INCOMPATIBLE exception 395, 398, 401, 412,\
-&emsp;&emsp;413, 453, 480, 555, 691, 818\
+EC-DATA-INCOMPATIBLE exception 395, 398, 401, 412, 413, 453, 480, 555, 691, 818\
 EC-DATA-PTR-NULL exception 263, 395, 523\
 EC-FLOW exception 392, 395, 761\
 EC-FLOW-GLOBAL-EXIT exception 395, 448\
 EC-FLOW-GLOBAL-GOBACK exception 395, 454\
 EC-FLOW-IMP exception 395\
 EC-FLOW-RELEASE exception 395, 503\
-EC-FLOW-REPORT exception 395, 552
-
-EC-FLOW-RETURN exception 395, 505 EC-FLOW-USE exception 395, 550
-
+EC-FLOW-REPORT exception 395, 552\
+EC-FLOW-RETURN exception 395, 505\
+EC-FLOW-USE exception 395, 550\
 EC-IMP exception 392, 395, 447, 761\
 EC-IMP- exception 392\
 EC-I-O exception 155, 391, 392, 395, 488, 592, 593, 761\
@@ -34008,8 +33982,7 @@ EC-LOCALE-IMP exception 395\
 EC-LOCALE-INCOMPATIBLE exception 129, 130, 395\
 EC-LOCALE-INVALID exception 65, 395\
 EC-LOCALE-INVALID-PTR exception 395, 523\
-EC-LOCALE-MISSING exception 65, 395, 523, 609, 610,\
-&emsp;&emsp;611, 625, 646\
+EC-LOCALE-MISSING exception 65, 395, 523, 609, 610, 611, 625, 646\
 EC-LOCALE-SIZE exception 324, 395\
 EC-OO exception 392, 395, 761\
 EC-OO-CONFORMANCE exception 95, 395, 404\
@@ -34027,14 +34000,11 @@ EC-OVERFLOW-IMP exception 396\
 EC-OVERFLOW-STRING exception 396, 537\
 EC-OVERFLOW-UNSTRING exception 396, 547\
 EC-PROGRAM exception 392, 396, 424, 761\
-EC-PROGRAM-ARG-MISMATCH exception 396, 404,\
-&emsp;&emsp;423\
-EC-PROGRAM-ARG-OMITTED exception 92, 396, 425,\
-&emsp;&emsp;471\
+EC-PROGRAM-ARG-MISMATCH exception 396, 404, 423\
+EC-PROGRAM-ARG-OMITTED exception 92, 396, 425, 471\
 EC-PROGRAM-CANCEL-ACTIVE exception 396, 426\
 EC-PROGRAM-IMP exception 396\
-EC-PROGRAM-NOT-FOUND exception 92, 100, 396,\
-&emsp;&emsp;423\
+EC-PROGRAM-NOT-FOUND exception 92, 100, 396, 423\
 EC-PROGRAM-PTR-NULL exception 396, 423\
 EC-PROGRAM-RECURSIVE-CALL exception 396, 423\
 EC-PROGRAM-RESOURCES exception 92, 396, 423\
@@ -34049,11 +34019,10 @@ EC-RANGE-INVALID exception 396, 403
 
 ## Page 866
 
-EC-RANGE-PERFORM-VARYING exception 396, 491 EC-RANGE-PTR exception 397, 523
-
+EC-RANGE-PERFORM-VARYING exception 396, 491\
+EC-RANGE-PTR exception 397, 523\
 EC-RANGE-SEARCH-INDEX exception 397, 514\
-EC-RANGE-SEARCH-NO-MATCH exception 397, 514,\
-&emsp;&emsp;515\
+EC-RANGE-SEARCH-NO-MATCH exception 397, 514, 515\
 EC-REPORT exception 392, 397, 761\
 EC-REPORT-ACTIVE exception 397, 461\
 EC-REPORT-COLUMN-OVERLAP exception 274, 397\
@@ -34067,18 +34036,14 @@ EC-REPORT-PAGE-WIDTH exception 274, 397\
 EC-REPORT-SUM-SIZE exception 349, 397\
 EC-REPORT-VARYING exception 375, 397\
 EC-SCREEN exception 397, 413\
-EC-SCREEN-FIELD-OVERLAP exception 397, 412, 436,\
-&emsp;&emsp;437\
+EC-SCREEN-FIELD-OVERLAP exception 397, 412, 436, 437\
 EC-SCREEN-IMP exception 397\
-EC-SCREEN-ITEM-TRUNCATED exception 276, 397,\
-&emsp;&emsp;437\
+EC-SCREEN-ITEM-TRUNCATED exception 276, 397, 437\
 EC-SCREEN-LINE-NUMBER exception 302, 397, 437\
-EC-SCREEN-STARTING-COLUMN exception 276, 397,\
-&emsp;&emsp;437\
+EC-SCREEN-STARTING-COLUMN exception 276, 397, 437\
 EC-SIZE exception 392, 397, 399, 401, 761\
 EC-SIZE-ADDRESS exception 397, 523\
-EC-SIZE-EXPONENTIATION exception 121, 124, 397,\
-&emsp;&emsp;400\
+EC-SIZE-EXPONENTIATION exception 121, 124, 397, 400\
 EC-SIZE-IMP exception 397\
 EC-SIZE-OVERFLOW exception 122, 397, 400, 763\
 EC-SIZE-TRUNCATION exception 397, 400\
@@ -34086,11 +34051,9 @@ EC-SIZE-UNDERFLOW exception 122, 397, 400, 763\
 EC-SIZE-ZERO-DIVIDE exception 397, 400\
 EC-SORT-MERGE exception 392, 397, 761\
 EC-SORT-MERGE-ACTIVE exception 397, 475, 528, 529\
-EC-SORT-MERGE-FILE-OPEN exception 397, 474, 475,\
-&emsp;&emsp;527\
+EC-SORT-MERGE-FILE-OPEN exception 397, 474, 475, 527\
 EC-SORT-MERGE-IMP exception 398\
-EC-SORT-MERGE-RELEASE exception 335, 398, 475,\
-&emsp;&emsp;528\
+EC-SORT-MERGE-RELEASE exception 335, 398, 475, 528\
 EC-SORT-MERGE-RETURN exception 398, 505\
 EC-SORT-MERGE-SEQUENCE exception 398, 474\
 EC-STORAGE exception 392, 398\
@@ -34106,10 +34069,10 @@ EC-VALIDATE-RELATION exception 398, 556\
 EC-VALIDATE-VARYING exception 376, 398\
 Editing rules 320\
 EGI indicator 675\
-EGI phrase
-
-   SEND statement 673 Elementary items 107 Ellipses 18, 20
-
+EGI phrase\
+&emsp;SEND statement 673\
+Elementary items 107\
+Ellipses 18, 20\
 ELSE NEXT SENTENCE phrase\
 &emsp;IF statement 455\
 ELSE phrase\
@@ -34225,10 +34188,10 @@ EXP function 598\
 EXP10 function 599\
 Expanded compilation group 30\
 Explicit attributes 232\
-Explicit reference 102
-
-Explicit scope terminators 384 Explicit transfer of control 387 Exponent 76
-
+Explicit reference 102\
+Explicit scope terminators 384\
+Explicit transfer of control 387\
+Exponent 76\
 Exponentiation 121, 123\
 Expression\
 &emsp;Arithmetic 20, 120\
@@ -34262,91 +34225,90 @@ Externally provided functionality 5
 
 F
 
-FACTORIAL function 600 FACTORY clause
-
-   METHOD-ID paragraph 181\
-   Factory data 165, 770\
-   Factory definition 178\
-   Factory method 161, 770\
-   Factory object 161, 178, 770\
-   Life cycle for 166\
-   FACTORY paragraph 178\
-   FACTORY phrase 405\
-   USAGE clause 361\
-   Factory-definition 171\
-   FactoryObject method 652\
-   FALSE phrase\
-   EVALUATE statement 441\
-   SET statement, condition setting 516\
-   Fatal exception conditions 392\
-   FD entry 234\
-   Feature-name 72\
-   FILE-CONTROL paragraph 212\
-   RECORD DELIMITER clause 225
+FACTORIAL function 600\
+FACTORY clause\
+&emsp;METHOD-ID paragraph 181\
+Factory data 165, 770\
+Factory definition 178\
+Factory method 161, 770\
+Factory object 161, 178, 770\
+&emsp;Life cycle for 166\
+FACTORY paragraph 178\
+FACTORY phrase 405\
+&emsp;USAGE clause 361\
+Factory-definition 171\
+FactoryObject method 652\
+FALSE phrase\
+&emsp;EVALUATE statement 441\
+&emsp;SET statement, condition setting 516\
+Fatal exception conditions 392\
+FD entry 234\
+Feature-name 72\
+&emsp;FILE-CONTROL paragraph 212\
+&emsp;RECORD DELIMITER clause 225
 
 ## Page 868
 
-   SPECIAL-NAMES paragraph 194 Figurative constant 78
-
-   INITIALIZE statement 459\
-   Symbolic characters in 81\
-   File\
-   logical 146\
-   Physical 146\
-   Physical aspects 107\
-   File attribute conflict condition 486\
-   File attributes 147\
-   File connector 146\
-   OPEN statement 484\
-   File control entry 210\
-   File description entry 234\
-   File operations 708\
-   File organization 147, 705\
-   FILE phrase\
-   REWRITE statement 507\
-   WRITE statement 558\
-   File position indicator 149\
-   File processing 706\
-   File section 233\
-   File sharing 155, 229, 710\
-   File sharing conflict condition 151, 403\
-   FILE STATUS clause 220\
-   FILE-CONTROL paragraph 210\
-   FILE-CONTROL paragraph 210\
-   File-name 66, 69\
-   Scope of 104\
-   Files 146, 705\
-   Indexed 148\
-   Relative 148\
-   Sequential 147\
-   FILLER clause 281, 352\
-   FILLER phrase\
-   INITIALIZE statement 457\
-   FINAL phrase\
-   CLASS-ID paragraph 176\
-   SUM clause 348\
-   TYPE clause 354\
-   FIRST DETAIL phrase\
-   PAGE clause 311\
-   FIRST phrase\
-   INSPECT statement 463\
-   START statement 531\
-   Fixed file attributes 147, 486\
-   Fixed indicators 22\
-   Fixed insertion editing 322\
-   Fixed-length records 706\
-   Fixed-point numeric literal 75\
-   FLAG-85 directive 49\
-   Flagging and warning mechanisms\
-   Archaic language elements 5\
-   FLAG-85 directive 49\
-   FLAG-NATIVE-ARITHMETIC directive 51\
-   Nonstandard extensions 5\
-   Obsolete language elements 5\
-   Processor-dependent elements 4
-
-   Prototype versus repository 145 Syntax violations 3
-
+&emsp;SPECIAL-NAMES paragraph 194\
+Figurative constant 78\
+&emsp;INITIALIZE statement 459\
+&emsp;Symbolic characters in 81\
+File\
+&emsp;logical 146\
+&emsp;Physical 146\
+&emsp;Physical aspects 107\
+File attribute conflict condition 486\
+File attributes 147\
+File connector 146\
+&emsp;OPEN statement 484\
+File control entry 210\
+File description entry 234\
+File operations 708\
+File organization 147, 705\
+FILE phrase\
+&emsp;REWRITE statement 507\
+&emsp;WRITE statement 558\
+File position indicator 149\
+File processing 706\
+File section 233\
+File sharing 155, 229, 710\
+File sharing conflict condition 151, 403\
+FILE STATUS clause 220\
+&emsp;FILE-CONTROL paragraph 210\
+FILE-CONTROL paragraph 210\
+File-name 66, 69\
+&emsp;Scope of 104\
+Files 146, 705\
+&emsp;Indexed 148\
+&emsp;Relative 148\
+&emsp;Sequential 147\
+FILLER clause 281, 352\
+FILLER phrase\
+&emsp;INITIALIZE statement 457\
+FINAL phrase\
+&emsp;CLASS-ID paragraph 176\
+&emsp;SUM clause 348\
+&emsp;TYPE clause 354\
+FIRST DETAIL phrase\
+&emsp;PAGE clause 311\
+FIRST phrase\
+&emsp;INSPECT statement 463\
+&emsp;START statement 531\
+Fixed file attributes 147, 486\
+Fixed indicators 22\
+Fixed insertion editing 322\
+Fixed-length records 706\
+Fixed-point numeric literal 75\
+FLAG-85 directive 49\
+Flagging and warning mechanisms\
+&emsp;Archaic language elements 5\
+&emsp;FLAG-85 directive 49\
+&emsp;FLAG-NATIVE-ARITHMETIC directive 51\
+&emsp;Nonstandard extensions 5\
+&emsp;Obsolete language elements 5\
+&emsp;Processor-dependent elements 4\
+&emsp;Prototype versus repository 145\
+&emsp;Syntax violations 3\
 FLAG-NATIVE-ARITHMETIC directive 51, 121\
 FLOAT-EXTENDED phrase\
 &emsp;USAGE clause 361\
@@ -34461,54 +34423,65 @@ IGNORING LOCK phrase\
 IMP directive 40, 41\
 Imperative statement 382\
 Implementation\
-&emsp;Nonstandard extensions 4
-
-   Reserved words 4 Standard extensions 4 Implementor-defined Intermediate data item 122 Language element list 677 Language elements 3 Native arithmetic 121 Record types 706 IMPLEMENTS clause 178, 183 Implicit attributes 232 Implicit reference 102 Implicit scope terminators 384 Implicit transfer of control 387 IN phrase
-
-   COPY statement 32\
-   With identifiers 87\
-   With qualification 85\
-   Incompatibility flagging 49\
-   Incompatible data 398\
-   Index\
-   Definition 308\
-   Index-name 86\
-   Index category 111, 112, 363\
-   Index class 111\
-   Index data item 112, 362\
-   Index functions 566\
-   INDEX phrase\
-   USAGE clause 361\
-   INDEXED BY phrase 86, 512, 521\
-   CD entry 656\
-   OCCURS clause 306\
-   Indexed files 148\
-   Indexed organization 706\
-   INDEXED phrase\
-   ORGANIZATION clause 223\
-   Index-name 66, 70\
-   Scope of 104\
-   Indicator area 24\
-   Indicators 22\
-   Comment 22, 23\
-   Compiler directive 23\
-   Continuation 23\
-   Debugging 22, 23\
-   Fixed 22\
-   Floating 23\
-   Literal continuation 23\
-   Source 23\
-   Inheritance\
-   Conforming 165\
-   INHERITS clause\
-   CLASS-ID paragraph 176\
-   INTERFACE-ID paragraph 180\
-   INITIAL clause\
-   CD entry 656\
-   PROGRAM-ID paragraph 186\
-   Initial data 115, 238, 386\
-   Initial items 115, 386\
-   Initial program 117
+&emsp;Nonstandard extensions 4\
+&emsp;Reserved words 4\
+&emsp;Standard extensions 4\
+Implementor-defined\
+&emsp;Intermediate data item 122\
+&emsp;Language element list 677\
+&emsp;Language elements 3\
+&emsp;Native arithmetic 121\
+&emsp;Record types 706\
+IMPLEMENTS clause 178, 183\
+Implicit attributes 232\
+Implicit reference 102\
+Implicit scope terminators 384\
+Implicit transfer of control 387\
+IN phrase\
+&emsp;COPY statement 32\
+&emsp;With identifiers 87\
+&emsp;With qualification 85\
+Incompatibility flagging 49\
+Incompatible data 398\
+Index\
+&emsp;Definition 308\
+&emsp;Index-name 86\
+Index category 111, 112, 363\
+Index class 111\
+Index data item 112, 362\
+Index functions 566\
+INDEX phrase\
+&emsp;USAGE clause 361\
+INDEXED BY phrase 86, 512, 521\
+&emsp;CD entry 656\
+&emsp;OCCURS clause 306\
+Indexed files 148\
+Indexed organization 706\
+INDEXED phrase\
+&emsp;ORGANIZATION clause 223\
+Index-name 66, 70\
+&emsp;Scope of 104\
+Indicator area 24\
+Indicators 22\
+&emsp;Comment 22, 23\
+&emsp;Compiler directive 23\
+&emsp;Continuation 23\
+&emsp;Debugging 22, 23\
+&emsp;Fixed 22\
+&emsp;Floating 23\
+&emsp;Literal continuation 23\
+&emsp;Source 23\
+Inheritance\
+&emsp;Conforming 165\
+INHERITS clause\
+&emsp;CLASS-ID paragraph 176\
+&emsp;INTERFACE-ID paragraph 180\
+INITIAL clause\
+&emsp;CD entry 656\
+&emsp;PROGRAM-ID paragraph 186\
+Initial data 115, 238, 386\
+Initial items 115, 386\
+Initial program 117
 
 ## Page 870
 
@@ -34569,8 +34542,7 @@ INTO phrase\
 &emsp;UNSTRING statement 545\
 Intrinsic function summary 569\
 Intrinsic functions 566\
-Intrinsic-function-name 73
-
+Intrinsic-function-name 73\
 INVALID clause 294\
 Invalid key condition 154, 533\
 &emsp;Definition 399\
@@ -34600,12 +34572,10 @@ ISO 1989/Amd 1 49\
 ISO 1989/Amd 2 49\
 ISO 8601 2, 569\
 ISO/IEC 10646 108\
-ISO/IEC 10646-1 xx, 2, 10, 12, 16, 59, 61, 108, 200, 201,\
-&emsp;&emsp;701, 751, 824\
+ISO/IEC 10646-1 xx, 2, 10, 12, 16, 59, 61, 108, 200, 201, 701, 751, 824\
 ISO/IEC 10646-2 xx, 2, 16, 59, 108, 200, 751, 824\
 ISO/IEC 14651 2, 70, 203, 396, 639, 684, 696, 755\
-ISO/IEC 646 2, 59, 61, 74, 151, 200, 751, 753, 755, 813,\
-&emsp;&emsp;824\
+ISO/IEC 646 2, 59, 61, 74, 151, 200, 751, 753, 755, 813, 824\
 ISO/IEC 9945-2 2, 64\
 ISO/IEC DTR 14652 2, 701\
 ISO/IEC TR 10176 2, 62, 698\
@@ -34630,58 +34600,62 @@ Known errors in the standard 835
 
 L
 
-LAST DETAIL phrase PAGE clause 311 LAST EXCEPTION phrase 454 EXIT statement 446 Last exception status 762 Definition 391 LAST phrase
-
-   START statement 531\
-   Last-used state 386\
-   LC_ALL 64\
-   SET statement, locale 517\
-   LC_COLLATE 64, 81, 389\
-   SET statement, locale 517\
-   LC_CTYPE 64, 389, 614, 648, 701\
-   SET statement, locale 517\
-   LC_MESSAGES 64\
-   SET statement, locale 517\
-   LC_MONETARY 64, 389\
-   SET statement, locale 517\
-   LC_NUMERIC 64\
-   SET statement, locale 517\
-   LC_TIME 64, 389\
-   SET statement, locale 517\
-   LEADING phrase\
-   INSPECT statement 462\
-   SIGN clause 346\
-   LEAP-SECOND directive 53\
-   LEFT phrase\
-   SYNCHRONIZED clause 351\
-   LENGTH function 608\
-   LENGTH phrase\
-   Constant entry 245\
-   START statement 531\
-   Letter mapping 701\
-   Level-number 67, 70, 107, 296\
-   Data description entry 251\
-   Screen description entry 255\
-   Levels 107\
-   Lexical elements 66\
-   Library text 30\
-   Library-name 32, 72\
-   Life cycle\
-   Data 115\
-   Object 166\
-   LINAGE clause 297\
-   File description entry 234\
-   Linage concepts 708\
-   LINAGE-COUNTER 100, 104\
-   Qualified 85\
-   Line\
-   Continuation 26\
-   Debugging 26\
-   Slant (/) comment line 26\
-   Source text 22\
-   LINE (LINES) keyword\
-   SEND statement 673
-
+LAST DETAIL phrase\
+&emsp;PAGE clause 311\
+LAST EXCEPTION phrase 454\
+&emsp;EXIT statement 446\
+Last exception status 762\
+&emsp;Definition 391\
+LAST phrase\
+&emsp;START statement 531\
+Last-used state 386\
+LC_ALL 64\
+&emsp;SET statement, locale 517\
+LC_COLLATE 64, 81, 389\
+&emsp;SET statement, locale 517\
+LC_CTYPE 64, 389, 614, 648, 701\
+&emsp;SET statement, locale 517\
+LC_MESSAGES 64\
+&emsp;SET statement, locale 517\
+LC_MONETARY 64, 389\
+&emsp;SET statement, locale 517\
+LC_NUMERIC 64\
+&emsp;SET statement, locale 517\
+LC_TIME 64, 389\
+&emsp;SET statement, locale 517\
+LEADING phrase\
+&emsp;INSPECT statement 462\
+&emsp;SIGN clause 346\
+LEAP-SECOND directive 53\
+LEFT phrase\
+&emsp;SYNCHRONIZED clause 351\
+LENGTH function 608\
+LENGTH phrase\
+&emsp;Constant entry 245\
+&emsp;START statement 531\
+Letter mapping 701\
+Level-number 67, 70, 107, 296\
+&emsp;Data description entry 251\
+&emsp;Screen description entry 255\
+Levels 107\
+Lexical elements 66\
+Library text 30\
+Library-name 32, 72\
+Life cycle\
+&emsp;Data 115\
+&emsp;Object 166\
+LINAGE clause 297\
+&emsp;File description entry 234\
+Linage concepts 708\
+LINAGE-COUNTER 100, 104\
+&emsp;Qualified 85\
+Line\
+&emsp;Continuation 26\
+&emsp;Debugging 26\
+&emsp;Slant (/) comment line 26\
+&emsp;Source text 22\
+LINE (LINES) keyword\
+&emsp;SEND statement 673\
 LINE (LINES) phrase\
 &emsp;WRITE statement 558\
 LINE clause 299\
@@ -34799,10 +34773,10 @@ Mnemonic-name 67, 70, 194\
 &emsp;ACCEPT statement 409\
 &emsp;DISPLAY statement 435\
 &emsp;Scope of 103\
-&emsp;SEND statement 673
-
-   SET statement, switch setting 516 SPECIAL-NAMES paragraph 194 WRITE statement 558
-
+&emsp;SEND statement 673\
+&emsp;SET statement, switch setting 516\
+&emsp;SPECIAL-NAMES paragraph 194\
+&emsp;WRITE statement 558\
 MOD function 621\
 mon_decimal_point 65\
 mon_grouping 65\
@@ -34860,102 +34834,102 @@ NEXT PAGE phrase 300
 
 ## Page 873
 
-   NEXT GROUP clause 304 NEXT phrase
-
-   READ statement 496\
-   NEXT RECORD phrase\
-   READ statement 496\
-   NEXT SENTENCE phrase\
-   IF statement 455\
-   SEARCH statement 512\
-   NEXT STATEMENT phrase\
-   RESUME statement 504\
-   NO ADVANCING phrase\
-   DISPLAY statement 435\
-   NO DATA phrase\
-   RECEIVE statement 671\
-   NO LOCK phrase\
-   READ statement 496\
-   REWRITE statement 507\
-   WRITE statement 558\
-   NO OTHER phrase\
-   OPEN statement 484\
-   SHARING clause 229\
-   NO REWIND phrase\
-   CLOSE statement 428\
-   OPEN statement 484\
-   Noncontiguous data items 108\
-   Noncontiguous elementary items 248\
-   Non-fatal exception conditions 393\
-   Nonstandard extension flagging 5\
-   NORMAL phrase\
-   STOP statement 535\
-   Normal run unit termination 390\
-   Normalized values 122\
-   NOT AT END phrase\
-   READ statement 496\
-   RETURN statement 505\
-   NOT AT END-OF-PAGE phrase\
-   WRITE statement 558\
-   NOT AT EOP phrase\
-   WRITE statement 558\
-   NOT INVALID KEY phrase\
-   DELETE statement 433\
-   READ statement 496\
-   REWRITE statement 507\
-   START statement 531\
-   WRITE statement 558\
-   NOT ON EXCEPTION phrase\
-   ACCEPT statement 409\
-   CALL statement\
-   &emsp;EXCEPTION phrase\
-   &emsp;&emsp;CALL statement 420\
-   DISPLAY statement 435\
-   NOT ON OVERFLOW phrase\
-   STRING statement 536\
-   UNSTRING statement 545\
-   NOT ON SIZE ERROR phrase 400\
-   ADD statement 415\
-   COMPUTE statement 431\
-   DIVIDE statement 438
-
-   MULTIPLY statement 482 SUBTRACT statement 539 NOT operator
-
-   In complex conditions 135\
-   In negated conditions 135\
-   NOT phrase\
-   EVALUATE statement 441\
-   NULL\
-   Predefined object 96\
-   Predefined-address 98\
-   NULL phrase\
-   SET statement, pointer assignment 517\
-   NULL predefined address 450\
-   ALLOCATE statement 418\
-   INITIALIZE statement 459\
-   NULL predefined object reference\
-   INITIALIZE statement 459\
-   Numeric category 111, 112, 316\
-   Numeric character 14\
-   Numeric class 111\
-   Numeric comparison 128\
-   Numeric data item 112\
-   Numeric functions 566\
-   Numeric literal 75\
-   Fixed-point 75\
-   Floating-point 76\
-   NUMERIC phrase\
-   CLASS clause 269\
-   INITIALIZE statement 457\
-   NUMERIC-EDITED\
-   INITIALIZE statement 457\
-   Numeric-edited category 113, 266, 316\
-   Category of data\
-   &emsp;Numeric-edited 111\
-   Numeric-edited data item 113\
-   NUMVAL function 623\
-   NUMVAL-C function 624\
-   NUMVAL-F function 626
+&emsp;NEXT GROUP clause 304\
+NEXT phrase\
+&emsp;READ statement 496\
+NEXT RECORD phrase\
+&emsp;READ statement 496\
+NEXT SENTENCE phrase\
+&emsp;IF statement 455\
+&emsp;SEARCH statement 512\
+NEXT STATEMENT phrase\
+&emsp;RESUME statement 504\
+NO ADVANCING phrase\
+&emsp;DISPLAY statement 435\
+NO DATA phrase\
+&emsp;RECEIVE statement 671\
+NO LOCK phrase\
+&emsp;READ statement 496\
+&emsp;REWRITE statement 507\
+&emsp;WRITE statement 558\
+NO OTHER phrase\
+&emsp;OPEN statement 484\
+&emsp;SHARING clause 229\
+NO REWIND phrase\
+&emsp;CLOSE statement 428\
+&emsp;OPEN statement 484\
+Noncontiguous data items 108\
+Noncontiguous elementary items 248\
+Non-fatal exception conditions 393\
+Nonstandard extension flagging 5\
+NORMAL phrase\
+&emsp;STOP statement 535\
+Normal run unit termination 390\
+Normalized values 122\
+NOT AT END phrase\
+&emsp;READ statement 496\
+&emsp;RETURN statement 505\
+NOT AT END-OF-PAGE phrase\
+&emsp;WRITE statement 558\
+NOT AT EOP phrase\
+&emsp;WRITE statement 558\
+NOT INVALID KEY phrase\
+&emsp;DELETE statement 433\
+&emsp;READ statement 496\
+&emsp;REWRITE statement 507\
+&emsp;START statement 531\
+&emsp;WRITE statement 558\
+NOT ON EXCEPTION phrase\
+&emsp;ACCEPT statement 409\
+&emsp;CALL statement\
+&emsp;&emsp;EXCEPTION phrase\
+&emsp;&emsp;&emsp;CALL statement 420\
+&emsp;DISPLAY statement 435\
+NOT ON OVERFLOW phrase\
+&emsp;STRING statement 536\
+&emsp;UNSTRING statement 545\
+NOT ON SIZE ERROR phrase 400\
+&emsp;ADD statement 415\
+&emsp;COMPUTE statement 431\
+&emsp;DIVIDE statement 438\
+&emsp;MULTIPLY statement 482\
+&emsp;SUBTRACT statement 539\
+NOT operator\
+&emsp;In complex conditions 135\
+&emsp;In negated conditions 135\
+NOT phrase\
+&emsp;EVALUATE statement 441\
+NULL\
+&emsp;Predefined object 96\
+&emsp;Predefined-address 98\
+NULL phrase\
+&emsp;SET statement, pointer assignment 517\
+NULL predefined address 450\
+&emsp;ALLOCATE statement 418\
+&emsp;INITIALIZE statement 459\
+NULL predefined object reference\
+&emsp;INITIALIZE statement 459\
+Numeric category 111, 112, 316\
+Numeric character 14\
+Numeric class 111\
+Numeric comparison 128\
+Numeric data item 112\
+Numeric functions 566\
+Numeric literal 75\
+&emsp;Fixed-point 75\
+&emsp;Floating-point 76\
+NUMERIC phrase\
+&emsp;CLASS clause 269\
+&emsp;INITIALIZE statement 457\
+NUMERIC-EDITED\
+&emsp;INITIALIZE statement 457\
+Numeric-edited category 113, 266, 316\
+&emsp;Category of data\
+&emsp;&emsp;Numeric-edited 111\
+Numeric-edited data item 113\
+NUMVAL function 623\
+NUMVAL-C function 624\
+NUMVAL-F function 626
 
 O
 
@@ -34978,127 +34952,127 @@ Object references 161
 
 ## Page 874
 
-   Initialization 372, 419\
-   OBJECT-COMPUTER paragraph 191\
-   Object-reference category 111, 113, 364\
-   Object-reference data item 113\
-   OBJECT-REFERENCE phrase\
-   INITIALIZE statement 457\
-   Objects and classes 161\
-   Object-view 95\
-   Obsolete language element flagging 5\
-   Obsolete language elements 5, 834\
-   Communication facility 654, 834\
-   Debugging lines 26, 27, 834\
-   DEBUGGING MODE clause 190\
-   PADDING CHARACTER clause 834\
-   OCCURS clause 86, 306, 338, 342, 351, 366, 370, 375,\
-   &emsp;512, 525, 554\
-   OF phrase\
-   COPY statement 32\
-   With identifiers 87\
-   With qualification 85\
-   OFF phrase\
-   SET statement, attribute setting 517\
-   SET statement, switch setting 516\
-   SPECIAL-NAMES paragraph 194\
-   OMITTED phrase 90, 468\
-   CALL statement 421\
-   Omitted-argument condition 134\
-   ON EXCEPTION phrase\
-   ACCEPT statement 409\
-   CALL statement 420\
-   DISPLAY statement 435\
-   ON OVERFLOW phrase\
-   CALL statement 420\
-   STRING statement 536\
-   UNSTRING statement 545\
-   ON phrase\
-   SET statement, attribute setting 517\
-   SET statement, switch setting 516\
-   SPECIAL-NAMES paragraph 194\
-   VALIDATE-STATUS clause 367\
-   ON SIZE ERROR phrase 399\
-   ADD statement 415\
-   COMPUTE statement 431\
-   DIVIDE statement 438\
-   MULTIPLY statement 482\
-   SUBTRACT statement 539\
-   ONLY phrase 405\
-   USAGE clause 361\
-   Open mode 147, 484, 707\
-   OPEN statement 484\
-   Opening delimiter 82\
-   Operands 17\
-   Operational sign 108\
-   Operators\
-   Arithmetic 118\
-   Boolean 118\
-   Concatenation 118\
-   Invocation 118
-
-   Logical 119\
-   Relational 118\
-   OPTIONAL phrase\
-   FILE-CONTROL paragraph 210\
-   Procedure division header 90, 378\
-   Optional words 17, 73\
-   OPTIONS paragraph 184\
-   OR operator\
-   In combined conditions 135\
-   In complex conditions 135\
-   OR PAGE phrase\
-   TYPE clause 354\
-   OR phrase\
-   UNSTRING statement 545\
-   ORD function 627\
-   ORDER keyword\
-   SORT statement 524\
-   Order of evaluation of conditions 137\
-   ORDER TABLE 194, 639\
-   Ordering-name 67, 70, 194\
-   Scope of 103\
-   ORD-MAX function 628\
-   ORD-MIN function 629\
-   Organization 147\
-   Indexed 148\
-   Relative 148\
-   Sequential 147\
-   ORGANIZATION clause 223\
-   FILE-CONTROL paragraph 210\
-   OTHER phrase\
-   EVALUATE statement 441\
-   SELECT WHEN clause 345\
-   Out-of-line PERFORM statement 489\
-   OUTPUT clause\
-   CD entry 656\
-   OUTPUT phrase\
-   DISABLE statement 668\
-   ENABLE statement 669\
-   OPEN statement 484\
-   USE statement 549\
-   OUTPUT PROCEDURE phrase\
-   MERGE statement 472\
-   SORT statement 524\
-   OVERFLOW phrase\
-   CALL statement 420\
-   STRING statement 536\
-   UNSTRING statement 545\
-   Overlapping operands 390, 460\
-   STRING statement 538\
-   OVERRIDE clause\
-   METHOD-ID paragraph 181
+&emsp;Initialization 372, 419\
+OBJECT-COMPUTER paragraph 191\
+Object-reference category 111, 113, 364\
+Object-reference data item 113\
+OBJECT-REFERENCE phrase\
+&emsp;INITIALIZE statement 457\
+Objects and classes 161\
+Object-view 95\
+Obsolete language element flagging 5\
+Obsolete language elements 5, 834\
+&emsp;Communication facility 654, 834\
+&emsp;Debugging lines 26, 27, 834\
+&emsp;DEBUGGING MODE clause 190\
+&emsp;PADDING CHARACTER clause 834\
+OCCURS clause 86, 306, 338, 342, 351, 366, 370, 375, 512, 525, 554\
+OF phrase\
+&emsp;COPY statement 32\
+&emsp;With identifiers 87\
+&emsp;With qualification 85\
+OFF phrase\
+&emsp;SET statement, attribute setting 517\
+&emsp;SET statement, switch setting 516\
+&emsp;SPECIAL-NAMES paragraph 194\
+OMITTED phrase 90, 468\
+&emsp;CALL statement 421\
+Omitted-argument condition 134\
+ON EXCEPTION phrase\
+&emsp;ACCEPT statement 409\
+&emsp;CALL statement 420\
+&emsp;DISPLAY statement 435\
+ON OVERFLOW phrase\
+&emsp;CALL statement 420\
+&emsp;STRING statement 536\
+&emsp;UNSTRING statement 545\
+ON phrase\
+&emsp;SET statement, attribute setting 517\
+&emsp;SET statement, switch setting 516\
+&emsp;SPECIAL-NAMES paragraph 194\
+&emsp;VALIDATE-STATUS clause 367\
+ON SIZE ERROR phrase 399\
+&emsp;ADD statement 415\
+&emsp;COMPUTE statement 431\
+&emsp;DIVIDE statement 438\
+&emsp;MULTIPLY statement 482\
+&emsp;SUBTRACT statement 539\
+ONLY phrase 405\
+&emsp;USAGE clause 361\
+Open mode 147, 484, 707\
+OPEN statement 484\
+Opening delimiter 82\
+Operands 17\
+Operational sign 108\
+Operators\
+&emsp;Arithmetic 118\
+&emsp;Boolean 118\
+&emsp;Concatenation 118\
+&emsp;Invocation 118\
+&emsp;Logical 119\
+&emsp;Relational 118\
+OPTIONAL phrase\
+&emsp;FILE-CONTROL paragraph 210\
+&emsp;Procedure division header 90, 378\
+Optional words 17, 73\
+OPTIONS paragraph 184\
+OR operator\
+&emsp;In combined conditions 135\
+&emsp;In complex conditions 135\
+OR PAGE phrase\
+&emsp;TYPE clause 354\
+OR phrase\
+&emsp;UNSTRING statement 545\
+ORD function 627\
+ORDER keyword\
+&emsp;SORT statement 524\
+Order of evaluation of conditions 137\
+ORDER TABLE 194, 639\
+Ordering-name 67, 70, 194\
+&emsp;Scope of 103\
+ORD-MAX function 628\
+ORD-MIN function 629\
+Organization 147\
+&emsp;Indexed 148\
+&emsp;Relative 148\
+&emsp;Sequential 147\
+ORGANIZATION clause 223\
+&emsp;FILE-CONTROL paragraph 210\
+OTHER phrase\
+&emsp;EVALUATE statement 441\
+&emsp;SELECT WHEN clause 345\
+Out-of-line PERFORM statement 489\
+OUTPUT clause\
+&emsp;CD entry 656\
+OUTPUT phrase\
+&emsp;DISABLE statement 668\
+&emsp;ENABLE statement 669\
+&emsp;OPEN statement 484\
+&emsp;USE statement 549\
+OUTPUT PROCEDURE phrase\
+&emsp;MERGE statement 472\
+&emsp;SORT statement 524\
+OVERFLOW phrase\
+&emsp;CALL statement 420\
+&emsp;STRING statement 536\
+&emsp;UNSTRING statement 545\
+Overlapping operands 390, 460\
+&emsp;STRING statement 538\
+OVERRIDE clause\
+&emsp;METHOD-ID paragraph 181
 
 P
 
-P PICTURE symbol 313 p_cs_precedes 65
-
+P PICTURE symbol 313\
+p_cs_precedes 65\
 PACKED-DECIMAL phrase
 
 ## Page 875
 
-   USAGE clause 361 PADDING CHARACTER clause 224 FILE-CONTROL paragraph 212 Page advance 452
-
+&emsp;USAGE clause 361\
+PADDING CHARACTER clause 224\
+&emsp;FILE-CONTROL paragraph 212\
+Page advance 452\
 PAGE clause 311\
 PAGE directive 55\
 Page fit processing 451\
@@ -35152,8 +35126,7 @@ PICTURE clause 313, 361, 366\
 PICTURE SYMBOL phrase\
 &emsp;SPECIAL-NAMES paragraph 194\
 Pointer 422\
-&emsp;Initialization 372, 419
-
+&emsp;Initialization 372, 419\
 Pointer class 111\
 POINTER phrase\
 &emsp;STRING statement 536\
@@ -35271,10 +35244,11 @@ RECORD IS VARYING clause 561\
 Record key 217, 226\
 RECORD KEY clause 226\
 RECORD keyword\
-&emsp;RETURN statement 505
-
-   REWRITE statement 507 UNLOCK statement 544 Record locking 155, 156, 221, 229, 544, 711 Record locks 532, 544
-
+&emsp;RETURN statement 505\
+&emsp;REWRITE statement 507\
+&emsp;UNLOCK statement 544\
+Record locking 155, 156, 221, 229, 544, 711\
+Record locks 532, 544\
 Record operations 706\
 RECORD phrase\
 &emsp;DELETE statement 433\
@@ -35332,67 +35306,66 @@ RELATIVE KEY clause 227\
 
 ## Page 877
 
-Relative organization 705 RELATIVE phrase
-
-   ORGANIZATION clause 223\
-   Relative record number 148, 227\
-   RELEASE statement 503\
-   REM function 634\
-   REMAINDER phrase\
-   DIVIDE statement 438\
-   REMOVAL phrase\
-   CLOSE statement 428\
-   RENAMES clause 108, 338, 458\
-   REPEATED phrase\
-   VALUE clause 369\
-   REPLACE statement 30, 36, 47, 52\
-   REPLACING phrase\
-   COPY statement 32\
-   INITIALIZE statement 457\
-   INSPECT statement 462\
-   REPORT clause 339\
-   Report description entry 242, 248\
-   REPORT FOOTING phrase\
-   TYPE clause 354\
-   Report group description entry 249\
-   REPORT HEADING phrase\
-   TYPE clause 354\
-   Report section 242\
-   Report writer 785\
-   Report-name 67, 71, 339\
-   Report description entry 248\
-   Scope of 104\
-   Repository 145\
-   REPOSITORY paragraph 66, 204, 550\
-   REQUIRED clause 340\
-   Required word 73\
-   RESERVE clause 228\
-   FILE-CONTROL paragraph 210\
-   Reserved word 66\
-   Implementation 4\
-   Reserved words 72\
-   Compiler directives 144\
-   Source text 138\
-   RESET phrase\
-   NEXT GROUP clause 304\
-   SUM clause 348\
-   Restricted pointer 365\
-   RESUME statement 504\
-   RETRY phrase 403, 488, 714\
-   DELETE statement 433\
-   OPEN statement 484\
-   READ statement 496\
-   REWRITE statement 507\
-   WRITE statement 558\
-   RETURN statement 505\
-   Returned values, intrinsic functions 568\
-   RETURNING phrase\
-   ALLOCATE statement 418\
-   CALL statement 420\
-   INVOKE statement 468
-
-   Procedure division header 91, 377 REVERSE function 635
-
+Relative organization 705\
+RELATIVE phrase\
+&emsp;ORGANIZATION clause 223\
+Relative record number 148, 227\
+RELEASE statement 503\
+REM function 634\
+REMAINDER phrase\
+&emsp;DIVIDE statement 438\
+REMOVAL phrase\
+&emsp;CLOSE statement 428\
+RENAMES clause 108, 338, 458\
+REPEATED phrase\
+&emsp;VALUE clause 369\
+REPLACE statement 30, 36, 47, 52\
+REPLACING phrase\
+&emsp;COPY statement 32\
+&emsp;INITIALIZE statement 457\
+&emsp;INSPECT statement 462\
+REPORT clause 339\
+Report description entry 242, 248\
+REPORT FOOTING phrase\
+&emsp;TYPE clause 354\
+Report group description entry 249\
+REPORT HEADING phrase\
+&emsp;TYPE clause 354\
+Report section 242\
+Report writer 785\
+Report-name 67, 71, 339\
+&emsp;Report description entry 248\
+&emsp;Scope of 104\
+Repository 145\
+REPOSITORY paragraph 66, 204, 550\
+REQUIRED clause 340\
+Required word 73\
+RESERVE clause 228\
+&emsp;FILE-CONTROL paragraph 210\
+Reserved word 66\
+&emsp;Implementation 4\
+Reserved words 72\
+&emsp;Compiler directives 144\
+&emsp;Source text 138\
+RESET phrase\
+&emsp;NEXT GROUP clause 304\
+&emsp;SUM clause 348\
+Restricted pointer 365\
+RESUME statement 504\
+RETRY phrase 403, 488, 714\
+&emsp;DELETE statement 433\
+&emsp;OPEN statement 484\
+&emsp;READ statement 496\
+&emsp;REWRITE statement 507\
+&emsp;WRITE statement 558\
+RETURN statement 505\
+Returned values, intrinsic functions 568\
+RETURNING phrase\
+&emsp;ALLOCATE statement 418\
+&emsp;CALL statement 420\
+&emsp;INVOKE statement 468\
+&emsp;Procedure division header 91, 377\
+REVERSE function 635\
 REVERSE-VIDEO clause 341\
 REVERSE-VIDEO phrase\
 &emsp;SET statement, attribute setting 517\
@@ -35508,8 +35481,7 @@ SIGNED phrase\
 Simple condition 126\
 Simple insertion editing 321\
 Simple relational operator 119\
-SIN function 637
-
+SIN function 637\
 Size error condition 399\
 SIZE ERROR phrase 399\
 &emsp;ADD statement 415\
@@ -35571,65 +35543,64 @@ Statement 382\
 
 ## Page 879
 
-   Declarative 382\
-   Procedural 382\
-   Static data 115, 238\
-   Static items 115\
-   STATUS KEY clause\
-   CD entry 656\
-   STOP 387\
-   STOP RUN statement 535\
-   STOP statement 454, 535\
-   STRING statement 536\
-   STRONG phrase\
-   TYPEDEF clause 359\
-   Strongly-typed group items 113\
-   Strongly-typed groups 113\
-   Strongly-typed items 742\
-   Structured compilation group 29, 30, 168\
-   SUB-QUEUE clause\
-   CD entry 656\
-   Subscripted\
-   Data-name 86\
-   Subscripted identifier 87\
-   Subscripting 716\
-   Condition-name 86\
-   Subscripts 85, 86\
-   Substantive changes list 810\
-   SUBTRACT statement 401, 539\
-   CORRESPONDING phrase 401\
-   Subtraction 123\
-   SUM clause 348\
-   Sum counter 349\
-   SUM function 641\
-   Summary of functions 569\
-   SUPER predefined object identifier 96\
-   SUPPRESS statement 542\
-   Surrogate pair 93\
-   Definition 16\
-   Switch status\
-   Condition-name 102\
-   Switch-name 72, 134\
-   SPECIAL-NAMES paragraph 194\
-   Switch-status condition 134\
-   SYMBOLIC QUEUE clause\
-   CD entry 656\
-   SYMBOLIC SOURCE clause\
-   CD entry 656\
-   SYMBOLIC SUB-QUEUE clause\
-   CD entry 656\
-   Symbolic-character 67, 71, 194\
-   Figurative constant 81\
-   Scope of 103\
-   SYMBOLIC-CHARACTERS clause\
-   SPECIAL-NAMES paragraph 195\
-   SYNCHRONIZED clause 110, 351, 370\
-   Syntax rules 19\
-   Syntax violation flagging 3\
-   SYSTEM-DEFAULT phrase\
-   SET statement 517\
-   System-name 71
-
+&emsp;Declarative 382\
+&emsp;Procedural 382\
+Static data 115, 238\
+Static items 115\
+STATUS KEY clause\
+&emsp;CD entry 656\
+STOP 387\
+STOP RUN statement 535\
+STOP statement 454, 535\
+STRING statement 536\
+STRONG phrase\
+&emsp;TYPEDEF clause 359\
+Strongly-typed group items 113\
+Strongly-typed groups 113\
+Strongly-typed items 742\
+Structured compilation group 29, 30, 168\
+SUB-QUEUE clause\
+&emsp;CD entry 656\
+Subscripted\
+&emsp;Data-name 86\
+Subscripted identifier 87\
+Subscripting 716\
+&emsp;Condition-name 86\
+Subscripts 85, 86\
+Substantive changes list 810\
+SUBTRACT statement 401, 539\
+&emsp;CORRESPONDING phrase 401\
+Subtraction 123\
+SUM clause 348\
+Sum counter 349\
+SUM function 641\
+Summary of functions 569\
+SUPER predefined object identifier 96\
+SUPPRESS statement 542\
+Surrogate pair 93\
+&emsp;Definition 16\
+Switch status\
+&emsp;Condition-name 102\
+Switch-name 72, 134\
+&emsp;SPECIAL-NAMES paragraph 194\
+Switch-status condition 134\
+SYMBOLIC QUEUE clause\
+&emsp;CD entry 656\
+SYMBOLIC SOURCE clause\
+&emsp;CD entry 656\
+SYMBOLIC SUB-QUEUE clause\
+&emsp;CD entry 656\
+Symbolic-character 67, 71, 194\
+&emsp;Figurative constant 81\
+&emsp;Scope of 103\
+SYMBOLIC-CHARACTERS clause\
+&emsp;SPECIAL-NAMES paragraph 195\
+SYNCHRONIZED clause 110, 351, 370\
+Syntax rules 19\
+Syntax violation flagging 3\
+SYSTEM-DEFAULT phrase\
+&emsp;SET statement 517\
+System-name 71\
 System-names 194
 
 T
@@ -35690,50 +35661,50 @@ TO phrase
 
 ## Page 880
 
-   ADD statement 415\
-   INITIALIZE statement 457\
-   INSPECT statement 462\
-   MOVE statement 477\
-   SET statement, condition setting 516\
-   SET statement, index assignment 516\
-   SET statement, object identifier assignment 516\
-   SET statement, pointer assignment 517\
-   SET statement, switch setting 516\
-   TO PROGRAM phrase\
-   USAGE clause 361\
-   TO VALUE clause\
-   INITIALIZE statement 457\
-   TRAILING phrase\
-   SIGN clause 346\
-   Transaction communication 740\
-   Transfer of control 387\
-   EXIT FUNCTION statement 387\
-   EXIT METHOD statement 387\
-   EXIT PROGRAM statement 387\
-   EXIT statement 387\
-   GOBACK statement 387, 454\
-   MERGE statement 387\
-   PERFORM statement 387\
-   SORT statement 387\
-   STOP statement 387\
-   TRUE phrase\
-   EVALUATE directive 46\
-   EVALUATE statement 441\
-   SET statement, condition setting 516\
-   TURN directive 58\
-   TYPE clause 342, 354\
-   TYPEDEF clause 359\
-   Data description entry 251\
-   Type-name 67, 71\
-   TYPE clause 354\
-   Types\
-   Definition of 113\
-   Types of functions 566
+&emsp;ADD statement 415\
+&emsp;INITIALIZE statement 457\
+&emsp;INSPECT statement 462\
+&emsp;MOVE statement 477\
+&emsp;SET statement, condition setting 516\
+&emsp;SET statement, index assignment 516\
+&emsp;SET statement, object identifier assignment 516\
+&emsp;SET statement, pointer assignment 517\
+&emsp;SET statement, switch setting 516\
+TO PROGRAM phrase\
+&emsp;USAGE clause 361\
+TO VALUE clause\
+&emsp;INITIALIZE statement 457\
+TRAILING phrase\
+&emsp;SIGN clause 346\
+Transaction communication 740\
+Transfer of control 387\
+&emsp;EXIT FUNCTION statement 387\
+&emsp;EXIT METHOD statement 387\
+&emsp;EXIT PROGRAM statement 387\
+&emsp;EXIT statement 387\
+&emsp;GOBACK statement 387, 454\
+&emsp;MERGE statement 387\
+&emsp;PERFORM statement 387\
+&emsp;SORT statement 387\
+&emsp;STOP statement 387\
+TRUE phrase\
+&emsp;EVALUATE directive 46\
+&emsp;EVALUATE statement 441\
+&emsp;SET statement, condition setting 516\
+TURN directive 58\
+TYPE clause 342, 354\
+TYPEDEF clause 359\
+&emsp;Data description entry 251\
+Type-name 67, 71\
+&emsp;TYPE clause 354\
+Types\
+&emsp;Definition of 113\
+Types of functions 566
 
 U
 
-UCS 9, 10, 16, 59, 75, 93, 479, 751, 760, 824 Definition 16
-
+UCS 9, 10, 16, 59, 75, 93, 479, 751, 760, 824\
+&emsp;Definition 16\
 UCS-4 200, 824\
 UCS-4 phrase\
 &emsp;SPECIAL-NAMES paragraph 195\
@@ -35746,8 +35717,7 @@ UNDERLINE phrase\
 Underscore 66\
 Unicode 760\
 Uniqueness of reference 83\
-Unit 149
-
+Unit 149\
 UNIT phrase\
 &emsp;CLOSE statement 428\
 Universal Multiple-Octet Coded Character Set 824\
@@ -35808,57 +35778,62 @@ Variable-length records 706
 
 ## Page 881
 
-VARIANCE function 649 VARYING clause 375 VARYING phrase PERFORM statement 490 RECORD clause 333 SEARCH statement 512
+VARIANCE function 649\
+VARYING clause 375\
+VARYING phrase\
+&emsp;PERFORM statement 490\
+&emsp;RECORD clause 333\
+&emsp;SEARCH statement 512
 
 W
 
-Weakly-typed items 114, 742 WHEN phrase
-
-   EVALUATE directive 46\
-   EVALUATE statement 441\
-   INVALID clause 294\
-   SEARCH statement 512\
-   WHEN SET TO FALSE phrase\
-   VALUE clause 369\
-   WHEN-COMPILED function 650\
-   WITH DATA phrase\
-   RECEIVE statement 671\
-   WITH DUPLICATES phrase\
-   SORT statement 524\
-   WITH ERROR STATUS phrase\
-   STOP statement 535\
-   WITH FILLER phrase\
-   INITIALIZE statement 457\
-   WITH FOOTING phrase\
-   LINAGE clause 297\
-   WITH LENGTH phrase\
-   START statement 531\
-   WITH LOCK phrase\
-   CLOSE statement 428\
-   READ statement 496\
-   REWRITE statement 507\
-   WRITE statement 558\
-   WITH NO ADVANCING phrase\
-   DISPLAY statement 435\
-   WITH NO LOCK phrase\
-   READ statement 496\
-   REWRITE statement 507\
-   WRITE statement 558\
-   WITH NO REWIND phrase\
-   CLOSE statement 428\
-   OPEN statement 484\
-   WITH NORMAL STATUS phrase\
-   STOP statement 535\
-   WITH phrase\
-   SEND statement 673\
-   WITH POINTER phrase\
-   STRING statement 536\
-   UNSTRING statement 545\
-   WITH TEST phrase\
-   PERFORM statement 489\
-   Word 66\
-   Working-storage section 238\
-   WRITE statement 196, 558
+Weakly-typed items 114, 742\
+WHEN phrase\
+&emsp;EVALUATE directive 46\
+&emsp;EVALUATE statement 441\
+&emsp;INVALID clause 294\
+&emsp;SEARCH statement 512\
+WHEN SET TO FALSE phrase\
+&emsp;VALUE clause 369\
+WHEN-COMPILED function 650\
+WITH DATA phrase\
+&emsp;RECEIVE statement 671\
+WITH DUPLICATES phrase\
+&emsp;SORT statement 524\
+WITH ERROR STATUS phrase\
+&emsp;STOP statement 535\
+WITH FILLER phrase\
+&emsp;INITIALIZE statement 457\
+WITH FOOTING phrase\
+&emsp;LINAGE clause 297\
+WITH LENGTH phrase\
+&emsp;START statement 531\
+WITH LOCK phrase\
+&emsp;CLOSE statement 428\
+&emsp;READ statement 496\
+&emsp;REWRITE statement 507\
+&emsp;WRITE statement 558\
+WITH NO ADVANCING phrase\
+&emsp;DISPLAY statement 435\
+WITH NO LOCK phrase\
+&emsp;READ statement 496\
+&emsp;REWRITE statement 507\
+&emsp;WRITE statement 558\
+WITH NO REWIND phrase\
+&emsp;CLOSE statement 428\
+&emsp;OPEN statement 484\
+WITH NORMAL STATUS phrase\
+&emsp;STOP statement 535\
+WITH phrase\
+&emsp;SEND statement 673\
+WITH POINTER phrase\
+&emsp;STRING statement 536\
+&emsp;UNSTRING statement 545\
+WITH TEST phrase\
+&emsp;PERFORM statement 489\
+Word 66\
+Working-storage section 238\
+WRITE statement 196, 558
 
 X
 
@@ -35866,11 +35841,11 @@ X PICTURE symbol 313
 
 Y
 
-YEAR-TO-YYYY function 651 YYYYDDD phrase
-
-   ACCEPT statement 409\
-   YYYYMMDD phrase\
-   ACCEPT statement 409
+YEAR-TO-YYYY function 651\
+YYYYDDD phrase\
+&emsp;ACCEPT statement 409\
+YYYYMMDD phrase\
+&emsp;ACCEPT statement 409
 
 Z
 

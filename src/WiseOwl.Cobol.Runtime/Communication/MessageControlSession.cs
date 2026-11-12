@@ -48,15 +48,15 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         return (area.Image, status);
     }
 
-    /// <summary>§1985:XIV.3.1.4 GR1 counts "the number of complete messages that exist in the queue structure", and a message this run unit has begun to
+    /// <summary>§1985:XIV.3.1.4 GR1 counts "the number of complete messages that exist in the queue structure", and a message a run unit has begun to
     /// receive still exists in it until its last portion is returned (§1985:VI.6.24.4 GR3: STOP RUN removes "any message partially received by that run
-    /// unit" from the queue). The store lets go of a message at its first portion, so the run unit adds the ones it holds (docs/CONFORMANCE.md §3.3).</summary>
+    /// unit" from the queue): the store's <c>PartialReceives</c> rows add those of every live run unit (<see cref="MessageStoreState.PartlyReceivedFrom"/>, docs/CONFORMANCE.md §3.3).</summary>
     internal string AcceptMessageCount(string image) =>
         Statement(CommunicationFormat.Input, image, (area, dialogue, state) =>
         {
             string[] path = area.QueuePath();
             if (state.FindQueue(path) is not { } node) return Unknown;
-            area.SetMessageCount((long)node.CompleteMessages + dialogue.PartlyReceivedFrom(path));
+            area.SetMessageCount((long)node.CompleteMessages + state.PartlyReceivedFrom(path));
             return Ok;
         }).Area;
 
@@ -258,11 +258,11 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         string name = area.Destination(occurrence);
         int earlier = 0;
         for (int i = 1; i < occurrence; i++)
-            if (string.Equals(area.Destination(i), name, StringComparison.Ordinal)) earlier++;
-        return $"D:{name}\u0001{earlier}";
+            if (McsNames.Comparer.Equals(area.Destination(i), name)) earlier++;
+        return $"D:{McsNames.Key(name)}\u0001{earlier}";
     }
 
-    private static string TerminalKey(string name) => "T:" + name;
+    private static string TerminalKey(string name) => "T:" + McsNames.Key(name);
 
     /// <summary>A.2.5.3. A remainder this run unit holds answers first (GR10: "only subsequent execution of RECEIVE statements in that
     /// run unit shall cause the remaining portion of the message to be returned").</summary>
@@ -294,10 +294,10 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
                         : state.TakeFromTerminal(path[0]);
                     if (next is not { } found)   // no data: the caller decides between GR5 a) and b)
                     {
-                        area.SetTextLength(format, 0);
+                        area.SetNothingReceived(format);
                         return Ok;
                     }
-                    pending = new PendingReceive(format, found.Path, found.Message);
+                    pending = new PendingReceive(format, found.Path, found.Message, dialogue.NextReceive++);
                     dialogue.Receives.Add(pending);
                 }
                 filled = Transfer(dialogue, pending, area, format, segment, into, state);
@@ -311,11 +311,24 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         }
     }
 
+    /// <summary>§1985:XIV.3.1.4 GR1: a message of an input CD stays counted in its queue structure, to every run unit, from its first portion until its last, so the store's
+    /// <c>PartialReceives</c> row is written when a portion leaves the message unfinished and removed when the last portion is returned.</summary>
+    private static void RecordProgress(Dialogue dialogue, PendingReceive pending, CommunicationFormat format, MessageStoreState state)
+    {
+        if (pending.Finished) dialogue.Receives.Remove(pending);
+        if (format is not CommunicationFormat.Input) return;
+        if (pending.Finished && pending.Recorded)
+            state.EndPartialReceive(pending.Serial);
+        else if (!pending.Finished && !pending.Recorded)
+            state.BeginPartialReceive(pending.Serial, pending.Path);
+        pending.Recorded = !pending.Finished;
+    }
+
     /// <summary>A.2.5.3 GR3, GR8, GR9: the text fills the area left to right "without space fill", and A.1.2.3 GR12 and GR33 give the end key.</summary>
     private static string Transfer(Dialogue dialogue, PendingReceive pending, CommunicationArea area, CommunicationFormat format, bool segment, string into, MessageStoreState state)
     {
         var (text, endKey) = pending.Next(segment, into.Length);
-        if (pending.Finished) dialogue.Receives.Remove(pending);
+        RecordProgress(dialogue, pending, format, state);
         if (format is CommunicationFormat.Input) area.SetQueuePath(pending.Path);
         var message = pending.Message;
         // GR10: the symbolic name of a source "not known to the MCS" is reported as spaces (kb/Work PB5280).
@@ -353,13 +366,14 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         {
             var copy = new Dialogue();
             foreach (var (key, pending) in Sends) copy.Sends[key] = pending.Copy();
+            copy.NextReceive = NextReceive;
             copy.Receives.AddRange(Receives.Select(pending => pending.Copy()));
             foreach (var (cd, terminal) in Terminals) copy.Terminals[cd] = terminal;
             return copy;
         }
 
-        /// <summary>The messages this run unit has begun to receive from the queue structure <paramref name="specified"/> designates.</summary>
-        internal int PartlyReceivedFrom(string[] specified) => Receives.Count(r => r.Format is CommunicationFormat.Input && r.Answers(specified));
+        /// <summary>The serial the next message this run unit begins to receive takes: the key of its <c>PartialReceives</c> row.</summary>
+        internal ulong NextReceive;
 
         /// <summary>A.2.6.3 GR6, GR10, GR11: add one portion to the message this run unit is releasing to <paramref name="key"/>, closing
         /// the segment on any indicator. The message, once an EMI or EGI ends it, goes to the MCS; until then it "does not logically exist
@@ -381,7 +395,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         internal bool LockedTerminalChanged(string cd, CommunicationArea area, CommunicationFormat format)
         {
             string name = area.SourceName(format);
-            if (Terminals.TryGetValue(cd, out string? first)) return !string.Equals(first, name, StringComparison.Ordinal);
+            if (Terminals.TryGetValue(cd, out string? first)) return !McsNames.Comparer.Equals(first, name);
             Terminals[cd] = name;
             return false;
         }
@@ -403,12 +417,18 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
 
     /// <summary>The message this run unit has begun to receive from <see cref="Path"/>; the remainder is "treated as a new message" or
     /// "a new segment" by the next RECEIVE (GR8 c, GR9 c).</summary>
-    private sealed class PendingReceive(CommunicationFormat format, string[] path, StoredMessage message)
+    private sealed class PendingReceive(CommunicationFormat format, string[] path, StoredMessage message, ulong serial)
     {
         private int _segment;
         private int _offset;
 
-        internal PendingReceive Copy() => new(format, path, message) { _segment = _segment, _offset = _offset };
+        internal PendingReceive Copy() => new(format, path, message, serial) { _segment = _segment, _offset = _offset, Recorded = Recorded };
+
+        /// <summary>The key of this message's <c>PartialReceives</c> row among the run unit's (an input CD's only).</summary>
+        internal ulong Serial => serial;
+
+        /// <summary>Whether the store holds the message's <c>PartialReceives</c> row.</summary>
+        internal bool Recorded { get; set; }
 
         internal CommunicationFormat Format => format;
         internal string[] Path => path;
@@ -417,13 +437,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
 
         /// <summary>Whether this remainder lies in the queue structure the area names: "If less than all the levels of the queue hierarchy
         /// are specified, the MCS determines the next message" (A.1.2.3 GR5), so the specified levels are a prefix.</summary>
-        internal bool Answers(string[] specified)
-        {
-            for (int level = 0; level < specified.Length && specified[level].Length > 0; level++)
-                if (level >= path.Length || !string.Equals(specified[level], path[level], StringComparison.Ordinal))
-                    return false;
-            return true;
-        }
+        internal bool Answers(string[] specified) => MessageStoreState.LevelIsUnder(path, specified);
 
         /// <summary>The next text of at most <paramref name="room"/> characters, and the end key A.1.2.3 GR12 and GR33 give it: 3 at the end of a
         /// group, 2 of a message, 1 of a segment (the SEGMENT phrase alone), 0 for less than that. "When more than one of the above conditions is

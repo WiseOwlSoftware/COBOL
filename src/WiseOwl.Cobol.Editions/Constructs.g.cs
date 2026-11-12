@@ -36,6 +36,7 @@ public static class Constructs
     public const string CallAsPhrase2002 = "call-as-phrase-2002";
     public const string CallByValue2002 = "call-by-value-2002";
     public const string CallConventionDirective2002 = "call-convention-directive-2002";
+    public const string CallFunctionIdentifierArgument2002 = "call-function-identifier-argument-2002";
     public const string CallLiteralExpressionArgument2002 = "call-literal-expression-argument-2002";
     public const string CallOnOverflowRemoved2023 = "call-on-overflow-removed-2023";
     public const string CallReturning2002 = "call-returning-2002";
@@ -57,6 +58,7 @@ public static class Constructs
     public const string ConstantRecord2014 = "constant-record-2014";
     public const string ContinueAfter2023 = "continue-after-2023";
     public const string CopyLiteralName2002 = "copy-literal-name-2002";
+    public const string CopyNestedLibraryText2002 = "copy-nested-library-text-2002";
     public const string CopyReplacingNonPseudoTextRemoved2023 = "copy-replacing-non-pseudo-text-removed-2023";
     public const string CopySuppress2002 = "copy-suppress-2002";
     public const string CurrencyPictureSymbol2002 = "currency-picture-symbol-2002";
@@ -204,6 +206,7 @@ public static class Constructs
     public const string RelativeKeyClauseAlone2002 = "relative-key-clause-alone-2002";
     public const string RemarksRemoved85 = "remarks-removed-85";
     public const string ReplaceAlsoLast2002 = "replace-also-last-2002";
+    public const string ReplaceAnywhere2002 = "replace-anywhere-2002";
     public const string ReplacingPartialWord2002 = "replacing-partial-word-2002";
     public const string ReportFiller2002 = "report-filler-2002";
     public const string ReportGroupSign2002 = "report-group-sign-2002";

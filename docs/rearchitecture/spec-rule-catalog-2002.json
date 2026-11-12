@@ -1,52 +1,8 @@
 {
  "generated_from": "specs/ISO_COBOL_2002.md",
- "rule_count": 3290,
- "blocks": 548,
+ "rule_count": 3298,
+ "blocks": 552,
  "parse_gaps": [],
- "findings": [
-  {
-   "kind": "flattened-tail",
-   "clause": "§2002:14.8.1.3",
-   "line": 17205,
-   "page": 436,
-   "text": "'2. If the EC-DATA-INCOMPATIBLE exception condition does not exist, control is trans' continues the indented list above it at column 0: folded into its parent rule; indent it to its printed level (cite.py reports its path wrong until then)"
-  },
-  {
-   "kind": "unexplained-ordinal",
-   "clause": "§2002:15.16.2",
-   "line": 23395,
-   "page": 607,
-   "text": "'99. The value 00 is returned if the system on which the function is evaluated does n' continues no open list (levels [(')', 1, 1)], indented run 0): kept in the text of rule 1, never a row of its own"
-  },
-  {
-   "kind": "unrecognised-heading",
-   "clause": "§2002:8.8.1.3.1.3",
-   "line": 5943,
-   "page": 144,
-   "text": "'Rounding rules' names rules that no kind resolves: they are absent from the denominator. Type it in KINDS, or adjudicate the clause in the content-keyed manifest"
-  },
-  {
-   "kind": "unrecognised-heading",
-   "clause": "§2002:8.8.4.1.4.2",
-   "line": 6481,
-   "page": 155,
-   "text": "'Rules' names rules that no kind resolves: they are absent from the denominator. Type it in KINDS, or adjudicate the clause in the content-keyed manifest"
-  },
-  {
-   "kind": "unrecognised-heading",
-   "clause": "§2002:8.8.4.1.5.2",
-   "line": 6501,
-   "page": 156,
-   "text": "'Rules' names rules that no kind resolves: they are absent from the denominator. Type it in KINDS, or adjudicate the clause in the content-keyed manifest"
-  },
-  {
-   "kind": "unrecognised-heading",
-   "clause": "§2002:8.8.4.1.6.2",
-   "line": 6519,
-   "page": 156,
-   "text": "'Rules' names rules that no kind resolves: they are absent from the denominator. Type it in KINDS, or adjudicate the clause in the content-keyed manifest"
-  }
- ],
  "outside-denominator": {
   "pending-clauses": [
    "§2002:2",
@@ -84,7 +40,6 @@
    "§2002:8.6.6",
    "§2002:8.8.1.1",
    "§2002:8.8.1.3.1",
-   "§2002:8.8.1.3.1.3",
    "§2002:8.8.1.3.6",
    "§2002:8.8.2",
    "§2002:8.8.4.1.1",
@@ -92,8 +47,6 @@
    "§2002:8.8.4.1.1.7",
    "§2002:8.8.4.1.1.8.1",
    "§2002:8.8.4.1.1.10",
-   "§2002:8.8.4.1.4.2",
-   "§2002:8.8.4.1.6.2",
    "§2002:8.8.4.2.4",
    "§2002:8.8.4.3",
    "§2002:9.1.1",
@@ -142,12 +95,7 @@
    "§2002:15.1",
    "§2002:15.3.1"
   ],
-  "untyped-headings": [
-   "§2002:8.8.1.3.1.3",
-   "§2002:8.8.4.1.4.2",
-   "§2002:8.8.4.1.5.2",
-   "§2002:8.8.4.1.6.2"
-  ]
+  "untyped-headings": []
  },
  "rules": [
   {
@@ -4887,6 +4835,42 @@
    "status": "normal"
   },
   {
+   "id": "2002-GR-8.8.1.3.1.3-1",
+   "citation": "§2002:8.8.1.3.1.3 GR1",
+   "section": "8.8.1.3.1.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Standard intermediate data item",
+   "text": "When a standard intermediate data item is compared except when the comparison is among the arguments of an intrinsic function, in which case it shall not be rounded and all 32 digits shall be used.",
+   "page": 144,
+   "status": "normal"
+  },
+  {
+   "id": "2002-GR-8.8.1.3.1.3-2",
+   "citation": "§2002:8.8.1.3.1.3 GR2",
+   "section": "8.8.1.3.1.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Standard intermediate data item",
+   "text": "When a standard intermediate data item is the argument of a function and there is no equivalent arithmetic expression defined for the rules of the function, unless otherwise specified in the rules for a function or unless situation 1, above, applies.",
+   "page": 144,
+   "status": "normal"
+  },
+  {
+   "id": "2002-GR-8.8.1.3.1.3-3",
+   "citation": "§2002:8.8.1.3.1.3 GR3",
+   "section": "8.8.1.3.1.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Standard intermediate data item",
+   "text": "When a standard intermediate data item is being moved to a resultant-identifier for which the ROUNDED phrase has not been specified. Rounding of a standard intermediate data item may cause the size error condition to be raised or the EC-SIZE-OVERFLOW exception condition to exist. NOTE These rules are intended to eliminate excessive rounding and to ensure that rounding occurs once at the end of the evaluation of nested arithmetic expressions. When a standard intermediate data item is being moved to a resultant-identifier for which the ROUNDED phrase is specified, the number of digits to which rounding occurs is as specified in 14.6.3, ROUNDED phrase.",
+   "page": 144,
+   "status": "normal"
+  },
+  {
    "id": "2002-SR-8.8.3.2-1",
    "citation": "§2002:8.8.3.2 SR1",
    "section": "8.8.3.2",
@@ -5192,6 +5176,54 @@
    "subject": "Class condition",
    "text": "If the word NOT is specified, the truth value is reversed.",
    "page": 155,
+   "status": "normal"
+  },
+  {
+   "id": "2002-GR-8.8.4.1.4.2-1",
+   "citation": "§2002:8.8.4.1.4.2 GR1",
+   "section": "8.8.4.1.4.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Condition-name condition (conditional variable)",
+   "text": "If condition-name-1 is associated with a range or ranges of values, then the conditional variable is tested to determine whether or not its value falls in this range, including the end values.",
+   "page": 155,
+   "status": "normal"
+  },
+  {
+   "id": "2002-GR-8.8.4.1.4.2-2",
+   "citation": "§2002:8.8.4.1.4.2 GR2",
+   "section": "8.8.4.1.4.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Condition-name condition (conditional variable)",
+   "text": "The rules for comparing a conditional variable with a condition-name value are the same as those specified for relation conditions.",
+   "page": 156,
+   "status": "normal"
+  },
+  {
+   "id": "2002-GR-8.8.4.1.4.2-3",
+   "citation": "§2002:8.8.4.1.4.2 GR3",
+   "section": "8.8.4.1.4.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Condition-name condition (conditional variable)",
+   "text": "The result of the test is true if one of the values corresponding to condition-name-1 equals the value of its associated conditional variable.",
+   "page": 156,
+   "status": "normal"
+  },
+  {
+   "id": "2002-GR-8.8.4.1.6.2-1",
+   "citation": "§2002:8.8.4.1.6.2 GR1",
+   "section": "8.8.4.1.6.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Sign condition",
+   "text": "When used, NOT and the next keyword specify one sign condition that defines the algebraic test to be executed for truth value. An operand is positive, if its value is greater than zero, negative if its value is less than zero, and zero if its value is equal to zero. NOTE NOT ZERO is a truth test for a nonzero (positive or negative) value.",
+   "page": 156,
    "status": "normal"
   },
   {
@@ -20707,7 +20739,7 @@
    "ordinal": 7,
    "sublist": 1,
    "subject": "ACCEPT statement",
-   "text": "DATE without the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display six digits in length, the character positions of which, numbered from left to right, are: Character Positions Contents | 1-2 | The two low-order digits of the year in the Gregorian calendar. | |---|---| | 3-4 | Two numeric characters of the month of the year in the range 01 through 12. | | 5-6 | Two numeric characters of the day of the month in the range 01 through 31. |",
+   "text": "DATE without the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display six digits in length, the character positions of which, numbered from left to right, are: | Character Positions | Contents | |---|---| | 1-2 | The two low-order digits of the year in the Gregorian calendar. | | 3-4 | Two numeric characters of the month of the year in the range 01 through 12. | | 5-6 | Two numeric characters of the day of the month in the range 01 through 31. |",
    "page": 432,
    "band": "FORMAT 2",
    "band-formats": [
@@ -20723,7 +20755,7 @@
    "ordinal": 8,
    "sublist": 1,
    "subject": "ACCEPT statement",
-   "text": "DATE with the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length, the character positions of which, numbered from left to right, are: Character Positions Contents | 1-4 | Four numeric characters of the year in the Gregorian calendar. | |---|---| | 5-6 | Two numeric characters of the month of the year in the range 01 through 12. | | 7-8 | Two numeric characters of the day of the month in the range 01 through 31. |",
+   "text": "DATE with the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length, the character positions of which, numbered from left to right, are: | Character Positions | Contents | |---|---| | 1-4 | Four numeric characters of the year in the Gregorian calendar. | | 5-6 | Two numeric characters of the month of the year in the range 01 through 12. | | 7-8 | Two numeric characters of the day of the month in the range 01 through 31. |",
    "page": 433,
    "band": "FORMAT 2",
    "band-formats": [
@@ -20739,7 +20771,7 @@
    "ordinal": 9,
    "sublist": 1,
    "subject": "ACCEPT statement",
-   "text": "DAY without the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display five digits in length, the character positions of which, numbered from left to right, are: Character Positions Contents | 1-2 | The two low-order digits of the year in the Gregorian calendar. | |---|---| | 3-5 | Three numeric characters of the day of the year in the range 001 through 366. |",
+   "text": "DAY without the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display five digits in length, the character positions of which, numbered from left to right, are: | Character Positions | Contents | |---|---| | 1-2 | The two low-order digits of the year in the Gregorian calendar. | | 3-5 | Three numeric characters of the day of the year in the range 001 through 366. |",
    "page": 433,
    "band": "FORMAT 2",
    "band-formats": [
@@ -20755,7 +20787,7 @@
    "ordinal": 10,
    "sublist": 1,
    "subject": "ACCEPT statement",
-   "text": "DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length, the character positions of which, numbered from left to right, are: Character Positions Contents | 1-4 | Four numeric characters of the year in the Gregorian calendar. | |---|---| | 5-7 | Three numeric characters of the day of the year in the range 001 through 366. |",
+   "text": "DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length, the character positions of which, numbered from left to right, are: | Character Positions | Contents | |---|---| | 1-4 | Four numeric characters of the year in the Gregorian calendar. | | 5-7 | Three numeric characters of the day of the year in the range 001 through 366. |",
    "page": 433,
    "band": "FORMAT 2",
    "band-formats": [
@@ -20771,7 +20803,7 @@
    "ordinal": 11,
    "sublist": 1,
    "subject": "ACCEPT statement",
-   "text": "TIME is based on the elapsed time since midnight on a 24-hour clock. If the system does not have the facility to provide fractional parts of a second the value zero is returned for those parts that are not available. TIME behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length, the characters positions of which, numbered from left to right, are: Character Positions Contents | 1-2 | Two numeric characters of the hours past midnight in the range 00 through 23. | |---|---| | 3-4 | Two numeric characters of the minutes past the hour in the range 00 through 59. | | 5-6 | Two numeric characters of the seconds past the minute in the range: | a) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect b) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. 7-8 Two numeric characters of the hundredths of a second past the second in the range\\ &emsp;&emsp;&emsp;&emsp;00 through 99. 00 is returned if the system on which the ACCEPT statement is\\ &emsp;&emsp;&emsp;&emsp;executed does not have the facility to provide the fractional part of a second.",
+   "text": "TIME is based on the elapsed time since midnight on a 24-hour clock. If the system does not have the facility to provide fractional parts of a second the value zero is returned for those parts that are not available. TIME behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length, the characters positions of which, numbered from left to right, are: | Character Positions | Contents | |---|---| | 1-2 | Two numeric characters of the hours past midnight in the range 00 through 23. | | 3-4 | Two numeric characters of the minutes past the hour in the range 00 through 59. | | 5-6 | Two numeric characters of the seconds past the minute in the range:<br>a) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect<br>b) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. | | 7-8 | Two numeric characters of the hundredths of a second past the second in the range 00 through 99. 00 is returned if the system on which the ACCEPT statement is executed does not have the facility to provide the fractional part of a second. |",
    "page": 433,
    "band": "FORMAT 2",
    "band-formats": [
@@ -20803,7 +20835,7 @@
    "ordinal": 13,
    "sublist": 1,
    "subject": "ACCEPT statement",
-   "text": "Identifiers specified in FROM or USING clauses or literals specified in FROM or VALUE clauses provide the initial values displayed for the associated screen item during execution of an ACCEPT screen statement. For elementary screen items that have no FROM, USING, or VALUE clause, the initial value is as if a MOVE statement were executed with the screen item as the receiving field. The sending item of the MOVE statement is a figurative constant that depends on the category of the screen item as follows: | Screen item | Figurative constant | |---|---| | Alphabetic | Alphanumeric SPACES | | Alphanumeric | Alphanumeric SPACES | Alphanumeric-edited Alphanumeric SPACES | Boolean | ZEROS | |---|---| | National | National SPACES | | National-edited | National SPACES | | Numeric | ZEROS | | Numeric-edited | ZEROS |",
+   "text": "Identifiers specified in FROM or USING clauses or literals specified in FROM or VALUE clauses provide the initial values displayed for the associated screen item during execution of an ACCEPT screen statement. For elementary screen items that have no FROM, USING, or VALUE clause, the initial value is as if a MOVE statement were executed with the screen item as the receiving field. The sending item of the MOVE statement is a figurative constant that depends on the category of the screen item as follows: | Screen item | Figurative constant | |---|---| | Alphabetic | Alphanumeric SPACES | | Alphanumeric | Alphanumeric SPACES | | Alphanumeric-edited | Alphanumeric SPACES | | Boolean | ZEROS | | National | National SPACES | | National-edited | National SPACES | | Numeric | ZEROS | | Numeric-edited | ZEROS |",
    "page": 433,
    "band": "FORMAT 3",
    "band-formats": [
@@ -21083,7 +21115,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "ADD statement",
-   "text": "When format 1 is used, the initial evaluation consists of determining the value to be added, that is literal-1 or the value of the data item referenced by identifier-1, or if more than one operand is specified, the sum of such operands. The sum of the initial evaluation and the value of the data item referenced by identifier-2 is stored as the new value of the data item referenced by identifier-2. When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression (operand-11 + operand-12 + ... + operand-1n) where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the ADD statement. The result of the sum of the initial evaluation and the value of the data item referenced by identifier-2 is equivalent to the result of the arithmetic expression (initial-evaluation + identifier-2) where initial-evaluation represents the result of the initial evaluation.",
+   "text": "When format 1 is used, the initial evaluation consists of determining the value to be added, that is literal-1 or the value of the data item referenced by identifier-1, or if more than one operand is specified, the sum of such operands. The sum of the initial evaluation and the value of the data item referenced by identifier-2 is stored as the new value of the data item referenced by identifier-2. When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>) where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the ADD statement. The result of the sum of the initial evaluation and the value of the data item referenced by identifier-2 is equivalent to the result of the arithmetic expression (initial-evaluation + identifier-2) where initial-evaluation represents the result of the initial evaluation.",
    "page": 438,
    "status": "normal"
   },
@@ -21095,7 +21127,7 @@
    "ordinal": 2,
    "sublist": 1,
    "subject": "ADD statement",
-   "text": "When format 2 is used, the initial evaluation consists of determining the sum of the operands preceding the word GIVING, that is literal-1 or the value of the data item referenced by identifier-1, and literal-2 or the value of the data item referenced by identifier-2. This value is stored as the new value of each data item referenced by identifier-3. When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression (operand-11 + operand-12 + ... + operand-1n + operand-2) where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the ADD statement and the value of operand-2 is the value of either literal-2 or the data item referenced by identifier-2 in the ADD statement.",
+   "text": "When format 2 is used, the initial evaluation consists of determining the sum of the operands preceding the word GIVING, that is literal-1 or the value of the data item referenced by identifier-1, and literal-2 or the value of the data item referenced by identifier-2. This value is stored as the new value of each data item referenced by identifier-3. When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub> + operand-2) where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the ADD statement and the value of operand-2 is the value of either literal-2 or the data item referenced by identifier-2 in the ADD statement.",
    "page": 438,
    "status": "normal"
   },
@@ -25600,7 +25632,7 @@
    "ordinal": 5,
    "sublist": 1,
    "subject": "MOVE statement",
-   "text": "Alphanumeric, boolean, national, and numeric literals belong to the categories alphanumeric, boolean, national, and numeric, respectively. The category of figurative constants when used in the MOVE statement depends on the category of the receiving operand as shown in table 18, Category of figurative constants used in the MOVE statement. NOTE MOVE of alphanumeric figurative constants to numeric items is an archaic feature and its use should be avoided. Table 18 — Category of figurative constants used in the MOVE statement | Figurative constant | Category of<br>receiving operand | Category of<br>figurative constant | |---|---|---| | ALL literal, where literal is: Alphanumeric<br>Boolean<br>National | —<br>—<br>— | Alphanumeric<br>Boolean<br>National | | ALL symbolic character, where symbolic character is:<br>Alphanumeric<br>National | —<br>— | Alphanumeric<br>National | | HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited<br>Numeric<br>Numeric-edited<br>— if usage is display — if usage is national | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National<br>Alphanumeric<br>Alphanumeric<br>National | | SPACE, SPACES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National | | ZERO, ZEROS, ZEROES | Alphanumeric<br>Alphanumeric-edited<br>Boolean<br>National<br>National-edited<br>Numeric<br>Numeric-edited | Alphanumeric<br>Alphanumeric<br>Boolean<br>National<br>National<br>Numeric<br>Numeric | | — indicates the figurative constant category does not depend on the category of the receiving operand | | |",
+   "text": "Alphanumeric, boolean, national, and numeric literals belong to the categories alphanumeric, boolean, national, and numeric, respectively. The category of figurative constants when used in the MOVE statement depends on the category of the receiving operand as shown in table 18, Category of figurative constants used in the MOVE statement. NOTE MOVE of alphanumeric figurative constants to numeric items is an archaic feature and its use should be avoided. Table 18 — Category of figurative constants used in the MOVE statement | Figurative constant | Category of<br>receiving operand | Category of<br>figurative constant | |---|---|---| | ALL literal, where literal is:<br>&emsp;Alphanumeric<br>&emsp;Boolean<br>&emsp;National | <br>—<br>—<br>— | <br>Alphanumeric<br>Boolean<br>National | | ALL symbolic character, where symbolic character is:<br>&emsp;Alphanumeric<br>&emsp;National | <br>—<br>— | <br>Alphanumeric<br>National | | HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited<br>Numeric<br>Numeric-edited<br>&emsp;— if usage is display<br>&emsp;— if usage is national | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National<br>Alphanumeric<br><br>Alphanumeric<br>National | | SPACE, SPACES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National | | ZERO, ZEROS, ZEROES | Alphanumeric<br>Alphanumeric-edited<br>Boolean<br>National<br>National-edited<br>Numeric<br>Numeric-edited | Alphanumeric<br>Alphanumeric<br>Boolean<br>National<br>National<br>Numeric<br>Numeric | | — indicates the figurative constant category does not depend on the category of the receiving operand | | |",
    "page": 502,
    "band": "FORMAT 1",
    "band-formats": [
@@ -30267,7 +30299,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "SUBTRACT statement",
-   "text": "When format 1 is used, the initial evaluation consists of determining the value to be subtracted, which is literal-1 or the value of the data item referenced by identifier-1, or if more than one is specified, the sum of such operands. The initial evaluation is subtracted from the value of the data item referenced by identifier-2 and the result is stored as the new value of the data item referenced by identifier-2. When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression (operand-11 + operand-12 + ... + operand-1n) where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the SUBTRACT statement. The result of the subtraction from the value of each data item referenced by identifier-2 is equivalent to the result of the arithmetic expression (identifier-2 – initial-evaluation) where initial-evaluation represents the result of the initial evaluation.",
+   "text": "When format 1 is used, the initial evaluation consists of determining the value to be subtracted, which is literal-1 or the value of the data item referenced by identifier-1, or if more than one is specified, the sum of such operands. The initial evaluation is subtracted from the value of the data item referenced by identifier-2 and the result is stored as the new value of the data item referenced by identifier-2. When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>) where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the SUBTRACT statement. The result of the subtraction from the value of each data item referenced by identifier-2 is equivalent to the result of the arithmetic expression (identifier-2 – initial-evaluation) where initial-evaluation represents the result of the initial evaluation.",
    "page": 562,
    "status": "normal"
   },
@@ -30279,7 +30311,7 @@
    "ordinal": 2,
    "sublist": 1,
    "subject": "SUBTRACT statement",
-   "text": "When format 2 is used, the initial evaluation consists of determining the value to be subtracted, which is literal-1 or the value of the data item referenced by identifier-1, or if more than one is specified, the sum of such operands; and subtracting this value from literal-2 or the value of the data item referenced by identifier-2. The result is stored as the new value of the data item referenced by identifier-3. When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression (operand-2 – (operand-11 + operand-12 + ... + operand-1n)) where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the SUBTRACT statement and the value of operand-2 is the value of either literal-2 or the data item referenced by identifier-2 in the SUBTRACT statement.",
+   "text": "When format 2 is used, the initial evaluation consists of determining the value to be subtracted, which is literal-1 or the value of the data item referenced by identifier-1, or if more than one is specified, the sum of such operands; and subtracting this value from literal-2 or the value of the data item referenced by identifier-2. The result is stored as the new value of the data item referenced by identifier-3. When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression (operand-2 – (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>)) where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the SUBTRACT statement and the value of operand-2 is the value of either literal-2 or the data item referenced by identifier-2 in the SUBTRACT statement.",
    "page": 562,
    "status": "normal"
   },
@@ -32790,7 +32822,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "CURRENT-DATE function",
-   "text": "The character positions returned, numbered from left to right, are: Character Contents\\ Positions | 1-4 | Four numeric digits of the year in the Gregorian calendar. | |---|---| | 5-6 | Two numeric digits of the month of the year, in the range 01 through 12. | | 7-8 | Two numeric digits of the day of the month, in the range 01 through 31. | | 9-10 | Two numeric digits of the hours past midnight, in the range 00 through 23. | | 11-12 | Two numeric digits of the minutes past the hour, in the range 00 through 59. | | 13-14 | Two numeric characters of the seconds past the minute in the range: | — 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\\ — 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND\\ &emsp;directive with the ON phrase is in effect. 15-16 Two numeric digits of the hundredths of a second past the second, in the range 00 through 99\\. The value 00 is returned if the system on which the function is evaluated does not have the facility to provide the fractional part of a second. 17 Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal time. The character '0' is returned if the system on which this function is evaluated does not have the facility to provide the local time differential factor. 18-19 If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned. 20-21 Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.",
+   "text": "The character positions returned, numbered from left to right, are: | Character Positions | Contents | |---|---| | 1-4 | Four numeric digits of the year in the Gregorian calendar. | | 5-6 | Two numeric digits of the month of the year, in the range 01 through 12. | | 7-8 | Two numeric digits of the day of the month, in the range 01 through 31. | | 9-10 | Two numeric digits of the hours past midnight, in the range 00 through 23. | | 11-12 | Two numeric digits of the minutes past the hour, in the range 00 through 59. | | 13-14 | Two numeric characters of the seconds past the minute in the range:<br>— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect<br>— 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. | | 15-16 | Two numeric digits of the hundredths of a second past the second, in the range 00 through 99. The value 00 is returned if the system on which the function is evaluated does not have the facility to provide the fractional part of a second. | | 17 | Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal time. The character '0' is returned if the system on which this function is evaluated does not have the facility to provide the local time differential factor. | | 18-19 | If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned. | | 20-21 | Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned. |",
    "page": 607,
    "status": "normal"
   },
@@ -33354,7 +33386,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "HIGHEST-ALGEBRAIC function",
-   "text": "The value returned is equal to the positive algebraic value of greatest magnitude that may be represented in argument-1. NOTE The following illustrates the expected results for some values of argument-1. Argument-1 | characteristics | Value returned | |---|---| | S999 | +999 | | S9(4) BINARY | +9999 | | 99V9(3) | +99.999 | | $\\*\\*,\\*\\*9.99BCR | +99999.99 | | $\\*\\*,\\*\\*9.99 | +99999.99 | BINARY-CHAR SIGNED +127 (assuming an 8-bit representation)\\ BINARY-CHAR UNSIGNED +255 (assuming an 8-bit representation)",
+   "text": "The value returned is equal to the positive algebraic value of greatest magnitude that may be represented in argument-1. NOTE The following illustrates the expected results for some values of argument-1. | Argument-1<br>characteristics | Value returned | |---|---| | S999 | +999 | | S9(4) BINARY | +9999 | | 99V9(3) | +99.999 | | $\\*\\*,\\*\\*9.99BCR | +99999.99 | | $\\*\\*,\\*\\*9.99 | +99999.99 | | BINARY-CHAR SIGNED | +127 (assuming an 8-bit representation) | | BINARY-CHAR UNSIGNED | +255 (assuming an 8-bit representation) |",
    "page": 624,
    "status": "normal"
   },
@@ -34002,7 +34034,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "LOWEST-ALGEBRAIC function",
-   "text": "The value returned is equal to the lowest algebraic value that may be represented in argument-1. NOTE The following illustrates the expected results for some values of argument-1. Argument-1 | characteristics | Value returned | |---|---| | S999 | –999 | | S9(4) BINARY | –9999 | | 99V9(3) | 0 | | $\\*\\*,\\*\\*9.99BCR | –99999.99 | | $\\*\\*,\\*\\*9.99 | 0 | BINARY-CHAR SIGNED -128 (assuming an 8-bit twos-complement representation)\\ BINARY-CHAR UNSIGNED 0 (assuming an 8-bit twos-compliment representation)",
+   "text": "The value returned is equal to the lowest algebraic value that may be represented in argument-1. NOTE The following illustrates the expected results for some values of argument-1. | Argument-1<br>characteristics | Value returned | |---|---| | S999 | –999 | | S9(4) BINARY | –9999 | | 99V9(3) | 0 | | $\\*\\*,\\*\\*9.99BCR | –99999.99 | | $\\*\\*,\\*\\*9.99 | 0 | | BINARY-CHAR SIGNED | -128 (assuming an 8-bit twos-complement representation) | | BINARY-CHAR UNSIGNED | 0 (assuming an 8-bit twos-compliment representation) |",
    "page": 637,
    "status": "normal"
   },
@@ -34086,7 +34118,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "MEAN function",
-   "text": "The equivalent arithmetic expression is as follows: a) For one occurrence of argument-1, (argument-1) b) For two occurrences of argument-1, ((argument-11 + argument-12) / 2) c) For n occurrences of argument-1, ((argument-11 + argument-12 +... + argument-1n) / n)",
+   "text": "The equivalent arithmetic expression is as follows: a) For one occurrence of argument-1, (argument-1) b) For two occurrences of argument-1, ((argument-1<sub>1</sub> + argument-1<sub>2</sub>) / 2) c) For n occurrences of argument-1, ((argument-1<sub>1</sub> + argument-1<sub>2</sub> +... + argument-1<sub>n</sub>) / n)",
    "page": 639,
    "status": "normal"
   },
@@ -34770,7 +34802,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "PRESENT-VALUE function",
-   "text": "The equivalent arithmetic expression is as follows: a) For one occurrence of argument-2, (argument-2 / (1 + argument-1)) b) For two occurrences of argument-2, (argument-21 / (1 + argument-1) + argument-22 / (1 + argument-1) \\*\\* 2) c) For n occurrences of argument-2, the equivalent arithmetic expression is (FUNCTION SUM ( (argument-21 / (1 + argument-1) \\*\\* 1) ... (argument-2n / (1 + argument-1) \\*\\* n))) where argument-1 and argument-2i in the terms of the SUM function are the same as the arguments for the PRESENT-VALUE function itself.",
+   "text": "The equivalent arithmetic expression is as follows: a) For one occurrence of argument-2, (argument-2 / (1 + argument-1)) b) For two occurrences of argument-2, (argument-2<sub>1</sub> / (1 + argument-1) + argument-2<sub>2</sub> / (1 + argument-1) \\*\\* 2) c) For n occurrences of argument-2, the equivalent arithmetic expression is (FUNCTION SUM ( &emsp;&emsp;(argument-2<sub>1</sub> / (1 + argument-1) \\*\\* 1) &emsp;&emsp;... &emsp;&emsp;(argument-2<sub>n</sub> / (1 + argument-1) \\*\\* n))) where argument-1 and argument-2<sub>i</sub> in the terms of the SUM function are the same as the arguments for the PRESENT-VALUE function itself.",
    "page": 653,
    "status": "normal"
   },
@@ -35250,7 +35282,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "SUM function",
-   "text": "The equivalent arithmetic expression is as follows: a) For one occurrence of argument-1, (argument-1) b) For two occurrences of argument-1, (argument-11 + argument-12) c) For n occurrences of argument-1, (argument-11 + argument-12 + ... + argument-1n)",
+   "text": "The equivalent arithmetic expression is as follows: a) For one occurrence of argument-1, (argument-1) b) For two occurrences of argument-1, (argument-1<sub>1</sub> + argument-1<sub>2</sub>) c) For n occurrences of argument-1, (argument-1<sub>1</sub> + argument-1<sub>2</sub> + ... + argument-1<sub>n</sub>)",
    "page": 663,
    "status": "normal"
   },
@@ -35514,7 +35546,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "VARIANCE function",
-   "text": "The equivalent arithmetic expression is as follows: a) For one occurrence of argument-1, (0) b) For two occurrences of argument-1, ( ((argument-11 – FUNCTION MEAN (argument-list)) \\*\\* 2 +\\ &emsp;&emsp;(argument-12– FUNCTION MEAN (argument-list)) \\*\\* 2) / 2 ) c) For n occurrences of argument-1, (FUNCTION SUM ( ((argument-11 – FUNCTION MEAN (argument-list)) \\*\\* 2) ... ((argument-1n – FUNCTION MEAN (argument-list)) \\*\\* 2)) / n) where argument-list is the argument-1 list for the VARIANCE function itself and argument-1i is the ith argument of the argument-1 list for the VARIANCE function itself.",
+   "text": "The equivalent arithmetic expression is as follows: a) For one occurrence of argument-1, (0) b) For two occurrences of argument-1, ( ((argument-1<sub>1</sub> – FUNCTION MEAN (argument-list)) \\*\\* 2 +\\ &emsp;&emsp;(argument-1<sub>2</sub>– FUNCTION MEAN (argument-list)) \\*\\* 2) / 2 ) c) For n occurrences of argument-1, (FUNCTION SUM ( &emsp;&emsp;((argument-1<sub>1</sub> – FUNCTION MEAN (argument-list)) \\*\\* 2) &emsp;&emsp;... &emsp;&emsp;((argument-1<sub>n</sub> – FUNCTION MEAN (argument-list)) \\*\\* 2)) / n) where argument-list is the argument-1 list for the VARIANCE function itself and argument-1<sub>i</sub> is the ith argument of the argument-1 list for the VARIANCE function itself.",
    "page": 671,
    "status": "normal"
   },
@@ -35526,7 +35558,7 @@
    "ordinal": 1,
    "sublist": 1,
    "subject": "WHEN-COMPILED function",
-   "text": "The character positions returned, numbered from left to right, are: Character\\ Positions Contents 1-4 Four numeric digits of the year in the Gregorian calendar. 5-6 Two numeric digits of the month of the year, in the range 01 through 12. 7-8 Two numeric digits of the day of the month, in the range 01 through 31. 9-10 Two numeric digits of the hours past midnight, in the range 00 through 23. 11-12 Two numeric digits of the minutes past the hour, in the range 00 through 59. 13-14 Two numeric characters of the seconds past the minute in the range:\\ &emsp;&emsp;\\- 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\\ &emsp;&emsp;\\- 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with\\ &emsp;&emsp;the ON phrase is in effect. 15-16 Two numeric digits of the hundredths of a second past the second, in the range 00 through 99. The value 00 is returned if the system on which the compilation was done does not have the facility to provide the fractional part of a second. 17 Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal Time. The character '0' is returned if the system on which the compilation was done does not have the facility to provide the local time differential factor. 18-19 If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned. 20-21 Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.",
+   "text": "The character positions returned, numbered from left to right, are: | Character Positions | Contents | |---|---| | 1-4 | Four numeric digits of the year in the Gregorian calendar. | | 5-6 | Two numeric digits of the month of the year, in the range 01 through 12. | | 7-8 | Two numeric digits of the day of the month, in the range 01 through 31. | | 9-10 | Two numeric digits of the hours past midnight, in the range 00 through 23. | | 11-12 | Two numeric digits of the minutes past the hour, in the range 00 through 59. | | 13-14 | Two numeric characters of the seconds past the minute in the range:<br>- 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect<br>- 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. | | 15-16 | Two numeric digits of the hundredths of a second past the second, in the range 00 through 99. The value 00 is returned if the system on which the compilation was done does not have the facility to provide the fractional part of a second. | | 17 | Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal Time. The character '0' is returned if the system on which the compilation was done does not have the facility to provide the local time differential factor. | | 18-19 | If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned. | | 20-21 | Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned. |",
    "page": 672,
    "status": "normal"
   },
@@ -37251,6 +37283,19 @@
    "status": "obsolete: G.2(1)"
   },
   {
+   "id": "2002-GR-8.8.4.1.5.2-p1",
+   "citation": "§2002:8.8.4.1.5.2",
+   "section": "8.8.4.1.5.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Switch-status condition",
+   "shape": "paragraph",
+   "text": "The result of the test is true if the switch is set to the specified position corresponding to condition-name-1.",
+   "page": 156,
+   "status": "normal"
+  },
+  {
    "id": "2002-FMT-7.1.2.1",
    "citation": "§2002:7.1.2.1",
    "section": "7.1.2.1",
@@ -37996,7 +38041,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> ┌ ╭ program-prototype ╮ ┐ │ │ │ │ │ │ function-prototype │ │ │ │ │ │ │ │ program-definition │ │ │ ┤ ├ … │ │ │ function-definition │ │ │ │ │ │ │ │ class-definition │ │ │ │ │ │ └ ╰ interface-definition ╯ ┘ </pre> where program-prototype is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ] <u>PROGRAM-ID.</u> program-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u> [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>PROGRAM</u> program-prototype-name-1. </pre> where function-prototype is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ] <u>FUNCTION-ID.</u> function-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u> [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>FUNCTION</u> function-prototype-name-1. </pre> where program-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ] ┌ ╭ │ <u>COMMON</u> │ ╮ ┐ <u>PROGRAM-ID</u>. program-name-1 [ <u>AS</u> literal-1 ] │ IS ┤ │ │ ├ PROGRAM │ . │ │ │ ╭ <u>INITIAL</u> ╮ │ │ │ │ │ │ ┤ ├ │ │ │ └ ╰ │ ╰ <u>RECURSIVE</u> ╯ │ ╯ ┘ [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division [ program-definition ] … ] [ <u>END</u> <u>PROGRAM</u> program-name-1. ] </pre> where function-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ] <u>FUNCTION-ID.</u> user-function-name-1 [ <u>AS</u> literal-1 ]. [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>FUNCTION</u> user-function-name-1. </pre> where class-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] <u>CLASS-ID</u>. class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ] [ <u>INHERITS</u> FROM { class-name-2 } … ] [ <u>USING</u> { parameter-name-1 } … ] . [ options-paragraph ] [ environment-division ] [ factory-definition ] [ instance-definition ] <u>END</u> <u>CLASS</u> class-name-1. </pre> where factory-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] <u>FACTORY</u>. [ <u>IMPLEMENTS</u> { interface-name-1 } … . ] [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>FACTORY</u>. </pre> where instance-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] <u>OBJECT</u>. [ <u>IMPLEMENTS</u> { interface-name-2 } … . ] [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>OBJECT</u>. </pre> where interface-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] <u>INTERFACE-ID</u>. interface-name-1 [ <u>AS</u> literal-1 ] [ <u>INHERITS</u> FROM { interface-name-2 } … ] [ <u>USING</u> { parameter-name-1 } … ] . [ options-paragraph ] [ environment-division ] [ procedure-division ] <u>END</u> <u>INTERFACE</u> interface-name-1. </pre> where method-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] ╭ method-name-1 [ <u>AS</u> literal-1 ] ╮ <u>METHOD-ID</u>. ┤ ├ [ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ] . │ ╭ <u>GET</u> ╮ │ │ ┤ ├ <u>PROPERTY</u> property-name-1 │ ╰ ╰ <u>SET</u> ╯ ╯ [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>METHOD</u> [ method-name-1 ] . </pre> NOTE Method-definition is included here for completeness, because it is a type of source element. Method-definition is referenced in the general format of 14, Procedure division. A method-definition in a class-definition defines a method. A method-definition in an interface-definition defines a method prototype. where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | data-division | 13, Data division | environment-division 12, Environment division | options-paragraph | 11.8, OPTIONS paragr",
+   "text": "<pre style=\"line-height:1\"> ┌ ╭ program-prototype ╮ ┐ │ │ │ │ │ │ function-prototype │ │ │ │ │ │ │ │ program-definition │ │ │ ┤ ├ … │ │ │ function-definition │ │ │ │ │ │ │ │ class-definition │ │ │ │ │ │ └ ╰ interface-definition ╯ ┘ </pre> where program-prototype is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ] <u>PROGRAM-ID.</u> program-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u> [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>PROGRAM</u> program-prototype-name-1. </pre> where function-prototype is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ] <u>FUNCTION-ID.</u> function-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u> [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>FUNCTION</u> function-prototype-name-1. </pre> where program-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ] ┌ ╭ │ <u>COMMON</u> │ ╮ ┐ <u>PROGRAM-ID</u>. program-name-1 [ <u>AS</u> literal-1 ] │ IS ┤ │ │ ├ PROGRAM │ . │ │ │ ╭ <u>INITIAL</u> ╮ │ │ │ │ │ │ ┤ ├ │ │ │ └ ╰ │ ╰ <u>RECURSIVE</u> ╯ │ ╯ ┘ [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division [ program-definition ] … ] [ <u>END</u> <u>PROGRAM</u> program-name-1. ] </pre> where function-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ] <u>FUNCTION-ID.</u> user-function-name-1 [ <u>AS</u> literal-1 ]. [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>FUNCTION</u> user-function-name-1. </pre> where class-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] <u>CLASS-ID</u>. class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ] [ <u>INHERITS</u> FROM { class-name-2 } … ] [ <u>USING</u> { parameter-name-1 } … ] . [ options-paragraph ] [ environment-division ] [ factory-definition ] [ instance-definition ] <u>END</u> <u>CLASS</u> class-name-1. </pre> where factory-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] <u>FACTORY</u>. [ <u>IMPLEMENTS</u> { interface-name-1 } … . ] [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>FACTORY</u>. </pre> where instance-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] <u>OBJECT</u>. [ <u>IMPLEMENTS</u> { interface-name-2 } … . ] [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>OBJECT</u>. </pre> where interface-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] <u>INTERFACE-ID</u>. interface-name-1 [ <u>AS</u> literal-1 ] [ <u>INHERITS</u> FROM { interface-name-2 } … ] [ <u>USING</u> { parameter-name-1 } … ] . [ options-paragraph ] [ environment-division ] [ procedure-division ] <u>END</u> <u>INTERFACE</u> interface-name-1. </pre> where method-definition is: <pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] ╭ method-name-1 [ <u>AS</u> literal-1 ] ╮ <u>METHOD-ID</u>. ┤ ├ [ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ] . │ ╭ <u>GET</u> ╮ │ │ ┤ ├ <u>PROPERTY</u> property-name-1 │ ╰ ╰ <u>SET</u> ╯ ╯ [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] <u>END</u> <u>METHOD</u> [ method-name-1 ] . </pre> NOTE Method-definition is included here for completeness, because it is a type of source element. Method-definition is referenced in the general format of 14, Procedure division. A method-definition in a class-definition defines a method. A method-definition in an interface-definition defines a method prototype. where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | data-division | 13, Data division | | environment-division | 12, Environment division | | options-paragraph | 11.8, OPTIONS ",
    "page": 191,
    "status": "normal"
   },
@@ -38026,7 +38071,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] ╭ program-id-paragraph ╮ │ │ │ function-id-paragraph │ │ │ │ class-id-paragraph │ │ │ ┤ factory-paragraph ├ │ │ │ object-paragraph │ │ │ │ method-id-paragraph │ │ │ ╰ interface-id-paragraph ╯ [ options-paragraph ] </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | class-id-paragraph | 11.2, CLASS-ID paragraph | | factory-paragraph | 11.3, FACTORY paragraph | function-id-paragraph 11.4, FUNCTION-ID paragraph\\ interface-id-paragraph 11.5, INTERFACE-ID paragraph\\ method-id-paragraph 11.6, METHOD-ID paragraph | object-paragraph | 11.7, OBJECT paragraph | |---|---| | options-paragraph | 11.8, OPTIONS paragraph | program-id-paragraph 11.9, PROGRAM-ID paragraph",
+   "text": "<pre style=\"line-height:1\"> [ <u>IDENTIFICATION</u> <u>DIVISION</u>. ] ╭ program-id-paragraph ╮ │ │ │ function-id-paragraph │ │ │ │ class-id-paragraph │ │ │ ┤ factory-paragraph ├ │ │ │ object-paragraph │ │ │ │ method-id-paragraph │ │ │ ╰ interface-id-paragraph ╯ [ options-paragraph ] </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | class-id-paragraph | 11.2, CLASS-ID paragraph | | factory-paragraph | 11.3, FACTORY paragraph | | function-id-paragraph | 11.4, FUNCTION-ID paragraph | | interface-id-paragraph | 11.5, INTERFACE-ID paragraph | | method-id-paragraph | 11.6, METHOD-ID paragraph | | object-paragraph | 11.7, OBJECT paragraph | | options-paragraph | 11.8, OPTIONS paragraph | | program-id-paragraph | 11.9, PROGRAM-ID paragraph |",
    "page": 197,
    "status": "normal"
   },
@@ -38311,7 +38356,7 @@
    "formats": 4,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "Format 1 (indexed): <pre style=\"line-height:1\"> <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1 ╭ ╭ device-name-1 ╮ ╮ │ TO ┤ ├ … [ <u>USING</u> data-name-1 ] │ <u>ASSIGN</u> ┤ ╰ literal-1 ╯ ├ │ │ ╰ <u>USING</u> data-name-1 ╯ ┌ ╭ <u>DYNAMIC</u> ╮ ┐ │ │ │ │ │ <u>ACCESS</u> MODE IS ┤ <u>RANDOM</u> ├ │ │ │ │ │ └ ╰ <u>SEQUENTIAL</u> ╯ ┘ ┌ ╭ data-name-2 ╮ ┐ │ <u>ALTERNATE</u> <u>RECORD</u> KEY IS ┤ ├ [ WITH <u>DUPLICATES</u> ] │ … └ ╰ record-key-name-1 <u>SOURCE</u> IS { data-name-3 } … ╯ ┘ [ collating-sequence-clause ] … [ FILE <u>STATUS</u> IS data-name-4 ] ┌ ╭ <u>MANUAL</u> ╮ ┌ ╭ <u>RECORD</u> ╮ ┐ ┐ │ <u>LOCK</u> MODE IS ┤ ├ │ WITH <u>LOCK</u> <u>ON</u> [ <u>MULTIPLE</u> ] ┤ ├ │ │ └ ╰ <u>AUTOMATIC</u> ╯ └ ╰ <u>RECORDS</u> ╯ ┘ ┘ [ <u>ORGANIZATION</u> IS ] <u>INDEXED</u> ╭ data-name-5 ╮ <u>RECORD</u> KEY IS ┤ ├ ╰ record-key-name-2 <u>SOURCE</u> IS { data-name-6 } … ╯ ┌ ┌ AREA ┐ ┐ │ <u>RESERVE</u> integer-1 │ │ │ └ └ AREAS ┘ ┘ ┌ ╭ <u>ALL</u> OTHER ╮ ┐ │ │ │ │ │ <u>SHARING</u> WITH ┤ <u>NO</u> OTHER ├ │ . │ │ │ │ └ ╰ <u>READ</u> <u>ONLY</u> ╯ ┘ </pre> Format 2 (relative): <pre style=\"line-height:1\"> <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1 ╭ ╭ device-name-1 ╮ ╮ │ TO ┤ ├ … [ <u>USING</u> data-name-1 ] │ <u>ASSIGN</u> ┤ ╰ literal-1 ╯ ├ │ │ ╰ <u>USING</u> data-name-1 ╯ ┌ ╭ <u>DYNAMIC</u> ╮ ┐ │ │ │ │ │ <u>ACCESS</u> MODE IS ┤ <u>RANDOM</u> ├ │ │ │ │ │ └ ╰ <u>SEQUENTIAL</u> ╯ ┘ [ FILE <u>STATUS</u> IS data-name-4 ] ┌ ╭ <u>MANUAL</u> ╮ ┌ ╭ <u>RECORD</u> ╮ ┐ ┐ │ <u>LOCK</u> MODE IS ┤ ├ │ WITH <u>LOCK</u> <u>ON</u> [ <u>MULTIPLE</u> ] ┤ ├ │ │ └ ╰ <u>AUTOMATIC</u> ╯ └ ╰ <u>RECORDS</u> ╯ ┘ ┘ [ <u>ORGANIZATION</u> IS ] <u>RELATIVE</u> [ <u>RELATIVE</u> KEY IS data-name-7 ] ┌ ┌ AREA ┐ ┐ │ <u>RESERVE</u> integer-1 │ │ │ └ └ AREAS ┘ ┘ ┌ ╭ <u>ALL</u> OTHER ╮ ┐ │ │ │ │ │ <u>SHARING</u> WITH ┤ <u>NO</u> OTHER ├ │ . │ │ │ │ └ ╰ <u>READ</u> <u>ONLY</u> ╯ ┘ </pre> Format 3 (sequential): <pre style=\"line-height:1\"> <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1 ╭ ╭ device-name-1 ╮ ╮ │ TO ┤ ├ … [ <u>USING</u> data-name-1 ] │ <u>ASSIGN</u> ┤ ╰ literal-1 ╯ ├ │ │ ╰ <u>USING</u> data-name-1 ╯ [ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ] [ FILE <u>STATUS</u> IS data-name-4 ] ┌ ╭ <u>MANUAL</u> ╮ ┌ ╭ <u>RECORD</u> ╮ ┐ ┐ │ <u>LOCK</u> MODE IS ┤ ├ │ WITH <u>LOCK</u> <u>ON</u> ┤ ├ │ │ └ ╰ <u>AUTOMATIC</u> ╯ └ ╰ <u>RECORDS</u> ╯ ┘ ┘ [ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ┌ ╭ data-name-8 ╮ ┐ │ <u>PADDING</u> CHARACTER IS ┤ ├ │ └ ╰ literal-2 ╯ ┘ ┌ ╭ <u>STANDARD-1</u> ╮ ┐ │ <u>RECORD</u> <u>DELIMITER</u> IS ┤ ├ │ └ ╰ feature-name-1 ╯ ┘ ┌ ┌ AREA ┐ ┐ │ <u>RESERVE</u> integer-1 │ │ │ └ └ AREAS ┘ ┘ ┌ ╭ <u>ALL</u> OTHER ╮ ┐ │ │ │ │ │ <u>SHARING</u> WITH ┤ <u>NO</u> OTHER ├ │ . │ │ │ │ └ ╰ <u>READ</u> <u>ONLY</u> ╯ ┘ </pre> Format 4 (sort-merge): <pre style=\"line-height:1\"> ╭ ╮ … <u>SELECT</u> [ <u>OPTIONAL</u> │ ] file-name-1 │ │ │ ╭ │ device-name-1 │ ╮ │ TO ┤ ├ [ <u>USING</u> data-name-1 ] │ <u>ASSIGN</u> ┤ ╰ literal-1 ╯ ├ │ │ ╰ <u>USING</u> data-name-1 ╯ [ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] . </pre> where collating-sequence-clause is described in 12.3.4.6, COLLATING SEQUENCE clause.",
+   "text": "Format 1 (indexed): <pre style=\"line-height:1\"> <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1 ╭ ╭ device-name-1 ╮ ╮ │ TO ┤ ├ … [ <u>USING</u> data-name-1 ] │ <u>ASSIGN</u> ┤ ╰ literal-1 ╯ ├ │ │ ╰ <u>USING</u> data-name-1 ╯ ┌ ╭ <u>DYNAMIC</u> ╮ ┐ │ │ │ │ │ <u>ACCESS</u> MODE IS ┤ <u>RANDOM</u> ├ │ │ │ │ │ └ ╰ <u>SEQUENTIAL</u> ╯ ┘ ┌ ╭ data-name-2 ╮ ┐ │ <u>ALTERNATE</u> <u>RECORD</u> KEY IS ┤ ├ [ WITH <u>DUPLICATES</u> ] │ … └ ╰ record-key-name-1 <u>SOURCE</u> IS { data-name-3 } … ╯ ┘ [ collating-sequence-clause ] … [ FILE <u>STATUS</u> IS data-name-4 ] ┌ ╭ <u>MANUAL</u> ╮ ┌ ╭ <u>RECORD</u> ╮ ┐ ┐ │ <u>LOCK</u> MODE IS ┤ ├ │ WITH <u>LOCK</u> <u>ON</u> [ <u>MULTIPLE</u> ] ┤ ├ │ │ └ ╰ <u>AUTOMATIC</u> ╯ └ ╰ <u>RECORDS</u> ╯ ┘ ┘ [ <u>ORGANIZATION</u> IS ] <u>INDEXED</u> ╭ data-name-5 ╮ <u>RECORD</u> KEY IS ┤ ├ ╰ record-key-name-2 <u>SOURCE</u> IS { data-name-6 } … ╯ ┌ ┌ AREA ┐ ┐ │ <u>RESERVE</u> integer-1 │ │ │ └ └ AREAS ┘ ┘ ┌ ╭ <u>ALL</u> OTHER ╮ ┐ │ │ │ │ │ <u>SHARING</u> WITH ┤ <u>NO</u> OTHER ├ │ . │ │ │ │ └ ╰ <u>READ</u> <u>ONLY</u> ╯ ┘ </pre> Format 2 (relative): <pre style=\"line-height:1\"> <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1 ╭ ╭ device-name-1 ╮ ╮ │ TO ┤ ├ … [ <u>USING</u> data-name-1 ] │ <u>ASSIGN</u> ┤ ╰ literal-1 ╯ ├ │ │ ╰ <u>USING</u> data-name-1 ╯ ┌ ╭ <u>DYNAMIC</u> ╮ ┐ │ │ │ │ │ <u>ACCESS</u> MODE IS ┤ <u>RANDOM</u> ├ │ │ │ │ │ └ ╰ <u>SEQUENTIAL</u> ╯ ┘ [ FILE <u>STATUS</u> IS data-name-4 ] ┌ ╭ <u>MANUAL</u> ╮ ┌ ╭ <u>RECORD</u> ╮ ┐ ┐ │ <u>LOCK</u> MODE IS ┤ ├ │ WITH <u>LOCK</u> <u>ON</u> [ <u>MULTIPLE</u> ] ┤ ├ │ │ └ ╰ <u>AUTOMATIC</u> ╯ └ ╰ <u>RECORDS</u> ╯ ┘ ┘ [ <u>ORGANIZATION</u> IS ] <u>RELATIVE</u> [ <u>RELATIVE</u> KEY IS data-name-7 ] ┌ ┌ AREA ┐ ┐ │ <u>RESERVE</u> integer-1 │ │ │ └ └ AREAS ┘ ┘ ┌ ╭ <u>ALL</u> OTHER ╮ ┐ │ │ │ │ │ <u>SHARING</u> WITH ┤ <u>NO</u> OTHER ├ │ . │ │ │ │ └ ╰ <u>READ</u> <u>ONLY</u> ╯ ┘ </pre> Format 3 (sequential): <pre style=\"line-height:1\"> <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1 ╭ ╭ device-name-1 ╮ ╮ │ TO ┤ ├ … [ <u>USING</u> data-name-1 ] │ <u>ASSIGN</u> ┤ ╰ literal-1 ╯ ├ │ │ ╰ <u>USING</u> data-name-1 ╯ [ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ] [ FILE <u>STATUS</u> IS data-name-4 ] ┌ ╭ <u>MANUAL</u> ╮ ┌ ╭ <u>RECORD</u> ╮ ┐ ┐ │ <u>LOCK</u> MODE IS ┤ ├ │ WITH <u>LOCK</u> <u>ON</u> ┤ ├ │ │ └ ╰ <u>AUTOMATIC</u> ╯ └ ╰ <u>RECORDS</u> ╯ ┘ ┘ [ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ┌ ╭ data-name-8 ╮ ┐ │ <u>PADDING</u> CHARACTER IS ┤ ├ │ └ ╰ literal-2 ╯ ┘ ┌ ╭ <u>STANDARD-1</u> ╮ ┐ │ <u>RECORD</u> <u>DELIMITER</u> IS ┤ ├ │ └ ╰ feature-name-1 ╯ ┘ ┌ ┌ AREA ┐ ┐ │ <u>RESERVE</u> integer-1 │ │ │ └ └ AREAS ┘ ┘ ┌ ╭ <u>ALL</u> OTHER ╮ ┐ │ │ │ │ │ <u>SHARING</u> WITH ┤ <u>NO</u> OTHER ├ │ . │ │ │ │ └ ╰ <u>READ</u> <u>ONLY</u> ╯ ┘ </pre> Format 4 (sort-merge): <pre style=\"line-height:1\"> <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1 ╭ ╭ device-name-1 ╮ ╮ │ TO ┤ ├ … [ <u>USING</u> data-name-1 ] │ <u>ASSIGN</u> ┤ ╰ literal-1 ╯ ├ │ │ ╰ <u>USING</u> data-name-1 ╯ [ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] . </pre> where collating-sequence-clause is described in 12.3.4.6, COLLATING SEQUENCE clause.",
    "page": 232,
    "status": "normal"
   },
@@ -38551,7 +38596,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> ┌ ┌ constant-entry ┐ ┐ │ file-description-entry │ │ … │ │ └ record-description-entry ┘ │ <u>FILE</u> <u>SECTION</u>. │ │ … │ ╭ constant-entry ╮ … │ │ sort-merge-file-description-entry ┤ ├ │ └ ╰ record-description-entry ╯ ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | constant-entry | 13.9, Constant entry | record-description-entry 13.10, Record description entry",
+   "text": "<pre style=\"line-height:1\"> ┌ ┌ constant-entry ┐ ┐ │ file-description-entry │ │ … │ │ └ record-description-entry ┘ │ <u>FILE</u> <u>SECTION</u>. │ │ … │ ╭ constant-entry ╮ … │ │ sort-merge-file-description-entry ┤ ├ │ └ ╰ record-description-entry ╯ ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | constant-entry | 13.9, Constant entry | | record-description-entry | 13.10, Record description entry |",
    "page": 255,
    "status": "normal"
   },
@@ -38596,7 +38641,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> ┌ 77-level-description-entry ┐ │ │ <u>WORKING-STORAGE</u> <u>SECTION</u>. │ constant-entry │ … │ │ └ record-description-entry ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | 77-level-entry | 13.11, 77-level data description entry | | constant-entry | 13.9, Constant entry | record-description-entry 13.10, Record description entry",
+   "text": "<pre style=\"line-height:1\"> ┌ 77-level-description-entry ┐ │ │ <u>WORKING-STORAGE</u> <u>SECTION</u>. │ constant-entry │ … │ │ └ record-description-entry ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | 77-level-entry | 13.11, 77-level data description entry | | constant-entry | 13.9, Constant entry | | record-description-entry | 13.10, Record description entry |",
    "page": 260,
    "status": "normal"
   },
@@ -38611,7 +38656,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> ┌ 77-level-description-entry ┐ │ │ <u>LOCAL-STORAGE</u> <u>SECTION</u>. │ constant-entry │ … │ │ └ record-description-entry ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | 77-level-entry | 13.11, 77-level data description entry | | constant-entry | 13.9, Constant entry | record-description-entry 13.10, Record description entry",
+   "text": "<pre style=\"line-height:1\"> ┌ 77-level-description-entry ┐ │ │ <u>LOCAL-STORAGE</u> <u>SECTION</u>. │ constant-entry │ … │ │ └ record-description-entry ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | 77-level-entry | 13.11, 77-level data description entry | | constant-entry | 13.9, Constant entry | | record-description-entry | 13.10, Record description entry |",
    "page": 261,
    "status": "normal"
   },
@@ -38626,7 +38671,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> ┌ 77-level-description-entry ┐ │ │ <u>LINKAGE</u> <u>SECTION</u>. │ constant-entry │ … │ │ └ record-description-entry ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | 77-level-entry | 13.11, 77-level data description entry | | constant-entry | 13.9, Constant entry | record-description-entry 13.10, Record description entry",
+   "text": "<pre style=\"line-height:1\"> ┌ 77-level-description-entry ┐ │ │ <u>LINKAGE</u> <u>SECTION</u>. │ constant-entry │ … │ │ └ record-description-entry ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | 77-level-entry | 13.11, 77-level data description entry | | constant-entry | 13.9, Constant entry | | record-description-entry | 13.10, Record description entry |",
    "page": 262,
    "status": "normal"
   },
@@ -38641,7 +38686,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> <u>REPORT</u> <u>SECTION</u>. ┌ ╭ constant-entry ╮ … ┐ … │ report-description-entry ┤ ├ │ └ ╰ report-group-description-entry ╯ ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | 77-level-entry | 13.11, 77-level data description entry | report-group-description-entry 13.7.4, Report group description entry",
+   "text": "<pre style=\"line-height:1\"> <u>REPORT</u> <u>SECTION</u>. ┌ ╭ constant-entry ╮ … ┐ … │ report-description-entry ┤ ├ │ └ ╰ report-group-description-entry ╯ ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | 77-level-entry | 13.11, 77-level data description entry | | report-group-description-entry | 13.7.4, Report group description entry |",
    "page": 264,
    "status": "normal"
   },
@@ -38656,7 +38701,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> ┌ constant-entry ┐ <u>SCREEN</u> <u>SECTION</u>. │ │ … └ screen-description-entry ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | constant-entry | 13.9, Constant entry | screen-description-entry 13.15, Screen description entry",
+   "text": "<pre style=\"line-height:1\"> ┌ constant-entry ┐ <u>SCREEN</u> <u>SECTION</u>. │ │ … └ screen-description-entry ┘ </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | constant-entry | 13.9, Constant entry | | screen-description-entry | 13.15, Screen description entry |",
    "page": 266,
    "status": "normal"
   },
@@ -38671,7 +38716,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> ╭ ╭ arithmetic-expression-1 ╮ ╮ │ │ │ │ │ │ <u>BYTE-LENGTH</u> OF data-name-1 │ │ ╭ 1 ╮ │ AS ┤ ├ │ ┤ ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL</u>] ┤ │ literal-1 │ ├ . ╰ <u>01</u> ╯ │ │ │ │ │ ╰ <u>LENGTH</u> OF data-name-2 ╯ │ │ │ ╰ <u>FROM</u> compilation-variable-name-1 ╯ </pre>",
+   "text": "<pre style=\"line-height:1\"> ╭ ╭ arithmetic-expression-1 ╮ ╮ │ │ │ │ │ │ <u>BYTE-LENGTH</u> OF data-name-1 │ │ ╭ <u>1</u> ╮ │ AS ┤ ├ │ ┤ ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL</u>] ┤ │ literal-1 │ ├ . ╰ <u>01</u> ╯ │ │ │ │ │ ╰ <u>LENGTH</u> OF data-name-2 ╯ │ │ │ ╰ <u>FROM</u> compilation-variable-name-1 ╯ </pre>",
    "page": 267,
    "status": "normal"
   },
@@ -38716,7 +38761,7 @@
    "formats": 4,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "Format 1 (data-description): <pre style=\"line-height:1\"> level-number [ entry-name-clause ] [ <u>REDEFINES</u> data-name-1 ] [ IS <u>TYPEDEF</u> [ <u>STRONG</u> ] ] [ IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ] ] [ IS <u>GLOBAL</u> ] [ picture-clause ] [ usage-clause ] ┌ ╭ <u>LEADING</u> ╮ ┐ │ [ <u>SIGN</u> IS ] ┤ ├ [ <u>SEPARATE</u> CHARACTER ] │ └ ╰ <u>TRAILING</u> ╯ ┘ [ occurs-clause ] ┌ ╭ <u>SYNCHRONIZED</u> ╮ ┌ <u>LEFT</u> ┐ ┐ │ ┤ ├ │ │ │ └ ╰ <u>SYNC</u> ╯ └ <u>RIGHT</u> ┘ ┘ ┌ ╭ <u>JUSTIFIED</u> ╮ ┐ │ ┤ ├ RIGHT │ └ ╰ <u>JUST</u> ╯ ┘ [ <u>BLANK</u> WHEN <u>ZERO</u> ] [ <u>ANY</u> <u>LENGTH</u> ] [ <u>BASED</u> ] ┌ ┌ ╭ <u>GET</u> ╮ ┐ ┐ │ <u>PROPERTY</u> │ WITH <u>NO</u> ┤ ├ │ [ IS <u>FINAL</u> ] │ └ └ ╰ <u>SET</u> ╯ ┘ ┘ [ <u>SAME</u> <u>AS</u> data-name-3 ] [ select-when-clause ] [ <u>TYPE</u> type-name-1 ] [ validation-clauses ] [ value-clause ] [ <u>ALIGNED</u> ] ┌ ╭ <u>BIT</u> ╮ ┐ │ <u>GROUP-USAGE</u> IS ┤ ├ │ . └ ╰ <u>NATIONAL</u> ╯ ┘ </pre> where validation-clauses is: <pre style=\"line-height:1\"> [ class-clause ] [ default-clause ] [ <u>DESTINATION</u> IS { identifier-2 } … ] [ { <u>INVALID</u> <u>WHEN</u> condition-2 } … ] [ <u>PRESENT</u> <u>WHEN</u> condition-3 ] [ <u>VARYING</u> { data-name-6 [ <u>FROM</u> arithmetic-expression-1 ] [ <u>BY</u> arithmetic-expression-2 ] } … ] [ validate-status-clause ] … </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | class-clause | 13.16.11, CLASS clause | | default-clause | 13.16.16, DEFAULT clause | | entry-name-clause | 13.16.18, Entry-name clause | | occurs-clause | 13.16.36, OCCURS clause (fixed-table or variable-table format) | | picture-clause | 13.16.38, PICTURE clause | | select-when clause | 13.16.49, SELECT WHEN clause | | usage-clause | 13.16.58, USAGE clause | validate-status-clause 13.16.60, VALIDATE-STATUS clause\\ value-clause 13.16.61, VALUE clause (data-item or table format) Format 2 (renames): <pre style=\"line-height:1\"> ┌ ╭ <u>THROUGH</u> ╮ ┐ 66 data-name-1 <u>RENAMES</u> data-name-4 │ ┤ ├ data-name-5 │ . └ ╰ <u>THRU</u> ╯ ┘ </pre> Format 3 (condition-name): <pre style=\"line-height:1\"> 88 condition-name-1 value-clause . </pre> where value-clause is described in 13.16.61, VALUE clause (condition-name format). Format 4 (validation): <pre style=\"line-height:1\"> 88 [ condition-name-2 ] value-clause . </pre> where value-clause is described in 13.16.61, VALUE clause (content-validation-entry format).",
+   "text": "Format 1 (data-description): <pre style=\"line-height:1\"> level-number [ entry-name-clause ] [ <u>REDEFINES</u> data-name-1 ] [ IS <u>TYPEDEF</u> [ <u>STRONG</u> ] ] [ IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ] ] [ IS <u>GLOBAL</u> ] [ picture-clause ] [ usage-clause ] ┌ ╭ <u>LEADING</u> ╮ ┐ │ [ <u>SIGN</u> IS ] ┤ ├ [ <u>SEPARATE</u> CHARACTER ] │ └ ╰ <u>TRAILING</u> ╯ ┘ [ occurs-clause ] ┌ ╭ <u>SYNCHRONIZED</u> ╮ ┌ <u>LEFT</u> ┐ ┐ │ ┤ ├ │ │ │ └ ╰ <u>SYNC</u> ╯ └ <u>RIGHT</u> ┘ ┘ ┌ ╭ <u>JUSTIFIED</u> ╮ ┐ │ ┤ ├ RIGHT │ └ ╰ <u>JUST</u> ╯ ┘ [ <u>BLANK</u> WHEN <u>ZERO</u> ] [ <u>ANY</u> <u>LENGTH</u> ] [ <u>BASED</u> ] ┌ ┌ ╭ <u>GET</u> ╮ ┐ ┐ │ <u>PROPERTY</u> │ WITH <u>NO</u> ┤ ├ │ [ IS <u>FINAL</u> ] │ └ └ ╰ <u>SET</u> ╯ ┘ ┘ [ <u>SAME</u> <u>AS</u> data-name-3 ] [ select-when-clause ] [ <u>TYPE</u> type-name-1 ] [ validation-clauses ] [ value-clause ] [ <u>ALIGNED</u> ] ┌ ╭ <u>BIT</u> ╮ ┐ │ <u>GROUP-USAGE</u> IS ┤ ├ │ . └ ╰ <u>NATIONAL</u> ╯ ┘ </pre> where validation-clauses is: <pre style=\"line-height:1\"> [ class-clause ] [ default-clause ] [ <u>DESTINATION</u> IS { identifier-2 } … ] [ { <u>INVALID</u> <u>WHEN</u> condition-2 } … ] [ <u>PRESENT</u> <u>WHEN</u> condition-3 ] [ <u>VARYING</u> { data-name-6 [ <u>FROM</u> arithmetic-expression-1 ] [ <u>BY</u> arithmetic-expression-2 ] } … ] [ validate-status-clause ] … </pre> where the following meta-language terms are described in the indicated subclauses: | Term | Subclause | |---|---| | class-clause | 13.16.11, CLASS clause | | default-clause | 13.16.16, DEFAULT clause | | entry-name-clause | 13.16.18, Entry-name clause | | occurs-clause | 13.16.36, OCCURS clause (fixed-table or variable-table format) | | picture-clause | 13.16.38, PICTURE clause | | select-when clause | 13.16.49, SELECT WHEN clause | | usage-clause | 13.16.58, USAGE clause | | validate-status-clause | 13.16.60, VALIDATE-STATUS clause | | value-clause | 13.16.61, VALUE clause (data-item or table format) | Format 2 (renames): <pre style=\"line-height:1\"> ┌ ╭ <u>THROUGH</u> ╮ ┐ 66 data-name-1 <u>RENAMES</u> data-name-4 │ ┤ ├ data-name-5 │ . └ ╰ <u>THRU</u> ╯ ┘ </pre> Format 3 (condition-name): <pre style=\"line-height:1\"> 88 condition-name-1 value-clause . </pre> where value-clause is described in 13.16.61, VALUE clause (condition-name format). Format 4 (validation): <pre style=\"line-height:1\"> 88 [ condition-name-2 ] value-clause . </pre> where value-clause is described in 13.16.61, VALUE clause (content-validation-entry format).",
    "page": 273,
    "status": "normal"
   },
@@ -39226,7 +39271,7 @@
    "formats": 2,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "Format 1 (report-writer): <pre style=\"line-height:1\"> ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ╭ <u>LINE</u> NUMBER IS ╮ │ │ │ │ │ ╭ <u>PLUS</u> ╮ │ … ┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤ ├ integer-2 ├ │ │ │ ╰ + ╯ │ ╰ <u>LINES</u> ARE ╯ │ │ ╰ ON <u>NEXT</u> <u>PAGE</u> ╯ </pre> Format 2 (screen): <pre style=\"line-height:1\"> ┌ <u>PLUS</u> ┐ │ │ │ + │ ╭ identifier-1 ╮ <u>LINE</u> NUMBER IS │ │ ┤ ├ │ <u>MINUS</u> │ ╰ integer-3 ╯ │ │ └ – ┘ </pre>",
+   "text": "Format 1 (report-writer): <pre style=\"line-height:1\"> ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ╭ <u>LINE</u> NUMBER IS ╮ │ │ │ │ │ ╭ <u>PLUS</u> ╮ │ ┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤ ├ integer-2 ├ … │ │ │ ╰ + ╯ │ ╰ <u>LINES</u> ARE ╯ │ │ ╰ ON <u>NEXT</u> <u>PAGE</u> ╯ </pre> Format 2 (screen): <pre style=\"line-height:1\"> ┌ <u>PLUS</u> ┐ │ │ │ + │ ╭ identifier-1 ╮ <u>LINE</u> NUMBER IS │ │ ┤ ├ │ <u>MINUS</u> │ ╰ integer-3 ╯ │ │ └ – ┘ </pre>",
    "page": 321,
    "status": "normal"
   },
@@ -39271,7 +39316,7 @@
    "formats": 3,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "Format 1 (fixed-table): <pre style=\"line-height:1\"> <u>OCCURS</u> integer-2 TIMES ┌ ╭ <u>ASCENDING</u> ╮ ┐ │ ┤ ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ] └ ╰ <u>DESCENDING</u> ╯ ┘ </pre> Format 2 (variable-table): <pre style=\"line-height:1\"> ╭ ╮ KEY │ │ <u>OCCURS</u> │ integer-1 <u>TO</u> │ integer-2 TIMES <u>DEPENDING</u> ON data-name-1 │ │ ┌ │ <u>ASCENDING</u> │ ┐ │ ┤ ├ IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ] └ ╰ <u>DESCENDING</u> ╯ ┘ </pre> Format 3 (report-writer): <pre style=\"line-height:1\"> <u>OCCURS</u> [ integer-1 <u>TO</u> ] integer-2 TIMES [ <u>DEPENDING</u> ON data-name-1 ] [ <u>STEP</u> integer-3 ] </pre>",
+   "text": "Format 1 (fixed-table): <pre style=\"line-height:1\"> <u>OCCURS</u> integer-2 TIMES ┌ ╭ <u>ASCENDING</u> ╮ ┐ │ ┤ ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ] └ ╰ <u>DESCENDING</u> ╯ ┘ </pre> Format 2 (variable-table): <pre style=\"line-height:1\"> <u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-1 ┌ ╭ <u>ASCENDING</u> ╮ ┐ │ ┤ ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ] └ ╰ <u>DESCENDING</u> ╯ ┘ </pre> Format 3 (report-writer): <pre style=\"line-height:1\"> <u>OCCURS</u> [ integer-1 <u>TO</u> ] integer-2 TIMES [ <u>DEPENDING</u> ON data-name-1 ] [ <u>STEP</u> integer-3 ] </pre>",
    "page": 328,
    "status": "normal"
   },
@@ -39856,7 +39901,7 @@
    "formats": 5,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "Format 1 (into): <pre style=\"line-height:1\"> ╭ identifier-1 ╮ <u>DIVIDE</u> ┤ ├ <u>INTO</u> { identifier-2 [ <u>ROUNDED</u> ] } … ╰ literal-1 ╯ ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre> Format 2 (into-giving): <pre style=\"line-height:1\"> ╭ ╮ <u>INTO</u> │ │ │ identifier-1 │ ╭ identifier-2 ╮ <u>DIVIDE</u> ┤ ├ ┤ ├ ╰ literal-1 ╯ ╰ literal-2 ╯ <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } … ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre> Format 3 (by-giving): <pre style=\"line-height:1\"> ╭ identifier-2 ╮ ╭ identifier-1 ╮ <u>DIVIDE</u> ┤ ├ <u>BY</u> ┤ ├ ╰ literal-2 ╯ ╰ literal-1 ╯ <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } … ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre> Format 4 (into-remainder): <pre style=\"line-height:1\"> ╭ ╮ <u>INTO</u> │ │ │ identifier-1 │ ╭ identifier-2 ╮ <u>DIVIDE</u> ┤ ├ ┤ ├ ╰ literal-1 ╯ ╰ literal-2 ╯ <u>GIVING</u> identifier-3 [ <u>ROUNDED</u> ] <u>REMAINDER</u> identifier-4 ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre> Format 5 (by-remainder): <pre style=\"line-height:1\"> ╭ identifier-2 ╮ ╭ identifier-1 ╮ <u>DIVIDE</u> ┤ ├ <u>BY</u> ┤ ├ ╰ literal-2 ╯ ╰ literal-1 ╯ <u>GIVING</u> identifier-3 [ <u>ROUNDED</u> ] <u>REMAINDER</u> identifier-4 ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre>",
+   "text": "Format 1 (into): <pre style=\"line-height:1\"> ╭ identifier-1 ╮ <u>DIVIDE</u> ┤ ├ <u>INTO</u> { identifier-2 [ <u>ROUNDED</u> ] } … ╰ literal-1 ╯ ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre> Format 2 (into-giving): <pre style=\"line-height:1\"> ╭ identifier-1 ╮ ╭ identifier-2 ╮ <u>DIVIDE</u> ┤ ├ <u>INTO</u> ┤ ├ ╰ literal-1 ╯ ╰ literal-2 ╯ <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } … ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre> Format 3 (by-giving): <pre style=\"line-height:1\"> ╭ identifier-2 ╮ ╭ identifier-1 ╮ <u>DIVIDE</u> ┤ ├ <u>BY</u> ┤ ├ ╰ literal-2 ╯ ╰ literal-1 ╯ <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } … ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre> Format 4 (into-remainder): <pre style=\"line-height:1\"> ╭ identifier-1 ╮ ╭ identifier-2 ╮ <u>DIVIDE</u> ┤ ├ <u>INTO</u> ┤ ├ ╰ literal-1 ╯ ╰ literal-2 ╯ <u>GIVING</u> identifier-3 [ <u>ROUNDED</u> ] <u>REMAINDER</u> identifier-4 ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre> Format 5 (by-remainder): <pre style=\"line-height:1\"> ╭ identifier-2 ╮ ╭ identifier-1 ╮ <u>DIVIDE</u> ┤ ├ <u>BY</u> ┤ ├ ╰ literal-2 ╯ ╰ literal-1 ╯ <u>GIVING</u> identifier-3 [ <u>ROUNDED</u> ] <u>REMAINDER</u> identifier-4 ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-DIVIDE</u> ] </pre>",
    "page": 460,
    "status": "normal"
   },
@@ -40006,7 +40051,7 @@
    "formats": 4,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "Format 1 (tallying): <pre style=\"line-height:1\"> <u>INSPECT</u> identifier-1 <u>TALLYING</u> tallying-phrase </pre> Format 2 (replacing): <pre style=\"line-height:1\"> <u>INSPECT</u> identifier-1 <u>REPLACING</u> replacing-phrase </pre> Format 3 (tallying-and-replacing): <pre style=\"line-height:1\"> <u>INSPECT</u> identifier-1 <u>TALLYING</u> tallying-phrase <u>REPLACING</u> replacing-phrase </pre> Format 4 (converting): <pre style=\"line-height:1\"> <u>INSPECT</u> identifier-1 <u>CONVERTING</u> ╭ identifier-6 ╮ ╭ identifier-7 ╮ [ after-before-phrase ] ┤ ├ <u>TO</u> ┤ ├ ╰ literal-4 ╯ ╰ literal-5 ╯ </pre> where tallying-phrase is: <pre style=\"line-height:1\"> ╭ ╭ <u>CHARACTERS</u> [ after-before-phrase ] ╮ ╮ │ │ │ │ │ │ <u>ALL</u> ╭ ╭ identifier-3 ╮ ╮ … │ │ │ │ │ ┤ ├ [ after-before-phrase ] │ │ │ │ │ ┤ ╰ literal-1 ╯ ├ │ │ ┤ identifier-2 <u>FOR</u> ┤ ╰ ╯ ├ … ├ … │ │ <u>LEADING</u> ╭ ╭ identifier-3 ╮ ╮ … │ │ │ │ ┤ ┤ ├ [ after-before-phrase ] ├ │ │ ╰ ╰ ╰ ╰ literal-1 ╯ ╯ ╯ ╯ </pre> where after-before-phrase is: <pre style=\"line-height:1\"> ╭ │ ╭ identifier-4 ╮ │ ╮ │ │ <u>AFTER</u> INITIAL ┤ ├ │ │ ┤ │ ╰ literal-2 ╯ │ ├ │ │ │ │ │ │ ╭ identifier-4 ╮ │ │ │ │ <u>BEFORE</u> INITIAL ┤ ├ │ │ ╰ │ ╰ literal-2 ╯ │ ╯ </pre> where replacing-phrase is: <pre style=\"line-height:1\"> ╭ <u>CHARACTERS</u> <u>BY</u> replacement-item [ after-before-phrase ] ╮ │ │ │ <u>ALL</u> ╭ ╭ identifier-3 ╮ ╮ … │ │ ┤ ┤ ├ <u>BY</u> replacement-item [ after-before-phrase ] ├ │ │ ╰ ╰ literal-1 ╯ ╯ │ ┤ ╭ ╮ ├ … │ <u>LEADING</u> ┤ ╭ identifier-3 ╮ ├ … │ │ │ ┤ ├ <u>BY</u> replacement-item [ after-before-phrase ] │ │ │ ╰ ╰ literal-1 ╯ ╯ │ │ │ │ <u>FIRST</u> ╭ ╭ identifier-3 ╮ ╮ … │ │ ┤ ┤ ├ <u>BY</u> replacement-item [ after-before-phrase ] ├ │ ╰ ╰ ╰ literal-1 ╯ ╯ ╯ </pre> where replacement-item is: <pre style=\"line-height:1\"> ╭ identifier-5 ╮ ┤ ├ ╰ literal-3 ╯ </pre>",
+   "text": "Format 1 (tallying): <pre style=\"line-height:1\"> <u>INSPECT</u> identifier-1 <u>TALLYING</u> tallying-phrase </pre> Format 2 (replacing): <pre style=\"line-height:1\"> <u>INSPECT</u> identifier-1 <u>REPLACING</u> replacing-phrase </pre> Format 3 (tallying-and-replacing): <pre style=\"line-height:1\"> <u>INSPECT</u> identifier-1 <u>TALLYING</u> tallying-phrase <u>REPLACING</u> replacing-phrase </pre> Format 4 (converting): <pre style=\"line-height:1\"> ╭ identifier-6 ╮ ╭ identifier-7 ╮ <u>INSPECT</u> identifier-1 <u>CONVERTING</u> ┤ ├ <u>TO</u> ┤ ├ [ after-before-phrase ] ╰ literal-4 ╯ ╰ literal-5 ╯ </pre> where tallying-phrase is: <pre style=\"line-height:1\"> ╭ ╭ <u>CHARACTERS</u> [ after-before-phrase ] ╮ ╮ │ │ │ │ │ │ <u>ALL</u> ╭ ╭ identifier-3 ╮ ╮ … │ │ │ │ │ ┤ ├ [ after-before-phrase ] │ │ │ │ │ ┤ ╰ literal-1 ╯ ├ │ │ ┤ identifier-2 <u>FOR</u> ┤ ╰ ╯ ├ … ├ … │ │ <u>LEADING</u> ╭ ╭ identifier-3 ╮ ╮ … │ │ │ │ ┤ ┤ ├ [ after-before-phrase ] ├ │ │ ╰ ╰ ╰ ╰ literal-1 ╯ ╯ ╯ ╯ </pre> where after-before-phrase is: <pre style=\"line-height:1\"> ╭ │ ╭ identifier-4 ╮ │ ╮ │ │ <u>AFTER</u> INITIAL ┤ ├ │ │ ┤ │ ╰ literal-2 ╯ │ ├ │ │ │ │ │ │ ╭ identifier-4 ╮ │ │ │ │ <u>BEFORE</u> INITIAL ┤ ├ │ │ ╰ │ ╰ literal-2 ╯ │ ╯ </pre> where replacing-phrase is: <pre style=\"line-height:1\"> ╭ <u>CHARACTERS</u> <u>BY</u> replacement-item [ after-before-phrase ] ╮ │ │ │ <u>ALL</u> ╭ ╭ identifier-3 ╮ ╮ … │ │ ┤ ┤ ├ <u>BY</u> replacement-item [ after-before-phrase ] ├ │ │ ╰ ╰ literal-1 ╯ ╯ │ ┤ ╭ ╮ ├ … │ <u>LEADING</u> ┤ ╭ identifier-3 ╮ ├ … │ │ │ ┤ ├ <u>BY</u> replacement-item [ after-before-phrase ] │ │ │ ╰ ╰ literal-1 ╯ ╯ │ │ │ │ <u>FIRST</u> ╭ ╭ identifier-3 ╮ ╮ … │ │ ┤ ┤ ├ <u>BY</u> replacement-item [ after-before-phrase ] ├ │ ╰ ╰ ╰ literal-1 ╯ ╯ ╯ </pre> where replacement-item is: <pre style=\"line-height:1\"> ╭ identifier-5 ╮ ┤ ├ ╰ literal-3 ╯ </pre>",
    "page": 484,
    "status": "normal"
   },
@@ -40291,7 +40336,7 @@
    "formats": 3,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "Format 1 (simple): <pre style=\"line-height:1\"> ╭ identifier-1 ╮ <u>SUBTRACT</u> ┤ ├ … <u>FROM</u> { identifier-2 [ <u>ROUNDED</u> ] } … ╰ literal-1 ╯ ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-SUBTRACT</u> ] </pre> Format 2 (giving): <pre style=\"line-height:1\"> ╭ ╮ … │ │ │ identifier-1 │ ╭ identifier-2 ╮ <u>SUBTRACT</u> ┤ ├ <u>FROM</u> ┤ ├ ╰ literal-1 ╯ ╰ literal-2 ╯ <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } … ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-SUBTRACT</u> ] </pre> Format 3 (corresponding): <pre style=\"line-height:1\"> ╭ <u>CORRESPONDING</u> ╮ <u>SUBTRACT</u> ┤ ├ identifier-4 <u>FROM</u> identifier-5 [ <u>ROUNDED</u> ] ╰ <u>CORR</u> ╯ ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-SUBTRACT</u> ] </pre>",
+   "text": "Format 1 (simple): <pre style=\"line-height:1\"> ╭ identifier-1 ╮ <u>SUBTRACT</u> ┤ ├ … <u>FROM</u> { identifier-2 [ <u>ROUNDED</u> ] } … ╰ literal-1 ╯ ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-SUBTRACT</u> ] </pre> Format 2 (giving): <pre style=\"line-height:1\"> ╭ identifier-1 ╮ ╭ identifier-2 ╮ <u>SUBTRACT</u> ┤ ├ … <u>FROM</u> ┤ ├ ╰ literal-1 ╯ ╰ literal-2 ╯ <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } … ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-SUBTRACT</u> ] </pre> Format 3 (corresponding): <pre style=\"line-height:1\"> ╭ <u>CORRESPONDING</u> ╮ <u>SUBTRACT</u> ┤ ├ identifier-4 <u>FROM</u> identifier-5 [ <u>ROUNDED</u> ] ╰ <u>CORR</u> ╯ ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘ [ <u>END-SUBTRACT</u> ] </pre>",
    "page": 561,
    "status": "normal"
   },
@@ -40336,7 +40381,7 @@
    "formats": 1,
    "has_diagram": true,
    "has_figure_notes": false,
-   "text": "<pre style=\"line-height:1\"> <u>UNLOCK</u> ┌ RECORD ┐ │ │ file-name-1 │ │ └ RECORDS ┘ </pre>",
+   "text": "<pre style=\"line-height:1\"> ┌ RECORD ┐ <u>UNLOCK</u> file-name-1 │ │ └ RECORDS ┘ </pre>",
    "page": 566,
    "status": "normal"
   },

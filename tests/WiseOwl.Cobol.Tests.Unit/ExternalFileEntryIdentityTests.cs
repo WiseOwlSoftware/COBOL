@@ -38,7 +38,6 @@ public sealed class ExternalFileEntryIdentityTests
         { "a) OPTIONAL", f => f.Optional = true },
         { "b) ASSIGN literal-1", f => f.AssignTarget = "y.dat" },
         { "b) ASSIGN USING data-name-1", f => f.AssignUsingName = "FNAME" },
-        { "c) RECORD DELIMITER STANDARD-1", f => f.RecordDelimiter = "STANDARD-1" },
         { "c) RECORD DELIMITER feature-name-1", f => f.RecordDelimiter = "VARDELIM" },
         { "d) RESERVE integer-1", f => f.ReserveAreas = 3 },
         { "e) organization", f => f.Organization = FileOrganization.Relative },
@@ -57,6 +56,23 @@ public sealed class ExternalFileEntryIdentityTests
         { "l) sharing mode", f => f.Sharing = SharingMode.NoOther },
         { "m) lock mode", f => f.LockMode = new LockModeInfo(LockKind.Manual, false) },
     };
+
+    /// <summary>An omitted RESERVE clause is the implementor's one area and an omitted RECORD DELIMITER clause the implementor's one method, which RESERVE 1
+    /// AREA and STANDARD-1 specify too (§1985:VII.2.9.3 GR1, §1985:VII.2.8.4 GR4; DOC-A.1-164, DOC-A.1-151), so the entries specify the same connector
+    /// (kb/Work PB5311); a clause that specifies something else still differs.</summary>
+    [Fact]
+    public void An_omitted_clause_is_its_implementor_value()
+    {
+        var plain = Entry();
+        plain.RecordDelimiter = null;
+        plain.ReserveAreas = null;
+        var written = Entry();
+        written.RecordDelimiter = "STANDARD-1";
+        written.ReserveAreas = 1;
+        Assert.Equal(FileEntryIdentity.Of(plain), FileEntryIdentity.Of(written));
+        written.ReserveAreas = 3;
+        Assert.NotEqual(FileEntryIdentity.Of(plain), FileEntryIdentity.Of(written));
+    }
 
     [Theory]
     [MemberData(nameof(Items))]

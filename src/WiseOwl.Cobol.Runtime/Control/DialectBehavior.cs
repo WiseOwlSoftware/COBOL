@@ -174,6 +174,16 @@ public enum DialectBehavior
     /// are <c>IntrinsicBinder.BindNumvalCFamily</c> (the literal screen, and <c>BoundIntrinsicCall.CurrencyContentUnrestricted</c>
     /// for a data item) and <c>CobolIntrinsics.NumvalCDec</c>.</summary>
     NumvalCCurrencyContentRules = 12,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.43.4 GR19 — "If the number of bytes in the logical record to be written is
+    /// less than integer-4 or greater than integer-5", a WRITE or REWRITE of a file whose RECORD clause is Format 3
+    /// (<c>RECORD CONTAINS integer-4 TO integer-5</c>) is unsuccessful (I-O status '44' on a WRITE/REWRITE, §2023:9.1.13.7
+    /// item 4 a). The 2002 text carries the same rule (§2002:13.16.41.3 GR19 a: the "REWRITE or WRITE statement is
+    /// unsuccessful"; its I-O status 44 item c names the fixed-or-variable-length format of the RECORD clause), whereas
+    /// §1985:VII.1.3.5 names only "the RECORD IS VARYING clause", with Format 3's size "completely defined in the
+    /// record description entry" (§1985:VII.3.8.4 GR14). So at <c>--std 85</c> a Format 3 range only documents the record
+    /// sizes and no WRITE is refused for it (kb/Work PB5197). The consumer is <c>FileControlBinder.BindRecordClause</c>.</summary>
+    RecordContainsRangeBindsRecordSize = 13,
 }
 
 /// <summary>
@@ -253,6 +263,11 @@ public static class DialectBehaviors
             "7.62", "15.68.3 AR2", "§1989:A.2.30.3 AR4",
             "NUMVAL-C's argument-2 may hold no digit, none of * + - , . and no CR or DB only from COBOL-2002; "
             + "the COBOL-85 intrinsic function module asks only that it be a nonnumeric literal or alphanumeric data item"),
+        new(DialectBehavior.RecordContainsRangeBindsRecordSize, "record-contains-range-binds-record-size", 2002,
+            "7.63", "13.18.43.4 GR19", "§1985:VII.1.3.5",
+            "a WRITE or REWRITE of a record outside a RECORD CONTAINS integer-4 TO integer-5 range is unsuccessful ('44') "
+            + "only from COBOL-2002; COBOL-85 bounds only the RECORD IS VARYING clause and the range only documents the "
+            + "record sizes"),
     ];
 
     static DialectBehaviors()

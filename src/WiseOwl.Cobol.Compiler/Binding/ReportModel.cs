@@ -660,10 +660,16 @@ public sealed record FieldValueSource(string Raw) : ReportFieldSource;
 /// SR4), a VARYING counter in scope (§2023:13.18.64.3 SR2) and a constant-name (§2023:13.10.3 SR2). (kb/Work PB1292 × PB1306 ×
 /// PB1316 × PB1456 — before it the identifier arm captured name + qualifiers at data bind and looked the name up in
 /// ordinary storage, so each of those shapes was a separate staged refusal of legal source.)
+/// <para><see cref="Ref"/> is the identifier as written: a <c>dataReference</c>, or a function-identifier, inline method
+/// invocation, object-view or SELF / SUPER written as the whole operand (<c>SoleOperand.TemporaryIdentifier</c>). Each is an
+/// identifier (§2023:8.4.3.1.2), so each is identifier-1 and never arithmetic-expression-1: §2023:15.2 lets a function "be
+/// used anywhere a sending data item of that class and category may be specified", and §1985:IV.4.3.8.3.3 SR3 admits an
+/// alphanumeric function wherever an identifier is (kb/Work PB5240: `SOURCE FUNCTION UPPER-CASE(T)` was refused as an
+/// arithmetic expression at every edition).</para>
 /// <para><see cref="Value"/> is null until that bind; a screen that already named its rule sets
 /// <see cref="Rejected"/>, so the rejected words are never bound or reported twice (the
 /// <see cref="FieldComputeSource.Rejected"/> discipline).</para></summary>
-public sealed record FieldReferenceSource(Core.DataReferenceContext Ref, string Written) : ReportFieldSource
+public sealed record FieldReferenceSource(Antlr4.Runtime.ParserRuleContext Ref, string Written) : ReportFieldSource
 {
     /// <summary>The bound sending operand (procedure phase).</summary>
     public BoundOperand? Value { get; set; }

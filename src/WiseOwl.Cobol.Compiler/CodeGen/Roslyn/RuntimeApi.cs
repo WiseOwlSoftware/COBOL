@@ -1985,9 +1985,13 @@ internal static class RuntimeApi
     public static string FileBeginOpen(string name, Binding.Bound.BoundOpenMode mode) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.BeginOpen)}({name}, {FileOpenModeExpr(mode)})";
 
-    /// <summary>The end of that scope — <c>CobolFile.EndOpen</c>.</summary>
-    public static string FileEndOpen(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.EndOpen)}({name})";
+    /// <summary>A CLOSE statement's scope (§2023:14.9.49.4 GR6 b)–e); kb/Work PB5261) — <c>CobolFile.BeginClose</c>.</summary>
+    public static string FileBeginClose(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.BeginClose)}({name})";
+
+    /// <summary>The end of an OPEN's or a CLOSE's scope — <c>CobolFile.EndModeScope</c>.</summary>
+    public static string FileEndModeScope(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.EndModeScope)}({name})";
 
     /// <summary>The sharing-governed OPEN (Table 19 → status 61) — <c>CobolFile.OpenShared</c>.</summary>
     public static string FileOpenShared(string name, string argsFragment) =>
