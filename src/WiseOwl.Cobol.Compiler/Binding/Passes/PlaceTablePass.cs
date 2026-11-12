@@ -47,7 +47,7 @@ internal static class PlaceTablePass
     private static PlaceTable TableOf(DataBinder data, ReferenceResolver refs, IEnumerable<DataItem> inherited)
     {
         var builder = new PlaceBuilder(data);
-        var table = PlaceTable.Build(builder, data.PlaceableItems().Concat(inherited));
+        var table = PlaceTable.Build(builder, data.PlaceableItems().Concat(inherited).Concat(data.SumCounterRegisters()));
         // A report's CONTROL operand is saved and compared as it is written (§2023:13.18.16.4 GR3): a reference-modified
         // operand as its slice (§2023:8.4.3.3.4 GR5), the others as the item. The positions are integer literals (SR4), so the
         // view is the ONE reference-modification view builder reached by item (kb/Work PB205).

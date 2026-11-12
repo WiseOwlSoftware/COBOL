@@ -1,0 +1,13 @@
+{
+ "id": "call-function-identifier-argument-2002",
+ "status": "active",
+ "description": "A function-identifier as a CALL USING argument (identifier-2, BY CONTENT or keyword-less). X3.23-1985 Amendment 1 adds to the CALL statement \"Identifier-2 must not be a function-identifier.\" (§1985:X.5.2.3 SR4; identifier-2 is the operand of both USING phrases, §1985:X.5.2.2). ISO/IEC 1989:2002 has no such rule: its Format 1 BY CONTENT identifier-2 is any identifier, and §2023:14.9.4.4 GR8 makes a sole function-identifier an identifier. Gated in the one up-front judgement of a COBOL-85 CALL's arguments, CallBinder.FunctionIdentifierArgumentOf asked from BindCall beside Format2OnlySpellingOf, so the argument draws this COBOL0900 alone (a keyword-less one is not also refused COBOL1677 by the 2023 storage-section rule). kb/Work PB5129.",
+ "display": "a function-identifier as a CALL USING argument",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§1985:X.5.2.3 SR4; §2023:14.9.4.2 Format 1; §2023:14.9.4.4 GR8",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 relaxation: X3.23-1985 Amendment 1's CALL syntax rule 4 has no 2002 counterpart (kb/Work PB5129)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCFN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(4) VALUE \"abcd\".\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"VMCFNSUB\" USING BY CONTENT FUNCTION UPPER-CASE (W).\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. VMCFNSUB.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L PIC X(4).\nPROCEDURE DIVISION USING L.\nP.\n    DISPLAY L.\n    EXIT PROGRAM.\nEND PROGRAM VMCFNSUB.\nEND PROGRAM VMCFN.\n"
+}

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1358_replace_anywhere
       *> rules: [SR-7.2.4.3-1]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

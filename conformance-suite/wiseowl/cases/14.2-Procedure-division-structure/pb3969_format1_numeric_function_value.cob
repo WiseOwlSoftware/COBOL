@@ -1,10 +1,12 @@
 *>--- conformance-case
 *> id: pb3969_format1_numeric_function_value
 *> rules: [GR-14.2.3-9]
-*> accept: [85, 2002, 2014, 2023]
+*> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
+*> Accepted from 2002 only: X3.23-1985 Amendment 1 says of the CALL statement "Identifier-2 must not be a function-identifier."
+*> (1985 X 5.2.3 SR4; kb/Work PB5129), so at 85 each CALL below is refused (COBOL0900, call-function-identifier-argument-2002).
 *> kb/Work PB3969, docs/CONFORMANCE.md D-B4: A NUMERIC FUNCTION'S VALUE REACHES A FORMAL AS ITS VALUE, NOT AS THE LEADING POSITIONS OF A
 *> WIDE CONTAINER. A Format-1 CALL cannot see the formal, and ISO 14.2.3 GR9's first regime moves a BY CONTENT argument into a
 *> record the length of the argument "without conversion":

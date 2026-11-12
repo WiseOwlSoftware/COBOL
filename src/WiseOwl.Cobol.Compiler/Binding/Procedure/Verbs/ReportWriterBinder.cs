@@ -187,7 +187,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 case FieldReferenceSource { Rejected: false, Value: null } rs:
                 {
                     using var at = ctx.Edition.At(rs.Ref);
-                    var (operand, steps) = WithSteps(() => host.Expr.FieldOperand(rs.Ref));
+                    var (operand, steps) = WithSteps(() => SourceIdentifierOperand(rs.Ref));
                     rs.Steps = steps;
                     // identifier-1 is a data item, so an index-name is no sender (§2023:13.18.53.3 SR2 — a MOVE shall be
                     // valid, and §2023:13.18.38.3 r7 admits an index-name in no MOVE).
@@ -205,6 +205,17 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 }
             }
     }
+
+    /// <summary>A SOURCE identifier-1 as the implicit MOVE's sending operand (§2023:13.18.53.4 GR1): a data reference through
+    /// the ONE operand binder a MOVE's sender takes, a function-identifier as a sending item of its function's category
+    /// (§2023:15.2) and an inline method invocation, object-view or SELF / SUPER as the temporary it references
+    /// (§2023:8.4.3.1.2) — the forms <c>ReportSectionBinder.SourceIdentifierOf</c> classifies as identifier-1 (kb/Work PB5240).</summary>
+    private BoundOperand SourceIdentifierOperand(Antlr4.Runtime.ParserRuleContext identifier) => identifier switch
+    {
+        Core.DataReferenceContext dref => host.Expr.FieldOperand(dref),
+        Core.FunctionCallContext fc => host.Intrinsic.IntrinsicOperand(fc),
+        _ => host.Oo.OoIdentifierOperand(identifier),
+    };
 
     /// <summary>Bind one report-clause CONDITION as its own per-evaluation window (see <see cref="BindReportGroupClauses"/>):
     /// the steps it registers ride the condition as a <see cref="BoundUdfEvaluated"/>, so they run each time the group's
@@ -309,7 +320,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     {
         BoundFieldOperand { Place: var place } when IntrinsicArgumentRules.IsArithmeticOperandClass(operand) => new BoundNumRef(place),
         BoundNumericLiteral literal => new BoundNumLiteral(literal.Text),
-        BoundComputedOperand computed => computed.Expr,
+        // A function-identifier written as identifier-1 (kb/Work PB5240) is a number only when its result is numeric.
+        BoundComputedOperand computed when IntrinsicResultType.OperandCategory(computed) is PicCategory.Numeric => computed.Expr,
         BoundFigurative { Kind: 'Z' } => new BoundNumLiteral("0"),
         _ => null,
     };

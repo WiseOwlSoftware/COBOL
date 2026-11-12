@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL2247: RD 'RPT' entry 'FILLER' is a level 49 entry with no PICTURE clause"}
