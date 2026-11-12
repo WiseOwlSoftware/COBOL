@@ -57,4 +57,12 @@ of a non-counter entry cites SR10d. Goldens: `XIII.3.9@1985-REPORT-GROUP-DESCRIP
 
 `EditionGateArmDriftTests`: report-source-expression-2002 now fires from the parse arm (expressions) and the bound arm (a
 sole function by its bound category); both tables record why. `pb3969_format1_numeric_function_value` passed function
-values BY CONTENT at 85, which §1985:X.5.2.3 SR4 forbids: it is accepted from 2002.
+values BY CONTENT at 85, which §1985:X.5.2.3 SR4 forbids: it is accepted from 2002. Gate 000002 then found the three new
+binder members missing from `binder-member-readers.json` (BinderMemberReadersDriftTests); they are listed with their
+measured readers.
+
+Self-review: `SoleOperand.TemporaryIdentifier` overlaps `ConditionBinder.SoleOoIdentifier` (OO forms only; left, both read
+`SolePrimary`-shaped descents); `DataBinder.SumCounterPlaceOf` is asked on every place build and answers a non-register by
+one pattern test. Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance up to date (run 000002-20261112T014116Z of
+wf_16f7f780-4b5-2, 24,170 cases) · Unit 40,773/40,773 ran · Characterization up to date (run 000002-20261112T014116Z of
+wf_16f7f780-4b5-2, 37 cases) (skipped 0) … (1 class(es) first; run 000003-20261112T015254Z) ===`.
