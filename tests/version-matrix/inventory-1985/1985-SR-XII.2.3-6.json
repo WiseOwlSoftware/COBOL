@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XII.2.3-6",
  "rule-digest": "7b06f2d635c5",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen.CopyWord",
  "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-6",
+ "notes": "Overturn confirmed, as PARTIAL: the exclusion half (COPY refused, COBOL7006) is right and the admission half refuses legal source. SR6 admits any single COBOL word but COPY, and a reserved word is a COBOL word (IV.4.2.2.1), so BY, LEADING and TRAILING are legal word-1 and word-2. The 1985 REPLACING format has no LEADING/TRAILING partial-word phrase, so at --std 85 those two are ordinary words in an operand position. The format alternates operand BY operand, so the position, not the spelling, says which BY is the keyword. Rerun: s14 (REPLACING BY BY \"B\") and s7 are COBOL2449 'a REPLACING operand is missing'; s16 (REPLACING TRAILING BY \"B\") is COBOL0900 (partial-word phrase requires COBOL-2002) plus COBOL2449; control s11 runs START/Q/END. Own probes separate the replacement from the operand reader: h1 (REPLACING ==BY== BY ==\"B\"==) and h2 (REPLACING ==TRAILING== BY ==\"B\"==) both run START / AB / END, so the replacing engine matches these words and only ReadOperand (any BY where an operand is expected is taken as missing) and ParseReplacingOperands (LEADING/TRAILING read as the 2002 phrase at every edition) refuse them. Note PB5418 is right in citation, sites, expected results (s14 and s16 print AB) and harm flags (rejects_legal_source, MINOR). kb/Work PB5418 holds the defect (adjudication: held-85/set7/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
