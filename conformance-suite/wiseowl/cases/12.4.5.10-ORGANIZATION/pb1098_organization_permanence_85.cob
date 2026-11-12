@@ -38,8 +38,11 @@
       *>  SQ-IN  - '00' (unvalidated, and harmless).
       *>  RL-*   - the store is intact: RRN 7 is read back by its key
       *>          (GR4's ordinal identity), RRN 5 holds no record ('23'),
-      *>          a key of 0 is not a relative record number ('34',
-      *>          §2023:14.9.51.4 GR29 b)).
+      *>          a key of 0 is not a relative record number: outside the
+      *>          boundaries WiseOwl defines (DOC-A.1-107), so at COBOL-85
+      *>          the WRITE is the invalid key condition '24' (§1985:VIII.1.3.4
+      *>          item (3) c)); '34' is §2023:14.9.51.4 GR29 b)'s, new in 2023
+      *>          (kb/Work PB5125).
       *>  IX-OVER-RL / RL-OVER-IX - a relative store through an INDEXED
       *>          description and an indexed store through a RELATIVE
       *>          one: '39' both ways.

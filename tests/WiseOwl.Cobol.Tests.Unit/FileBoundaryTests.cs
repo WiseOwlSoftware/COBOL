@@ -276,6 +276,29 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal(["5=K005", "536870888=K888", "2147483647=K647"], Records(host));
     }
 
+    /// <summary>⛔ THE KEY RANGE'S STATUS IS THE EDITION'S (kb/Work PB5125). §2023:14.9.51.4 GR29 b) answers '34' for a key
+    /// below 1 or above the highest permitted number; the 2002 text (§2002:14.8.47.3 GR29 b)) and §1985:VIII.1.3.4 item (3) c)
+    /// know only the write beyond the externally defined boundaries, '24', the invalid key condition. Below 2023 the attempt
+    /// is therefore no permanent error: the next statement on the file runs, and nothing is released.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    public void RelativeWrite_KeyOutOfRange_BelowTheFirstEditionWithGR29b_Is24(int edition)
+    {
+        string host = Host($"range-{edition}.dat");
+        var c = new RelativeConnector(host, 4, KeyedAccess.Random, 18) { Edition = edition };
+        Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+        c.SetPendingKey(RelativeConnector.HighestRelativeRecordNumber + 1);
+        Assert.Equal(FileStatusCode.BoundaryViolation, c.Write("ABCD"));
+        c.SetPendingKey(0);
+        Assert.Equal(FileStatusCode.BoundaryViolation, c.Write("ABCD"));
+        c.SetPendingKey(7);                                                          // no permanent error in effect
+        Assert.Equal(FileStatusCode.Success, c.Write("SEVN"));
+        Assert.Equal(FileStatusCode.Success, c.Close());
+        Assert.Equal(["7=SEVN"], Records(host));
+    }
+
     /// <summary>The host's two refusals, each at the statement that meets it (2.2.1.9): a page write the host refuses
     /// because the file cannot GROW past its maximum size is '24' — <i>"An attempt is made to write outside the
     /// externally-defined boundaries of a physical relative or indexed file"</i>, §2023:9.1.13.5 item 4 — and a write the host refuses

@@ -184,6 +184,15 @@ public enum DialectBehavior
     /// record description entry" (§1985:VII.3.8.4 GR14). So at <c>--std 85</c> a Format 3 range only documents the record
     /// sizes and no WRITE is refused for it (kb/Work PB5197). The consumer is <c>FileControlBinder.BindRecordClause</c>.</summary>
     RecordContainsRangeBindsRecordSize = 13,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.51.4 GR29 b) — a random or dynamic WRITE of a relative file whose key item holds
+    /// "a value that is less than 1 or greater than the highest relative record number permitted for the file" is
+    /// unsuccessful with I-O status '34'. The 2002 text (§2002:14.8.47.3 GR25 b) and the 2014 FCD (GR26 b) end that rule
+    /// after the '22' sentence and know only the invalid key condition of a write "beyond the externally defined boundaries
+    /// of the file", status '24' (§2002:14.8.47.3 GR29 b); the 1985 relative-file status list has no '34' at all and gives
+    /// '24' for the same attempt (§1985:VIII.1.3.4 item (3) c) with the invalid key condition of §1985:VIII.1.3.5
+    /// (kb/Work PB5125). So below 2023 the same test answers '24' and the INVALID KEY phrase runs; from 2023 it answers '34',
+    /// the permanent error, and the phrase is skipped. The consumer is <c>RelativeConnector.Write</c>.</summary>
+    RelativeWriteKeyOutOfRangeIsPermanentError = 14,
 }
 
 /// <summary>
@@ -268,6 +277,11 @@ public static class DialectBehaviors
             "a WRITE or REWRITE of a record outside a RECORD CONTAINS integer-4 TO integer-5 range is unsuccessful ('44') "
             + "only from COBOL-2002; COBOL-85 bounds only the RECORD IS VARYING clause and the range only documents the "
             + "record sizes"),
+        new(DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, "relative-write-key-out-of-range-permanent-error", 2023,
+            "7.64", "14.9.51.4 GR29 b)", "§2002:14.8.47.3 GR25 b)",
+            "a random or dynamic WRITE of a relative file whose key is less than 1 or above the highest permitted record number "
+            + "is a permanent error, I-O status 34, only from COBOL 2023; before it the same attempt is the invalid key "
+            + "condition of a write beyond the file's boundaries, status 24"),
     ];
 
     static DialectBehaviors()
