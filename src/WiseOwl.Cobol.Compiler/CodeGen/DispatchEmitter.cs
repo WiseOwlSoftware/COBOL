@@ -287,8 +287,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // The debugging section's own PERFORMs and GO TOs set the cause of the transfer they make; the cause this
             // trigger found is the next trigger's too when one procedure-name pair shares the pc (a section and its
             // first paragraph, §1985:XV.3.2.4 GR3 a), so it is restored.
-            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine;");
-            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgInSection = false; }");
+            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; bool __savedRaised = __dbgRaisedInSection;");
+            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgRaisedInSection = __savedRaised; __dbgInSection = false; }");
         }
         w.Line();
         // The data-name, ALL REFERENCES OF and cd-name triggers (docs/CONTROL_FLOW_DESIGN.md D20), named __DebugReady so a fire evaluates its
@@ -298,8 +298,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         using (w.Block("private void __RunDebugRef(int __line, string __nm, string __contents, int __ds, int __de, params long[] __occ)"))
         {
             w.Line("__dbgItem.PopulateReference(__line, __nm, __contents, __occ);");
-            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; bool __savedIn = __dbgInSection;");
-            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgInSection = __savedIn; }");
+            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; bool __savedIn = __dbgInSection; bool __savedRaised = __dbgRaisedInSection;");
+            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgRaisedInSection = __savedRaised; __dbgInSection = __savedIn; }");
         }
         w.Line();
     }
