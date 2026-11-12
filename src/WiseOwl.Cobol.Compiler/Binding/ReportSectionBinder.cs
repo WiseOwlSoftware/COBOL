@@ -1553,7 +1553,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + "clause shall also be specified (ISO §2023:13.15.3 SR15)");
             if (Edition.DialectLevel < 2002)
                 ScreenReportEntryFormats(entries, i, level, where, usage, line, column,
-                    picture, formatThreeOnly: source || value || sum || groupIndicate || justifiedOrBwz || sign, hasName: ge.dataName().NameOrNull() is not null);
+                    picture, formatThreeOnly: source || value || sum || groupIndicate || justifiedOrBwz || sign, hasName: ge.dataName().NameOrNull() is not null,
+                    written);
             if (groupIndicate)
             {
                 // §2023:13.18.28.3 SR1 — the three placement conditions the elementary rule (§2023:13.15.3 SR11, above)
@@ -1603,12 +1604,34 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <item>SR8 — "the USAGE clause is used only to declare the usage of printable items": a. in a format 3 entry the entry
     /// must define a printable item (one with a COLUMN NUMBER clause, §1985:XIII.3.11.4 GR1); b. in a format 1 or format 2
     /// entry at least one subordinate entry must define one.</item>
+    /// <item>SR3 — "In format 2 the level-number may be any integer from 02 to 48 inclusive. In format 3 the level-number may
+    /// be any integer from 02 to 49 inclusive.", with SR4a — "The first entry that describes a report group must be a format 1
+    /// entry": a level 01 entry is format 1, which prints none of the clauses only format 3 has (PICTURE, SIGN, JUSTIFIED,
+    /// BLANK WHEN ZERO, COLUMN, SOURCE, VALUE, SUM, GROUP INDICATE), and a level 49 entry is format 3, so it has a PICTURE
+    /// (kb/Work PB5316: `01 DL TYPE DETAIL LINE PLUS 1 COLUMN 1 PIC S99 … SOURCE WS-A` compiled and printed).</item>
     /// </list>
     /// COBOL-2002 and later have one entry format, whose rules the screens above already ask.</summary>
     private void ScreenReportEntryFormats(Core.ReportGroupEntryContext[] entries, int self, int level, string where,
-        bool usage, bool line, bool column, bool picture, bool formatThreeOnly, bool hasName)
+        bool usage, bool line, bool column, bool picture, bool formatThreeOnly, bool hasName, ReportEntryClause written)
     {
+        const ReportEntryClause FormatThreeClauses = ReportEntryClause.Picture | ReportEntryClause.Sign | ReportEntryClause.Justified
+            | ReportEntryClause.BlankWhenZero | ReportEntryClause.Column | ReportEntryClause.Source | ReportEntryClause.Value
+            | ReportEntryClause.Sum | ReportEntryClause.GroupIndicate;
+        if (level == 1 && (written & FormatThreeClauses) is var levelOneFormatThree and not ReportEntryClause.None)
+            Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a level 01 entry and writes "
+                + $"{ReportEntryClauseTable.Words(levelOneFormatThree)}; the first entry of a report group is a format 1 entry, which "
+                + "has none of them, and a format 3 entry's level-number is an integer from 02 to 49 (ISO §1985:XIII.3.9.3 SR3, "
+                + "SR4a)");
         bool formatTwo = level > 1 && !picture && !formatThreeOnly && !column;
+        // A level 49 entry can have no subordinate entry, so SR4 c and SR8 b would refuse it too: SR3 is the rule it breaks,
+        // and it is reported alone.
+        if (formatTwo && level == 49)
+        {
+            Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a level 49 entry with no PICTURE clause and "
+                + "none of the clauses of a format 3 entry, so it is a format 2 entry, whose level-number is an integer from 02 "
+                + "to 48 (ISO §1985:XIII.3.9.3 SR3)");
+            return;
+        }
         if (formatTwo)
         {
             if (!hasName && !line && !usage)
