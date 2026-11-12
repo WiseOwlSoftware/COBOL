@@ -565,8 +565,20 @@ public sealed class CopyProcessor(
                         sb.AppendSlice(mapped, directive.Start, directive.End - directive.Start);
                         keptDirective = true;
                     }
-                    bool endsOnDebuggingLine = StartsWithCarrier(introduced, introduced.LastIndexOf('\n') + 1);
-                    if (keptDirective || (endsOnDebuggingLine && !onDebuggingLine)) sb.NewLine(mapped.PointAt(matchEnd));
+                    // The text after the match keeps the indicator of the line the match ENDS on (§1985:XII.3.4 GR11 decides
+                    // the introduced lines only): when the replacement ends on a line of the other kind, or a kept
+                    // directive line intervenes, the rest starts a line of its own, with its own line's indicator.
+                    int lastLine = introduced.LastIndexOf('\n') + 1;
+                    bool resultEndsDebugging = lastLine > 0 || StartsWithCarrier(introduced, 0)
+                        ? StartsWithCarrier(introduced, lastLine) : onDebuggingLine;
+                    int endLineStart = text.LastIndexOf('\n', matchEnd - 1) + 1;
+                    bool endLineDebugging = endLineStart == 0 ? firstLineIsDebugging : StartsWithCarrier(text, endLineStart);
+                    if (keptDirective || resultEndsDebugging != endLineDebugging)
+                    {
+                        sb.NewLine(mapped.PointAt(matchEnd));
+                        if (endLineDebugging && matchEnd < text.Length && text[matchEnd] != '\n')
+                            sb.Append(ReferenceFormatProcessor.DebugLineCarrier.AsSpan(), mapped.PointAt(matchEnd));
+                    }
                     copiedUpTo = matchEnd;
                     w += from.Count;
                     matched = true;

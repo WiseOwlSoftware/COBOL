@@ -9,7 +9,7 @@
       *> that begins on a debugging line appears on a debugging line.
       *> §1985:VI.4.3.4 GR4: with WITH DEBUGGING MODE the debugging lines
       *> are compiled, so the copied text of a debugging-line COPY runs
-      *> (nested COPY, REPLACING, and the text after the statement's
+      *> (REPLACING, and the text after the statement's
       *> period included), and so does a debugging line of a library.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5214B.

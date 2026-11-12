@@ -9,7 +9,7 @@
       *> that begins on a debugging line appears on a debugging line.
       *> §1985:VI.4.3.4 GR5: without WITH DEBUGGING MODE any debugging
       *> lines are compiled as if they were comment lines, so the copied
-      *> text of a debugging-line COPY (nested COPY, REPLACING, and the
+      *> text of a debugging-line COPY (REPLACING, and the
       *> text after the statement's period included) is comment; the
       *> normal COPY of a library holding its own debugging line keeps
       *> its normal line and drops its debugging line.
