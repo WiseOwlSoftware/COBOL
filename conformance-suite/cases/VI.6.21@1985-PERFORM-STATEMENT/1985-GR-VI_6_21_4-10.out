@@ -1,0 +1,27 @@
+A 01
+B 03
+B0 00
+B2 02
+C1 05
+C2 05
+C3 06
+I=1
+I=3
+I=5
+D1 END 7
+D2 END 4
+I=4
+D3 END 4
+S=1
+S=2
+S=5
+D4 END 6
+I=1 J=1
+I=1 J=2
+I=2 J=2
+D5 END 3 3
+I=1 J=1
+I=1 J=2
+I=2 J=1
+I=2 J=2
+D6 END 2 2

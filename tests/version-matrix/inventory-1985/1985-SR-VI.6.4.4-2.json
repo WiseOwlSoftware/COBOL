@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.4.4-2",
  "rule-digest": "debfac8513ad",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-SR-VI_6_4_4-2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
