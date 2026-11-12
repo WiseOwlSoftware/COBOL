@@ -11,7 +11,8 @@ probe did not reproduce it, so the holder stays unnamed. A file in %TEMP% is a f
 
 The fix removes the handoff file. rr.war reads the EBNF on stdin and writes the Markdown to stdout (`Invoke-Rr`, UTF-8
 on all three streams). The temp directory, the intermediates and the retry are deleted, and the 10 generated notes
-are byte-identical to the old script's. The drift test now runs the generator with `TMP`/`TEMP` pointed at its own
-directory and holds every fresh file there for writing. Main's script fails it with the gate's message; the fixed
+are byte-identical to the old script's. The drift test now runs the generator with its temp directory pointed at its own
+directory (`TMP` and `TEMP` for Windows, `TMPDIR` for Linux, where .NET reads no other) and holds every fresh file
+there for writing. Main's script fails it with the gate's message; the fixed
 script passes. The sibling sweep found no other instance: `orchestrate.ps1#Take-Lock`'s identical catch clause works,
 and the ANTLR `.tokens` copy and the tar self-test hand off files by design.
