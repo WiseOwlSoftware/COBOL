@@ -153,6 +153,27 @@ public enum DialectBehavior
     /// is not presented, so at <c>--std 85</c> only a GENERATE whose group was presented consumes it (kb/Work PB5246; VCR row
     /// 7.60). The consumer is <c>CobolReport.GenerateCore</c>.</summary>
     GroupIndicateConsumedByIssuedGenerate = 10,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:15.5.2 — a value in integer date form "shall be less than or equal to the value of
+    /// FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671", and the YYYY of INTEGER-OF-DATE and INTEGER-OF-DAY "shall be an
+    /// integer greater than 1600 and less than 10000" (§2023:15.46.3 AR1 a, §2023:15.47.3 AR1 a); the 2002 text words all three
+    /// the same. The 1989 intrinsic function module bounds the year below only: §1989:A.2.16.3 AR1 a. "It must be an integer
+    /// greater than 1600" (§1989:A.2.17.3 AR1 the same), and DATE-OF-INTEGER and DAY-OF-INTEGER take "a positive integer that
+    /// represents a number of days succeeding December 31, 1600" (§1989:A.2.12.3 AR1, §1989:A.2.13.3 AR1). So at
+    /// <c>--std 85</c> INTEGER-OF-DATE (100000101) is 3,067,672 and DATE-OF-INTEGER (3067672) is 100000101 (kb/Work PB5130;
+    /// VCR row 7.61). Both editions are QUOTED. The consumer is <c>IntrinsicBinder.BindFunctionResult</c>, which sets
+    /// <c>BoundIntrinsicCall.IntegerDateFormUnbounded</c> for the four <c>CobolDate</c> bodies.</summary>
+    IntegerDateFormBounded = 11,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:15.68.3 AR2 — NUMVAL-C's argument-2 "shall not contain any of the digits 0 through 9;
+    /// the characters '*', '+', '–', ',' , or '.'; or the two consecutive letters 'CR' or 'DB'" and "shall contain at least one
+    /// non-space character"; the 2002 text words it the same. The 1989 intrinsic function module asks only its class,
+    /// §1989:A.2.30.3 AR4 "Argument-2, if specified, must be a nonnumeric literal or alphanumeric data item", and AR1 makes cs
+    /// "the string of one or more characters specified by argument-2", so at <c>--std 85</c> a currency string such as "Fr."
+    /// or "CRC" is admitted and scanned as written (kb/Work PB5161; VCR row 7.62). Both editions are QUOTED. The consumers
+    /// are <c>IntrinsicBinder.BindNumvalCFamily</c> (the literal screen, and <c>BoundIntrinsicCall.CurrencyContentUnrestricted</c>
+    /// for a data item) and <c>CobolIntrinsics.NumvalCDec</c>.</summary>
+    NumvalCCurrencyContentRules = 12,
 }
 
 /// <summary>
@@ -224,6 +245,14 @@ public static class DialectBehaviors
             "7.60", "13.18.28.4 GR1", "§1985:XIII.3.13.4 GR1",
             "a GENERATE whose group SUPPRESS PRINTING kept from printing uses up the GROUP INDICATE occasion only from COBOL-2002; "
             + "COBOL-85 keys the indication to the first presentation of the detail group"),
+        new(DialectBehavior.IntegerDateFormBounded, "integer-date-form-bounded-9999", 2002,
+            "7.61", "15.5.2", "§1989:A.2.16.3 AR1",
+            "the integer date form and the YYYY of INTEGER-OF-DATE and INTEGER-OF-DAY end at 9999-12-31 only from COBOL-2002; "
+            + "the COBOL-85 intrinsic function module bounds the year below only"),
+        new(DialectBehavior.NumvalCCurrencyContentRules, "numval-c-currency-content-rules", 2002,
+            "7.62", "15.68.3 AR2", "§1989:A.2.30.3 AR4",
+            "NUMVAL-C's argument-2 may hold no digit, none of * + - , . and no CR or DB only from COBOL-2002; "
+            + "the COBOL-85 intrinsic function module asks only that it be a nonnumeric literal or alphanumeric data item"),
     ];
 
     static DialectBehaviors()

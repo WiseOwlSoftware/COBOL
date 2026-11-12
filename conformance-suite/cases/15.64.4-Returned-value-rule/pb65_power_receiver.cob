@@ -16,6 +16,8 @@
       *> negative exponent → the exact carrier owning its scale at run time (CobolExact.Pow, kb/Work PB4569).
       *> REM (§2023:15.77.4) rides the same argument, the reciprocal (§2023:8.8.1.2) keeps its fraction on both
       *> arms, and 10 ** 30 stays exact (the PB18 case).
+      *> X is UNSIGNED: A ** X is MOD's argument-1, which §2023:15.3 type 6 requires to ALWAYS result in an
+      *> integer, and a signed exponent item can be negative (kb/Work PB5208 refuses A ** X over a signed X).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB65POWRCV.
        DATA DIVISION.
@@ -24,7 +26,7 @@
        01 A13   PIC S9(18) VALUE 9999999999999.
        01 A14   PIC S9(18) VALUE 99999999999999.
        01 B     PIC S9(18) VALUE 1000000007.
-       01 X     PIC S9(4)  VALUE 2.
+       01 X     PIC 9(4)   VALUE 2.
        01 XN    PIC S9(4)  VALUE -2.
        01 R9    PIC S9(9)  SIGN LEADING SEPARATE.
        01 R18   PIC S9(18) SIGN LEADING SEPARATE.

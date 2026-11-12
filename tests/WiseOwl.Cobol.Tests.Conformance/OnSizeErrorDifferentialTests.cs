@@ -101,7 +101,7 @@ public sealed class OnSizeErrorDifferentialTests
     {
         // 50 → R1 PIC 9(3) = 050 (stored); R2 PIC 9(1) overflows (50 > 9) → unchanged at its VALUE 8; SIZE ERROR fires.
         var src = Program("01 R1 PIC 9(3) VALUE 1.\n01 R2 PIC 9(1) VALUE 8.",
-            "    ADD 50 GIVING R1 R2 ON SIZE ERROR DISPLAY \"E\".\n    DISPLAY R1.\n    DISPLAY R2.");
+            "    ADD 50 TO 0 GIVING R1 R2 ON SIZE ERROR DISPLAY \"E\".\n    DISPLAY R1.\n    DISPLAY R2.");
         AssertOutput(src, "E\n050\n8");
         AssertMatchesGolden(src);
     }

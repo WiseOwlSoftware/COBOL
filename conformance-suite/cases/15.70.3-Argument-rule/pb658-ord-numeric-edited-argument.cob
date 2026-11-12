@@ -11,6 +11,9 @@
       *> character position and class alphanumeric (§2023:8.5.2.1 Table 2), which is why the class screen and the width
       *> predicate both let it through; its CATEGORY is numeric-edited, and §2023:8.5.2.1's closing sentence ("refers to
       *> the category unless class is specifically indicated", cite.py --check 8.5.2.1 OK) makes r1 a category rule.
+      *> The 2002 text words it the same, so it is refused from 2002; the 1989 module says CLASS alphanumeric
+      *> (§1989:A.2.31.3 AR1), which holds numeric edited, so COBOL-85 accepts it (kb/Work PB5162,
+      *> pb5162_ord_numeric_edited_85).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB658NEG2.
        DATA DIVISION.

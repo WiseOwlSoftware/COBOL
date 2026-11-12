@@ -84,8 +84,11 @@ communicationPath
     | OUTPUT
     ;
 
+// §1985:XIV.3.2.2 / §1985:XIV.3.3.2: `WITH KEY {identifier-1 | literal-1}`, a sending operand, so the one sendingOperand rule: an
+// alphanumeric function-identifier "may be specified anywhere in the general formats that an identifier is permitted"
+// (§1985:IV.4.3.8.3.3 SR3, Amendment 1; kb/Work PB5240). CommunicationBinder asks SR4's alphanumeric rule of it.
 communicationKeyPhrase
-    : WITH? KEY (literal | dataReference)
+    : WITH? KEY sendingOperand
     ;
 
 // A.2.4.1: `PURGE cd-name-1`.

@@ -27,8 +27,9 @@ public sealed class UserWordSlotDriftTests
     {
         ["cobolWord"] = "the name rule itself — IDENTIFIER is its base arm (CobolWords.g4, generated)",
         ["formatWord"] = "a general-format KEYWORD with no lexer token, matched by text (kb/Work PB764)",
-        ["enterOperand"] = "ENTER language-name-1 / routine-name-1: a system-name and an external routine, not a "
-            + "word in the program's name space (the X3.23-1985 ENTER statement, removed by COBOL-2002)",
+        ["enterOperand"] = "ENTER language-name-1: a system-name, not a word in the program's name space; routine-name-1 is "
+            + "the routineName rule's user-defined word (kb/Work PB5178). "
+            + "The X3.23-1985 ENTER statement, removed by COBOL-2002",
         ["residueOpening"] = "the error production's word run (its opening, and every tail item but an `&` operand), refused "
             + "by name (kb/Work PB829, PB3373, PB3390)",
         ["decimalPointClause"] = "DECIMAL-POINT IS COMMA: the keyword COMMA has no lexer token",

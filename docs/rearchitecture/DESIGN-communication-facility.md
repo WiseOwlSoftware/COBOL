@@ -8,7 +8,7 @@ it and NIST-85's CM module runs.
 The authority is ISO/IEC 1989:2002 Annex A (Communications facility), with E.5 as its concepts section, read from the 2002 post-ballot text
 (`E:/COBOL-coord/specs-drafts/t2002.txt`, general formats rendered from `x2002/cobolv200112.pdf`). The 2002 text is outside the tracked
 tree, so citations of it are not `cite.py`-checkable and are written `ISO/IEC 1989:2002 A.n`, never with the `§` of the 2023 text. The
-1985 text is not held: CCVS-85's CM programs are the witness of the COBOL-85 KEY phrase and status 40.
+1985 text is `specs/ANSI_COBOL_1985.md` (§1985:XIV), and CCVS-85's CM programs witness the COBOL-85 KEY phrase and status 40.
 
 The facility is not the 2023 asynchronous messaging facility (§2023:14.9.31, §2023:14.9.38), which shares the words RECEIVE and SEND, and the two
 differ in kind. This facility stores and forwards: a message outlives the run unit that sent it, so the MCS keeps it in a durable store.
@@ -71,6 +71,19 @@ positions) and the VALUE rule. All are COBOL6169 with the rule quoted, the COBOL
 `CommunicationBinder` builds one `BoundCommunicationStatement` per statement, carrying `Cd.Area`'s place: they are one operation over one area, and the optional members are the operands
 each format prints. COBOL6170 is a name that is no cd-name, or a cd-name of a format the statement's rule does not admit. COBOL6171 is an operand of the wrong class or category.
 
+The operand rules by edition (kb/Work PB5278, PB5289, PB5082, PB5240):
+
+| Operand | 85 | 2002 |
+|---|---|---|
+| RECEIVE identifier-1 | any data item (§1985:XIV.3.5.3 has SR1 alone) | category alphanumeric (A.2.5.2 SR2) |
+| SEND identifier-1 | any data item; a function-identifier names an alphanumeric function (§1985:XIV.3.6.3 SR6) | class alphanumeric (A.2.6.2 SR2, SR7) |
+| SEND identifier-2 | a one-character unsigned integer: `PicInfo.IsIntegerDescription` with one digit position (P is not counted, §1985:VI.5.9.4) | the same (SR3) |
+| ADVANCING identifier-3 | an integer data item (`IsIntegerDescription`): never an index data item, an index-name, a constant-name or a symbolic-character | the same (SR4) |
+| ADVANCING integer-1 | an integer, or the figurative ZERO with or without ALL | the same |
+| ENABLE and DISABLE KEY | `sendingOperand`, so an alphanumeric function-identifier too (§1985:IV.4.3.8.3.3 SR3), "defined as alphanumeric" (§1985:XIV.3.2.3 SR4, §1985:XIV.3.3.3 SR4) | removed (COBOL0902) |
+
+`CommunicationBinder.ClassRules2002` is the binder's one edition read.
+
 The ADVANCING phrase's operands are screened and kept nowhere. The devices of this MCS are oriented to variable-length messages (A.2.6.3 GR2), so vertical positioning "is not
 applicable" and "the MCS will ignore" it (GR12). REPLACING LINE follows.
 
@@ -81,7 +94,7 @@ The facility raises no exception condition: "exception handling [is] intentional
 `CommunicationEmitter` renders one `MessageControl` call per statement. The area goes over through `OperandText.RecordAreaImage`, the one record-area channel, and comes back through
 `SequentialIoEmitter.EmitImageInto` verbatim (other descriptions read the same storage). "The message control system (MCS) always references the record according to the data description
 defined in" GR2, GR16 and GR24, so the runtime reads positions and a user's redefinitions never reach it. RECEIVE returns a `CommunicationReceipt`: the area, the receiving item's image, and
-which phrase runs. A CD with INITIAL sets its names once per instance, before the first procedure division statement (GR6, GR28).
+which phrase runs. A CD with INITIAL sets its names once per instance, before the first procedure division statement (GR6, GR28): the scheduling names go only to the program that establishes the run unit (`ModuleStack.RunningIsMain`), and a CALLed program's INITIAL CD is spaces (§1985:XIV.2.2.4 GR28 "In all other cases"; kb/Work PB5282). RECEIVE evaluates identifier-1's subscripts and reference modifiers once, before the MCS call, through `PlaceIdentification.Freeze` (§1985:IV.4.3.8; kb/Work PB5279).
 
 ## 6. The message control system
 
@@ -137,6 +150,7 @@ queue path is its level names each followed by the byte 0x01, and a serial is th
 |---|---|---|---|
 | `C` | `Meta` | one fixed key | the store's identity (16 random bytes, minted at creation), the next serial, the SHA-256 of the `mcs.json` it was seeded from, and the three bell counters `BackstopFires`, `BackstopFinds` and `BellUnavailable` (§6 "The RECEIVE wait") |
 | `E` | `Endpoints` | kind (queue, source, destination, terminal), name or queue path | enabled, key, capacity, `deliverTo`, source |
+| `L` | `Paths` | queue path, 0x00, source name | whether the logical path between the source and the queue is enabled, as a statement last set it |
 | `M` | `QueueMessages` | queue path, 0x00, serial | `StoredMessage` in its binary codec: segments, end of group, date, time, source |
 | `I` | `TerminalMessages` | terminal, 0x00, serial | `StoredMessage`: what a terminal has sent, for an input-output CD's RECEIVE |
 | `N` | `QueueCounts` | queue path prefix | the complete messages under the prefix |
@@ -295,7 +309,10 @@ GR5 b). It waits on its bell, never on a timer.
 
 **The run unit's half.** A portion released and not ended, the remainder of a message begun, and each input-output CD's first terminal live in `MessageControlSession`, on the `RunUnit`. ISO/IEC 1989:2002 14.5.10 rule 2 follows by
 construction: "remaining portions of any partially-received messages are eliminated from the queue. Any portions of messages transferred from the run unit by a SEND statement, and not terminated by an EMI or EGI, are purged
-from the system." A RECEIVE takes a message out of `QueueMessages` when it begins it, so a run unit that dies with a remainder loses the remainder, which that rule prescribes.
+from the system." A RECEIVE takes a message out of `QueueMessages` when it begins it, so a run unit that dies with a remainder loses the remainder, which that rule prescribes. The message is still in the queue to the run unit that holds the remainder (§1985:XIV.3.1.4 GR1 counts the complete messages that exist in the queue structure; §1985:VI.6.24.4 GR3), so its ACCEPT MESSAGE COUNT
+adds the remainders it holds under the queue structure the CD designates (`Dialogue.PartlyReceivedFrom`); another run unit's count does not (docs/CONFORMANCE.md §3.3). A portion released and not ended is kept per occurrence of the DESTINATION TABLE
+(the destination's name and which occurrence of that name), so a destination named twice is sent to twice, each message with a segment and message control of its own (kb/Work PB5288). The first statement of an input-output CD fixes its terminal
+before any status is decided (GR31, kb/Work PB5283). A received message's symbolic source is written only when it names a source or a terminal of the definitions (GR10, `MessageStoreState.KnowsCommunicationTerminal`), else spaces.
 The session holds the run unit's `mcs.store` handle, its region-lock endpoint and its bell from its first statement until `RunUnit.Terminate`,
 which ends the session after `Files.CloseAll`: the session's closing statement deletes its own `Waits` rows, the store closes under the mutex (the engine's promotion, `PagedFile.Close`), the endpoint
 gives back every byte it holds, the bell closes and its socket file is unlinked. The handle is opened `FileShare.ReadWrite`; it is the
@@ -338,11 +355,12 @@ compile and `check-batch` (`Program.Parse` chooses the tree by the first word). 
 input-output CD's terminal is fixed from the start (GR30). Unset, the names are spaces.
 
 **Choices the rules leave.** A level not named at RECEIVE is chosen alphabetically, a level's messages first in, first out (E.5.5.3, E.5.5.4). Data is "not made available" when the designated structure holds no complete message (B.1 item 116).
+**Logical paths.** ENABLE and DISABLE act on paths, not endpoints (§1985:XIV.3.2.4 GR3, GR4; §1985:XIV.3.3.4 GR2, GR3). A path is one (source, queue) pair of the definitions. The path is open when its `Paths` row says so, and with no row when the queue's and the source's own enabled states are both true; a destination whose source name is no defined source has no path, and its queue's own state decides. DISABLE and ENABLE INPUT write the queue named and every queue below it (a queue given by fewer levels than the CD has is a structure) and the row of each of them with every defined source; DISABLE and ENABLE INPUT TERMINAL write the source and the row of it with every queue of the definitions. A statement is answered 15 when every state it wrote was already the one asked for. The password is the named queue's or source's own. (`MessageStoreState.SetQueuePaths`, `SetSourcePaths`, `PathOpen`; kb/Work PB5286.) Seeding deletes a queue's or a source's rows with the endpoint.
 A disabled queue still answers RECEIVE: DISABLE deactivates "the logical paths between the queue ... and all the associated enabled sources" (A.2.2.3 GR3), and CCVS-85 CM105M reads after disabling. A complete message sent to a destination
-goes, in the SEND's own statement, to the device, to the terminal, or to the queue the destination feeds; while the destination, the input queue it feeds, or its source's path is disabled it waits in `Outbound`, and it moves on in the
+goes, in the SEND's own statement, to the device, to the terminal, or to the queue the destination feeds; while the destination, or the path between its source and the input queue it feeds, is disabled it waits in `Outbound`, and it moves on in the
 statement that opens the path (E.5.5.1). The endpoints whose paths an ENABLE opens are found from the definitions in memory, and only their `Outbound` rows are read. An error key is written '0' for a destination with no error (Table A.2, and the CM102M
 report's `00/0`). Status 80 appears only for destinations, the one place one statement names several. Status 9x (B.1 item 28): 91 an unusable `mcs.json` and 92 a store the host refuses or a host whose locks answer `Unavailable`, each with no action; 93 a refused statement whose outcome the store could not decide (§6 "Status 92 takes no action"). With 9x a RECEIVE passes control as if data had been made
-available. No alphabetic error key is defined (B.1 item 27). ADVANCING is §4 above.
+available. No alphabetic error key is defined (B.1 item 27). A statement refused before its destinations (status 40 of ENABLE and DISABLE OUTPUT, 50 and 60 of SEND) still writes each occurrence 1 to the count (§1985:XIV.2.2.4 GR22): 1 for an unknown destination, else Table 2's value for the destination as it is, else 0 (`SetErrorKeys`). ADVANCING is §4 above.
 
 ## 7. Witnesses
 

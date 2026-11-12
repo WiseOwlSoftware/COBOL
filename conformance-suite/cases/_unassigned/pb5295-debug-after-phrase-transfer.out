@@ -1,0 +1,16 @@
+  DBG [SF]
+  DBG [SF]
+  DBG [KF]
+  DBG [KF]
+  DBG [SF]
+  DBG [KF]
+READ SF NOT AT END GO TO
+  DBG [SF]
+AT M2
+  DBG [KF]
+AT M3
+  DBG [KF]
+AT M4
+  DBG [SF]
+  DBG [KF]
+END
