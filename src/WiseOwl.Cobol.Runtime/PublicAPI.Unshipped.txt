@@ -152,6 +152,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter 
 WiseOwl.Cobol.Runtime.DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly = 5 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.InspectFormat3LengthIdentifiedOnce = 7 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RecordContainsRangeBindsRecordSize = 13 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.InspectBeforeFromFirstEligiblePosition = 14 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool

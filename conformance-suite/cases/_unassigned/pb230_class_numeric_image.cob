@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb230_class_numeric_image
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

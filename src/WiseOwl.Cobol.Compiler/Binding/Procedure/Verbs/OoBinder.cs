@@ -1089,12 +1089,15 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// reported.</summary>
     private bool ActiveClassSubordinateAdmitted(Place p, string subject)
     {
-        if (p.DenotedItem is not { IsGroup: true } g) return true;
-        if (DataItem.DescendantsOf(g).FirstOrDefault(d => d.Pic?.ObjectRef is { Kind: ObjectRefKind.ActiveClass })
+        // The group and its subordinates through the ONE readers a level-66 alias answers too (kb/Work PB5120 review R1-1's
+        // sweep): a no-THROUGH alias of such a group has its attributes (§2023:13.18.45.4 GR1), and asked as IsGroup over the
+        // alias's own entry, which has no Children, it was admitted.
+        if (MoveTable16.OperandItem(p) is not { } g || !ItemCategory.IsGroupItem(g)) return true;
+        if (DataItem.SubordinatesOf(g).FirstOrDefault(d => d.Pic?.ObjectRef is { Kind: ObjectRefKind.ActiveClass })
             is not { } leaf)
             return true;
         ctx.Edition.Error(DiagnosticCatalog.InvokeActiveClassSubordinate,
-            $"{subject} '{g.CobolName}' is a group item with the subordinate object reference '{leaf.CobolName}' "
+            $"{subject} '{(p.DenotedItem ?? g).CobolName}' is a group item with the subordinate object reference '{leaf.CobolName}' "
             + "described with the ACTIVE-CLASS phrase (ISO §2023:14.9.23.3 SR13: \"there shall not be an item subordinate "
             + "to that group item that is an object reference described with the ACTIVE-CLASS phrase\")");
         return false;

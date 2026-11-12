@@ -297,7 +297,11 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             converting = new BoundInspectConvert(from.Op, to.Op, before, after, to.Figurative);
         }
 
-        return new BoundInspect(targetOperand, tallying, replacing, converting, backward);
+        // §2023:14.9.22.4 GR9 b measures BEFORE from the first ELIGIBLE position; §1985:VI.6.18.4 GR8 b (and the 2002 and
+        // 2014 texts) from the leftmost one, whatever the AFTER phrase says (kb/Work PB5120).
+        bool beforeFromLeftmost = !DialectBehaviors.IsActive(
+            DialectBehavior.InspectBeforeFromFirstEligiblePosition, ctx.Edition.Edition.Year);
+        return new BoundInspect(targetOperand, tallying, replacing, converting, backward, beforeFromLeftmost);
     }
 
     /// <summary>Bind a per-operand BEFORE/AFTER delimiter pair (ISO §2023:14.9.22.2 after-before-phrase; both may

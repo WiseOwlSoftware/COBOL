@@ -2000,7 +2000,7 @@ internal sealed class StatementValidation(DataBinder data)
         // pair is not asked: §2023:8.8.4.2.12 compares it element by element (SR1 above already required one type).
         else if (RelationPair.Classify(left, right) is RelationPairShape.VariableLengthGroup)
         {
-            if (VariableLengthCompatibility.PairRefusal(OperandItem(left), OperandItem(right), "first", "second",
+            if (VariableLengthCompatibility.PairRefusal(MoveTable16.OperandItem(left), MoveTable16.OperandItem(right), "first", "second",
                     "may be compared only with a compatible GROUP") is { } why)
                 data.Edition.Error(DiagnosticCatalog.VariableLengthGroupComparison, why);
         }
@@ -2048,9 +2048,6 @@ internal sealed class StatementValidation(DataBinder data)
         }
     }
 
-    /// <summary>The DATA ITEM a relation operand denotes, or null for an operand that is not one (a literal, a
-    /// figurative constant, a computed value, a reference-modified view — kb/Work PB602's identity question).</summary>
-    private static DataItem? OperandItem(BoundOperand o) => o is BoundFieldOperand { Place.DenotedItem: { } item } ? item : null;
 
     /// <summary>§2023:8.3.3.6.3 SR3 over one side of a relation: <paramref name="figurative"/> compared with the DATA
     /// ITEM <paramref name="other"/> names — an elementary item's own category (a reference-modified view is
