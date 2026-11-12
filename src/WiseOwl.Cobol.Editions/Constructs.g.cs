@@ -57,6 +57,7 @@ public static class Constructs
     public const string ConstantRecord2014 = "constant-record-2014";
     public const string ContinueAfter2023 = "continue-after-2023";
     public const string CopyLiteralName2002 = "copy-literal-name-2002";
+    public const string CopyNestedLibraryText2002 = "copy-nested-library-text-2002";
     public const string CopyReplacingNonPseudoTextRemoved2023 = "copy-replacing-non-pseudo-text-removed-2023";
     public const string CopySuppress2002 = "copy-suppress-2002";
     public const string CurrencyPictureSymbol2002 = "currency-picture-symbol-2002";
@@ -204,6 +205,7 @@ public static class Constructs
     public const string RelativeKeyClauseAlone2002 = "relative-key-clause-alone-2002";
     public const string RemarksRemoved85 = "remarks-removed-85";
     public const string ReplaceAlsoLast2002 = "replace-also-last-2002";
+    public const string ReplaceAnywhere2002 = "replace-anywhere-2002";
     public const string ReplacingPartialWord2002 = "replacing-partial-word-2002";
     public const string ReportFiller2002 = "report-filler-2002";
     public const string ReportGroupSign2002 = "report-group-sign-2002";

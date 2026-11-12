@@ -1,0 +1,16 @@
+{
+ "id": "copy-nested-library-text-2002",
+ "description": "Library text that itself holds a COPY statement (§2002:7.1.2.3 GR14: \"If the REPLACING phrase is not specified, the library text may contain a COPY statement that does not include a REPLACING phrase\"). ANSI X3.23b-1993 added to ANSI X3.23-1985 XII.2.4 a general rule 12 (§1985:XII.2.4 GR12: \"The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement\"); ISO/IEC 1989:2002 Annex F.2 item 39 lists the nesting as a 2002 addition (\"The ability to nest COPY statements is provided\"). The introduction gate is CopyProcessor.ResolveOneCopy, reported at the OUTER COPY statement the library text belongs to (kb/Work PB5126).",
+ "display": "library text that contains a COPY statement",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§2002:7.1.2.3 GR14; §1985:XII.2.4 GR12",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "§2002:7.1.2.3 GR14; ISO/IEC 1989:2002 Annex F.2 item 39",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCNL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\nCOPY VMCNLO.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W1 W2.\n    STOP RUN.\n",
+ "copybooks": {
+  "VMCNLO.cpy": "01 W1 PIC X VALUE \"K\".\nCOPY VMCNLI.\n",
+  "VMCNLI.cpy": "01 W2 PIC X VALUE \"L\".\n"
+ }
+}

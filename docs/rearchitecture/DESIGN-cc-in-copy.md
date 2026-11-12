@@ -208,6 +208,25 @@ diagnostics, and (via `CompilerDriver` → `EditionContext.LineMap`) to the bind
 and therefore stay in RESULTANT space — the map is consulted only at the user-facing boundary. Consumer side:
 `docs/VALIDATION_DESIGN.md` §2 "Positions".
 
+### §3.6 What text manipulation asks of the edition (kb/Work PB5085, PB5126, PB5277)
+
+COBOL-85 and the editions from 2002 differ in three rules of this stage, each asked of the targeted edition at ONE site:
+
+- **A REPLACE statement's place.** §1985:XII.3.3 SR1 requires a separator period before it (or the start of a separately compiled
+  program); §2002:7.1.3.2 SR1 allows it wherever a character-string may stand. `ApplyReplaceStatements` asks the constructs row
+  `replace-anywhere-2002` of a REPLACE that `FollowsSeparatorPeriod` does not accept (text that came from a library file is taken to
+  follow the COPY statement's own period).
+- **COPY in library text.** §1985:XII.2.4 GR12 forbids it; §2002:7.1.2.3 GR14 allows it without REPLACING. `ResolveOneCopy` asks the
+  row `copy-nested-library-text-2002` of the library text it has read, and reports at the OUTER statement. Below 2002 the one
+  report speaks for the REPLACING arm (the 2023 GR10 diagnostic) too.
+- **The scope of a REPLACE.** §1985:XII.3.4 GR3 ends it with the separately compiled program, §2002:7.1.3.3 GR5 with the compilation
+  group. `EditionInfo.ReplaceScopeEndsWithSeparatelyCompiledProgram` is the edition fact; below 2002 `ApplyReplaceStatements` cuts the text at each
+  `END PROGRAM` header that closes no open program (`SeparatelyCompiledProgramEnds`, read as text-words so pseudo-text is never a
+  header) and `ReplaceStates.EndScope` drops every statement in effect. A contained program lies inside its separately compiled program.
+
+The word COPY as word-1 or word-2 of a COPY REPLACING phrase is refused by COBOL7006 at 85, 2002 and 2014 (§1985:XII.2.3 SR6, §2002:7.1.2.2 SR10,
+§2014:7.2.2.2 SR10); 2023 removed the word forms (COBOL0902).
+
 ## §4 Wiring (greenfield only)
 
 `Frontend.Preprocess` makes ONE call, `ConditionalCompilationProcessor.Manipulate(normalized, copy, …)`, with a
