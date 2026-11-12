@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-2",
  "rule-digest": "a85b43f7735e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#LandAfterAction; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#LandFileNameAfterFailure; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#FireText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-2",
+ "notes": "§1985:XV.3.2.4 GR2 runs a file-name section after OPEN, CLOSE, DELETE and START, and after a READ \"(after any other specified USE procedure) not resulting in the execution of an associated AT END or INVALID KEY imperative statement\". DebugTriggerPlanner.PlanFile plans those five verbs only; the READ emitters land the fire after the NOT phrases (LandAfterActionKeeping) and on the no-record arm without AT END/INVALID KEY (LandFileNameAfterFailure, spaces), and KeyedIoEmitter.EmitDelete/EmitStart land it after the USE procedure and INVALID KEY; the witness covers sequential and relative files. Probes at 85 (dbg/g2a, g2b, g2c): sequential, indexed and relative files, OPEN/CLOSE fire, WRITE/REWRITE do not, READ fires with the record (variable-length 3-of-8 record gives \"XYZ\" + spaces), READ AT END and READ INVALID KEY taken do not fire, READ past EOF with no AT END fires after the USE procedure (status 46), READ of a closed file fires after U-SEC 47, failed START/DELETE with INVALID KEY fire after it, failed OPEN (35) fires after the USE procedure; READ WITH NO LOCK and DELETE FILE are refused at 85 (COBOL0900).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

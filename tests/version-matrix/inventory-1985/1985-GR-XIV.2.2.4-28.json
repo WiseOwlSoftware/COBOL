@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-28",
  "rule-digest": "9ad121442ab7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#InitialArea; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#InitialArea; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetTerminal; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitActivation",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-28",
+ "notes": "§1985:XIV.2.2.4 GR28: a program the MCS schedules gets the source terminal's name in data-name-3 of its INITIAL input-output CD, and \"In all other cases\" that item is initialized to spaces, before the first Procedure Division statement. CommunicationEmitter.EmitActivation calls MessageControl.InitialArea once per instance; InitialArea writes the scheduled terminal (WISEOWL_COBOL_MCS_SCHEDULED) only for the run unit's main program, else spaces, and locks it (GR30). Probes at 85: unscheduled, VALUE \"PRESET\" becomes spaces with the other VALUEs kept; scheduled T1 gives T1 and the first RECEIVE returns its message; a CALLed program's INITIAL CD is spaces, keeps its last-used state on a second CALL and is spaces again after CANCEL; two INITIAL CDs and INITIAL with USING refused (COBOL6169).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

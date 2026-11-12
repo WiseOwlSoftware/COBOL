@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.9.3-10",
  "rule-digest": "c4292d9a907c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#WrittenGroupKind; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SubordinateToLineClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClauseTable; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenRolledAddend",
  "test-ref": "conformance:cases/XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/1985-SR-XIII_3_9_3-10",
+ "notes": "§1985:XIII.3.9.3 SR10, in format 3: a) GROUP INDICATE only in a detail group; b) 'A SUM clause may appear only in a type control footing report group'; c) a COLUMN entry without LINE subordinate to a LINE entry; d) 'Data-name-1 may be referenced only if the entry defines a sum counter.'; e) 'An entry that contains a VALUE clause must also have a COLUMN NUMBER clause.' ReportSectionBinder#ScreenReportEntryClausePresence asks a (group kind from #WrittenGroupKind, COBOL2519), b behind its DialectLevel < 2002 arm (COBOL6763), c by ancestry (#SubordinateToLineClause, COBOL2247) and e through Table 1 (#ScreenReportEntryClauseTable, COBOL2247); #ReportEntryReferenceRefused refuses d in the procedure division (COBOL5092) and #ScreenRolledAddend a SUM of a non-counter entry (COBOL6764). Probes at --std 85: GROUP INDICATE in a CH refused, in a DE printed once ('HELLO  HELLO' then '       HELLO'); SUM in DE, RF and PF refused COBOL6763; COLUMN with no LINE anywhere and COLUMN after a sibling LINE subtree refused COBOL2247; VALUE with no COLUMN refused; MOVE of a SOURCE or VALUE entry's name refused COBOL5092, of a sum counter allowed (-012 mid-report), SUM of a SOURCE entry refused COBOL6764, SUM of a CF sum counter rolls forward (12, 12). The witness is a VALUE entry with no COLUMN, refused COBOL2247.",
  "next": {
   "kind": "CHANGED",
   "to": [

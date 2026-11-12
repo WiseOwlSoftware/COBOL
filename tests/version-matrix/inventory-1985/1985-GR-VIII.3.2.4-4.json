@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.3.2.4-4",
  "rule-digest": "a4185425a073",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#labelRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#CaptureLabelRecords; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#CheckFileDescriptions; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause",
  "test-ref": "conformance:cases/VIII.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-GR-VIII_3_2_4-4",
+ "notes": "§1985:VIII.3.2.4 GR4: 'The LABEL RECORDS clause for the Relative I-O module is the same as the LABEL RECORDS clause for the Sequential I-O module', i.e. §1985:VII.3.6: LABEL {RECORD IS | RECORDS ARE} {STANDARD | OMITTED}, label content the implementor's (no labels processed, docs/CONFORMANCE.md 3.7), and GR4's 'all LABEL RECORDS clauses in the run unit which are associated with this file connector must have the same specification'. CobolData.g4#labelRecordsClause is that format; FileControlBinder#CaptureLabelRecords records the specification and ExternalFileConnectorRules#CheckFileDescriptions compares external entries at 85 (COBOL6847); VersionConformancePass#VisitLabelRecordsClause refuses the clause from 2002 (COBOL0902). Probes at --std 85 on a relative file: LABEL RECORD IS OMITTED (RANDOM) and LABEL RECORDS STANDARD (DYNAMIC) compile and run (failed OPEN INPUT of a missing file gives status 35, then write and random READ give 00 REC3); LABEL RECORDS ARE HDR and ARE IGNORED refused (COBOL5506), the clause twice refused (COBOL2423); an EXTERNAL relative file STANDARD in one program and OMITTED in the other refused (COBOL6847), STANDARD in both or RECORD IS / RECORDS ARE spellings accepted; at --std 2002 refused COBOL0902. The witness writes and reads a sequential-access relative file under LABEL RECORDS ARE STANDARD.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.4.6.3-1",
  "rule-digest": "81a7783a6e83",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGlobalClause",
  "test-ref": "conformance:cases/X.4.6@1985-GLOBAL-CLAUSE/1985-SR-X_4_6_3-1",
+ "notes": "§1985:X.4.6.3 SR1: GLOBAL only 'in data description entries whose level-number is 01 in the File Section or the Working-Storage Section, file description entries, or report description entries'. The ClausePlacementRules Global Residence row, applied by DataBinder.BindEntry, refuses any other level or section (COBOL2404), and VersionConformancePass.VisitGlobalClause refuses the linkage-section placement 2023 adds (§2023:13.18.27.3 SR1 'local-storage, or linkage section') below 2002 (COBOL0900); the SD format has no GLOBAL. Probes at --std 85: FD IS GLOBAL with a GLOBAL 01 record, GLOBAL 01 elementary and group WS items, an SD's 01 record, and GLOBAL on a REDEFINES 01 all compile and run (RAN); GLOBAL at 05 in WS and FS, at 77, and on a Communication Section 01 refused COBOL2404; linkage 01 GLOBAL refused COBOL0900 at 85 and accepted at 2023; SD S1 IS GLOBAL refused COBOL1970; GLOBAL twice COBOL2423; FD GLOBAL in SAME RECORD AREA COBOL2738 (SR3); a repeated GLOBAL data-name COBOL6862 (SR2); RD IS GLOBAL accepted (probed with the X.4.4 row). Witness: 05 GLOBAL refused COBOL2404.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

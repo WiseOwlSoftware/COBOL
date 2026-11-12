@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XI.4.3.2",
  "rule-digest": "e898e7182449",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#returnStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn; src/WiseOwl.Cobol.Compiler/Binding/Procedure/PhraseBlocks.cs#Bind; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#OutOfPrintedOrder",
  "test-ref": "conformance:cases/XI.4.3@1985-RETURN-STATEMENT/1985-FMT-XI_4_3_2",
+ "notes": "§1985:XI.4.3.2 prints 'RETURN file-name-1 RECORD [ INTO identifier-1 ] AT END imperative-statement-1 [ NOT AT END imperative-statement-2 ] [ END-RETURN ]': AT END unbracketed (mandatory), NOT AT END only after it, RECORD an optional word. CobolIO.g4#returnStatement parses the shape, SortBinder#BindReturn refuses a missing AT END by role (COBOL1850, also when only NOT AT END is written), and VersionConformancePass#VisitConditionalPhrases (ConditionalPhrases#OutOfPrintedOrder) refuses NOT AT END before AT END at 85 as the 2002 relaxation (COBOL0900). Probes at --std 85: reversed order -> COBOL0900; NOT-only and bare RETURN -> COBOL1850; AT END written twice -> COBOL2269; 'RETURN f END ...' and 'RECORD AT END ... NOT END' run (A C DONE); RETURN INTO from an ODO SD record prints [A1Q     ] [C3XYZ   ] (current length, space-filled). The witness runs AT END/NOT AT END/END-RETURN in printed order and prints A B C DONE.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

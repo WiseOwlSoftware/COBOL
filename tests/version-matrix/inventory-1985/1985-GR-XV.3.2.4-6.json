@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-6",
  "rule-digest": "3c7c50594e4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanLeaf; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanPerform; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanInto; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#StoreFlagFor; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#LandBeforeIo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#EmitLoopPhase",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-6",
+ "notes": "§1985:XV.3.2.4 GR6: identifier-1 alone runs the section before a WRITE/REWRITE that references it, after each PERFORM phase that references it, and after a statement that \"explicitly references and causes the content of the data item referenced by identifier-1 to be changed\". DebugTriggerPlanner.PlanLeaf asks BoundStores.DirectStoreOf for the store and marks it WhenStored, which DebugTriggerEmitter.Emit/StoreFlagFor clear when a SIZE ERROR path skipped it; the witness is MOVE 5 TO W-X. Probes at 85 (dbg/g6): DISPLAY Y, MOVE Y TO Z, INSPECT GY TALLYING and MOVE to the containing group do not fire; MOVE, INSPECT REPLACING, UNSTRING INTO, INITIALIZE and ADD in an IF fire after; WRITE FROM GY fires before the I-O; READ INTO GY fires when the record moved and not when AT END ran; PERFORM VARYING Y fires on init, test and augment; PERFORM UNTIL Y fires on each evaluation.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

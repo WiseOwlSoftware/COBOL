@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.4.3.3-1",
  "rule-digest": "5007cb49c43e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataDescriptionEntry",
  "test-ref": "conformance:cases/X.4.3@1985-DATA-DESCRIPTION-ENTRY-IN-THE-INTER/1985-SR-X_4_3_3-1",
+ "notes": "§1985:X.4.3.3 SR1: clause availability in the Inter-Program Communication data description entry 'is dependent on the level of the Nucleus module supported by the implementation'. --std 85 claims the high subset, Nucleus level 2 (docs/CONFORMANCE.md section 3.9, kb/Work PB4885), so every level-2 clause must be available beside EXTERNAL and GLOBAL: DataBinder.BindEntry binds them all under the ClausePlacementRules table, and VersionConformancePass refuses the 2002-and-later clauses at 85 (COBOL0900). Probes at --std 85: a GLOBAL record with OCCURS 1 TO 5 DEPENDING ON, ASCENDING KEY, INDEXED BY and a 66 RENAMES, an EXTERNAL record with SIGN LEADING SEPARATE, 88 VALUE list and THRU, COMP SYNC, JUST RIGHT, BLANK WHEN ZERO and USAGE INDEX, and GLOBAL scaled S9(3)PP and edited items all compile and run from a contained and an external-sharing program (SEARCH ALL FOUND c, -00042, '  AB', BWZ blank, RANGE, -12,300.00, ADD to 99957 with no size error, MAIN +99957 -0008); BINARY-LONG, TYPEDEF, BASED, PIC N and VALUE on an EXTERNAL item are refused COBOL0900; PIC, VALUE or OCCURS written twice COBOL2423, OCCURS at 01 COBOL2404. Witness: level-2 clauses on GLOBAL items read from a nested program.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

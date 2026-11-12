@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.5.3.3-2",
  "rule-digest": "569f324b4c68",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#NameTargetRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#OperandTargetRefusal",
  "test-ref": "conformance:cases/X.5.3@1985-CANCEL-STATEMENT/1985-SR-X_5_3_3-2",
+ "notes": "§1985:X.5.3.3 SR2: 'Identifier-1 must reference an alphanumeric data item.' CallBinder.BindCancel screens each data-reference target through NameTargetRefusal (category alphanumeric or national, by ItemCategory) and each function-identifier through OperandTargetRefusal (its function category), reporting COBOL1696; the 2023 national widening is unreachable at 85 because national items and N literals are themselves COBOL0900. Probes at --std 85: (b/d) PIC 9(4) (the witness), a numeric 05 inside a group, PIC A(4) alphabetic, PIC XXXBX alphanumeric-edited and USAGE INDEX each COBOL1696, FUNCTION LENGTH (integer) COBOL1696; accepted: a JUSTIFIED RIGHT PIC X(4), an alphanumeric group (holding a numeric item), FUNCTION CURRENT-DATE(1:4); (a) WS-JX(1:WS-CNT + 1) cancelled SUBP, and an OCCURS DEPENDING group cancelled SUBP at length 4 ('SUBP') and named no program at length 3 ('SUB'), so SUBP kept its state (COUNT 1, COUNT 1, COUNT 2).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

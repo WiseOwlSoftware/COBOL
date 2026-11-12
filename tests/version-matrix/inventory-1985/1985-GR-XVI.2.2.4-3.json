@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.2.2.4-3",
  "rule-digest": "e5d112c53528",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#segmentLimitClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSegmentLimitClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ScreenSegmentNumber; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#ValueOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#MeaningKept",
  "test-ref": "conformance:cases/XVI.2.2@1985-OBJECT-COMPUTER-PARAGRAPH/1985-GR-XVI_2_2_4-3",
+ "notes": "§1985:XVI.2.2.4 GR3 ('The SEGMENT-LIMIT clause is presented on page XVI-5') brings in §1985:XVI.2.3: segment-number 1 through 49 (SR1); segments below the limit are permanent and those from the limit through 49 'are considered as overlayable fixed segments' (GR2), which §1985:XVI.1.4.2 makes 'always made available in its last used state', so the clause changes no observable result. segmentLimitClause parses it, VersionConformancePass.VisitSegmentLimitClause gates it to COBOL-85 (COBOL0902 from 2002) and ScreenSegmentNumber refuses a number above 49 (COBOL6819) while IntegerOperandPass.Slots makes zero COBOL2386; Segmentation (ValueOf, MeaningKept) gives the independent segments 50-99 their initial-state reset, the one run-time effect segment classification has. Probes (work-rr-04/o*.cob, sections 5, 20 and 60 with ALTERed GO TOs): SEGMENT-LIMIT 10 (witness form), 30, 49, 1 and 010 all print OVL-A then OVL-B for fixed segment 20 (last-used state whether permanent or overlayable) and IND-A twice for independent 60; b) 50 COBOL6819, 0 COBOL2386, +10 and 1.5 and an empty operand COBOL5506, written twice COBOL2423, before PROGRAM COLLATING COBOL2987; c) --std 2002 COBOL0902. Classes a, d, e, f have no operand here. The witness runs SEGMENT-LIMIT IS 20 with sections 10 and 30.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
