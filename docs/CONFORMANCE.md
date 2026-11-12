@@ -856,6 +856,21 @@ of an unsupported facility.
   status '04' (VCR 21; golden `2002/io_status_04`). Line-sequential is excluded (§2023:14.9.30 GR15 pads short records
   with trailing spaces — its '06' write path remains unimplemented). The value is version-invariant — the E.2
   item 15 2023 delta only clarifies *when* it is set.
+  ⚖ **THE MEASURE IS THE FILE'S FIXED ATTRIBUTES, NOT THE READING PROGRAM'S DESCRIPTIONS** (kb/Work PB5238, a determination). §2023:14.9.30.4 GR14
+  (and §1985:VII.4.4.4 GR13, §1985:VIII.4.5.4 GR16, §1985:IX.4.5.4 GR18) state the conflict as a record shorter or longer than "the
+  minimum/maximum size specified by the record description entries", while §2023:9.1.13.2 item 3 and §1985:VIII.1.3.4 item 1 b define
+  '04' as a record outside "the fixed file attributes", and §2023:9.1.6 makes "the minimum and maximum logical record size" such an
+  attribute; §2023:14.9.30.4 NOTE 2 adds that the condition "will occur only when the operating environment does not check either the
+  minimum or maximum record length as a fixed file attribute during OPEN processing or when a specific physical record within a
+  physical file violates the fixed file attributes for that physical file". The two statements are reconciled by reading "the record description entries" as the file's minimum and
+  maximum record size, the quantity §2023:13.18.43.4 GR9/GR10 take from the descriptions when the RECORD clause omits integer-2 or
+  integer-3 and the RECORD clause states when it does (`FileConnector.VaryMin`/`VaryMax`). The other reading, a record measured
+  against the smallest and largest description of the program that READs it, would answer '04' for every short record of the idiom
+  `RECORD VARYING 1 TO 80 DEPENDING ON n` over one `PIC X(80)`, and make the clause's integer-2 and integer-3 mean nothing to a READ; it
+  was weighed and refused (the code read's refuter and the held-rows adjudication took it; measured on this tree, it turned 24 existing
+  conformance tests red, each written from the same rules and expecting '00'). A RELATIVE or INDEXED record outside the attributes cannot
+  reach a READ: the WRITE refuses it ('44') and the OPEN refuses a file created under other bounds ('39', A.1 item 129). Pinned by
+  `conformance:cases/14.9.30-READ/pb5238_read_inside_record_clause_is_no_length_conflict` (every edition).
 - **I-O status '07' restricted to OPEN/CLOSE (§2023:9.1.13.2 item 6; E.2 item 16)**: **VERIFIED AT 2023, A DETERMINATION
   BELOW IT, THE SAME BEHAVIOUR AT EVERY EDITION** (kb/Work PB1515). *2023:* the '07' setters are exactly the three
   phrases item 6 names on the two statements it names, all reaching `FileStatusCode.PhraseOnNonReelMedium` on a
@@ -3524,6 +3539,26 @@ the source program"), and implements the two rules a program can observe. The de
 | An independent segment's initial state | §1985:XVI.1.4.3 and §1985:VI.6.7.4 GR1: its ALTERed GO TOs return to their written targets whenever control enters it from a segment with a different segment-number (falling through, a SORT or MERGE procedure entry, an explicit transfer), and keep their state when control returns to it implicitly or by EXIT PROGRAM. A CALL that re-enters a program is not a transfer from another segment of it: the program is in its last-used state (§1985:X.5.2.4 GR5), its independent segments included. The modified GO TO is the state the 1985 text names as returned (VI.6.7.4 GR1); data is not segmented (§1985:XVI.1.3: "COBOL segmentation deals only with segmentation of procedures"), so nothing else is reset |
 | SEGMENT-LIMIT and fixed overlayable segments | A null facility in function: a fixed overlayable segment "is always made available in its last used state" (§1985:XVI.1.4.2), which is what a resident segment is. Its range is checked (COBOL6819) |
 | --permissive at a later edition | The segment-number is a removed construct, accepted with a warning; it keeps its 1985 run-time meaning (as ALTER does), and the 1985 restrictions are not asked |
+
+### 3.9 The language level at COBOL-85: level 2, so no level 1 restriction is enforced (kb/Work PB5142, PB4885)
+
+X3.23-1985 divides nine of its modules into level 1 and level 2 elements (§1985:I.1.2), and a conforming implementation (§1985:I.1.5.2) must support one of the three
+subsets of §1985:I.1.5.1 in full. `--std 85` claims the HIGH subset, the highest level of every required module (owner decision, kb/Work PB4885), so it is a LEVEL 2
+processor and has no level axis: a level 1 restriction is a restriction on the programs of a LOWER level, and a level 2 processor accepts the program that breaks it.
+
+| Item | Determination |
+|---|---|
+| INSPECT's one-character literals and data items (§1985:VI.6.18.3 SR5: "In level 1, literal-1, literal-2, and literal-3, and the data items referenced by identifier-3, identifier-4, and identifier-5 must be one character in length. Except as specifically noted in syntax and general rules, this restriction on length does not apply to level 2.") | Not enforced, at any edition. The rule lifts itself at level 2, so refusing it at `--std 85` would reject legal level 2 source. The "noted in syntax and general rules" exceptions are enforced where they are stated: SR7 and SR9 (the pair sizes), SR8 (CHARACTERS BY one character) and SR10 (the repeated character of literal-4), COBOL0846 and COBOL6859 (kb/Work PB5089, PB5103) |
+| A level 1 only mode | None. No option selects the intermediate or the minimum subset, so no level 1 rule has a place to be enforced; the compiler states its claim and a program written for level 1 is a program of level 2 |
+
+### 3.10 Figurative constants and ALL literals opposite a numeric item, at COBOL-85 (kb/Work PB5176, PB5187)
+
+| Item | Determination |
+|---|---|
+| MOVE ALL "digits" to a numeric or numeric-edited receiver, `--std 85` | The string is repeated to the receiver's SIZE in standard data format characters (§1985:IV.4.2.2.2.3: its digit count, plus the sign position of a SIGN SEPARATE item, or every character position of a numeric-edited picture, the decimal point and insertion characters included), and the digits are an unsigned INTEGER, aligned by decimal point and edited as the receiver says (§1985:VI.6.19.4 GR3, GR4 b 3): `ALL "12"` into `PIC 9(3)V99` holds 121.00, into `PIC 9(3).99` holds 212.00 (121212), into `PIC S9(3) SIGN LEADING SEPARATE` holds +212 (1212). The nonnumeric literal of the same characters moves the same way |
+| The same, COBOL-2002 on (reached under --permissive, COBOL0902 otherwise) | §2023:14.9.25.4 GR6 d 3 b gives the figurative constant "the same number of digits as the number of digits in the receiving operand", "both those to the right and the left of the decimal point" for a noninteger receiver: the digits span the receiver's digit positions at its scale (kb/Work PB426), so `ALL "12"` into `PIC 9(3)V99` holds 121.21. A numeric-edited receiver is EDITED from that value at every edition; the repeated characters are never its image |
+| A figurative constant of category alphanumeric (QUOTE, HIGH-VALUE, LOW-VALUE, a nonnumeric ALL literal) moved to a numeric item that is not usage DISPLAY | Legal at COBOL-85 (§1985:VI.6.19.4 GR3 e) and its value undefined (§1985:VI.6.4.7). The value is the one the receiver's storage bytes hold with the fill characters laid over them, read in the item's byte form: LOW-VALUES give 0, HIGH-VALUES all one bits (minus one in a signed binary item), ALL "AB" into S9(4) COMP the raw 16706, with no digit truncation. A floating-point receiver is not served and stops the run unit with the unimplemented-feature exception |
+| The numeric operand of a relation opposite a nonnumeric operand, `--std 85` | An alphanumeric temporary of the numeric item's SIZE in standard data format characters (§1985:VI.6.3.1.1.2 GR1, GR2), which excludes a P scaling position (§1985:VI.5.9.4 GR8): `PIC 99PP` holding 1200 compares as "12". From 2002 the temporary is as long as the integer has digits (§2023:8.8.4.2.5), P positions included: "1200" |
 
 ## 4. Documented non-support facilities (§2023:4.2.6 / §2023:4.2.7 / §2023:4.2.13)
 

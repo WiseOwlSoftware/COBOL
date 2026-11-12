@@ -110,6 +110,25 @@ internal static class OperandText
             ? bo.AtItemWidth ? BooleanRenderer.RenderAtItemWidth(bo.Expr, num, sending) : BooleanRenderer.Render(bo.Expr, num, sending)
             : op.Accept(Visitor(deSign, sending));
 
+    /// <summary>⛔ THE ALPHANUMERIC TEMPORARY OF A 1985 MIXED COMPARISON — the numeric operand "treated as though it were
+    /// moved to an elementary alphanumeric data item of the same size as the numeric data item (in terms of standard data
+    /// format characters)" (§1985:VI.6.3.1.1.2 GR1; kb/Work PB5187). <see cref="AsString"/> is the MOVE's sending image, in
+    /// which a P scaling position is a zero counted in the sending size (§1985:VI.6.19.4 GR4), and a receiver of the item's
+    /// size keeps its leftmost characters, so the temporary of <c>PIC 99PP</c> holding 1200 is "12": the item's size
+    /// excludes the P positions (§1985:VI.5.9.4 GR8). Only an elementary numeric item with P scaling differs from the
+    /// sending image, so every other operand is <see cref="AsString"/>'s unchanged. The editions that state the temporary
+    /// by the number of digits in the integer (§2023:8.8.4.2.5) ask <see cref="AsString"/> directly.</summary>
+    public static string AsItemSizeTemporary(BoundOperand op, NumericRenderer num, bool deSign)
+    {
+        string text = AsString(op, num, deSign);
+        // Only the sending image that drops the sign (deSign) lays the P zeros: opposite a GROUP the image is the item's own
+        // storage characters (§1985:VI.6.3.1.1.2 GR2; ConditionRenderer.DropsOperationalSign), which hold no P position.
+        return deSign && op is BoundFieldOperand { Place: var p and not RefModPlace }
+            && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, HasPScaling: true } pic
+            ? $"({text})[..{pic.Digits}]"
+            : text;
+    }
+
     /// <summary>Whether a computed operand IS a counter register (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), the shape
     /// <see cref="AsString"/> images as an unsigned integer item — the ONE test, so a string-argument visitor that renders a
     /// register asks it here and the Emit layer reads <c>AlgebraicRanges</c> from this class alone (kb/Work PB4766).</summary>
@@ -629,6 +648,16 @@ internal static class OperandText
             _ => PlaceRenderer.Read(p),
         };
 
+    /// <summary>The verbatim image arm's last step (REDEFINES view, StoreAsImage item): the stored image, and for the sending
+    /// image that drops the sign (<paramref name="deSign"/>) the P scaling zeros every other numeric arm lays after
+    /// <see cref="PExpand"/> (§2023:14.9.25.4 GR6 a; kb/Work PB5187): an unsigned P-scaled item compared in such a context
+    /// kept only its stored digits, so `PIC 99PP` holding 1200 compared as "12" from 2002 on.</summary>
+    private static string VerbatimImage(Place p, bool deSign, SendingRef sending, bool? deviceComma)
+    {
+        string image = ImageText(SendingVerbatim(p, sending), p, deviceComma);
+        return deSign && p.Item.Pic is { Category: PicCategory.Numeric, HasPScaling: true } pic ? PExpand(image, pic) : image;
+    }
+
     private static string FieldAsString(Place p, bool deSign = false, SendingRef sending = SendingRef.Normal, bool? deviceComma = null)
     {
         // A reference-modified result is an elementary ALPHANUMERIC item regardless of the underlying item's
@@ -654,7 +683,7 @@ internal static class OperandText
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
                 ? PExpand(RuntimeApi.NumDeSignImage(PlaceRenderer.Read(p), p.Item.ProfileName, rvp.Digits, sending.FixedPointChecked()), rvp)
                 // The zoned window goes through VERBATIM, checked on the way — see SendingVerbatim.
-                : ImageText(SendingVerbatim(p, sending), p, deviceComma);
+                : VerbatimImage(p, deSign, sending, deviceComma);
         // A group operand's character image is the generated AsImage(): each string-stored leaf contributes its
         // characters; a DISPLAY leaf its zoned digits; and a BINARY/PACKED leaf ⛔ ITS TRUE BYTES — radix-2
         // two's complement of StorageWidth, or BCD with a trailing sign nibble (V59). Implementor-defined
@@ -709,7 +738,7 @@ internal static class OperandText
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
                 ? PExpand(RuntimeApi.NumDeSignImage(PlaceRenderer.Read(p), p.Item.ProfileName, sip.Digits, sending.FixedPointChecked()), sip)
                 // The StoreAsImage twin of the RedefViewPlace arm above — same rule, same one reader.
-                : ImageText(SendingVerbatim(p, sending), p, deviceComma);
+                : VerbatimImage(p, deSign, sending, deviceComma);
         return p.Item.Pic switch
         {
             // ISO §2023:14.9.25.4 GR6a: a signed numeric moved to / compared as an alphanumeric item drops its operational
