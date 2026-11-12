@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0846: INSPECT REPLACING: literal-1 'AB' (2 characters) and identifier-5 (the data item 'WS-T1', 1 character) differ in size"}

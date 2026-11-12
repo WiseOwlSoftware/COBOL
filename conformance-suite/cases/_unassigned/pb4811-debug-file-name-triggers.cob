@@ -16,9 +16,9 @@
       *> READ, DEBUG-CONTENTS contains the entire record read" and "for
       *> all other references to file-name-1, DEBUG-CONTENTS contains
       *> spaces". WRITE and REWRITE are not listed and run no section.
-      *> Rule 7: each imperative verb in a phrase is a statement of its
-      *> own, so a DELETE or START section runs when the I-O is done and
-      *> before its INVALID KEY imperative statement.
+      *> The section of a DELETE or START runs after the whole statement:
+      *> its INVALID KEY imperative statement is inside it (kb/Work
+      *> PB5295), so the section follows that statement's output.
       *> Why each leg can fail: a trigger placed after the whole READ
       *> runs for the AT END path too; one that skips DELETE or START on
       *> an invalid key misses rule 2 c; a WRITE that triggers breaks

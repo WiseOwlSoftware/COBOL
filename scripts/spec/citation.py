@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """THE ONE CITATION FORMAT FOR EVERY EDITION OF THE COBOL STANDARD, AND ITS ONE PARSER (kb/Work PB4887).
 
-This docstring is the format's specification; every reader of a citation (`cite.py`, `audit_code_citations.py`,
+This docstring is the format's specification, and `cite.resolve` is the one checker of a citation's every part against
+its edition's transcription and rule catalog (the rule list, ordinal, sub-item path and quotation; kb/Work PB5317), which
+`validate` below (the locator alone) is one step of. Every reader of a citation (`cite.py`, `audit_code_citations.py`,
 `audit_doc_citations.py`, `fuzz_triage.py`, `work.py`, `where.py`, `phase_b_batch.py`, `docchecks/vcr.py`) parses
 through this module and writes no citation regex of its own.
 
@@ -9,7 +11,7 @@ THE FORMAT (owner 2026-11-06; the edition is MANDATORY):
 
     §<edition>:<locator>[ <rule>]
 
-    §2023:13.18.35.4 GR1     §2002:14.8.4 SR2     §1985:VI.5.3.2 GR3     §1985:I.1.5.2     §1985:p.VI-20
+    §2023:13.18.35.4 GR1     §2002:14.8.4.2 SR2     §1985:VI.5.3.4 GR3     §1985:I.1.5.2     §1985:p.VI-20
 
 | Edition | Document                         | Locator                                                               | Checked against          |
 |---------|----------------------------------|-----------------------------------------------------------------------|--------------------------|
@@ -111,7 +113,8 @@ _LOCATOR = {"clause": re.compile(_CLAUSE + r"\Z"), "section": re.compile(_SECTIO
 #: 1's Section A, §1989:A.2.5.3 AR1). The rule catalogs of both editions write their rows' citations with them
 #: (extract_rule_catalog.KINDS, the one kind table of both), so a catalog row's citation parses (kb/Work PB4886).
 RULE_KINDS = ("SR", "GR", "AR", "RV")
-#: A numbered rule's kind and ordinal (`GR6d.2` -> GR, 6): `cite.py --check` reads the ordinal with it.
+#: A numbered rule's kind and ordinal (`GR6d.2` -> GR, 6): `_rule` canonicalizes its spelling with it (`GR 1` -> `GR1`);
+#: `cite.DESIGNATOR` is the checker's reading of the whole designator, its sub-item path included.
 NUMBERED_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?(\d+)")
 #: The rule designator, after one space. Its glued sub-item path is `[a-z0-9.]` ending in a letter or digit, so a
 #: sentence's full stop is never part of it.
@@ -156,16 +159,15 @@ class Citation:
         return self.locator
 
 
-def _rule(raw: str | None, edition: int | None = None) -> str | None:
+def _rule(raw: str | None) -> str | None:
     """The rule designator in its canonical spelling (`GR 1` -> `GR1`), or CitationError. A sub-list designator
-    (`GRL2.1`) exists only in an edition whose rule catalog restarts a numbered list, the 1985 section edition: in
-    any other edition `cite.py --check` derives the rule ordinal through NUMBERED_RULE, which the form would skip."""
+    (`GRL2.1`) is read in every edition: the ISO catalogs restart a numbered list inside a block too (§2023:9.3.6
+    restarts its list for the method resolution steps, the first of them §2023:9.3.6 GRL2.1), and `cite.resolve` checks
+    the list and the ordinal it names against the catalog (kb/Work PB5317; until then an ISO citation refused the form
+    because the checker read only the ordinal)."""
     if raw is None:
         return None
     raw = raw.strip()
-    if edition is not None and SUBLIST_RULE.match(raw) and EDITIONS[edition].locator != "section":
-        raise CitationError(f"{raw!r} is a restarted-list designator, which only a 1985 citation carries; "
-                            f"§{edition}: cites its rule as GR n")
     if not _RULE.match(raw):
         raise CitationError(f"{raw!r} is not a rule designator: write SR n, GR n, AR n or RV n (its sub-item path "
                             "glued: GR6d.2), Format n or Table n")
@@ -202,12 +204,12 @@ def parse(text: str) -> Citation:
     text = text.strip()
     if m := _WHOLE.fullmatch(text):
         edition, locator = _edition_locator(m["edition"], m["locator"])
-        return Citation(edition, locator, _rule(m["rule"], edition), 0, len(text))
+        return Citation(edition, locator, _rule(m["rule"]), 0, len(text))
     if m := _NO_EDITION.fullmatch(text):
         raise CitationError(f"{text!r} carries no edition: write §<edition>:<locator>[ <rule>], the edition mandatory "
                             f"(§2023:{m['clause']} for ISO/IEC 1989:2023, §1985:VI.5.3.2 for ANSI X3.23-1985)")
     raise CitationError(f"{text!r} is not a citation: write §<edition>:<locator>[ <rule>], the edition mandatory "
-                        "(§2023:13.18.35.4 GR1, §1985:VI.5.3.2 GR3)")
+                        "(§2023:13.18.35.4 GR1, §1985:VI.5.3.4 GR3)")
 
 
 def from_match(m: re.Match, bare: bool = False) -> Citation | None:
@@ -222,7 +224,7 @@ def from_match(m: re.Match, bare: bool = False) -> Citation | None:
         return Citation(2023, m["bare"], rule and _rule(rule), start, end, bare=True)
     try:
         edition, locator = _edition_locator(m["edition"], m["locator"])
-        return Citation(edition, locator, rule and _rule(rule, edition), start, end)
+        return Citation(edition, locator, rule and _rule(rule), start, end)
     except CitationError as e:
         return Citation(int(m["edition"]), m["locator"] or "", None, start, end, error=str(e))
 
@@ -606,7 +608,7 @@ def self_test() -> int:
         md.write_text(_PLANTED_1985, encoding="utf-8", newline="\n")
         spec_pdf.markdown(2002, planted).write_text("## 14.8.4 Planted\n\ntext\n", encoding="utf-8", newline="\n")
         planted_1985 = [
-            ("1985 section and paragraph validates", bad("§1985:VI.5.3.2 GR3", planted) is None),
+            ("1985 section and paragraph validates", bad("§1985:VI.5.3.2 GR3", planted) is None),  # citation-audit: example
             ("1985 heading paragraph validates", bad("§1985:VI.5.3", planted) is None),
             ("1985 heading boxed as level 2 validates: the box side is no part of its number",
              bad("§1985:VI.5.4", planted) is None),
@@ -620,7 +622,8 @@ def self_test() -> int:
             ("1985 printed page that does not exist is refused", bad("§1985:p.VI-21", planted) is not None),
             ("an amendment's part heading ends the 1985 sections: its addendum paragraph is no paragraph of Section XVIII",
              bad("§1985:XVIII.1", planted) is None and bad("§1985:XVIII.8", planted) is not None),
-            ("2002 validates against its transcription once it exists", bad("§2002:14.8.4 SR2", planted) is None),
+            ("2002 validates against its transcription once it exists",
+             bad("§2002:14.8.4 SR2", planted) is None),  # citation-audit: example
             ("2002 phantom refused once its transcription exists", bad("§2002:14.8.5", planted) is not None),
         ]
     with tempfile.TemporaryDirectory() as td:
@@ -631,13 +634,13 @@ def self_test() -> int:
         ("parses the 2023 form with its rule", parse("§2023:13.18.35.4 GR1") == Citation(2023, "13.18.35.4", "GR1", 0, 20)),
         ("parses a glued rule path", parse("§2023:14.9.25.4 GR6d.2").rule == "GR6d.2"),
         ("parses Format n and Table n", parse("§2023:14.9.39 Format 4").rule == "Format 4"
-         and parse("§2023:8.9 Table 12").rule == "Table 12"),
+         and parse("§2023:14.5.1 Table 12").rule == "Table 12"),
         ("a restarted list's rule names its list, and GR L2.1 canonicalizes to GRL2.1 (kb/Work PB4969)",
          parse("§1985:IV.4.4.2 GRL2.1").rule == "GRL2.1" and render(parse("§1985:IV.4.4.2 GR L2.1")) == "§1985:IV.4.4.2 GRL2.1"
          and rule_designator("GR", 1) == "GR1" and rule_designator("SR", 3, 2) == "SRL2.3"
          and raises("§1985:IV.4.4.2 GRL2", "not a rule designator")),
-        ("an ISO edition refuses the restarted-list designator, which would skip the rule-ordinal check (PB4969 review)",
-         raises("§2023:14.9.8.4 GRL9.9", "restarted-list designator") and raises("§2002:14.9.8.4 GRL1.1", "1985")),
+        ("an ISO edition reads the restarted-list designator, which cite.resolve checks (kb/Work PB5317)",
+         parse("§2023:9.3.6 GRL2.1").rule == "GRL2.1" and parse("§2002:14.9.8.4 GR L1.1").rule == "GRL1.1"),
         ("canonicalizes GR 1 to GR1", render(parse("§2023:14.9.8.4 GR 1")) == "§2023:14.9.8.4 GR1"),
         ("parses an annex clause", parse("§2023:A.1").locator == "A.1"),
         ("parses every edition token", all(parse(f"§{e}:{'VI.5.3' if e == 1985 else '1.2'}").edition == e

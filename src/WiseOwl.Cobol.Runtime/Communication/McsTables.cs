@@ -94,7 +94,7 @@ internal sealed record McsMeta(byte[] Identity, ulong NextSerial, byte[] Definit
 internal sealed class McsTables(BTree tree)
 {
     private const byte MetaTag = (byte)'C', EndpointsTag = (byte)'E', QueueMessagesTag = (byte)'M', TerminalMessagesTag = (byte)'I',
-        QueueCountsTag = (byte)'N', OutboundTag = (byte)'O', OutboundCountsTag = (byte)'P', DeviceEndsTag = (byte)'D';
+        QueueCountsTag = (byte)'N', OutboundTag = (byte)'O', OutboundCountsTag = (byte)'P', DeviceEndsTag = (byte)'D', PathsTag = (byte)'L';
     private const byte PathEnd = 0x01, OwnerEnd = 0x00;
 
     private McsMeta? _meta;
@@ -212,6 +212,16 @@ internal sealed class McsTables(BTree tree)
 
     internal void PutEndpoint(EndpointKind kind, string[] path, EndpointRow row) => Put(EndpointKey(kind, EndpointBody(kind, path)), row.Encode());
 
+    // ── Paths ──────────────────────────────────────────────────────────────────────────────────────────────────
+
+    private static byte[] PathKey(string source, string[] queue) => Join([PathsTag], PathBytes(queue), [OwnerEnd], Utf8(source));
+
+    /// <summary>Whether the logical path between <paramref name="source"/> and the queue at <paramref name="queue"/> is enabled, as a statement last set it; null when none has
+    /// (§1985:XIV.3.2.4 GR3, §1985:XIV.3.3.4 GR2: ENABLE and DISABLE act on paths, which the two endpoints' own flags alone cannot hold).</summary>
+    internal bool? Path(string source, string[] queue) => Get(PathKey(source, queue)) is { } value ? value[0] != 0 : null;
+
+    internal void PutPath(string source, string[] queue, bool enabled) => Put(PathKey(source, queue), [enabled ? (byte)1 : (byte)0]);
+
     /// <summary>Every <c>Endpoints</c> row's key, for the seeding to compare with the definitions.</summary>
     internal List<byte[]> EndpointKeys() => [.. Scan([EndpointsTag]).Select(row => row.Key)];
 
@@ -228,6 +238,12 @@ internal sealed class McsTables(BTree tree)
         {
             case EndpointKind.Queue:
                 foreach (var (key, _) in Scan(Join([QueueMessagesTag], body))) Delete(key);
+                foreach (var (key, _) in Scan(Join([PathsTag], body, [OwnerEnd]))) Delete(key);
+                break;
+            case EndpointKind.Source:
+                byte[] source = Join([OwnerEnd], body);
+                foreach (var (key, _) in Scan([PathsTag]))
+                    if (key.AsSpan(1).IndexOf(OwnerEnd) is var end && end >= 0 && key.AsSpan(1 + end).SequenceEqual(source)) Delete(key);
                 break;
             case EndpointKind.Destination:
                 foreach (var (key, _) in Scan(OwnerPrefix(OutboundTag, body))) Delete(key);

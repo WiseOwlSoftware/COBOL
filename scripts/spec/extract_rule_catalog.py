@@ -824,7 +824,7 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
     #     as `N\)` — so an ordinal that STRICTLY CONTINUES an open level's run (n == last+1) belongs to that
     #     level regardless of form, preferring a form-matched level when two continue with the same n (§2023:9.3.6);
     #   · EXCEPT that a column-0 ordinal continuing the most recent INDENTED run is the flattened TAIL of that
-    #     nested list, not a rule (§2023:14.9.13.4 GR4a: `1\.-3\.` indented, `4.-6.` at column 0; §2023:15.30.3 GR2b).
+    #     nested list, not a rule (§2023:14.9.13.4 GR4a: `1\.-3\.` indented, `4.-6.` at column 0; §2023:15.30.3 RV2b).
     #     ⛔ That case never reaches `place()` any more — it is decided in the scan loop by `flattened_tail`
     #     and BUFFERED INTO THE PARENT RULE (fix-queue PB698). It used to open a sub-list here, which gave 27
     #     sub-item FRAGMENTS rows of their own across 14 clauses while every other sub-item in the standard was

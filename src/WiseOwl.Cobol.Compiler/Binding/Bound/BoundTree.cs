@@ -510,6 +510,16 @@ public sealed record BoundIntrinsicCall(
     /// Never true together with <see cref="Collate"/> — each call reads exactly one class's sequence.</summary>
     public bool CollateNat { get; init; }
 
+    /// <summary>DATE-OF-INTEGER, DAY-OF-INTEGER, INTEGER-OF-DATE or INTEGER-OF-DAY bound for an edition whose integer date form has
+    /// no upper bound: the 1989 intrinsic function module, where the year is bounded below only (§1989:A.2.16.3 AR1;
+    /// <c>DialectBehavior.IntegerDateFormBounded</c> inactive; kb/Work PB5130). False for every other call.</summary>
+    public bool IntegerDateFormUnbounded { get; init; }
+
+    /// <summary>NUMVAL-C bound for an edition that puts no rule on the CONTENT of argument-2: the 1989 intrinsic function module
+    /// asks only its class (§1989:A.2.30.3 AR4; <c>DialectBehavior.NumvalCCurrencyContentRules</c> inactive; kb/Work PB5161),
+    /// so the run-time body scans for the currency string as written. False for every other call.</summary>
+    public bool CurrencyContentUnrestricted { get; init; }
+
     /// <summary>A reference modification applied to this function's RESULT — <c>FUNCTION CURRENT-DATE (1:4)</c>,
     /// <c>FUNCTION UPPER-CASE("abc") (1:2)</c>, and their keyword-omitted twins (fix-queue PB8). ISO §2023:8.4.3.1.2
     /// Format 3 composes an identifier from an identifier plus a reference-modifier, and §2023:8.4.3.3.3 SR2 admits a

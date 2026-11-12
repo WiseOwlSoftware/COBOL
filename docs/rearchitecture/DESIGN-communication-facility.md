@@ -94,7 +94,7 @@ The facility raises no exception condition: "exception handling [is] intentional
 `CommunicationEmitter` renders one `MessageControl` call per statement. The area goes over through `OperandText.RecordAreaImage`, the one record-area channel, and comes back through
 `SequentialIoEmitter.EmitImageInto` verbatim (other descriptions read the same storage). "The message control system (MCS) always references the record according to the data description
 defined in" GR2, GR16 and GR24, so the runtime reads positions and a user's redefinitions never reach it. RECEIVE returns a `CommunicationReceipt`: the area, the receiving item's image, and
-which phrase runs. A CD with INITIAL sets its names once per instance, before the first procedure division statement (GR6, GR28).
+which phrase runs. A CD with INITIAL sets its names once per instance, before the first procedure division statement (GR6, GR28): the scheduling names go only to the program that establishes the run unit (`ModuleStack.RunningIsMain`), and a CALLed program's INITIAL CD is spaces (§1985:XIV.2.2.4 GR28 "In all other cases"; kb/Work PB5282). RECEIVE evaluates identifier-1's subscripts and reference modifiers once, before the MCS call, through `PlaceIdentification.Freeze` (§1985:IV.4.3.8; kb/Work PB5279).
 
 ## 6. The message control system
 
@@ -150,6 +150,7 @@ queue path is its level names each followed by the byte 0x01, and a serial is th
 |---|---|---|---|
 | `C` | `Meta` | one fixed key | the store's identity (16 random bytes, minted at creation), the next serial, the SHA-256 of the `mcs.json` it was seeded from, and the three bell counters `BackstopFires`, `BackstopFinds` and `BellUnavailable` (§6 "The RECEIVE wait") |
 | `E` | `Endpoints` | kind (queue, source, destination, terminal), name or queue path | enabled, key, capacity, `deliverTo`, source |
+| `L` | `Paths` | queue path, 0x00, source name | whether the logical path between the source and the queue is enabled, as a statement last set it |
 | `M` | `QueueMessages` | queue path, 0x00, serial | `StoredMessage` in its binary codec: segments, end of group, date, time, source |
 | `I` | `TerminalMessages` | terminal, 0x00, serial | `StoredMessage`: what a terminal has sent, for an input-output CD's RECEIVE |
 | `N` | `QueueCounts` | queue path prefix | the complete messages under the prefix |
@@ -354,8 +355,9 @@ compile and `check-batch` (`Program.Parse` chooses the tree by the first word). 
 input-output CD's terminal is fixed from the start (GR30). Unset, the names are spaces.
 
 **Choices the rules leave.** A level not named at RECEIVE is chosen alphabetically, a level's messages first in, first out (E.5.5.3, E.5.5.4). Data is "not made available" when the designated structure holds no complete message (B.1 item 116).
+**Logical paths.** ENABLE and DISABLE act on paths, not endpoints (§1985:XIV.3.2.4 GR3, GR4; §1985:XIV.3.3.4 GR2, GR3). A path is one (source, queue) pair of the definitions. The path is open when its `Paths` row says so, and with no row when the queue's and the source's own enabled states are both true; a destination whose source name is no defined source has no path, and its queue's own state decides. DISABLE and ENABLE INPUT write the queue named and every queue below it (a queue given by fewer levels than the CD has is a structure) and the row of each of them with every defined source; DISABLE and ENABLE INPUT TERMINAL write the source and the row of it with every queue of the definitions. A statement is answered 15 when every state it wrote was already the one asked for. The password is the named queue's or source's own. (`MessageStoreState.SetQueuePaths`, `SetSourcePaths`, `PathOpen`; kb/Work PB5286.) Seeding deletes a queue's or a source's rows with the endpoint.
 A disabled queue still answers RECEIVE: DISABLE deactivates "the logical paths between the queue ... and all the associated enabled sources" (A.2.2.3 GR3), and CCVS-85 CM105M reads after disabling. A complete message sent to a destination
-goes, in the SEND's own statement, to the device, to the terminal, or to the queue the destination feeds; while the destination, the input queue it feeds, or its source's path is disabled it waits in `Outbound`, and it moves on in the
+goes, in the SEND's own statement, to the device, to the terminal, or to the queue the destination feeds; while the destination, or the path between its source and the input queue it feeds, is disabled it waits in `Outbound`, and it moves on in the
 statement that opens the path (E.5.5.1). The endpoints whose paths an ENABLE opens are found from the definitions in memory, and only their `Outbound` rows are read. An error key is written '0' for a destination with no error (Table A.2, and the CM102M
 report's `00/0`). Status 80 appears only for destinations, the one place one statement names several. Status 9x (B.1 item 28): 91 an unusable `mcs.json` and 92 a store the host refuses or a host whose locks answer `Unavailable`, each with no action; 93 a refused statement whose outcome the store could not decide (§6 "Status 92 takes no action"). With 9x a RECEIVE passes control as if data had been made
 available. No alphabetic error key is defined (B.1 item 27). A statement refused before its destinations (status 40 of ENABLE and DISABLE OUTPUT, 50 and 60 of SEND) still writes each occurrence 1 to the count (§1985:XIV.2.2.4 GR22): 1 for an unknown destination, else Table 2's value for the destination as it is, else 0 (`SetErrorKeys`). ADVANCING is §4 above.

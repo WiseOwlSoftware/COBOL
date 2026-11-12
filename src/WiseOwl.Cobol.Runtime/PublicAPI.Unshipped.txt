@@ -134,6 +134,19 @@ WiseOwl.Cobol.Runtime.DialectBehavior.SearchIndexBelowTableUnsuccessful = 6 -> W
 WiseOwl.Cobol.Runtime.DialectBehavior.SumSizeErrorBlanksPrintableItem = 8 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.TerminateDiscardsSavedNextGroup = 9 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.GroupIndicateConsumedByIssuedGenerate = 10 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.IntegerDateFormBounded = 11 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 12 -> WiseOwl.Cobol.Runtime.DialectBehavior
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolDate.DateOfInteger(long integerDate) -> long
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolDate.DayOfInteger(long integerDate) -> long
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolDate.IntegerOfDate(long yyyymmdd) -> long
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolDate.IntegerOfDay(long yyyyddd) -> long
+static WiseOwl.Cobol.Runtime.CobolDate.DateOfInteger(long integerDate, bool unbounded = false) -> long
+static WiseOwl.Cobol.Runtime.CobolDate.DayOfInteger(long integerDate, bool unbounded = false) -> long
+static WiseOwl.Cobol.Runtime.CobolDate.IntegerOfDate(long yyyymmdd, bool unbounded = false) -> long
+static WiseOwl.Cobol.Runtime.CobolDate.IntegerOfDay(long yyyyddd, bool unbounded = false) -> long
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalCDec(string! text, string! currency, bool commaMode = false, bool anycase = false, int digitCap = 31, WiseOwl.Cobol.Runtime.Globalization.LocaleFacts? classification = null) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalCDec(string! text, string! currency, bool commaMode = false, bool anycase = false, int digitCap = 31, WiseOwl.Cobol.Runtime.Globalization.LocaleFacts? classification = null, bool contentUnrestricted = false) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CurrencyStringViolatesContentRules(string! currency) -> bool
 WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly = 5 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -1114,3 +1127,4 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.EndOpen(string! name) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
+WiseOwl.Cobol.Runtime.ModuleStack.RunningIsMain.get -> bool
