@@ -1042,8 +1042,22 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             _ => null,
         };
         bool function = op is BoundComputedOperand { Expr: BoundIntrinsicCall };
-        foreach (var rule in alt.Rules)
-            if (ClassConditionModel.Violates(rule, category, usage, function))
+        // The edition's rule set: §1985:VI.6.3.1.2 at COBOL-85, §2023:8.8.4.4.3 (worded so from the 2002 text) after.
+        var rules = alt.RulesAt(ctx.Edition.DialectLevel);
+        // §1985:VI.6.3.1.2's NUMERIC bar reads two more facts of the operand's own DESCRIPTION (kb/Work PB5122): an item
+        // described as alphabetic, and a group holding an elementary item described with an operational sign. A
+        // reference-modified slice is neither (§2023:8.4.3.3.4 GR6 c). The group is walked only when the rule is asked.
+        // ⛔ A DESCRIPTION IS AN ATTRIBUTES QUESTION, so it reads the ONE operand-item reader (MoveTable16.OperandItem:
+        // Place.Item, null for a reference-modified slice), never the identity half: a no-THROUGH level-66 alias of a
+        // signed group has that group's attributes (§1985:VI.5.11.4 GR2) and a THROUGH alias is a group item of its own
+        // (GR1), and asked of Place.DenotedItem both escaped COBOL6917 (kb/Work PB5120 review R1-1).
+        var described = MoveTable16.OperandItem(op);
+        bool signedGroup = described is not null && ItemCategory.IsGroupItem(described)
+            && Array.IndexOf(rules, ClassOperandRule.NumericNotAlphabeticOrSignedGroup1985) >= 0
+            && DataItem.SubordinatesOf(described).Any(i => i.Pic is { Signed: true });
+        var facts = new ClassOperandFacts(category, usage, function, described?.Pic is { IsAlphabetic: true }, signedGroup);
+        foreach (var rule in rules)
+            if (ClassConditionModel.Violates(rule, facts))
             {
                 var (code, clause, text) = ClassConditionModel.Wording(rule);
                 ctx.Edition.Error(code, $"the {alt.Spelling} class condition over '{OperandName(op)}': {text} ({clause})");

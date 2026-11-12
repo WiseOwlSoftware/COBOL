@@ -1034,8 +1034,11 @@ initializeReplacingItem
 // the licensed PDF (p667 / printed folio 637): the thirteen words are enclosed by a BRACE carrying CHOICE
 // INDICATORS — the pair of bars just inside it — and §2023:5.2.6.4 reads them "one or more of the alternatives
 // contained within the choice indicators shall be specified, but any single alternative shall be specified only
-// once". So `REPLACING NUMERIC ALPHANUMERIC DATA BY SPACE` is conforming source (at COBOL-85 too: the five
-// classic words are 85 words), and `category-name` occupies BOTH phrase slots as a set.
+// once". So `REPLACING NUMERIC ALPHANUMERIC DATA BY SPACE` is conforming source from COBOL-2002, whose format
+// (14.8.19.1) prints the same choice indicators, and `category-name` occupies BOTH phrase slots as a set. ⛔ NOT AT
+// COBOL-85: §1985:VI.6.17.2 puts the five words in plain braces, so a 1985 REPLACING item names ONE category. The grammar
+// keeps the superset (D7) and the second word is refused by name at 85 — construct row
+// initialize-replacing-category-set-2002, VersionConformancePass.VisitInitializeReplacingItem (kb/Work PB5180).
 // The rule that produced the defect was a SINGLE-ALTERNATIVE scalar naming five of the thirteen; modelling the
 // set here is what makes the fourteenth word one table row instead of a new shape (CLAUDE.md rule 5).
 initializeCategory

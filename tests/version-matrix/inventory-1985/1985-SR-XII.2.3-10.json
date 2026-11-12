@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XII.2.3-10",
  "rule-digest": "031ef3e2e39c",
+ "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-10",
  "next": {
   "kind": "REMOVED",
   "to": [],

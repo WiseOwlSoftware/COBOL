@@ -385,6 +385,15 @@ def main() -> int:
             {"program": "       IDENTIFICATION DIVISION.", "expected": {"outcome": "output", "output": ["A"]}, "basis": "GR2"}))
         check("a draft answer is a program and an expected outcome", draft is not None and why == "")
         check("a draft with no outcome is refused", A.parse_answer("drafts", ditems[dcid], '{"program": "x"}')[0] is None)
+
+        def with_files(files: Any) -> tuple[Any, str]:
+            return A.parse_answer("drafts", ditems[dcid], json.dumps(
+                {"program": "       COPY LIB1.", "expected": {"outcome": "output", "output": ["A"]}, "files": files}))
+        check("a draft carries the library texts it COPYs, each by its name or <library>/<name> (kb/Work PB5067); "
+              "a path that leaves its folder, or a text that is no string, is refused",
+              with_files({"LIB1.cpy": "x", "LIBA/T.cpy": "y"})[0] is not None
+              and all("files" in with_files(bad)[1] for bad in ({"../L.cpy": "x"}, {"A/B/L.cpy": "x"}, {"L.cpy": 1},
+                                                                 ["L.cpy"])))
         two_lines = chr(10).join(["       IDENTIFICATION DIVISION.", "       PROGRAM-ID. P."])
 
         def refused(**exp: Any) -> tuple[Any, str]:

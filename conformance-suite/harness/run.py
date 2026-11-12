@@ -61,7 +61,7 @@ import time
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 HARNESS = Path(__file__).resolve().parent
@@ -139,11 +139,23 @@ class Run:
         work.mkdir(parents=True)
         shutil.copyfile(self.root / entry["source"], work / source)
         for declared in entry["files"]:
-            target = work / Path(declared).name
-            if target.name == source:
+            staged = self.staged(entry, declared)
+            if staged == source:
                 raise HarnessError(f"its declared file {declared} has the name the harness gives its source")
-            shutil.copyfile(self.root / declared, target)
+            (work / staged).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(self.root / declared, work / staged)
         return source, name
+
+    @staticmethod
+    def staged(entry: dict[str, Any], declared: str) -> str:
+        """Where a declared file lies in the working directory: at its place beside the test's source, so a library
+        text in a library folder (`<library>/<file>`, a WiseOwl test's or a draft's) keeps its library, as the in-process
+        runner stages it (ConformanceSuiteRunner.Stage). A file outside the source's folder is refused."""
+        relative = PurePosixPath(declared).relative_to(PurePosixPath(entry["source"]).parent) \
+            if PurePosixPath(declared).is_relative_to(PurePosixPath(entry["source"]).parent) else None
+        if relative is None or ".." in relative.parts:
+            raise HarnessError(f"its declared file {declared} does not lie beside its source {entry['source']}")
+        return relative.as_posix()
 
     def placeholders(self, edition: str, entry: dict[str, Any], work: Path, source: str,
                      program: str) -> dict[str, str]:
@@ -155,7 +167,7 @@ class Run:
         env = dict(self.environment)
         env.update({fill(k, values): fill(v, values) for k, v in self.adapter.environment.items()})
         for declared in entry["files"]:
-            per_file = {"name": Path(declared).stem, "path": str(work / Path(declared).name)}
+            per_file = {"name": Path(declared).stem, "path": str(work / self.staged(entry, declared))}
             env.update({fill(k, per_file): fill(v, per_file) for k, v in self.adapter.assign_environment.items()})
         return env
 
@@ -539,7 +551,7 @@ def _run(args: argparse.Namespace, root: Path) -> int:
 #: reads `STUB <directive>` lines of its source, so each planted test states the behaviour it drives.
 _STUB = '''
 import os, sys, time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 op = sys.argv[1]
 if op == "run":
     program = Path(sys.argv[2] + ".prog")
@@ -662,6 +674,9 @@ def self_test() -> int:
         "stdin": (["run stdin"], "STDIN=''\n", _entry("stdin", c)),
         "staged": (["need DATA1.dat", "env DD_DATA1=DATA1.dat", "run out OK"], "OK\n",
                    _entry("staged", c, files=("DATA1.dat",))),
+        # a library text in a library folder keeps its library in the working directory (kb/Work PB5067)
+        "staged-library": (["need LIB1/TEXT1.cpy", "run out OK"], "OK\n",
+                           _entry("staged-library", c, files=("LIB1/TEXT1.cpy",))),
         "leaves": (["run leave LEFT.txt", "run absent LEFT.txt"], "PRESENT\n", _entry("leaves", c)),
         "fresh": (["run absent LEFT.txt"], "ABSENT\n", _entry("fresh", c)),
         "exit-status": (["run out DONE", "run exit 9"], "DONE\n", _entry("exit-status", c)),
@@ -689,7 +704,7 @@ def self_test() -> int:
     }
     expected = {
         "passes": PASS, "differs": FAIL, "lower": FAIL, "refused": FAIL, "no-program": FAIL, "crashes": NO_VERDICT,
-        "stdin": PASS, "staged": PASS, "leaves": PASS, "fresh": PASS,
+        "stdin": PASS, "staged": PASS, "staged-library": PASS, "leaves": PASS, "fresh": PASS,
         "exit-status": PASS, "valued": PASS, "needs-module": NOT_APPLICABLE, "needs-claimed": PASS,
         "reserved-word": NOT_APPLICABLE, "a-very-long-test-identifier": PASS, "control": PASS, "flag-pass": PASS,
         "flag-elsewhere": FAIL, "flag-copybook": FAIL, "flag-silent": FAIL, "flag-crash": NO_VERDICT,
@@ -707,6 +722,8 @@ def self_test() -> int:
             if out is not None:
                 (folder / f"{test_id}.out").write_text(out, encoding="utf-8", newline="\n")
         (root / "cases" / c / "DATA1.dat").write_text("data\n", encoding="utf-8", newline="\n")
+        (root / "cases" / c / "LIB1").mkdir()
+        (root / "cases" / c / "LIB1" / "TEXT1.cpy").write_text("       01  X PIC X.\n", encoding="utf-8", newline="\n")
         (root / "cases" / c / "valued.9=one.out").write_text("ONE\n", encoding="utf-8", newline="\n")
         (root / "cases" / c / "valued.9=two.out").write_text("TWO\n", encoding="utf-8", newline="\n")
         manifest = [entry for _, _, entry in stub_tests.values()]

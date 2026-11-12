@@ -96,6 +96,28 @@ public static class ParagraphPeriods
         return sentences;
     }
 
+    /// <summary>The second separator period of a paragraph that writes NO entry (<c>SOURCE-COMPUTER. .</c>), or null. The
+    /// spelling §2023:12.3.5.3 SR1, §2023:12.3.6.3 SR4 and §2023:12.3.7.3 SR31 let a paragraph write by omitting nothing
+    /// (the 2002 text's 12.2.4.2 SR1, 12.2.5.2 SR4 and 12.2.6.2 SR27 the same); the 1985 formats (§1985:VI.4.3.2,
+    /// §1985:VI.4.4.2, §1985:VI.4.5.2) print that period INSIDE the bracket that holds the entries, so it comes only with
+    /// one (kb/Work PB5170). The one reader of the lone period, for the edition gate.</summary>
+    public static ITerminalNode? LonePeriod(ParserRuleContext paragraph)
+    {
+        ITerminalNode? lone = null;
+        for (int i = 2; i < paragraph.ChildCount; i++)
+        {
+            switch (paragraph.GetChild(i))
+            {
+                case ParserRuleContext:
+                    return null;   // an entry is written: its period is the format's own
+                case ITerminalNode period when period.Symbol.Type == CobolLexer.DOT:
+                    lone ??= period;
+                    break;
+            }
+        }
+        return lone;
+    }
+
     /// <summary>Whether <paramref name="sentence"/> is the clause <paramref name="row"/> prints as a sentence of its
     /// own: exactly one entry, whose single child is that clause.</summary>
     public static bool IsOwnSentence(ParagraphPeriod row, ParagraphSentence sentence)

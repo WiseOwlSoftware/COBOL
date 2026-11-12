@@ -1284,16 +1284,32 @@
     "anchor-template": "docs/CONFORMANCE.md#DRV-{rule-id}",
     "register-heading": "## 8. Rules with no observable obligation",
     "register-header-cell": "Rule",
+    "signers": {
+      "$comment": [
+        "⛔ WHO MAY SIGN A §8 ROW (kb/Work PB5373, PB5374). A signature key is `<signer>: <date>`, and its signer is a key",
+        "here. `refuter`: a row of an ARGUED arm (the arm's `argued`) signed by this signer names, in its `Refuted` cell,",
+        "the file of an independent `cobol-refuter` pass that tried to write the witness the derivation says cannot",
+        "exist, and that file must hold a record of the row's rule-id whose `outcome` is UPHELD; the owner's own reading",
+        "was that check for the rows he signed, so his rows need none. `decision-note`: every signature key of this",
+        "signer maps to a value that opens `kb/Work <id>`, and that note exists with `kind: decision`."
+      ],
+      "owner": {"refuter": false, "decision-note": false,
+                "meaning": "the owner read the argument himself (kb/Work PB386, PB1636)"},
+      "claude": {"refuter": true, "decision-note": true,
+                 "meaning": "the session that decided the rows, under the owner's delegation of 2026-11-10 (kb/Work PB5373); an argued arm stands only on an UPHELD refutation"}
+    },
     "signatures": {
       "$comment": [
-        "⛔ EVERY SIGNATURE IS ONE DATED OWNER DECISION, and a §8 row's `Signed` cell must be one of these keys.",
-        "A row is signed by the decision that READ its argument, so the cell records WHEN it was read and the",
-        "value names WHERE the decision is recorded. A new batch signing adds a key here in the same change that",
-        "writes its rows; it never re-uses an older date for an argument drafted after it (kb/Work PB1636)."
+        "⛔ EVERY SIGNATURE IS ONE DATED DECISION, and a §8 row's `Signed` cell must be one of these keys, each",
+        "`<signer>: <date>` with its signer a key of `signers`. A row is signed by the decision that READ its argument,",
+        "so the cell records WHEN it was read and the value names WHERE the decision is recorded. A new batch signing",
+        "adds a key here in the same change that writes its rows; it never re-uses an older date for an argument",
+        "drafted after it (kb/Work PB1636)."
       ],
       "owner: 2026-09-03": "kb/Work PB386 — the owner opened the derivation door; also the rows signed under it through 2026-09-25 (Q25-Q27, wave 40, kb/Work R43 item 4)",
       "owner: 2026-10-08": "kb/Work PB1636 — the owner signed the 32 drafted derivations as one batch (answer 'Sign all 32')",
-      "owner: 2026-10-23": "kb/Work PB3539 — the owner chose option (i), document a violation of §12.4.6.4.4 GR3 as undefined (answer 'Document as undefined'); kb/Work PB1636 — the owner signed the last drafted derivation, DRV-GR-12.4.5.9.4-2 (answer 'Sign it')"
+      "owner: 2026-10-23": "kb/Work PB3539 — the owner chose option (i), document a violation of §12.4.6.4.4 GR3 as undefined (answer 'Document as undefined'); kb/Work PB1636 — the owner signed the last drafted derivation, DRV-GR-12.4.5.9.4-2 (answer 'Sign it')",
+      "claude: 2026-11-12": "kb/Work PB5373 — how a 1985 rule with no reachable witness closes: the rows of its classes 1 and 2"
     },
     "undefined-list": "tests/version-matrix/annex-a2-undefined.json",
     "$refusals": [
@@ -1304,29 +1320,48 @@
       "3) a derivation on a row of a kind that obliges a register determination docs/CONFORMANCE.md does not",
       "   carry — the documentation obligation is not yet STATED, so there is nothing to derive about;",
       "4) an `undefined-A.2` arm naming an item that does not resolve to this row;",
-      "5) a missing owner signature, or one that is not a key of `signatures`;",
-      "6) a `derivation` value that is not the COMPUTED anchor, or one docs/CONFORMANCE.md §8 has no row for."
+      "5) a missing signature, or one that is not a key of `signatures`;",
+      "6) a `derivation` value that is not the COMPUTED anchor, or one docs/CONFORMANCE.md §8 has no row for;",
+      "7) an `undefined-in-rule` arm whose quotation is not in the row's own catalog text, or on a row an Annex A.2",
+      "   item resolves to (one fact, one arm: that row keeps `undefined-A.2`);",
+      "8) an ARGUED arm signed by a signer whose `refuter` is true, with no UPHELD refuter record of the row."
     ],
     "arms": {
+      "$comment": [
+        "Each arm: the SHAPE its `Names` cell must have (`names-pattern`), the check that shape feeds (`check`), and",
+        "whether it is a reviewed ARGUMENT (`argued`: a reader, the owner or an UPHELD refuter, is what makes it stand)",
+        "or MECHANICAL (the checker is the reader). Every check that reads a catalog reads the ROW'S OWN EDITION's:",
+        "a rule-id belongs to the one held catalog that carries it (rule-ids are unique across editions)."
+      ],
       "undefined-A.2": {
         "names-pattern": "^A\\.2 item ([0-9]+)$",
         "check": "a2-item",
+        "argued": false,
         "meaning": "The standard's own Annex A.2 lists this rule as explicitly undefined, so every behaviour conforms and no expected value exists to derive. MECHANICAL: A.2 item <n> must resolve to this row's rule-id in `undefined-list`."
       },
       "unpopulatable-antecedent": {
         "names-pattern": "^.{20,}$",
         "check": "stated",
+        "argued": true,
         "meaning": "The rule's antecedent is false for every state this implementation can reach. A REVIEWED ARGUMENT: the Names cell must STATE the closed set that makes it unreachable — a dash, an 'n/a' or a bare word is refused, because an argument nobody can check is the free-text escape hatch this mechanism exists not to be."
       },
       "indistinguishable-consequent": {
-        "names-pattern": "^([A-Za-z]+-[A-Za-z0-9.]+-[A-Za-z0-9.]+)$",
+        "names-pattern": "^((?:[0-9]{4}-)?[A-Za-z]+-[A-Za-z0-9.]+-[A-Za-z0-9.]+)$",
         "check": "rule-exists",
-        "meaning": "The rule's consequent is byte-identical to another rule's for every argument the two admit, so no conforming program can distinguish them. A REVIEWED ARGUMENT: the Names cell must be a rule-id that EXISTS in the catalog and is not this row's own."
+        "argued": true,
+        "meaning": "The rule's consequent is byte-identical to another rule's for every argument the two admit, so no conforming program can distinguish them. A REVIEWED ARGUMENT: the Names cell must be a rule-id that EXISTS in the catalog of the row's own edition and is not this row's own."
       },
       "definitional": {
         "names-pattern": "^defines .{20,}$",
         "check": "stated",
+        "argued": true,
         "meaning": "kb/Work R43 item 4 (owner, 2026-09-24, extending PB386; answers PB468 Q9): the rule DEFINES a property of the USER's program (a conforming run unit, §4.4) and imposes no obligation on the implementation, so no program can observe it apart from the rules that DO oblige the implementation. A REVIEWED ARGUMENT: the Names cell must open 'defines' and state the property and whose it is; a rule whose subject is the implementation or the implementor is never this arm."
+      },
+      "undefined-in-rule": {
+        "names-pattern": "^\"((?=[^\"]*\\b(?:[Uu]ndefined|[Uu]npredictable)\\b)\\S+(?:\\s+\\S+){3,})\"$",
+        "check": "quoted-in-rule",
+        "argued": false,
+        "meaning": "kb/Work PB5373 class 1, PB5374: the rule's OWN text declares the result undefined or unpredictable, which is how an edition with no Annex A.2 (1985) says it. MECHANICAL: the Names cell is a quotation, in double quotes, of four or more words that contains 'undefined' or 'unpredictable'; it must lie inside the row's own catalog text in its edition (each whitespace run compared as one space), and a row an Annex A.2 item resolves to is refused here, as it keeps `undefined-A.2`."
       }
     }
   }

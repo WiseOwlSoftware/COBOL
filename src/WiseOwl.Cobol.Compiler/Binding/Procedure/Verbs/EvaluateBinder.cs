@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
@@ -637,6 +638,13 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // AND …`). The classifier named all three PartialExpression, the last two by their resolved symbol.
         if (pair.Object is EvaluateObjectOperand.PartialExpression)
         {
+            // ⛔ THE EDITION GATE STANDS ON THIS ONE ARM, NOT ON A PARSE ALTERNATIVE (kb/Work PB5179): the three parses
+            // above are one selection-object form, which the COBOL-85 object list (§1985:VI.6.13.2: ANY, a condition,
+            // TRUE, FALSE, or [NOT] an identifier, literal or arithmetic expression) does not print and ISO/IEC
+            // 1989:2002 Annex F.2 item 48 adds ("A partial expression may now be used as a selection object").
+            using (ctx.Edition.At(item))
+                ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.EvaluatePartialExpression2002,
+                    $"the partial expression '{DataBinder.WrittenText(item)}' as an EVALUATE selection object");
             // The subject's operand node is null for a boolean-EXPRESSION subject (PB1412), which has none; it is a
             // subject all the same (Table 15's Partial-expression row is 'Y' under the Boolean-expression column).
             var subjOp = BareOperand(slot.Node);

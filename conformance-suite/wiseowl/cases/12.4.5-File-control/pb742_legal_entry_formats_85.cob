@@ -23,8 +23,10 @@
       *>     12.4.5.12.3 SR2 forbids for a record key (so the category arm must not leak across key
       *>     roles), SR3 REQUIRES it outside the record, and SR9 admits the clause because the file
       *>     IS relative.
-      *>   - a SORT-MERGE file described by an SD whose entry is a legal 12.4.5.1 Format 4 - ASSIGN
-      *>     plus "[ ORGANIZATION IS ] SEQUENTIAL" and nothing else. This one is load-bearing: the
+      *>   - a SORT-MERGE file described by an SD whose entry is the legal 1985 sort-merge entry -
+      *>     SELECT and ASSIGN only (§1985:XI.2.3.3 SR2; the "[ ORGANIZATION IS ] SEQUENTIAL" of the
+      *>     2002+ Format 4 is refused at 85, kb/Work PB5071, and is witnessed from 2002 by
+      *>     cases/12.4.5-File-control/pb5071_sort_merge_entry_organization). This one is load-bearing: the
       *>     screen used to skip every sort-merge file with a blanket early return, and SR8/SR9's
       *>     second sentence is what replaced it, so a legal SD must still draw nothing.
       *> ⚠ A category-NATIONAL key is legal under both SR2s and is NOT exercised here: a national
@@ -53,8 +55,7 @@
                ORGANIZATION IS RELATIVE
                ACCESS MODE IS RANDOM
                RELATIVE KEY IS WS-RK.
-           SELECT SRT ASSIGN TO "pb742legal-srt.tmp"
-               ORGANIZATION IS SEQUENTIAL.
+           SELECT SRT ASSIGN TO "pb742legal-srt.tmp".
        DATA DIVISION.
        FILE SECTION.
        FD SQF.

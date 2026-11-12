@@ -442,7 +442,11 @@ its own view's (`inventory_view.py --summary`). The 1985 audit's checked drafts 
 `scripts/spec/place_witnesses.py`, from the confirmation pass's records: each judged again on the build through the
 harness, an output draft an accepted test at 85 and a refused draft a WiseOwl refusal pinning the code the compiler
 reports at the draft's violating line (its control has no expected output of its own, so the flagged form of §3.2 waits
-for the clause pass), each `portable: unverified` until that pass clears it. Its witness is recorded on the rule's store
+for the clause pass), each `portable: unverified` until that pass clears it. A draft's library texts (its `files`) are
+placed beside its test and declared in its header (`files`, §3.1), the same texts the harness staged when it judged the
+draft; a clause folder holds one file of a name, so a draft needing a name another test of the folder holds with other
+text refuses the placement until the draft is given its own text-name, and a draft whose text lies in a library folder
+is not placed (only a WiseOwl test may declare one) (kb/Work PB5067). Its witness is recorded on the rule's store
 row as a witness-only `test-ref` where the rule's verdict is its own (CHANGED or REMOVED); a KEPT rule's test is its
 chain's and stays unrecorded there, and a rule with no change record yet is placed and listed as unclassified, its
 witness recorded once a change record classifies it. A rule is placed once, whichever pass's records place it: a run
@@ -565,7 +569,8 @@ tests/nist/crosswalk/<program>.json    each NIST-85 program's units and disposit
   its control holds another element of that kind, and a mark no line names; free form at 85 in `cases/`; a STOP
   statement in a test that is not marked `main` and enters a grouped program; a test not marked `main` holding no program
   definition that is not a prototype (none today, `rev3e/noprog.py`); a test with no `accept`, no flagged line and no
-  WiseOwl diagnosis; an accepted test that displays nothing; a literal beginning `*TEST `; an undeclared COPY or file,
+  WiseOwl diagnosis; an accepted test that displays nothing; a literal beginning `*TEST `; an undeclared COPY (a COPY
+  in an 85 comment-entry is part of the comment-entry, §1985:XII.2.3 SR10, and is none) or file,
   an output section naming no test of the file or equal to the section it narrows, an unknown field, a block in the
   other form; a `requires` name that is no module row; a lint violation in a suite test or a
   driver; a `wiseowl/` line naming no test of its file, a code `DiagnosticCatalog` lacks, an accepted edition pinned
@@ -624,7 +629,9 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
   each enumerating A.1 item's value and its extra reserved words per edition (GnuCOBOL's: what `cobc --list-reserved`
   lists beyond `reserved-words.json`).
 - **Each program runs in its own fresh directory** with its tests' declared files and stdin closed; case files run in
-  parallel.
+  parallel. A declared file lies there at its place beside the test's source, so a library text in a library folder
+  (`<library>/<file>`) keeps its library; `run.py` (`Run.staged`) and the in-process runner (`ConformanceSuiteRunner.Stage`)
+  stage it the same way.
 - **A case file runs in three steps** (17d, 17g), so one failing test never hides another or fails the file. (1) Compile
   the profile's grouped program (§4), which holds only tests the profile can apply; if it does not translate, compile
   each of them solo, since "Translation may be unsuccessful due to factors other than lack of conformance of a
@@ -771,8 +778,9 @@ unheld 1985 text.
   F.1 item 1 elements). The unit is the obligation; its entry names the 85 test reproducing it, which names
   `construct:<id>` and derives its output from the unit's own expectation. Reported as unit-level coverage.
 - `excluded`, with a reason: `fips-pub-21-1` (decision 11) or `ccvs-scaffolding` (CCVS's own machinery, such as the
-  X-card parameters). A CCVS defect is not excluded: RL118A tests ISO behavior with a wrong expectation, so
-  it maps as `rows` with a `differs` entry.
+  X-card parameters). A CCVS check a later edition's text contradicts is not excluded: RL118A's REL-TEST-2 holds at
+  85 (a key of 0 is the invalid key condition '24', §1985:VIII.1.3.4) and fails from 2014 (§2014:14.9.47.3 GR26 b)
+  answers '34', a permanent error; kb/Work PB5125), so it maps as `rows`, its 2014 report a per-edition golden.
 - `open`: not yet mapped.
 
 No unit is `not-claimed`: WiseOwl implements Communication (decision 12), the one candidate the study found.
