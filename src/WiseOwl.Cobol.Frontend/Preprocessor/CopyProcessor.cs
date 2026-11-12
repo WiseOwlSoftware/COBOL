@@ -1080,9 +1080,14 @@ public sealed class CopyProcessor(
 
         /// <summary>The next text-word, not consumed, stepping over separator commas and semicolons and compiler
         /// directive lines (<see cref="TextWord.IsSpaceForMatching"/> — each stands where a separator space may).</summary>
-        public bool TryPeek(out TextWord word)
+        public bool TryPeek(out TextWord word) => PeekFrom(Pos, out word);
+
+        /// <summary>The text-word after <paramref name="word"/> (one <see cref="TryPeek"/> returned), not consumed, stepping
+        /// over what <see cref="TryPeek"/> steps over.</summary>
+        public bool TryPeekAfter(in TextWord word, out TextWord next) => PeekFrom(word.End, out next);
+
+        private bool PeekFrom(int p, out TextWord word)
         {
-            int p = Pos;
             while (TextWordScanner.TryNext(Text, ref p, out word))
                 if (!word.IsSpaceForMatching) return true;
             return false;
@@ -1287,9 +1292,18 @@ public sealed class CopyProcessor(
         bool any = false;
         while (c.TryPeek(out var w) && !w.IsSeparatorPeriod)
         {
+            // LEADING and TRAILING open the partial-word phrase only where partial-word-1 follows them, and partial-word-1
+            // is always pseudo-text (§2023:7.2.3.2); elsewhere each is a word operand like any other COBOL word (kb/Work
+            // PB5418; §1985:XII.2.3 SR6 "may be any single COBOL word except", the edition with no partial-word phrase).
             ReplaceKind kind = ReplaceKind.Whole;
-            if (w.IsWord("LEADING")) { kind = ReplaceKind.Leading; screen.PartialWord(w); c.Advance(w); }
-            else if (w.IsWord("TRAILING")) { kind = ReplaceKind.Trailing; screen.PartialWord(w); c.Advance(w); }
+            bool phrase = (w.IsWord("LEADING") || w.IsWord("TRAILING"))
+                && c.TryPeekAfter(w, out var next) && next.Kind == TextWordKind.PseudoTextDelimiter;
+            if (phrase)
+            {
+                kind = w.IsWord("LEADING") ? ReplaceKind.Leading : ReplaceKind.Trailing;
+                screen.PartialWord(w);
+                c.Advance(w);
+            }
 
             if (ReadOperand(c, screen, nonPseudoText, nestedCopy) is not { } from) return;
             bool more = c.TryPeek(out var by);
@@ -1342,8 +1356,11 @@ public sealed class CopyProcessor(
     private static Operand? ReadOperand(StatementCursor c, OperandScreen screen, Action<int>? nonPseudoText,
         Action<int>? nestedCopy)
     {
+        // An operand is read by its POSITION (kb/Work PB5418): the general format alternates operand, the keyword BY,
+        // operand, so a word BY where an operand stands is that operand — §1985:XII.2.3 SR6: word-1 or word-2 "may be any
+        // single COBOL word except" COPY, and BY is a COBOL word.
         bool more = c.TryPeek(out var w);
-        if (!more || w.IsSeparatorPeriod || w.IsWord("BY"))
+        if (!more || w.IsSeparatorPeriod)
         {
             c.Error(more ? w.Start : c.Pos, "a REPLACING operand is missing");
             return null;
