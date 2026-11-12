@@ -79,6 +79,10 @@ public sealed class ModuleStack
     /// <summary>The identity of the RUNNING activation (the top frame), or 0 outside any activation.</summary>
     public long CurrentActivation => _stack.Count > 0 ? _stack[^1].Activation : 0;
 
+    /// <summary>Whether the RUNNING activation is the run unit's main program — the element the operating environment activated to establish the run
+    /// unit (pushed by <see cref="PushMain"/>), and so the only one the message control system can have scheduled (§1985:XIV.2.2.4 GR28; kb/Work PB5282).</summary>
+    public bool RunningIsMain => _stack.Count > 0 && _stack[^1].IsMain;
+
     /// <summary>The identity of the activation that ACTIVATED the running one (the frame beneath the top), or
     /// −1 when the running element was activated by the operating environment or a non-COBOL host — an
     /// identity no activation ever has, so nothing staged for it can be taken.</summary>

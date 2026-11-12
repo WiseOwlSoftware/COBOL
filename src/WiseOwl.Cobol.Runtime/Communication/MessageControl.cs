@@ -87,8 +87,10 @@ public static class MessageControl
     public static CommunicationReceipt Receive(string cd, CommunicationFormat format, string area, bool segment, string into, bool noDataPhrase) =>
         Session.Receive(cd, format, area, segment, into, noDataPhrase);
 
-    /// <summary>The area of a CD with the INITIAL clause before the first procedure division statement (A.1.2.3 GR6, GR28).</summary>
-    public static string InitialArea(string cd, CommunicationFormat format, string area) => Session.InitialArea(cd, format, area);
+    /// <summary>The area of a CD with the INITIAL clause before the first procedure division statement (A.1.2.3 GR6, GR28). Only the program that establishes the run unit
+    /// can have been scheduled by the MCS; a CALLed program's INITIAL CD is initialized to spaces "in all other cases" (§1985:XIV.2.2.4 GR28; kb/Work PB5282).</summary>
+    public static string InitialArea(string cd, CommunicationFormat format, string area) =>
+        Session.InitialArea(cd, format, area, scheduledProgram: RunUnit.Current.Modules.RunningIsMain);
 
     /// <summary>Table A.3: "Any character other than 1, 2, or 3 will be interpreted as 0."</summary>
     public static SendIndicator IndicatorOf(string image) =>

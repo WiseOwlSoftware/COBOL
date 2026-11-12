@@ -26,10 +26,11 @@
       *> misses rule 2 a and c.
       *> The START and DELETE of KF (no USE procedure) show the section
       *> runs with no INVALID KEY phrase at all; those of KU (a USE
-      *> procedure too) pin the order the standard leaves open, rule 2 c
-      *> naming none: the section runs when the verb's own I-O is done,
-      *> before the exception test, so before the USE procedure
-      *> (docs/CONFORMANCE.md D-DEBUG-FILE).
+      *> procedure too) pin the order: rule 2 c runs the section "after
+      *> the execution of" the statement, and the USE procedure of a
+      *> failed one is part of that execution, so the section runs after
+      *> the USE procedure (docs/CONFORMANCE.md D-DEBUG-FILE; kb/Work
+      *> PB5295).
       *> A READ that delivered no record read none into DEBUG-CONTENTS,
       *> which stays spaces (rules 23 c and 11), and an INTO receiver
       *> named by ALL REFERENCES is not referenced by a READ whose INTO

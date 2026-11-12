@@ -703,11 +703,21 @@ public sealed class MessageControlTests : IDisposable
     [Fact]
     public void InitialArea_NamesWhatScheduledTheRunUnit_OrSpaces()
     {
-        string scheduled = Session(Definitions, "Q1", "SUB").InitialArea("C", CommunicationFormat.Input, InputArea("OLD"));
+        string scheduled = Session(Definitions, "Q1", "SUB").InitialArea("C", CommunicationFormat.Input, InputArea("OLD"), scheduledProgram: true);
         Assert.Equal("Q1".PadRight(12) + "SUB".PadRight(12) + new string(' ', 24), scheduled[..48]);
-        string notScheduled = Session().InitialArea("C", CommunicationFormat.Input, InputArea("OLD"));
+        string notScheduled = Session().InitialArea("C", CommunicationFormat.Input, InputArea("OLD"), scheduledProgram: true);
         Assert.Equal(new string(' ', 48), notScheduled[..48]);
-        Assert.Equal(new string(' ', 12), Session().InitialArea("I", CommunicationFormat.InputOutput, InOutArea("OLD")).Substring(14, 12));
+        Assert.Equal(new string(' ', 12), Session().InitialArea("I", CommunicationFormat.InputOutput, InOutArea("OLD"), scheduledProgram: true).Substring(14, 12));
+    }
+
+    /// <summary>§1985:XIV.2.2.4 GR28 and GR6: only "a program scheduled by the MCS" - the one that establishes the run unit - receives the scheduling names; a CALLed program's INITIAL CD is
+    /// "initialized to spaces", and the terminal is not locked to it (kb/Work PB5282).</summary>
+    [Fact]
+    public void InitialArea_OfAProgramTheMcsDidNotSchedule_IsSpaces_AndTakesNoTerminalLock()
+    {
+        var session = Session(Definitions, "T1");
+        Assert.Equal(new string(' ', 12), session.InitialArea("S", CommunicationFormat.InputOutput, InOutArea("OLD"), scheduledProgram: false).Substring(14, 12));
+        Assert.Equal(new string(' ', 48), session.InitialArea("C", CommunicationFormat.Input, InputArea("OLD"), scheduledProgram: false)[..48]);
     }
 
     /// <summary>A.1.2.3 GR30: when the MCS scheduled the run unit, the terminal's name "shall not be changed by the program" from the first statement on.</summary>
@@ -715,7 +725,7 @@ public sealed class MessageControlTests : IDisposable
     public void ScheduledTerminal_ChangedBeforeTheFirstStatement_IsUnknown()
     {
         var session = Session(Definitions, "T1");
-        Assert.Equal("T1".PadRight(12), session.InitialArea("I", CommunicationFormat.InputOutput, InOutArea("")).Substring(14, 12));
+        Assert.Equal("T1".PadRight(12), session.InitialArea("I", CommunicationFormat.InputOutput, InOutArea(""), scheduledProgram: true).Substring(14, 12));
         Assert.Equal("21", InOutStatus(session.Receive("I", CommunicationFormat.InputOutput, InOutArea("T2"), false, ".", noDataPhrase: true).Area));
         Assert.Equal("00", InOutStatus(session.Receive("I", CommunicationFormat.InputOutput, InOutArea("T1"), false, ".", noDataPhrase: true).Area));
     }
