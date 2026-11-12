@@ -267,8 +267,8 @@ Under review: `src/**/*.{cs,g4,ps1,csproj}`, `tests/**/*.{cs,csproj,props,py,ps1
   counted tokens for 36 and 65 pairs: about 0.8 M a pair, so a session window holds about 40 pairs). Tokens become weekly points at the Opus rate (every reviewer is
   Opus) and session points at `session_pct_per_weekly_pct`. The room is `budget.py`'s for the running account: the
   session's soft stop less what it has spent less `--session-reserve` (what the orchestrator loop running beside the
-  batch will spend), and the week's headroom (`--borrow-days`, never assumed; the owner's 2026-10-10 grant of the
-  whole weekly quota is `--borrow-days 6`). `r2_inputs.py --batch` REFUSES a batch that cannot finish in that room,
+  batch will spend), and the week's headroom (`--borrow-days`, never assumed: it is 0 unless the owner granted
+  days for that run, and none stands since 2026-11-11, kb/Work PB5357). `r2_inputs.py --batch` REFUSES a batch that cannot finish in that room,
   writes nothing, and prints the estimate with the batches to write instead (`<label>a`, `<label>b`, ...: the
   shards packed in the order given, the first part into the room left now, each later one into one fresh session
   window while the week has room, the rest after the weekly reset; a shard is never split). `r2_collect.py --launch`
