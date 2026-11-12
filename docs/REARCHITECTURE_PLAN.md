@@ -25,16 +25,32 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 ### Where we are
 
 - **▶ WHO RUNS WHAT (owner 2026-10-30: "Focus on fixing compiler bugs and getting to 100% deliverable"; "We should
-  try and fix all single point bottlenecks").** The operator's loop runs the fix lane (`work.py next`'s harm notes)
-  with `-Cluster PB4147,PB2911`: PB4147 is the landing pipeline's single-point bottlenecks, measured (the shared refusal
-  registry, landed: one file per test; the traceability inventory PB4148; chained enqueue units PB4180; stall routing
-  PB4190; the merge queue's build width PB3773). PB2911 is the GAP campaign's notes in the operator's partition, PB1253
-  included. The 2023 traceability inventory is at ZERO GAP since 2026-11-05 (kb/Work A11 closed its last row, DOC-A.1-17;
-  the 1985 and 2002 inventories count their own GAP on the probe's `invent` line, 2002's held since kb/Work PB5256);
-  the Mythos lane runs the remaining GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the partition redesign (PB4146) and each fuzz night's triage,
-  and runs fix-lane waves on its own quota. Neither lane plans what the other's dispatch holds (`inflight-groups.json`).
-  The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans nothing else on
-  `docs/CONFORMANCE.md`.
+  try and fix all single point bottlenecks").** Since 2026-11-12 the orchestrator loop runs on account 1 (the operator on
+  account 2 released it) with the campaign clusters PB4995 (the 1985 inventory) and PB3726 (the pipeline-scripts
+  restructure, `DESIGN-orchestrator-loop.md` section 16: 30 serial steps starting at PB5428; `docs/CONFORMANCE.md` becomes
+  one file per determination with an untracked rendered view). The loop was stopped on the afternoon of 2026-11-12 for a
+  Claude Code CLI update; the next attended session restarts it. The 2023 inventory is at ZERO GAP since 2026-11-05
+  (kb/Work A11 closed DOC-A.1-17); the 2002 inventory's count is held (kb/Work PB5256) and the 1985 inventory is described
+  next. The Mythos lane runs the other GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the
+  partition redesign (PB4146) and each fuzz night's triage. Neither lane plans what the other's dispatch holds
+  (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
+  nothing else on `docs/CONFORMANCE.md`.
+- **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
+  2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
+  NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2. The 2026-11-12 method: code-read waves over rows whose witness exists
+  (pipeline `coderead-85-pipe.js`, Opus readers and refuters, each closing verdict refuted before it counts); rows held
+  from earlier waves decided by adjudicators and recorded through `record_verdicts.py --edition 1985`; mismatching
+  drafts re-run and triaged; and the COPY drafts unblocked by kb/Work PB5067 (landed). The dated records are the
+  directories kb/Work/PB4996 and kb/Work/PB4995. What is left is state, each part with its owner: rows with a
+  non-conforming verdict wait on their defect notes' fixes in the fix lane; rows that gained a witness today still need
+  their code read; fourteen rows KEPT in 2023 wait on kb/Work PB479 (their 2023 text is unnumbered prose or Table 12 and
+  has no catalog row); the 21 no-witness rules decided by class in kb/Work PB5373 wait on PB5374 (the derivation
+  tooling); five warning-only refusals are held for adjudication (kb/Work/PB4995/2026-11-12-drafts-85n.md).
+- **▶ DECISIONS OF 2026-11-12.** kb/Work PB5373 decides how a 1985 rule with no reachable witness closes: the
+  deciding session signs derivations (the owner confirmed "You sign derivations"; the dated file beside PB5373).
+  kb/Work PB479 designs rows for the standard's unnumbered obligations (the unit is the paragraph printed at a clause's
+  margin; the 2023 inventory is expected to gain about 500 to 1,850 rows, all open when minted; nothing is minted yet);
+  its decision note PB5448 is in pull request 1576, not yet on main. The PB3726 restructure design landed (see WHO RUNS WHAT).
 - **▶ PRIORITY (owner 2026-10-10, kb/Work PB2911): THE COMPILER AND ZERO GAP COME FIRST.** Zero GAP was reached on
   2026-11-05 (kb/Work A11 closed DOC-A.1-17, the last GAP row); the GAP campaign's remaining open notes are named in
   WHO RUNS WHAT above, and the fix lane's defect waves come first. The Delete program PB2119 and the R2 review's
@@ -42,8 +58,10 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   kb/Work PB5357, which withdraws the whole-week borrow of 2026-10-10): NO borrowed days on either account. Each account
   follows its day line (`budget.py` at borrow 0: day N of 7 allows N × 14.3 %); an account above its line starts no
   worker, fleet or landing until the line passes its reading; each account spends its remainder by the late evening
-  before its own weekly reset (dispatch cap 97 %), never past the 5-hour session limit. A Mythos or Fable dispatch on
-  either account needs the owner's explicit approval for that dispatch.
+  before its own weekly reset (dispatch cap 97 %), never past the 5-hour session limit. The owner lifted the account 1 hold and
+  reset account 1 on 2026-11-12 (kb/Work PB5357, dated files of that day); until its reset on Sunday 2026-11-15 at 02:00 PST
+  he approved on account 1 only Mythos for orchestrator loop units and for workers on Mythos-grade jobs. Any other Mythos
+  or Fable dispatch, and every one on account 2, needs the owner's explicit approval for that dispatch.
 - **▶ GATE POLICY (owner 2026-10-31, owner decision 1 of PB4323; kb/Work PB4328): THE POPULATION IS THE SELECTION.**
   Every gate of a change a test can read runs the WHOLE Windows Unit, Conformance and Characterization populations
   (`scripts/gate.py`, one shape since 2026-10-11, kb/Work PB3015 Q1a, PB3022), the classes red at its previous run or
