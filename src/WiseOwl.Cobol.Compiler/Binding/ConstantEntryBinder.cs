@@ -1049,7 +1049,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                         + "literal were written)");
                     return null;
                 }
-                if (kv == 0 && WiseOwl.Cobol.Validation.IntegerOperandRules.Classify(operand).Kind
+                if (kv == 0 && WiseOwl.Cobol.Validation.IntegerOperandRules.Classify(operand, owner.Edition.DialectLevel).Kind
                         == WiseOwl.Cobol.Validation.IntegerSlotKind.NonZero)
                 {
                     owner.Edition.Error(DiagnosticCatalog.IntegerOperandZero, $"{where}: {what} '{word}' is the integer 0, and "

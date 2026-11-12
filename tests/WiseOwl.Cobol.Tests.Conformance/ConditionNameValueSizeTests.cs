@@ -36,12 +36,12 @@ public sealed class ConditionNameValueSizeTests
     private const string National = "01 NV PIC N(2).\n   88 NC VALUE N\"ABC\".";
     private const string Boolean = "01 BV PIC 1(2) USAGE BIT.\n   88 BC VALUE B\"101\".";
 
-    /// <summary>§2023:13.18.63.3 SR4 sentence 2 does not reach a Format-3 subject, at ANY edition — the rule is
-    /// edition-invariant (no Annex E change touches it), so all four compile and produce the same answer:
-    /// §2023:8.8.4.5.3 item 2 sends the comparison to the relation-condition rules, which space-extend the shorter
-    /// operand, so a literal longer than the conditional variable never compares equal.</summary>
+    /// <summary>§2023:13.18.63.3 SR4 sentence 2 does not reach a Format-3 subject from COBOL-2002 on (§2002:13.16.61.2 SR4
+    /// has the same "elementary item" and "explicit PICTURE clause" words), so all three compile and produce the same
+    /// answer: §2023:8.8.4.5.3 item 2 sends the comparison to the relation-condition rules, which space-extend the
+    /// shorter operand, so a literal longer than the conditional variable never compares equal. COBOL-85 bounds it:
+    /// <see cref="At85_AnOversizeAlphanumericConditionNameLiteral_IsRefusedBySr3"/>.</summary>
     [Theory]
-    [InlineData(85)]
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]
@@ -53,11 +53,29 @@ public sealed class ConditionNameValueSizeTests
         Assert.Equal("N", stdout.Trim());
     }
 
+    /// <summary>⛔ THE 1985 ARM (kb/Work PB5190). §1985:VI.5.15.3 SR3 — "Nonnumeric literals in a VALUE clause of an item
+    /// must not exceed the size indicated by the PICTURE clause" — says "an item", and a condition-name has its
+    /// conditional variable's PICTURE (§1985:VI.5.15.5 GR1), so the literal "cd" and the range "aa" THRU "zz" under
+    /// <c>PIC X</c> are each refused (COBOL1740), where one that fits, and ALL "ABC" (a figurative, truncated by
+    /// rule), are not.</summary>
+    [Fact]
+    public void At85_AnOversizeAlphanumericConditionNameLiteral_IsRefusedBySr3()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Program(Alnum, "    DISPLAY XV"), 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1740");
+        Assert.Equal(2, errors.Count(e => e.Contains("COBOL1740")));   // XC "cd", and XR "aa" THRU "zz" (its two ends are one report)
+
+        var (fits, ferrors, _) = EditionHarness.CompileFull(
+            Program("01 XV PIC X(2).\n   88 XC VALUE \"cd\".\n   88 XR VALUE \"aa\" THRU \"zz\".\n   88 XF VALUE ALL \"ABC\".",
+                "    DISPLAY XV"), 85);
+        Assert.True(fits, string.Join(Environment.NewLine, ferrors));
+    }
+
     /// <summary>§2023:14.9.39.4 GR6 → §2023:13.18.63.4 GR7 → §2023:14.6.8.5: <c>SET condition-name TO TRUE</c> places the literal
     /// "aligned at the leftmost character position in the data item with space fill or truncation to the right, as
     /// required". The standard DEFINES the oversize store, which a size rule at level 88 would make dead text.</summary>
     [Theory]
-    [InlineData(85)]
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]

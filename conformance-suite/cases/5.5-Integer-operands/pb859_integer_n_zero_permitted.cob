@@ -11,8 +11,9 @@
       *> position below is one whose associated rule DOES otherwise-specify, so each zero is legal and the new
       *> NONZERO screen (COBOL2386) must not touch it:
       *>   LINAGE ... LINES AT TOP 0 / AT BOTTOM 0 - §2023:13.18.34.3 SR4 "Integer-3, integer-4 may be zero."
-      *>   RECORD CONTAINS 0 TO 80              - §2023:13.18.43.3 SR8 "Integer-4 shall be greater than or equal to zero."
-      *>   RECORD IS VARYING IN SIZE FROM 0     - §2023:13.18.43.3 SR7 "Integer-2 shall be greater than or equal to zero."
+      *>   (the RECORD clause's zero minimums, §2023:13.18.43.3 SR7 and SR8, are from 2002 and COBOL-85 refuses them,
+      *>   kb/Work PB5196, so this edition-85 control writes 1 where they stood; pb5196_record_contains_zero_minimum_2002
+      *>   and pb721_zero_length_record_2002 carry the zero positives)
       *>   OCCURS 0 TO 3 TIMES DEPENDING ON     - §2023:13.18.38.3 SR16 "Integer-1 shall be greater than or equal to zero"
       *>   WRITE ... AFTER ADVANCING 0 LINES    - §2023:14.9.51.3 SR15 "Integer-1 shall be positive or zero."
       *> Expected values, from the general rules: OPEN OUTPUT sets LINAGE-COUNTER to one and a WRITE with an
@@ -32,12 +33,12 @@
        DATA DIVISION.
        FILE SECTION.
        FD  PRTF
-           RECORD CONTAINS 0 TO 80 CHARACTERS
+           RECORD CONTAINS 1 TO 80 CHARACTERS
            LINAGE IS 10 LINES WITH FOOTING AT 8
                LINES AT TOP 0 LINES AT BOTTOM 0.
        01  PR                 PIC X(80).
        FD  VARF
-           RECORD IS VARYING IN SIZE FROM 0 TO 20 CHARACTERS.
+           RECORD IS VARYING IN SIZE FROM 1 TO 20 CHARACTERS.
        01  VR                 PIC X(20).
        WORKING-STORAGE SECTION.
        01  N                  PIC 9 VALUE 0.

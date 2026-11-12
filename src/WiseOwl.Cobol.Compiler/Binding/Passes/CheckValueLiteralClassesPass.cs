@@ -75,6 +75,31 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
             + "§2023:8.5.2.1 Table 2)");
     }
 
+    /// <summary>⛔ THE LITERALS OF A CONDITION-NAME WHOSE CONDITIONAL VARIABLE IS AN ALPHANUMERIC GROUP (kb/Work PB5215).
+    /// An alphanumeric group item has class and category alphanumeric (§2023:8.5.2.1), and a condition-name takes its conditional
+    /// variable's characteristics (§2023:13.18.63.4 GR19; §1985:VI.5.15.5 GR1), so its literals are those of an
+    /// alphanumeric item: §2023:13.18.63.3 SR4 sentence 1 "literals in the VALUE clause shall be alphanumeric literals"
+    /// and, at COBOL-85, §1985:VI.5.15.3 SR2 "A signed numeric literal must have associated with it a signed numeric
+    /// PICTURE character-string", which a group has none of. <c>BindCondition</c> screens a literal only through
+    /// the conditional variable's operand PICTURE, and an ordinary group has none, so <c>88 G-N VALUE -1.</c> under
+    /// <c>01 G.</c> compiled and stored the characters "-1" while the same literal in the group's own VALUE clause is
+    /// COBOL1657. It is a pass-level check because a group is known to be one only once its subordinates are
+    /// attached, after the 88 was read. It asks the SAME funnel the item VALUE does (<c>ValidateValueCategory</c>) with
+    /// the SAME descriptor the group VALUE builds its picture from (<see cref="CheckGroupValueDeclarationsPass.GroupSubjectPic"/>);
+    /// a national or bit group has an as-if PICTURE and was already screened at bind.</summary>
+    private static void ScreenGroupConditionName(DataBinder binder, DataItem group, Condition88 cond)
+    {
+        using var _ = binder.Edition.At(group);
+        var pic = CheckGroupValueDeclarationsPass.GroupSubjectPic(group);
+        var subject = ValueSubject.ForConditionName(pic, binder.Edition.DialectLevel);
+        string where = $"condition-name '{cond.Name}' (of the alphanumeric group item '{group.CobolName ?? group.ClrName}')";
+        foreach (var (lo, hi) in cond.Values)
+        {
+            binder.ValidateValueCategory(pic, lo, where, subject);
+            if (hi is not null) binder.ValidateValueCategory(pic, hi, where, subject);
+        }
+    }
+
     /// <summary>The §2023:13.18.63.3 SR7 pass — every VALUE literal of every format, over the RESOLVED usage
     /// (kb/Work PB646). Format 1's item literal and format 2's per-occurrence literals hang off the item; formats
     /// 3 and 5's hang off the condition-names, whose "item" SR7 speaks of is the conditional variable (the same
@@ -115,13 +140,19 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
             }
             foreach (var cond in item.Own88s)
             {
-                if (cond.ClonedFrom is not null || cond.Parent.OperandPic is not { } cp) continue;
+                if (cond.ClonedFrom is not null) continue;
+                if (cond.Parent.OperandPic is not { } cp)
+                {
+                    if (!cond.Parent.IsElementary) ScreenGroupConditionName(binder, item, cond);
+                    continue;
+                }
                 using var _ = binder.Edition.At(item);
                 foreach (var (lo, hi) in cond.Values)
                 {
-                    ScreenNumericEditedLiteralClass(binder, cp, lo, $"condition-name '{cond.Name}'", ValueSubject.ForConditionName());
+                    var condSubject = ValueSubject.ForConditionName(cp, binder.Edition.DialectLevel);
+                    ScreenNumericEditedLiteralClass(binder, cp, lo, $"condition-name '{cond.Name}'", condSubject);
                     if (hi is not null)
-                        ScreenNumericEditedLiteralClass(binder, cp, hi, $"condition-name '{cond.Name}'", ValueSubject.ForConditionName());
+                        ScreenNumericEditedLiteralClass(binder, cp, hi, $"condition-name '{cond.Name}'", condSubject);
                 }
             }
         }

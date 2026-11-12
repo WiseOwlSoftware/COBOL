@@ -26,7 +26,7 @@
            05 M OCCURS 2 TIMES.
                10 P PIC X(3).
            05 T PIC X(3) VALUE "TTT".
-       66 S RENAMES A.
+       66 S RENAMES A OF G1.
        01 G2.
            05 A PIC X(3) VALUE "ZZZ".
            05 C PIC X(3) VALUE "ZZZ".
