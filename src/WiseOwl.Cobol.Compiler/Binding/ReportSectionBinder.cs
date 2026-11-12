@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Expressions;
 
 using WiseOwl.Cobol.Binding.Model;
 
@@ -387,7 +388,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (Edition.DialectLevel >= 2002 || group.Kind is not (ReportGroupKindModel.ControlFooting or ReportGroupKindModel.PageHeading
                 or ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting)) return;
-        var (name, qualifiers) = DataBinder.KeyReference(source.Ref);
+        // A function-identifier or method invocation references a temporary, never control data (kb/Work PB5240).
+        if (source.Ref is not Core.DataReferenceContext sourceRef) return;
+        var (name, qualifiers) = DataBinder.KeyReference(sourceRef);
         if (_d.QualifiedCandidates(name, qualifiers, Model.Scope.Program).Single is not { } item) return;
         bool pageGroup = group.Kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting;
         foreach (var control in model.Controls)
@@ -2268,7 +2271,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     // ENTRY to define a numeric or numeric-edited item. The entry's PICTURE is analyzed below
                     // (it needs the COLUMN block's usage/editing context), so the obligation is recorded here
                     // and discharged there, where `pic` exists.
-                    if (sc.roundedPhrase() is not null || sops.Any(o => IdentifierOperandOf(o) is null))
+                    if (sc.roundedPhrase() is not null || sops.Any(o => SourceIdentifierOf(o) is null))
                         sourceNeedsNumericEntry = true;
                     foreach (var op in sops) sourceOps.Add(BindSourceOperand(op, sc.roundedPhrase()));
                 }
@@ -2969,7 +2972,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private void ScreenSourceOperandParens(Core.ReportValueOperandContext[] ops, string where)
     {
         if (ops.Length <= 1) return;
-        if (!ops.Any(o => IdentifierOperandOf(o) is null)) return;   // every operand is identifier-1 — SR7 is silent
+        if (!ops.Any(o => SourceIdentifierOf(o) is null)) return;   // every operand is identifier-1 — SR7 is silent
         foreach (var o in ops.Where(o => !IsParenthesized(o)))
             Edition.Error(DiagnosticCatalog.ReportSourceOperandParens, $"{where}: the SOURCE clause has "
                 + $"{ops.Length} operands of which at least one is an arithmetic-expression, so each operand "
@@ -2988,6 +2991,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private Core.DataReferenceContext? IdentifierOperandOf(Core.ReportValueOperandContext op) =>
         BareReferenceOf(op) is { } dref && _d.Constants.ConstantOf(dref) is null ? dref : null;
 
+    /// <summary>⛔ THE SOURCE CLAUSE'S identifier-1 (kb/Work PB5240): the identifier a SOURCE operand IS when it is written
+    /// as one — the bare data reference <see cref="IdentifierOperandOf"/> answers, or a function-identifier, inline method
+    /// invocation, object-view or SELF / SUPER written as the whole operand (<see cref="SoleOperand.TemporaryIdentifier"/>)
+    /// — else null, meaning arithmetic-expression-1. A function-identifier is an identifier (§2023:8.4.3.1.2 Format 1), and
+    /// §2023:15.2 lets a function "be used anywhere a sending data item of that class and category may be specified", so
+    /// `SOURCE FUNCTION UPPER-CASE(T)` is identifier-1, the sending operand of §2023:13.18.53.4 GR1's implicit MOVE, and SR3's
+    /// numeric entry is not asked of it (§1985:IV.4.3.8.3.3 SR3 says the same of an alphanumeric function at 85). SUM keeps
+    /// <see cref="IdentifierOperandOf"/>: its addend is added, so a sole function is arithmetic-expression-1 there.</summary>
+    private Antlr4.Runtime.ParserRuleContext? SourceIdentifierOf(Core.ReportValueOperandContext op) =>
+        (Antlr4.Runtime.ParserRuleContext?)IdentifierOperandOf(op) ?? SoleOperand.TemporaryIdentifier(op.arithmeticExpression());
+
     /// <summary>Bind ONE SOURCE clause operand (ISO §2023:13.18.53.2 — the clause writes
     /// `{ identifier-1 | arithmetic-expression-1 } …`). identifier-1 is §2023:13.18.53.4 GR1's implicit MOVE sender; an
     /// arithmetic-expression-1 operand, an identifier under the clause's ROUNDED phrase (SR5) and a constant-name
@@ -3000,9 +3014,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         // §2023:13.18.53.3 SR5 makes an identifier-1 written WITH the ROUNDED phrase an arithmetic-expression, so the
         // two forms merge here and GR2's COMPUTE governs both (kb/Work PB852).
-        if (IdentifierOperandOf(op) is not { } dref || rounded is not null)
+        if (SourceIdentifierOf(op) is not { } identifier || rounded is not null)
             return new FieldComputeSource(op, DataBinder.WrittenText(op)) { Rounded = rounded };
-        return new FieldReferenceSource(dref, DataBinder.WrittenText(op));
+        return new FieldReferenceSource(identifier, DataBinder.WrittenText(op));
     }
 
     /// <summary>⛔ ISO §2023:13.18.54.4 GR1 — the sum counter's digit count, "derived from the corresponding number of

@@ -434,7 +434,30 @@ internal sealed class VersionConformancePass
                     using var _ = _sink.At(family.Register);   // the SUM entry's own position (Register.DeclaredAt, kb/Work PB1925)
                     Check(sumSkeletonId, family.SkeletonWhere);
                 }
+            GateReportSourceFunctions(report);
         }
+    }
+
+    /// <summary>The SOURCE operand that is a function-identifier or method invocation written as identifier-1 (kb/Work PB5240),
+    /// gated by its BOUND category: a numeric or integer function is the 2002 function operand ISO/IEC 1989:2002 Annex F.2
+    /// item 115 names ("SOURCE allows arithmetic expressions and functions") — at 85 "A function-identifier which
+    /// references an integer or numeric function may be used only in an arithmetic expression" (§1985:IV.4.3.8.3.3 SR4),
+    /// and the 85 SOURCE operand is identifier-1 alone — while an alphanumeric one is the 85 identifier-1 SR3 admits. The
+    /// parse arm (<c>VisitReportSourceClause</c>) leaves this operand to here because its category is not a fact of the
+    /// parse tree (MAX takes its arguments' category, a user function its RETURNING item's). Each operand once: a printable
+    /// entry's field and the occurrences of its entry share the source.</summary>
+    private void GateReportSourceFunctions(ReportModel report)
+    {
+        var asked = new HashSet<ReportFieldSource>(ReferenceEqualityComparer.Instance);
+        var sources = report.Groups.SelectMany(g => g.Lines).SelectMany(l => l.Fields).SelectMany(f => f.Sources)
+            .Concat(report.ItemOccurrences.Select(o => o.Source).OfType<ReportFieldSource>());
+        foreach (var source in sources)
+            if (source is FieldReferenceSource { Ref: not CobolParserCore.DataReferenceContext, Value: { } value } rs && asked.Add(rs)
+                && IntrinsicResultType.OperandCategory(value) is PicCategory.Numeric)
+            {
+                using var _ = _sink.At(rs.Ref);
+                Check(Constructs.ReportSourceExpression2002, "an arithmetic expression or function as a SOURCE operand (report group description)");
+            }
     }
 
     /// <summary>Gate one resolved DataItem's USAGE / PICTURE-category edition attribute. ⛔ At most ONE gate
@@ -1553,7 +1576,12 @@ internal sealed class VersionConformancePass
             // expression, a function, a literal, even a parenthesized identifier — is §2023:13.18.53.2's
             // arithmetic-expression-1, and so is the rounded phrase (§2023:13.18.53.3 SR3). The SUM clause shares the
             // operand production but not this clause's edition history, so it is not asked here.
-            if (ctx.reportValueOperand().Any(o => SoleOperand.DataRef(o.arithmeticExpression()) is null))
+            // A function-identifier or method invocation written as the whole operand is identifier-1, not an
+            // expression (§2023:15.2; §1985:IV.4.3.8.3.3 SR3 admits an alphanumeric function wherever an identifier is,
+            // kb/Work PB5240): whether it is the 2002 function operand depends on its category, which only the bind
+            // knows, so the bound arm asks it (GateReportSourceFunctions).
+            if (ctx.reportValueOperand().Any(o => SoleOperand.DataRef(o.arithmeticExpression()) is null
+                                                  && SoleOperand.TemporaryIdentifier(o.arithmeticExpression()) is null))
                 _p.Check(Constructs.ReportSourceExpression2002, "an arithmetic expression or function as a SOURCE operand (report group description)");
             if (ctx.roundedPhrase() is not null)
                 _p.Check(Constructs.ReportSourceRounded2002, "the ROUNDED phrase of the SOURCE clause (report group description)");
