@@ -141,8 +141,8 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     private static List<DebugFire> Of(IReadOnlyList<DebugFire> fires, DebugWhen when) => fires.Where(f => f.When == when).ToList();
 
     /// <summary>⛔ THE REFERENCE A FIRE DESCRIBES IS IDENTIFIED ONCE, WHEN THE STATEMENT BEGINS. A subscript is "evaluated only once as the first operation of
-    /// the execution of that statement" (§1985:IV.4.3.8), and DEBUG-SUB-n and DEBUG-CONTENTS describe "the occurrence number of each level" of that reference and
-    /// "the data item referenced by identifier-1" (§1985:XV.3.2.4 GR14, GR24). A <see cref="Place"/> renders its subscripts at each point of use, so a fire that
+    /// the execution of that statement" (§1985:IV.4.3.8), and DEBUG-SUB-n and DEBUG-CONTENTS describe "the occurrence number of each level" of that reference
+    /// (§1985:XV.3.2.4 GR14) and the content of the item it names "at the time that control passes to the debugging section" (§1985:XV.3.2.4 GR24). A <see cref="Place"/> renders its subscripts at each point of use, so a fire that
     /// runs after <c>MOVE TE (SUB) TO SUB</c> would describe the occurrence the NEW SUB names; each data fire's place is therefore frozen into statement locals
     /// before anything of the statement runs (<see cref="PlaceIdentification.Freeze(Place, Func{string, string})"/>, the mechanism INSPECT, STRING, UNSTRING and
     /// RECEIVE identify their operands by; kb/Work PB5294, PB5279). Not frozen: a loop phase (each evaluation of a VARYING, AFTER or UNTIL phrase is the
