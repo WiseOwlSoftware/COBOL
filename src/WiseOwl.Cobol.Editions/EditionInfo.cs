@@ -37,6 +37,15 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// programs.</summary>
     public bool ReplaceScopeEndsWithSeparatelyCompiledProgram => Year < 2002;
 
+    /// <summary>Whether text a replacement introduces is laid out in the lines of the fixed reference format (kb/Work
+    /// PB5382): at COBOL-85 every introduced line takes "the same character as the line on which the text being replaced
+    /// begins" in its indicator area (§1985:XII.3.4 GR11), and a literal too long for one line is continued onto a
+    /// continuation line, which a debugging line cannot be ("If replacement requires the continued literal to be continued
+    /// on a debugging line, the program is in error", the same rule; §1985:XII.2.4 GR9 for COPY). From 2002 the rule is the
+    /// debugging line alone — "If the text being replaced begins on a debugging line, the resultant text is on a debugging
+    /// line" (§2002:7.1.3.3 GR11) — and no continued-literal error remains.</summary>
+    public bool ReplacedTextIsLaidOutInFixedForm => Year < 2002;
+
     /// <summary>True when the targeted edition is at or after <paramref name="introducedIn"/> — the one
     /// predicate behind the grammar's <c>{isXXXX()}?</c> introduction gates and every version-varying bind
     /// decision.</summary>
