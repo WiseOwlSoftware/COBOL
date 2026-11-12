@@ -64,6 +64,10 @@
       "vcrRow": "29"
     },
     {
+      "id": "inspect-before-from-first-eligible-position",
+      "vcrRow": "7.65"
+    },
+    {
       "id": "inspect-format-3-length-identified-once",
       "vcrRow": "7.57"
     },
@@ -903,6 +907,9 @@
     "COBOL6862",
     "COBOL6863",
     "COBOL6877",
+    "COBOL6916",
+    "COBOL6917",
+    "COBOL6918",
     "COBOL6946",
     "COBOL6947",
     "COBOL6948",

@@ -980,6 +980,22 @@ public sealed class DataItem
         }
     }
 
+    /// <summary>⛔ THE ITEMS A GROUP ITEM IS COMPOSED OF, as a rule worded over a group's subordinate or elementary items reads
+    /// them — a level-66 alias included, which <see cref="DescendantsOf"/> cannot answer because the alias rides
+    /// <see cref="Renames66"/> and has no <see cref="Children"/>. A no-THROUGH alias has all of data-name-2's attributes
+    /// (§1985:VI.5.11.4 GR2, §2023:13.18.45.4 GR1), so its items are data-name-2's; a THROUGH alias "is a group item which
+    /// includes all elementary items starting with data-name-2 … and concluding with data-name-3" (§1985:VI.5.11.4 GR1,
+    /// §2023:13.18.45.4 GR2), so its items are <see cref="RenamesInfo.IncludedElementaryItems"/>; any other item's are its
+    /// descendants. Asked of the identity half (<c>Place.DenotedItem</c>) or the attributes half (<c>Place.Item</c>) alike,
+    /// it gives one answer, so a rule over group members cannot let an alias through (kb/Work PB5120 review R1-1: a no-THROUGH
+    /// alias of a signed group escaped the 1985 NUMERIC bar).</summary>
+    public static IEnumerable<DataItem> SubordinatesOf(DataItem group) => group.Renames switch
+    {
+        { IsAlias: true, From: { } renamed } => DescendantsOf(renamed),
+        { IsAlias: false } span => span.IncludedElementaryItems,
+        _ => DescendantsOf(group),
+    };
+
     /// <summary><paramref name="item"/> itself, then every item under it (<see cref="DescendantsOf"/>) — the pre-order of its tree.</summary>
     public static IEnumerable<DataItem> SelfAndDescendantsOf(DataItem item)
     {

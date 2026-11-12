@@ -193,6 +193,17 @@ public enum DialectBehavior
     /// (kb/Work PB5125). So below 2023 the same test answers '24' and the INVALID KEY phrase runs; from 2023 it answers '34',
     /// the permanent error, and the phrase is skipped. The consumer is <c>RelativeConnector.Write</c>.</summary>
     RelativeWriteKeyOutOfRangeIsPermanentError = 14,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.22.4 GR9 b — an INSPECT operand's BEFORE phrase covers "the first character
+    /// position that is eligible to participate up to, but not including, the first occurrence encountered of
+    /// literal-2", so with an AFTER phrase too the BEFORE delimiter is looked for from the AFTER-derived position.
+    /// §1985:VI.6.18.4 GR8 b ("from its leftmost character position up to, but not including, the first occurrence of
+    /// literal-2 within the content of the data item referenced by identifier-1"), the 2002 text (14.8.21 GR8 b) and
+    /// the 2014 text measure the BEFORE portion from the leftmost position whatever the AFTER phrase says, and the
+    /// operand participates where the two portions intersect: AYAAXAA with AFTER "X" BEFORE "Y" tallies 0 below 2023,
+    /// 2 from 2023 (kb/Work PB5120). The rewording came with BACKWARD (§2023:E.3.3 item 34), which needs a delimiter
+    /// "encountered" in the scan's direction. The consumer is <c>InspectBinder.BindPhrases</c>, which sets
+    /// <c>BoundInspect.BeforeFromLeftmost</c> for the emitter and so for <c>CobolInspect.Region</c>.</summary>
+    InspectBeforeFromFirstEligiblePosition = 15,
 }
 
 /// <summary>
@@ -282,6 +293,10 @@ public static class DialectBehaviors
             "a random or dynamic WRITE of a relative file whose key is less than 1 or above the highest permitted record number "
             + "is a permanent error, I-O status 34, only from COBOL 2023; before it the same attempt is the invalid key "
             + "condition of a write beyond the file's boundaries, status 24"),
+        new(DialectBehavior.InspectBeforeFromFirstEligiblePosition, "inspect-before-from-first-eligible-position", 2023,
+            "7.65", "14.9.22.4 GR9 b", "§1985:VI.6.18.4 GR8 b",
+            "an INSPECT operand with both BEFORE and AFTER looks for the BEFORE delimiter from the AFTER-derived position "
+            + "only from COBOL-2023; COBOL-85, 2002 and 2014 look from the leftmost position and use the intersection"),
     ];
 
     static DialectBehaviors()
