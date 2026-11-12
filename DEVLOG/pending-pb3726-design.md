@@ -18,14 +18,28 @@ caused 161 of those holds, and every script together caused 42. The three design
 
 The decisions. Every script's tests move out of the script into `<root>/selftests/<path>/<name>/`, one `case_`
 function per case and one file per fixture world. A layout rule that the self-test runner calls first refuses the shapes
-that would silently stop a test running, and an exact ratchet refuses any new in-file self-test. Each conversion deletes
-its script's `--self-test` handler, and the last step narrows discovery to `selftests/`. The hot scripts are split by
-job: `gate.py` in two steps (its modules, then the `Gate` class), plus `inert_lane.py`, `land_lane.py`, `enqueue.py` and
-`prune_worktrees.py`. The design assigns every definition of today's files to a module. `docs/CONFORMANCE.md` first gets one
-reader. Then its storage becomes one file per entry under `docs/conformance/` (the rows of sections 7 and 8 included), and the
-whole document is a rendered view. The three design documents stay single files. `PublicAPI.Unshipped.txt` keeps the
-analyzer's order, so plain git merges two branches' symbols.
+that would silently stop a test running, and a set of the files that still hold an in-file self-test, one path per line,
+refuses any new one; each conversion removes its own lines, so two branches never collide on a count. Each conversion
+deletes its script's `--self-test` handler, and the last step narrows discovery to `selftests/`. The hot scripts are split
+by job: `gate.py` in two steps (its modules, then the `Gate` class), plus `inert_lane.py`, `land_lane.py`, `enqueue.py`
+and `prune_worktrees.py`. The design assigns every definition of today's files to a module. `docs/CONFORMANCE.md` first
+gets one reader, then is made regular in place (50 of its 125 section 3 entries had no key, and four sections had prose
+after their entries), then becomes one file per entry under `docs/conformance/`. The whole document is a gitignored,
+stamped view that a gate audit refuses to see edited, every instruction that says where to write a determination
+(CLAUDE.md rule 1 among them) moves to `docs/conformance/`, and the package carries the rendered statement that 62
+compiler and CLI strings name. The three design documents stay single files. `PublicAPI.Unshipped.txt` keeps one
+ordinal order, held by an audit, so plain git merges two branches' symbols.
 
-The register: 17 new notes, PB5395 to PB5411 (16 steps and PB5410, an analysis that hands the compiler-side hold
-concentrations to the architecture review). Ten existing step notes (PB3729 to PB3738) carry a dated re-design
-addendum and a new tier and order. PB3726 gains `PB3726/2026-11-12-design.md`, which lists the decisions and the order.
+An adversarial review the same day returned SOUND WITH FIXES with thirteen findings, six blocking; all thirteen
+reproduced and all are answered in section 16 (the list is `kb/Work/PB3726/2026-11-12-design-review.md`). The main
+changes it caused: four compiler tests that run or read script self-tests are now in the steps that move their scripts;
+case files import the collector through one `PYTHONPATH` the runner sets, and the static import readers and the
+scratch-repository audit see into `selftests/`; the steps run strictly serially, the case layout first; and the `Gate`
+class split decides seven cross-boundary calls.
+
+The register: PB5395 to PB5411 (16 steps and PB5410, an analysis that hands the compiler-side hold concentrations to
+the architecture review) and, after the review, PB5428 to PB5441 (14 steps). The ten step notes filed in 2026-10
+(PB3729 to PB3738) are retired, each superseded by a fresh note: their bodies claimed files the pipeline has deleted,
+and `work.py` reads the union of a note's Sites blocks, so no addendum could withdraw them. PB4053 now waits on PB5430.
+PB3726 gains `2026-11-12-design.md`, `2026-11-12-design-review.md` and `2026-11-12-design-steps-after-review.md` (the
+final order: 30 steps in one chain).

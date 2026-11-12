@@ -1681,10 +1681,12 @@ The three rules, each paired with a check so the next case is automatic (CLAUDE.
    the implementer runs `rg -l "import <module>|from <module> import|<module>\." scripts .claude conformance-suite tests
    .github` and moves every hit, because a caller that reaches a name by attribute (`gate.Gate`, `pw.classify`) has no
    import line naming the moved member. A check that reads a script's text for a definition
-   (`self_tests.py`'s `entry_point_arms` reads `AUDITS = (`, `landing_rules.py` reads `git_merge.merge(wt, base,` and
-   `conflict_outcome(files)`, `self_test_arms.py`'s `DECLARED` and `WIRING` read arm labels and patterns, a code
-   comment's `path#Symbol` that the CITATIONS audit resolves) is re-pointed at the module that now holds the text, in the
-   same landing.
+   (`self_tests.py`'s `entry_point_arms` reads `AUDITS`, `BUILT_SELF_TESTS`, `TOOLING_ONLY` and `SELF_TESTS_REUSE` out of
+   `gate.py` by `_module_literal`; its `NET_KNOWN` names six scripts whose self-tests the discovery net must find;
+   `landing_rules.py` reads `git_merge.merge(wt, base,` and `conflict_outcome(files)`; `self_test_arms.py`'s `DECLARED`
+   and `WIRING` read arm labels and patterns; a code comment's `path#Symbol` that the CITATIONS audit resolves) is
+   re-pointed at the module that now holds the text, in the same landing. Such a check fails loudly when its text moves,
+   which is why it is named here: the step that moves the text owns the check.
 
 ### 16.1 The behavior-neutrality oracle every step uses
 
@@ -1693,7 +1695,13 @@ A step moves code and changes no behavior. What proves it, per landing, in this 
 - **The subject's own cases pass with the same set of labels.** The implementer lists the labels before (the first
   argument of every `expect(`/`arm(`/`check(`/`ok(` call of the old self-test, by a syntax-tree walk, not a grep) and after
   (the same walk over the case files, plus the `case_` function names), and the review compares the two lists: a label
-  that disappeared is a lost case, not a refactor. `self_test_arms.py` holds the labels a design names (§16.2).
+  that disappeared is a lost case, not a refactor. `self_test_arms.py` holds the labels a design names (§16.2). The
+  walk covers every function the old self-test REACHES, not only the subject's own `self_test`: a self-test that
+  delegates (`doc_audits.py`'s calls `load(name).self_test()` of each `scripts/docchecks/*.py` module) has its labels in
+  the delegates, so the "before" list is the union over the subject and every module whose top-level `self_test*` or
+  `*_arms` function it calls. An EMPTY label set is a failure of the oracle, never a match: a subject whose walk finds no
+  label (before or after) is examined by hand and the reason written in the report, because two empty sets compare
+  equal while every case is lost.
 - **Discovery runs the same subjects in the same places.** `python scripts/self_tests.py --list` before and after: every
   subject still found, each file with the same platform (`# SELF-TEST-PLATFORM:`), build need (`# SELF-TEST-NEEDS:`),
   clock declaration (`# SELF-TEST-CLOCK:`) and population declaration (`# SELF-TEST-POPULATION:`) as the self-test it came
@@ -1730,8 +1738,13 @@ each holding one `case_<name>` function per case. A case is one scenario and its
 block of today's self-test asserts about one planted situation. A new case is a new `case_` function; a new world is a new
 `test_` file; a new expectation about an existing case is an edit of that case alone. A helper used by one file is a
 `_`-prefixed function of that file; one shared by several is in `fixtures.py`. A test double the tests of two subjects
-share (`scripts/spec/fake_batches.py`, the fake Message Batches client of `audit_batch` and `transcribe_pdf`) stays an
-ordinary module beside its subjects: it holds no case and no expectation, so it is neither a test nor a fixture world.
+share (`scripts/spec/fake_batches.py`, the fake Message Batches client of `audit_batch` and `transcribe_pdf`;
+`scripts/gate_fake_host.py`, `gate.FakeHost` today, which `scripts/arch/perf_baseline.py`'s self-test also plants,
+`git grep -n FakeHost -- scripts ':!scripts/gate.py'`) stays an ordinary module beside its subjects: it holds no case
+and no expectation, so it is neither a test nor a fixture world, and a tool's own self-test may import it without
+reaching into a `selftests/` tree (no module outside `selftests/` imports from one; the layout rule refuses it). The
+step that FIRST moves such a double out of its script places it as that module, every user re-pointed in the same
+landing, whichever subject converts later.
 
 **Why a world per file and not a case per file.** The worlds are expensive (a scratch repository with a branch in every
 lifecycle state, a planted gate host). A file per case would build each world once per case; a file per world builds it
@@ -1742,7 +1755,33 @@ file's place by the rule above, puts the subject's directory first on `sys.path`
 resolve as they do when it runs), imports it once and returns the module. A test reads and plants internals as attributes
 of that module (`gate = selftest_cases.subject(__file__)`; `gate.Gate(fake_host, ...)`, `gate._no_slot`); nothing in the
 subject is made public for a test, and no test file spells a `sys.path` edit of its own. A subject that is not Python
-(`linux-gate.sh`, a `.js` workflow) is run as a process by its cases; `subject` refuses one.
+(`linux-gate.sh`, a `.js` workflow) is run as a process by its cases; `subject` refuses one. The path rule is ONE
+function, `selftest_layout.subject_of(rel) -> str | None` (the test file's repository path to its subject's), which
+`subject`, the layout rule and the static readers below all call.
+
+**How a case file imports `selftest_cases` with no `sys.path` edit.** `scripts/selftest_cases.py` is one module for
+every root (a case file under `.claude/selftests/` or `conformance-suite/harness/selftests/` imports the same one). The
+runner starts every file under a `<root>/selftests/` tree with `PYTHONPATH` = `<repo>/scripts` prepended to the
+environment's own, built in ONE place (the runner's environment for a case file, beside the encoding and clock
+variables it already sets). Python puts the case file's own directory first, so `import fixtures` is the file's own
+world and `import selftest_cases` is `scripts/`'s. A hand run goes through the runner too: `python scripts/self_tests.py
+--only <path> ...` runs the named discovered files with their headers honoured (the option PB5428 adds); a case file
+run bare with no `PYTHONPATH` fails at its first import, loudly. The static readers learn the same two facts from the
+same functions: `inert_lane._imports` (`source_reads._imports` after section 16.12's split) and `script_layering.py`
+resolve `import selftest_cases` in a file under `selftests/` against `scripts/`, and read the call
+`selftest_cases.subject(__file__)` as an import EDGE to `subject_of(rel)`. So a case file's static import closure holds
+its subject and everything the subject imports, as a standalone test's closure does today through its `sys.path`
+insert: `inert_lane.import_closure` (the seed of `filter_population.py`'s build-needing self-test and of
+`code_readers`) and the layering check keep seeing what the tests reach without a hand CODE_READS entry.
+
+**The fixtures are self-test code to every audit that reads self-test code.** `scratch_repo.py`'s audit (THE AUDIT:
+SPAWN, INIT, HELPER; kb/Work PB1719, PB3584) reads a function as self-test scope only when its name says so, a whole
+`test_*.py`, or a top-level function only self-test code refers to; a `fixtures.py` is none of these, and its functions
+are called from other files. From PB5428 on, `_self_test_scopes` treats EVERY file under a `<root>/selftests/` tree
+as whole self-test scope (the `standalone` reading, by the path, through `selftest_layout`), so a fixture that spawns
+`git init` around the scratch-repository helper is refused exactly as it is in a self-test today. PB5428 carries a
+planted case for each of the three readings: a `fixtures.py` that runs `git init` directly (the audit RED), a case
+file whose closure must include its subject's imports (the closure holds them), and a case file run bare (it fails).
 
 **The collector: `scripts/selftest_cases.py`**, the one runner inside a case file: `run(module) -> int` finds every
 `case_*` function of the module, runs them in NAME order (which is also the order the file keeps them in), gives each a
@@ -1776,13 +1815,25 @@ self-tests of a tree that breaks it. It refuses, over every live root:
   `case_*` nor `_`-prefixed (a `test_x` the collector would never call), or calls `expect(` outside a `case_` function (a
   module-level expectation is a case list again);
 - a `fixtures.py` that defines a `case_` function or calls `expect(`;
-- a module outside `<root>/selftests/` that imports `selftest_cases`;
-- **THE RATCHET:** the number of Python files under the live roots and outside `selftests/` that still hold a self-test (a
-  `--self-test` handler, or a standalone `test_*.py` that the runner runs bare) differs from `REMAINING`, the one integer
-  `selftest_layout.py` declares. A new script with an in-file self-test raises the count and is refused (write its cases
-  under `selftests/`); a conversion lowers the count and lowers `REMAINING` to it in the same landing. The steps are
-  serial (§16.10), so the one line never meets a parallel edit. When `REMAINING` reaches 0 the last step deletes the
-  integer and the rule becomes absolute (PB5409).
+- a module outside `<root>/selftests/` that imports `selftest_cases` or any module under a `selftests/` tree;
+- **THE RATCHET:** the SET of Python files under the live roots and outside `selftests/` that still hold a self-test
+  differs from `REMAINING`, the set `selftest_layout.py` declares — a tuple of repository paths, ONE PATH PER LINE in
+  sorted order. A file holds a self-test when it handles `--self-test`, is a standalone `test_*.py` the runner runs bare,
+  or defines a top-level `self_test*` or `*_arms` function another self-test calls (the eight `scripts/docchecks/*.py`
+  modules, reached only through `doc_audits.py`: a delegate is counted, or a conversion that deletes the caller would
+  stop running it with no count changing). A path in the tree and not in the set is a NEW in-file self-test, refused
+  (write its cases under `selftests/`); a path in the set and not in the tree is a conversion, or a deletion, that did
+  not remove its line, refused. Each conversion removes exactly its own subjects' lines in the landing that converts
+  them. When the set is empty the last step deletes it and the rule becomes absolute (PB5409).
+  **Why a set and not a count.** The first draft held one exact integer. Two branches that each change the population
+  (two conversions, or a conversion and an unrelated branch that deletes a self-tested script or adds a new module with
+  its cases) then both edit that one line: git reports a conflict, or, when both wrote the same number, merges clean
+  while the count is now wrong, and the second branch's merge group goes red on a count it could not have known. A set keyed one path per line makes
+  each branch's edit its OWN lines: two conversions of different subjects merge with plain git, a branch that deletes a
+  self-tested script removes its own line, and the rule still refuses both a new in-file self-test and a stale entry.
+  This makes the next case automatic (CLAUDE.md rule 5): no step, and no branch outside the campaign, needs to know what
+  any other in-flight branch did to the population. Two branches meet only when they remove ADJACENT lines, a
+  one-line conflict a finisher resolves by keeping both removals.
 
 **The arms a design names.** `scripts/self_test_arms.py` (`DECLARED`, kb/Work PB4395) holds the labels a design requires
 of a pipeline self-test, read from the script's source. For a converted subject it reads the subject's test directory
@@ -1792,10 +1843,30 @@ names in the same landing. A deleted case still exits 0, which is what the arm c
 
 **The `--self-test` entry points.** Each conversion deletes its subject's `--self-test` handler, its `self_test`
 function and every in-file `*_arms`/`Fake*` that only the self-test used, in the same landing (CLAUDE.md rule 4: no
-`--self-test` that forwards to the case files survives). Every caller of the spelling moves with it: a skill, brief,
-design doc, code comment or C# docstring that says `python <script> --self-test` says `python scripts/self_tests.py`
-(or names the case directory), found by `git grep -n -- "<script> --self-test"` over `scripts/`, `.claude/`, `tests/`,
-`docs/`, `.github/`, `conformance-suite/` and `CLAUDE.md`; CI and the gates name no self-test, so no job changes. A
+`--self-test` that forwards to the case files survives). Every caller moves with it, and the callers are found by a
+sweep that does not assume the script's name and the flag share one literal (a C# test spells them apart:
+`Run("--self-test")`, `[InlineData("r2_cost.py", …)]` with `Python(script, "--self-test")`):
+
+    rg -n -e '--self-test' -e 'AssertDeclares' -e 'SelfTestArmSource' -e 'self_test\(' tests scripts .claude docs .github conformance-suite CLAUDE.md
+
+and each hit that names, runs or reads the converted subject is moved in the landing. A skill, brief, design doc, code
+comment or C# docstring that says `python <script> --self-test` says `python scripts/self_tests.py --only <case dir>`.
+CI and the gates run the runner and name no self-test, so no job changes. **Four compiler tests run or read script
+self-tests** (2026-11-12, the sweep above): `AnnexA2UndefinedListDriftTests.cs` runs `scripts/spec/extract_annex_a2.py
+--self-test` (PB5405); `ArchReviewFleetDriftTests.cs` runs `--self-test` of `scripts/arch/r2_subsystems.py`,
+`r2_inputs.py`, `r2_collect.py`, `r2_cost.py` and `file_census_notes.py` and asserts each verdict string (PB5408);
+`ArchCensusDriftTests.cs` reads the arm labels of `scripts/arch/census.py` (PB5408) and `DerivedVerdictDriftTests.cs`
+those of `scripts/spec/derive_verdict_batch.py` (PB5404) through `SelfTestArmSource.AssertDeclares`. Decided, the shape
+PB4395 gave the rest: each subject's required arms move into `self_test_arms.DECLARED` as case names, and the C# run or
+read is DELETED in the step that converts the subject — the SELF-TESTS audit runs whenever a change touches a script
+(`TOOLING_ONLY`, kb/Work PB4395) and `self_test_arms.py` requires the named cases there, so a compiler test that shells
+the same Python is a second runner of one test. The step that removes the last caller of `SelfTestArmSource.cs` (PB5408)
+deletes it and `SelfTestArmSourceTests.cs`. **The discovery net's known list** (`self_tests.NET_KNOWN`: `gate.py`,
+`self_tests.py`, `orchestrator/landing_check.py`, `orchestrator/test_alloc.py`, `hooks/test_forbidden_commands.py`,
+`conformance-suite/harness/generate.py`, beside two PowerShell and bash tests) names files whose self-test the net must
+find; the step that converts one replaces it in `NET_KNOWN` with one of its case files (PB5432 `gate.py`, PB5400
+`self_tests.py`, PB5407 `landing_check.py`, PB5441 `test_alloc.py`, PB5408 the hook's test and `generate.py`).
+PB5409 re-runs the sweep above over the whole tree as its done-condition: no hit names a `--self-test` of a Python file. A
 **tool whose own name starts with `test_`** (`test_population.py` and `test_leg_report.py`: tools a gate or CI runs,
 each with its own `--self-test`, not tests) is renamed out of the `test_` prefix by the step that converts it, every caller moved,
 because once it handles no `--self-test` the runner's rule (b) would run it bare as a test. The end state (PB5409): no
@@ -1805,7 +1876,7 @@ layout refusal, never a file that silently stops running. PowerShell and bash se
 are (§16.12).
 
 **The standalone tests.** The 28 `test_*.py` files that are tests, and that already live beside their subjects (`test_alloc.py`,
-`test_render_figure.py`, …) are self-tests outside `selftests/` and count toward `REMAINING`; each moves into its
+`test_render_figure.py`, …) are self-tests outside `selftests/` and are members of `REMAINING`; each moves into its
 subject's directory as case functions with its directory's batch (§16.10).
 
 ### 16.3 `plan_wave.py` → the planner's modules (`scripts/orchestrator/`) — LANDED (kb/Work PB3728)
@@ -1889,11 +1960,11 @@ attribute access rather than an import line: the implementer greps `prune_worktr
 
 `gate.py` is the hottest script and holds the hottest class: `Gate`, 944 lines and 43 methods, took 131 of the file's 367
 hunks in 14 days. The module-level split alone would leave that class whole, so it is two steps: the module split
-(PB3733), then the class split (PB5411). The CLI is unchanged in both: `build-local.ps1`, `build-local.sh`,
+(PB5433), then the class split (PB5411). The CLI is unchanged in both: `build-local.ps1`, `build-local.sh`,
 `wf_rolling_wave.js` (`gate.py --await`), the ONE SHAPE audit (`gate.py --audit-shape`) and `gate.py --rederive` keep
 their command lines.
 
-**Step 1, the module split (PB3733):**
+**Step 1, the module split (PB5433):**
 
 | Module | The job it owns | What moves there |
 |---|---|---|
@@ -1903,7 +1974,8 @@ their command lines.
 | `gate_host.py` | THE real machine the gate runs on: git, the slot, the audit processes, the build, the listings, the test hosts and their one environment, the bounce results | `FIRST_CLASSES`, `ONLY_CASES`, `CI_BOUNCE_RESULTS`, `GATE_CONFIGURATION`, `BESIDE`, `_no_slot`, `_Live`, `Host`, `host_env`, `HostRun` |
 | `gate.py` (stays, the driver) | The one gate: `Gate`, its outcome and record, `main` | `REPO`, `Outcome`, `Rederived`, `Carry`, `Gate`, `print_flush`, `rederive_main`, `main` |
 
-`AUDITS` moves to `gate_audits.py`, so `self_tests.py`'s `entry_point_arms` (it reads `AUDITS = (`), the comment of
+`AUDITS`, `BUILT_SELF_TESTS`, `TOOLING_ONLY` and `SELF_TESTS_REUSE` move to `gate_audits.py`, so `self_tests.py`'s
+`entry_point_arms` (it reads all four out of `gate.py` by `_module_literal`, and its `driver` path names the file), the comment of
 `.github/workflows/build-and-test.yml` that says "the SAME list as the gate driver's AUDITS", and `ci_audits_not_in_gate`'s
 own message name `gate_audits.py`. `FIRST_CLASSES` and `ONLY_CASES` are the names of the channels to the C# test host:
 their VALUES (the environment variable names) are a contract with `tests/_shared/GateLegs.cs` and do not change; its
@@ -1911,10 +1983,12 @@ docstrings' `scripts/gate.py FIRST_CLASSES` and `Gate._first` are re-pointed. Im
 (`Reading`, `NOT_RUN_CAUSES`, `read_verdict`, `read_record`, `predates_landing`, `RUN_ROOT`, `RECORD_SCHEMA`),
 `land_lane.py` (`live_gate`, `lock_of_run`, `gate_phase` → `gate_runs`), `gate_plan.py`, `gate_growth.py`, `gate_slot.py`'s
 docstring, `buildgraph.py`, `inert_lane.py`, `self_tests.py`, `test_population.py` and `test_leg_report.py` (or their
-renamed successors), `scripts/arch/perf_baseline.py`, `scripts/linux-gate.sh`, `orchestrator/progress.py`,
+renamed successors), `scripts/arch/perf_baseline.py` (its self-test plants `gate.Gate` over `gate_fake_host.FakeHost`
+since PB5432), `scripts/linux-gate.sh`, `orchestrator/progress.py`, `orchestrator/reports.py` (a lazy `import gate` for
+`resolve_run`, `watch`, `gate_running` and `read_record` → `gate_runs`),
 `orchestrator/queue_facts.py`, `orchestrator/test_rolling_wave.py` (or its case directory), `rendered_views.py`'s and `gen-diagnostics-doc.ps1`'s comments, `wf_rolling_wave.js` (comments only),
 `scripts/test_linux_gate.py` (or its case directory), `GateLegDriftTests` (comments), the `gate` skill. `self_test_arms.py`'s
-`DECLARED['scripts/gate.py']` already reads case names (PB3732).
+`DECLARED['scripts/gate.py']` already reads case names (PB5432).
 
 **Step 2, the `Gate` class split (PB5411).** `Gate` keeps the run and its verdict; three collaborators it holds take the
 three mechanisms its methods mix, each a class in its own module constructed by `Gate.__init__` from the host, the run
@@ -1928,10 +2002,23 @@ root, the clock and `say`:
 | `gate.py` · `Gate` (stays) | The run: its stages in order, the audits and lanes, the work beside it, THE one place a verdict is written | `__init__`, `_base`, `run`, `_reused`, `_gate`, `_audits`, `_audits_known_red`, `_audit_red`, `_inert`, `_tooling`, `_tested`, `_verdict`, `_finish`, `_record`, `_record_growth`, `_beside`, `_join_beside`, `new_run`, `previous_run`, `_prune` |
 
 The rule the class split holds: a collaborator returns what it found (a value, or the verdict it reached as a value) and
-never calls back into `Gate`; `Gate._finish` stays the ONE place a verdict line and record are written. Four of the moved
-methods call `_finish` today (`_generate`, `_all_up_to_date`, and through them `_verdict`'s detail), so each returns
-its early verdict and `_gate` or `_tested` finishes with it. `script_layering.py` declares the three modules beside
-`gate_host` (§16.10).
+never calls back into `Gate`; `Gate._finish` stays the ONE place a verdict line and record are written. Today's moved
+methods reach across the new boundaries at seven places (an AST walk of every `self.<attr>` in each moved method,
+2026-11-12), and each is decided:
+
+| Edge today | Decided |
+|---|---|
+| `_generate` → `Gate._finish` and `Gate._join_beside` (a generated target RED) | `Generations.generate` returns the failure as a value (`GenerationFailed`, the exception's type and text); `Gate._gate` joins the work beside and finishes RED with it |
+| `_all_up_to_date` → `Gate._finish` | returns its early verdict as a value; `_gate` finishes with it |
+| `_first` → `Gate.previous_run` | `Legs._first` takes the previous run's directory as an argument; `Gate` passes `self.previous_run(run)` |
+| `_generate` → `facets` (`PassCarry`) | `Generations.generate` takes the facets as an argument; `Gate` computes them through its `PassCarry` |
+| `record_passes` → `_generations` (`Generations`' field) | `PassCarry.record_passes` takes the generations' outputs as an argument (`Generations.outputs()`); `PassCarry` never reads `Generations` |
+| `_pool_listings`, `_run_hosts` → `_handed` (`Generations`) | `Legs` is constructed with the `Generations` instance and calls its `handed`: a downward edge, so `gate_legs` sits above `gate_generated` |
+
+So `gate_reuse` and `gate_generated` are one tier whose modules never import each other, `gate_legs` the tier above
+them, and `Gate` above all three; `script_layering.py` declares that line (section 16.10 of this document) and refuses
+any other edge. A moved method whose walk finds a `self.<attr>` this table does not decide is a design change, recorded
+here in the same landing (CLAUDE.md rule 2).
 
 ### 16.6 `enqueue.py` → the landing step's modules (`scripts/orchestrator/`)
 
@@ -1967,7 +2054,7 @@ command), `.claude/skills/workstream/references/landing.md` and `units/enqueue.m
 
 Importers re-pointed: `next_unit.py` and `orchestrate.ps1`'s `land_lane.py status`/`tick`/`rearm` calls (the CLI is
 unchanged), `session-probe.ps1` and `enqueue.py` (`view` → `lane_status`), `progress.py`, `self_test_arms.py`'s
-`DECLARED` and `WIRING` entries for the lane (case names after PB3736; the supervisor's `'land_lane.py'` start it reads is
+`DECLARED` and `WIRING` entries for the lane (case names after PB5434; the supervisor's `'land_lane.py'` start it reads is
 unchanged), `landing_rules.py` (`merge_conflicts(`, `outcome_files(` → `conflict_brief.py`), and `review_lane.py`
 (section 4.9.1), which uses `update`, `attempt_order`, `attempts`, `by_branch`, `view`, `finished`, `loop_stop`,
 `runner_alive`, `tip_of`, `notify_operator`, `show_conflict_brief` and the survey's rows: each import is re-pointed to its
@@ -1975,104 +2062,212 @@ new module, and `review_lane.py` is declared in `scripts/script_layering.py` bes
 
 ### 16.8 `docs/CONFORMANCE.md`: one file per entry, one reader, a rendered whole
 
-**Today** one 4,992-line file (`wc -l`, 2026-11-12): §1 summary · §2 the A.3 table · §3 ninety `- **D-KEY — title**`
-determinations (`grep -c "^- \*\*D-"`) and the numbered subsections 3.1 to 3.10 (the A.2 undefined cases, the
-extensions table, eight COBOL-85 determinations added since 2026-11-01) · §4 the four documented-non-support facilities ·
-§5 the A.4 table · §6 maintenance · §7 the A.1 register (`DOC-A.1-<item>` rows) · §8 the derivations (`DRV-<rule-id>`
-rows). It took 123 of 792 landings and 161 dispatch holds in 14 days (§16), 137 of the holds on the whole file. No
-compiler test reads it (kb/Work PB4453: every Markdown file is inert); the tests read the extract
+**Today** one 4,992-line file (`wc -l`, 2026-11-12), whose shape is less regular than its headings suggest
+(`grep -n "^## \|^### " docs/CONFORMANCE.md`; the counts by `awk 'NR>=119&&NR<2983' docs/CONFORMANCE.md | grep -c
+'^- \*\*'`, then the same with `D-` added):
+- section 1 the summary, then section 2 the A.3 table and one line after it;
+- section 3 the determinations: 125 top-level `- **…**` bullets before section 3.1, of which 75 open with a `D-<KEY>` and
+  50 carry no key (`- **I-O status '0x' case equivalence** (E.2 item 17)`, `- **Transfer of control includes sections
+  …**`); then the numbered subsections 3.1 (the A.2 undefined cases) and 3.2 (the extensions table), and 3.3 to 3.10
+  with a 3.7.1 between 3.7 and 3.8 (the COBOL-85 determinations added since 2026-11-01);
+- section 4 the four documented-non-support facilities, then about 720 lines AFTER them ("Beyond these four whole
+  facilities…", INHERITS, "The locale facility … CLAIMED WHOLE");
+- section 5 the A.4 table and one line after it; section 6 maintenance;
+- section 7 the A.1 register (`DOC-A.1-<item>` rows), then 70 lines after its table ("A.1 item 56 - the numeric DISPLAY
+  survey"); section 8 the derivations (`DRV-<rule-id>` rows).
+
+It took 123 of 792 landings and 161 dispatch holds in 14 days (§16), 137 of the holds on the whole file. No compiler
+test reads it (kb/Work PB4453: every Markdown file is inert); the tests read the extract
 `tests/version-matrix/conformance-register.json`, which `doc_audits.py --write-register` writes from it.
 
-**Its readers today** (`rg -n 'CONFORMANCE' -g '*.py' scripts conformance-suite/harness`, the ones that open the file):
-`scripts/spec/inventory_schema.py` (`REGISTER_PATH`, `register_cells`, `register_section`, `register_section_at`,
-`register_determinations`: THE parser of §7 and §8), `scripts/docchecks/common.py` (`CONFORMANCE`, the path every
-docchecks module reads through `common.text`), `scripts/docchecks/register.py` (§2, §5, §7, §8, the extract),
-`scripts/docchecks/facts.py` (§3.2, D-RW1, §4, the §7 rows), `scripts/docchecks/inventory.py` (the `#anchor`s of
-inventory rows), `scripts/spec/audit_annex_a1.py` (§7), `scripts/spec/audit_derivations.py` (§8, through
-`inventory_schema`), `scripts/spec/gen_ledger.py` (§2, §4, §5 posture by heading number), `scripts/differential_fuzz.py`
-(the §5 table), `scripts/spec/phase_b_batch.py` (whole-text search for dossiers), `conformance-suite/harness/generate.py`
+**Its readers today** (`rg -n 'CONFORMANCE' -g '*.py' scripts conformance-suite/harness`, the ones that open the file or
+plant its reader): `scripts/spec/inventory_schema.py` (`REGISTER_PATH`, `register_cells`, `register_section`,
+`register_section_at`, `register_determinations`: THE parser of sections 7 and 8), `scripts/docchecks/common.py`
+(`CONFORMANCE`, the path every docchecks module reads through `common.text`), `scripts/docchecks/register.py` (sections
+2, 5, 7, 8, the extract), `scripts/docchecks/facts.py` (section 3.2, D-RW1, section 4, the section 7 rows),
+`scripts/docchecks/inventory.py` (the `#anchor`s of inventory rows), `scripts/docchecks/design.py` (`user_documents` and
+`_boolean` read the whole through `common.CONFORMANCE`), `scripts/spec/audit_annex_a1.py` (section 7),
+`scripts/spec/audit_derivations.py` (section 8, through `inventory_schema`), `scripts/spec/gen_ledger.py` (sections 2,
+4 and 5, posture by heading number), `scripts/differential_fuzz.py` (the section 5 table), `scripts/spec/phase_b_batch.py`
+(whole-text search for dossiers), `scripts/spec/inventory_view.py` (its self-test plants
+`inventory_schema.register_determinations` to prove the view opens no Markdown), `conformance-suite/harness/generate.py`
 (the completeness report, through `inventory_schema`). Data that names it: `tests/version-matrix/inventory-schema.json`
 (`anchor-template` `docs/CONFORMANCE.md#{rule-id}` and `#DRV-{rule-id}`, and the anchor pattern of the
 `docs/CONFORMANCE.md` key), `scripts/spec/data/cite-resolve-baseline.json` (the CITATIONS audit's debt, keyed by FILE and
 LINE, with entries in `docs/CONFORMANCE.md`). Its lane: `docs/**/*.md` is inert (`inert_lane.MARKDOWN_ENTRY`).
 
-**Two steps, so the readers move before the storage does.**
+**Who names it** (`git grep -c "CONFORMANCE\.md" -- src tests scripts docs .claude conformance-suite`, 2026-11-12):
+4,184 mentions in 2,327 files; 62 of them are string literals in `src/` that a user reads (`git grep -n
+"\"[^\"]*CONFORMANCE\.md[^\"]*\"" -- src`: diagnostics, and the CLI's "The register is docs/CONFORMANCE.md 3.2." at
+`Program.cs:160`); and the instructions that tell an agent where to WRITE a determination: CLAUDE.md rule 1, the
+`spec-lookup` skill, the workstream templates `dispatch-spec-implementer.md` (line 65, rendered into every implementer
+spec), `golden-lane-brief.md`, `cloud-adjudicate-brief.md` and `wf_lane3_adjudicate.js`, and the issue template
+`.github/ISSUE_TEMPLATE/conformance_finding.yml` (`rg -l "CONFORMANCE\.md" .claude CLAUDE.md PROMPT.md .github`;
+MANDATORY-PRACTICES and `land-a-fix` do not name it).
+
+**Four steps, so the readers move before the storage does and the storage is regular before it is cut.**
 
 *Step A — the one reader (PB5395).* `scripts/spec/conformance_source.py` becomes the ONE module that opens the
-conformance document: `load(root) -> Conformance`, with `.section(number) -> Section` (its heading, its prose, its
-entries), `.rows(number) -> list[list[str]]` (a table section's rows, cells in column order, keyed by the first cell),
-`.determinations -> dict[key, Determination]` (§3 and §3.1), `.text` (the whole, for a search). Step A implements it over
-today's `docs/CONFORMANCE.md`, by moving the parsers into it (`register_cells`, `register_section`,
-`register_section_at`, `register_determinations` from `inventory_schema.py`; `gen_ledger.py`'s posture-by-heading;
-`differential_fuzz.py`'s §5 table; the section and row reads of `docchecks/register.py` and `docchecks/facts.py`), and
-re-points every reader above at it. Nothing else changes: the oracle is the readers' own outputs, byte for byte, before
-and after — `doc_audits.py --write-register` writes the same extract, `audit_annex_a1.py --json`, `audit_derivations.py
---check`, `gen_ledger.py --check` and `differential_fuzz.py`'s declined-module set give the same answers, the
-self-tests of every reader pass, and `git grep -n 'CONFORMANCE.md'` over `scripts/` and `conformance-suite/harness/`
-finds a PATH only in `conformance_source.py` (comments and messages may still name the document). One lane fact binds
-where the parsers go: `inventory_schema.py` is in a compiler test's import closure (the conformance manifest's generator,
-kb/Work PB4992), and its state rule reads the extract, never the Markdown, so after step A it imports nothing that opens
-the document: the Markdown readers import `conformance_source` themselves, and the INERT LANE audit (`inert_lane.py check`,
-its `code_readers` closure) is the check that the closure did not grow.
+conformance document: `load(root) -> Conformance`, with `.section(number) -> Section` (its heading, its preamble, its
+entries, its epilogue), `.rows(number) -> list[list[str]]` (a table section's rows, cells in column order, keyed by the
+first cell), `.determinations -> dict[key, Determination]` (sections 3 and 3.1), `.text` (the whole, for a search).
+Step A implements it over today's `docs/CONFORMANCE.md`, by moving the parsers into it (`register_cells`,
+`register_section`, `register_section_at`, `register_determinations` from `inventory_schema.py`; `gen_ledger.py`'s
+posture-by-heading; `differential_fuzz.py`'s section 5 table; the section and row reads of `docchecks/register.py` and
+`docchecks/facts.py`; `docchecks/common.CONFORMANCE` and its readers in `docchecks/design.py`), and re-points every
+reader above at it, `inventory_view.py`'s planted probe included (it plants the reader's new name). Nothing else
+changes: the oracle is the readers' own outputs, byte for byte, before and after — `doc_audits.py --write-register`
+writes the same extract, `audit_annex_a1.py --json`, `audit_derivations.py --check`, `gen_ledger.py --check` and
+`differential_fuzz.py`'s declined-module set give the same answers, the cases of every reader pass, and `git grep -n
+'CONFORMANCE.md'` over `scripts/` and `conformance-suite/harness/` finds a PATH only in `conformance_source.py`
+(comments and messages may still name the document). **The lane fact it changes, decided:** `inventory_schema.py` and
+`generate.py` are in a compiler test's import closure (the conformance manifest's generator, `tests/_shared/
+SuiteManifest.cs`, kb/Work PB4992). `inventory_schema.py`'s state rule reads the extract, never the Markdown, so after
+step A it imports nothing that opens the document. `generate.py`'s completeness report does read the register, and its
+lazy import of `conformance_source` puts that module in `code_readers`' closure (`inert_lane._imports` reads lazy imports
+too); the INERT LANE audit then refuses the tree until `conformance_source.py` has a CODE_READS entry naming
+`generate.py` as its reader, so step A adds that entry to `scripts/inert_lane.py`'s `CLASSIFICATION`. A change to the
+reader then runs the compiler tests, which is true: a compiler test's script reaches it. The report keeps its read; no
+compiler test runs it, and the Markdown it opens stays inert (the inotify watch would see an open).
 
-*Step B — the storage (PB3738).* The tree holds the document's sources under `docs/conformance/`, ONE mechanism for every
-section: a section is a directory named by its number, holding `index.md` (frontmatter `heading:`, and for a table
-section `columns:`; its body is the section's preamble prose) and, for a section that has entries, one file per entry
-named by the entry's key:
+*Step B1 — the document made regular, in place (PB5429).* Before any cut, `docs/CONFORMANCE.md` is put in the exact
+shape the renderer writes, inside the one file, with the readers of step A as the oracle:
+- every top-level bullet of sections 3 and 3.1 opens with a key: the 50 that carry none get a `D-<KEY>` (the subject in
+  upper case, hyphenated, unique in the document; the old opening words stay as the title after the key), and the old
+  title → new key table is the step's dated kb/Work file, so a reader who knew an entry by its words finds its key;
+- each section's entries are in the order the renderer writes (natural key order: `DOC-A.1-9` before `DOC-A.1-10`;
+  section 4's facilities keep their written order, which step B2 records as `order:`);
+- text after a section's entries is classified, every block: a block that states a determination about one subject
+  becomes a keyed entry of that section (the blocks of section 4's 720-line tail, each a claim about one facility or
+  rule); a block that is the extended prose of one table row becomes that row's BODY, written after the table under a
+  `#### <key>` heading in key order (section 7's 70 lines are the body of `DOC-A.1-56`); and a block that speaks for the
+  whole section (section 2's and section 5's trailing lines) becomes the section's EPILOGUE, after a fixed marker line
+  `<!-- conformance: epilogue -->`;
+- every subsection is one the reader lists: 3.7.1 is a section of its own (`docs/conformance/3.7.1/` in step B2).
+`conformance_source.py --check` (added here) refuses an entry with no key, a duplicate key, entries out of order, text
+after a section's entries outside its row bodies or its epilogue, and a heading the reader does not list; the DOC AUDITS
+run it (`docchecks/register.py`). The oracle: the readers' outputs equal step A's, compared as sets wherever an output
+lists rows in document order, because the reorder may move rows (the extract's `annexA1` and `derivations` lists among
+them: if `doc_audits.py --write-register` writes them in document order, this step makes it write them in key order, so
+the extract is order-stable from here on and the cut cannot move it); the multiset of the document's non-blank lines before and after differs ONLY on the 50 bullet lines that gained a key
+(each old line gone and its keyed line, the same text after the key, added), the `#### <key>` headings and the epilogue
+markers (the diff of the two multisets is in the report, so prose that moved
+is proven moved and none lost); the CITATIONS audit GREEN. The 50 new keys are new anchors; no citation names them yet.
+
+*Step B2 — the storage (PB5430).* The tree holds the document's sources under `docs/conformance/`, ONE mechanism for
+every section: a section is a directory named by its number, holding `index.md` (frontmatter `heading:`, and for a table
+section `columns:`; its body is the section's preamble prose), an optional `epilogue.md` (the text after the epilogue
+marker), and, for a section that has entries, one file per entry named by the entry's key:
 
 | Section | Directory | Entry files (key) |
 |---|---|---|
-| §1 summary, §6 maintenance | `docs/conformance/1/`, `docs/conformance/6/` | none: `index.md` only |
-| §2 the A.3 dispositions | `docs/conformance/2/` | `A.3-<item>.md` (the item number), frontmatter `cells:` |
-| §3 the determinations | `docs/conformance/3/` | `D-<KEY>.md`, frontmatter `title:`, `notes:` (the kb/Work ids); body as written |
-| §3.1 the A.2 undefined cases | `docs/conformance/3.1/` | `D-<KEY>.md`, as §3 |
-| §3.2 the extensions | `docs/conformance/3.2/` | `<Id>.md`, frontmatter `cells:` |
-| sections 3.3 to 3.10, the COBOL-85 determinations | `docs/conformance/3.3/` … `3.10/` | none: `index.md` only (each is one prose section) |
-| §4 the documented-non-support facilities | `docs/conformance/4/` | `<facility>.md` (MCS, commit-and-rollback, VALIDATE, screen), frontmatter `order:` |
-| §5 the A.4 dispositions | `docs/conformance/5/` | `A.4-<n>.md`, frontmatter `cells:` |
-| §7 the A.1 register | `docs/conformance/7/` | `DOC-A.1-<item>.md`, frontmatter `cells:` |
-| §8 the derivations | `docs/conformance/8/` | `DRV-<rule-id>.md`, frontmatter `cells:` |
+| 1 summary, 6 maintenance | `docs/conformance/1/`, `docs/conformance/6/` | none: `index.md` only |
+| 2 the A.3 dispositions | `docs/conformance/2/` | `A.3-<item>.md` (the item number), frontmatter `cells:` |
+| 3 the determinations | `docs/conformance/3/` | `D-<KEY>.md`, frontmatter `title:`, `notes:` (the kb/Work ids); body as written |
+| 3.1 the A.2 undefined cases | `docs/conformance/3.1/` | `D-<KEY>.md`, as section 3 |
+| 3.2 the extensions | `docs/conformance/3.2/` | `<Id>.md`, frontmatter `cells:` |
+| 3.3 to 3.10 and 3.7.1, the COBOL-85 determinations | `docs/conformance/3.3/` … `3.10/`, `3.7.1/` | none: `index.md` only (each is one prose section) |
+| 4 the documented-non-support facilities | `docs/conformance/4/` | `<key>.md` (MCS, commit-and-rollback, VALIDATE, screen, and the keyed blocks of B1), frontmatter `order:` |
+| 5 the A.4 dispositions | `docs/conformance/5/` | `A.4-<n>.md`, frontmatter `cells:` |
+| 7 the A.1 register | `docs/conformance/7/` | `DOC-A.1-<item>.md`, frontmatter `cells:`; a body when the row has one |
+| 8 the derivations | `docs/conformance/8/` | `DRV-<rule-id>.md`, frontmatter `cells:`; a body when the row has one |
 
 Every keyed entry is its own file, so two landings that add or edit different determinations or rows touch different
 files and plain git merges them (PB5110's rule, which supersedes the keyed-table driver this section first planned for
-§7 and §8; `RegistryShapeDriftTests`'s one-entry-per-file rule gains these directories). A NEW determination is a
-`D-<KEY>` file; a new numbered subsection of §3 is a new `docs/conformance/3.<n>/`, and two branches that pick the same
-number fail `--check` in the merge group (one is renumbered by its finisher), which is why the design prefers a keyed
-determination to a new numbered one. `conformance_source.py` reads the directories (step B replaces step A's parser with
-this reader and keeps the API), and **`scripts/spec/conformance_doc.py`** renders the whole: the sections in number
-order, each heading, preamble, then its entries in key order (natural order: `DOC-A.1-9` before `DOC-A.1-10`; §4 by
-`order:`), a table section as a Markdown table with `columns:` as its header, and an index (key · title · notes) at the
-top of §3. `--check` renders in memory and refuses a malformed frontmatter, a duplicate key, a key that is not its file's
-name, a duplicate section number, a row whose cell count is not its `columns:` count, and a citation of the document that
-does not resolve (below).
+sections 7 and 8; `RegistryShapeDriftTests`'s one-entry-per-file rule gains these directories). A NEW determination is a
+`D-<KEY>` file; a new numbered subsection of section 3 is a new `docs/conformance/3.<n>/`, and two branches that pick
+the same number fail `--check` in the merge group (one is renumbered by its finisher), which is why the design prefers a
+keyed determination to a new numbered one. Step B2 also retires kb/Work PB4053 (the planner's row-key partition of a
+keyed table), whose premise was a section 7 that stays one table file: with one file per row, two A.1 notes claim
+different files, and the step's evidence is PB4053's own acceptance run (a dry-run plan of its six A.1 notes places them
+in one wave). `conformance_source.py` reads the directories (step B2 replaces step A's parser with this reader and keeps
+the API), and **`scripts/spec/conformance_doc.py`** renders the whole: the sections in number order, each heading,
+preamble, its entries in key order (section 4 by `order:`), a table section as a Markdown table with `columns:` as its
+header followed by its rows' bodies under `#### <key>`, then the epilogue. `--check` renders in memory and refuses a
+malformed frontmatter, a duplicate key, a key that is not its file's name, a duplicate section number, and a row whose
+cell count is not its `columns:` count. The first draft's generated index at the top of section 3 is dropped: the
+monolith never had one, so the byte-identical oracle could not prove it, and it would be a second copy of every title.
 
 **The rendered whole is a VIEW, not tracked.** `docs/CONFORMANCE.md` becomes one row of `scripts/rendered_views.py`
 `VIEWS` (`View("conformance", "docs/CONFORMANCE.md", _py("scripts/spec/conformance_doc.py", "--out", "{out}"),
 _py("scripts/spec/conformance_doc.py", "--check"))`), gitignored, rendered by the session probe with the other light
-views. Decided against keeping the render tracked: a tracked file every landing regenerates is the collision this step
-removes (rendered_views rule (a), DESIGN-test-build-ci.md §3.17.4). The README's and the manual's links to
-`docs/CONFORMANCE.md` (README.md lines 10, 145, 191 and seven `docs/manual/` pages, `rg -l CONFORMANCE.md README.md
-docs/manual`) name `docs/conformance/` instead, whose `README.md` (static, hand-written: what the directory is, how to
-render the whole, one line per section) GitHub shows as the directory's page; a published manual renders the view when
-it is built.
+views. A gitignored file can swallow an edit with no `git status` line, so step B2 closes every path that leads a
+person or an agent to edit or trust the view:
+- **The stamp.** `rendered_views.py` writes, as the first line of every in-tree FILE view it renders, `<!-- GENERATED
+  by <generator> from <sources>; body sha256 <digest>. Do not edit: edit the sources and run python
+  scripts/rendered_views.py <name>. -->` (for this view the sources are `docs/conformance/`, and the line says so). The
+  stamp is the registry's, not each generator's, so every view has it (`DRIFT_RULES.md` and `DIAGNOSTICS.md` too).
+- **The guard: rule (e), NOT EDITED.** `rendered_views.py --check` (a gate audit and CI's `audits` job) is RED when a
+  file at an in-tree view's path has no stamp, or a body whose digest is not the stamp's: a hand edit, named with the
+  remedy (carry the change into the source file it belongs to, then re-render). A render refuses to overwrite such a
+  file, so a re-render cannot lose the edit either. A view that is merely STALE (its sources changed since it was
+  rendered, its body untouched) is not RED: nothing is lost, and the next render replaces it. Decided against the
+  stricter "RED unless it is the current render": after every pull it turns a gate red on a file nobody touched, and
+  the reflex it trains (re-render to clear it) is the one that would overwrite an edit. "ABSENT IS NEVER STALE" stays.
+- **Every instruction that names a place to write a determination** points at `docs/conformance/` in the same
+  landing: CLAUDE.md rule 1 ("documented in `docs/conformance/`"), the `spec-lookup` skill, `dispatch-spec-implementer.md`
+  ("a DOC-A.1 row closes only when `docs/conformance/7/DOC-A.1-<item>.md` carries its determination"),
+  `golden-lane-brief.md`, `cloud-adjudicate-brief.md`, `wf_lane3_adjudicate.js`, the issue template,
+  `docs/DOC_INDEX.md`, `docs/REARCHITECTURE_PLAN.md`'s section on the conformance documentation and
+  `DESIGN-test-build-ci.md` section 3.17.4. The step re-runs the sweep above and the imperative one, `rg -n -i
+  "(add|record|write|document|carr)[a-z]* .{0,60}CONFORMANCE\.md" .claude CLAUDE.md PROMPT.md .github docs`, and moves
+  every instruction it finds.
+- **Links and citations are two things.** A Markdown LINK GitHub resolves in the tree (`[docs/CONFORMANCE.md]
+  (docs/CONFORMANCE.md)`) would be a dead link, so every link moves to `docs/conformance/` (README.md lines 10, 145, 191
+  and 224; the seven `docs/manual/` pages, `rg -l CONFORMANCE.md README.md docs/manual`), whose `README.md` (static,
+  hand-written: what the directory is, how to render the whole, one line per section) GitHub shows as the directory's
+  page. A text CITATION (`docs/CONFORMANCE.md §3 D-SWK`, `CONFORMANCE.md#DRV-14.9.22-GR13`) names the conformance
+  statement by section and anchor and does not move (below), in the manual as everywhere.
+- **The 62 product strings keep naming `docs/CONFORMANCE.md`**, and what they name is decided: the PUBLISHED conformance
+  statement, the user documentation §2023:4.2.16 requires "by specification in at least one form of documentation", which is the rendered view in every checkout and is
+  rendered into the NuGet package and the documentation build at pack time by kb/Work PB5431 (the next step), so a user
+  who reads a diagnostic finds the file in what they installed. No diagnostic, golden or CLI text changes.
 
-**Citations do not move.** About 3,600 citations (source, tests, the suite, docs) name the document by section and anchor
+**The counter-argument, and why it was not taken.** The adversarial review (2026-11-12) argued for keeping the render
+TRACKED: it is the product's conformance statement, what an auditor or a user reads on GitHub; 4,184 citations, 62
+compiler and CLI strings and CLAUDE.md name the path; `git log` and `blame` of a determination stay readable at one path;
+and a hand edit to a tracked render shows in `git status` and fails the generator's `--check`, where a gitignored one is
+lost silently. Not taken, because a tracked render that every determination landing regenerates IS the collision this
+step removes: each such branch's diff carries the whole file again (137 of the 161 holds in 14 days were on the whole
+file), and two renders that git merges line by line differ from the render of the merged sources, so the merge group
+bounces on a file no one edited (rendered_views rule (a), DESIGN-test-build-ci.md section 3.17.4, and the DEVLOG and
+`DIAGNOSTICS.md` precedent). The losses it names are each closed another way: the silent edit by the stamp and rule (e);
+the reader on GitHub by `docs/conformance/README.md` and the published statement in the package (PB5431); the strings by
+the decision above; history by `git log --follow` across the migration commit, which names each entry's origin.
+
+**Citations do not move, and are checked.** About 4,200 mentions name the document by section and anchor
 (`docs/CONFORMANCE.md §3 D-SWK`, `docs/CONFORMANCE.md#DRV-14.9.22-GR13`, `#DOC-A.1-n`). The renderer fixes the section
-numbers and makes every key an anchor, so each still names exactly one place, and `conformance_doc.py --check` holds every
-`CONFORMANCE.md §N` and `CONFORMANCE.md#ANCHOR` under `src/`, `tests/`, `scripts/`, `docs/`, `.claude/` and
-`conformance-suite/` to resolving in the render. A sweep of 3,600 citations would touch about 900 files and meet every
-branch in flight; it is not made. The inventory's computed `derivation` and `code-location` anchors are unchanged.
+numbers and makes every key an anchor, so each still names exactly one place. A sweep of them would touch 2,327 files
+and meet every branch in flight; it is not made. Step B2 adds an arm to the CITATIONS audit (`audit_code_citations.py`,
+the one citation population and its one exemption, `citation.EXAMPLE_MARKER`): every `CONFORMANCE.md §N` and
+`CONFORMANCE.md#ANCHOR` in the files it reads resolves to a section or a key of `conformance_source.load`. Its scope is
+the audit's, so the inventory records and the case tables under `tests/version-matrix/` and `tests/doc-facts/` (whose
+`derivation` and `code-location` anchors the inventory audit, `docchecks/inventory.py`, resolves, and whose planted bad
+anchors such as `derivation-parity-cases.json`'s `#DRV-GR-14.9.5.4-77` are that audit's cases) are not its population.
+**It is red today, so the step burns the debt down before the arm turns on**, in a commit of its own ahead of the one
+that adds the arm: the citations of a section the document does not have, each a misattribution of the standard's
+clause (the spelling `CONFORMANCE.md §` followed by the standard's `4.2.16`, 11 in source, docs and tests; a section
+`7.3`, 4; `#4.2.16`, `#7`, `#A.4.2`, `#A.4.9`) are
+rewritten to what each means (`§2023:4.2.16`, or the document's section or key the sentence is about), the planted
+fixtures in code files the audit reads (`#DOC-A.1-999`, `#ANCHOR`, `#DOC-A.1-n` in self-tests and docstrings) carry the
+marker, and the arm then turns on GREEN with no baseline. The runtime string at `CobolNum.cs:334` is one of the 11: its
+text changes, and the step re-blesses any golden that prints it. The inventory's computed `derivation` and
+`code-location` anchors are unchanged.
 
-**The migration** is one script, `scripts/spec/conformance_migrate.py`, run once by step B's landing and deleted by it (the
-`devlog_migrate.py` shape). Two commits in that landing, each with its proof: (1) the monolith's entries reordered into
-the renderer's canonical order (keys within a section), proven by the multiset of entries before and after being equal;
-(2) the cut into `docs/conformance/`, proven by `conformance_doc.py --out` rendering byte-identical to the reordered file
-(the implementer commits the empty diff). The same landing re-keys `cite-resolve-baseline.json`'s entries from
-`docs/CONFORMANCE.md:<line>` to the source file and line the migration moved each citation to (the multiset of citation
-and failure kind unchanged; `audit_code_citations.py --check` GREEN), updates `inventory-schema.json`'s anchor pattern
-only if a key spelling changed (it should not), names `docs/conformance/` in `docs/DOC_INDEX.md`, and changes every skill
-or brief that says "add a row to `docs/CONFORMANCE.md` §N" to the file it now adds (`spec-lookup`, `land-a-fix`,
-`golden-lane-brief.md`, `cloud-adjudicate-brief.md`, `wf_lane3_adjudicate.js`, MANDATORY-PRACTICES).
+**The migration** is one script, `scripts/spec/conformance_migrate.py`, run once by step B2's landing and deleted by it
+(the `devlog_migrate.py` shape): it cuts the normalised monolith into `docs/conformance/`, and the proof is
+`conformance_doc.py --out` rendering byte-identical to the normalised file, the stamp line aside (the implementer commits
+the empty diff). The same landing re-keys `cite-resolve-baseline.json`'s entries from `docs/CONFORMANCE.md:<line>` to
+the source file and line the migration moved each citation to (the multiset of citation and failure kind unchanged;
+`audit_code_citations.py --check` GREEN), updates `inventory-schema.json`'s anchor pattern only if a key spelling changed
+(it should not: B1 fixed the keys), and moves every instruction and link listed above.
+
+*Step C — the published statement (PB5431).* The package and the documentation build carry the rendered
+`docs/CONFORMANCE.md`: a pack-time MSBuild target in `Directory.Build.props` runs `conformance_doc.py --out` into the
+intermediate directory and packs it at `docs/CONFORMANCE.md` beside `LICENSE` (the one `Pack="true"` item today), and
+the manual's build renders it beside the manual. Oracle: `dotnet pack` of the tool package holds the file, byte-identical
+to the checkout's render (stamp aside), and `conformance_doc.py --check` GREEN. Publishing the package stays the
+owner's (CLAUDE.md, Ownership).
 
 ### 16.9 `PublicAPI.Unshipped.txt`: one order, one module, no driver
 
@@ -2085,16 +2280,19 @@ different places, kb/Work PB3694).
 What still costs: 48 of 792 landings in 14 days changed `src/WiseOwl.Cobol.Runtime/PublicAPI.Unshipped.txt`, and the file
 is in no order (`sort -c` stops at line 136), so a branch appends its symbols at the end and any two branches that add
 symbols meet at the same lines: two land-lane conflict briefs on 2026-11-11 and 2026-11-12 named it. **Decision: the
-Unshipped baselines keep ONE order** — the `#nullable enable` header, then the lines in ordinal order, the order the
-analyzer's own code fix (RS0016 "Add to public API") writes; the step confirms that by running the code fix once on a
-scratch symbol and comparing — so two branches that add different symbols insert them at different places and plain git
+Unshipped baselines keep ONE order** — the `#nullable enable` header, then the lines in ordinal order (`#` 0x23 and
+`*REMOVED*`'s `*` 0x2A sort before every symbol, so one ordinal sort of the whole file keeps the header first) — so two branches that add different symbols insert them at different places and plain git
 merges them, two that add the same symbol make the same edit and merge clean, and the duplicate that PB3694 met cannot be
 written by an ordered file. **`scripts/public_api_baselines.py`** becomes the one module of the baselines' rules:
 `SYMBOL_BASELINE`, `is_symbol_baseline`, `baseline_texts`, `baseline_duplicates` and `baseline_stops` move there from
 `landing_check.py` (which imports them; arm 0b unchanged), and it adds `order_problems` (an Unshipped baseline out of
 order) and `--check` (the tree's baselines: duplicates and order) and `--write` (puts each Unshipped baseline in order:
-the one fixer). `--check` is a gate audit, `PUBLIC API BASELINES` in `gate_audits.AUDITS` (or `gate.py`'s `AUDITS` if
-PB3733 has not landed) and in CI's `audits` job, the SAME list (`ci_audits_not_in_gate`). `PublicAPI.Shipped.txt` keeps its
+the one fixer). `--check` is a gate audit, `PUBLIC API BASELINES` in `gate.py`'s `AUDITS` (PB5396 lands before the
+module split, PB5433, which moves the list) and in CI's `audits` job, the SAME list (`ci_audits_not_in_gate`). Its
+cases are case files under `scripts/selftests/public_api_baselines/` (the layout lands first, PB5428). **The order is
+the audit's, not the analyzer's**: whatever order the RS0016 code fix ("Add to public API") inserts a line in, the
+audit is the authority and `--write` is the fixer, so the design does not depend on the code fix's behavior and nothing
+about it is left to confirm (the adversarial review, 2026-11-12: not a blocker). `PublicAPI.Shipped.txt` keeps its
 order: it feeds the runtime ABI pin's `runtime-hash` line by line (`scripts/abi_pin.py`), and it changes only at a
 release. Oracle: the Unshipped file's line multiset unchanged by the one-time `--write`; the solution builds with no
 RS0016, RS0017 or RS0025; `landing_check.py`'s and the new module's cases GREEN.
@@ -2104,42 +2302,66 @@ RS0016, RS0017 or RS0025; `landing_check.py`'s and the new module's cases GREEN.
 Each step is one kb/Work note (`cluster: ["PB3726"]`, `tier: ["PB3726:<n>"]`, `process_only: true`), dispatched as a
 group claiming its files WHOLE — each code file in its `**Sites:**` block named with `(whole: why)` or swept by a glob, no
 member partition — so the dispatch ledger holds every colliding group of either lane out of later waves while it runs
-(`inflight.collision`; PB3726 "Sequencing with the loop"). The loop never plans this cluster. ONE PB3726 step runs per
-wave, except the two pairs marked below, which share no file. Every cases-out step lowers `selftest_layout.REMAINING`, so
-the cases-out steps form one `blocked_by` chain whatever their scripts; a split waits for its own script's cases-out step,
-because the split's oracle is then a set of case files the split only re-imports.
+(`inflight.collision`; PB3726 "Sequencing with the loop"). The loop never plans this cluster.
+
+**The steps are strictly serial: ONE PB3726 step per wave, one `blocked_by` chain.** The first draft paired PB5395 with
+PB5396 and the conformance cut with the case layout. The second pair shares three claimed documents
+(`MANDATORY-PRACTICES.md`, `docs/DOC_INDEX.md`, `DESIGN-test-build-ci.md`), so the dispatch ledger would have held them
+apart anyway, and nearly every step updates `docs/DOC_INDEX.md` and this document (CLAUDE.md rule 6), so a pair that
+truly shares no file is the exception the planner would have to be told about by hand. Serial costs at most two waves
+over the whole campaign and claims nothing the planner does not do. The population count is no longer what forces it:
+`REMAINING` is a set, one path per line (section 16.2 of this document), so two branches that change the population edit
+different lines, inside the campaign or outside it. The case layout is FIRST, so every later step, the new modules of
+PB5395, PB5396 and PB5430 included, writes its cases as case files and never adds an in-file self-test the ratchet would
+have to admit. A split waits for its own script's cases-out step, because the split's oracle is then a set of case files
+the split only re-imports.
+
+**The notes this order replaced (2026-11-12).** The steps first filed in 2026-10 (PB3729 to PB3738) carried Sites the
+pipeline has since deleted (`scripts/run_gate_legs.py`, `scripts/merge_drivers.py`, `MergeDriverDriftTests.cs`,
+`SelfTestCaseLayoutDriftTests.cs`) and step text that names them, and `work.note_sites` reads the UNION of every
+`**Sites:**` block of a note and its dated files (`work.py`, `note_sites` over `fold_text`), so a dated addendum can add a
+claim but never withdraw one, and the rendered implementer spec carries the old step text. Each was RETIRED by its
+recorded decision (its `closes_rows_reason` names the successor) and its step filed fresh: PB3729 → PB5428, PB3738 →
+PB5429 and PB5430, PB3732 → PB5432, PB3733 → PB5433, PB3736 → PB5434, PB3737 → PB5435, PB3734 → PB5436, PB3735 →
+PB5437, PB3730 → PB5438, PB3731 → PB5439. That retirement also disposes of the citations in their bodies that an
+automatic conversion gave the 2023 edition prefix although they named this document's section 16 subsections (each
+resolves to a real clause of the standard's "Standard classes", so no audit could flag it).
 
 | Tier | Note | Step | Files claimed whole | Oracle (what proves nothing changed) |
 |---|---|---|---|---|
 | 1 | PB3637 | LANDED: the UTF-8 switch, `standard_streams.ensure_utf8` in every live entry point | — | — |
 | 1 | PB3727 | LANDED, then RETIRED by PB5110: the PublicAPI driver | — | — |
-| 2 | PB3728 | LANDED: §16.3, `plan_wave.py` split by job | — | — |
-| 2 | PB5395 | §16.8 step A: `conformance_source.py`, the one reader; every reader re-pointed | `conformance_source.py` (new), `inventory_schema.py`, `docchecks/{common,register,facts,inventory}.py`, `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py`, `differential_fuzz.py`, `phase_b_batch.py`, `conformance-suite/harness/generate.py` | every reader's output byte-identical before/after (the extract, `audit_annex_a1.py --json`, `gen_ledger.py --check`, the declined-module set); one PATH spelling of the file left |
-| 2 | PB5396 | §16.9: the Unshipped baselines in one order; `public_api_baselines.py`; the PUBLIC API BASELINES audit | `public_api_baselines.py` (new), `landing_check.py`, `gate.py` (`AUDITS`), the CI workflow, `PublicAPI.Unshipped.txt` | the line multiset unchanged; no RS0016/RS0017/RS0025; the code fix's own order confirmed |
-| 3 | PB3738 | §16.8 step B: the sources under `docs/conformance/`, the renderer, the view, the migration | `docs/CONFORMANCE.md` (deleted from the tree), `docs/conformance/**`, `conformance_source.py`, `conformance_doc.py`, `rendered_views.py`, `.gitignore`, `cite-resolve-baseline.json`, `RegistryShapeDriftTests.cs`, README and manual links, `DOC_INDEX.md`, the skills and briefs that name the file | the render byte-identical to the reordered monolith; the reorder an entry-multiset identity; every citation resolves; the readers' outputs unchanged |
-| 3 | PB3729 | §16.2's mechanism, with plan_wave's cases: `selftest_cases.py`, `selftest_layout.py` and its call in `self_tests.py`, `REMAINING`, `self_test_arms.py` reading case names; `test_plan_wave.py` → `scripts/selftests/orchestrator/plan_wave/` | those files, `test_plan_wave.py` (deleted), `testdata/plan_wave_default.json` | the same labels (the 416 `check(` calls); `--list` the same; the golden plan unchanged |
-| 4 | PB3732 | gate's cases out; `FakeHost` into fixtures | `gate.py`, `scripts/selftests/gate/`, `self_test_arms.py` | the same labels; `--list` the same |
-| 5 | PB3733 | §16.5 step 1: the gate's module split | `gate.py`, the four new modules, every importer §16.5 names | the case files GREEN; `--await` and `--audit-shape` the same |
-| 6 | PB5411 | §16.5 step 2: the `Gate` class split | `gate.py`, `gate_reuse.py`, `gate_generated.py`, `gate_legs.py` (new), the case files that plant the class | the case files GREEN; a gate run's record the same fields and verdict as before on one recorded tree |
-| 7 | PB5397 | inert_lane's cases out | `inert_lane.py`, `scripts/selftests/inert_lane/` | the same labels |
-| 8 | PB5398 | §16.12: inert_lane split; `CLASSIFICATION` kept in key order | `inert_lane.py`, the three new modules, every importer §16.12 names | `inert_lane.py check` and `classify` of the last 20 landings the same |
-| 9 | PB3736 | land_lane's cases out | `land_lane.py`, `scripts/selftests/orchestrator/land_lane/`, `self_test_arms.py` | the same labels |
-| 10 | PB3737 | §16.7: land_lane split | `land_lane.py`, the six new modules, every importer §16.7 names | `status` the same lines |
-| 11 | PB5399 | `test_audit_batch.py` → `scripts/selftests/spec/audit_batch/` | `test_audit_batch.py` (deleted), the case directory | the same labels |
-| 12 | PB3734 | enqueue's cases out | `enqueue.py`, `scripts/selftests/orchestrator/enqueue/` | the same labels |
-| 13 | PB3735 | §16.6: enqueue split | `enqueue.py`, the five new modules, `coord.py` (`Say`), every importer §16.6 names | `land --dry-run` the same step |
-| 14 | PB3730 | prune_worktrees' cases out | `prune_worktrees.py`, `scripts/selftests/prune_worktrees/` | the same labels; git processes at most one more per file |
-| 15 | PB3731 | §16.4: prune_worktrees split | `prune_worktrees.py`, the four new modules, every importer §16.4 names | a survey the same rows; `plan_wave --dry-run` the same |
-| 16 | PB5400 | self_tests.py's cases out (its `self_test`, `net_arms`, `entry_point_arms`, `fleet_arms`) | `self_tests.py`, `scripts/selftests/self_tests/` | the same labels; the runner's own verdict on the tree the same |
-| 17 | PB5401 | the cases of `scripts/a*.py`–`scripts/d*.py` | those files, their case directories | per subject: the same labels, `--list` the same |
-| 18 | PB5402 | `scripts/e*.py`–`scripts/l*.py`, with `test_fuzz_*.py` and `test_linux_gate.py` | the same | the same |
-| 19 | PB5403 | `scripts/p*.py`–`scripts/v*.py`; `test_population.py` and `test_leg_report.py` renamed | the same, every caller of the two renamed tools | the same; the two tools' CLI outputs the same |
-| 20 | PB5404 | `scripts/spec/a*.py`–`d*.py` | the same | the same |
-| 21 | PB5405 | `scripts/spec/e*.py`–`l*.py`, with `test_figure_*.py` | the same | the same |
-| 22 | PB5406 | `scripts/spec/m*.py`–`w*.py`, with `test_render_figure.py`, `test_text_layer.py`, `test_transcribe_pdf.py`, `test_wf_spec_reconcile.py` | the same | the same |
-| 23 | PB5407 | the rest of `scripts/orchestrator/`, with its nine standalone tests | the same | the same |
-| 24 | PB5408 | `scripts/arch/`, `scripts/hooks/`, `scripts/semgrep/`, `scripts/models/`, `conformance-suite/harness/`, `.claude/` | the same | the same |
-| 25 | PB5409 | the end state: `REMAINING` deleted, the runner's rule (a) for `.py` deleted and rule (b) narrowed to `selftests/`, every `--self-test` spelling in the docs, skills and briefs swept | `self_tests.py`, `selftest_layout.py`, `self_test_inputs.py`, the docs and skills | `self_tests.py --list` finds the same files before and after; the layout rule refuses a planted `test_*.py` outside `selftests/` |
+| 2 | PB3728 | LANDED: section 16.3, `plan_wave.py` split by job | — | — |
+| 2 | PB5428 | section 16.2's mechanism, with plan_wave's cases: `selftest_cases.py`, `selftest_layout.py` and its call in `self_tests.py` (with `--only` and the case files' `PYTHONPATH`), the `REMAINING` set, `self_test_arms.py` reading case names, the static readers' two edges, `scratch_repo`'s reach; `test_plan_wave.py` → `scripts/selftests/orchestrator/plan_wave/` | those files, `inert_lane.py` (`_imports`), `script_layering.py`, `scratch_repo.py`, `test_plan_wave.py` (deleted), `testdata/plan_wave_default.json` | the same labels (the 416 `check(` calls); `--list` the same; the golden plan unchanged; the planted breaches RED |
+| 3 | PB5395 | section 16.8 step A: `conformance_source.py`, the one reader; every reader re-pointed; its CODE_READS entry | `conformance_source.py` (new), `inventory_schema.py`, `inventory_view.py`, `docchecks/{common,register,facts,inventory,design}.py`, `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py`, `differential_fuzz.py`, `phase_b_batch.py`, `conformance-suite/harness/generate.py`, `inert_lane.py` (`CLASSIFICATION`) | every reader's output byte-identical before/after; one PATH spelling of the file left; INERT LANE GREEN |
+| 4 | PB5396 | section 16.9: the Unshipped baselines in one order; `public_api_baselines.py`; the PUBLIC API BASELINES audit | `public_api_baselines.py` (new), `landing_check.py`, `gate.py` (`AUDITS`), the CI workflow, `PublicAPI.Unshipped.txt` | the line multiset unchanged; no RS0016/RS0017/RS0025 |
+| 5 | PB5429 | section 16.8 step B1: the document made regular in place (keys, order, bodies, epilogues, 3.7.1) | `docs/CONFORMANCE.md`, `conformance_source.py`, `docchecks/register.py` | the readers' outputs equal step A's; the line-multiset diff only the keys, headings and markers |
+| 6 | PB5430 | section 16.8 step B2: the sources under `docs/conformance/`, the renderer, the view with its stamp and rule (e), the citation arm after its burn-down, every instruction and link moved | `docs/CONFORMANCE.md` (deleted from the tree), `docs/conformance/**`, `conformance_source.py`, `conformance_doc.py`, `rendered_views.py`, `.gitignore`, `audit_code_citations.py`, `cite-resolve-baseline.json`, `RegistryShapeDriftTests.cs`, CLAUDE.md, the skills, templates and issue template that name the file, README and manual links, `DOC_INDEX.md` | the render byte-identical to the normalised monolith; every citation resolves; the readers' outputs unchanged |
+| 7 | PB5431 | section 16.8 step C: the published conformance statement in the package and the manual's build | `Directory.Build.props`, the manual's build | the packed file equals the render |
+| 8 | PB5432 | gate's cases out; `FakeHost` → `scripts/gate_fake_host.py` (an ordinary module), `perf_baseline.py` re-pointed | `gate.py`, `gate_fake_host.py` (new), `scripts/selftests/gate/`, `arch/perf_baseline.py`, `self_test_arms.py`, `self_tests.py` (`NET_KNOWN`) | the same labels; `--list` the same; `perf_baseline.py`'s self-test GREEN |
+| 9 | PB5433 | section 16.5 step 1: the gate's module split | `gate.py`, the four new modules, every importer section 16.5 names, `self_tests.py` (`entry_point_arms`) | the case files GREEN; `--await` and `--audit-shape` the same |
+| 10 | PB5411 | section 16.5 step 2: the `Gate` class split, its seven edges decided | `gate.py`, `gate_reuse.py`, `gate_generated.py`, `gate_legs.py` (new), the case files that plant the class | the case files GREEN; a gate run's record the same fields and verdict on one recorded tree |
+| 11 | PB5397 | inert_lane's cases out | `inert_lane.py`, `scripts/selftests/inert_lane/` | the same labels |
+| 12 | PB5398 | section 16.12: inert_lane split; `CLASSIFICATION` kept in key order | `inert_lane.py`, the three new modules, every importer section 16.12 names | `inert_lane.py check` and `classify` of the last 20 landings the same |
+| 13 | PB5434 | land_lane's cases out | `land_lane.py`, `scripts/selftests/orchestrator/land_lane/`, `self_test_arms.py` | the same labels |
+| 14 | PB5435 | section 16.7: land_lane split | `land_lane.py`, the six new modules, every importer section 16.7 names | `status` the same lines (its "survey N min old" masked) |
+| 15 | PB5399 | `test_audit_batch.py` → `scripts/selftests/spec/audit_batch/` | `test_audit_batch.py` (deleted), the case directory | the same labels |
+| 16 | PB5436 | enqueue's cases out | `enqueue.py`, `scripts/selftests/orchestrator/enqueue/` | the same labels |
+| 17 | PB5437 | section 16.6: enqueue split | `enqueue.py`, the five new modules, `coord.py` (`Say`), every importer section 16.6 names | `land --dry-run` the same step |
+| 18 | PB5438 | prune_worktrees' cases out | `prune_worktrees.py`, `scripts/selftests/prune_worktrees/` | the same labels; git processes at most one more per file |
+| 19 | PB5439 | section 16.4: prune_worktrees split | `prune_worktrees.py`, the four new modules, every importer section 16.4 names | a survey the same rows; `plan_wave --dry-run` the same |
+| 20 | PB5400 | self_tests.py's cases out (its `self_test`, `net_arms`, `entry_point_arms`, `fleet_arms`) | `self_tests.py`, `scripts/selftests/self_tests/` | the same labels; the runner's own verdict on the tree the same |
+| 21 | PB5401 | the cases of `scripts/a*.py`–`scripts/d*.py`, with `doc_audits.py`'s delegates `scripts/docchecks/*.py` | those files, their case directories | per subject: the same labels (the delegates' included), `--list` the same |
+| 22 | PB5402 | `scripts/e*.py`–`scripts/l*.py`, with `test_fuzz_*.py` and `test_linux_gate.py` | the same | the same |
+| 23 | PB5403 | `scripts/p*.py`–`scripts/s*.py` (about 1,750 self-test lines) | the same | the same |
+| 24 | PB5440 | `scripts/t*.py`–`scripts/v*.py` (about 1,900); `test_population.py` and `test_leg_report.py` renamed; `test_held_analyzer_output.py` → `_tree/` | the same, every caller of the two renamed tools | the same; the two tools' CLI outputs the same |
+| 25 | PB5404 | `scripts/spec/a*.py`–`d*.py`; `DerivedVerdictDriftTests.cs`'s arm read → `DECLARED` | the same, that C# test | the same |
+| 26 | PB5405 | `scripts/spec/e*.py`–`l*.py`, with `test_figure_*.py`; `AnnexA2UndefinedListDriftTests.cs`'s run → `DECLARED` | the same, that C# test | the same |
+| 27 | PB5406 | `scripts/spec/m*.py`–`w*.py`, with `test_render_figure.py`, `test_text_layer.py`, `test_transcribe_pdf.py`, `test_wf_spec_reconcile.py` | the same | the same |
+| 28 | PB5407 | `scripts/orchestrator/[a-r]*.py` (about 2,850 self-test lines; `enqueue`, `land_lane` done) | the same | the same |
+| 29 | PB5441 | `scripts/orchestrator/[s-z]*.py` with its standalone `test_*.py` files but `test_plan_wave.py` (about 2,000) | the same | the same |
+| 30 | PB5408 | `scripts/arch/`, `scripts/hooks/`, `scripts/semgrep/`, `scripts/models/`, `conformance-suite/harness/`, `.claude/`; `ArchCensusDriftTests.cs` and `ArchReviewFleetDriftTests.cs` → `DECLARED`, `SelfTestArmSource.cs` deleted | the same, those C# tests | the same |
+| 31 | PB5409 | the end state: `REMAINING` deleted, the runner's rule (a) for `.py` deleted and rule (b) narrowed to `selftests/`, the section 16.2 sweep re-run clean | `self_tests.py`, `selftest_layout.py`, `self_test_inputs.py`, the docs and skills | `self_tests.py --list` finds the same files before and after; the layout rule refuses a planted `test_*.py` outside `selftests/` |
 
 The import DAG the splits create, which `script_layering.py` holds (its `LINES`, `NODES` and `SPLITS` are the one
 declaration; an arrow is "imports", a module imports only what is to its left on a line it stands on, a comma joins one
@@ -2147,7 +2369,7 @@ tier whose modules never import each other, every module of `scripts/orchestrato
 `scripts/`, and a module not drawn here is not constrained). Each split declares its own line in its landing; where the
 code forces a different arrow, the design follows the code and records why, as §16.3 did:
 
-    scripts/:              gate_verdict ← gate_runs ← gate_audits ← gate_host ← gate_reuse, gate_generated, gate_legs ← gate
+    scripts/:              gate_verdict ← gate_runs ← gate_audits ← gate_host ← gate_reuse, gate_generated ← gate_legs ← gate
                            lane_classification ← source_reads, inert_watch ← inert_lane
     scripts/orchestrator/: coord ← reports ← branch_classify ← review_coverage ← branch_lifecycle ← branch_survey ← prune_worktrees (CLI)
                            coord ← reports ← branch_classify ← inflight ← clusters ← groups ← dispatch_ledger ← plan_wave (CLI)
@@ -2161,18 +2383,19 @@ to check, and an import of it is allowed wherever an import of one of those modu
 before the restructure must exist, and a split is all or nothing (once one module of a split exists, every one does).
 
 PB3723's measurement is the before (conflicts per landing among same-file parallel groups); the after is the same count
-over the ten landings after tier 16, from the land-lane conflict briefs, with the dispatch holds of
-`partition-measure.jsonl` on `docs/CONFORMANCE.md` against `docs/conformance/**` over the 14 days after PB3738.
+over the ten landings after tier 19 (PB5439), from the land-lane conflict briefs, with the dispatch holds of
+`partition-measure.jsonl` on `docs/CONFORMANCE.md` against `docs/conformance/**` over the 14 days after PB5430.
 
 ### 16.11 What each document says after a step lands
 
 The §2 component table of this document gains the new modules as each split lands (the implementer's sweep, rule 6);
-§12 names the case layout once PB3729 lands, and its list of tests becomes the case directories; `docs/DOC_INDEX.md`'s
+§12 names the case layout once PB5428 lands, and its list of tests becomes the case directories; `docs/DOC_INDEX.md`'s
 rows for the split scripts and for `docs/CONFORMANCE.md` change with their steps; `DESIGN-test-build-ci.md` §3.14.10
 and section 3.17.4 keep their one-sentence pointers here (its section 3.14.10 names `selftest_layout.py` as the rule the runner calls
-from PB3729 on, and the narrowed discovery from PB5409 on); MANDATORY-PRACTICES' I-rules that say "a fix ships its
-self-test arm" say "its case" from PB3729 on; the `gate`, `workstream`, `kb-sync`, `land-a-fix` and `spec-lookup` skills name
-the case layout where they name `--self-test`, and `docs/conformance/` where they name `CONFORMANCE.md` §N. Nothing in this
+from PB5428 on, and the narrowed discovery from PB5409 on); MANDATORY-PRACTICES' I-rules that say "a fix ships its
+self-test arm" say "its case" from PB5428 on; the `gate`, `workstream`, `kb-sync`, `land-a-fix` and `spec-lookup` skills name
+the case layout where they name `--self-test`; and every instruction that names a place to WRITE a determination names
+`docs/conformance/` from PB5430 on (section 16.8 of this document lists them; a citation by section and anchor stays). Nothing in this
 section is a worklist: the steps are the kb/Work notes, and `python scripts/spec/work.py next --cluster PB3726` is their
 order.
 
@@ -2193,7 +2416,7 @@ The CLI and its commands do not change (`inert_lane.py check` is the INERT LANE 
 `linux-gate.sh` run `inert_lane.py watch`). In the same landing every category of `CLASSIFICATION` is put in key order
 and `Classification.check` refuses a category out of order, so two branches that each declare a path add it at different
 places and plain git merges them. Importers re-pointed (`rg -l "inert_lane" scripts .claude .github`): `gate.py` (or its
-modules after PB3733), `self_tests.py`, `self_test_inputs.py`, `self_test_clock.py`, `buildgraph.py`, `line_endings.py`,
+modules after PB5433), `self_tests.py`, `self_test_inputs.py`, `self_test_clock.py`, `buildgraph.py`, `line_endings.py`,
 `doc_audits.py`, `toolchain_audit.py`, `spec/work.py`, `orchestrator/land_lane.py`, the `gate` skill and MANDATORY-PRACTICES
 (names only). The importer most likely missed is the one that reads `inert_lane.CLASSIFICATION` through an attribute after
 `import inert_lane`; the implementer greps `inert_lane\.` as well as the import lines.

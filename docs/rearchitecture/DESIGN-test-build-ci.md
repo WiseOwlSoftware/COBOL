@@ -1185,7 +1185,7 @@ went red under load with every arm passing.
 
 **The case layout (kb/Work PB3726).** A converted script's self-test is a directory of case files under `<root>/selftests/`,
 found by this runner's rule (b) and held by the layout rule the runner calls before it runs anything
-(`scripts/selftest_layout.py`, with its ratchet); the layout, its collector, the rule and the end state are
+(`scripts/selftest_layout.py`, with its `REMAINING` set of the files that still hold an in-file self-test); the layout, its collector, the rule and the end state are
 DESIGN-orchestrator-loop.md §16.2.
 
 **5. The clock proof (kb/Work PB4358).** *The defect it removes.* PB4353's self-test planted merge-group runs dated the
@@ -2058,7 +2058,7 @@ demand and not committed.
 - **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh pull request, never inside a fix
   pull request; a fix edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md`
   becomes one source file per entry under `docs/conformance/`, read by one module and rendered whole as a view
-(DESIGN-orchestrator-loop.md §16.8, kb/Work PB3726, PB5395, PB3738).
+(DESIGN-orchestrator-loop.md §16.8, kb/Work PB3726, PB5395, PB5429, PB5430, PB5431).
 
 #### 3.17.5 The loop's units and the fleet (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
 
