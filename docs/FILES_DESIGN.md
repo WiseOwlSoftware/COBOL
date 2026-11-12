@@ -1171,6 +1171,11 @@ that no SELECT names is rejected by §2023:13.4.5.3 SR1 / §2023:13.4.6.3 SR1 (C
 - **The two entry kinds that take SR3's permission back are SCREENS, not fallbacks: COBOL1837.** §2023:13.4.5.3 SR7
   (INDEXED) and §2023:13.4.6.3 SR2 (sort-merge) both require record description entries, because both are keyed and a
   key is located IN a record (§2023:12.4.5.12.3 SR2; §2023:14.9.40.3 SR6 a).
+- **The permission is COBOL-2002's, so at `--std 85` every record-less FD is COBOL1837** (kb/Work PB5071).
+  §1985:VII.3.2.3 SR3, §1985:VIII.3.2.3 SR3 and §1985:IX.3.2.3 SR3 each read "One or more record description entries
+  must follow the file description entry." with no exception for a RECORD clause, so `MaterializeImpliedRecord`
+  refuses the FD below 2002 before it asks for a RECORD clause (COBOL1836's repair is not one 1985 allows). A
+  report file stays exempt (§1985:IV.6.3.2.2.1 prints its file description entry with no record).
 
 **Rejected alternatives.** *Register the connector and leave `AreaRecord` null* — the shape this replaced: the
 record-less arm was asked TWICE and answered differently (`SequentialIoEmitter.EmitFileRegistration` registered
@@ -1899,7 +1904,7 @@ not two. Diagnostics: COBOL1994 (admissibility), COBOL1995 (the strong-receiver 
   rather than any group item, and category *national* — cannot be DECLARED below the edition that introduces them
   (TYPE/TYPEDEF and USAGE NATIONAL at COBOL-2002, DYNAMIC LENGTH at COBOL-2014), so one predicate is
   per-edition-correct by construction rather than by a predicate that could drift. §2023:13.4.5.3 SR3's record-less FD
-  is likewise unobservable, because D18 materializes the implied record area at every edition. The positive golden
+  is likewise unobservable: D18 materializes the implied record area from 2002, and at 85 the record-less FD is refused (COBOL1837, kb/Work PB5071). The positive golden
   `pb337_into_receiver_admissible` ships in all four edition legs; the strong-receiver negatives list 2002 and up,
   the admissibility negatives all four.
 - **The over-reject guard is the point of the positive golden.** Arm a) admits a receiver arm b) would refuse — a
@@ -2155,7 +2160,7 @@ answer that every organization's WRITE and REWRITE asks, in the connector, befor
    `PagedFile.FormatPages` pages: a WRITE or REWRITE whose pages would pass it is answered §2023:14.9.51.4 GR33 b) / GR42 d)'s
    '24' at the statement (`PagedFile.Begin`'s reservation, `StoreStatus.Boundary`), as the host's own refusal to grow
    the file is. An empty relative record number is no entry of the tree, so a record in the billions costs one leaf.
-   GR29 b)'s highest permitted RRN is `RelativeConnector.HighestRelativeRecordNumber`; above it is '34'.
+   GR29 b)'s highest permitted RRN is `RelativeConnector.HighestRelativeRecordNumber`; above it (or below 1) is '34' from 2014 (§2014:14.9.47.3 GR26 b) is the first text with the sentence), and '24' below 2014 (`DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError`, kb/Work PB5125).
 3. **Does the host medium take it?** A sequential file's boundary is the host medium's capacity (§2023:9.1.13.6
    item 3; Annex A.1 item 108). `HostFile.IsMediumBoundary` is the one classification of the host's refusal and
    `FileStatusCode.ForWriteFailure` maps it ('34', else '30'); `SequentialConnector.Write`, `WriteAdvancing` and

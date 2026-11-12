@@ -11,9 +11,11 @@
       *> clause has a DEPENDING ON item makes the statement READ that
       *> item for the table's current size, but the program wrote only
       *> the table, so the item is no explicit reference.
-      *> A: INITIALIZE TB (the group holding the table E) references TB
-      *> and not N, the item that sets E's size, and not E (rule 9: a
-      *> group reference does not reference its subordinates).
+      *> A: MOVE ZEROS TO TB (the group holding the table E) references
+      *> TB and not N, the item that sets E's size, and not E (rule 9: a
+      *> group reference does not reference its subordinates). (It was
+      *> INITIALIZE TB until kb/Work PB5088: §1985:VI.6.17.3 SR4 forbids
+      *> INITIALIZE of a group holding an OCCURS DEPENDING item.)
       *> B: SEARCH E scans E for the size N gives it; its WHEN phrase
       *> writes E, so the section for E runs after the statement, and
       *> the section for N does not.
@@ -46,8 +48,8 @@
        END DECLARATIVES.
        MAIN SECTION.
        M1.
-           DISPLAY "A: INITIALIZE TB".
-           INITIALIZE TB.
+           DISPLAY "A: MOVE ZEROS TO TB".
+           MOVE ZEROS TO TB.
            SET XI TO 1.
            DISPLAY "B: SEARCH E".
            SEARCH E AT END DISPLAY "NONE"

@@ -129,6 +129,18 @@ internal sealed partial class ControlFlowBinder
     /// drift test that re-derives this table from GR12's sentence.</para></summary>
     private static bool IsPerEvaluationWindow(VaryingSlot slot) => slot is not VaryingSlot.FirstFrom;
 
+    /// <summary>⛔ THE BRACE GROUP EACH SLOT PRINTS, WRITTEN ONCE (kb/Work PB5177). §2023:14.9.28.2's varying-phrase prints
+    /// FROM { identifier-3 | index-name-2 | literal-1 } and BY { identifier-4 | literal-2 } (the AFTER phrase's FROM and BY
+    /// the same), and §1985:VI.6.21.2 prints the same two braces, so an index-name is an operand of FROM and never of BY at
+    /// any edition. A slot × kind question, so a new slot or kind is answered here rather than by a test at one call
+    /// site.</summary>
+    private static bool Admits(VaryingSlot slot, VaryingOperandKind kind) => kind switch
+    {
+        VaryingOperandKind.Identifier or VaryingOperandKind.Literal => true,
+        VaryingOperandKind.IndexName => slot is not VaryingSlot.By,
+        _ => false,
+    };
+
     /// <summary>One varying-phrase operand, classified against the brace group the general format prints.</summary>
     /// <param name="Kind">Which alternative of the brace group this operand is (or <c>Invalid</c>).</param>
     /// <param name="Expr">The bound operand, with its per-evaluation activations attached where the slot's
@@ -225,13 +237,18 @@ internal sealed partial class ControlFlowBinder
             && !(SoleOperand.Primary(whole) is { } sole && sole.LPAREN() is null) && SoleOperand.NumericLiteral(whole) is null;
         var (kind, literal) = arithmeticExpression ? (VaryingOperandKind.Invalid, null)
             : functionIdentifier ? (VaryingOperandKind.Identifier, null) : Classify(e);
-        if (kind is VaryingOperandKind.Invalid && e is not BoundExprError)
+        if (!Admits(slot, kind) && e is not BoundExprError)
+        {
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
                 $"'{text}' is not one of the operands ISO §2023:14.9.28.2's varying-phrase prints in this slot — "
                 + (slot is VaryingSlot.By
                     ? "the BY phrase's brace group is { identifier-4 | literal-2 }"
                     : "the FROM phrase's brace group is { identifier-3 | index-name-2 | literal-1 }")
-                + ". An arithmetic expression is not admitted here; compute it into a data item first");
+                + (kind is VaryingOperandKind.IndexName
+                    ? ". An index-name is not admitted here; SET a data item to the index's occurrence number and write that"
+                    : ". An arithmetic expression is not admitted here; compute it into a data item first"));
+            kind = VaryingOperandKind.Invalid;
+        }
         // The §2023:5.5 2) integer test reads the function value through its OPERAND twin, so the LENGTH sum is the integer function
         // value it is (IntrinsicBinder.OperandOf marks it FunctionValue) and not the unmarked BoundBinary of an expression.
         // The per-evaluation carrier (BoundUdfEvaluatedExpr, the GR12 window's function activations) is transparent to the
