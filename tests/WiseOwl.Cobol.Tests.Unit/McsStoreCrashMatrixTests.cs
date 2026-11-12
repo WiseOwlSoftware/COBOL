@@ -49,13 +49,13 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
         """;
 
     private static string Sent(MessageControlSession s, string destination, string text) =>
-        OutputStatus(s.Send("C", CommunicationFormat.Output, OutputArea(text.Length, destination), text, SendIndicator.EndOfMessage));
+        OutputStatus(s.Send(new CdActivation(), CommunicationFormat.Output, OutputArea(text.Length, destination), text, SendIndicator.EndOfMessage));
 
     private static string Received(MessageControlSession s, string queue) =>
-        InputStatus(s.Receive("R", CommunicationFormat.Input, InputArea(queue), false, "......", noDataPhrase: true).Area);
+        InputStatus(s.Receive(new CdActivation(), CommunicationFormat.Input, InputArea(queue), false, "......", noDataPhrase: true).Area);
 
     private static string Path(MessageControlSession s, string queue, bool enable) =>
-        InputStatus(s.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, InputArea(queue), null, enable));
+        InputStatus(s.SetPath(new CdActivation(), CommunicationFormat.Input, CommunicationPath.Input, InputArea(queue), null, enable));
 
     /// <summary>The statements whose every cut point the matrix covers: each answers its status key, which is 00 when it completes.</summary>
     private static readonly (string Name, Func<MessageControlSession, string> Run, bool Seeding)[] Statements =
@@ -63,18 +63,18 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
         ("send-to-a-queue", s => Sent(s, "DQ", "NEW"), false),
         ("send-to-a-terminal", s => Sent(s, "DT", "TERM"), false),
         ("send-to-a-device", s => Sent(s, "DEV", "DEVMSG"), false),
-        ("send-to-two-destinations", s => OutputStatus(s.Send("C", CommunicationFormat.Output,
+        ("send-to-two-destinations", s => OutputStatus(s.Send(new CdActivation(), CommunicationFormat.Output,
             "0002" + "0003" + "99" + " " + "DQ".PadRight(12) + " " + "DEV".PadRight(12), "TWO", SendIndicator.EndOfMessage)), false),
         ("send-to-a-closed-path", s => Sent(s, "DC", "LATER"), false),
         ("receive-from-a-queue", s => Received(s, "Q"), false),
-        ("receive-from-a-terminal", s => InOutStatus(s.Receive("I", CommunicationFormat.InputOutput, InOutArea("T2"), false, "......", noDataPhrase: true).Area), false),
+        ("receive-from-a-terminal", s => InOutStatus(s.Receive(new CdActivation(), CommunicationFormat.InputOutput, InOutArea("T2"), false, "......", noDataPhrase: true).Area), false),
         ("enable-a-queue-that-moves-the-outbound", s => Path(s, "CLOSED", enable: true), false),
         ("disable-a-queue", s => Path(s, "Q", enable: false), false),
-        ("disable-a-source", s => InputStatus(s.SetPath("C", CommunicationFormat.Input, CommunicationPath.InputTerminal,
+        ("disable-a-source", s => InputStatus(s.SetPath(new CdActivation(), CommunicationFormat.Input, CommunicationPath.InputTerminal,
             InputArea("Q")[..62] + "SRC".PadRight(12) + InputArea("Q")[74..], null, enable: false)), false),
-        ("enable-a-destination-that-moves-the-outbound", s => OutputStatus(s.SetPath("C", CommunicationFormat.Output, CommunicationPath.Output,
+        ("enable-a-destination-that-moves-the-outbound", s => OutputStatus(s.SetPath(new CdActivation(), CommunicationFormat.Output, CommunicationPath.Output,
             OutputArea(0, "DOFF"), null, enable: true)), false),
-        ("send-from-an-input-output-cd", s => InOutStatus(s.Send("I", CommunicationFormat.InputOutput, InOutArea("T2", 2), "XY", SendIndicator.EndOfMessage)), false),
+        ("send-from-an-input-output-cd", s => InOutStatus(s.Send(new CdActivation(), CommunicationFormat.InputOutput, InOutArea("T2", 2), "XY", SendIndicator.EndOfMessage)), false),
         ("seeding-a-changed-definition-file", s => InputStatus(s.AcceptMessageCount(InputArea("Q"))), true),
     ];
 
