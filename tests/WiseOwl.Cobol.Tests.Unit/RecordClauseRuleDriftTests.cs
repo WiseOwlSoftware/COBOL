@@ -177,7 +177,7 @@ public sealed class RecordClauseRuleDriftTests
         var spec2002 = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2002.md"));
         var region2002 = SpecClauseText.ClauseRegion(spec2002, "13.16.41.2");
         string text1985 = SpecClauseText.Norm(string.Join(' ', File.ReadAllLines(TestRepo.Specs("ANSI_COBOL_1985.md"))));
-        var late = RecordClauseRules.Catalog.Where(r => r.Since > 1985).ToList();
+        var late = RecordClauseRules.Catalog.Where(r => r.Since > 85).ToList();
         Assert.Contains(late, r => r.RuleId == $"SR-{Clause}-9");
         foreach (var rule in late)
         {
@@ -190,7 +190,7 @@ public sealed class RecordClauseRuleDriftTests
         // ...and the rows that stay at 1985 are not in the 2002-only set by accident: SR3 of format 2 is printed
         // by the 1985 text as well ("Integer-3 must be greater than integer-2").
         Assert.Contains(SpecClauseText.Norm("Integer-3 must be greater than integer-2"), text1985);
-        Assert.Equal(1985, RecordClauseRules.Catalog.Single(r => r.RuleId == $"SR-{Clause}-5").Since);
+        Assert.Equal(85, RecordClauseRules.Catalog.Single(r => r.RuleId == $"SR-{Clause}-5").Since);
     }
 
     /// <summary>The message a row ships names the row's OWN citation. A row whose sentence and whose printed §

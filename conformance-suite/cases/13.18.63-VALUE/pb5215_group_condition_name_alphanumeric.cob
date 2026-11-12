@@ -5,8 +5,8 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5215 - the legal side. A group item is of class and category
-      *> alphanumeric (§2023:8.5.2.1), and a condition-name takes its conditional
+      *> kb/Work PB5215 - the legal side. An alphanumeric group item has class
+      *> and category alphanumeric (§2023:8.5.2.1), and a condition-name takes its conditional
       *> variable's characteristics (§2023:13.18.63.4 GR19; §1985:VI.5.15.5 GR1),
       *> so §2023:13.18.63.3 SR4 sentence 1 ("literals in the VALUE clause shall
       *> be alphanumeric literals", cite.py --check OK) admits the nonnumeric

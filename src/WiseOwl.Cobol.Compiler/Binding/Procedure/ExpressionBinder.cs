@@ -519,7 +519,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// VALUE argument and INVOKE had neither half, or only the constant half, and refused conforming source.
     /// <c>LiteralAliasResolutionDriftTests</c> fails when a procedure binder reads either table itself.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.DataReferenceContext dref) =>
-        ctx.Data.Constants.ConstantOfIdentifierPosition(dref) is { } k ? new(DataBinder.WrittenText(dref), k, null)
+        ctx.Data.ConstantOfIdentifierPosition(dref) is { } k ? new(DataBinder.WrittenText(dref), k, null)
         // A symbolic-character a CONTAINING element declares yields to the referring element's own item of the same
         // spelling: "a source element's reference to such a name, even when it is a different type of user-defined
         // word, is to the item which that source element describes" (§2023:8.4.6.1, kb/Work PB3153). Asked BEFORE the

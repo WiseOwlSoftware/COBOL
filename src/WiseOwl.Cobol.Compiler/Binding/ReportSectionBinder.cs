@@ -3012,7 +3012,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// (SR3 then asks the entry for a numeric item, a non-numeric constant is §2023:8.8.1.1's refusal), never an
     /// identifier that fails to resolve in storage. SOURCE and SUM both ask it here, so neither can drift.</summary>
     private Core.DataReferenceContext? IdentifierOperandOf(Core.ReportValueOperandContext op) =>
-        BareReferenceOf(op) is { } dref && _d.Constants.ConstantOfIdentifierPosition(dref) is null ? dref : null;
+        BareReferenceOf(op) is { } dref && _d.ConstantOfIdentifierPosition(dref) is null ? dref : null;
 
     /// <summary>⛔ THE SOURCE CLAUSE'S identifier-1 (kb/Work PB5240): the identifier a SOURCE operand IS when it is written
     /// as one — the bare data reference <see cref="IdentifierOperandOf"/> answers, or a function-identifier, inline method

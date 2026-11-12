@@ -76,7 +76,7 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
     }
 
     /// <summary>⛔ THE LITERALS OF A CONDITION-NAME WHOSE CONDITIONAL VARIABLE IS AN ALPHANUMERIC GROUP (kb/Work PB5215).
-    /// A group item has class and category alphanumeric (§2023:8.5.2.1), and a condition-name takes its conditional
+    /// An alphanumeric group item has class and category alphanumeric (§2023:8.5.2.1), and a condition-name takes its conditional
     /// variable's characteristics (§2023:13.18.63.4 GR19; §1985:VI.5.15.5 GR1), so its literals are those of an
     /// alphanumeric item: §2023:13.18.63.3 SR4 sentence 1 "literals in the VALUE clause shall be alphanumeric literals"
     /// and, at COBOL-85, §1985:VI.5.15.3 SR2 "A signed numeric literal must have associated with it a signed numeric

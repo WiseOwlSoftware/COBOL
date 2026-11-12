@@ -6024,7 +6024,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// §2023:8.4.2.2.1 rule 5. §1985:IV.4.3.8.1 SR3 has only the exception "in the case of redefinition": every other
     /// explicitly referenced name must be made unique by qualification, so below 2002 the whole scope's candidates
     /// are counted (§1985:VI.5.8.3 SR2 and §1985:VI.5.11.3 SR5 give these clauses the qualifier to say it with).</summary>
-    internal bool ClauseOperandsTakeImplicitQualifiers => Edition.DialectLevel >= 2002;
+    private bool ClauseOperandsTakeImplicitQualifiers => Edition.DialectLevel >= 2002;
 
     /// <summary>The candidate set of a data-name referenced in a DATA DESCRIPTION ENTRY CLAUSE of
     /// <paramref name="subject"/> (OCCURS … DEPENDING ON, SAME AS), with ISO §2023:8.4.2.2.1 rule 5's implicit

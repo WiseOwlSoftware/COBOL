@@ -145,6 +145,42 @@ public sealed partial class DataBinder
     /// (an ALPHABET code-name, an external-locale-name) asks before taking that meaning.</summary>
     internal bool NamesConstant(string word) => Constants.IsDeclaredConstant(word) || Constants.FindConstant(word) is not null;
 
+    /// <summary>⛔ THE CONSTANT A BARE REFERENCE NAMES WHERE THE FORMAT ADMITS A DATA-NAME TOO (kb/Work PB5301): an operand
+    /// position that takes "identifier or literal", which a constant-name may stand in (§2023:13.10.3 SR2). A constant-name and a
+    /// data-name may have one spelling in a source element — "the same name may be used as any of the following types of
+    /// user-defined words: constant-name, data-name, property-name, record-key-name, record-name" (§2023:8.3.2.2 exception 3;
+    /// §2002:8.3.1.1.1) — and the name is then not unique: §2023:8.4.2.2.1 rule 1 lets it be written unqualified only when "No other
+    /// name has the identical spelling", a constant-name takes no qualifier, and §2023:8.4.2.2.3 SR1 refuses the reference
+    /// that does not uniquely identify its item. So the constant is ONE CANDIDATE AMONG THE DATA ITEMS OF ITS SPELLING, counted
+    /// with them as <c>CounterResolver</c> counts a sum counter (kb/Work PB3232): COBOL1639 at the reference, once per node,
+    /// and under <c>--permissive</c> a warning and the constant (the reading this lookup always took). A program that never
+    /// references the name stays legal. The data items are the ones the active scope sees (<see cref="QualifiedCandidates"/>,
+    /// the set every ordinary lookup reads), so a position that cannot be reached by an identifier asks <see cref="ConstantEntryBinder.ConstantOf"/>
+    /// instead, as do the silent probes.</summary>
+    internal ConstantDef? ConstantOfIdentifierPosition(Core.DataReferenceContext dref)
+    {
+        if (Constants.ConstantOf(dref) is not { } constant) return null;
+        string name = dref.cobolWord().GetText();
+        int dataItems = QualifiedCandidates(name, [], ActiveScope).Count;
+        if (dataItems > 0 && _sharedSpellingReported.Add(dref))
+        {
+            string msg = $"'{WrittenText(dref)}' does not uniquely identify its item — it is the name of a constant-name "
+                + $"(ISO §2023:13.10.3 SR2) and of {(dataItems == 1 ? "a data item" : $"{dataItems} data items")} "
+                + "(§2023:8.3.2.2 exception 3 lets them share a spelling), and a constant-name cannot be qualified: \"For each non unique "
+                + "user-defined name that is explicitly referenced, uniqueness shall be established through a sequence of qualifiers "
+                + "that precludes any ambiguity of reference\" (ISO §2023:8.4.2.2.3 SR1; §2023:8.4.2.2.1 rule 1)";
+            if (Edition.Permissive)
+                Edition.Warning(DiagnosticCatalog.UndefinedReference, msg + "; --permissive resolves to the constant");
+            else
+                Edition.Error(DiagnosticCatalog.UndefinedReference, msg);
+        }
+        return constant;
+    }
+
+    /// <summary>The references <see cref="ConstantOfIdentifierPosition"/> has already reported — one report per source node
+    /// however many binders resolve the node.</summary>
+    private readonly HashSet<Core.DataReferenceContext> _sharedSpellingReported = [];
+
     /// <summary>⛔ THE ONE CONSTANT-NAME READING OF A WORD AT A SPECIAL-NAMES LITERAL POSITION (kb/Work PB1942): literal-1
     /// … literal-9 of §2023:12.3.7.2. ISO §2023:13.10.3 SR2 — "Except in a compiler directive, constant-name-1 may be used anywhere
     /// that a format specifies a literal of the class and category of constant-name-1" — and §2023:13.10.4 GR1 — "the
