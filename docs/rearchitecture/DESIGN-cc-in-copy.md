@@ -229,6 +229,29 @@ The word COPY as word-1 or word-2 of a COPY REPLACING phrase is refused by COBOL
 indicator is a comment to the scanner and never a word. 2023 removed the word forms (COBOL0902); under `--permissive`, which still accepts them,
 the 2014 set applies (`OperandScreen.CopyWord`).
 
+### §3.7 The lines a replacement introduces (kb/Work PB5382)
+
+A debugging line reaches this stage as `ReferenceFormatProcessor.DebugLineCarrier` plus its text, and `DebuggingLineRewriter` later keeps or
+hides each carrier's line by the unit's WITH DEBUGGING MODE. A whole replacement whose pseudo-text-2 spans lines therefore has to write the
+carrier on every line it introduces that is a debugging line, or the rewriter sees source. `ApplyReplacements` asks `IntroducedText` for
+the text it writes, decided by the line the match begins on (`firstLineIsDebugging` covers a slice that begins inside a line):
+
+- **The replaced text begins on a debugging line:** every introduced line is a debugging line (§1985:XII.3.4 GR11, §1985:XII.2.4 GR9,
+  §2002:7.1.3.3 GR11, §2002:7.1.2.3 GR13); a carrier pseudo-text-2 wrote at its own start is dropped, because its first line lands on the
+  replaced line.
+- **It begins on a source line:** a COPY keeps the debugging lines pseudo-text-2 wrote (GR9 / GR13: "only those text words that are specified
+  on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines"), and so does REPLACE from 2002; COBOL-85's
+  REPLACE gives each introduced line the replaced line's indicator, so it drops them (`ResultRule.KeepsPseudoTextDebuggingLines`, asked
+  with `EditionInfo.ReplacedTextIsLaidOutInFixedForm`).
+- When the replacement ends on a debugging line the replaced line is not, the text after the match starts a line of its own, so the rest
+  of the replaced line keeps its own indicator.
+
+At COBOL-85 (`ReplacedTextIsLaidOutInFixedForm`) the resultant text is laid out in fixed-form lines, so a literal a replacement places on a
+debugging line that the program-text area cannot hold from the margin of the area it begins in (65 positions in area A, 61 in area B; a
+pseudo-text-2 literal keeps the area it was written in, literal-2 takes the replaced word's, §1985:XII.2.4 GR9) would be continued on a
+debugging line: COBOL7039 (§1985:XII.2.4 GR9, §1985:XII.3.4 GR11). The 2002 rules drop that error. The carrier a COPY statement written on
+a debugging line would give its whole library text is kb/Work PB5214.
+
 ## §4 Wiring (greenfield only)
 
 `Frontend.Preprocess` makes ONE call, `ConditionalCompilationProcessor.Manipulate(normalized, copy, …)`, with a

@@ -3460,6 +3460,14 @@ public static class DiagnosticCatalog
         + "of a COPY statement's REPLACING phrase, which may be any single COBOL word except those.",
         "§1985:XII.2.3 SR6; §2002:7.1.2.2 SR10; §2014:7.2.2.2 SR10");
 
+    // kb/Work PB5382: at COBOL-85 the text a replacement introduces is laid out in fixed-form lines, so a literal too long
+    // for one line is continued, and a debugging line cannot carry the continuation.
+    public static readonly DiagnosticDescriptor ContinuedLiteralOnDebuggingLine = new(
+        "COBOL7039", "continued-literal-on-debugging-line", EditionSeverity.Error,
+        "A COPY REPLACING or REPLACE replacement places on a debugging line a literal too long for one line, so the "
+        + "literal would have to be continued on a debugging line, which is an error.",
+        "§1985:XII.2.4 GR9; §1985:XII.3.4 GR11");
+
     // ── The INVOKE twins of the PB132 CALL operand screens (kb/Work PB1137): the rules are written in the same
     // words for both activation statements and are checked by ONE screen (ActivationOperandScreen); each statement
     // keeps its own code because each has its own clause, exactly as COBOL2237 twins COBOL1685. ──
