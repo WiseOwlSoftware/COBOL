@@ -89,7 +89,7 @@ reference/subscript/ref-mod §2023:8.4, standard conversions §2023:8.5.1, arith
 definitions; **Annex A** required-documented-behavior; **Annex E** edition deltas; **Annex F** obsolete/archaic. Each
 rule = `(rule-id, §-anchor, subject, kind, edition-applicability, text)`. The complete rule set is the coverage
 **DENOMINATOR** — the thing the audits never enumerated. The standard also states rules OUTSIDE its numbered lists, as
-prose paragraphs and tables; the unit for those is the printed paragraph or table row, decided in "Phase A, continued"
+prose paragraphs and tables; the unit for those is the printed paragraph or table unit, decided in "Phase A, continued"
 of section 3 of this document (kb/Work PB479, decision PB5448).
 
 ## 3. The three phases
@@ -139,8 +139,9 @@ kb/Work PB284):
    ("the normative content IS the two precedence matrices").
 
 **The measurement** (kb/Work PB479 step 1; `python E:/COBOL-coord/scratch/pb479/measure.py`, `analyse.py`,
-`pdf_levels.py`, `firstpass.py`, outside the repository at design time; step PB5449 makes the extractor's own coverage
-report reproduce every figure). The criterion was fixed before counting:
+`pdf_levels.py`, `firstpass.py`, outside the repository at design time, and the design review's probes in
+`E:/COBOL-coord/scratch/pb479/review/`; step PB5449 makes the extractor's own coverage report reproduce every figure).
+The criterion was fixed before counting:
 
 - *Deontic sentence*: outside a NOTE, an EXAMPLE, a general format, a quotation and a code example, the sentence carries
   a requirement or permission form. 2023 defines its verbal forms in its Introduction ('shall' a requirement, 'may' a
@@ -161,169 +162,299 @@ report reproduce every figure). The criterion was fixed before counting:
 | indicative (no deontic form), normative, in no row | 2,533 | 1,430 | (737 clauses hold either) |
 | of these, Annex B and C character data | | 263 | 5 |
 | prose-clause paragraphs (no rule block) | | 1,577 (278 deontic) | 634 |
+| of these, numbered items of a prose clause (Annex A.2 66, A.3 46, A.4.2 27, A.4.11 25, ...) | | 226 | |
 | lead-in paragraphs of a rule block (dropped) | | 179 (66 deontic) | |
 | margin paragraphs glued into a rule's row (PDF level 0) | | 121 (47 deontic) | in 57 rows |
-| tables outside rule blocks | | 46 tables, 721 lines | |
-| frame clauses 4 and 5, deontic in no row (outside by decision) | 68 | | |
+| tables outside rule blocks (prose clauses) | | 46 tables, 721 lines (about 675 body rows) | |
+| tables inside rule blocks / inside general formats | | 36 / 10 | |
+| frame clauses 4 and 5, deontic in no row (outside by decision) | 63 | | |
 
 | 1985 | sentences | paragraphs | clauses |
 |---|---|---|---|
 | deontic, normative, in no row (the HITS) | 238 | 186 | 135 |
 | indicative, normative, in no row | 1,296 | 685 | (502 clauses hold either) |
 | prose paragraphs / lead-in paragraphs | | 767 (153 deontic) / 98 (31 deontic) | 446 |
-| Section I, II, III deontic in no row (outside by decision) | 31, 148, 50 | | |
+| Section I, II, III deontic in no row (outside by decision) | 31, 142, 50 | | |
 
 The glued count is a measurement of the printed page: each unnumbered column-0 paragraph that follows a numbered rule
 was found on the PDF (`measure_sublist_levels._visual_lines`, the page's own margin, 17.5 pt a level): of 502, 122 print
 at level 0 (one is a group label, so 121 paragraphs), 279 at the rule's indent or deeper (true continuations), 16 at
 more than one level and 85 not found. The method was calibrated on the 180 lead-ins, which print at the margin by
-definition: 164 measure level 0, 14 are not found, 2 are ambiguous, none measures deeper. The
-1985 transcription keeps no indentation, so its glued margin text is unmeasured; `cite.py` reads an unlabelled 1985
-paragraph as the rule's above it.
+definition: 164 measure level 0, 14 are not found, 2 are ambiguous, none measures deeper. The 57 rows that hold the
+121 are 55 CONFORMS with a `test-ref`, 1 CONFORMS closed on a derivation (`RV-15.4.1-4`, section 1.1 of this
+document) and 1 DOCUMENTED-NON-SUPPORT. The 1985 transcription keeps no indentation, so its glued margin text is
+unmeasured; `cite.py` reads an unlabelled 1985 paragraph as the rule's above it.
 
-**The sample** (seed 479, 30 hits and 30 non-hits per edition, judged by hand: an obligation constrains valid source or
-the effect of compilation or execution; an overview a rule restates, a definition, a cross-reference, an example and a
-'may' of possibility are not; `E:/COBOL-coord/scratch/pb479/out/sample-judgments.json`):
+**The samples.** First by sentence (seed 479, 30 hits and 30 non-hits per edition, judged by hand: an obligation
+constrains valid source or the effect of compilation or execution; an overview a rule restates, a cross-reference, an
+example and a 'may' of possibility are not; `E:/COBOL-coord/scratch/pb479/out/sample-judgments.json`):
 
 | | hits that are obligations (precision) | non-hits that are obligations (missed) |
 |---|---|---|
 | 2023 | 22 of 30 (73 %); every false hit is a 'may' of possibility or a cross-reference | 15 of 30: 8 lines of Annex B/C character data, 7 general-rule semantics ("The type of this function is numeric", §2023:15.89.1; the precedence of logical operators) |
 | 1985 | 23 of 30 (77 %) | 9 of 30 (function types, the initial open mode, the area A rule for level 01) |
 
-With n = 30 each rate is within about 16 points. Scaled to the pools, the verb criterion finds about 20 % (2023; 30 %
-without the character data) and 32 % (1985) of the unnumbered obligations: a general rule "defines or clarifies the
-meaning" of an element (§2023:5.3.3) and is mostly written in the indicative. Of the five 2023 carriers of the
-fourteen held 1985 rules, §2023:8.4.2.1 and §2023:10.4 are found by it; §2023:14.5.1's definitions, its Table 12 and
-§2023:14.5.2 carry no deontic form (14.5.1's one hit is a 'may' of possibility inside its dash list), and
-§2023:14.6.2.2's active-state rules are indicative (its hit is the permission of recursion beside them).
+Then by PARAGRAPH, the unit this design mints (a paragraph is a row when any of its sentences is, so a sentence rate
+understates it). 2023 (the design review, seed 1112, 20 paragraphs in no row, `review/mysample.txt`): 5 are Annex B
+character data; of the other 15, 7 are rules, 2 are lead-ins and 6 are not rules. 1985 (seed 1985, 20 paragraphs,
+`review/sample1985para.py`, judged in `out/sample-1985-para.txt`): 3 are general-format or example text the measuring
+script failed to fence and 1 is an item of the colon paragraph above it, so 16 are units, and 8 of them are rules.
+With n of 15 and 16, each paragraph rate is within about 22 to 25 points. The verb criterion flags 6 of the 2023
+paragraph sample, all of them rules or lead-ins, and finds 5 of its 7 rules: general rules "define or clarify the
+meaning" of an element (§2023:5.3.3) and are mostly written in the indicative, so no textual signal defines the rows.
+Of the five 2023 carriers of the fourteen held 1985 rules, §2023:8.4.2.1 and §2023:10.4 carry a deontic form;
+§2023:14.5.1's definitions, its Table 12 and §2023:14.5.2 carry none (14.5.1's one hit is a 'may' of possibility
+inside its dash list), and §2023:14.6.2.2's active-state rules are indicative (its hit is the permission of recursion
+beside them).
 
-**Already implemented and tested elsewhere** (kb/Work PB204's case), as far as the tree shows: the clause of 143 of the
-223 2023 hit clauses (304 hit sentences) is cited `§2023:<clause>` both in `src/` and in a test tree; of the 1,774 2023
-paragraphs in no row, 318 are quoted (eight consecutive words) by some store record's `notes` and 293 of those by a
-CONFORMS record with a `test-ref`; of the 121 glued margin paragraphs, every one lies in a row whose record was decided
-against text containing it (56 CONFORMS with a `test-ref`, 1 DOCUMENTED-NON-SUPPORT), and 34 are quoted by that record's
-notes (`SR-14.8.2.2-2`'s notes verdict the variable-length sentence by name). For 1985, 18 hit clauses are cited in
-`src/` and a test tree, and 78 of the 871 paragraphs are quoted by a CONFORMS 1985 record with a `test-ref`.
+**What the tree already shows** (kb/Work PB204's case): the clause of 143 of the 223 2023 hit clauses (304 hit
+sentences) is cited `§2023:<clause>` both in `src/` and in a test tree. Of the 1,774 2023 paragraphs in no row, 293 are
+quoted (eight consecutive words) by a CONFORMS record with a `test-ref`, but only 19 by a record of a row in their own
+clause, and the best such record quotes 90 % or more of the paragraph for only 23 (less than a quarter for 196;
+`review/fp_quality.py`): a quotation shows where the code may be, never that the paragraph is witnessed. For 1985, 18
+hit clauses are cited in `src/` and a test tree, and 78 of the 871 paragraphs are quoted by a CONFORMS 1985 record
+with a `test-ref`. These figures ORDER the adjudication of the new rows (step PB5455) and seed its candidate sites;
+they close nothing.
 
 **THE DECISION (kb/Work PB5448).**
 
 1. **THE PARAGRAPH IS THE UNIT**, as the rule is for numbered text (section 3, "THE RULE IS THE UNIT"). A *margin
    paragraph* is a printed paragraph at its clause's margin that is not a numbered rule: a prose clause's paragraphs, a
-   rule block's lead-ins, and a paragraph after a rule that the page prints at the block's margin. A margin paragraph
-   carries its NOTEs, the dash or lettered items it introduces (a paragraph ending in a colon owns the list that
-   follows it), and its own tail across a page break. A sentence is not the unit: a sentence-level recogniser would put
-   about one false row in four into the denominator and miss most general rules (the sample above), and a sentence of a
-   paragraph is cited, verdicted and tested with its paragraph exactly as a sub-item is with its rule.
+   rule block's lead-ins, and a paragraph after a rule that the page prints at the block's margin. A sentence is not
+   the unit: a sentence-level recogniser would put about one false row in four into the denominator and miss most
+   general rules (the samples above), and a sentence of a paragraph is cited, verdicted and tested with its paragraph
+   exactly as a sub-item is with its rule. The segmentation, the same for every edition:
+   - **Where a paragraph ends.** Blank lines, and page furniture (1985's page markers and running headers; the 2023
+     text has none), separate candidate paragraphs. A sentence ends in `.`, `?` or `!`, optionally followed by closing
+     brackets or quotes (§2023:8.4.2.1's second paragraph ends "(See 8.4.6, Scope of names.)"; 64 lines of the 2023
+     text end ".)"). A candidate CONTINUES the unit before it when that unit does not end a sentence and the candidate
+     opens in lowercase or with a continuation word of a closed list (`and`, `or`, `nor`, `but`, `then`, `where`,
+     `unless`, `otherwise`): the 2023 text breaks 42 sentences across a plain blank line this way, none across
+     furniture, among them §2023:14.9.35.4's "... TO record-name-1" / "or" / "according to the rules ..." and the
+     "'PICTURE N(length)'" / "where length is the length of the literal" pairs of §2023:13.15.3 and 13.16.3
+     (`review/tails.py`, a lower bound). The 42 are the join's test population, kept as `--self-test` data. A candidate
+     after an unterminated unit that opens any other way does not join, and the coverage report lists it for reading
+     on the rendered page.
+   - **Lists.** A unit ending in a colon owns the dash, lettered or numbered items that follow it, and a unit after the
+     list that continues it by the rule above belongs to the colon unit, not to the last item: §2023:14.7.5's "If the
+     size error condition exists and a SIZE ERROR phrase is not specified:" and, after its five items, "and processing
+     proceeds as specified in 14.6.13.1.3, Fatal exception conditions" are one unit. The printed level decides where
+     the measurement exists (the closing tail of §2023:14.7.5 prints at level 0, the lead's level, and the margin-level
+     data of point 4 covers every unlabelled paragraph after a list item, numbered or not). When the items are numbered
+     rules with rows, the colon unit's words before the list are also each item's `lead` field (outside `text`, so no
+     digest moves).
+   - **Numbered items of a prose clause** (226 in 2023, mostly Annex A.2, A.3 and A.4) are units keyed by their
+     PRINTED number, id `<kind>-<clause>-<n>` (the form `DOC-A.1-<n>` already has): the standard and Annex A.2's own
+     resolver (`extract_annex_a2.py`) cite them by that number, and an item owns its lettered sub-items as a rule does.
+   - **Not units at all**: a NOTE or EXAMPLE (it stays inside the unit it follows), a general format, and code. Text of
+     these kinds that the transcription failed to mark (an unmarked NOTE, a format line outside its fence) is a
+     transcription defect: it is repaired as the page prints it (`scripts/render-spec-page.py <page>`) in the landing of
+     the edition's mint, never disposed as if it were prose. The three such paragraphs of the 1985 sample were the
+     measuring script's own fencing, not the transcription's.
+   - **Tables**, by kind, each kind proposed by a shape test on the transcription and confirmed by the table's
+     disposition: an *entries* table (each body row states a determination about the subject its first cell names;
+     the first column's cells are distinct names: Table 12, Table 13) has one unit per body row; a *matrix* (both
+     axes are categories and the cells take a few values such as Yes and No; the first header cell is a corner: Table
+     16, the two matrices of §2023:13.18.40.6) has one unit per body row line, its subject against every column; a
+     *data* table (values a rule consumes: Table 1's character repertoire) is one unit. A table whose text already lies
+     in a row's text, or that a rule's text names ("table 16 ... specifies the validity of the move",
+     §2023:14.9.25.3 SR10), is that row's content: the segmentation records it `held-by <rule-id>`, it is never minted
+     again, and the audit refuses a table held in two places. Of the 36 tables inside rule blocks, those no row holds
+     (the two matrices of §2023:13.18.40.6, a clause with no numbered rule) are units by their kind. **Table 12** is
+     an entries table of 50 body rows, one unit per statement (`GR-14.5.1-T12.<r>`, keyed by the statement's name): the
+     21 rows that name a conditional phrase and PERFORM's (a scope terminator alone) are expected rows, a cell holding
+     two phrases (DELETE, IF, READ, SEARCH, WRITE) staying one row because the statement is the unit; the 28 rows with
+     both cells empty (ALLOCATE, CANCEL, CLOSE, ...) are expected to be `restates` of their statement's general-format
+     row, checked mechanically (that row holds no conditional phrase and no `END-` terminator) and refuted. The
+     fourteen held 1985 records (step PB5454) name the Table 12 rows of their statements and §2023:14.5.1's paragraph
+     rows as their 2023 targets.
 2. **The ids.** A margin paragraph's row is `<kind>-<clause>-p<n>` (2023, PB284's form, unchanged) and
    `<year>-<kind>-<locator>-p<n>` (1985, 2002), where `n` is the paragraph's position among ALL the clause's margin
    paragraphs, counted from its heading, whether or not each has a row: the number is the text's, so deciding one
    paragraph never moves another's id. Numbered rules are not counted, so a rule inserted or removed moves no `p`. A
-   table row is `<kind>-<clause>-T<t>.<r>` (the printed table number, the body row's position, header rows not
-   counted), a table admitted whole is `<kind>-<clause>-T<t>`, and a clause of pure data admitted whole (Annex B's
-   and C's character lists) is `<kind>-<clause>-C`; a 1985 table, unnumbered, takes its position in its paragraph for
-   `t`. None of `-p`, `-T`, `-C` can collide with `-<n>` or `-L<m>.<n>`. The kind is SR or GR by §2023:5.3.2 and
-   §2023:5.3.3, and AR or RV inside an intrinsic function's clause, since "Except for intrinsic functions, rules are
-   categorized as syntax rules and general rules" (§2023:5.3.1): the extractor's paragraph-admission check, which
-   refuses everything but SR and GR today, takes the kinds from the clause.
-3. **Which paragraphs are rows is an ADJUDICATION, recorded as data; finding them is MECHANICAL.** The content-keyed
-   manifest's `paragraph-blocks` grows from "admitted clauses" into the DISPOSITION of every margin paragraph and table
-   of the normative region, keyed by the paragraph's TEXT KEY (its clause and the first 100 characters of `cite.norm`
-   of its text, `measure_sublist_levels.sublist_key`'s form, because a positional key shifts and a text key does not).
-   A disposition is one of: a kind (`SR`, `GR`, `AR`, `RV`: a row); `lead` (a colon lead-in whose numbered rules carry
-   it: no row, and its words become the field `lead` of each rule of that list, outside `text`, so no digest moves);
-   `restates` with the rule ids that state the same requirement (no row; each id must exist); or `not-rule` with a
-   reason from a closed list (`overview`, `definition`, `cross-reference`, `example`, `frame`). A table's disposition
-   is `rows`, `whole`, `restates` or `not-rule`; a data clause's is `whole`. Until a paragraph has one it is `pending`:
-   outside the denominator, and counted, so every reader that prints the edition's rule count prints the pending
-   count beside it as a lower bound (`inventory_view.lower_bound`, 2002's mechanism, section 10.4 of this document).
-   Why a list and not a recogniser: the measurement shows no textual signal separates the rows (precision 73 to 77 %,
-   recall 20 to 32 %); the list is of decisions about measured text, held to the text by the drift checks of point 4,
-   so the NEXT unnumbered obligation is found automatically and only its disposition is a person's.
-4. **The mechanical half.** One segmentation for every edition (`prose_paragraphs` generalised to a clause's margin
-   paragraphs, inside rule blocks too) with three repairs this design's self-attack found (below); the printed level
-   of every unlabelled paragraph after a numbered rule, MEASURED on the PDF and committed as data
-   (`scripts/spec/data/margin-levels-<year>.json`, keyed by the text key, `measure_sublist_levels.py`'s pattern: CI
-   holds the transcription to it without the PDF; a paragraph the measurement cannot find is read on the rendered page
-   and recorded with the page); a paragraph at level 0 that has a disposition leaves the rule it follows and becomes
-   its own; the RULE CATALOGS audit fails on a margin paragraph with no disposition entry (new or `pending` is fine,
-   absent is not), on a disposition whose text key the text no longer has, and on a deontic paragraph (the edition's
-   verbal forms, held beside the manifest as data) disposed `not-rule` (it must be a row or `restates`); and a
-   regeneration that MOVES an adjudicated row's id (a transcription repair that splits, joins or re-levels a paragraph,
-   or adds a table row) writes the move batch for `record_verdicts.py` itself, a record moving only when its
-   `rule-digest` matches (the renumbering rule of section 10.2 of this document), and the audit refuses a catalog whose
-   moves are not applied.
-5. **Citation.** `cite.py --check` takes the designators `p<n>` (`§2023:14.8.2.2 p3`) and `Table <t> row <r>`
-   (`§2023:14.5.1 Table 12 row 2`); the existing `Table <t>` is the whole table. Their extent is the catalog's reading
-   (`rule_book`), as for every rule. A quotation inside a margin paragraph that has no row yet answers `OK §<clause>
-   (unnumbered prose, pending)` and never names the rule above it: that is kb/Work PB222's repair, and the "it lies in
-   SR2" answer above disappears with it.
+   table unit is `<kind>-<clause>-T<t>.<r>` (the printed table number, the body row's position, header rows not
+   counted), a table that is one unit is `<kind>-<clause>-T<t>`, and a clause of pure data that is one unit is
+   `<kind>-<clause>-C`; a 1985 table, unnumbered, takes its position in its paragraph for `t`. A numbered item of a
+   prose clause is `<kind>-<clause>-<n>` (point 1). None of `-p`, `-T`, `-C` can collide with `-<n>` or `-L<m>.<n>`,
+   and a prose clause has no numbered rule for an item's `-<n>` to collide with. The kind is SR or GR by §2023:5.3.2 and
+   §2023:5.3.3, AR or RV inside an intrinsic function's clause, since "Except for intrinsic functions, rules are
+   categorized as syntax rules and general rules" (§2023:5.3.1), and DOC for an Annex A item whose obligation is a
+   statement in the implementor's documentation, as A.1's are: the extractor's paragraph-admission check, which refuses
+   everything but SR and GR today, takes the kinds from the clause.
+3. **Which units are rows is an ADJUDICATION, recorded as data; finding them is MECHANICAL.** The content-keyed
+   manifest's `paragraph-blocks` grows from "admitted clauses" into the DISPOSITION of every unit of the normative
+   region. It stays keyed by clause (so `audit_catalog_coverage.py`'s reading of its keys as clause labels stays true),
+   each clause holding its units; the positional `kinds` map (`9.1.16`'s `{"6": "SR"}`) is removed and the 18 PB284 rows'
+   kinds become per-unit dispositions in the same change (rule 4: one key, not two).
+   - **The key** of a unit is its clause, the digest of the `cite.norm` form of its WHOLE text (a table unit: its
+     table number and the digest of its normalized cells), and, for units of one clause whose digests are equal, their
+     order (0 for the first). A prefix key would not do: the first 100 normalized characters collide on 17 keys
+     covering 41 margin paragraphs (§2023:14.9.39.4's "the execution of the set statement is unsuccessful and" four
+     times), and an edit after the prefix would leave an old disposition in force. The margin-level data of point 4 is
+     keyed the same way.
+   - **A transcription repair that changes a unit's text** changes its digest: the old disposition then matches no
+     unit and the unit has none, and the audit fails on both, naming them side by side, until a person decides again
+     (with a fresh refuter record where the disposition needs one). An old disposition is never carried to changed
+     text.
+   - **The dispositions.** A kind (`SR`, `GR`, `AR`, `RV`, `DOC`): a ROW. `restates` with the rule ids that state the
+     same requirement: no row; each id must exist. `not-a-rule` with a class from the closed vocabulary below: no row.
+     `pending` until decided: outside the denominator, and counted, so every reader that prints the edition's rule count
+     prints the pending count beside it as a lower bound (`inventory_view.lower_bound`, 2002's mechanism, section 10.4
+     of this document). There is no other way out of the denominator.
+   - **A unit that states or defines anything normative is a ROW** (rule 4: one mechanism per question). If it obliges
+     the implementation to nothing observable (it defines a property of the user's program), it closes through the
+     `definitional` arm of section 1.1 of this document, signed and refuter-upheld as kb/Work PB5373 requires, never by
+     leaving the denominator. "The type of this function is numeric" (§2023:15.62.1) is a row with a test, as the
+     function's type is observable.
+   - **`not-a-rule` is for text with no normative content of its own**, from a closed vocabulary, each class with a
+     mechanical test the audit runs:
+     - `lead-in`: the unit ends in a colon (or is a label of at most ten words with no sentence stop), the list or
+       table after it completes its sentence, the items carry its words (`lead`) and no tail follows the list (a lead
+       with a tail is a unit like any other, point 1);
+     - `cross-reference`: every sentence matches the closed pointer grammar ("See <locator>[, <title>].",
+       "<subject> is/are specified/described/defined in <locator>[, <title>].") and every locator resolves
+       (`cite.py`) to a clause, rule or table whose units have dispositions;
+     - `data`: the unit holds no sentence (list or table lines of literal values: characters, code points, names)
+       and a row's text names its locator, so the row whose obligation consumes it carries it; data no row names is a
+       row itself (`-T<t>` or `-C`).
+     An overview a numbered rule states again is `restates`, never `not-a-rule`.
+   - **Every `restates` and every `not-a-rule` names an UPHELD refuter record**: a second agent read the unit and tried
+     to state the obligation it imposes that the named rules (or nothing) do not; the record carries that attempt, why
+     it fails, the refuter, the date and the digest of the text it read. The form is the one kb/Work PB5374 builds for
+     the refuter record of an argued derivation (one form for every refuter record a checker reads; whichever of
+     PB5374 and PB5449 lands first builds it). The RULE CATALOGS audit refuses a disposition without its record, a
+     record that is not UPHELD, and a record whose digest is not the unit's; and it holds, per class, that the number
+     of `not-a-rule` dispositions equals the number of UPHELD records keyed to them. The same question one level up,
+     the manifests' existing block disposition `not-rules` (a whole numbered list kept out of the denominator with a
+     free-text reason: 4 in 2023, 37 in 1985), takes the same record: its entries are refuted in steps PB5450 (2023)
+     and PB5452 (1985), and the audit refuses one without it.
+   - **Two guards refuse a `not-a-rule`** whose class test passed (a `lead-in` excepted: its words are carried by its
+     list's rows). The edition's verbal forms, held beside the manifest as data and widened by the misses the review
+     found ('shall', 'may', 1985's 'must', 'is/are (not) permitted/allowed/required', "the type of this function is",
+     "the function type is", "is undefined", "is unpredictable", "implementor-defined", "is treated as", "is
+     equivalent to"; the 2023 text holds 76 function-type sentences, none in a row today). And the SHAPE guard: the
+     opening five normalized words of every sentence of every row of the edition, numbered and paragraph rows alike,
+     derived from the catalog at every audit; a `not-a-rule` unit any of whose sentences opens with one of them is
+     refused. The shape set grows with every row minted, so once "the type of this function is" is a row in one
+     function's clause, a `not-a-rule` on the same shape in another is refused without anyone adding it; a drift test
+     plants that case and expects the refusal.
+   Why a list and not a recogniser: no textual signal separates the rows (precision 73 to 77 % and a paragraph recall
+   near 70 % at best, the samples above); the list is of decisions about measured text, held to the text by its digests
+   and the drift checks of point 4, so the NEXT unnumbered obligation is found automatically and only its disposition
+   is a person's.
+4. **The mechanical half.** The segmentation of point 1 (`prose_paragraphs` generalised to a clause's units, inside
+   rule blocks too); the printed level of every unlabelled paragraph after a numbered rule or a list item, MEASURED on
+   the PDF and committed as data (`scripts/spec/data/margin-levels-<year>.json`, keyed as in point 3,
+   `measure_sublist_levels.py`'s pattern: CI holds the transcription to it without the PDF; a paragraph the
+   measurement cannot find is read on the rendered page and recorded with the page); a paragraph at level 0 that has a
+   disposition leaves the rule it follows and becomes its own unit (while it is `pending` it stays in that rule's
+   text, so the rule's words never leave the denominator undecided); the RULE CATALOGS audit fails on a unit with no
+   disposition entry (`pending` is an entry), on a disposition whose key no unit has, on the refusals of point 3, and on
+   a table held in two places; and a regeneration that MOVES an adjudicated row's id (a transcription repair that
+   splits, joins or re-levels a paragraph, or adds a table row) writes the move batch for `record_verdicts.py` itself,
+   a record moving only when its `rule-digest` matches (the renumbering rule of section 10.2 of this document), and the
+   audit refuses a catalog whose moves are not applied.
+5. **Citation.** `cite.py --check` takes the designators `p<n>` (`§2023:14.8.2.2 p3`), `Table <t> row <r>`
+   (`§2023:14.5.1 Table 12 row 2`) and a prose clause's item number; the existing `Table <t>` is the whole table. Their
+   extent is the catalog's reading (`rule_book`), as for every rule. A quotation inside a unit that has no row yet
+   answers `OK §<clause> (unnumbered prose, pending)` and never names the rule above it: that is kb/Work PB222's
+   repair. A glued paragraph stays inside its rule's extent until the 2023 mint carves it (point 7), so the "it lies in
+   GR13" and "it lies in SR2" answers disappear in that landing, together with the stored citations that rely on them.
 6. **Every held edition, one mechanism.** 2002 runs the ISO extractor unchanged; 1985's reader
-   (`rule_catalog_1985.py`) takes the same segmentation, dispositions and level data (a 1985 paragraph also carries its
+   (`rule_catalog_1985.py`) takes the same segmentation, dispositions and level data (a 1985 unit also carries its
    `box`). 1985's margin levels need the 1985 PDF measurement before its rule-block margins can be decided at all.
-   A 2002 paragraph whose words are a 2023 paragraph's takes the 2023 disposition as its `candidate`, the 2002
-   manifest's existing field.
-7. **Existing ids and chains do not move.** The 18 PB284 rows are reproduced byte for byte (their clauses have no dash
-   list, no table and no ".)" ending; a drift test holds it). A numbered row from which a margin paragraph is carved
-   keeps its id and loses the carved text, so its `rule-digest` changes: the carve is ONE mechanical operation of
-   `record_verdicts.py` (`split`), which checks that the old text is the new text plus the carved paragraphs in order,
-   re-stamps the parent's digest, writes each carved row a record copying the parent's verdict, `code-location` and
-   `test-ref` (the record was decided against text that held it), and re-stamps `next.digests` of the change records
-   naming the parent (67 1985 records name 23 of the 57 parents; none of 2002) unless the record's `reason` quotes the
-   carved words, which sends that record to adjudication instead. No other existing row's text changes.
+   A 2002 unit whose words are a 2023 unit's takes the 2023 disposition as its `candidate`, the 2002 manifest's
+   existing field; a candidate is decided like any disposition, refuter record included.
+7. **Existing ids and chains do not move; a carved row inherits nothing.** The 18 PB284 rows are reproduced byte for
+   byte (their clauses have no dash list, no table and no ".)" ending; a drift test holds it). A numbered row from
+   which a margin paragraph is carved keeps its id and loses the carved text: the carve is ONE mechanical operation of
+   `record_verdicts.py` (`split`), which checks that the old text is the new text plus the carved paragraphs in order.
+   - **The carved row is minted OPEN**, with no record. Its record was decided against text that held the paragraph,
+     but not FOR it: `GR-14.7.5-L3.5`'s text holds the NOT SIZE ERROR paragraph while its notes and tests are about
+     ROUNDED-mode truncation, and `GR-8.8.4.2.1-13`'s carved alphabetic and national-group comparison sentences are
+     witnessed by nothing. It closes only by its own adjudication (a reader judges the paragraph against the code and
+     against the parent's test and says whether that test witnesses THIS paragraph; a refuter attacks the closing
+     verdict, as for any row) and its own `test-ref` (the parent's test only where the adjudication shows it exercises
+     the paragraph). A derivation is never copied: a carved row of `RV-15.4.1-4` needs its own argument and its own
+     signature under kb/Work PB5373.
+   - **The parent keeps its record only through a recheck.** Its remaining text is part of what the record was
+     decided against, but its test may have witnessed only the carved text. The split re-stamps the parent's
+     `rule-digest` only when the recheck (the three questions of section 10.3 of this document, asked of the remaining
+     text) and its refuter uphold the verdict and the `test-ref`, or for `RV-15.4.1-4` the derivation's argument; a
+     parent that fails opens and goes to adjudication with the carved rows.
+   - **The chains and citations follow the text.** The split re-stamps `next.digests` of the 1985 change records naming
+     a parent (67 records name 23 of the 57; none of 2002) unless the record's `reason` quotes the carved words, which
+     sends that record to adjudication instead; and every stored citation of a parent whose quotation now lies in a
+     carved row (record notes and reasons, code comments, tests, docs: 76 designator citations of the parents at
+     design time, `review/parents.py`, and the 1985 reasons such as `1985-GR-VI.6.3.1.1.2-L2.1`'s quotation of
+     §2023:8.8.4.2.1 GR13) is rewritten to the carved row's designator in the same landing, so the citation audit
+     (`audit_code_citations.py`) stays green. No other existing row's text changes.
 8. **The neighbours.** kb/Work PB5148's 2023 half (the §2023:8.4.2.1 uniqueness sentences) is a paragraph row of this
-   mechanism; its 1985 half is stale (the three 1985 rows it names exist in the catalog today). kb/Work PB5319 (general
+   mechanism; the three 1985 rows of its 1985 half exist in the catalog today, and the one of them with no store
+   record, `1985-SR-X.4.6.3-2`, is recorded by step PB5454 among the fourteen held records. kb/Work PB5319 (general
    format rows: a bold `Format n` label uncounted, text cut at 4,000 characters) is not this mechanism, since a general
-   format is already a row; it shares only the regeneration, so it lands in the same catalog regeneration as the 2023
-   mint (PB5451) and the FMT digests move once.
+   format is already a row; it shares only the regeneration, so it lands in the 2023 mint (PB5451) and the FMT digests
+   move once. Seven FMT rows' digests move (`FMT-14.9.39.2`'s text is exactly 4,000 characters today), and about 42
+   1985 change records name six of them (`FMT-10.6.1` 12, `FMT-12.4.5.1` 17, `FMT-12.3.7.2` 3, `FMT-14.9.12.2` 3,
+   `FMT-14.9.28.2` 4, `FMT-14.9.39.2` 3); PB5451 re-stamps their `next.digests`, sending to adjudication each whose
+   `reason` quotes the restored tail.
 
-**The consequence, in numbers.** Each edition's denominator is corrected ONCE, in one landing per edition, with the
-adjudicated dispositions and the mechanical first pass in it (estimates until the dispositions are made, from the
-sample's rates):
+**The consequence, in numbers.** Each edition's denominator is corrected ONCE, in one landing per edition, and every
+row minted is OPEN that day: nothing closes at minting. These are estimates from the paragraph samples (95 %
+intervals); the exact count is the output of the classification step (PB5450 for 2023), which first draws a small
+stratified sample of the tables by kind:
 
-| | rows today | GAP today | rows minted (estimate) | closed in the same landing | GAP the day after |
+| | rows today | GAP today | rows minted (estimate) | closed at minting | open the day they are minted |
 |---|---|---|---|---|---|
-| 2023 | 4,214 | 0 | about 600-750 paragraphs + 90-121 carved + 250-450 table rows + 5 data clauses: about 950-1,330 | the carved rows (up to 121) and the paragraphs a CONFORMS record with a test quotes, once a refute pass upholds them (up to 293): about 300-400 | about 550-1,000 |
-| 1985 | 2,274 | 318 | about 350 paragraphs (+ tables and glued margin text, unmeasured) | none: a 1985 row closes through its change record (section 10.2 of this document) | about 670 or more, until the map and verify passes record the new rows' change records |
-| 2002 | 3,298 | 3,298 | measured when its 89 pending clauses are adjudicated | none | rises with the rows |
+| 2023 | 4,214 | 0 | paragraphs about 705 (375 to 1,055: 1,511 non-data paragraphs × 7/15); carved margin paragraphs up to 121 (measured); table rows unmeasured (about 250 to 450; between 0 and about 675 body rows of the prose-clause tables, plus the rule-block tables no row holds); at most 5 data clauses. About 500 to 1,850 in all | 0 | every minted row, about 500 to 1,850, plus any of the 57 parents the recheck opens |
+| 1985 | 2,274 | 318 | paragraphs about 350 (195 to 500: 871 × 16/20 × 8/16); tables and glued margin text unmeasured | 0 (a 1985 row closes through its change record, section 10.2 of this document) | 318 plus every minted row: about 670 (515 to 820), plus the unmeasured |
+| 2002 | 3,298 | 3,298 | measured when its 89 pending clauses are adjudicated | 0 | every row, as today |
 
 **The order** (kb/Work notes, cluster PB479):
 
-| step | note | what | gate on the denominator |
+| step | note | what | effect on the denominator |
 |---|---|---|---|
-| 1 | PB5449 | the mechanism: segmentation, ids, dispositions schema, level data for 2023, the audit's checks, the move batch, `split`, `cite.py` designators, the lower-bound count | none: every margin paragraph `pending`, the catalog byte-identical, 2023 reads "4,214 rules (a lower bound: N paragraphs pending)" |
-| 2 | PB5450 | the 2023 dispositions, adjudicated and refuted, by clause | none (a branch) |
-| 3 | PB5451 | the 2023 mint: dispositions + regeneration + carve + first pass + PB5319, ONE landing | the 2023 correction |
+| 1 | PB5449 | the mechanism: segmentation, ids, the dispositions schema and its refuter records, level data for 2023, the audit's checks, the move batch, `split` and the recheck, `cite.py` designators and the pending answer, the lower bound | none: every unit `pending`; every catalog's `rules` array byte-identical, only its `outside-denominator` block gaining the pending units; 2023 reads "4,214 rules (a lower bound: N units pending)" |
+| 2 | PB5450 | the 2023 dispositions, each `restates` and `not-a-rule` refuted, by clause; the table sample first | none (a branch) |
+| 3 | PB5451 | the 2023 mint: dispositions + regeneration + carve + parent rechecks + citation re-pointing + PB5319, ONE landing | the 2023 correction, every new row open |
 | 4 | PB5454 | record the fourteen held 1985 records (records-85p's batch, `to` filled) and re-check the round-2 records against their prose carriers | none (1985 records) |
-| 5 | PB5455 | adjudicate the 2023 rows the first pass left open | GAP down |
+| 5 | PB5455 | adjudicate the open 2023 rows, carved rows included | GAP down |
 | 6 | PB5452 | 1985: margin levels on the 1985 PDF, dispositions, mint, ONE landing | the 1985 correction |
 | 7 | PB5453 | the 1985 change records of the new 1985 rows (map, verify, adjudicate passes) | 1985 GAP down |
 | 8 | PB5456 | 2002: the same, with its pending clauses | the 2002 correction |
 
-Steps 6 and 8 need only step 1, step 7 needs steps 3 and 6, and step 4 needs only step 3.
+Steps 6 and 8 need only step 1, step 7 needs steps 3 and 6, and steps 4 and 5 need only step 3.
 
-**Attacked once.** Run on the current `prose_paragraphs` (the code PB284 landed), three clauses the dispositions will
-admit:
+**Attacked.** Run on the current `prose_paragraphs` (the code PB284 landed), on the clauses the dispositions will
+admit, and once more by an adversarial review of the design (2026-11-12, kb/Work PB479's dated file of that day):
 
 - *A row for a non-obligation*: §2023:14.6.2.2 splits into six paragraphs and the fifth is "— a STOP statement — in a
   called program, ..." alone, the list cut from its lead "An instance of a program remains active until the execution
   of one of the following" (the colon ends a sentence by `SENTENCE_END`); §2023:14.5.1's dash list and its ninth
-  paragraph (Table 12's caption with the whole table as text) are the same shape. Repaired in point 1 (a colon
-  paragraph owns its list) and point 2 (a table is never paragraph text).
+  paragraph (Table 12's caption with the whole table as text) are the same shape, and the closing tail of
+  §2023:14.7.5's size-error list would be a fragment row. Repaired in point 1 (a colon unit owns its list and its
+  closing tail; a table is never paragraph text).
 - *A missed obligation*: §2023:8.4.2.1 splits into two paragraphs, not three: the second ends "(See 8.4.6, Scope of
-  names.)", `SENTENCE_END` does not accept a closing parenthesis after the period, so the third (kb/Work PB5148's
-  uniqueness sentences) is joined to it as a page-break tail and would be verdicted under an overview. 64 lines of the
-  2023 text end ".)". Repaired: a sentence may end in closing brackets or quotes after its stop, and a tail is joined
-  only across page furniture, never across a plain blank line. And at the criterion level, §2023:14.5.2 ("The
-  conditional phrases are specified in Table 12") and §2023:15.89.1 carry no deontic form, so a completeness check keyed
-  on verbs would never ask about them: hence point 3 disposes EVERY margin paragraph, and the verbs only refuse a
-  `not-rule`.
+  names.)", `SENTENCE_END` does not accept a closing parenthesis after the period, and the third (kb/Work PB5148's
+  uniqueness sentences) is joined to it. Repaired in point 1 (a sentence may end in closing brackets). A join keyed on
+  page furniture would have had nothing to key on in 2023 and cut the 42 sentences broken across a blank line; the
+  join is the textual test of point 1. At the criterion level, §2023:14.5.2 ("The conditional phrases are specified in
+  Table 12") and §2023:15.89.1 carry no deontic form, so a completeness check keyed on verbs would never ask about
+  them: hence point 3 disposes EVERY unit, and the verbs and shapes only refuse a `not-a-rule`.
+- *A cheap way out of the denominator*: a free `not-a-rule` reason such as "definition" would remove a row more cheaply
+  than the derivation it competes with, and the 76 function-type sentences carry no verb a guard would see. Repaired in
+  point 3 (a normative unit is a row and closes through section 1.1; the closed vocabulary with its tests; the
+  refuter record; the shape guard).
+- *A cheap way to close*: copying a parent's verdict and test to a carved row, or closing a new row because some
+  record quotes a few of its words, would close rows no test witnesses. Repaired in point 7 (a carved row inherits
+  nothing; a parent keeps its record only through a recheck) and in "What the tree already shows" (quotations order
+  the work; they close nothing).
 - *A transcription repair under a row*: a reconciliation that splits a paragraph the transcription had joined, or
   indents a continuation paragraph, renumbers every later `p` in its clause, and a stored record would sit on the wrong
-  paragraph: its digest refuses it (kb/Work PB698), the change records naming it go STALE by `next.digests`, and the
-  disposition keyed by number would now type the wrong paragraph. Repaired in point 3 (dispositions keyed by text) and
-  point 4 (the regeneration writes the move batch; a record moves only with its digest). An edit inside a paragraph
-  changes its text key and its digest: the disposition and the record are both refused until decided again against the
-  new text, which is the intended outcome.
+  paragraph: its digest refuses it (kb/Work PB698), the change records naming it go STALE by `next.digests`, and a
+  disposition keyed by number would type the wrong paragraph. Repaired in point 3 (dispositions keyed by the digest of
+  the whole text; a changed text returns its unit to undecided, loudly) and point 4 (the regeneration writes the move
+  batch; a record moves only with its digest).
 
 ### Phase B — map + verify (the numerator)
 For each rule (batched by statement/clause), an agent: **(1)** reads the rule + general format; **(2)** LOCATES the
@@ -983,7 +1114,8 @@ kb/Work PB5256), its change records do not yet.
 - **Unnumbered text has rows here too** (kb/Work PB479, decision PB5448; "Phase A, continued" of section 3 of this
   document). A 1985 margin paragraph or table row that its disposition admits is `<year>-<kind>-<locator>-p<n>` or
   `-T<t>.<r>`, cited `§1985:<locator> p<n>`; the measured 1985 pool is 238 deontic sentences (186 paragraphs, 135
-  clauses) and 1,296 indicative ones in no row. Because the 1985 transcription keeps no indentation, an unlabelled
+  clauses) and 1,296 indicative ones in no row, of which a paragraph sample makes about 350 rows (95 %: 195 to 500),
+  each minted open and closed through its change record. Because the 1985 transcription keeps no indentation, an unlabelled
   paragraph after a rule is part of that rule until the 1985 PDF's margin levels (`margin-levels-1985.json`, step
   PB5452) say it prints at the block's margin. Section II (Concepts) stays outside the denominator, as 2023's
   informative Annex D does.
@@ -1429,8 +1561,8 @@ rule-shaped headings no kind types (§2002:8.8.1.3.1.3 "Rounding rules", §2002:
 "Rules"), which wait for the content-keyed manifest's adjudication.
 
 **Unnumbered text** takes the dispositions of "Phase A, continued" of section 3 of this document (kb/Work PB479, step
-PB5456): a 2002 margin paragraph whose words are a 2023 paragraph's carries that paragraph's disposition as its
-`candidate`, and its pending paragraphs join the lower bound below.
+PB5456): a 2002 unit whose words are a 2023 unit's carries that unit's disposition as its `candidate`, decided like any
+disposition (its refuter record included), and its pending units join the lower bound below.
 
 **The content-keyed manifest** (`spec-unharvested-rule-blocks-2002.json`) measures 92 clauses (395 ordinals). None is word
 for word a clause of the 2023 manifest, so none carried a disposition: every one is `pending`, and its rules are outside
