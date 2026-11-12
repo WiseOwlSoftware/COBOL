@@ -357,6 +357,8 @@ CLASSIFICATION = Classification(inert={
 }, read={
     "specs/ISO_COBOL_2023.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "  # spec_pdf: names-the-file
                           "expected tables from it",
+    "specs/ISO_COBOL_2002.md": "RecordClauseRuleDriftTests (the Since column's 2002 side, kb/Work PB5196)",  # spec_pdf: names-the-file
+    "specs/ANSI_COBOL_1985.md": "RecordClauseRuleDriftTests (the Since column's 1985 side, kb/Work PB5196)",  # spec_pdf: names-the-file
     # Every held edition's rule catalog (inventory-schema.json editions.of `catalog`): a pattern, so an edition that gains
     # a catalog is a READ path the day it lands (kb/Work PB4994's older-edition drift tests first read the 1985 one).
     "docs/rearchitecture/spec-rule-catalog*.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests "

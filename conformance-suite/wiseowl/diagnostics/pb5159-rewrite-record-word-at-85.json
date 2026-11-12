@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: the word RECORD after the record-name of a REWRITE statement"}

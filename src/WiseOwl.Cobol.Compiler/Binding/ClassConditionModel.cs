@@ -47,13 +47,44 @@ internal enum ClassOperandRule
     /// FLOAT-DECIMAL-16/-34, read from <see cref="UsageFamilies"/> — so FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED /
     /// COMP-1 / COMP-2 break it, exactly as they break the SET Format 15 twin, §2023:14.9.39.3 SR32.</summary>
     StandardFloatUsage,
+
+    /// <summary>§1985:VI.6.3.1.2 — "The ALPHABETIC test cannot be used with an item whose data description describes the item
+    /// as numeric" (ALPHABETIC-LOWER, ALPHABETIC-UPPER and class-name-1 the same). The COBOL-85 arm of
+    /// <see cref="NotBooleanNumericOrNumericEdited"/>: a numeric edited item is of the alphanumeric class (§1985:IV.4.3.3), so
+    /// it is tested by content, and there is no boolean category (kb/Work PB5122).</summary>
+    NotNumeric1985,
+
+    /// <summary>§1985:VI.6.3.1.2 — "The NUMERIC test cannot be used with an item whose data description describes the item as
+    /// alphabetic or as a group item composed of elementary items whose data description indicates the presence of
+    /// operational sign(s)." ISO/IEC 1989:2002 dropped both bars (kb/Work PB5122).</summary>
+    NumericNotAlphabeticOrSignedGroup1985,
+
+    /// <summary>§1985:VI.6.3.1.2 — "Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If
+    /// identifier-1 is a function-identifier, it must reference an alphanumeric function." It names every alternative,
+    /// NUMERIC included: the category escape of <see cref="NumericUsageOrCategory"/> is the 2002 rule (kb/Work PB5122).</summary>
+    UsageDisplay1985,
 }
 
 /// <summary>One alternative of the ISO §2023:8.8.4.4.2 class-condition general format: the tag the bound node and
 /// the renderer key on, the phrase a diagnostic names it by, and the §2023:8.8.4.4.3 rules that name it — in the
 /// order they are APPLIED, category rules before usage rules, so an operand that breaks both is reported
-/// against the rule that speaks about its category.</summary>
-internal readonly record struct ClassAlternative(char Kind, string Spelling, ClassOperandRule[] Rules);
+/// against the rule that speaks about its category. <c>Rules1985</c> is the alternative's §1985:VI.6.3.1.2 rule set
+/// (ISO/IEC 1989:2002 8.8.4.1.3.2 already states the 2023 set); an alternative the 1985 format does not print carries
+/// none, its construct gate refusing it there (kb/Work PB5122).</summary>
+internal readonly record struct ClassAlternative(char Kind, string Spelling, ClassOperandRule[] Rules,
+    ClassOperandRule[]? Rules1985 = null)
+{
+    /// <summary>The rules this alternative's operand answers to at <paramref name="dialectLevel"/> (85, 2002, 2014, 2023).</summary>
+    public ClassOperandRule[] RulesAt(int dialectLevel) => dialectLevel < 2002 && Rules1985 is { } r ? r : Rules;
+}
+
+/// <summary>What a class-condition operand rule reads of the operand: its CATEGORY through the one operand-category reader,
+/// its USAGE, whether it is an intrinsic function-identifier (SR3's second sentence), and the two description facts
+/// §1985:VI.6.3.1.2's NUMERIC bar adds (kb/Work PB5122): an item described as alphabetic (PICTURE A, which this compiler
+/// carries as category alphanumeric with <c>PicInfo.IsAlphabetic</c>), and a group holding an elementary item described
+/// with an operational sign.</summary>
+internal readonly record struct ClassOperandFacts(PicCategory? Category, Usage? Usage, bool Function, bool Alphabetic,
+    bool SignedGroup);
 
 /// <summary>
 /// ⛔ THE ISO §2023:8.8.4.4.2 CLASS-CONDITION ALTERNATIVES AND THEIR §2023:8.8.4.4.3 OPERAND RULES, WRITTEN DOWN ONCE.
@@ -113,17 +144,22 @@ internal static class ClassConditionModel
     /// <summary>The offered alternatives, each with the §2023:8.8.4.4.3 rules that name it.</summary>
     public static readonly ClassAlternative[] Alternatives =
     [
-        new(Numeric, "NUMERIC", [ClassOperandRule.NumericUsageOrCategory]),
+        new(Numeric, "NUMERIC", [ClassOperandRule.NumericUsageOrCategory],
+            [ClassOperandRule.NumericNotAlphabeticOrSignedGroup1985, ClassOperandRule.UsageDisplay1985]),
         new(Alphabetic, "ALPHABETIC",
-            [ClassOperandRule.NotBooleanNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational]),
+            [ClassOperandRule.NotBooleanNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational],
+            [ClassOperandRule.NotNumeric1985, ClassOperandRule.UsageDisplay1985]),
         new(AlphabeticUpper, "ALPHABETIC-UPPER",
-            [ClassOperandRule.NotBooleanNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational]),
+            [ClassOperandRule.NotBooleanNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational],
+            [ClassOperandRule.NotNumeric1985, ClassOperandRule.UsageDisplay1985]),
         new(AlphabeticLower, "ALPHABETIC-LOWER",
-            [ClassOperandRule.NotBooleanNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational]),
+            [ClassOperandRule.NotBooleanNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational],
+            [ClassOperandRule.NotNumeric1985, ClassOperandRule.UsageDisplay1985]),
         new(Boolean, "BOOLEAN",
             [ClassOperandRule.NotNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational]),
         new(ClassName, "class-name-1",
-            [ClassOperandRule.NotBooleanNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational]),
+            [ClassOperandRule.NotBooleanNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational],
+            [ClassOperandRule.NotNumeric1985, ClassOperandRule.UsageDisplay1985]),
         new(AlphabetName, "alphabet-name-1", [ClassOperandRule.UsageDisplayOrNational]),
         new(FarthestFromZero, "FARTHEST-FROM-ZERO", [ClassOperandRule.NumericCategory]),
         new(FloatInfinity, "FLOAT-INFINITY", [ClassOperandRule.StandardFloatUsage]),
@@ -170,8 +206,8 @@ internal static class ClassConditionModel
             : null;
     }
 
-    /// <summary>Whether <paramref name="rule"/> is BROKEN by a DATA-ITEM operand whose operand CATEGORY is
-    /// <paramref name="category"/> and whose USAGE is <paramref name="usage"/>.
+    /// <summary>Whether <paramref name="rule"/> is BROKEN by a DATA-ITEM operand whose operand CATEGORY and USAGE are
+    /// <paramref name="operand"/>'s.
     /// <para>⛔ THE CATEGORY IS THE OPERAND'S, NOT ITS BASE ITEM'S (kb/Work PB823's screen twin): the caller
     /// reads it through THE ONE operand-category reader, so a reference-modified slice is category alphanumeric
     /// (national when its usage is national) per §2023:8.4.3.3.4 GR6 c) while keeping its item's usage per GR6's
@@ -183,12 +219,18 @@ internal static class ClassConditionModel
     /// they name, never what this compiler cannot classify. The two POSITIVE rules (SR6, SR7) name what the
     /// operand SHALL be, so a data item whose category is known and is not that fails them: an alphanumeric
     /// group is category alphanumeric (§2023:8.5.2.1) and has no standard floating-point usage.</para>
-    /// <para><paramref name="function"/> marks an intrinsic FUNCTION-IDENTIFIER operand, for SR3's second sentence —
+    /// <para><c>Function</c> marks an intrinsic FUNCTION-IDENTIFIER operand, for SR3's second sentence —
     /// "If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function" — which
     /// states the function's half of the usage rule by its TYPE (§2023:15.2), not by a usage clause it cannot have
     /// (kb/Work PB1401). A COUNTER REGISTER is not a function-identifier, has no usage clause, and so keeps the
     /// fail-open usage answer; SR4–SR6 reach it through its category.</para></summary>
-    public static bool Violates(ClassOperandRule rule, PicCategory? category, Usage? usage, bool function) => rule switch
+    public static bool Violates(ClassOperandRule rule, in ClassOperandFacts operand) =>
+        Violates(rule, operand.Category, operand.Usage, operand.Function, operand.Alphabetic, operand.SignedGroup);
+
+    /// <summary>The rule table <see cref="Violates(ClassOperandRule, in ClassOperandFacts)"/> reads, over the operand's facts
+    /// unpacked.</summary>
+    private static bool Violates(ClassOperandRule rule, PicCategory? category, Usage? usage, bool function, bool alphabetic,
+        bool signedGroup) => rule switch
     {
         ClassOperandRule.NotBooleanNumericOrNumericEdited =>
             category is PicCategory.Boolean or PicCategory.Numeric or PicCategory.NumericEdited,
@@ -202,6 +244,11 @@ internal static class ClassConditionModel
         ClassOperandRule.NumericCategory => category is { } c && c is not PicCategory.Numeric,
         ClassOperandRule.StandardFloatUsage => category is not null
             && !(usage is { } u3 && UsageFamilies.IsStandardFloat(u3)),
+        ClassOperandRule.NotNumeric1985 => !function && category is PicCategory.Numeric,   // a function answers to UsageDisplay1985
+        ClassOperandRule.NumericNotAlphabeticOrSignedGroup1985 => alphabetic || signedGroup,
+        ClassOperandRule.UsageDisplay1985 => function
+            ? category is not PicCategory.Alphanumeric
+            : usage is { } u4 && u4 is not Usage.Display,
         _ => false,
     };
 
@@ -229,6 +276,17 @@ internal static class ClassConditionModel
             (DiagnosticCatalog.ClassConditionNotNumericCategory.Code, "ISO §2023:8.8.4.4.3 SR6",
             "if FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or NEAREST-TO-ZERO is specified, identifier-1 shall "
             + "reference a data item whose category is numeric"),
+        ClassOperandRule.NotNumeric1985 => (DiagnosticCatalog.ClassConditionAlphabeticNumeric1985.Code, "§1985:VI.6.3.1.2",
+            "the ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER and class-name-1 tests \"cannot be used with an item whose "
+            + "data description describes the item as numeric\" (a numeric edited item is of the alphanumeric class, "
+            + "§1985:IV.4.3.3)"),
+        ClassOperandRule.NumericNotAlphabeticOrSignedGroup1985 =>
+            (DiagnosticCatalog.ClassConditionNumericAlphabeticOrSignedGroup1985.Code, "§1985:VI.6.3.1.2",
+            "\"The NUMERIC test cannot be used with an item whose data description describes the item as alphabetic or as a "
+            + "group item composed of elementary items whose data description indicates the presence of operational sign(s)\""),
+        ClassOperandRule.UsageDisplay1985 => (DiagnosticCatalog.ClassConditionUsageDisplay1985.Code, "§1985:VI.6.3.1.2",
+            "\"Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a "
+            + "function-identifier, it must reference an alphanumeric function\""),
         ClassOperandRule.StandardFloatUsage =>
             (DiagnosticCatalog.ClassConditionNotStandardFloat.Code, "ISO §2023:8.8.4.4.3 SR7",
             "if the FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET, or FLOAT-NOT-A-NUMBER-SIGNALING "

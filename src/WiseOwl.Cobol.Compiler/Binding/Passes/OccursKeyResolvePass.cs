@@ -30,7 +30,9 @@ internal sealed class OccursKeyResolvePass : IBindPass
 
     /// <summary>Post-build OCCURS KEY pass (kb/Work PB1018): resolve every data-name-2 of every table's KEY phrase
     /// ONCE, into <see cref="OccursSpec.ResolvedKeys"/>, which SEARCH ALL and the table SORT then read.
-    /// <para>The candidates are the table's OWN subtree (ISO §2023:13.18.38.3 SR3 — "The first specification of
+    /// <para>The candidates are the table's OWN subtree from 2002 (<see cref="DataBinder.RegionClauseCandidates"/>; kb/Work PB5165 —
+    /// below 2002 the whole scope's, narrowed by the written qualifiers alone, and the survivor is asked to lie in the
+    /// table) (ISO §2023:13.18.38.3 SR3 — "The first specification of
     /// data-name-2 shall be the name of either the entry containing the OCCURS clause or an entry subordinate to
     /// the entry containing the OCCURS clause. Subsequent specification of data-name-2 shall be subordinate to the
     /// entry containing the OCCURS clause"), narrowed by the WRITTEN qualifiers through the ONE §2023:8.4.2.2 matcher and
@@ -53,9 +55,11 @@ internal sealed class OccursKeyResolvePass : IBindPass
                 // The phrase as the program wrote it: ASCENDING or DESCENDING names the KEY phrase of ISO
                 // §2023:13.18.38.2, so a diagnostic about the key never opens with an elided OCCURS (kb/Work PB4160).
                 string keyPhrase = $"OCCURS {(key.Descending ? "DESCENDING" : "ASCENDING")} KEY IS";
-                var within = binder.SubtreeCandidates(table, key.Name, key.Qualifiers);
+                var within = binder.RegionClauseCandidates(table, key.Name, key.Qualifiers);
                 DataItem? item = binder.UniqueOrReportAmbiguous(within, $"{keyPhrase} data-name-2 of '{subject}'", written,
                     out bool ambiguous);
+                // Below 2002 the candidates are the whole scope's, and the one that survives may lie outside the table.
+                if (item is not null && !DataBinder.IsWithinRegion(item, table)) item = null;
                 if (item is null && !ambiguous)
                     binder.Edition.Error(DiagnosticCatalog.OccursKeyNotWithinTable,
                         $"{keyPhrase} '{written}' on '{subject}': no data item so named "
@@ -71,7 +75,7 @@ internal sealed class OccursKeyResolvePass : IBindPass
                         + "entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)");
                     item = null;
                 }
-                else if (item is not null && OccursKeyItemFault(table, item) is { } fault)
+                else if (item is not null && OccursKeyItemFault(table, item, binder.Edition.DialectLevel) is { } fault)
                 {
                     binder.Edition.Error(DiagnosticCatalog.OccursKeyItemNotAdmitted,
                         $"{keyPhrase} '{written}' on '{subject}': {fault}");
@@ -99,14 +103,26 @@ internal sealed class OccursKeyResolvePass : IBindPass
     /// <item>SR9 — "Data-name-2 shall not reference a variable-length group", §2023:8.5.1.12.1's "group item whose data
     /// description has at least one dynamic-length elementary item or dynamic-capacity table as a subordinate
     /// item".</item>
-    /// </list></summary>
-    private static string? OccursKeyItemFault(DataItem table, DataItem key)
+    /// </list>
+    /// <para>⛔ BELOW 2002 SR4 IS WIDER (kb/Work PB5192). §1985:VI.5.8.3 SR12 — "There must not be any entry that
+    /// contains an OCCURS clause between the descriptions of the data items identified by the data-names in the KEY IS
+    /// phrase and the subject of the entry" — bars ANY entry with an OCCURS clause written between the subject and a
+    /// key's entry, whether or not the key lies under it; the narrowing to a group in the key's own hierarchy
+    /// (the walk below) is ISO/IEC 1989:2002's change (§2002:F.2, item 84). So at 85 the entries are asked in source order
+    /// (<see cref="OccursEntryBetween"/>) and that walk replaces the hierarchy one, which it contains.</para></summary>
+    private static string? OccursKeyItemFault(DataItem table, DataItem key, int dialectLevel)
     {
+        if (dialectLevel < 2002 && OccursEntryBetween(table, key) is { } between)
+            return $"'{between.CobolName ?? between.ClrName}', an entry that contains an OCCURS clause, is written between the "
+                + $"table entry and the key's entry '{key.CobolName ?? key.ClrName}' — \"There must not be any entry that contains "
+                + "an OCCURS clause between the descriptions of the data items identified by the data-names in the KEY IS "
+                + "phrase and the subject of the entry\" (§1985:VI.5.8.3 SR12)";
         const GroupKinds Sr4Kinds = GroupKinds.Alphanumeric | GroupKinds.Bit | GroupKinds.National | GroupKinds.StronglyTyped;
         // SR4 asks about a group BETWEEN the table entry and its key. When the key IS the table (SR6 admits that), no group
         // lies between them: key.Parent is already above the table, so the walk below would never meet it and would
         // charge the key with any OCCURS group that merely ENCLOSES the table (a table inside OUTER OCCURS 2).
-        for (DataItem? g = ReferenceEquals(key, table) ? null : key.Parent; g is not null && !ReferenceEquals(g, table); g = g.Parent)
+        for (DataItem? g = ReferenceEquals(key, table) || dialectLevel < 2002 ? null : key.Parent;
+             g is not null && !ReferenceEquals(g, table); g = g.Parent)
             if (g.IsTable && (ItemCategory.GroupKindsOf(g) & Sr4Kinds) != 0)
                 return $"the key is subordinate to '{g.CobolName ?? g.ClrName}', a group within the table that contains an "
                     + "OCCURS clause — \"If data-name-2 is subordinate to an alphanumeric group item, bit group item, "
@@ -122,5 +138,26 @@ internal sealed class OccursKeyResolvePass : IBindPass
             return "the key is a variable-length group (ISO §2023:8.5.1.12.1) — \"Data-name-2 shall not reference a "
                 + "variable-length group\" (ISO §2023:13.18.38.3 SR9)";
         return null;
+    }
+
+    /// <summary>The first entry that contains an OCCURS clause and is written between <paramref name="table"/> (the subject)
+    /// and <paramref name="key"/>'s entry, in source order — a pre-order walk of the table's subtree that stops when it
+    /// reaches the key — or null when the key is the table itself, is never reached, or nothing between has one.
+    /// The table's and the key's own entries are not "between" (the key's own OCCURS is SR11's, §2023:13.18.38.3 SR6's).</summary>
+    private static DataItem? OccursEntryBetween(DataItem table, DataItem key)
+    {
+        if (ReferenceEquals(key, table)) return null;
+        DataItem? firstWithOccurs = null;
+        bool Walk(DataItem parent)
+        {
+            foreach (var child in parent.Children)
+            {
+                if (ReferenceEquals(child, key)) return true;
+                if (firstWithOccurs is null && child.IsTable) firstWithOccurs = child;
+                if (Walk(child)) return true;
+            }
+            return false;
+        }
+        return Walk(table) ? firstWithOccurs : null;
     }
 }

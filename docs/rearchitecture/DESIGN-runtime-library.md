@@ -1615,8 +1615,8 @@ answers §2023:9.1.13.6 item 1's '30', since §2023:9.1.13.5 item 4's condition 
 `ERROR_DISK_QUOTA_EXCEEDED`) makes THAT statement unsuccessful with §2023:9.1.13.6 item 1's '30' and leaves the file as the previous
 statement left it; nothing is deferred to the CLOSE. A record's own size is bounded by the host, not the format (overflow pages).
 The relative key's own range is separate: a key less than 1 or greater than 2 147 483 647 (the highest relative record number
-permitted) answers '34' (§2023:14.9.51.4 GR29 b)), and a sequential-access release whose number has more digits than the relative
-key item answers '24' (GR33 c)). Same in every edition."* The page layer answers both halves as `StoreStatus.Boundary`, never
+permitted) answers '34' from 2014 (§2023:14.9.51.4 GR29 b, first in §2014:14.9.47.3 GR26 b); below 2014 the same attempt is the write beyond the boundaries, '24': `DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError`, kb/Work PB5125), and a sequential-access release whose number has more digits than the relative
+key item answers '24' (GR33 c)). Same in every edition except the key range's status."* The page layer answers both halves as `StoreStatus.Boundary`, never
 an escaping exception: a changing statement takes its RESERVATION before its claim, so one whose growth would pass 2^32 pages
 (`PagedFile.FormatPages`) claims and writes nothing; and the production medium reports the host's "the file cannot grow
 further" as `MediumSizeLimitException` (`HandlePageMedium.Write`, asked of `HostFile.IsFileSizeLimit` — the narrower half of

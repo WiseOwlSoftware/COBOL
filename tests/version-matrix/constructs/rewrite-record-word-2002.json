@@ -1,0 +1,12 @@
+{
+ "id": "rewrite-record-word-2002",
+ "description": "The optional word RECORD after the record-name (or FILE file-name) of a REWRITE statement - a COBOL-2002 addition read from the printed formats: §1985:VII.4.5.2 (sequential) and §1985:IX.4.6.2 (relative and indexed) print REWRITE record-name-1 [FROM identifier-1] with no word RECORD, and the ISO/IEC 1989:2002 format (14.8.33.1) prints RECORD, not underlined, after the braces, as §2023:14.9.35.2 does. WRITE refuses its own RECORD word below 2002 the same way. kb/Work PB5159. Gated in ONE place, VersionConformancePass.ParseArm.VisitRewriteStatement (VCR row 7.52).",
+ "display": "the word RECORD after the record-name of a REWRITE statement",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.35.2; §1985:VII.4.5.2 and §1985:IX.4.6.2 print no word RECORD; the ISO/IEC 1989:2002 text 14.8.33.1 does",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.52 (e) - REWRITE ... RECORD, read from the printed formats",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRWR.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"VMRWR\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(5).\nWORKING-STORAGE SECTION.\n01 W PIC X(5) VALUE \"NEW01\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    REWRITE R RECORD FROM W.\n    CLOSE F.\n    STOP RUN.\n"
+}

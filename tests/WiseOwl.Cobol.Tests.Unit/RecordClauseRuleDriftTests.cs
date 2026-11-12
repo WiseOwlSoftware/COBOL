@@ -22,6 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>It also closes the loop rule 5 asks for: implementing the next rule of this subclause must be adding a
 /// ROW, not writing a new <c>if</c> somewhere else.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class RecordClauseRuleDriftTests
 {
     private const string Clause = "13.18.43.3";
@@ -164,6 +165,32 @@ public sealed class RecordClauseRuleDriftTests
         Assert.Contains("greater than or equal to zero", rules[7]);   // the override, for integer-2
         Assert.Contains("greater than or equal to zero", rules[8]);   // and for integer-4
         Assert.DoesNotContain(RecordClauseRules.Catalog, r => r.RuleId is $"SR-{Clause}-7" or $"SR-{Clause}-8");
+    }
+
+    /// <summary>⛔ THE EDITION COLUMN IS RE-DERIVED TOO (kb/Work PB5196). A row marked <c>Since</c> 2002 is in
+    /// §2002:13.16.41.2's own printed rules and NOT in §1985:VII.3.8.3's, so a row that really belongs to every edition
+    /// cannot be narrowed, nor a 2002 rule leaked down to 1985, without a test going red. The 1985 side reads the
+    /// whole RECORD clause region: its syntax rules, printed in a box, carry none of the ordering sentences.</summary>
+    [Fact]
+    public void EveryRowSince2002_IsInThe2002ClauseAndNotInThe1985RecordClause()
+    {
+        var spec2002 = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2002.md"));
+        var region2002 = SpecClauseText.ClauseRegion(spec2002, "13.16.41.2");
+        string text1985 = SpecClauseText.Norm(string.Join(' ', File.ReadAllLines(TestRepo.Specs("ANSI_COBOL_1985.md"))));
+        var late = RecordClauseRules.Catalog.Where(r => r.Since > 85).ToList();
+        Assert.Contains(late, r => r.RuleId == $"SR-{Clause}-9");
+        foreach (var rule in late)
+        {
+            Assert.Equal(2002, rule.Since);
+            string needle = SpecClauseText.Norm(rule.RuleText);
+            Assert.True(region2002.Any(l => SpecClauseText.Norm(l).Contains(needle)),
+                $"§2002:13.16.41.2 does not print \"{rule.RuleText}\" — {rule.RuleId} is not a 2002 rule.");
+            Assert.DoesNotContain(needle, text1985);
+        }
+        // ...and the rows that stay at 1985 are not in the 2002-only set by accident: SR3 of format 2 is printed
+        // by the 1985 text as well ("Integer-3 must be greater than integer-2").
+        Assert.Contains(SpecClauseText.Norm("Integer-3 must be greater than integer-2"), text1985);
+        Assert.Equal(85, RecordClauseRules.Catalog.Single(r => r.RuleId == $"SR-{Clause}-5").Since);
     }
 
     /// <summary>The message a row ships names the row's OWN citation. A row whose sentence and whose printed §

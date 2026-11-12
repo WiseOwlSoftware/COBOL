@@ -36,8 +36,11 @@ internal static class ConformanceRegister
     /// <param name="Arm">which of the three §1.1 grounds this determination stands on</param>
     /// <param name="Names">the arm's OBJECT — an A.2 item, the closed set, or the indistinguishable rule-id</param>
     /// <param name="Argument">the derivation itself, written for a reader (empty in the extract)</param>
-    /// <param name="Signature">the owner's signature, one of the keys of the schema's <c>derivation.signatures</c></param>
-    internal sealed record DerivationRow(string Key, string Arm, string Names, string Argument, string Signature);
+    /// <param name="Signature">the signature, one of the keys of the schema's <c>derivation.signatures</c>
+    /// (<c>&lt;signer&gt;: &lt;date&gt;</c>)</param>
+    /// <param name="Refuter">the refuter record file an argued arm signed by a refuter-bound signer names (kb/Work PB5373,
+    /// PB5374); a dash or empty for none</param>
+    internal sealed record DerivationRow(string Key, string Arm, string Names, string Argument, string Signature, string Refuter);
 
     /// <summary>The extract file itself, so a caller can assert it exists before believing an empty parse.</summary>
     internal static string Path => TestRepo.VersionMatrix("conformance-register.json");
@@ -83,7 +86,7 @@ internal static class ConformanceRegister
         {
             string key = e.GetProperty("key").GetString()!;
             map.TryAdd(key, new DerivationRow(key, e.GetProperty("arm").GetString()!, e.GetProperty("names").GetString()!,
-                "", e.GetProperty("signature").GetString()!));
+                "", e.GetProperty("signature").GetString()!, e.GetProperty("refuter").GetString()!));
         }
         return map;
     }

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Binding;                // EditionContext
 using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
@@ -28,11 +29,22 @@ internal enum IntegerSlotKind
 }
 
 /// <summary>One operand position's classification, and the rule (or reason) that decides it.</summary>
-internal readonly record struct IntegerSlot(IntegerSlotKind Kind, string Basis)
+/// <param name="Since">For a <see cref="IntegerSlotKind.ZeroPermitted"/> slot, the first edition (a year,
+/// <see cref="EditionContext.DialectLevel"/>) whose text carries the rule that permits zero; below it the slot is the
+/// default, nonzero (§1985:III.2: an integer is "neither signed nor zero unless explicitly allowed by the rules for that
+/// format"). Zero for every other kind.</param>
+internal readonly record struct IntegerSlot(IntegerSlotKind Kind, string Basis, int Since = 0)
 {
     internal static readonly IntegerSlot Default = new(IntegerSlotKind.NonZero, "ISO §2023:5.5 1)");
     internal static IntegerSlot Zero(string basis) => new(IntegerSlotKind.ZeroPermitted, basis);
+
+    /// <summary>Zero permitted by a rule that first appears in edition <paramref name="since"/> (kb/Work PB5196).</summary>
+    internal static IntegerSlot ZeroFrom(int since, string basis) => new(IntegerSlotKind.ZeroPermitted, basis, since);
     internal static IntegerSlot Not(string reason) => new(IntegerSlotKind.NotGoverned, reason);
+
+    /// <summary>This slot at the targeted edition: a zero-permitting rule the edition does not have is the default.</summary>
+    internal IntegerSlot At(int dialectLevel) =>
+        Kind == IntegerSlotKind.ZeroPermitted && dialectLevel < Since ? Default : this;
 }
 
 /// <summary>
@@ -53,24 +65,23 @@ internal readonly record struct IntegerSlot(IntegerSlotKind Kind, string Basis)
 /// <see cref="LevelNumberPass"/> for the same reason: a pure syntax rule over the raw tree, and a zero that later
 /// phases would otherwise turn into a cascade or a backend failure.</para>
 /// </summary>
-internal sealed class IntegerOperandPass(IDiagnosticSink sink) : CursorFollowingVisitor(sink)
+internal sealed class IntegerOperandPass(EditionContext edition) : CursorFollowingVisitor(edition)
 {
     /// <summary>Screen every <c>integer-n</c> operand in the group's raw parse tree.</summary>
-    internal static void Run(Core.CompilationUnitContext tree, IDiagnosticSink sink) =>
-        new IntegerOperandPass(sink).VisitPositioned(tree);
+    internal static void Run(Core.CompilationUnitContext tree, EditionContext edition) =>
+        new IntegerOperandPass(edition).VisitPositioned(tree);
 
     public override object? VisitIntegerLiteral(Core.IntegerLiteralContext ctx)
     {
         string text = ctx.GetText();
         if (text.Length > 0 && text.AsSpan().Trim('0').IsEmpty
-            && IntegerOperandRules.Classify(ctx).Kind == IntegerSlotKind.NonZero)
+            && IntegerOperandRules.Classify(ctx, edition.DialectLevel).Kind == IntegerSlotKind.NonZero)
         {
             string where = IntegerOperandRules.ConstructName(ctx);
             Sink.Report(new EditionDiagnostic(DiagnosticCatalog.IntegerOperandZero.Code, EditionSeverity.Error,
                 DiagnosticCatalog.IntegerOperandZero.Id,
-                $"{where}: the integer operand {text} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned "
-                + "and nonzero unless otherwise specified in the associated rules\", and no rule of this format "
-                + "permits zero here", where, DiagnosticCatalog.IntegerOperandZero.IsoSection));
+                IntegerOperandRules.ZeroMessage(where, $"the integer operand {text}", edition.DialectLevel), where,
+                DiagnosticCatalog.IntegerOperandZero.IsoSection));
         }
         if (IntegerOperandRules.BeyondHostLimit(ctx))
         {
@@ -166,9 +177,10 @@ internal static class IntegerOperandRules
     {
         var rc = (Core.RecordClauseContext)owner;
         if (PrecededBy(owner, OperandOf(op), Core.TO)) return IntegerSlot.Default;   // integer-3 / integer-5
-        if (rc.VARYING() is not null) return IntegerSlot.Zero("ISO §2023:13.18.43.3 SR7"); // integer-2
-        return rc.TO() is not null ? IntegerSlot.Zero("ISO §2023:13.18.43.3 SR8")         // integer-4
-            : IntegerSlot.Default;                                                     // integer-1
+        // §2002:13.16.41.2 SR6 and SR7 are the first rules to permit zero; §1985:VII.3.8.3 has neither (kb/Work PB5196).
+        if (rc.VARYING() is not null) return IntegerSlot.ZeroFrom(2002, "ISO §2023:13.18.43.3 SR7"); // integer-2
+        return rc.TO() is not null ? IntegerSlot.ZeroFrom(2002, "ISO §2023:13.18.43.3 SR8")         // integer-4
+            : IntegerSlot.Default;                                                                  // integer-1
     }
 
     /// <summary>§2023:13.18.38 OCCURS: in <c>integer-1 TO integer-2</c> integer-1 "shall be greater than or equal to
@@ -390,10 +402,19 @@ internal static class IntegerOperandRules
 
     /// <summary>The slot of <paramref name="operand"/>, from the grammar rule that spells it. A rule the table
     /// does not name takes §2023:5.5 1)'s default — the drift test keeps that from being silent.</summary>
-    internal static IntegerSlot Classify(ParserRuleContext operand) =>
+    internal static IntegerSlot Classify(ParserRuleContext operand, int dialectLevel) =>
         OwnerOf(operand) is { } owner && Slots.TryGetValue(owner.GetType(), out var classify)
-            ? classify(owner, operand)
+            ? classify(owner, operand).At(dialectLevel)
             : IntegerSlot.Default;
+
+    /// <summary>The refusal of a zero <c>integer-n</c>, citing the rule of the targeted edition: §2023:5.5 1) from 2002 (its
+    /// rule is the one 2023 prints), §1985:III.2 below (kb/Work PB5196).</summary>
+    internal static string ZeroMessage(string where, string subject, int dialectLevel) =>
+        dialectLevel < 2002
+            ? $"{where}: {subject} shall be nonzero — §1985:III.2: an integer \"must be neither signed nor zero unless "
+              + "explicitly allowed by the rules for that format\", and no rule of this format permits zero here"
+            : $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
+              + "otherwise specified in the associated rules\", and no rule of this format permits zero here";
 
     /// <summary>The construct named in the diagnostic: the source text of the clause or phrase that spells the
     /// operand (an OCCURS bound names its whole OCCURS clause).</summary>

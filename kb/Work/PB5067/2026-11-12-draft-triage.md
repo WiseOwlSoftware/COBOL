@@ -1,0 +1,3 @@
+**Addendum (2026-11-12, branch witnesses-85k, the 1985 draft triage of kb/Work PB4995): `1985-SR-XII.2.3-6` no longer waits on this note.**
+
+The draft of `1985-SR-XII.2.3-6` still mismatched this morning (rerun-85g) because it COPYs `LIBA` and the runner gives a draft no library text: its control drew CBL3620 (copybook not found). The rule already has a witness: `conformance-suite/cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-6.cob`, placed by the PB5085 fix, and witnesses-85g recorded its `test-ref`. On a Debug build of origin/main 09ce7dc601, the draft itself draws COBOL7006 at its line 8, which quotes `§1985:XII.2.3 SR6`. Nothing about this rule is left for this note.

@@ -17,11 +17,10 @@
 *> supported surface. This program exercises the surviving arm end to end - WRITE record-name-1 FROM,
 *> READ INTO, REWRITE record-name-1, CLOSE - and RUNS, byte-comparing its output.
 *>
-*> It also pins the OPTIONAL WORD `RECORD` of 14.9.35.2 (RENDERED, PDF p710: not underlined, therefore
-*> optional). The grammar did not accept it at all until 2026-09-02, so `REWRITE F-REC RECORD` - legal at
-*> every edition, on the mandatory arm - was rejected outright. It is written here twice, once with the
-*> word and once without, because an optional word needs both spellings measured or half the fix is
-*> invisible.
+*> The OPTIONAL WORD `RECORD` of 14.9.35.2 (RENDERED, PDF p710: not underlined) is a COBOL-2002 addition:
+*> §1985:VII.4.5.2 prints REWRITE record-name-1 [FROM identifier-1] with no such word (kb/Work PB5159), so
+*> this 85 program writes both REWRITEs without it; 14.9.35-REWRITE/pb5159_rewrite_record_word_2002 measures
+*> the word from 2002 and pb5159-rewrite-record-word-at-85 its refusal at 85.
 *>
 *> Placed in the 85 corpus deliberately: every construct here is X3.23-1985 surface, so a green run at
 *> --std 85 also proves the two new declines are keyed to the DECLINED spellings and not to the verbs.
@@ -51,7 +50,7 @@ MAIN.
     .
     DISPLAY WS-IN.
     MOVE "REWRITTEN-A" TO F-REC.
-    REWRITE F-REC RECORD.
+    REWRITE F-REC.
     READ F-IO INTO WS-IN AT END CONTINUE END-READ
     .
     DISPLAY WS-IN.
