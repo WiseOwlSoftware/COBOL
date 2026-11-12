@@ -1,4 +1,4 @@
-## Five review and finisher leads filed: three new notes, two addenda
+## Entry 3532 — 2026-11-12 12:01 PST — Five review and finisher leads filed: three new notes, two addenda
 
 Filed from the PB5250 branch review and the PB5125 finisher report, each lead first re-read against origin/main (5237495315) and grepped against `kb/Work/`.
 
@@ -9,3 +9,4 @@ Filed from the PB5250 branch review and the PB5125 finisher report, each lead fi
 - PB5335 addendum: the exact `Place.DenotedItem` lines on main for the five sites (and the other reads of the family); the lead is already that open note's mechanism.
 
 No lead was dropped: each still holds on main. PB5391 and PB5392 went unused.
+
