@@ -74,6 +74,17 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 var reduced = ConditionBinder.ReduceArgument(a.literal(), null, a.booleanExpression(), a.arithmeticExpression());
                 if (Format2OnlySpellingOf(a, reduced, carried) is { } spelling && !Format1Narrowing(spelling))
                     refusedUpFront.Add(a);
+                // §1985:X.5.2.3 SR4 (Amendment 1): "Identifier-2 must not be a function-identifier." — the operand of
+                // both USING phrases, so BY CONTENT as well as the keyword-less argument (kb/Work PB5129). 2002 has no
+                // such rule, so the edition gate is a construct row, asked here with the other spellings COBOL-85 lacks,
+                // and the argument is skipped so the 2023 storage-section rule does not refuse it a second time.
+                else if (FunctionIdentifierArgumentOf(a, reduced) is { } fnArg
+                         && !ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.CallFunctionIdentifierArgument2002))
+                {
+                    ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CallFunctionIdentifierArgument2002,
+                        $"CALL USING {DataBinder.WrittenText(fnArg)}");
+                    refusedUpFront.Add(a);
+                }
                 carried = CarriedModeAfter(a, carried);
             }
         }
@@ -1027,6 +1038,19 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 + "Format 2), which the AS phrase selects — Format 1's USING prints `{ identifier-2 } …` only"
                 + (vendorLane ? "" : "; an omitted argument is passed BY REFERENCE, never by the BY CONTENT or BY VALUE "
                     + "phrase that precedes it, so no --permissive vendor spelling admits it"), vendorLane, Constructs.OmittedArguments2002);
+    }
+
+    /// <summary>The function-identifier argument <paramref name="a"/> writes as identifier-2 — a sole <c>FUNCTION</c> reference
+    /// after BY CONTENT or with no phrase (§2023:14.9.4.4 GR8 regards it as an identifier) — or null. The COBOL-85 question of
+    /// §1985:X.5.2.3 SR4, "Identifier-2 must not be a function-identifier" (kb/Work PB5129); BY REFERENCE prints no function
+    /// operand in the grammar (<c>receivingIdentifier</c>), and the function-name without the word FUNCTION needs a REPOSITORY
+    /// paragraph, which COBOL-85 has not.</summary>
+    private static Core.FunctionCallContext? FunctionIdentifierArgumentOf(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare)
+    {
+        var operand = a.callByContent() is { } byContent
+            ? ConditionBinder.ReduceArgument(byContent.literal(), null, byContent.booleanExpression(), byContent.arithmeticExpression()).Arith
+            : a.callByReference() is null && a.callByValue() is null ? bare.Arith : null;
+        return operand is null ? null : ConditionBinder.SoleFunctionCall(operand);
     }
 
     /// <summary>⛔ THE ONE FRAMING OF §2023:14.9.4.2 FORMAT 1'S NARROWING (kb/Work PB162), for every spelling

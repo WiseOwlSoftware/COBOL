@@ -111,6 +111,12 @@ public sealed class EditionGateArmDriftTests
             + "readily as through its own written clause (kb/Work PB492 — until it, this gate rode "
             + "PicInfo.SkeletonGate because the analyzer RECOVERED the category to Alphanumeric and no "
             + "category key could see it)",
+        ["ReportSourceExpression2002"] =
+            "the BOUND category of a function-identifier or method invocation written as the whole SOURCE operand "
+            + "(IntrinsicResultType.OperandCategory over FieldReferenceSource.Value, GateReportSourceFunctions; kb/Work "
+            + "PB5240): such an operand is identifier-1, and it is the 2002 function operand only when its result is "
+            + "numeric (§1985:IV.4.3.8.3.3 SR4) — MAX takes its arguments' category and a user function its RETURNING "
+            + "item's, which no parse token says",
     };
 
     private static string UsageFact(string spelling) =>
@@ -129,6 +135,11 @@ public sealed class EditionGateArmDriftTests
             + "national DATA ITEM's resolved usage (bound arm). Gating the literal from the data arm would miss "
             + "it; gating the item from the parse arm would double the diagnostic on its own VALUE clause",
         ["BooleanData2002"] = "the boolean twin of NationalData2002 — same literal/item split, same reason",
+        ["ReportSourceExpression2002"] =
+            "two occurrences: an arithmetic expression, literal or parenthesized operand of the SOURCE clause (parse arm, "
+            + "recognition) and a sole function-identifier whose bound result is numeric (bound arm, kb/Work PB5240). "
+            + "The parse arm cannot tell an alphanumeric function, the 85 identifier-1 §1985:IV.4.3.8.3.3 SR3 admits, "
+            + "from a numeric one, and the bound arm never sees an expression's operand as a function",
     };
 
     // ── The static half ───────────────────────────────────────────────────────────────────────────────────────

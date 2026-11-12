@@ -286,6 +286,32 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// slice (<see cref="UnitChecking.OdoReferenceChecking"/>, written once by <see cref="CheckingFold"/>).</summary>
     public bool OdoReferenceChecking => State.UnitChecking.OdoReferenceChecking;
 
+    /// <summary><see cref="IPlaceFacts"/>: the place of the non-repeating sum counter whose register <paramref name="item"/>
+    /// is (kb/Work PB5310). A register is a level-49 item with no parent (<c>ReportSectionBinder.SumFamilyOf</c>), which no
+    /// written entry is, so every other item is answered by that test alone.</summary>
+    public ReportSumCounterPlace? SumCounterPlaceOf(DataItem item) =>
+        SumCounterReportOf(item) is ({ } report, { } family)
+            ? new ReportSumCounterPlace(report.CsIndex, family.BaseId, item, State.Reports.Depth(report))
+            : null;
+
+    /// <summary>The report and sum family whose register <paramref name="item"/> is, or null (kb/Work PB5310): the one lookup
+    /// <see cref="SumCounterPlaceOf"/> and the OCCURS DEPENDING ON attribute rules (a counter of a GLOBAL report is a global
+    /// name, §2023:13.18.27.4 GR1) read.</summary>
+    internal (ReportModel Report, ReportSumFamily Family)? SumCounterReportOf(DataItem item)
+    {
+        if (item is not { Level: 49, Parent: null }) return null;
+        foreach (var report in State.Reports.Declared)
+            foreach (var family in report.SumFamilies)
+                if (ReferenceEquals(family.Register, item)) return (report, family);
+        return null;
+    }
+
+    /// <summary>The registers of this forest's non-repeating sum counters (<see cref="SumCounterPlaceOf"/>): the items a
+    /// COBOL-85 data-division clause may name besides <see cref="PlaceableItems"/> (kb/Work PB5310), so the place table holds
+    /// them too.</summary>
+    internal IEnumerable<DataItem> SumCounterRegisters() =>
+        State.Reports.Declared.SelectMany(r => r.SumFamilies).Select(f => f.Register).Where(r => r.SubscriptArity == 0);
+
 
     /// <summary>The compilation group's pass-1 class symbol table (OO deep-dive D1) — set by the run-unit
     /// emitter BEFORE <see cref="Bind"/> so a typed <c>USAGE OBJECT REFERENCE class-name</c> validates its
@@ -1201,6 +1227,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // OCCURS … DEPENDING ON is not one of them). A report entry of a NEARER source element is the referenced item
         // (ISO §2023:8.4.6.2.1 3) a)): the lookup leaves it no survivor to hide (kb/Work PB4196), so the survivors here are the
         // ambiguity (kb/Work PB3767) or nothing.
+        // At COBOL-85 that section rule is not the edition's: §1985:XIII.3.9.3 SR10d lets a sum counter be referenced wherever the
+        // reference is written, so it is the clause's data-name, and the clause's own rules judge it (kb/Work PB5310).
+        if (survivors.Count == 0 && !inReportSection
+            && ReportSection.SumCounterOperand85(name, quals, $"{clauseFace} '{written}'") is { } counter) return counter;
         if (ReportSection.ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals, inReportSection)) return null;
         if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
