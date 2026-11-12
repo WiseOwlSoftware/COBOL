@@ -28,3 +28,10 @@ queued gate writes heartbeats on a stepped clock), `gate.py` (a test phase with 
 `test_rolling_wave.py` (the start line). Run against the old behaviour each fails: the queued check disabled leaves 12
 `progress.py` FAILs (w10a, queued 1362 minutes, is mailed as a STALL); the heartbeat `say` disabled in `acquire` and in
 `_run_hosts` fails the `gate_slot.py` and `gate.py` arms. No test holds a wall-clock limit.
+
+### Review round 1 (R1-1, R1-2)
+
+R1-1 (blocking): `group_activity` read file mtimes only, so the empty scratch directory the implementer makes first (the
+start signal) left the group QUEUED. It now also counts each walked directory's own mtime; a progress self-test case plants
+an empty `scratch/w7e` and expects its mtime as the act. R1-2: the test-phase heartbeat's `finished` list was appended in
+`pool.map`'s submission order; each host thread now appends at its own return.

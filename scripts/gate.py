@@ -2147,17 +2147,18 @@ class Gate:
                                               for a in asms) or "no test host: nothing to run")
                  + (" concurrently" if len(asms) > 1 else ""))
 
+        stop_beat, finished = threading.Event(), []   # `finished`: appended by each host thread (list.append is atomic)
+
         def one(asm: str) -> tuple[str, int, float, float]:
             env = host_env(first, buildgraph.observation_log(run, asm), plan[asm], self._handed(asm))
             t = time.monotonic()
             rc = self.host.run_host(asm, run, env, spawn)
+            finished.append(asm)   # at the host's own return, not at pool.map's submission-order yield (R1-2)
             return asm, rc, time.monotonic() - t, time.monotonic() - hosts_started
 
         # THE HEARTBEAT (kb/Work PB5097): the hosts write only their own logs, so the gate's console log (the one the
         # loop's progress report reads as the group's act) is silent from the line above to the verdict, 20 minutes and
         # more of a whole-population run. A line at every HEARTBEAT_S says the gate is alive and in its test phase.
-        stop_beat, finished = threading.Event(), []
-
         def beat() -> None:
             hb = self.heartbeat()
             while not stop_beat.wait(self.heartbeat_poll_s):
@@ -2172,7 +2173,6 @@ class Gate:
                 results = {}
                 for asm, rc, wall, fin in pool.map(one, asms):
                     results[asm] = (rc, wall, fin)
-                    finished.append(asm)
         finally:
             stop_beat.set()
             beater.join()

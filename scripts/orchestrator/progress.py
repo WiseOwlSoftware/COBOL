@@ -133,6 +133,11 @@ def group_activity(cdir: pathlib.Path, g: dict) -> float:
             for top in scratch.glob(name):
                 walk = [(str(top.parent), [], [top.name])] if top.is_file() else os.walk(top)
                 for root, _dirs, files in walk:
+                    if top.is_dir():
+                        try:   # a directory is itself an act: the implementer's first command makes its scratch (R1-1)
+                            newest = max(newest, pathlib.Path(root).stat().st_mtime)
+                        except OSError:
+                            pass
                     for f in files:
                         seen += 1
                         try:
@@ -497,6 +502,12 @@ def self_test() -> int:
           and group_activity(cdir, {"wave": "7", "letter": "B", "notes": []}) == 0.0,
           f"a group's acts are its scratch under a wave scratch (K) and its review's hyphenated findings file (M), and a "
           f"silent one (L) has none: {m}")
+    empty = cdir / "scratch" / "w7e"   # R1-1: a started group's first act is an EMPTY scratch directory, not a file
+    empty.mkdir()
+    os.utime(empty, (now - 3 * 60, now - 3 * 60))
+    e = group_activity(cdir, {"wave": "7", "letter": "E", "notes": []})
+    check(round((now - e) / 60) == 3,
+          f"an empty scratch directory is the group's start signal, so its mtime is its act (not 0.0, queued): {e}")
     r2 = reports.Review("CLEAN", 0, "w7c-review-r2", "abcdef12", None)
     check(review_round(r2) == 2 and review_round(reports.Review("CLEAN", 0, "w7c", "abcdef12", None)) == 1,
           "a reviewer id's -rN suffix is its round")
