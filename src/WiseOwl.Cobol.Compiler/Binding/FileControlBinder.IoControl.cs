@@ -748,29 +748,24 @@ public sealed partial class FileControlBinder
                     + "file-area format SAME clause shall also be specified in the record-area format SAME clause.\")");
             }
 
-        // The sort-merge-area cross rule: §2023:12.4.6.4.3 SR10 names the file-area format; §1985:XI.2.5.3 SR5c names "that
-        // SAME clause", which in 1985 is SAME [RECORD] AREA (§1985:VII.2.13.2), so below 2002 a record-area clause is
-        // asked too (kb/Work PB5250).
-        bool is1985 = Edition.Edition.Year < 2002;
-        foreach (var shared in sites.Where(s => s.Clause.Kind == SameClauseKind.Area
-                                                || (is1985 && s.Clause.Kind == SameClauseKind.RecordArea)))
+        // SR10 asks the file-area format only. §1985:XI.2.5.3 SR5c says "that SAME clause" and could be read to take in
+        // SAME RECORD AREA, but the validated NIST program ST135A writes a record-area clause that shares USELESS-FILE
+        // with a SAME SORT clause and omits DEADWEIGHT-FILE, so that reading is not the standard's (kb/Work PB5250).
+        foreach (var area in sites.Where(s => s.Clause.Kind == SameClauseKind.Area))
         {
             var reported = new HashSet<SameSite>();
-            foreach (var f in shared.Clause.Members.Where(m => SameKindOf(m) != SameFileKind.SortMerge))
+            foreach (var f in area.Clause.Members.Where(m => SameKindOf(m) != SameFileKind.SortMerge))
                 foreach (var sm in sites.Where(s => s.Clause.Kind == SameClauseKind.SortMergeArea && s.Clause.Members.Contains(f)))
                 {
-                    var missing = SameMissingFrom(shared.Clause, sm.Clause);
+                    var missing = SameMissingFrom(area.Clause, sm.Clause);
                     if (missing.Count == 0 || !reported.Add(sm)) continue;
                     using var _ = Edition.At(sm.Ctx);
                     Edition.Error(DiagnosticCatalog.SameClauseRule,
-                        $"{sm.Clause.Written} names '{f.CobolName}', which {shared.Clause.Written} also names, but omits "
-                        + SameNames(missing) + (is1985
-                            ? " (§1985:XI.2.5.3 SR5c: \"all of the files named in that SAME clause must be named in that SAME "
-                              + "SORT AREA or SAME SORT-MERGE AREA clause(s)\")"
-                            : " (ISO §2023:12.4.6.4.3 SR10: \"If a file-name that represents a file other than a sort or merge "
-                              + "file is specified in a file-area format SAME clause and in one or more sort-merge-area format "
-                              + "SAME clauses, all of the file-names specified in that file-area format SAME clause shall also "
-                              + "be specified in those sort-merge-area format SAME clause(s).\")"));
+                        $"{sm.Clause.Written} names '{f.CobolName}', which {area.Clause.Written} also names, but omits "
+                        + $"{SameNames(missing)} (ISO §2023:12.4.6.4.3 SR10: \"If a file-name that represents a file other "
+                        + "than a sort or merge file is specified in a file-area format SAME clause and in one or more "
+                        + "sort-merge-area format SAME clauses, all of the file-names specified in that file-area "
+                        + "format SAME clause shall also be specified in those sort-merge-area format SAME clause(s).\")");
                 }
         }
     }

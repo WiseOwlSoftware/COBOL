@@ -88,9 +88,9 @@ operation is applied to a group containing it"* (§2023:8.5.1.11.2).
   clauses, `SameOccurrenceRule`: SR5 report, SR6 sort or merge, SR7 any other file), SR8 (a sort-merge-area clause
   names a sort or merge file), SR9 / SR10 (a file-area clause is wholly inside the record-area / sort-merge-area
   clauses it shares a file with) and §2023:13.18.27.3 SR2 (no GLOBAL on the FD or records of a record-area member). Below
-  2002 the table's report row and SR10 read the 1985 text (kb/Work PB5250): a report file may be named in a SAME SORT /
-  SORT-MERGE AREA clause (§1985:XIII.2.4.3 SR2), and a record-area clause is asked what SR10 asks of a file-area one
-  (§1985:XI.2.5.3 SR5c). One
+  2002 the table's report row reads the 1985 text (kb/Work PB5250): a report file may be named in a SAME SORT /
+  SORT-MERGE AREA clause (§1985:XIII.2.4.3 SR2). SR10 stays the file-area format at every edition: §1985:XI.2.5.3 SR5c's
+  "that SAME clause" is not read to take in SAME RECORD AREA, which the validated NIST program ST135A writes. One
   code, `COBOL2738`, names the rule in its message. The SORT and MERGE statements read the same model
   (`SortBinder.ScreenSameClauses`, §2023:14.9.40.3 SR10 / §2023:14.9.24.3 SR11).
 - `FileModel.AreaRecord` is the largest CHARACTER-window record (the first record only when every record is out of

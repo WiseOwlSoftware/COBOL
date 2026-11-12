@@ -1,13 +1,15 @@
       *>--- conformance-case
       *> id: pb5250_same_record_area_partly_in_sort_area
       *> rules: [SR-12.4.6.4.3-10]
-      *> accept: [2002, 2014, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5250 - the twin of pb5250-same-record-area-partly-in-sort-area-85. §2023:12.4.6.4.3 SR10 asks only
-      *> a FILE-AREA format SAME clause to lie inside the sort-merge-area clauses that name one of its files, so a
-      *> record-area clause that does not is legal from 2002 (§2002:12.3.6.2 SR10); §1985:XI.2.5.3 SR5c asked it at 85.
+      *> kb/Work PB5250 - a SAME RECORD AREA clause (F1 F2) that shares F1 with a SAME SORT AREA clause (S1 F1) and
+      *> omits F2 from it. §2023:12.4.6.4.3 SR10 asks only a FILE-AREA format SAME clause to lie inside the sort-merge-area
+      *> clauses that name one of its files (§2002:12.3.6.2 SR10 the same). §1985:XI.2.5.3 SR5c says "that SAME clause",
+      *> and the validated NIST program ST135A writes exactly this shape (SAME RECORD AREA FOR USELESS-FILE
+      *> DEADWEIGHT-FILE beside SAME SORT SORTFILE-2E USELESS-FILE), so 1985 admits it too.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5250Y.
        ENVIRONMENT DIVISION.
