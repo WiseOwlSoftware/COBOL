@@ -1,4 +1,4 @@
-## PB4996: the 1985 re-read 2 merged; 72 verdicts recorded (1985 GAP 443 to 381) and 13 defect notes filed
+## Entry 3529 — 2026-11-12 11:42 PST — PB4996: the 1985 re-read 2 merged; 72 verdicts recorded (1985 GAP 443 to 381) and 13 defect notes filed
 
 The re-read wave read 92 1985 rules in 11 slices (`E:/COBOL-coord/scratch/coderead-85/out-reread2/rr-01..11.json`) and ran one refuter case for each CONFORMS. Readers and probes used the pinned tree at origin/main 8147f008b3, whose `src/` matches this branch's base. `coderead-85/merge-pipe-3.py` is `merge-pipe-2.py` with the directory and slice-name prefix as arguments. Its merge found 82 closing verdicts: 62 upheld, 10 overturned and 10 doubtful. The other 10 verdicts are non-conforming.
 
@@ -16,3 +16,4 @@ The 20 overturned and doubtful rows are recorded as nothing. They are held for d
 - PB5386: RETURN INTO subscript timing.
 
 PB5202, PB5242 and PB5188 get addenda. The table, the held questions and the leads not filed are in `kb/Work/PB4996/2026-11-12-reread-2.md`.
+
