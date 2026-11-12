@@ -1,4 +1,4 @@
-## Message control session: repeated destinations, the per-activation terminal lock, and status 80 for INPUT
+## Entry 3550 — 2026-11-12 15:17 PST — Message control session: repeated destinations, the per-activation terminal lock, and status 80 for INPUT
 
 Three defects of `MessageControlSession` (kb/Work PB5376, PB5381, PB5393), each re-probed first on the pre-change compiler and fixed at its root; each now has a conformance case.
 
@@ -9,3 +9,4 @@ Three defects of `MessageControlSession` (kb/Work PB5376, PB5381, PB5393), each 
 **PB5393, status 80 for ENABLE/DISABLE INPUT.** `SetPath` answered 20 as soon as `FindQueue` failed and never asked the 15 condition of the levels it knew. `MessageDefinitions.FindQueuePrefix` (sharing a `Resolve` walk with `FindQueue`) now gives the deepest known level, and `MessageStoreState.QueuePathsAre` asks, without changing anything, whether that structure is wholly in the requested state: then 80 (§1985:B.2.2), else 20; neither takes action. The design doc's sentence "Status 80 appears only for destinations" is corrected. Case `1985-GR-XIV_3_2_4-3-known-prefix-unknown-level` (80, 80, 80 and the 20 and 15 that stay).
 
 No inventory row moves: the three notes claim 1985 rule ids that kb/Work PB5094 keeps out of `inventory_rows` and `closes_rows`. No refused-below-1985 program was added: each rule is a runtime status of a statement the edition matrix already gates, and the diagnostics directory holds none for the facility's general rules.
+
