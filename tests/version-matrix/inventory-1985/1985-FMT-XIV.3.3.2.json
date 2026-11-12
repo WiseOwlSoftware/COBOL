@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIV.3.3.2",
  "rule-digest": "2ad9da873790",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#enableStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationPath; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationKeyPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindEnable; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitEnableStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCommunicationKeyPhrase",
  "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-FMT-XIV_3_3_2",
+ "notes": "§1985:XIV.3.3.2 prints ENABLE {INPUT [TERMINAL] | I-O TERMINAL | OUTPUT} cd-name-1 [WITH KEY {identifier-1 | literal-1}]; enableStatement with communicationPath and communicationKeyPhrase parses exactly that, BindEnable/BindPath bind it, and the edition pass gates the statement and the KEY phrase only from 2002/2014, so 85 reaches the whole format. Witness: ENABLE OUTPUT TERMINAL refused COBOL0901. Probes at --std 85 (b): no path word, I-O without TERMINAL, OUTPUT TERMINAL, INPUT TERMINAL TERMINAL, INPUT OUTPUT, a bare TERMINAL, zero operands, two cd-names, WITH KEY with no operand, KEY KEYX KEYX, KEY written twice, WITH without KEY are each refused (COBOL0307/5506/0001/0901/2269); every legal arm (INPUT, INPUT TERMINAL, I-O TERMINAL, OUTPUT; KEY with and without WITH; literal, identifier, ref-mod, ALL literal, SPACES, alphanumeric function) translates and runs (statuses 21/21/30 with no MCS defined, class e). (c) at 85 the 2002+ operand forms N\"AB\", X\"41\", \"A\" & \"B\" and FUNCTION CONCAT are refused COBOL0900/1502; the KEY phrase is COBOL0902 from 2002 and the statement COBOL0902 at 2014/2023. (d) a numeric, numeric-edited, alphabetic, 18-digit or negative KEY operand is COBOL6171 (SR4).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

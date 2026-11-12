@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.1.4-13",
  "rule-digest": "95be50cd21b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#CheckSegmentation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed",
  "test-ref": "conformance:cases/XI.4.1@1985-MERGE-STATEMENT/1985-GR-XI_4_1_4-13",
+ "notes": "§1985:XI.4.1.4 GR13 requires a MERGE's output procedure to lie 'Totally within non-independent segments, or' wholly in a single independent segment, which for a MERGE in an independent segment is 'Wholly within the same independent segment as that MERGE statement' (also §1985:XVI.3.3.3). SortBinder.BindMerge passes the OUTPUT PROCEDURE range to CheckSegmentation, which asks Segmentation.CheckProcedures; RangeAllowed takes the segment numbers of every section the range spans and refuses two independent segments, a mix of fixed and independent, or (from an independent segment) another independent segment, reporting COBOL6877 only where segment-numbers are available (85). Probes at --std 85, MERGE of two files with OUTPUT PROCEDURE O1 [THRU O2]: MERGE in segment 0 with output in 0+10, or wholly in 70, and MERGE in 60 with output in 60 or in 20 all print AAA BBB CCC; MERGE in 0 with output over 60 and 70, or over 10 and 70, and MERGE in 60 with output in 70, or over 60 and 05, are refused COBOL6877; at --std 2002 the segment-numbers are refused COBOL0902. Witness: output procedure in independent segment 60 from a fixed MERGE runs.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

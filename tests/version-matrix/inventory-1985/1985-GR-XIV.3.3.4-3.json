@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.3.4-3",
  "rule-digest": "36aa306fa880",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Enable; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPaths; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#FindSource; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#SetSourcePaths; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#PathOpen; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#Deliver",
  "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-3",
+ "notes": "§1985:XIV.3.3.4 GR3: ENABLE INPUT TERMINAL activates \"the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues and sub-queues\". SetPath's InputTerminal arm finds the source and SetSourcePaths enables it and its path to every queue level, which PathOpen/Deliver honour. Witness: T1 disabled, ENABLE INPUT TERMINAL 00 delivers to QA and QB, again 15; pb5286_enable_terminal_reopens_queue_path matches. Probes at 85 (gr3s, gr7): unknown and blank SYMBOLIC SOURCE 21; DISABLE then ENABLE T1 moves a held message into Q1/S1 (count 0 -> 1), again 15; a wrong KEY 40.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

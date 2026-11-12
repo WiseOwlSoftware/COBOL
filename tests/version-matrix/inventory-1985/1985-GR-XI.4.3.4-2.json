@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.3.4-2",
  "rule-digest": "c71adc76f57e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReturnStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Return; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn",
  "test-ref": "conformance:cases/XI.4.3@1985-RETURN-STATEMENT/1985-GR-XI_4_3_4-2",
+ "notes": "§1985:XI.4.3.4 GR2: RETURN makes the next record by the SORT/MERGE keys available in the record area; at end, control goes to imperative-statement-1, then 'control is transferred to the end of the RETURN statement and the NOT AT END phrase is ignored, if specified', unless an explicit transfer of control is executed; 'After the execution of imperative-statement-1 in the AT END phrase, no RETURN statement may be executed as part of the current output procedure', with no 1985 consequence stated. SortEmitter#EmitReturn branches on CobolSort#ReturnStatement (record stored at its own length, DEPENDING restored, NOT AT END only on a record, AT END in the else arm); CobolSort#Return retrieves in key order; the 2023 EC-SORT-MERGE-RETURN for a post-end RETURN is raised only under 2023 checking. Probes at --std 85: SORT DESCENDING K1 (S9(3) SIGN LEADING SEPARATE: +010,+010,+000,-005,-005) then ASCENDING K2 returns them in that order, NOT AT END runs only per record, GO TO in AT END leaves the loop; an empty sort takes AT END at once and a second RETURN takes AT END again (undefined in 1985, no crash); MERGE of two files returns A1 B2 C3 D4 then END; RETURN INTO from an ODO record moves the current length (r7odo, [A1Q     ] [C3XYZ   ]). The witness RETURNs A B C, then AT END, in an inline PERFORM.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

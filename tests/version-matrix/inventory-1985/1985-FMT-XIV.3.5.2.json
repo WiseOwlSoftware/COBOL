@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIV.3.5.2",
  "rule-digest": "03955162c207",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationReceiveStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#receiveNoDataPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#receiveWithDataPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindReceive; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCommunicationReceiveStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMessagingReceiveStatement",
  "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-FMT-XIV_3_5_2",
+ "notes": "§1985:XIV.3.5.2 prints RECEIVE cd-name-1 {MESSAGE | SEGMENT} INTO identifier-1 [NO DATA imperative-statement-1] [WITH DATA imperative-statement-2] [END-RECEIVE]. CobolCommunication.g4#communicationReceiveStatement parses exactly that shape in that order (WITH optional, DATA required), CommunicationBinder#BindReceive binds it, the edition pass accepts it at 85 (communication-facility-removed-2014) and refuses the 2023 RECEIVE FROM..GIVING form (VisitMessagingReceiveStatement, COBOL0900). Probes at --std 85: 2023 form COBOL0900; MESSAGE/SEGMENT omitted, both written, INTO omitted, two operands, literal operand, NO DATA twice, WITH DATA before NO DATA, empty NO DATA, ON EXCEPTION, NOT ON EXCEPTION, stray END-RECEIVE all refused (COBOL5506/2269/2072/0306/0307); unended IF in NO DATA refused as not imperative (COBOL2796); DATA without WITH, SEGMENT INTO a group, nested RECEIVE with END-RECEIVE accepted. Witness refuses RECORD in place of MESSAGE (COBOL5506).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

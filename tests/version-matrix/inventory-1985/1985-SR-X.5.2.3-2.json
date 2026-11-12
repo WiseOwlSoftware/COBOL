@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.5.2.3-2",
  "rule-digest": "48a47c5ade73",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Identifier1Screen; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#OperandTargetRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#NameTargetRefusal",
  "test-ref": "conformance:cases/X.5.2@1985-CALL-STATEMENT/1985-SR-X_5_2_3-2",
+ "notes": "§1985:X.5.2.3 SR2: \"Identifier-1 must be defined as an alphanumeric data item such that its value can be a program-name.\" CallBinder#BindCall resolves identifier-1 and Identifier1Screen refuses (COBOL1681), through NameTargetRefusal/OperandTargetRefusal, every category but alphanumeric, national and program-pointer; at 85 PIC N and USAGE PROGRAM-POINTER are themselves refused (COBOL0900), so only the alphanumeric arm is reachable. Probes at --std 85: PIC X(8), a 01 group, a group's PIC X(4) child, a subscripted element PTE(2), PN(1:4) and FUNCTION UPPER-CASE(\"subp\") (an alphanumeric function, kb/Work PB5240) all call the program; PIC 9(4) (witness), COMP, PIC A, PIC XXBXX, USAGE INDEX and FUNCTION NUMVAL refused COBOL1681. The messages cite §2023:14.9.4.3 SR1 (wording only).",
  "next": {
   "kind": "CHANGED",
   "to": [

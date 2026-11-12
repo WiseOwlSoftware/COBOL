@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.3.18.2",
  "rule-digest": "7616834d7707",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSourceClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportSourceClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateReportSourceFunctions; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindSourceOperand",
  "test-ref": "conformance:cases/XIII.3.18@1985-SOURCE-CLAUSE/1985-FMT-XIII_3_18_2",
+ "notes": "The 1985 format is 'SOURCE IS identifier-1' alone (§1985:XIII.3.18.1: the clause 'identifies the sending data item that is moved'). The shared 2023 production reportSourceClause parses the looser 2023 form and VersionConformancePass#VisitReportSourceClause refuses at 85 with COBOL0900 each 2002 addition: SOURCES/ARE spellings and several operands (ReportMultiSource2002), any operand that is not a sole data reference (literal, figurative constant, parenthesized identifier, expression: ReportSourceExpression2002) and ROUNDED (ReportSourceRounded2002); GateReportSourceFunctions refuses a numeric function operand from its bound category (§1985:IV.4.3.8.3.3 SR4 'may be used only in an arithmetic expression') while an alphanumeric function stays legal. Probes at 85: SOURCE IS 5, ZERO, (WS-Y), WS-Y + 1, SOURCES, ARE, two operands, ROUNDED, FUNCTION INTEGER all refused (COBOL0900; ALL \"A\" and empty operand are parse errors); identifier, no-IS, ODO element WS-E (3), subscript WS-E (WS-I), ref-mod at both bounds (1:10) and (10:1), group, S9(18) negative, LINE-COUNTER, PAGE-COUNTER and FUNCTION UPPER-CASE accepted and printed the moved values. The witness refuses SOURCE IS 5.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.3.2.4-1",
  "rule-digest": "a5dc94c2b8ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#ScreenDataRecords; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataRecordsClause",
  "test-ref": "conformance:cases/XI.3.2@1985-SORT-MERGE-FILE-DESCRIPTION-ENTRY/1985-GR-XI_3_2_4-1",
+ "notes": "§1985:XI.3.2.4 GR1: 'The DATA RECORDS clause for the Sort-Merge module is the same as the DATA RECORDS clause for the Sequential I-O module', which 'serves only as documentation' (§1985:VII.3.5.1) and whose data-name-1 'must have an 01 level-number record description' (§1985:VII.3.5.3 SR1). The grammar's dataRecordsClause parses DATA RECORD IS / RECORDS ARE data-name...; BindFileSection's SD arm hands it to ScreenDataRecords against the SD's own 01 entries (COBOL6849) and it changes no I-O; VersionConformancePass.VisitDataRecordsClause refuses it from 2002 (COBOL0873). Probes at --std 85: an SD with RECORD VARYING 3 TO 8, DATA RECORDS ARE SREC-A SREC-B (one record with an OCCURS DEPENDING ON tail, written by ref-mod) sorts and returns AAA, MMM4WXYZ, ZZZ; the same source at --std 2002 is refused COBOL0873; DATA RECORD IS naming the FD's record, a 05 item or an undefined name is refused COBOL6849; the clause written twice COBOL2423; DATA RECORDS ARE with no operand and DATA RECORDS IS are parse errors; SORT USING a missing file ends with status 35. Witness: SD with DATA RECORD IS SORT-REC sorts two records.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

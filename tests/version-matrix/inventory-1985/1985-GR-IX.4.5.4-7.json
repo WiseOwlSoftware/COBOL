@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.5.4-7",
  "rule-digest": "deef996720b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckIntoReceiver; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoRecord; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#IntoPhraseRules; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericGroup; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindIntoPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
  "test-ref": "conformance:cases/IX.4.5@1985-READ-STATEMENT/1985-GR-IX_4_5_4-7",
+ "notes": "§1985:IX.4.5.4 GR7 admits READ ... INTO \"If only one record description is subordinate to the file description entry\" or when all record-names and identifier-1 \"describe a group item or an elementary alphanumeric item\". KeyedIoBinder.BindRead routes the phrase through MoveBinder.BindIntoPhrase to StatementValidation.CheckIntoReceiver (no edition gate; at 85 every group is an alphanumeric group and category national cannot be declared, so ItemCategory.IsAlphanumericOrNational answers the 1985 set); the witness reads two group records into a group. Probes at 85: refused as COBOL1994 a numeric record-name and receivers numeric, signed-scaled, alphabetic, alphanumeric-edited, numeric-edited, alphabetic(1:4); admitted one-record numeric->edited, two alphanumeric records, ODO groups (space-filled), refmod of numeric/alnum-edited (1985 IV.4.3.8.4.4 GR5); PIC N refused COBOL0900; a record-less indexed FD refused COBOL1837 (so arm a's count-0 admission is unreachable here; its sequential twin is PB5071); failed OPEN 35/READ 47 left identifier-1 unchanged; TE(RA) subscript evaluated after the read.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

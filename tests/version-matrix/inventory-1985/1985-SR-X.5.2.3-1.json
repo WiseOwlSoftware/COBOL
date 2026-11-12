@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.5.2.3-1",
  "rule-digest": "48e5100d6943",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Literal1Of; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ProgramNameLiteral.cs#Form",
  "test-ref": "conformance:cases/X.5.2@1985-CALL-STATEMENT/1985-SR-X_5_2_3-1",
+ "notes": "§1985:X.5.2.3 SR1: \"Literal-1 must be a nonnumeric literal.\" CallBinder#BindCall reads literal-1 through Literal1Of and ProgramName, whose one reader ProgramNameLiteral#Form refuses (COBOL1627) any operand that is not an alphanumeric/national string literal; the 2002+ literal forms are refused at 85 by their own edition rows, so at 85 only a nonnumeric literal names a program. Probes at --std 85: \"SUBP\" and \"SUBP    \" call the program; 123 (witness), 1.5, -1, ZERO, SPACE, QUOTE and ALL \"SUBP\" refused COBOL1627; N\"SUBP\", X\"53554250\" and \"SU\" & \"BP\" refused COBOL0900; \"\" refused COBOL0900 and COBOL1627. The messages cite §2023:14.9.4.3 SR2 rather than the 1985 rule (wording only).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

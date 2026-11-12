@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.3.2.4-6",
  "rule-digest": "a2e820dabc75",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueOfClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueOfEntry; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#CaptureValueOf; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#ResolveValueOfDataNames; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#CheckFileDescriptions; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueOfClause",
  "test-ref": "conformance:cases/VIII.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-GR-VIII_3_2_4-6",
+ "notes": "§1985:VIII.3.2.4 GR6: 'The VALUE OF clause for the Relative I-O module is the same as the VALUE OF clause for the Sequential I-O module', i.e. §1985:VII.3.9: VALUE OF {implementor-name-1 IS {data-name-1 | literal-1}} ..., data-name-1 unsubscripted, not an index item, and 'Data-name-1 must be in the Working-Storage Section.' (SR2), label checking the implementor's (no labels processed, docs/CONFORMANCE.md 3.7) and external entries 'must be consistent' (GR2) by the implementor's rule. CobolData.g4#valueOfClause/#valueOfEntry is the format, FileControlBinder#CaptureValueOf/#ResolveValueOfDataNames enforce SR1/SR2 (COBOL6849), ExternalFileConnectorRules#CheckFileDescriptions the documented consistency rule at 85 (COBOL6847), and VersionConformancePass#VisitValueOfClause refuses the clause from 2002 (COBOL0902). Probes at --std 85 on a relative file: VALUE OF FILE-ID IS \"ABC\" VOLUME IS WS-ID (RANDOM), FILE-ID IS WS-K, FILE-ID \"A\" FILE-ID \"B\", FILE-ID IS ZERO (DYNAMIC) compile and run (missing-file OPEN INPUT status 35, then 00 REC3); VALUE OF \"ABC\" with no implementor-name refused (COBOL5506); a file-section data-name refused (COBOL6849); EXTERNAL entries FILE-ID \"A\" vs \"B\" refused (COBOL6847), \"A\" vs IS \"A\" accepted; at --std 2002 refused COBOL0902. The witness runs a relative file under VALUE OF FILE-ID IS \"RELDATA\".",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

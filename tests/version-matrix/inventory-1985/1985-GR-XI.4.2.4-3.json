@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.2.4-3",
  "rule-digest": "a5bb0d663b34",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
  "test-ref": "conformance:cases/XI.4.2@1985-RELEASE-STATEMENT/1985-GR-XI_4_2_4-3",
+ "notes": "RELEASE ... FROM is 'equivalent to the execution of' MOVE identifier-1 TO record-name-1 'according to the rules specified for the MOVE statement' and then RELEASE (§1985:XI.4.2.4 GR3). SortBinder#BindRelease hands the FROM operand to MoveBinder#BindFromPhrase, which checks the record-area overlap and the function class and builds the implicit move with the one MOVE binder (BindMoveOf), so the MOVE legality and conversion rules apply unchanged; SortEmitter#EmitRelease emits that move before the release; VersionConformancePass#VisitRecordFromPhrase refuses the 2023 FROM literal-1 at 85 (COBOL0871). Probes at 85: group record from shorter (space pad), longer and reference-modified (1:7)/(4:7)/(10:1) senders, signed S9(3) -12 (bytes 01K moved unconverted to a group), numeric-edited and an alphanumeric function all match MOVE; elementary S9(5) record from -12.5 (-00012), \"00042\" (+00042), 18 digits (truncated +45678) and de-edited ZZ9.9 \"  7.5\" (+00007, §1985:VI.6.19.4 GR4); numeric-edited record -ZZ9.99; an ODO record from an ODO group gives the same bytes as the plain MOVE. Refused: alphabetic to numeric and noninteger to alphanumeric (COBOL0819), literal, figurative and SPACE operands (COBOL0871), numeric function (COBOL1914), FROM the record itself (COBOL6827), empty and doubled FROM. The witness releases two 7-character items into a 5-character group record and returns them truncated.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

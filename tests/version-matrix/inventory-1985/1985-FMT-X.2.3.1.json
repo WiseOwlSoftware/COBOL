@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-X.2.3.1",
  "rule-digest": "7d655edb356f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#ContainedFollowProcedureDivision; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision",
  "test-ref": "conformance:cases/X.2.3@1985-STRUCTURE/1985-FMT-X_2_3_1",
+ "notes": "§1985:X.2.3.1 prints a source program as identification-division, then optional environment, data and procedure divisions in that order, then '[ procedure-division ] [ source-program ] …' and an optional end-program-header, the contained programs a bracket of their own after the procedure-division slot. The grammar's programUnit/nestedProgram fix the order and the trailing end marker; SourceUnitShape.Screen applies the 2002+ 'contained programs only after a procedure division' refusal only when ContainedFollowProcedureDivision (edition year >= 2002) holds, so at 85 a program without a Procedure Division may contain programs, and VersionConformancePass.VisitIdentificationDivision refuses the header-less 2002 form (COBOL0900). Probes at --std 85: (b) DATA before ENVIRONMENT, ENVIRONMENT twice, and a contained program placed before the container's PROCEDURE DIVISION each COBOL0001; END FUNCTION closing a program COBOL2274; (c) no IDENTIFICATION DIVISION header COBOL0900; nested-in-nested and sibling contained programs ran OUTER/D1/D11/D2; an inner program with only a DATA DIVISION containing another compiled clean at 85 and was refused at 2002 (COBOL2274); a lone identification division compiled. The witness runs OUTER containing INNER.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
