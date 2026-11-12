@@ -44,7 +44,10 @@ from standard_streams import ensure_utf8
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
 HISTORY = REPO / "conformance-suite" / "fuzz-history.json"
-RUN_ID = re.compile(r"fuzz-\d{8}-\d{6}")
+#: A run directory the harness named itself, `fuzz-<its local start, yyyymmdd-hhmmss>` (differential_fuzz.py, fuzz_night.ps1).
+#: A run directory is otherwise ANY name (`--out`, `-RunDir`), so this pattern finds harness-named runs in a note's prose and
+#: is used for nothing else: no recorded night's date is read from its run id (kb/Work PB5371).
+RUN_ID = re.compile(r"fuzz-(?P<date>\d{8})-\d{6}")
 
 #: Display order and colour token of every verdict an adjudicator may write (design §4.1); the test holds this list equal
 #: to fuzz_triage's vocabulary, so a new verdict cannot reach the page without a colour.
@@ -61,12 +64,29 @@ SURVIVORS = re.compile(r"^## Survivors:\s*(\d+) programs in (\d+) signatures", r
 
 # ── recording a night ────────────────────────────────────────────────────────────────────────────────────────────────
 
-def run_stats(run: pathlib.Path) -> dict:
-    """The run's own numbers: run.json, report.md's headline and survivor line, and the harness classes of results.jsonl."""
+def local_date(started: object, tz: datetime.tzinfo | None = None) -> str:
+    """The calendar date of the instant `started` (run.json's ISO time, which carries its zone) on the clock of `tz`; None is
+    this host's zone, and the host that ran a night is the one that records it. run.json writes UTC, whose own date is the
+    NEXT day for every night that starts in the evening west of Greenwich. A value that is no zoned ISO time is refused: a
+    date is never guessed (kb/Work PB5371)."""
+    try:
+        at = datetime.datetime.fromisoformat(started)
+    except (TypeError, ValueError):
+        at = None
+    if at is None or at.tzinfo is None:
+        raise SystemExit(f"⛔ a run's `started` is {started!r}, not an ISO time with its zone: the history records a night's "
+                         "date only from a start time it can read")
+    return at.astimezone(tz).date().isoformat()
+
+
+def run_stats(run: pathlib.Path, tz: datetime.tzinfo | None = None) -> dict:
+    """The run's own numbers: run.json (and the local date of its start, `local_date`), report.md's headline and survivor
+    line, and the harness classes of results.jsonl. The run id is the directory's name, whatever it is."""
     meta = json.loads((run / "run.json").read_text(encoding="utf-8"))
     report = (run / "report.md").read_text(encoding="utf-8", errors="replace")
     head = next((ln for ln in report.splitlines() if ln.startswith("Programs:")), "")
-    out = {"run_id": run.name, "started": meta.get("started"), "model": meta.get("model"), "seed": meta.get("seed"),
+    out = {"run_id": run.name, "started": meta.get("started"), "date": local_date(meta.get("started"), tz),
+           "model": meta.get("model"), "seed": meta.get("seed"),
            "hours": meta.get("hours"), "edition": meta.get("edition"), "sections": meta.get("seeds")}
     for key, pat in HEADLINE.items():
         m = re.search(pat, head)
@@ -162,16 +182,23 @@ def finding_kind(it: dict) -> str:
 
 def unrecorded_runs(history: dict, items: list[dict]) -> list[tuple[dict, str]]:
     """(run, note id) for every finding whose `source` names a fuzz run the history holds no night for (an aborted or
-    shortened run, kb/Work PB4010) and no night already lists: the testing found it, so the page counts it."""
+    shortened run, kb/Work PB4010) and no night already lists: the testing found it, so the page counts it. Such a run has
+    no record, so it is found by the name the harness gives a run (`RUN_ID`), which states its date."""
     recorded = {n["run_id"] for n in history["nights"]}
     listed = {d for n in history["nights"] for d in n["defects"]}
     out = []
     for it in items:
         if not is_finding(it) or it["id"] in listed:
             continue
-        runs = sorted(set(RUN_ID.findall(str(it.get("source", "")))) - recorded)
+        named = {m.group(0): m.group("date") for m in RUN_ID.finditer(str(it.get("source", "")))}
+        runs = sorted(set(named) - recorded)
         if runs:
-            out.append(({"run_id": runs[0]}, it["id"]))
+            try:
+                date = datetime.datetime.strptime(named[runs[0]], "%Y%m%d").date().isoformat()
+            except ValueError:
+                raise SystemExit(f"⛔ {it['id']}: its `source` names the fuzz run {runs[0]}, whose name states no calendar "
+                                 "date") from None
+            out.append(({"run_id": runs[0], "date": date}, it["id"]))
     return sorted(out, key=lambda rd: (rd[0]["run_id"], rd[1]))
 
 
@@ -319,9 +346,15 @@ def night_label(n: dict) -> str:
 
 
 def night_date(n: dict) -> str:
-    """The evening the run started, in the run id's own local date (the id is the local start time)."""
-    d = n["run_id"][len("fuzz-"):len("fuzz-") + 8]
-    return f"{d[:4]}-{d[4:6]}-{d[6:]}"
+    """The local date the run started on: the `date` its record carries, written when the night was recorded (`run_stats`)
+    or, for a run with no record, read from its harness-given name (`unrecorded_runs`). It is never cut out of a run id,
+    which is any directory name: Night 10, `fuzz-batch-3000-20261103`, was shown as "batc-h--30" (kb/Work PB5371). A record
+    without one stops the render."""
+    try:
+        return datetime.date.fromisoformat(n["date"]).isoformat()
+    except (KeyError, TypeError, ValueError):
+        raise SystemExit(f"⛔ the fuzz history ({HISTORY.name}): the record of {n.get('run_id')} carries no ISO `date` "
+                         f"(it has {n.get('date')!r}); `fuzz_triage.py history --write` records it from run.json") from None
 
 
 def short_title(it: dict) -> str:
