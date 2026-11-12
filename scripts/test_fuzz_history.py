@@ -7,7 +7,10 @@ docs/rearchitecture/DESIGN-differential-fuzz.md §6, §7).
 It proves, on a FABRICATED run directory in the shapes scripts/differential_fuzz.py writes:
   STATS     a run's numbers come from run.json, report.md's headline and survivor line, and results.jsonl's classes; a
             report whose headline cannot be read is REFUSED, never recorded as zeros;
-  TALLY     signatures and programs per verdict;
+  DATE      a night's date is the local date of run.json's start time, stored in its record and never cut out of the run
+            id (a run directory is any name); a start time with no zone and a record with no date are REFUSED; every
+            record of the tracked history carries a date within a day of its start (kb/Work PB5371);
+  TALLY    signatures and programs per verdict;
   NOTES     the night's notes are found by the run id in their `source` (defect and adjudication notes only); each note's
             kind is read from the register (compiler bug, test-harness bug, settled question, retired), a defect's from
             its declared sites (product code or not), a site-less one only from the closed legacy record, and a defect
@@ -28,6 +31,7 @@ It proves, on a FABRICATED run directory in the shapes scripts/differential_fuzz
 """
 from __future__ import annotations
 
+import datetime
 import json
 import pathlib
 import sys
@@ -68,6 +72,18 @@ def fabricated_run(root: pathlib.Path, run_id: str, headline: bool = True) -> pa
 RUN = "fuzz-20261028-200000"
 OLD = "fuzz-20261020-000000"
 SHORT = "fuzz-20261022-160216"
+#: A run directory the operator named (`--out`): the shape of Night 10, whose date the page once cut out of this name.
+NAMED = "fuzz-batch-3000-20261103"
+PACIFIC_DAYLIGHT = datetime.timezone(datetime.timedelta(hours=-7))
+
+
+def refused(call) -> str | None:
+    """The refusal `call` ends with, or None when it returns."""
+    try:
+        call()
+    except SystemExit as e:
+        return str(e)
+    return None
 ITEMS = [
     {"id": "PB9001", "kind": "defect", "status": "open", "area": "binding", "title": "PB9001 — a bug", "source": f"{RUN} slice D1",
      "_body": "**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#Bind`"},
@@ -120,6 +136,13 @@ def main() -> int:
         expect("STATS survivors", (s["survivors"], s["survivor_signatures"]) == (3, 2), s)
         expect("STATS classes", s["classes"] == {"AGREE": 2, "OUTPUT_DIFFERS": 1, "WE_REJECT": 1, "THEY_REJECT": 1}, s["classes"])
         expect("STATS run meta", (s["run_id"], s["model"], s["seed"], s["sections"]) == (RUN, "m", 7, 211), s)
+        # DATE: 04:00 UTC on the 28th is the evening of the 27th in Pacific time and the 28th in UTC, whatever the run is named
+        dated = (fh.run_stats(run, PACIFIC_DAYLIGHT)["date"], fh.run_stats(run, datetime.timezone.utc)["date"])
+        expect("DATE a night's date is the local date of its start, not a slice of its run id",
+               dated == ("2026-10-27", "2026-10-28"), dated)
+        expect("DATE the default zone is the recording host's", s["date"] == fh.local_date("2026-10-28T04:00:00+00:00"), s["date"])
+        expect("DATE refuses a start with no zone, and none at all",
+               all("ISO time" in (refused(lambda v=v: fh.local_date(v)) or "") for v in ("2026-10-28T04:00:00", None, "soon")))
         bad = fabricated_run(root, "fuzz-20261028-210000", headline=False)
         try:
             fh.run_stats(bad)
@@ -147,8 +170,8 @@ def main() -> int:
                [i["id"] for i in ITEMS if fh.from_fuzzing(i)] == ["PB9002", "PB9013", "PB9015"])
 
         rec = fh.night_record(run, 2, verdicts, ["PB9001"], "abc1234")
-        older = {**rec, "night": 1, "run_id": OLD, "defects": ["PB9003", "PB9004", "PB9005", "PB9006", "PB9008", "PB9009",
-                                                                "PB9010"], "verdicts": None, "hours": 8.0}
+        older = {**rec, "night": 1, "run_id": OLD, "date": "2026-10-20",
+                 "defects": ["PB9003", "PB9004", "PB9005", "PB9006", "PB9008", "PB9009", "PB9010"], "verdicts": None, "hours": 8.0}
         hist = fh.upsert(fh.upsert({"artifact": "https://example.invalid/a", "nights": []}, rec), older)
         expect("UPSERT orders nights", [n["night"] for n in hist["nights"]] == [1, 2], hist["nights"])
         again = fh.upsert(hist, {**rec, "judged": 99})
@@ -169,6 +192,17 @@ def main() -> int:
         expect("PAGE states facts from the records", "For 8 hours" in page and "about 211 sections" in page
                and "Night 1 was reviewed before" in page, page[page.find("<ol"):][:300])
         expect("PAGE shows the tally", "2 / 5" in page, page[page.find("Decisions"):][:400])
+        named = fh.context(fh.upsert(hist, {**rec, "night": 3, "run_id": NAMED, "date": "2026-11-03", "defects": []}), ITEMS)
+        named_page, named_md = fh.render_html(named), fh.render_markdown(named, hist["artifact"])[0]
+        expect("DATE a night whose run directory was named by hand shows its recorded date",
+               "<td>Night 3</td><td>2026-11-03</td>" in named_page and "from 2026-10-20 to 2026-11-03" in named_page
+               and "| Night 3 | 2026-11-03 |" in named_md and "batc" not in named_page + named_md,
+               named_page[named_page.find("<td>Night 3</td>"):][:80])
+        undated = {k: v for k, v in rec.items() if k != "date"}
+        expect("DATE refuses a record with no date, by its run", RUN in (refused(lambda: fh.night_date(undated)) or "")
+               and RUN in (refused(lambda: fh.context(fh.upsert(hist, undated), ITEMS)) or ""))
+        expect("DATE refuses a run named in a note whose name states no calendar date", "PB9016" in (refused(
+            lambda: fh.unrecorded_runs(hist, [{"id": "PB9016", "kind": "defect", "source": "fuzz-20261399-000000"}])) or ""))
 
         md, files = fh.render_markdown(ctx, hist["artifact"])
         expect("MARKDOWN is marked machine-generated", md.startswith("<!-- MACHINE-GENERATED") and "machine-generated" in md)
@@ -269,6 +303,12 @@ def main() -> int:
                        and h2["nights"][1]["judge"] == "abc1234", h2["nights"][1])
                 expect("HISTORY writes the page", (root / "page.html").exists())
 
+    # DATE, on the tracked history: a record added by hand or by an older recorder cannot land without its date, and a date
+    # more than a day from the start it was recorded from is a typing error (a local date is within a day of the UTC one)
+    tracked = fh.load_history()["nights"]
+    off = [n["run_id"] for n in tracked if abs((datetime.date.fromisoformat(fh.night_date(n))
+                                                - datetime.datetime.fromisoformat(n["started"]).date()).days) > 1]
+    expect("DATE every record of the tracked history carries a date within a day of its start", tracked and not off, off)
     vocab = {v for v, _c, _n in fh.VERDICTS}
     expect("VOCAB equals the triage tool's verdicts", vocab == set(ft.VERDICTS), sorted(vocab ^ set(ft.VERDICTS)))
     print(f"=== test_fuzz_history: {'GREEN' if not FAILS else 'RED'} ({len(FAILS)} failure(s)) ===")

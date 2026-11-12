@@ -230,7 +230,9 @@ project and "maintained automatically as an artifact of each fuzz testing run", 
   git-ignored and the triage directories are coordination scratch. It is not under `docs/.../evidence/`, whose JSON files are
   frozen records (the EVIDENCE SUPERSESSION audit holds each to a `_frozen` banner): this file grows every night. A record holds
   the run's own numbers (run.json, including its hours and its count of seed sections; report.md's headline and survivor line;
-  the harness classes of results.jsonl), the adjudicators' verdict tally (signatures and programs per verdict) and the ids of
+  the harness classes of results.jsonl), its `date` (the local date of run.json's `started` on the host that records the
+  night, `fuzz_history.local_date`; the page's date of a night is this field and is never cut out of the run id, which is the
+  run directory's name and so any name: kb/Work PB5371), the adjudicators' verdict tally (signatures and programs per verdict) and the ids of
   the notes the night filed on the WiseOwl side. It never stores a status or a classification. The file also carries
   `artifact`, the one Artifact URL the HTML page is published to (https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g).
 - **The notes of a night,** by ONE rule (`fuzz_history.defects_of`): every defect or adjudication note whose `source` names the
@@ -243,7 +245,9 @@ project and "maintained automatically as an artifact of each fuzz testing run", 
   holds open notes to; a block naming only types or members classifies nothing. The 16 fuzz defects filed before site blocks
   were required are a closed record in the code (`LEGACY_KINDS`), never extended. Any other defect nothing classifies stops
   the render and `history` refuses it, by name: no note is guessed into either count. A note whose `source` names a fuzz run the history holds no night for (a run that
-  stopped early) is counted too and listed as "Run of <date>" (`unrecorded_runs`). Only compiler bugs reach the totals; the
+  stopped early) is counted too and listed as "Run of <date>" (`unrecorded_runs`); having no record, such a run is found by the
+  name the harness gives a run directory (`fuzz-<yyyymmdd>-<hhmmss>`, `RUN_ID`), which states its date, so one whose directory
+  was named by hand is not found (kb/Work PB5372). Only compiler bugs reach the totals; the
   per-night chart holds the nights; the table lists all four kinds. A GnuCOBOL record counts when the fuzzing produced it (its
   `source` names the fuzz triage or the harvest plan PB3838) and it is not retired (`from_fuzzing`).
 - **Two renderings of one text, written together,** by `scripts/fuzz_history.py`'s one writer `write_ledger` (`render`, and

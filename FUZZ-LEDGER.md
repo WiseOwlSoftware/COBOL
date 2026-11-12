@@ -4,9 +4,9 @@
 
 **WiseOwl COBOL** is a new compiler for COBOL, the programming language that much of the world's banking, insurance and government software is still written in. It is being built largely by AI coding agents working under one engineer's supervision, and its goal is to follow the international COBOL standard, ISO/IEC 1989, exactly. **GnuCOBOL** is the established free, open-source COBOL compiler, maintained for more than twenty years.
 
-This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to batc-h--30.
+This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to 2026-11-03.
 
-> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version 1485221e1e53. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
+> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version 5c32a0aba63c. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
 
 **10** nights of testing · **54,107** test programs written and run · **15,992** on which the two compilers disagreed · **32** bugs found in WiseOwl · **32** of those bugs fixed · **135** bugs recorded in GnuCOBOL
 
@@ -49,7 +49,7 @@ Colours, left to right: WiseOwl was wrong · WiseOwl was right · GnuCOBOL was w
 | Night 7 | 2026-10-27 | qwen3.6:35b | 6,457 | 4,010 | 1,798 | 330 | 2 | itemized |
 | Night 8 | 2026-10-28 | qwen3.6:35b | 4,350 | 2,779 | 1,276 | 272 | 0 | itemized |
 | Night 9 | 2026-10-29 | qwen3.6:35b | 6,851 | 4,308 | 1,901 | 324 | 1 | itemized |
-| Night 10 | batc-h--30 | claude-sonnet-5-5 | 3,000 | 2,536 | 1,508 | 277 | 7 | itemized |
+| Night 10 | 2026-11-03 | claude-sonnet-5-5 | 3,000 | 2,536 | 1,508 | 277 | 7 | itemized |
 
 ## Decisions, night by night
 
