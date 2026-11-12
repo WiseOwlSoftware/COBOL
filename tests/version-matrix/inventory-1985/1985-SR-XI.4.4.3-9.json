@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XI.4.4.3-9",
  "rule-digest": "9c2a86192f15",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameClauses",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-SR-XI_4_4_3-9",
+ "notes": "§1985:XI.4.4.3 SR9: 'No pair of file-names in the same SORT statement may be specified in the same SAME SORT AREA or SAME SORT-MERGE AREA clause. File-names associated with the GIVING phrase may not be specified in the same SAME clause.' FileControlBinder.BindIoControl records every SAME format's members on FileModel.SameClauses, and SortBindFile calls SortBinder.ScreenSameClauses, which implements the first sentence (a pair of the SORT's files, file-name-1 included, in one SAME SORT or SORT-MERGE AREA clause: COBOL1757) and the 2023 form of the second, refusing GIVING files only in a SAME AREA clause; it has no edition arm. The 1985 second sentence says 'the same SAME clause', and 'The SAME Clause' it points to (§1985:VII.2.13.2) is SAME [RECORD] AREA, so two GIVING files in one SAME RECORD AREA clause must be refused at 85 and compile instead (MERGE's §1985:XI.4.1.3 SR8, by contrast, expressly lets GIVING files share a SAME RECORD AREA). Probes at --std 85 (SORT SW USING IN1 IN2 GIVING OUT1 OUT2): (b) SAME SORT AREA FOR SW IN1 IN2 and SAME SORT-MERGE AREA FOR SW OUT2: COBOL1757 (the witness's shape); SAME AREA FOR OUT1 OUT2: COBOL1757; SAME AREA FOR IN1 OUT1, SAME RECORD AREA FOR IN1 OUT1 and FOR IN1 IN2: compile and run AAAA BBBB CCCC (legal, no GIVING pair); SAME RECORD AREA FOR OUT1 OUT2: compiles and runs, the defect; (c) the same eight at --std 2023 give identical results, so the 1985 arm is missing. Classes a, d, e and f do not reach this rule's file-name pairing. kb/Work PB5276 holds the defect (code read: coderead-85/out-pipe/slice-47.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

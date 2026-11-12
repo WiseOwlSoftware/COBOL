@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.3.10.8-1",
  "rule-digest": "c3bbdfc3c91b",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody",
  "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_8-1",
+ "notes": "§1985:XIII.3.10.8 GR1: 'The first line number on which a body group can be presented is the line number specified by the FIRST DETAIL phrase'. For 1985 source this holds: GroupLimits' BodyUpper returns FIRST DETAIL when no CONTROL HEADING carries OR PAGE, ScreenReportGroupLines refuses (COBOL2199) a DE, CH, CF or LINE n NEXT PAGE line above it, and FirstLineTarget puts a relative first body group on a page at FIRST DETAIL (witness: PAGE 2 LINE 06 with FD 6). Missing part: the 2002 OR PAGE phrase is not refused at --std 85 (no construct row, no VersionConformancePass arm) and then moves the body upper limit off FIRST DETAIL by the 2023 §2023:13.18.57.4 GR7 d) rule, so at 85 a detail LINE 5 with FIRST DETAIL 5 is refused as 'above the upper limit 6'. Probes: b1-b4 refused, b6/b7 placed at FD after PH and after page advance, b5 (CH K OR PAGE) compiled and reprinted CHK at FD on page 2, b5b refused. kb/Work PB5242 holds the defect (code read: coderead-85/out-pipe/slice-51.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

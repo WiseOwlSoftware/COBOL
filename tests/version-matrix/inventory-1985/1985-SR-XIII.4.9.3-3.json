@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.4.9.3-3",
  "rule-digest": "197b6fcf70a7",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectInBeforeReporting; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#InBeforeReportingProcedure",
  "test-ref": "conformance:cases/XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT/1985-SR-XIII_4_9_3-3",
+ "notes": "§1985:XIII.4.9.3 SR3 has two sentences: GENERATE, INITIATE or TERMINATE 'must not appear in a paragraph within a USE BEFORE REPORTING procedure', and 'A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or TERMINATE statements in its range.' The first is ReportWriterBinder#RejectInBeforeReporting over EnclosingContext#InBeforeReportingProcedure, read by BindGenerate/BindInitiate/BindTerminate at every edition (COBOL2378, the witness). The second has no site at --std 85: 2023 replaced it with the run-time EC-FLOW-REPORT of §2023:14.9.49.4 GR10, and no 1985 edition arm restores the compile-time refusal. Probes at --std 85 (class b each statement and the PERFORM arm; class c the 2023 run-time relaxation): GENERATE, INITIATE, TERMINATE and a TERMINATE nested in IF inside the UBR paragraph each refused COBOL2378; PERFORM ERR-PARA and PERFORM ERR-USE (a USE AFTER ERROR section whose paragraph holds GENERATE DL or INITIATE RPT) compile rc=0 and run, printing DONE with the report TITLE/LINE (the performed GENERATE silently does nothing); the legal UBR (ADD/DISPLAY) prints PH 1. Classes a, d, e, f do not apply. kb/Work PB5254 holds the defect (code read: coderead-85/out-pipe/slice-56.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

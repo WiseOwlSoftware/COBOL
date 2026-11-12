@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.5.9.2",
  "rule-digest": "7ed3675a7ec3",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_IS",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-FMT-VI_5_9_2",
+ "notes": "The format is {PICTURE | PIC} [IS] character-string: one optional IS. '01 A PIC IS IS X(4) VALUE \"WXYZ\".' compiles and runs at --std 85 (prints WXYZ), because PICMODE skips every IS; under the format the second IS is the character-string, and it is no valid picture. The other probes of the read and the refuter held. kb/Work PB5213 holds the defect (code read: held-85/set2/decisions.json).",
  "next": {
   "kind": "CHANGED",
   "to": [

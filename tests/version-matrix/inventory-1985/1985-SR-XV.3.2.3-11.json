@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-11",
  "rule-digest": "cff42b33b225",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#ReferencesDebugItem; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Binding/ImplicitRegisters.cs#IsDebugRegister; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundReferences.cs#Of",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-11",
+ "notes": "§1985:XV.3.2.3 SR11: 'References to the special register DEBUG-ITEM are restricted to references from within a debugging section.' StatementBinder.BindStatement asks ReferencesDebugItem (BoundReferences.Of places whose item IsDebugRegister) of every statement outside a debugging section and refuses COBOL6442; that holds for a direct operand (MOVE DEBUG-SUB-1 TO W, DISPLAY DEBUG-NAME in a USE AFTER ERROR section, IF DEBUG-LINE = SPACES, DEBUG-CONTENTS(1:2) in an IF arm, COMPUTE over DEBUG-SUB-1), and DEBUG-ITEM with no debugging section or without WITH DEBUGGING MODE is refused COBOL1639/COBOL0901. But a DEBUG-SUB-n member written as a subscript or reference-modification position outside a debugging section is not refused: MOVE \"A\" TO TE (DEBUG-SUB-1), DISPLAY TE (DEBUG-SUB-2), MOVE TE (DEBUG-SUB-3) TO W, IF TE (DEBUG-SUB-1) = \"A\" compile and run, and DISPLAY W (DEBUG-SUB-1:1) / W (1:DEBUG-SUB-1) compile and abort EC-BOUND-REF-MOD at run time. The position read escapes the funnel's reference walk, although PB4858's landing paragraph says a subscript use is refused (its witness covers only a direct DEBUG-CONTENTS (1:4) operand). Fix owner: a new kb/Work defect (none files this). kb/Work PB5297 holds the defect (code read: coderead-85/out-pipe/slice-69.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

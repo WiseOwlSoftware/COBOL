@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.1.4-8",
  "rule-digest": "562e979ea209",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Init; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement",
  "test-ref": "conformance:cases/XI.4.1@1985-MERGE-STATEMENT/1985-GR-XI_4_1_4-8",
+ "notes": "§1985:XI.4.1.4 GR8 defines the output procedure's range dynamically (statements reached by CALL, EXIT, GO TO and PERFORM, and declaratives run from it) and says only that 'The range of the output procedure must not cause the execution of any MERGE, RELEASE, or SORT statement'; §1985:XI.4.4.3 SR1 puts no lexical limit on a SORT ('A SORT statement may appear anywhere in the Procedure Division except in the declarative portion'), and MERGE SR1 is the same. EmitMerge runs the output procedure as a bounded range, so PERFORMed paragraphs outside it belong to it (witness: GET-REC in another section returns AAA BBB CCC DDD DONE), and an executed SORT is left to the runtime (undefined in 1985: probe g8c ends with status 41 on IN1). But GateSortMergeProcedures reports COBOL2700 at EVERY edition for a file SORT written lexically in a SORT or MERGE procedure, citing §2023:14.9.40.3 SR3, so a 1985 program whose output procedure holds a SORT it never executes is refused. The MERGE arm is 2023-only (class c probe: MERGE written in the output procedure compiles at 85 and prints AAA BBB DONE, COBOL1572 at 2023), which shows the SORT arm lacks the same edition gate. Classes a, d, e, f do not reach the range rule. No kb/Work note found (grepped COBOL2700, sort-merge-placement, XI.4.4.3). kb/Work PB5274 holds the defect (code read: coderead-85/out-pipe/slice-45.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

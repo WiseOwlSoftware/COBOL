@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.15.3-2",
  "rule-digest": "366c9fd79e0a",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenValueLiteral; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateNumericValue",
  "test-ref": "conformance:cases/VI.5.15@1985-VALUE-CLAUSE/1985-SR-VI_5_15_3-2",
+ "notes": "A condition-name's literal is associated with its conditional variable's description; a group has no PICTURE, let alone a signed numeric one, so a signed numeric literal on its level 88 entry violates SR2. '01 G. 88 G-N VALUE -1. 05 A PIC X(2).' compiles at --std 85 and G-N tests the characters '-1' (prints G-N TRUE). Every elementary case of the read is refused as required; only a group conditional variable escapes. kb/Work PB5215 holds the defect (code read: held-85/set2/decisions.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

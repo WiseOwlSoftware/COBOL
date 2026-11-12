@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.9.4-14",
  "rule-digest": "46b9ce7d98d9",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#HighestRelativeRecordNumber; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordWriteFailed",
  "test-ref": "conformance:cases/VIII.4.9@1985-WRITE-STATEMENT/1985-GR-VIII_4_9_4-14",
+ "notes": "kb/Work PB5125. §1985:VIII.4.9.4 GR14 makes three cases invalid key: (a) random/dynamic key naming an existing record (22), (b) 'When an attempt is made to write beyond the externally defined boundaries of the file' and (c) more significant digits than the relative key (24, §1985:VIII.1.3.4). RelativeConnector#Write implements (a) and (c) at 85 (probes: duplicate random and dynamic keys 22 with the record area kept; sequential and EXTEND release past a PIC 9 key 24 with INVALID KEY run), and (b) for the host file-size boundary via RecordWriteFailed. But a random/dynamic key above HighestRelativeRecordNumber (2,147,483,647, the implementor's highest permitted number) returns FileStatusCode.PermanentBoundary '34' with no edition arm: 1985 has no relative status 34, the write is beyond the file's boundaries, so it must be 24 with the INVALID KEY phrase run. The '34' also sticks as a permanent error, failing the next valid WRITE. kb/Work PB5125 holds the defect (code read: coderead-85/out-pipe/slice-39.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

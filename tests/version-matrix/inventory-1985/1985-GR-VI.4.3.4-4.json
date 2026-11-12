@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.4.3.4-4",
  "rule-digest": "8fea01fd792d",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite; src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Resolve",
  "test-ref": "conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/1985-GR-VI_4_3_4-4",
+ "notes": "GR4 compiles debugging lines 'as specified in this presentation', and its own cross-reference (page VI-141) is VI.7.3, which permits a debugging line only after the OBJECT-COMPUTER paragraph. VI.7.3 has no catalog row of its own, so its placement rule is reached through this row. Under the mode, a D line carrying a DATE-WRITTEN paragraph in the Identification Division compiles and the program runs (p08). Where debugging lines are permitted they compile and run, as the read showed. The dual-syntax 'must' (refuter's d6/d7) is a second unenforced requirement that I did not re-probe. kb/Work PB5212 holds the defect (code read: held-85/set2/decisions.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
