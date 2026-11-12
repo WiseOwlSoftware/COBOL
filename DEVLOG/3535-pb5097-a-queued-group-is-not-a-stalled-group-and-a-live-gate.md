@@ -1,4 +1,4 @@
-## PB5097: a queued group is not a stalled group, and a live gate is never silent
+## Entry 3535 — 2026-11-12 12:20 PST — PB5097: a queued group is not a stalled group, and a live gate is never silent
 
 The loop's progress report mailed a STALL for every group the rolling wave had not started yet (wave 20261973 groups G and
 H at 29 minutes, then every hour for 22 hours; waves 20262000, 20262001 and 20262004 the same) and for every gate that was
@@ -35,3 +35,4 @@ R1-1 (blocking): `group_activity` read file mtimes only, so the empty scratch di
 start signal) left the group QUEUED. It now also counts each walked directory's own mtime; a progress self-test case plants
 an empty `scratch/w7e` and expects its mtime as the act. R1-2: the test-phase heartbeat's `finished` list was appended in
 `pool.map`'s submission order; each host thread now appends at its own return.
+
