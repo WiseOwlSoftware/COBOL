@@ -1,4 +1,4 @@
-## PB3726 re-designed: the pipeline-scripts restructure measured again and decided against today's tree
+## Entry 3538 — 2026-11-12 13:16 PST — PB3726 re-designed: the pipeline-scripts restructure measured again and decided against today's tree
 
 No code changed; this entry covers the design in `docs/rearchitecture/DESIGN-orchestrator-loop.md` section 16 and the
 kb/Work step notes that implement it.
@@ -43,3 +43,4 @@ the architecture review) and, after the review, PB5428 to PB5441 (14 steps). The
 and `work.py` reads the union of a note's Sites blocks, so no addendum could withdraw them. PB4053 now waits on PB5430.
 PB3726 gains `2026-11-12-design.md`, `2026-11-12-design-review.md` and `2026-11-12-design-steps-after-review.md` (the
 final order: 30 steps in one chain).
+
