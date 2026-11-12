@@ -3111,9 +3111,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                                 // §2023:13.18.63 SR4/SR5/SR24→SR10: the VALUE literals' CATEGORY must match the
                                 // conditional variable's — the SAME funnel the item-entry VALUE uses. Their SIZE
                                 // sentences do not reach a condition-name subject, which is why the subject is
-                                // ValueSubject.ForConditionName() and not the conditional variable's size
-                                // (kb/Work PB598 — the derivation is on that factory).
-                                var condSubject = ValueSubject.ForConditionName();
+                                // ValueSubject.ForConditionName, which carries the conditional variable's size only at 85
+                                // (kb/Work PB598, PB5190 — the derivation is on that factory).
+                                var condSubject = ValueSubject.ForConditionName(rp, Edition.DialectLevel);
                                 rawLo = ScreenValueLiteral(rp, rawLo, $"condition-name '{name}'", condSubject);
                                 rawHi = ScreenValueLiteral(rp, rawHi, $"condition-name '{name}'", condSubject);
                             }
@@ -3137,7 +3137,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                                 if (RawValueOperandText(op, $"condition-name '{name}'") is not { } raw) continue;
                                 if (parent.OperandPic is { } sp)
                                     raw = ScreenValueLiteral(sp, raw, $"condition-name '{name}'",
-                                        ValueSubject.ForConditionName());
+                                        ValueSubject.ForConditionName(sp, Edition.DialectLevel));
                                 cond.Values.Add((raw, null));
                             }
                     }
@@ -3254,7 +3254,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <para>The CATEGORY screen is the ALL-FORMATS one, and it reaches literal-4 by its own words: §2023:13.18.63.3
     /// SR2/SR4/SR5 speak of "all literals in the VALUE clause" / "literals in the VALUE clause", not of
     /// literal-1 or literal-2, so literal-4 takes the conditional variable's category exactly as literal-2 does.
-    /// The subject is <c>ValueSubject.ForConditionName()</c> for the same reason (kb/Work PB598): those rules'
+    /// The subject is <c>ValueSubject.ForConditionName</c> for the same reason (kb/Work PB598, PB5190): those rules'
     /// SIZE sentences name an elementary or group item as the VALUE bearer and do not reach a Format-3
     /// subject.</para>
     /// <para>⛔ AND THE SCREENED VALUE IS NOW STORED (kb/Work PB555). It used to be screened and dropped, on the
@@ -3269,7 +3269,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // NULL = not a literal position at all, already reported at the ONE report (kb/Work PB732).
         if (RawValueOperandText(falseOp, where) is not { } raw) return;
         if (parent.OperandPic is { } fp)
-            raw = ScreenValueLiteral(fp, raw, where, ValueSubject.ForConditionName());
+            raw = ScreenValueLiteral(fp, raw, where, ValueSubject.ForConditionName(fp, Edition.DialectLevel));
         cond.FalseValue = raw;
         CheckFalseValueDistinct(cond, parent, where);
     }

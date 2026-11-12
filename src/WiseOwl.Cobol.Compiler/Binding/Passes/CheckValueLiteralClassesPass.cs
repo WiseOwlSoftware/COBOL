@@ -119,9 +119,10 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
                 using var _ = binder.Edition.At(item);
                 foreach (var (lo, hi) in cond.Values)
                 {
-                    ScreenNumericEditedLiteralClass(binder, cp, lo, $"condition-name '{cond.Name}'", ValueSubject.ForConditionName());
+                    var condSubject = ValueSubject.ForConditionName(cp, binder.Edition.DialectLevel);
+                    ScreenNumericEditedLiteralClass(binder, cp, lo, $"condition-name '{cond.Name}'", condSubject);
                     if (hi is not null)
-                        ScreenNumericEditedLiteralClass(binder, cp, hi, $"condition-name '{cond.Name}'", ValueSubject.ForConditionName());
+                        ScreenNumericEditedLiteralClass(binder, cp, hi, $"condition-name '{cond.Name}'", condSubject);
                 }
             }
         }
