@@ -1,6 +1,10 @@
 {
  "rule-id": "1989-AR-A.2.16.3-1",
  "rule-digest": "be7ceaa671d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDate; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DaysBeforeYear; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IntegerDateFormBounded; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+ "test-ref": "conformance:cases/A.2.16@1985-INTEGER-OF-DATE-FUNCTION/pb5130_integer_date_year_10000_85",
+ "notes": "kb/Work PB5130 (landed). §1989:A.2.16.3 AR1 a. \"It must be an integer greater than 1600\" bounds the year below only. At --std 85 DialectBehavior.IntegerDateFormBounded (2002) is inactive, the binder sets BoundIntrinsicCall.IntegerDateFormUnbounded and CobolDate.IntegerOfDate counts Gregorian days arithmetically with no upper year: INTEGER-OF-DATE (100000101) is 3067672 and (100001231) 3068037; a month or day outside its range, or a year of 1600 or less, is still the incorrect-argument default 0. Witness pb5130_integer_date_year_10000_85.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
