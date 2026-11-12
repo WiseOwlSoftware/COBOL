@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.3.22.2",
  "rule-digest": "e12d93cad91a",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckValueConnective; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenRepeatingOperandCount; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueClause",
  "test-ref": "conformance:cases/XIII.3.22@1985-VALUE-CLAUSE/1985-FMT-XIII_3_22_2",
+ "notes": "The 1985 report-section VALUE clause is the one-operand form 'VALUE IS literal-1' (§1985:XIII.3.22.2; function 'The VALUE clause defines the value of Report Section printable items', §1985:XIII.3.22.1). BindReportEntry routes a report VALUE through DataBinder.CheckValueConnective with pairedConnective: true (the 2023 format 4 'VALUE IS | VALUES ARE' choice) and has no edition arm, so at --std 85 'VALUES ARE \"HELLO\"' and bare 'VALUES \"HELLO\"' compile and run; the rest of the format is enforced at 85. Probes (work-rr-04): b) identifier operand (witness) COBOL1639, FUNCTION operand COBOL1902, two literals COBOL2012 via ScreenRepeatingOperandCount, VALUE written twice COBOL2423, empty 'VALUE IS.' COBOL0001; c) '&' concatenation and X\"41\" COBOL0900, N\"AB\" COBOL0898, OCCURS in a report entry COBOL0900, a group VALUE COBOL2247/COBOL0900; d) 'VALUE IS \"HELLO\"', S99 VALUE -12, 9(3) VALUE ZERO, X(4) VALUE ALL \"*\", X(3) VALUE SPACES and ZZ9.99 VALUE \" 12.50\" print 'HELLO    1K   000  ****       12.50'; SR2 range/size COBOL1625/COBOL1740. Classes a, e, f do not reach a VALUE IS literal-1 format. Only the VALUES spelling is under-rejected. kb/Work PB5242 holds the defect (code read: coderead-85/out-reread2/rr-04.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

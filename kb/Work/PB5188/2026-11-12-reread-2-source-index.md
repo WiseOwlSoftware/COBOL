@@ -1,0 +1,3 @@
+**2026-11-12, the 1985 re-read 2 (records-85f): a second witness of the report SOURCE arm.**
+
+The refuter of `E:/COBOL-coord/scratch/coderead-85/out-reread2/rr-03.json` found, outside its rules, that `E:/COBOL-coord/scratch/coderead-85/out-reread2/refute-rr-03/src_idx.cob` (a report SOURCE naming a USAGE INDEX item) compiles at --std 85; rerun on the pinned compiler (origin/main 8147f008b3, 2026-11-12, `E:/COBOL-coord/scratch/coderead-85/reprobe-85f/log.txt`), it exits 0. The refuter named row `1985-SR-XIII.3.18.3-2`. This is this note's report SOURCE arm; nothing is recorded for that row here.

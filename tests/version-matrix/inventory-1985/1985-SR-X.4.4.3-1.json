@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.4.4.3-1",
  "rule-digest": "f5074de9e2b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportSection; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
  "test-ref": "conformance:cases/X.4.4@1985-REPORT-DESCRIPTION-ENTRY-IN-THE-INTER/1985-SR-X_4_4_3-1",
+ "notes": "§1985:X.4.4.3 SR1: 'The availability of the report description entry is dependent on whether the Report Writer module is supported'; the compiler supports Report Writer (docs/CONFORMANCE.md section 5, A.4.11), so at 85 the RD must be available with its IPC GLOBAL clause, which makes 'LINE-COUNTER and PAGE-COUNTER are global names' (§1985:X.4.4.4 GR1). The grammar's reportDescriptionEntry parses RD [IS GLOBAL] CODE/CONTROL/PAGE, and ReportSectionBinder.BindReportSection / BindReportDescriptionClauses bind it at every edition with the 1985 CODE rule (COBOL2713). Probes at --std 85: RD RPT IS GLOBAL CODE \"QZ\" CONTROLS ARE FINAL W-KEY PAGE LIMIT 10 LINES HEADING 1 FIRST DETAIL 3 LAST DETAIL 8 FOOTING 9, INITIATE in the outer program, GENERATE twice and LINE-COUNTER/PAGE-COUNTER read in a contained program (LC 3 PC 1) writes QZHEAD, blank, QZA -  5 twice and the FINAL footing QZTOT - 10; without GLOBAL the contained program's GENERATE is refused COBOL1757 and its counters COBOL2729; GLOBAL or PAGE written twice COBOL2423; CODE \"Q\" and CODE identifier COBOL2713; PRESENT WHEN (2002) COBOL0900. Witness: an RD with one DETAIL group generates at 85.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

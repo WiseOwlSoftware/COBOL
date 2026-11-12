@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-1",
  "rule-digest": "a2eaca6a9e0f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#IsDebuggingSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddAllProceduresSubjects; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#DebugCauseAssignments; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#InDebugSection; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDebugRunner; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-1",
+ "notes": "§1985:XV.3.2.4 GR1: \"Automatic execution of a debugging section is not caused by a statement appearing in a debugging section.\" StatementBinder.Bind sets _inDebuggingSection from ProcedureTableBuilder.IsDebuggingSection so BindStatement plans no data, file or cd fire for such a statement, and EmitterState.DebugCauseAssignments records __dbgInSection at each transfer (and __dbgRaisedInSection for a raised USE procedure) which EmitDebugRunner and EmitRunUseBody read; the witness PERFORMs a monitored procedure and MOVEs to a monitored item from the section. Probes at 85 (work-rr-09/dbg/g1a, g1b): from one debugging section a MOVE to another section's data-name, a DISPLAY of an ALL REFERENCES item, a subscripted store, OPEN/WRITE/CLOSE/READ of a monitored file, a GO TO a monitored paragraph and an OPEN failure raising a USE procedure monitored by a third section ran none, while the same statements in MAIN ran each; ALL PROCEDURES skipped the debugging section's own paragraphs (PERFORM inside it). At --std 2002 USE FOR DEBUGGING is refused (COBOL0902). Side observations, other rules: a PERFORM of a nondeclarative paragraph from a debugging section draws only warning COBOL2375 (SR2), and a USE FOR DEBUGGING naming a debugging-section paragraph compiles (SR5, kb/Work PB5081).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

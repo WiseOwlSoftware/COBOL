@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-X.5.3.2",
  "rule-digest": "5d8473e3207c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#cancelStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#cancelTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramPrototypeNamesExist; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramName",
  "test-ref": "conformance:cases/X.5.3@1985-CANCEL-STATEMENT/1985-FMT-X_5_3_2",
+ "notes": "§1985:X.5.3.2 prints CANCEL { identifier-1 | literal-1 } …, one or more operands and no program-prototype-name (a 2002 addition). The grammar's cancelStatement takes cancelTarget+ (zero operands is COBOL0001), and CallBinder.BindCancel binds each target as literal-1 (through ProgramName, which refuses a non-alphanumeric literal, §1985:X.5.3.3 SR1 'Literal-1 must be a nonnumeric literal') or identifier-1; the prototype arm is reached only when ProgramPrototypeNamesExist (the program-prototype-name-2002 construct), so at 85 a bare word that names no data item is the undefined-reference error COBOL1639. Probes at --std 85: (b) CANCEL with no operand COBOL0001, a prototype-style word COBOL1639, SPACE / ALL \"SUBP\" / 123 COBOL1627; (c) N\"SUBP\" and X\"53554250\" COBOL0900; (d) an alphanumeric group, a reference-modified WS-LONG(1:4), a subscripted WS-T(WS-I) and FUNCTION UPPER-CASE each cancelled SUBP (COUNT 1 twice); a numeric-edited item and FUNCTION LENGTH COBOL1696; three operands with an uncalled program first ran clean. The witness cancels by literal and by identifier plus literal in one statement.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

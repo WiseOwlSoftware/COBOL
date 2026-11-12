@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-5",
  "rule-digest": "d06b27294916",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanLeaf; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanPerform; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanPhrases; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanInto; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#OncePerOperand; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#Find; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#LandBeforeIo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#EmitLoopPhase",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-5",
+ "notes": "§1985:XV.3.2.4 GR5: ALL REFERENCES OF identifier-1 runs the section \"for every statement that explicitly references identifier-1\": WRITE/REWRITE before the I-O after the FROM move, GO TO DEPENDING before the transfer, PERFORM VARYING/AFTER/UNTIL after each phase, otherwise after the statement, and not for a phrase not executed. DebugTriggerPlanner.PlanLeaf/PlanPerform/PlanPhrases/PlanInto choose the moment and DebugTriggerEmitter.Emit, LandBeforeIo and EmitLoopPhase place it; the witness covers MOVE, a read and GO TO DEPENDING before the procedure trigger. Probes at 85 (dbg/g5): DISPLAY X fires; MOVE X TO X X fires once (rule 7); a subscript TE (X) fires; GX OF G as qualifier does not (rule 9); COMPUTE X with SIZE ERROR fires; WRITE FR FROM A3 fires with FR=abc before the I-O; READ INTO A3 fires only when the record moved; an EVALUATE WHEN not evaluated does not fire; PERFORM VARYING X fires after init, each test and each augment; GO TO DEPENDING fires before DP's procedure trigger.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

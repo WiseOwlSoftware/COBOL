@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-8",
  "rule-digest": "c821569791e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanCd; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#FireText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#LandAfterAction; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitReceive",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-8",
+ "notes": "§1985:XV.3.2.4 GR8: a cd-name section runs after ENABLE, DISABLE, SEND and ACCEPT MESSAGE COUNT, and after a RECEIVE \"that does not result in the execution of the NO DATA imperative-statement\". DebugTriggerPlanner.PlanCd plans those verbs (not PURGE) with the CD area as contents, and CommunicationEmitter.EmitReceive lands the RECEIVE fire after the WITH DATA statements on the data path only; the witness covers ENABLE, ACCEPT COUNT, DISABLE and SEND. Probes at 85 (dbg/g8, g8b with an mcs.json queue): ENABLE OUTPUT and SEND fire, PURGE does not; ENABLE INPUT, ACCEPT MESSAGE COUNT fire with the area (QUEUE1); a RECEIVE that got HELLO fires after \"WITH DATA\"; the next RECEIVE ran NO DATA and fired nothing; DISABLE fires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

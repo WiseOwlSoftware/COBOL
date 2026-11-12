@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.2.12.3-1",
  "rule-digest": "c5cfe66a8f4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenRerunClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#IsSequentiallyOrganized; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRerunClause",
  "test-ref": "conformance:cases/VII.2.12@1985-RERUN-CLAUSE/1985-SR-VII_2_12_3-1",
+ "notes": "§1985:VII.2.12.3 SR1: \"File-name-1 must be a sequentially organized file.\" FileControlBinder.IoControl#ScreenRerunClauses (called from BindIoControl after the whole I-O-CONTROL paragraph, at every edition; the edition pass accepts RERUN at 85 and refuses it from 2002 with COBOL0902) takes the ON word as file-name-1 when it names a visible file and refuses it with COBOL6529 unless IsSequentiallyOrganized (sequential organization and not an SD, kb/Work PB5312). Probes at 85: ON implicit-sequential and explicit ORGANIZATION SEQUENTIAL files accepted with END OF REEL and condition-name forms; ON relative (dynamic access), indexed and SD files refused with COBOL6529 under END OF REEL, END OF UNIT, condition-name and RECORDS forms (RECORDS also draws SR3's COBOL6530); ON an undeclared word is implementor-name-1 and accepted. Witness: ON a relative file refused.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

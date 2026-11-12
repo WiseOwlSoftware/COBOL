@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.2.12.3-2",
  "rule-digest": "f88d09999c40",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenRerunClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#IsSequentiallyOrganized; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRerunClause",
  "test-ref": "conformance:cases/VII.2.12@1985-RERUN-CLAUSE/1985-SR-VII_2_12_3-2",
+ "notes": "§1985:VII.2.12.3 SR2: \"The END OF REEL/UNIT phrase may only be used if file-name-2 is a sequentially organized file.\" FileControlBinder.IoControl#ScreenRerunClauses resolves file-name-2 of an EVERY [END OF] REEL/UNIT phrase (visible files, GLOBAL ones of a containing program included) and refuses with COBOL6529 unless IsSequentiallyOrganized (sequential and not an SD, kb/Work PB5312); the RECORDS phrase, which GR2 d lets name any organization, is not asked. Probes at 85: END OF UNIT OF relative, REEL OF indexed (with and without ON), END OF REEL OF an SD, and END OF REEL OF a GLOBAL relative file from a contained program refused (COBOL6529); END OF REEL/UNIT OF sequential files accepted and ran; 100 RECORDS OF relative and of indexed accepted; an undefined file-name-2 draws COBOL1639. Witness: END OF REEL OF a relative file refused.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-22",
  "rule-digest": "65a982e320e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToDestinations; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetErrorKeys; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetErrorKey",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-22",
+ "notes": "§1985:XIV.2.2.4 GR22: when \"the MCS determines an error has occurred\" in DISABLE OUTPUT, ENABLE OUTPUT, PURGE or SEND, the status key and each ERROR KEY occurrence up to DESTINATION COUNT are updated with Table 2's values. SetOutput, Purge and SendToDestinations write each occurrence 1..count (0,1,2,4,5,6), and Send's and SetOutput's early refusals (50, 60, 40) write them through SetErrorKeys; an invalid count (GR17, status 30) acts on no destination. Probes at 85 over a 3-occurrence table: count 0, 4 and non-numeric (via a redefining record) 30 with keys untouched; mixed unknown/disabled SEND and PURGE 80 with 0,1,2; ENABLE 80 (5,1), DISABLE 15 (0,5); index-subscripted destination with SEND FROM MSG(2:3) too long 50 (2,1, third untouched); capacity exceeded 65 with key 6; level-1 CD count 2 status 30.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

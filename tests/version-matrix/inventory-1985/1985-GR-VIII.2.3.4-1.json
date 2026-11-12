@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.2.3.4-1",
  "rule-digest": "288212897c2f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Segments; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Of; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe",
  "test-ref": "conformance:cases/VIII.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-VIII_2_3_4-1",
+ "notes": "§1985:VIII.2.3.4 GR1 requires 'all file control entries in the run unit which reference this file connector' to have the same OPTIONAL phrase, a consistent ASSIGN, the same RESERVE integer, organization, access mode and RELATIVE KEY external item. ExternalFileConnectorRules.Check (BinderDriver, every edition) compares each entry's FileEntryIdentity.Segments with the first describer's (COBOL6847) and requires the RELATIVE KEY item external and the same in each entry (COBOL1624/COBOL1575, §1985:VIII.2.4.4 GR8); the FILE STATUS sameness it asks only at 2023 (is2023), so 85 keeps per-entry status items. Probes at --std 85 on a two-program run unit with an EXTERNAL relative file: identical entries with different non-external FILE STATUS items run (SUB READ ALPHA; refused COBOL1624/1573 at 2023); OPTIONAL dropped, ASSIGN \"OTHERF\", RESERVE 3 vs 2, RESERVE omitted vs 2, ACCESS DYNAMIC vs RANDOM and ORGANIZATION SEQUENTIAL each refused COBOL6847 naming the clause; RELATIVE KEY RK2 (other external item) refused COBOL1575, a non-external RK3 COBOL1624+1575; after a failed OPEN INPUT (status 35) the subprogram's READ gives status 47 and no INVALID KEY. Separately compiled describers that differ run unchecked unless EC checking is on (ExternalTable.Describe); 1985 states no detection duty for this general rule. Witness: matching entries share the connector.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

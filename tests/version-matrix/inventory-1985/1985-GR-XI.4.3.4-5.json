@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.3.4-5",
  "rule-digest": "347f96a72467",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckIntoReceiver; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoRecord; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#IntoPhraseRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn",
  "test-ref": "conformance:cases/XI.4.3@1985-RETURN-STATEMENT/1985-GR-XI_4_3_4-5",
+ "notes": "§1985:XI.4.3.4 GR5 admits INTO only a) with one record description under the SD, or b) 'If all record-names associated with file-name-1 and the data item referenced by identifier-1 describe a group item or an elementary alphanumeric item.' SortBinder#BindReturn sends the phrase through StatementValidation#CheckIntoReceiver with IntoPhraseRules.Return (arm a by record count) and #AdmitsIntoRecord/#AdmitsIntoOperand (arm b via ItemCategory#IsAlphanumericOrNational, whose national arm is unreachable at 85, and a reference-modified receiver read by its view category), refusing COBOL1994. Probes at --std 85 with two records (X(5) plus a second): numeric 9(5) receiver, numeric 9(5) record, alphabetic A(5) receiver, alphanumeric-edited XXBXX record all refused COBOL1994; group receiver, group record holding a numeric child, WN(1:5) and WN(5:) of a numeric item, X(3) JUST RIGHT, and a group with an ODO table admitted and moved ([12345], [345], [1], [12]); with one record, 9(3) and XXBXXX receivers admitted by arm a ([345], [12 345]). The diagnostic quotes the 2023 wording (alphanumeric group or national) at 85, which selects the same items there. The witness RETURNs INTO X(5) from an SD with an elementary and a group record.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

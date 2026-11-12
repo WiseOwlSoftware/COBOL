@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.5.4.3-1",
  "rule-digest": "a73fe134746d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExitStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#EndsImperativeRun",
  "test-ref": "conformance:cases/X.5.4@1985-EXIT-PROGRAM-STATEMENT/1985-SR-X_5_4_3-1",
+ "notes": "§1985:X.5.4.3 SR1: an EXIT PROGRAM in 'a consecutive sequence of imperative statements within a sentence' must 'appear as the last statement in that sequence'. VersionConformancePass.VisitExitStatement asks StatementPosition.Of(stmt).EndsImperativeRun, true when the statement is last or the next one is conditional (an imperative statement includes a delimited scope statement, §1985 IV definition), and otherwise checks the exit-program-not-last-2002 construct, an error COBOL0900 at 85 that 2002 and later admit. Probes at --std 85 in a called program: EXIT PROGRAM DISPLAY, DISPLAY EXIT PROGRAM STOP RUN, EXIT PROGRAM EXIT PROGRAM, and EXIT PROGRAM followed by IF ... END-IF or ADD ... END-ADD are refused COBOL0900, as are the non-last forms inside an IF branch, an ELSE, an inline PERFORM, ON SIZE ERROR and an EVALUATE WHEN; DISPLAY EXIT PROGRAM, EXIT PROGRAM last in IF/ELSE, inline PERFORM and ON SIZE ERROR, EXIT PROGRAM followed by an unterminated IF or ADD ON SIZE ERROR, and EXIT PROGRAM. with a next sentence all return (BACK); the same EXIT PROGRAM DISPLAY runs at 2002 and 2023. Witness: EXIT PROGRAM DISPLAY \"AFTER\" refused COBOL0900.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

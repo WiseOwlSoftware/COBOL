@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.4.4-14",
  "rule-digest": "c27e3cff36c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#CheckSegmentation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RulesInForce",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-GR-XI_4_4_4-14",
+ "notes": "§1985:XI.4.4.4 GR14 requires the input and output procedures a SORT names to lie totally within non-independent segments or wholly in a single independent segment, and, for a SORT in an independent segment, 'Wholly within the same independent segment as that SORT statement' (restated as §1985:XVI.3.3.4; independent means segment-number 50 through 99, §1985:XVI.3.2.4 GR3). SortBinder.SortBindFile calls CheckSegmentation for each INPUT and OUTPUT PROCEDURE range, and Segmentation.CheckProcedures (in force only where segment-numbers exist, RulesInForce, i.e. COBOL-85) collects the range's segment-numbers and RangeAllowed refuses a mix of fixed and independent, two independent segments, or another independent segment than the SORT's own (COBOL6877). Probes at --std 85: (b) SORT in segment 10 with INPUT spanning 60 and 70, or 10 and 60, refused; SORT in 60 with INPUT in 70 refused; the 49/50 boundary mix refused; legal: SORT in 10 with INPUT in 60 and OUTPUT in 70, SORT in 60 with INPUT in 60 and OUTPUT in 20, SORT in overlayable segment 30 under SEGMENT-LIMIT IS 20 with procedures in 10-45, each printing START 1 3 DONE; (c) at --std 2002 every segment-number is COBOL0902. The witness sorts from independent segment 60 with its input procedure in 60 and output in fixed segment 10.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

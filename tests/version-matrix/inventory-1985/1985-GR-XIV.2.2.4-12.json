@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-12",
  "rule-digest": "336c0bc591a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#PendingReceive.Next; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetNothingReceived",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-12",
+ "notes": "§1985:XIV.2.2.4 GR12 sets the END KEY only during RECEIVE: 3 end of group, 2 end of message, 1 end of segment (SEGMENT phrase), 0 less than that, the first rule satisfied winning. PendingReceive.Next returns the key in that order (group, then message, then segment only when the SEGMENT phrase is written, else 0) and Transfer stores it at position 79; ACCEPT MESSAGE COUNT, ENABLE and DISABLE INPUT never touch it. Probes at 85: MESSAGE phrase with room ending on a segment boundary 0 then 2; SEGMENT phrase on an EGI message 1 then 3; empty first segment 1; INTO BUF(3:2) 3; numeric receiver 0 then 2; unknown queue (status 20) and ACCEPT/ENABLE/DISABLE leave a preset X; NO DATA sets 0. Witness: twelve portions over MESSAGE and SEGMENT.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

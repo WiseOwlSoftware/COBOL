@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.4.5.3-2",
  "rule-digest": "1540f416ae2a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CheckExternalizedNameUniqueness; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#ExternalizedSubjects; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
  "test-ref": "conformance:cases/X.4.5@1985-EXTERNAL-CLAUSE/1985-SR-X_4_5_3-2",
+ "notes": "§1985:X.4.5.3 SR2: 'In the same program, the data-name specified as the subject of the entry whose level-number is 01 that includes the EXTERNAL clause must not be the same data-name specified for any other data description entry which includes the EXTERNAL clause.' LinkageBinder.CheckExternalizedNameUniqueness compares the externalized names of the element's EXTERNAL subjects (ExternalizedSubjects: files and Working-Storage records, FD record cells excluded) case-insensitively and reports COBOL2159; at 85 the 2002 AS phrase is refused (VisitExternalizedNamePhrase, COBOL0900), so every externalized name is the data-name and the 2023 comparison is the 1985 one; the 2023 file-entry arm adds nothing at 85 because a word that is both a file-name and a data-name is already illegal (§1985:IV.4.2.2.1.1, COBOL2692). Probes at --std 85: (b) two 01 EXT-A EXTERNAL (the witness) and ext-a / EXT-A differing only in case COBOL2159; FD XF EXTERNAL with 01 XF EXTERNAL refused (COBOL2692 plus 2159 and 2213); legal: 01 EXT-A EXTERNAL beside a non-external 01 EXT-A, and beside 05 EXT-A inside 01 EXT-B EXTERNAL (printed AB), and the same EXTERNAL name in a contained program, which shared the cell (IN ZZ, then YY); (c) 01 EXT-A EXTERNAL AS \"EXTB\" COBOL0900.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

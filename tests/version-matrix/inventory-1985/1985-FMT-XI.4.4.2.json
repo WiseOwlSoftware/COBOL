@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XI.4.4.2",
  "rule-digest": "b7f1193b8fe2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortKeyPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortDuplicatesPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortCollatingPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortCollatingPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortStatement",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-FMT-XI_4_4_2",
+ "notes": "§1985:XI.4.4.2 prints SORT file-name-1 with one or more ON ASCENDING/DESCENDING KEY {data-name-1} … phrases, then '[ WITH DUPLICATES IN ORDER ]', then '[ COLLATING SEQUENCE IS alphabet-name-1 ]' (one alphabet, no FOR forms), then INPUT PROCEDURE or USING and OUTPUT PROCEDURE or GIVING. The grammar's sortStatement fixes the phrase order; SortBinder.SortBindFile requires a KEY phrase, its data-names and both legs (COBOL1757); VersionConformancePass.VisitSortCollatingPhrase refuses alphabet-name-2 and FOR ALPHANUMERIC/NATIONAL below 2002 and VisitSortStatement refuses the table form (COBOL0870). Probes at --std 85: (b) no KEY, KEY with no data-name, no input/output leg each COBOL1757 (the last also draws a misleading second COBOL0870 'table sort' since the pass reads a leg-less SORT as Format 2), COLLATING before DUPLICATES and DUPLICATES twice COBOL2269; (c) two alphabet-names and FOR ALPHANUMERIC COBOL0872, a table SORT COBOL0870; (d) DESCENDING on a signed scaled S9V9 key and a mixed ASCENDING tag / DESCENDING key ran in the right order; (e) USING two sequential files GIVING an indexed and a relative file wrote 1A 2B 3C to both; a missing USING file stops with status 35. The witness sorts with DUPLICATES IN ORDER through input and output procedures.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

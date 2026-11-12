@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-9",
  "rule-digest": "23f0e6478247",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#IndicatorOf; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Dialogue.Release",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-9",
+ "notes": "§1985:XIV.3.6.4 GR9: identifier-2's content 1/2/3 means ESI/EMI/EGI, \"Any character other than 1, 2, or 3 will be interpreted as 0\", without identifier-1 only the indicator is sent, and then a content other than 1-3 is an error with no transfer. CommunicationEmitter#Emit passes identifier-2's image to MessageControl#IndicatorOf (one character 1-3, else None), and MessageControlSession#Send answers 60 for no indicator with no text. Witness covers 1,2,3,0,7, indicator-only, and 0/7 without identifier-1 (60). Probes at --std 85: (d) content 4 and 9 then 2 give one segment HHH end 2; REDEFINES content 'A' and space then '3' give HHH end 3; PIC 9P holding 20, PIC 9 COMP and PACKED-DECIMAL holding 2 each end a message (count 3); subscripted IT(S) 0 then 2 gives HH end 2; (b) identifier-1 absent: 1 closes segment, 3 ends group, 'B' gives 60, 2 with nothing pending sends an empty message; GR13 value 0 with ADVANCING and REPLACING accepted and continues the segment.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

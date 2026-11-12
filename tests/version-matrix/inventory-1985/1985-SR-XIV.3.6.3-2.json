@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.3.6.3-2",
  "rule-digest": "d5cbdb001f18",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#IsIntegerItem",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-SR-XIV_3_6_3-2",
+ "notes": "§1985:XIV.3.6.3 SR2: \"Identifier-2 must reference a one-character integer without an operational sign.\" CommunicationBinder#BindSend refuses (COBOL6171) any operand IsIntegerItem rejects or whose PicInfo is not Digits 1 unsigned; probes at --std 85 accept PIC 9, 9P, 9 COMP, a subscripted and a qualified PIC 9, and refuse P9, S9, S9 SIGN SEPARATE, 99, X, A, Z, 9 BLANK WHEN ZERO, 9V9, a group, a USAGE INDEX item, an index-name, I99(2:1), FUNCTION INTEGER/CHAR, ZERO (classes b, d). Two operand shapes under-reject: a reference-modified PIC 9 (I9 (1:1)) is accepted, though a reference-modified numeric item is class and category alphanumeric (§1985:IV.4.3.8.4.4 GR5), because IsIntegerItem reads the base item's PicInfo through the RefModPlace; and LINAGE-COUNTER of a LINAGE IS 60 file is accepted although its implicit description is an unsigned integer of the size of integer-1, two digits (§1985:VII.1.3.7), because IsIntegerItem answers true for every BoundComputedOperand without applying the one-digit test. No kb/Work note holds either (PB5289 landed the 9P/index/symbolic-character arms; PB5343 is the 2002-wording diagnostic). kb/Work PB5384 holds the defect (code read: coderead-85/out-reread2/rr-07.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
