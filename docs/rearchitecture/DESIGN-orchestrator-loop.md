@@ -393,7 +393,7 @@ one chain link per wave, hand off at ~60 min". Three mechanisms carry it:
   implementer's work is not thrown away for the clock.
 - **The progress line** (`-ProgressSeconds`, default 600): `progress.py`, started in the background like the lane tick
   (never on the event loop, never fatal), prints `PROGRESS <unit> at <n> min:` with the dispatch-ledger groups by state
-  (running, DONE reviewed CLEAN, FINDINGS, unreviewed, other), the landings enqueued and merged since the unit started
+  (running, QUEUED, DONE reviewed CLEAN, FINDINGS, unreviewed, other), the landings enqueued and merged since the unit started
   the oldest waiting item, the round-1 FINDINGS rate (reviewed groups whose round 1 drew findings, a CLEAN stamp at round 2 or
   later included), the minutes the merge queue sat empty in the unit's window (a landing record with no merged stamp counts
   as in the queue for at most 60 minutes after its enqueue, so a closed, never-merged record, kb/Work PB3725, cannot fill the
@@ -401,7 +401,12 @@ one chain link per wave, hand off at ~60 min". Three mechanisms carry it:
   wave, plus a `STALL` line for each group that STOPPED: a running group or a DONE report awaiting review with no act in the
   coordination directory for 20 minutes (`progress.group_activity`: its scratch directory and files at the top of `scratch/`
   and one level below it, where a campaign wave's groups write, its review's `review-w<wave>-<letter>` findings file and
-  scratch, and its reports; a gate waiting for a slot writes its log, 17 minutes at worst, so it is not a stall; kb/Work PB4944).
+  scratch, and its reports; a gate in its test phase and a gate waiting for a slot each write a heartbeat line to the log they
+  redirect into that scratch at least every `gate_slot.HEARTBEAT_S` (120 s), so neither is a stall; kb/Work PB4944, PB5097).
+  A group with no report and no act is QUEUED, the rolling wave has not started it (its implementer's first act is its scratch
+  directory): counted apart from running, never a stall, never over-size. A queued group of a wave that began and has shown no act
+  for 120 minutes with no group running is ORPHANED (its runner is gone), and `progress.py --record` answers its dispatch with a
+  `NOT STARTED` report so its notes return to the planner (`progress.answer_orphans`; kb/Work PB5097).
   OVER-SIZE is a different finding, about the size of the work, counted and never mailed: a still-moving group past 60
   minutes (the owner's hand-off), or past the `running_limit_min:` of its campaign's lead note
   (`work.campaign_running_limit`, the owner's decision of 2026-11-07; validated by `work.py check`), or a DONE report awaiting

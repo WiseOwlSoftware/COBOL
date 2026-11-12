@@ -215,6 +215,14 @@ def main() -> int:
                "never in the harness's session scratchpad" in rev_a),
               (True, False, True, False, True))
 
+        # THE START SIGNAL (kb/Work PB5097): progress.py reports a group with no report and no act as QUEUED, so an implementer's
+        # prompt makes its scratch directory <wave scratch>\w<wave><letter>\ its very first command, one per group.
+        impl_a, impl_b = ((r["prompts"].get(f"impl-{x}-PB{n}") or [""])[0] for x, n in (("A", 1), ("B", 2)))
+        check("PB5097: each implementer is told to make its own scratch directory its very first command (the loop's start signal)",
+              (f"YOUR VERY FIRST COMMAND, before you read anything else, creates your scratch directory {scratch1}\\w9a\\" in impl_a,
+               f"{scratch1}\\w9b\\" in impl_b, f"{scratch1}\\w9b\\" in impl_a),
+              (True, True, False))
+
         # EVERY WORKFLOW TEMPLATE PARSES (review R1-1). Expected from the runtime's contract (the HARNESS above): a template is the
         # body of an async function of `args`, `agent`, `parallel`, `log` and `phase`, its `export const meta` read as a constant,
         # so `node --check` of that wrapper must exit 0. A reworded string literal once carried an unescaped apostrophe that no

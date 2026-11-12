@@ -313,12 +313,21 @@ function successorNote(g) {
     }[predecessorEnd(p)]
 }
 
+// THE START SIGNAL (kb/Work PB5097): a group the wave has not started has no scratch directory, and a group with no report and no
+// act in the coordination directory is `queued` to the loop's progress report (progress.py), never running and never a STALL. The
+// implementer's scratch directory (MANDATORY-PRACTICES P16) is therefore its first act, made before anything else is read or run.
+function startLine(g) {
+  return `YOUR VERY FIRST COMMAND, before you read anything else, creates your scratch directory ${S}\\w${W}${g.letter.toLowerCase()}\\ (the spec's Scratch line): ` +
+    `the loop reads that directory as the signal that your group has STARTED (a group with no scratch directory is reported queued, not running; kb/Work PB5097). `
+}
+
 function runGroup(g) {
   const ctl = { cancelled: false }
   return withCeiling(agent(
     AUTH + `You are the wave-${W} fix-lane implementer for group ${g.letter} (${g.notes}). ` + successorNote(g) +
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow it exactly; ` +
     `it names your brief, codes, report path, scratch dir, gate and checkpoint protocol. ` +
+    startLine(g) +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and your report, and return status SPLIT. ` +
     RETURN_LINE,
     { label: `impl-${g.letter}-${g.lead}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, ...implModel(g) }
