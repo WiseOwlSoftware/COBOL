@@ -6016,9 +6016,19 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         return new NameCandidates<DataItem>(hits);
     }
 
+    /// <summary>⛔ WHETHER A NAME REFERENCED IN A DATA DESCRIPTION ENTRY CLAUSE TAKES THE GROUPS ABOVE ITS SUBJECT AS
+    /// IMPLICIT QUALIFIERS (kb/Work PB5165) — the ONE edition test of that rule, asked by
+    /// <see cref="EntryClauseCandidates"/> (OCCURS … DEPENDING ON) and <see cref="RegionClauseCandidates"/> (OCCURS KEY,
+    /// RENAMES). It is ISO/IEC 1989:2002's change (§2002:F.2, item 67: "Data-names referenced in a data description entry
+    /// need not be qualified when they are defined in the same group as the subject of the entry"), carried on by
+    /// §2023:8.4.2.2.1 rule 5. §1985:IV.4.3.8.1 SR3 has only the exception "in the case of redefinition": every other
+    /// explicitly referenced name must be made unique by qualification, so below 2002 the whole scope's candidates
+    /// are counted (§1985:VI.5.8.3 SR2 and §1985:VI.5.11.3 SR5 give these clauses the qualifier to say it with).</summary>
+    internal bool ClauseOperandsTakeImplicitQualifiers => Edition.DialectLevel >= 2002;
+
     /// <summary>The candidate set of a data-name referenced in a DATA DESCRIPTION ENTRY CLAUSE of
     /// <paramref name="subject"/> (OCCURS … DEPENDING ON, SAME AS), with ISO §2023:8.4.2.2.1 rule 5's implicit
-    /// qualification applied: "The name is a data-name referenced in a data description entry clause whose subject
+    /// qualification applied (from 2002, <see cref="ClauseOperandsTakeImplicitQualifiers"/>): "The name is a data-name referenced in a data description entry clause whose subject
     /// is subordinate to the same group item as that data-name. In this case, the names of any group items
     /// superordinate to both the data-name and the subject of the data description entry clause are used as
     /// implicit qualifiers for the reference, in addition to any explicit qualifiers needed to establish uniqueness
@@ -6030,9 +6040,30 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal NameCandidates<DataItem> EntryClauseCandidates(DataItem subject, string name, IReadOnlyList<string> quals,
                                                       Model.Scope scope)
     {
-        for (DataItem? group = subject.Parent; group is not null; group = group.Parent)
-            if (SubtreeCandidates(group, name, quals) is { Count: > 0 } within) return within;
+        if (ClauseOperandsTakeImplicitQualifiers)
+            for (DataItem? group = subject.Parent; group is not null; group = group.Parent)
+                if (SubtreeCandidates(group, name, quals) is { Count: > 0 } within) return within;
         return QualifiedCandidates(name, quals, scope);
+    }
+
+    /// <summary>The candidate set of a data-name an entry clause confines to ONE region — OCCURS KEY's data-name-2 to the
+    /// table (§2023:13.18.38.3 SR3) and RENAMES' data-name-2 and data-name-3 to the record (§2023:13.18.45.3 SR4) — with
+    /// the same edition step as <see cref="EntryClauseCandidates"/> (kb/Work PB5165). From 2002 the region's own subtree is the
+    /// set, the superordinate groups acting as implicit qualifiers; below 2002 nothing narrows, the whole scope's
+    /// candidates are counted, and the caller asks <see cref="IsWithinRegion"/> of the one that survives. One name
+    /// declared in the region and in another record is then §2023:8.4.2.2.3 SR1's ambiguity (COBOL1639), as in the
+    /// procedure division.</summary>
+    internal NameCandidates<DataItem> RegionClauseCandidates(DataItem region, string name, IReadOnlyList<string> quals)
+        => ClauseOperandsTakeImplicitQualifiers
+            ? SubtreeCandidates(region, name, quals)
+            : QualifiedCandidates(name, quals, ScopeOf(region.Root));
+
+    /// <summary>Whether <paramref name="item"/> is <paramref name="region"/> or one of its subordinates.</summary>
+    internal static bool IsWithinRegion(DataItem item, DataItem region)
+    {
+        for (DataItem? n = item; n is not null; n = n.Parent)
+            if (ReferenceEquals(n, region)) return true;
+        return false;
     }
 
     /// <summary>⛔ THE ONE AMBIGUITY VERDICT OF THE DATA DIVISION (kb/Work PB978). Exactly one survivor is the item.

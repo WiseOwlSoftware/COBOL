@@ -30,7 +30,9 @@ internal sealed class OccursKeyResolvePass : IBindPass
 
     /// <summary>Post-build OCCURS KEY pass (kb/Work PB1018): resolve every data-name-2 of every table's KEY phrase
     /// ONCE, into <see cref="OccursSpec.ResolvedKeys"/>, which SEARCH ALL and the table SORT then read.
-    /// <para>The candidates are the table's OWN subtree (ISO §2023:13.18.38.3 SR3 — "The first specification of
+    /// <para>The candidates are the table's OWN subtree from 2002 (<see cref="DataBinder.RegionClauseCandidates"/>; kb/Work PB5165 —
+    /// below 2002 the whole scope's, narrowed by the written qualifiers alone, and the survivor is asked to lie in the
+    /// table) (ISO §2023:13.18.38.3 SR3 — "The first specification of
     /// data-name-2 shall be the name of either the entry containing the OCCURS clause or an entry subordinate to
     /// the entry containing the OCCURS clause. Subsequent specification of data-name-2 shall be subordinate to the
     /// entry containing the OCCURS clause"), narrowed by the WRITTEN qualifiers through the ONE §2023:8.4.2.2 matcher and
@@ -53,9 +55,11 @@ internal sealed class OccursKeyResolvePass : IBindPass
                 // The phrase as the program wrote it: ASCENDING or DESCENDING names the KEY phrase of ISO
                 // §2023:13.18.38.2, so a diagnostic about the key never opens with an elided OCCURS (kb/Work PB4160).
                 string keyPhrase = $"OCCURS {(key.Descending ? "DESCENDING" : "ASCENDING")} KEY IS";
-                var within = binder.SubtreeCandidates(table, key.Name, key.Qualifiers);
+                var within = binder.RegionClauseCandidates(table, key.Name, key.Qualifiers);
                 DataItem? item = binder.UniqueOrReportAmbiguous(within, $"{keyPhrase} data-name-2 of '{subject}'", written,
                     out bool ambiguous);
+                // Below 2002 the candidates are the whole scope's, and the one that survives may lie outside the table.
+                if (item is not null && !DataBinder.IsWithinRegion(item, table)) item = null;
                 if (item is null && !ambiguous)
                     binder.Edition.Error(DiagnosticCatalog.OccursKeyNotWithinTable,
                         $"{keyPhrase} '{written}' on '{subject}': no data item so named "
