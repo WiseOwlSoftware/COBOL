@@ -25,7 +25,6 @@
     "WiseOwl.Cobol.Binding.ConstantEntryBinder::ConstantOf": [
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
@@ -253,6 +252,10 @@
       "WiseOwl.Cobol.Binding.Passes.SynthesizeImpliedPicturesPass",
       "WiseOwl.Cobol.Validation.VersionConformancePass"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::ConstantOfIdentifierPosition": [
+      "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::ConstantStoreProhibition": [
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder"
     ],
@@ -438,6 +441,10 @@
     "WiseOwl.Cobol.Binding.DataBinder::IsTypeDeclarationCondition": [
       "WiseOwl.Cobol.Binding.Model.SymbolTable"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::IsWithinRegion": [
+      "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
+      "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::IsWrittenEntry": [
       "WiseOwl.Cobol.Binding.Passes.CheckUsageDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.SynthesizeImpliedPicturesPass"
@@ -601,6 +608,10 @@
       "WiseOwl.Cobol.Binding.BinderDriver",
       "WiseOwl.Cobol.Binding.RefModBinder",
       "WiseOwl.Cobol.Compiler.Oo.OoDriver"
+    ],
+    "WiseOwl.Cobol.Binding.DataBinder::RegionClauseCandidates": [
+      "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
+      "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::RegisterImpliedName": [
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder"
@@ -786,8 +797,6 @@
       "WiseOwl.Cobol.Binding.Validation.StatementValidation"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::SubtreeCandidates": [
-      "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
-      "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Procedure.SortBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::SumCounterRegisters": [
@@ -808,6 +817,9 @@
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
       "WiseOwl.Cobol.Binding.Validation.StatementValidation",
       "WiseOwl.Cobol.Validation.FlagConformancePass"
+    ],
+    "WiseOwl.Cobol.Binding.DataBinder::SynchronizedViolation": [
+      "WiseOwl.Cobol.Binding.Passes.CheckClauseSubjectsPass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::TakeFillerOrdinal": [
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
@@ -879,7 +891,8 @@
       "WiseOwl.Cobol.Binding.Passes.UsageInheritancePass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ValidateValueCategory": [
-      "WiseOwl.Cobol.Binding.Passes.CheckGroupValueDeclarationsPass"
+      "WiseOwl.Cobol.Binding.Passes.CheckGroupValueDeclarationsPass",
+      "WiseOwl.Cobol.Binding.Passes.CheckValueLiteralClassesPass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ViaReference": [
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",

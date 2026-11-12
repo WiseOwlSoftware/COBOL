@@ -2010,7 +2010,7 @@ of the same clause is untouched everywhere; and BYTES stays a `nameSlot` row in
 says a context-sensitive word outside its format *"is treated as a user-defined word"*, and a hard keyword
 token is exactly how that right gets lost silently. Three programs say which is which:
 `conformance:cases/13.18.43-RECORD/pb721-record-bytes-below-2023` (the spelling, refused at 85/2002/2014),
-`conformance:cases/13.18.43-RECORD/pb721_zero_length_record_85` (the CHARACTERS spelling, accepted at 85) and
+`conformance:cases/13.18.43-RECORD/pb721_zero_length_record_2002` (the CHARACTERS spelling, accepted from 2002) and
 `conformance:cases/_unassigned/pb721_bytes_user_word_85` (the word as a data-name, a table and a paragraph-name at 85).
 
 **SR1 stays where it is** (`FileControlBinder.MaterializeImpliedRecord`, COBOL1836): it is about the clause's
@@ -2023,12 +2023,17 @@ obligations, and the third needs a fact the data model does not carry: which SEC
 two arms of three is exactly the defect SR4's split exists to prevent, so SR6 waits for that fact and then
 becomes three rows of this table.
 
-**Edition-invariance was derived, not assumed.** The RECORD clause and its syntax rules predate COBOL-85, Annex E
-— the complete 2014→2023 delta — carries no entry for this subclause, and `docs/VERSION_CHANGE_REFERENCE.md`
-records that this repository's spec cannot speak for the 85↔2002 delta at all, so a gate below 2014 would be
-INVENTED rather than derived. The screen is therefore unconditional and every negative rejects at all four
-editions; `conformance:cases/13.18.43-RECORD/pb721_zero_length_record_85` is the over-rejection twin that proves no gate leaked
-downward.
+**Each row names the edition whose text has it** (`RecordClauseRule.Since`, kb/Work PB5196). Annex E — the complete
+2014→2023 delta — carries no entry for this subclause, so no row is a 2023 introduction. The 1985 text
+(`specs/ANSI_COBOL_1985.md`, §1985:VII.3.8) prints SR3 (integer-3 greater than integer-2) for Format 2 and no
+ordering rule for Format 3, so SR9 (integer-5 greater than integer-4) is `Since = 2002`, its first print being
+§2002:13.16.41.2 SR8; at `--std 85` `RECORD CONTAINS 5 TO 5 CHARACTERS` compiles
+(`conformance:cases/VII.3.8@1985-RECORD-CLAUSE/pb5196_record_contains_equal_bounds`). The zero minimums of SR7 and SR8
+are the same: §2002:13.16.41.2 SR6 and SR7 are the first rules to permit zero, and `IntegerOperandRules` classifies the
+RECORD clause's integer-2 and integer-4 with `IntegerSlot.ZeroFrom(2002, …)`, so §1985:III.2 ("neither signed nor
+zero unless explicitly allowed by the rules for that format") refuses `FROM 0` and `CONTAINS 0 TO n` at 85 with
+COBOL2386. `RecordClauseRuleDriftTests.EveryRowSince2002_IsInThe2002ClauseAndNotInThe1985RecordClause` re-derives the
+column from the two texts. The zero-length-record witness is `pb721_zero_length_record_2002`.
 
 **Why a table, and the drift guard that keeps it one.** `RecordClauseRuleDriftTests` re-derives every row from
 `specs/ISO_COBOL_2023.md` on every run — the clause region, the printed ordinal, the two arms of SR4, and the FORMAT

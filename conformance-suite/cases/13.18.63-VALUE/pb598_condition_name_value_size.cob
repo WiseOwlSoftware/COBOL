@@ -1,10 +1,16 @@
       *>--- conformance-case
       *> id: pb598_condition_name_value_size
       *> rules: [SR-13.18.63.3-4]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Accepted from 2002 (kb/Work PB5190): §2002:13.16.61.2 SR4 has the same
+      *> "elementary item" and "explicit PICTURE" words as 2023. §1985:VI.5.15.3
+      *> SR3 says "of an item" and bounds a nonnumeric literal by the PICTURE,
+      *> which a condition-name has from its conditional variable (§1985:VI.5.15.5
+      *> GR1), so at 85 each oversize literal below is refused (COBOL1740;
+      *> pb5190-condition-name-value-oversize-1985).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB598P1.
       *> ISO 13.18.63.3 SR4 - "If the item is of category alphabetic,

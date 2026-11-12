@@ -144,13 +144,16 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     || (info.ThruName is { } rt && binder.State.Clauses.RefusedClauseOperands.Contains(rt))) continue;
                 using var __q = binder.Edition.At(ren);
                 string face = $"'{ren.CobolName ?? "FILLER"}' RENAMES";
-                info.From = binder.UniqueOrReportAmbiguous(binder.SubtreeCandidates(root, info.FromName, info.FromQualifiers), face,
+                info.From = binder.UniqueOrReportAmbiguous(binder.RegionClauseCandidates(root, info.FromName, info.FromQualifiers), face,
                     DataBinder.WrittenQualified(info.FromName, info.FromQualifiers), out bool fromAmbiguous);
                 bool thruAmbiguous = false;
                 info.Thru = info.ThruName is { } t
-                    ? binder.UniqueOrReportAmbiguous(binder.SubtreeCandidates(root, t, info.ThruQualifiers), face,
+                    ? binder.UniqueOrReportAmbiguous(binder.RegionClauseCandidates(root, t, info.ThruQualifiers), face,
                         DataBinder.WrittenQualified(t, info.ThruQualifiers), out thruAmbiguous)
                     : null;
+                // Below 2002 (kb/Work PB5165) the candidates are the whole scope's: a unique name outside this record is no operand.
+                if (info.From is { } from0 && !DataBinder.IsWithinRegion(from0, root)) info.From = null;
+                if (info.Thru is { } thru0 && !DataBinder.IsWithinRegion(thru0, root)) info.Thru = null;
                 if (fromAmbiguous || thruAmbiguous) continue;
                 if (info.From is null || (info.ThruName is not null && info.Thru is null))
                 {
