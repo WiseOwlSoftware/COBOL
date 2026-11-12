@@ -1,4 +1,4 @@
-## Statement validation finish, group B: INSPECT operands, READ INTO slices, ALL literals and P-scaled comparisons at COBOL-85
+## Entry 3510 — 2026-11-11 16:23 PST — Statement validation finish, group B: INSPECT operands, READ INTO slices, ALL literals and P-scaled comparisons at COBOL-85
 
 Six notes of one root (the operand screens and the numeric-fill paths that read a base item where the standard names the item a reference denotes, and the `--std 85` rules that differ from 2023), fixed in harm order. Each was re-probed on the build first; all six reproduced.
 
@@ -19,3 +19,4 @@ Six notes of one root (the operand screens and the numeric-fill paths that read 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 24,011/24,011 ran · Unit 40,756/40,756 ran · Characterization 37/37 ran (skipped 0)` at head 65d5e627c1 (run 000004-20261111T181437Z). An earlier gate at 5db0fee562 was red on three tests this change moved: the 85 pin of `ALL "5"` into `PIC 9V9` (5.5, the 2023 reading, now 5.0 at 85 with a 2014 twin), the hand-written whole-item test and the numeric image decode outside the named sites, both in the new byte-fill store (now `NumericRenderer.CarrierOfImage`).
 
 **Sibling of PB5187, found in OperandText and fixed.** The verbatim image arms (REDEFINES view, StoreAsImage item) never laid the P zeros of an unsigned item on the de-signed image, so from 2002 on `PIC 99PP` holding 1200 in a group moved as a whole compared as "12"; `VerbatimImage` applies `PExpand`; golden `pb5187_p_scaled_image_compare`. The gate verdict above is for the head before this sibling; the verdict of the final head is in the report.
+
