@@ -123,9 +123,11 @@ public static class Constructs
     public const string InitializeCategory2014 = "initialize-category-2014";
     public const string InitializeCategory2023 = "initialize-category-2023";
     public const string InitializeFiller2002 = "initialize-filler-2002";
+    public const string InitializeReplacingCategorySet2002 = "initialize-replacing-category-set-2002";
     public const string InitializeThenReplacing2002 = "initialize-then-replacing-2002";
     public const string InitializeToDefault2002 = "initialize-to-default-2002";
     public const string InitializeToValue2002 = "initialize-to-value-2002";
+    public const string InitializeVariableOccurrence2002 = "initialize-variable-occurrence-2002";
     public const string InlineMethodInvocation2002 = "inline-method-invocation-2002";
     public const string InlinePerformAfter2002 = "inline-perform-after-2002";
     public const string InspectBackward2023 = "inspect-backward-2023";

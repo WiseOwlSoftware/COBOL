@@ -20,9 +20,13 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// reference (<c>StatementValidation.CheckDeclarativesBoundary</c>) — ask about the SECTION.</param>
 /// <param name="segment">The section's segment-number (<see cref="Segmentation.ValueOf"/>): the written one, else 0
 /// (§1985:XVI.3.2.3 SR2).</param>
-internal sealed class SectionInfo(string name, int startPc, bool isDeclarative = false, int segment = 0)
+internal sealed class SectionInfo(string name, int startPc, int headerLine, bool isDeclarative = false, int segment = 0)
 {
     public string Name { get; } = name;
+
+    /// <summary>The source line of the section header — where a diagnostic that names this declaration points
+    /// (kb/Work PB5091). Not its first paragraph's line: a section of no paragraphs has none.</summary>
+    public int HeaderLine { get; } = headerLine;
 
     /// <summary>The section's segment-number (§1985:XVI.3.2.4 GR1: "All sections which have the same segment-number constitute a
     /// program segment"); 0 when none is written (<see cref="Segmentation"/>).</summary>
@@ -30,6 +34,16 @@ internal sealed class SectionInfo(string name, int startPc, bool isDeclarative =
 
     /// <summary>Is this a section of the declaratives portion of the procedure division (ISO §2023:14.3)?</summary>
     public bool IsDeclarative { get; } = isDeclarative;
+
+    /// <summary>Is this a COMPILED debugging section — "a section that contains a USE FOR DEBUGGING statement" (§1985:III.2),
+    /// with WITH DEBUGGING MODE in force, so that its procedures exist? The rules that ask — §1985:XV.3.2.3 SR3 and SR5 on
+    /// a reference to one of its procedures, SR11 on DEBUG-ITEM, general rule 1 on the statements in it — ask about the
+    /// SECTION, so the fact is recorded where it is known (kb/Work PB5081), as <see cref="IsDeclarative"/> is.</summary>
+    public bool IsDebugging { get; private set; }
+
+    /// <summary>Record that the section's USE statement is a compiled USE FOR DEBUGGING (the one writer,
+    /// <c>ProcedureTableBuilder.DeclCollectSection</c>).</summary>
+    public void MarkDebugging() => IsDebugging = true;
 
     /// <summary>The section's pc range — EMPTY until <see cref="CloseAt"/> records a collected paragraph, and
     /// PERMANENTLY empty for a zero-paragraph section.</summary>

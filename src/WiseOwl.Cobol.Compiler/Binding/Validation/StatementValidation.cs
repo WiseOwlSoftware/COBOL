@@ -436,6 +436,16 @@ internal sealed class StatementValidation(DataBinder data)
         ProcedureReferenceKind kind)
     {
         bool fromDeclarative = referencingSection is { IsDeclarative: true };
+        // §1985:XV.3.2.3 SR3 — a procedure of a debugging section, referenced from outside the SET of debugging sections, by
+        // ANY statement: the rule has no PERFORM exception (kb/Work PB5081). Only a compiled debugging section has procedures.
+        if (target.Section is { IsDebugging: true } debugging && referencingSection is not { IsDebugging: true })
+        {
+            data.Edition.Error(DiagnosticCatalog.DebuggingProcedureReferenced,
+                $"{verb} '{name}': '{name}' is a procedure of the debugging section '{debugging.Name}', and this statement is "
+                + "outside the set of debugging sections; §1985:XV.3.2.3 SR3: \"Statements appearing outside of the set of "
+                + "debugging sections must not reference procedure-names defined within the set of debugging sections.\"");
+            return false;
+        }
         // SR4 — a procedure of a declarative section, referenced from outside THAT section by anything but PERFORM.
         if (target.IsDeclarative && !ReferenceEquals(target.Section, referencingSection)
             && kind != ProcedureReferenceKind.Perform)

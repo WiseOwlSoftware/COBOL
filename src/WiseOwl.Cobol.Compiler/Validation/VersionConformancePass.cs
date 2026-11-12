@@ -379,6 +379,7 @@ internal sealed class VersionConformancePass
     /// </summary>
     private void GateInitialize(BoundInitialize ini)
     {
+        GateCobol85VariableOccurrence(ini);
         foreach (var item in ini.Replacing)
         {
             if (FigurativeAssociation.Sr5FigurativeText(item.Sender) is not { } figText) continue;
@@ -389,6 +390,25 @@ internal sealed class VersionConformancePass
                         integerReceiver: cat is InitializeCategory.Numeric,
                         $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {figText} (the MOVE "
                         + "ISO §2023:14.9.20.3 SR4 requires to be valid)");
+        }
+    }
+
+    /// <summary>§1985:VI.6.17.3 SR4 (kb/Work PB5088): "The description of the data item referenced by identifier-1 or any
+    /// items subordinate to identifier-1 may not contain the DEPENDING phrase of the OCCURS clause." The ISO/IEC 1989:2002
+    /// syntax rules (14.8.19.2) drop it, so INITIALIZE of a variable-occurrence item is the 2002 form: row
+    /// <c>initialize-variable-occurrence-2002</c>, asked once per implicit INITIALIZE (one per identifier-1, §2023:14.9.20.4
+    /// GR3) of the item identifier-1 RESOLVED to (<see cref="BoundInitialize.Written"/>). The subject is identifier-1's own
+    /// description and its subordinates' (so <c>INITIALIZE E (1)</c> of an ODO element E is asked too); a DEPENDING
+    /// phrase on a group that CONTAINS identifier-1 is outside the rule's words and is not asked.</summary>
+    private void GateCobol85VariableOccurrence(BoundInitialize ini)
+    {
+        if (ini.Written is not { } written || ConstructRegistry.IsAvailable(_edition, Constructs.InitializeVariableOccurrence2002)) return;
+        foreach (var d in DataItem.SelfAndDescendantsOf(written.Item))
+        {
+            if (d.OccursSpec?.DependingName is null) continue;
+            Check(Constructs.InitializeVariableOccurrence2002,
+                $"INITIALIZE of '{written.Item.CobolName ?? "FILLER"}': '{d.CobolName ?? "FILLER"}' is described with OCCURS … DEPENDING ON {d.OccursSpec.DependingName}");
+            return;
         }
     }
 
@@ -2276,6 +2296,24 @@ internal sealed class VersionConformancePass
                 : ctx.MESSAGE_TAG() is not null ? Constructs.InitializeCategory2023
                 : null;                                   // the COBOL-85 five: ALPHABETIC/ALPHANUMERIC[-EDITED]/NUMERIC[-EDITED]
             if (id is not null) _p.Check(id, $"INITIALIZE category-name {ctx.GetText()}");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>⛔ ONE CATEGORY PER REPLACING ITEM AT COBOL-85 (kb/Work PB5180). §1985:VI.6.17.2 prints the five
+        /// category words of a REPLACING item in plain braces with no choice indicators, and §1985:IV.2.1.4: "When
+        /// braces, { } , enclose a portion of a general format, one of the options contained within the braces must be
+        /// either explicitly specified or implicitly selected." The choice indicators that make a category-name a SET
+        /// (ISO §2023:14.9.20.2, §2023:5.2.6.4) are in the ISO/IEC 1989:2002 format (14.8.19.1), so a REPLACING item
+        /// naming two or more categories is the 2002 form: the second word is where the 1985 item ends. Asked of the
+        /// REPLACING item only — the VALUE phrase's category-name is a 2002 phrase whole (initialize-to-value-2002).</summary>
+        public override object? VisitInitializeReplacingItem(CobolParserCore.InitializeReplacingItemContext ctx)
+        {
+            if (ctx.initializeCategory()?.initializeCategoryName() is { Length: > 1 } names)
+            {
+                using var _ = Sink.At(names[1]);
+                _p.Check(Constructs.InitializeReplacingCategorySet2002,
+                    $"INITIALIZE REPLACING {WrittenSource.Of(ctx.initializeCategory())} DATA, more than one category in one item");
+            }
             return base.VisitChildren(ctx);
         }
 

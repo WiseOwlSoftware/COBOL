@@ -4082,8 +4082,9 @@ public static class DiagnosticCatalog
         "ISO §2023:13.4.5.3 SR3 / §2023:13.18.43.3 SR1");
 
     /// <summary>COBOL1837 — the description half: the two entry kinds whose own syntax rules withdraw the
-    /// §2023:13.4.5.3 SR3 permission. Both spell the SAME requirement, so they share one code and the message names
-    /// the arm that caught it.</summary>
+    /// §2023:13.4.5.3 SR3 permission, and every file description entry at --std 85, where the permission does not
+    /// exist (kb/Work PB5071). All spell the SAME requirement, so they share one code and the message names the arm
+    /// that caught it.</summary>
     public static readonly DiagnosticDescriptor FileDescriptionRecordRequired = new(
         "COBOL1837", "file-description-record-required", EditionSeverity.Error,
         "ISO §2023:13.4.5.3 syntax rule 7 (indexed): \"For an indexed file, one or more record description entries "
@@ -4094,8 +4095,11 @@ public static class DiagnosticCatalog
         + "the RECORD KEY operand to \"reference a data item … within a record description entry associated with "
         + "the file-name specified in this file control entry\", and §2023:14.9.40.3 SR6 a) requires that \"the data "
         + "items identified by key data-names shall be described in records associated with file-name-1\". "
-        + "Neither can be located in a record nothing describes.",
-        "ISO §2023:13.4.5.3 SR7 / §2023:13.4.6.3 SR2");
+        + "Neither can be located in a record nothing describes. At --std 85 the permission does not exist at all: "
+        + "§1985:VII.3.2.3 SR3, §1985:VIII.3.2.3 SR3 and §1985:IX.3.2.3 SR3 each read \"One or more record description "
+        + "entries must follow the file description entry.\", so every file description entry that is not a report "
+        + "file's is refused here when no record description entry follows it (kb/Work PB5071).",
+        "ISO §2023:13.4.5.3 SR7 / §2023:13.4.6.3 SR2 / §1985:VII.3.2.3 SR3 / §1985:VIII.3.2.3 SR3 / §1985:IX.3.2.3 SR3");
 
     /// <summary>COBOL3983 — the READ half of the record-less entry's verb rules (kb/Work PB694). The implied record
     /// <c>FileControlBinder.MaterializeImpliedRecord</c> builds has no record-name, so a READ without INTO would fill an
@@ -4202,8 +4206,10 @@ public static class DiagnosticCatalog
         + "SEQUENTIAL or a RECORD DELIMITER clause; and an ACCESS MODE, FILE STATUS, LOCK MODE, RESERVE or "
         + "SHARING clause belongs to several formats and to none of them is Format 4. §2023:12.4.5.2 SR8, SR9 and "
         + "SR11 each close with \"The associated file description entry shall not be a sort-merge file "
-        + "description entry\"; SR13 requires the entry of a sort-merge file to be Format 4.",
-        "ISO §2023:12.4.5.2 SR8 / SR9 / SR11 / SR13 / §2023:12.4.5.1 Format 4");
+        + "description entry\"; SR13 requires the entry of a sort-merge file to be Format 4. At --std 85 the entry is "
+        + "narrower still: §1985:XI.2.3.3 SR2, \"only the ASSIGN clause is permitted to follow file-name-1 in the "
+        + "FILE-CONTROL paragraph\", so OPTIONAL and ORGANIZATION IS SEQUENTIAL are refused too (kb/Work PB5071).",
+        "ISO §2023:12.4.5.2 SR8 / SR9 / SR11 / SR13 / §2023:12.4.5.1 Format 4 / §1985:XI.2.3.3 SR2");
 
     /// <summary>COBOL2912 — §2023:12.4.5.2 SR11's FIRST sentence, "Format 3 shall be specified only for a
     /// sequential file or a report file", broken by an entry that writes a clause of §2023:12.4.5.1's Format 3
@@ -8075,14 +8081,45 @@ public static class DiagnosticCatalog
         + "occurrence, and DEBUG-SUB-1 to DEBUG-SUB-3 tell which one a statement referenced.",
         "X3.23-1985 USE FOR DEBUGGING syntax rules 10 and 12 (VCR Table 7 row 7.17)");
 
-    // kb/Work PB4810: a data-name or cd-name debug target is named once (X3.23-1985 USE FOR DEBUGGING syntax rule 6).
+    // kb/Work PB4810, PB5081: a data-name, cd-name, file-name or procedure-name debug operand is named once (X3.23-1985 USE FOR DEBUGGING syntax rule 6).
     public static readonly DiagnosticDescriptor DebugTargetRepeated = new(
         "COBOL6335", "debug-target-repeated", EditionSeverity.Error,
-        "A data item or communication description appears in only one X3.23-1985 USE FOR DEBUGGING statement and only "
+        "A data item, communication description, file or procedure appears in only one X3.23-1985 USE FOR DEBUGGING statement and only "
         + "once in it (syntax rule 6: \"Any given identifier, cd-name, file-name, or procedure-name may appear in only "
         + "one USE FOR DEBUGGING statement and may appear only once in that statement\"), so each debugging section "
         + "has its own targets and a statement never runs two sections for one operand.",
         "X3.23-1985 USE FOR DEBUGGING syntax rule 6 (VCR Table 7 row 7.17)");
+
+    // kb/Work PB5081: a procedure-name of a debugging section is referenced from where §1985:XV.3.2.3 SR3 or SR5 forbids it.
+    public static readonly DiagnosticDescriptor DebuggingProcedureReferenced = new(
+        "COBOL6946", "debugging-procedure-referenced", EditionSeverity.Error,
+        "A procedure-name defined within a debugging section is referenced by a statement outside the set of debugging "
+        + "sections, or names a subject of a USE FOR DEBUGGING statement. §1985:XV.3.2.3 SR3: \"Statements appearing outside "
+        + "of the set of debugging sections must not reference procedure-names defined within the set of debugging "
+        + "sections.\" (with no PERFORM exception), and SR5: \"Procedure-names defined within debugging sections must not "
+        + "appear within USE FOR DEBUGGING statements.\" A debugging section is entered only by the debugging facility "
+        + "(general rule 3), so nothing else may name its procedures.",
+        "§1985:XV.3.2.3 SR3 / SR5 (VCR Table 7 row 7.17)");
+
+    // kb/Work PB5081: the ALL PROCEDURES phrase is written twice, or beside a procedure-name subject (§1985:XV.3.2.3 SR7, SR8).
+    public static readonly DiagnosticDescriptor DebugAllProceduresConflict = new(
+        "COBOL6947", "debug-all-procedures-conflict", EditionSeverity.Error,
+        "The ALL PROCEDURES phrase of a USE FOR DEBUGGING statement is written a second time in the program, or a USE FOR "
+        + "DEBUGGING statement of a program that specifies ALL PROCEDURES names a procedure-name subject. §1985:XV.3.2.3 SR7: "
+        + "\"The ALL PROCEDURES phrase can appear only once in a program.\" SR8: \"When the ALL PROCEDURES phrase is "
+        + "specified, procedure-name-1 must not be specified in any USE FOR DEBUGGING statement.\" ALL PROCEDURES already "
+        + "makes every procedure outside the debugging sections a subject (general rule 4), so a second one, or a named "
+        + "procedure, would give one procedure two debugging sections.",
+        "§1985:XV.3.2.3 SR7 / SR8 (VCR Table 7 row 7.17)");
+
+    // kb/Work PB5081: a debugging section follows a declarative section that is not one (§1985:XV.3.2.3 SR1).
+    public static readonly DiagnosticDescriptor DebuggingSectionPlacement = new(
+        "COBOL6948", "debugging-section-placement", EditionSeverity.Error,
+        "A debugging section (a section that contains a USE FOR DEBUGGING statement, §1985:III.2) follows a declarative "
+        + "section that is not a debugging section. §1985:XV.3.2.3 SR1: \"Debugging section(s), if specified, must appear "
+        + "together immediately after the DECLARATIVES header.\" Move the debugging sections ahead of the other "
+        + "declarative sections.",
+        "§1985:XV.3.2.3 SR1 (VCR Table 7 row 7.17)");
 
     // kb/Work PB4858: the DEBUG-ITEM register is referenced from within a debugging section only (X3.23-1985 syntax rule 11).
     public static readonly DiagnosticDescriptor DebugItemOutsideDebuggingSection = new(

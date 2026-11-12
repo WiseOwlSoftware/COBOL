@@ -302,6 +302,15 @@ public sealed class FileModel
     /// <summary>True for a SELECT OPTIONAL file.</summary>
     public bool Optional { get; set; }
 
+    /// <summary>Everything the file control entry wrote beyond <c>SELECT file-name-1 ASSIGN …</c> — the OPTIONAL phrase,
+    /// then each clause other than ASSIGN, in source order — as written, with its position; empty when the entry is
+    /// exactly SELECT and ASSIGN. It is the 1985 sort-merge entry's one question: §1985:XI.2.3.2 prints
+    /// <c>SELECT file-name-1 ASSIGN TO …</c> and nothing else, and §1985:XI.2.3.3 SR2 says "only the ASSIGN clause is
+    /// permitted to follow file-name-1" (<see cref="FileControlKeyRules"/>, kb/Work PB5071). Every clause counts,
+    /// including the ones no 2023 format carries (PADDING CHARACTER), so it is captured as written rather than
+    /// re-derived from the per-clause facts.</summary>
+    public List<(string Written, WiseOwl.Cobol.Editions.DiagnosticCursor At)> BeyondAssign { get; } = [];
+
     /// <summary>The FILE STATUS data-name as written, resolved to <see cref="FileStatusItem"/> post-build; null if none.</summary>
     public string? FileStatusName { get; set; }
 

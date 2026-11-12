@@ -1,30 +1,20 @@
       *>--- conformance-case
       *> id: pb345_record_less_fd_area_85
-      *> rules: [SR-13.4.5.3-3, GR-14.9.30.4-6]
-      *> accept: [85]
+      *> rules: [SR-13.4.5.3-3]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> The COBOL-85 twin of 2023/pb345_record_less_fd_area (kb/Work PB345). ISO/IEC
-      *> 1989:2023 §2023:13.4.5.3 SR3's permission to write a file description entry with NO
-      *> record description entries, and §2023:14.9.30.4 GR6's implied "alphanumeric group item
-      *> of the maximum size established by the RECORD clause", carry no edition gate --
-      *> docs/VERSION_CHANGE_REFERENCE.md records no delta for either -- so the SAME
-      *> program behaves identically at --std 85. This twin exists to keep it that way:
-      *> gating the record-less FD by accident would be invisible at 2023 alone.
-      *> The UNLOCK legs of the 2023 twin are ABSENT here on purpose -- the UNLOCK
-      *> statement is a COBOL-2002 introduction (§2023:14.9.47), gated at bind.
-      *>
-      *> DERIVATION (identical to the 2023 twin, same clauses) --
-      *>   OPEN=00  §2023:9.1.13.2 item 1.
-      *>   R1       the implied 20-byte area to a PIC X(20) receiver: same bytes.
-      *>   R2       the implied entry is a GROUP, so §2023:14.9.25.4 GR4 second paragraph makes
-      *>            the implicit MOVE an alphanumeric-to-alphanumeric elementary move and
-      *>            the leftmost 5 of "12345ABCDEFGHIJKLMNO" reach the PIC 9(5) receiver.
-      *>   R3=10    §2023:9.1.13.4 item 1 a).
-      *>   RD1=47   READ on a CLOSED connector: §2023:9.1.13.7 item 7.
-      *>   OO=00 / CL=00   successful OPEN OUTPUT and CLOSE (§2023:9.1.13.2 item 1).
-      *>   RD2=23   RANDOM READ of relative record 1 of an empty file: §2023:9.1.13.5 item 3 a).
+      *> The COBOL-85 twin of 2023/pb345_record_less_fd_area (kb/Work
+      *> PB345), now its edition-gate witness (kb/Work PB5071). The
+      *> permission of §2023:13.4.5.3 SR3 to write a file description
+      *> entry with NO record description entries is COBOL-2002's:
+      *> 1985 states the requirement with no exception in each I-O
+      *> module, §1985:VII.3.2.3 SR3 (sequential) and §1985:VIII.3.2.3
+      *> SR3 (relative): "One or more record description entries must
+      *> follow the file description entry." So the two record-less
+      *> FDs below (FIN, RLF), legal from 2002, are refused at 85.
+      *> This twin had claimed the opposite ("carry no edition gate")
+      *> and pinned the acceptance; the 1985 text overturns it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB345R85.
        ENVIRONMENT DIVISION.
