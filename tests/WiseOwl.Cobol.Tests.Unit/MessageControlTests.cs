@@ -98,6 +98,10 @@ public sealed class MessageControlTests : IDisposable
     [InlineData("""{ "queues": [ { "key": "NO NAME" } ] }""")]
     [InlineData("""{ "queues": [ { "name": "THIRTEENCHARS" } ] }""")]
     [InlineData("""{ "queues": [ { "name": "Q" }, { "name": "Q" } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "Q" }, { "name": "q" } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "Q", "subQueues": [ { "name": "B" }, { "name": "b" } ] } ] }""")]
+    [InlineData("""{ "sources": [ { "name": "S" }, { "name": "s" } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D", "deliverTo": "Q" }, { "name": "d", "deliverTo": "Q" } ] }""")]
     [InlineData("""{ "queues": [ { "name": "A", "subQueues": [ { "name": "B", "subQueues": [ { "name": "C", "subQueues": [ { "name": "D", "subQueues": [ { "name": "E" } ] } ] } ] } ] } ] }""")]
     [InlineData("""{ "sources": [ { "name": "S" }, { "name": "S" } ] }""")]
     [InlineData("""{ "terminals": [ { "name": "T" }, { "name": "T" } ] }""")]
@@ -180,14 +184,36 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea(name))));
     }
 
-    /// <summary>Only a device file can be shared: a destination that feeds a queue has none, and a queue, a source and a device may hold names that differ only in case.</summary>
+    /// <summary>A queue, a source and a destination are different kinds of name, so one spelling (up to case) may be each (§1985:XIV.2.2.4 GR4 and GR20 name the
+    /// kind a data item holds): only a name of one kind is a duplicate of another (kb/Work PB5284).</summary>
     [Theory]
-    [InlineData("""{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D1" }, { "name": "d1", "deliverTo": "Q" } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "Q" } ], "sources": [ { "name": "q" } ], "destinations": [ { "name": "D1", "deliverTo": "Q" } ] }""")]
     [InlineData("""{ "queues": [ { "name": "d1" } ], "sources": [ { "name": "D1" } ], "destinations": [ { "name": "D1" } ] }""")]
     public void NamesThatShareNoDeviceFile_DifferingOnlyInCaseAreDefined(string definitions)
     {
         var session = Session(definitions);
         Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D1"), "A", SendIndicator.EndOfMessage)));
+    }
+
+    /// <summary>§1985:XIV.2.2.4 GR4, GR10 and GR20 with §1985:p.A-9 ("Each lowercase letter is considered to be equivalent to its corresponding uppercase letter"): the
+    /// symbolic names a CD holds designate the queue, sub-queue, source, terminal and destination whatever their letter case (kb/Work PB5284).</summary>
+    [Fact]
+    public void SymbolicNames_AreComparedWithoutLetterCase()
+    {
+        var session = Session("""
+            { "queues": [ { "name": "Q", "subQueues": [ { "name": "A", "messages": [ "MA" ] }, { "name": "B", "messages": [ "MB" ] } ] } ],
+              "sources": [ { "name": "S1" } ], "terminals": [ { "name": "T1" } ],
+              "destinations": [ { "name": "D2", "deliverTo": "q/a" }, { "name": "D3", "deliverTo": "terminal:t1" } ] }
+            """);
+        string area = session.AcceptMessageCount(InputArea("q"));
+        Assert.Equal("00", InputStatus(area));
+        Assert.Equal("000002", InputCount(area));
+        area = session.AcceptMessageCount(InputArea("Q".PadRight(12) + "b"));
+        Assert.Equal("00", InputStatus(area));
+        Assert.Equal("000001", InputCount(area));
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "d2"), "A", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "d3"), "A", SendIndicator.EndOfMessage)));
+        Assert.Equal("00", InOutStatus(session.Receive("C", CommunicationFormat.InputOutput, InOutArea("t1"), false, "X", noDataPhrase: false).Area));
     }
 
     [Fact]

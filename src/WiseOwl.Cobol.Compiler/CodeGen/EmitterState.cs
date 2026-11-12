@@ -350,10 +350,18 @@ internal sealed class DispatchState
     public void EmitDebugCause(CodeWriter w, string cause, int causingLine = 0)
     {
         if (!DebugActive) return;
+        // §1985:XV.3.2.4 GR1: "Automatic execution of a debugging section is not caused by a statement appearing in a debugging section." The
+        // causing statement's place is known here, so the transfer says whether a debugging section wrote it (kb/Work PB5292; START PROGRAM is no statement's): the one fact
+        // __RunDebug reads, in place of a run-time flag that suppressed every trigger while any debugging section ran.
+        string inSection = $"__dbgInSection = {(cause != "StartProgram" && DebugSectionRanges.Any(r => CurrentPc >= r.Start && CurrentPc <= r.End) ? "true" : "false")};";
         w.Line(causingLine > 0
-            ? $"__dbgCause = DebugCause.{cause}; __dbgLine = {causingLine};"
-            : $"__dbgCause = DebugCause.{cause};");
+            ? $"__dbgCause = DebugCause.{cause}; __dbgLine = {causingLine}; {inSection}"
+            : $"__dbgCause = DebugCause.{cause}; {inSection}");
     }
+
+    /// <summary>The pc ranges of the program's debugging sections (a procedure subject's, a data-name's or a cd-name's), the paragraphs whose own
+    /// statements cause no debugging section (§1985:XV.3.2.4 GR1). Empty unless <see cref="DebugActive"/>.</summary>
+    public IReadOnlyList<(int Start, int End)> DebugSectionRanges { get; set; } = [];
 }
 
 /// <summary>The exception-condition emission state (ISO §2023:14.6.13 / §2023:7.3.25) shared by the EC wrappers, the

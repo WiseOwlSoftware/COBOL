@@ -39,8 +39,11 @@ public sealed partial class FileControlBinder
     }
 
     /// <summary>Capture the VALUE OF clause's data-name-1 operands (a literal-1 has no rule beyond its format).</summary>
-    private void CaptureValueOf(Core.ValueOfClauseContext clause)
+    private void CaptureValueOf(Core.ValueOfClauseContext clause, FileModel file)
     {
+        using (Edition.At(clause))
+            file.FdClauses[FileDescriptionIdentity.ValueOf] = new(
+                FileDescriptionIdentity.ValueOfValue(clause.valueOfEntry().Select(e => (e.cobolWord().GetText(), e.literal()?.GetText()))), Edition.Cursor);
         foreach (var entry in clause.valueOfEntry())
             if (entry.dataReference() is { } dref)
             {
@@ -50,10 +53,20 @@ public sealed partial class FileControlBinder
             }
     }
 
+    /// <summary>The LABEL RECORDS clause's specification, STANDARD or OMITTED, which an external file connector's entries agree in (§1985:VII.3.6.3 GR4,
+    /// imported by the relative file description, §1985:VIII.3.2.4; kb/Work PB5300). Labels are not processed, so it changes no I-O.</summary>
+    private void CaptureLabelRecords(Core.LabelRecordsClauseContext clause, FileModel file)
+    {
+        using (Edition.At(clause))
+            file.FdClauses[FileDescriptionIdentity.Label] = new(clause.STANDARD() is not null ? "STANDARD" : "OMITTED", Edition.Cursor);
+    }
+
     /// <summary>§1985:VII.3.9.3 SR1: "Data-name-1 should be qualified when necessary, but cannot be subscripted, nor can
     /// data-name-1 be an item described with the USAGE IS INDEX clause." SR2: "Data-name-1 must be in the Working-Storage
     /// Section." The subscript half is the clause-operand capture's refusal; an undefined or ambiguous name is the
-    /// resolver's.</summary>
+    /// resolver's. A table element is the one data-name-1 that can never be written without a subscript (§1985:IV.4.3.8.2.3 SR4),
+    /// so the name of one is refused here, by the predicate every reference's SR5 screen asks (<see cref="DataItem.IsTableElement"/>;
+    /// kb/Work PB5299).</summary>
     private void ResolveValueOfDataNames()
     {
         foreach (var (name, quals, at) in _valueOfDataNames)
@@ -62,6 +75,11 @@ public sealed partial class FileControlBinder
             string? fault = item.Pic is { Usage: Usage.Index }
                 ? "is described with the USAGE IS INDEX clause (ISO §1985:VII.3.9.3 SR1: \"nor can data-name-1 be an item "
                   + "described with the USAGE IS INDEX clause\")"
+                : item.IsTableElement
+                    ? $"is a table element (its description contains, or is subordinate to, {item.SubscriptArity} OCCURS clause"
+                      + $"{(item.SubscriptArity == 1 ? "" : "s")}), which can only be referenced subscripted, and a VALUE OF clause cannot subscript it (ISO §1985:VII.3.9.3 SR1: "
+                      + "\"cannot be subscripted\"; §1985:IV.4.3.8.2.3 SR4: \"Each table element reference must be subscripted except\" a SEARCH subject, a REDEFINES "
+                      + "clause or an OCCURS KEY IS phrase, none of which this is)"
                 : item.Section is not EntrySection.WorkingStorage
                     ? $"is defined in the {(item.Section is { } s ? DataBinder.SectionWords(s) : "data division")}, not in the "
                       + "Working-Storage Section (ISO §1985:VII.3.9.3 SR2: \"Data-name-1 must be in the Working-Storage Section.\")"

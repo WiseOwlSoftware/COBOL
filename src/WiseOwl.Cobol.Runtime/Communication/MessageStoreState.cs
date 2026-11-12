@@ -115,7 +115,7 @@ internal sealed class MessageStoreState
     private bool PathOpen(string sourceName, QueueDefinition queue) =>
         _definitions.Source(sourceName) is not { } source
             ? new QueueNode(queue, _tables!).Enabled
-            : _tables!.Path(sourceName, queue.Path) ?? (new QueueNode(queue, _tables).Enabled && new SourceEndpoint(source, _tables).Enabled);
+            : _tables!.Path(source.Name, queue.Path) ?? (new QueueNode(queue, _tables).Enabled && new SourceEndpoint(source, _tables).Enabled);
 
     private bool SetPaths(QueueDefinition queue, IEnumerable<SourceDefinition> sources, bool enable)
     {
@@ -169,7 +169,7 @@ internal sealed class MessageStoreState
     internal static bool LevelIsUnder(string[] level, string[] specified)
     {
         for (int at = 0; at < specified.Length && specified[at].Length > 0; at++)
-            if (at >= level.Length || !string.Equals(specified[at], level[at], StringComparison.Ordinal))
+            if (at >= level.Length || !McsNames.Comparer.Equals(specified[at], level[at]))
                 return false;
         return true;
     }
@@ -199,7 +199,7 @@ internal sealed class MessageStoreState
     /// (§1985:XIV.3.2.4 GR5), while "the logical path for the transfer of data between the COBOL programs and the MCS is not affected by the DISABLE statement" (§1985:XIV.3.2.4 GR1),
     /// so a message the MCS already holds is still the program's to receive. Where a disabled terminal acts is where its input enters the MCS (<see cref="Deliver"/>).</summary>
     internal (string[] Path, StoredMessage Message)? TakeFromTerminal(string name) =>
-        FindTerminal(name) is not null && _tables!.TakeTerminalMessage(name) is { } message ? ([name], message) : null;
+        FindTerminal(name) is { } terminal && _tables!.TakeTerminalMessage(terminal.Name) is { } message ? ([terminal.Name], message) : null;
 
     internal void TransmitLater(string device, StoredMessage message) => _transmissions.Add((device, message));
 
@@ -224,7 +224,7 @@ internal sealed class MessageStoreState
                 string terminal = target[MessageDefinitions.TerminalTarget.Length..];
                 if (FindTerminal(terminal) is { Enabled: false }) continue;
                 foreach (var message in _tables.TakeOutbound(definition.Name))
-                    _tables.AddTerminalMessage(terminal, message.From(definition.SourceName));
+                    _tables.AddTerminalMessage(_definitions.Terminal(target[MessageDefinitions.TerminalTarget.Length..])!.Name, message.From(definition.SourceName));
             }
             else if (_definitions.FindQueue(target.Split('/')) is { } queue && PathOpen(definition.SourceName, queue))
             {
