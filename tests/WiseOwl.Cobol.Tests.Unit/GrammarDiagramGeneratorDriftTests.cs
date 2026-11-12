@@ -32,7 +32,7 @@ public sealed class GrammarDiagramGeneratorDriftTests
         string script = TestRepo.Scripts("gen-grammar-diagrams.ps1");
         Assert.True(File.Exists(script), $"missing generator: {script}");
 
-        string temp = Directory.CreateTempSubdirectory("grammar-diagram-held-").FullName;
+        string temp = ScratchDirectory.Create("grammar-diagram-held-");
         using var holder = new FreshFileHolder(temp);
 
         var psi = new ProcessStartInfo("pwsh", $"-NoProfile -ExecutionPolicy Bypass -File \"{script}\" -Check")
@@ -55,7 +55,7 @@ public sealed class GrammarDiagramGeneratorDriftTests
             exitCode = p.ExitCode;
         }
         int held = holder.Stop();
-        Directory.Delete(temp, recursive: true);
+        ScratchDirectory.Remove(temp);
 
         Assert.True(exitCode == 0,
             $"gen-grammar-diagrams.ps1 -Check exited {exitCode} while this test held every fresh file under {temp}\n" +
