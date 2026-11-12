@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.1.3.4-L2.3",
  "rule-digest": "ffdd1ee7d31a",
+ "test-ref": "conformance:cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VIII_1_3_4-L2_3",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
