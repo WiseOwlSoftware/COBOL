@@ -1,4 +1,4 @@
-## COBOL-85 text manipulation: REPLACE placement and scope, nested COPY, and the word COPY as a REPLACING operand
+## Entry 3519 — 2026-11-11 18:32 PST — COBOL-85 text manipulation: REPLACE placement and scope, nested COPY, and the word COPY as a REPLACING operand
 
 Three open notes shared one root, the text-manipulation stage reading the 2023 rules at every edition (PB5085, PB5126, PB5277).
 Each re-probed on a fresh Debug build before any change: all four repros reproduced (COPY REPLACING COPY BY DISPLAY, a REPLACE after a
@@ -28,3 +28,4 @@ Review round 1: `OperandScreen.CopyWord` now also bars the compiler directive in
 indicator (`>>D`, 2002) as word-1/word-2 (§2002:7.1.2.2 SR10, §2014:7.2.2.2 SR10), and applies the 2014 set at 2023 under `--permissive`.
 Golden `pb5085-replacing-directive-indicator` (refuse 2002, 2014), unit test `CopyReplacingBarredWordTests`. The landing paragraphs of the three
 notes moved to `kb/Work/<id>/2026-11-12-landed.md` (rule 8).
+
