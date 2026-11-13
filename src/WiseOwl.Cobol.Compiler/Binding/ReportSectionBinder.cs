@@ -4327,12 +4327,28 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// CONTROL operand <paramref name="operand"/> names, or −1. Both clauses that name a control level ask this
     /// question in the same words: §2023:13.18.57.3 SR10 ("shall be the same as one of the operands of the CONTROL
     /// clause of the corresponding report description entry") and §2023:13.18.54.3 SR8 ("shall be an operand of the
-    /// CONTROL clause of the current report description"), so one comparison serves both — over the WRITTEN
-    /// reference, ref-mod included, which is what §2023:13.18.16.3 SR6 makes unique.</summary>
-    private static int ControlLevelOf(ReportModel model, ReportControlRef operand)
+    /// CONTROL clause of the current report description"); COBOL-85 says it of the data-name
+    /// (§1985:XIII.3.19.3 SR4: "Data-name-2 must be one of the data-names specified in the CONTROL clause for this
+    /// report"). One comparison serves both clauses, in two steps:
+    /// <list type="number">
+    /// <item>the WRITTEN reference, ref-mod included, which is what §2023:13.18.16.3 SR6 makes unique — so two
+    /// operands that SR6 lets "refer to the same physical data item" stay two levels;</item>
+    /// <item>failing that, the data item the reference NAMES with the same ref-mod: "A name may be qualified even
+    /// though it does not need qualification; if there is more than one combination of qualifiers that ensures
+    /// uniqueness, then any such set may be used" (§2023:8.4.2.2.3 SR2), so <c>WS-A</c> and <c>WS-A OF G1</c> name
+    /// one item, and a RESET ON or TYPE operand written with other qualifiers than the CONTROL operand names that
+    /// level (kb/Work PB5423). A reference that names no single item matches nothing here; the lookup reports
+    /// nothing, because the clause's own refusal follows.</item>
+    /// </list></summary>
+    private int ControlLevelOf(ReportModel model, ReportControlRef operand)
     {
         for (int i = 0; i < model.Controls.Count; i++)
             if (model.Controls[i].Operand is { } c && c.SameOperandAs(operand)) return i;
+        if (_d.QualifiedCandidates(operand.Name, operand.Qualifiers, Model.Scope.Program).Single is not { } named) return -1;
+        for (int i = 0; i < model.Controls.Count; i++)
+            if (model.Controls[i] is { Item: { } item, Operand: { } c } && ReferenceEquals(item, named)
+                && c.RefModStart == operand.RefModStart && c.RefModLength == operand.RefModLength)
+                return i;
         return -1;
     }
 
