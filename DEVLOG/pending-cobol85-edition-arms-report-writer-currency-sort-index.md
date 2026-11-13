@@ -1,6 +1,7 @@
-## COBOL-85 edition arms: SORT in a sort procedure, the currency exclusion list, five Report Writer rules and the index data item contexts
+## COBOL-85 edition arms: SORT in a sort procedure, the currency exclusion list, the Report Writer's 1985 rules and forms, and the index data item contexts
 
-Wave 20262001 group D landed eight of its nine kb/Work notes. Each is a rule the compiler applied in its 2002 or 2023
+Wave 20262001 group D landed eight of its nine kb/Work notes, and wave 20262013 group A replayed them onto current main
+and landed the ninth (PB5242). Each is a rule the compiler applied in its 2002 or 2023
 form at every edition. Each fix is the edition arm in the one place the rule is computed. Every note was re-probed on
 this build before its fix, either with its own repro or, where no 85 arm existed, by running the same code path at 2023.
 
@@ -31,14 +32,25 @@ this build before its fix, either with its own repro or, where no 85 arm existed
   SOURCE are named by no edition's list, so both are now refused at every edition (COBOL1757, COBOL2770; the SOURCE
   screen now applies MOVE SR1's sending half).
 
-**Not landed.** PB5242 (the 2002 and 2023 Report Writer clause additions accepted at 85) is about twelve constructs, each
-needing its own row in the construct catalogue and its own edition determination. It goes to a fresh implementer.
+- **PB5242** (accepted illegal source). The Report Writer grammar is the 2023 format, and fifteen 2002 additions
+  compiled at 85. Each edition was read from the 2002 general format against the 1985 one, with ISO/IEC 1989:2002 Annex
+  F.2 item 115 where it names the change; every one is 2002. Six construct rows, one per clause, each checked on
+  recognition in `VersionConformancePass`: `report-code-is-2002`, `report-page-forms-2002` (width, integer-1 omitted,
+  LAST CONTROL HEADING, DE/CH, IS), `report-next-page-reset-2002`, `report-line-next-page-2002`,
+  `report-sum-forms-2002` (OF, ROUNDED, a non-identifier addend) and `report-value-forms-2002` (VALUES). TYPE CH ON and
+  OR PAGE were already refused (PB5116). `PAGE IS 60` stays COBOL-85: the rendered 1985 page underlines only PAGE in
+  `[LIMIT IS | LIMITS ARE]`. With OR PAGE and LAST CONTROL HEADING refused, `GroupLimits` needs no 1985 arm. The sweep
+  of every report case accepting 85 found six using a 2002 form: two CODE cases now write `CODE "A-"`, three SUM cases
+  are accepted from 2002, and `pb957_next_group_control` (WITH RESET) is accepted from 2002 with a new COBOL-85 twin,
+  `pb957_next_group_control_85`, that carries its 1985 output. Goldens: the positive
+  `13.18.39-PAGE/pb5242_report_description_2002_forms` and six refusals `pb5242-*-85`.
 
 **Inventory.** Eight 1985 rows were recorded CONFORMS through `record_verdicts --edition 1985`. They are the ones for
 GR-VI.4.5.4-11, GR-XIII.3.19.4-1, GR-XIII.3.10.10-1, SR-XIII.3.11.3-2, SR-XIII.3.15.3-1, SR-XIII.3.16.3-2,
-SR-XIII.3.19.3-1 and SR-VI.5.14.3-5. The 1985 GAP fell from 451 to 443. Four 2023 rows gained witnesses.
+SR-XIII.3.19.3-1 and SR-VI.5.14.3-5. The 1985 GAP fell from 451 to 443. Four 2023 rows gained witnesses. PB5242 recorded fifteen more 1985 rows CONFORMS
+(on current main the 1985 GAP fell from 303 to 288).
 
 **Gate.** The first gate run was RED on LINE ENDINGS: Python writers had left CRLF in the working tree, and
 `line_endings.py --fix` repaired it. The second was RED on INERT LANE: the new drift test opened a Markdown
-transcription, so its rule texts are now quoted constants. No test ran in either. See the branch report for the final
-verdict.
+transcription, so its rule texts are now quoted constants. No test ran in either. The replayed commits gated GREEN on
+current main before PB5242 began (run 000001-20261113T002956Z). See the branch report for the final verdict.

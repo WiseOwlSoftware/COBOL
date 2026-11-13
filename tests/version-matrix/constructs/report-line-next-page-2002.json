@@ -1,0 +1,13 @@
+{
+ "id": "report-line-next-page-2002",
+ "status": "active",
+ "description": "A LINE operand of NEXT PAGE alone, with no integer (kb/Work PB5242). §1985:XIII.3.15.2 prints `LINE NUMBER IS {integer-1 [ON NEXT PAGE] | PLUS integer-2}`, so a 1985 line is established by an integer (§1985:XIII.3.15.4 GR1: \"A LINE NUMBER clause must be specified to establish each print line of a report group\"); ISO/IEC 1989:2002 13.16.33.1 Format 1 adds the third alternative `ON NEXT PAGE`. Gated by recognition, VersionConformancePass ParseArm.VisitReportLineOperand, once per written operand (VCR row 7.45 (f)).",
+ "display": "a LINE operand of NEXT PAGE with no integer (report group description)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§1985:XIII.3.15.2, §1985:XIII.3.15.4 GR1; ISO/IEC 1989:2002 13.16.33.1 Format 1; ISO §2023:13.18.35.2 Format 1 (2023 text)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.45 (f) - LINE NEXT PAGE with no integer (85->2002)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRLN.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"VMRLN.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC 9(3) VALUE 5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 20 LINES.\n01 DA TYPE DETAIL LINE NEXT PAGE.\n    02 COLUMN 1 PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+}

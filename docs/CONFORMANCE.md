@@ -4379,8 +4379,8 @@ reallocated).
 > WiseOwl COBOL adds integer-2 to LINE-COUNTER; it does not clamp to a FOOTING of 0. **(3) "no effect at all if a
 > TERMINATE is next executed" (GR4 a)).** WiseOwl COBOL's TERMINATE discards the save location and restores
 > LINE-COUNTER to the group's last line. Leaving LINE-COUNTER at FOOTING would force a page advance before the
-> control footings print, and that is an effect. Pinned by `85/pb957_next_group_forms` and
-> `85/pb957_next_group_control`. The mechanism is in `docs/REPORT_WRITER_DESIGN.md` (the NEXT GROUP row).
+> control footings print, and that is an effect. Pinned by `cases/8.4.3.15-Report-counters/pb957_next_group_forms` and
+> `cases/13.18.37-NEXT-GROUP/pb957_next_group_control` (its COBOL-85 twin `pb957_next_group_control_85`). The mechanism is in `docs/REPORT_WRITER_DESIGN.md` (the NEXT GROUP row).
 
 > ⚖ **DETERMINATIONS — three points the LINE clause's NEXT PAGE phrase leaves open** (2026-09-22; kb/Work
 > PB1001). **(1) Where a bare `ON NEXT PAGE` operand places.** §2023:13.18.35.2 Format 1 prints it as a third operand
