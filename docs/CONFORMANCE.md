@@ -2524,6 +2524,35 @@ of an unsupported facility.
   procedure-name operand in a program with ALL PROCEDURES (SR8), both COBOL6947 (`ProcedureTableBuilder.AddNamedDebugSubject` and
   `FinalizeDebug`). Witnesses: `conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-1`, `-3`, `-5`, `-6`, `-7`, `-8`.
 
+- **D-DEBUG-COMMENT — a debugging section without WITH DEBUGGING MODE, and a SORT or MERGE in one** (kb/Work PB5291, PB5275; the text decides, no
+  latitude). §1985:XV.2.1.3 GR2: without the mode "any USE FOR DEBUGGING statements and all associated debugging sections are compiled as if they were
+  comment lines". The text is comment text BEFORE the parse, by the switch that already makes a debugging line a comment: `DebuggingLineRewriter` moves
+  the tokens of a declarative section whose first sentence is `USE FOR DEBUGGING` to the absent channel when the unit declares no mode (COBOL-85, and a
+  later edition under `--permissive`, where the facility keeps its meaning), so a body that is not COBOL syntax compiles and its paragraph names declare
+  nothing; a DECLARATIVES portion holding only such sections leaves with them, since the format admits no empty portion. With the mode, a debugging
+  section is a declarative section (§1985:XV.3.2.3 SR1: it follows "the DECLARATIVES header"), so the placement rules that ask whether a statement is in the
+  declaratives ask it of a debugging section too (`EnclosingContext.InDeclarative`): a SORT may appear "except in the declarative portion" (§1985:XI.4.4.3
+  SR1), a MERGE "except in the declaratives portion" (§1985:XI.4.1.3 SR1), COBOL2700. Witnesses:
+  `conformance:cases/XV.2.1@1985-WITH-DEBUGGING-MODE-CLAUSE/pb5291_debug_section_is_comment_without_mode_85`,
+  `conformance:wiseowl/diagnostics/pb5275-sort-merge-in-debugging-section`.
+
+- **D-SORT-RELEASE-RETURN-RANGE-85 — where a RELEASE or RETURN may stand at COBOL-85** (kb/Work PB5104; the text decides, no latitude). §1985:XI.4.2.3 SR2
+  and §1985:XI.4.3.3 SR3 bind a RELEASE to the range of an input procedure of a SORT naming its sort file, and a RETURN to the range of an output procedure
+  of a SORT or MERGE naming its file. The range is dynamic (§1985:XI.4.4.4 GR7, GR10: every statement executed as the result of a CALL, EXIT, GO TO or
+  PERFORM in the range), so the check is `ProcedureReach.Closure` with a GO TO followed: the procedure's paragraphs, the procedures its PERFORM, SORT and
+  MERGE statements transfer to and return from, and every GO TO destination and the paragraphs after it. A statement no such walk reaches is refused,
+  COBOL7081, asked of the bound program by `VersionConformancePass.GateReleaseReturnRange`. A statement written in the declaratives is not asked (the range
+  includes the declaratives its statements execute, a run-time fact), and at COBOL-2002 and later the same misuse is the run-time exception of
+  kb/Work PB1036. Witnesses: `conformance:cases/XI.4.2@1985-RELEASE-STATEMENT/pb5104_release_return_in_performed_range_85`,
+  `conformance:wiseowl/diagnostics/pb5104-release-of-file-no-sort-names-85`, `conformance:wiseowl/diagnostics/pb5104-return-of-file-no-sort-names-85`.
+
+- **D-SORT-GIVING-SAME-85 — two GIVING files of one SORT in a SAME RECORD AREA clause** (kb/Work PB5276; the text decides, no latitude). §1985:XI.4.4.3
+  SR9: "File-names associated with the GIVING phrase may not be specified in the same SAME clause", and SAME [RECORD] AREA is the 1985 clause
+  (§1985:VII.2.13.2), so COBOL-85 refuses two GIVING files in one SAME RECORD AREA clause (COBOL1757, `SortBinder.ScreenSameClauses`);
+  §2023:14.9.40.3 SR10 narrows the sentence to the SAME AREA clause, so they may share a record area at COBOL-2023 (the editions between are not decided here: the refusal is asked below 2002 only). MERGE's GIVING files may share a record
+  area at every edition (§1985:XI.4.1.3 SR8). Witnesses: `conformance:wiseowl/diagnostics/pb5276-sort-giving-same-record-area-85`,
+  `conformance:cases/14.9.40-SORT/pb5276_sort_giving_same_record_area_2023`.
+
 - **D-DEBUG-SUB — what DEBUG-SUB-1 to DEBUG-SUB-3 are** (kb/Work PB4810). General rule 10 of the 1985 text describes each as `PICTURE S9999
   SIGN IS LEADING SEPARATE`, and a member the reference does not use is SPACES. **Determination (the text decides, no latitude):** each is a
   NUMERIC item of that PICTURE, carried as its five-character image (`+0003`, or five spaces; one description and one profile for the three,
