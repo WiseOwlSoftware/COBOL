@@ -1085,7 +1085,7 @@ kb/Work PB4951) that wait on nothing, run twice: once over `status: open`, once 
    `<coord>/partition-measure.jsonl` (`dispatch_ledger.partition_record`: the same-file pairs run side by side, the notes a
    collision held and why, and WHAT each hold shared as data, `collided_on`, the files and `file#member`s
    `collision_hits` found, so no reader parses a reason's prose: kb/Work PB3695), and `plan_wave.py --partition-summary` prints it per day, beside `landing_measure.py`'s
-   bounce causes for the conflicts. `test_plan_wave.py` section 12 pins each arm.
+   bounce causes for the conflicts. The plan_wave cases (former section 12) pin each arm.
 2. **Finishers first.** (a) A note whose newest report (by write time, then wave number, `reports.report_order`, kb/Work PB3625; header lines only) says `SPLIT` or
    `NOT STARTED`, whatever its branch's state (a `land` unit lands only `DONE` branches, so an unlanded `SPLIT` branch
    held for one was stranded; kb/Work PB2575), or says `DONE` with a branch review stamped `Review: FINDINGS` (kb/Work
@@ -1171,7 +1171,7 @@ kb/Work PB4951) that wait on nothing, run twice: once over `status: open`, once 
    `join_preds`, which keeps every group's facts in order and states each rule a builder declared with `shared_rule`
    once, at the end. What belongs to the finished group, not to a branch (the CONTINUATION onto the finished branches
    it joined, `Group.join`, and the `--drain` clause), is added once when the group is final (`Group.close_pred`),
-   never per group before the join. A new pred builder declares its rule and the drift test in `test_plan_wave.py`
+   never per group before the join. A new pred builder declares its rule and the drift test in the plan_wave cases
    joins one pred of every kind with every other. Only a DEPENDENCY makes a successor (`after: <letter>`, letter suffixed
    `2`, `3`: section 9.1). **The placement order is the tier** (kb/Work PB3638): groups are placed, lettered and
    chained in tier order, a campaign's effective tier (`work.cluster_order`, passed to `plan` as `tiers`; a finisher
@@ -1269,7 +1269,7 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   says nothing about another; `work.py check` refuses an entry that is not `CAMPAIGN:N`, names a campaign twice or
   names one the note's `cluster:` does not. A note with no tier in the campaign ranks after every tiered one. The tier
   read is the EFFECTIVE one, the lowest of the note's own and of every open member it blocks, so tier-then-depth stays a
-  `blocked_by` order. It ranks and never releases: a held note stays held. `test_plan_wave.py` section 9b pins the order, the scoping, the lift below, and that a group cap spends its slots on
+  `blocked_by` order. It ranks and never releases: a held note stays held. The plan_wave cases (former section 9b) pin the order, the scoping, the lift below, and that a group cap spends its slots on
   tier 1 first however much harm an untiered group carries.
 - **Planning** (`plan_wave.py --cluster <lead>`): a note is PLANNABLE when it is ready or when everything it waits on
   is plannable; the rest are printed as waiting with the reason. Plannable notes are clustered on the sites they
@@ -1324,13 +1324,13 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   lead: [requirement]}`); `check_practices.py` refuses a rendered spec that lacks one its own group declares; and
   `wf_rolling_wave.js` hands the branch reviewer the group's dispatch spec and the requirements
   (`reviewerRequirements(g)`), so a branch lacking one is a finding (category `requirement`) instead of a CLEAN. A prose section rather than a frontmatter list, because a requirement is a sentence with commas
-  and the frontmatter list grammar (`work._split_list`, with its C# parity twin) splits on them. `test_plan_wave.py`
-  section 9a pins the parse, the body, the practices check, the args file and the reviewer prompt, and that a
+  and the frontmatter list grammar (`work._split_list`, with its C# parity twin) splits on them. The plan_wave cases
+  (former section 9a) pin the parse, the body, the practices check, the args file and the reviewer prompt, and that a
   real PB3330 member is bound by that lead's own bullets.
   The owner's SORT and file I/O test sentence (2026-10-17 ~22:25) is NOT a campaign requirement: its one home is
   MANDATORY-PRACTICES I11, which every rendered implementer spec and finisher brief points at (`check_practices.py`
   refuses a template without the pointer) and which the `review` skill's branch form checks on every diff that reaches
-  a SORT, MERGE or file I/O path, campaign member or not (kb/Work PB3369). `test_plan_wave.py` refuses a copy of the
+  a SORT, MERGE or file I/O path, campaign member or not (kb/Work PB3369). The plan_wave cases refuse a copy of the
   sentence in any lead note's `## Standing requirements`. The binding is the text in every brief and the reviewer's
   reading of the diff, not a computed one. Measured 2026-10-19 over the 356 findings in the branch reviewers' findings
   files (waves 1116 to 1131): 25 are category `requirement`, and 21 of those name a missing exception-path test on a
@@ -1353,7 +1353,7 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   model from what it sees, so it may name `wave` every time; the campaign rule therefore applies to a handoff's `wave`
   (or `campaign`) as it does to rule 6, and a ready lead that has waited through more than one wave-type unit is logged
   `campaign <lead> ready for N h` at every choice until its turn comes.
-- **The fix lane is unchanged** without `--cluster`: `test_plan_wave.py` check 8 compares the whole fixture plan with a
+- **The fix lane is unchanged** without `--cluster`: the plan_wave cases (former check 8) compare the whole fixture plan with a
   golden that the planner wrote before this lane existed, and `test_orchestrate_campaign.ps1` (8b) compares `next_unit.py`'s
   choice and the wave prompt.
 
@@ -1430,7 +1430,7 @@ unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
 a landing pushed from another clone is owed while the checkout is behind, and the mark refuses until it is fast-forwarded),
 `account.py --self-test`, `mailbox.py --self-test` (section 15), `test_checkpoint.py` (real linked worktrees: committed, dirty, clean, unreadable; a synthesized handoff checked
-against the schema's required and permitted keys), `test_next_unit.py` (no meter unit is chosen, with no reading, an old one, or the history's retired meter lines, kb/Work PB4749; rule 5 and the review lane; and, kb/Work PB4180, a handoff naming `enqueue` runs the unit only while rule 5 finds agent work, whatever lane-owned rows the survey holds, and `enqueue_chains` finds the runs of consecutive enqueue units), `test_plan_wave.py` (fixture notes, clusters and reports in a temp directory, rendered through the
+against the schema's required and permitted keys), `test_next_unit.py` (no meter unit is chosen, with no reading, an old one, or the history's retired meter lines, kb/Work PB4749; rule 5 and the review lane; and, kb/Work PB4180, a handoff naming `enqueue` runs the unit only while rule 5 finds agent work, whatever lane-owned rows the survey holds, and `enqueue_chains` finds the runs of consecutive enqueue units), the plan_wave cases (fixture notes, clusters and reports in a temp directory, rendered through the
 real dispatch-spec template and `check_practices.py`'s same-file rule; the fix lane's whole plan against a golden the pre-campaign planner wrote; the campaign lane's selection, `blocked_by` order, `after:` derivation and waits, and `work.py check`'s topology rules, section 9.1), `test_watch_agent.py` (a transcript with a
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
 against the retired train records, kb/Work PB3028; `landing_rules.py --self-test` keeps the retired train writer out), `landing_check.py
@@ -1465,8 +1465,12 @@ audits (`gate.py` `AUDITS`, before the gate slot), a leg of `linux-gate.sh`, and
 (Linux) and `windows-self-tests` job (Windows, where the Windows-only parts run); a self-test for the other platform is
 reported `NOT RUN on <platform>` with its declared reason, never skipped silently. An implementer gate reuses the
 recorded PASS of a self-test whose inputs its change left unchanged, so these long parts run there only when a change
-touches what they read (kb/Work PB2914; DESIGN-test-build-ci.md §3.14.10). `test_plan_wave.py` imports
+touches what they read (kb/Work PB2914; DESIGN-test-build-ci.md §3.14.10). The plan_wave fixtures import
 `check_practices.py`, so the runner fetches the `tools/claude-skills` submodule when a checkout lacks it.
+**The case layout (kb/Work PB3726, PB5428; section 16.2):** a script's tests live in `<root>/selftests/<path>/<name>/`
+(`fixtures.py` and one `test_<world>.py` of `case_<name>(expect)` functions, run by `scripts/selftest_cases.py`), the runner
+calls `scripts/selftest_layout.py` before it runs anything, `python scripts/self_tests.py --only <path> ...` runs a case
+file by hand, and the plan_wave cases (`scripts/selftests/orchestrator/plan_wave/`) are the first converted subject.
 `test_inventory_ratchet.py` runs the command line with `--repo` over planted commits of a scratch repository, never the real one (kb/Work PB5227).
 
 ## 14. Publishing the ledger after every landing
@@ -1755,6 +1759,17 @@ landing, whichever subject converts later.
 lifecycle state, a planted gate host). A file per case would build each world once per case; a file per world builds it
 once per file, as today. A case that needs a world of its own builds it in the case, from a function of `fixtures.py`.
 
+**As built: a file may be ONE ORDER-DEPENDENT world (kb/Work PB5428).** `scripts/selftests/orchestrator/plan_wave/test_planner.py`
+is not a set of independent scenarios: its `case_000` builds the planner's world into module globals (the notes in `WORK`,
+`UN`, `DR_*`, `cl`, `gjson`) and the 232 cases after it read and mutate that state in NAME ORDER (the converted self-test
+shared one world across hundreds of lines). So in a converted file of that kind the case order is load-bearing, and the
+rule "a new case goes where its name sorts" does not hold: a new case there must plant nothing into the shared world
+(`fixtures.note()` into the shared `WORK` changes the input of every later case, the golden whole-plan comparison
+included), or it builds a world of its own in the case; one that must plant into the shared world is named to sort AFTER
+every case that reads it. Splitting the file into independent worlds is the work of the next PB3726 conversion of a
+subject of that size (each block's reads of earlier state made explicit in `fixtures.py`); until then the file's
+docstring says so and this paragraph is the rule.
+
 **How a test reaches its subject's internals: `selftest_cases.subject(__file__)`.** It derives the subject from the test
 file's place by the rule above, puts the subject's directory first on `sys.path` (so the subject's own sibling imports
 resolve as they do when it runs), imports it once and returns the module. A test reads and plants internals as attributes
@@ -1774,7 +1789,10 @@ world and `import selftest_cases` is `scripts/`'s. A hand run goes through the r
 run bare with no `PYTHONPATH` fails at its first import, loudly. The static readers learn the same two facts from the
 same functions: `inert_lane._imports` (`source_reads._imports` after section 16.12's split) and `script_layering.py`
 resolve `import selftest_cases` in a file under `selftests/` against `scripts/`, and read the call
-`selftest_cases.subject(__file__)` as an import EDGE to `subject_of(rel)`. So a case file's static import closure holds
+`selftest_cases.subject(__file__)` as an import EDGE to `subject_of(rel)`. (As built: `inert_lane._imports` takes both
+edges, and `script_layering.py` takes none, because it reads only the DECLARED modules' imports and a case file declares
+none, so there is nothing of a case file for it to resolve; the layering of the subject's own modules is unchanged.) So
+a case file's static import closure holds
 its subject and everything the subject imports, as a standalone test's closure does today through its `sys.path`
 insert: `inert_lane.import_closure` (the seed of `filter_population.py`'s build-needing self-test and of
 `code_readers`) and the layering check keep seeing what the tests reach without a hand CODE_READS entry.
@@ -1793,9 +1811,14 @@ file whose closure must include its subject's imports (the closure holds them), 
 fresh `Expect` (`expect(label, ok, detail="")`, the shape every self-test already uses), prints `PASS`/`FAIL` per label,
 counts an exception as a FAIL of that case with its traceback, counts a case that made no expectation as a FAIL (a case
 that returns early before its first `expect` passes nothing), refuses a module with no case (exit 1: an empty file is
-not a pass), removes the file's scratch directories on every way out (`scratch_repo.remove_tree`), and ends with the
-verdict line `=== <file>: PASS|FAIL (n cases, m expectations) ===` and the exit code; `subject(path)` as above. A test file
-ends `if __name__ == "__main__": sys.exit(selftest_cases.run(sys.modules[__name__]))`. No decorator, no registry, no
+not a pass), and ends with the
+verdict line `=== <file>: PASS|FAIL (n cases, m expectations) ===` and the exit code; `subject(path)` as above. The case's
+`expect` is callable as `expect(label, ok, detail)` and has `expect.equal(label, got, want)` for the comparison most
+expectations are (the layout rule holds both to the cases). The scratch directories a case makes through
+`scratch_repo.scratch_dir` are removed when the process ends, whatever the way out (that function's own `atexit`), so
+the collector holds no cleanup list of its own. A test file
+ends `if __name__ == "__main__":` with `ensure_utf8()` (the UTF-8 switch every entry point calls first, kb/Work PB3637) and
+`sys.exit(selftest_cases.run(sys.modules[__name__]))`. No decorator, no registry, no
 plug-in. Sorted order makes the insertion point of a new case its name, so two branches that add cases meet only when
 their names are adjacent — PB3723's append-point conflict, which met every pair, becomes a rare one.
 
@@ -1824,9 +1847,10 @@ self-tests of a tree that breaks it. It refuses, over every live root:
 - **THE RATCHET:** the SET of Python files under the live roots and outside `selftests/` that still hold a self-test
   differs from `REMAINING`, the set `selftest_layout.py` declares — a tuple of repository paths, ONE PATH PER LINE in
   sorted order. A file holds a self-test when it handles `--self-test`, is a standalone `test_*.py` the runner runs bare,
-  or defines a top-level `self_test*` or `*_arms` function another self-test calls (the eight `scripts/docchecks/*.py`
-  modules, reached only through `doc_audits.py`: a delegate is counted, or a conversion that deletes the caller would
-  stop running it with no count changing). A path in the tree and not in the set is a NEW in-file self-test, refused
+  or defines a top-level `self_test*` or `*_arms` function (the eight `scripts/docchecks/*.py` modules, reached only
+  through `doc_audits.py`: a delegate is counted, or a conversion that deletes the caller would stop running it with no
+  count changing; the rule is the name, so it needs no resolution of who calls it, and the measured set on 2026-11-12 is
+  127 files that handle `--self-test`, 28 standalone `test_*.py` and these 8, 163 in all before plan_wave's conversion, 162 on the tree that landed it). A path in the tree and not in the set is a NEW in-file self-test, refused
   (write its cases under `selftests/`); a path in the set and not in the tree is a conversion, or a deletion, that did
   not remove its line, refused. Each conversion removes exactly its own subjects' lines in the landing that converts
   them. When the set is empty the last step deletes it and the rule becomes absolute (PB5409).
@@ -1926,7 +1950,7 @@ cluster groups by rows claimed, absorbed into a finisher on their file, then eve
 `plan_partition` (each group placed against the in-flight work and the groups already placed: held, a continuation, a
 successor or a new chain, LETTERED AS IT IS PLACED, since a later group's wait names the letters of the chains it meets)
 and `plan_budget` (the placed groups taken while the budget, the group cap and the chain-link cap allow). A new planning
-rule is a new stage or a change inside one, never a hunk in a 500-line body. The checks of `test_plan_wave.py` are the
+rule is a new stage or a change inside one, never a hunk in a 500-line body. The checks of the plan_wave cases are the
 oracle, unchanged (416 `check(` calls, 460 run), with their imports re-pointed in this landing; their conversion to case
 files is the next step (§16.10).
 
@@ -2337,7 +2361,7 @@ resolves to a real clause of the standard's "Standard classes", so no audit coul
 | 1 | PB3637 | LANDED: the UTF-8 switch, `standard_streams.ensure_utf8` in every live entry point | — | — |
 | 1 | PB3727 | LANDED, then RETIRED by PB5110: the PublicAPI driver | — | — |
 | 2 | PB3728 | LANDED: section 16.3, `plan_wave.py` split by job | — | — |
-| 2 | PB5428 | section 16.2's mechanism, with plan_wave's cases: `selftest_cases.py`, `selftest_layout.py` and its call in `self_tests.py` (with `--only` and the case files' `PYTHONPATH`), the `REMAINING` set, `self_test_arms.py` reading case names, the static readers' two edges, `scratch_repo`'s reach; `test_plan_wave.py` → `scripts/selftests/orchestrator/plan_wave/` | those files, `inert_lane.py` (`_imports`), `script_layering.py`, `scratch_repo.py`, `test_plan_wave.py` (deleted), `testdata/plan_wave_default.json` | the same labels (the 416 `check(` calls); `--list` the same; the golden plan unchanged; the planted breaches RED |
+| 2 | PB5428 | section 16.2's mechanism, with plan_wave's cases: `selftest_cases.py`, `selftest_layout.py` and its call in `self_tests.py` (with `--only` and the case files' `PYTHONPATH`), the `REMAINING` set, `self_test_arms.py` reading case names, the static readers' two edges, `scratch_repo`'s reach; `scripts/orchestrator/test_plan_wave.py` → the cases in `scripts/selftests/orchestrator/plan_wave/` | those files, `inert_lane.py` (`_imports`), `scratch_repo.py`, `scripts/orchestrator/test_plan_wave.py` (deleted), `testdata/plan_wave_default.json` | the same labels (the 507 `check(` calls); `--list` the same; the golden plan unchanged; the planted breaches RED |
 | 3 | PB5395 | section 16.8 step A: `conformance_source.py`, the one reader; every reader re-pointed; its CODE_READS entry | `conformance_source.py` (new), `inventory_schema.py`, `inventory_view.py`, `docchecks/{common,register,facts,inventory,design}.py`, `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py`, `differential_fuzz.py`, `phase_b_batch.py`, `conformance-suite/harness/generate.py`, `inert_lane.py` (`CLASSIFICATION`) | every reader's output byte-identical before/after; one PATH spelling of the file left; INERT LANE GREEN |
 | 4 | PB5396 | section 16.9: the Unshipped baselines in one order; `public_api_baselines.py`; the PUBLIC API BASELINES audit | `public_api_baselines.py` (new), `landing_check.py`, `gate.py` (`AUDITS`), the CI workflow, `PublicAPI.Unshipped.txt` | the line multiset unchanged; no RS0016/RS0017/RS0025 |
 | 5 | PB5429 | section 16.8 step B1: the document made regular in place (keys, order, bodies, epilogues, 3.7.1) | `docs/CONFORMANCE.md`, `conformance_source.py`, `docchecks/register.py` | the readers' outputs equal step A's; the line-multiset diff only the keys, headings and markers |
@@ -2364,7 +2388,7 @@ resolves to a real clause of the standard's "Standard classes", so no audit coul
 | 26 | PB5405 | `scripts/spec/e*.py`–`l*.py`, with `test_figure_*.py`; `AnnexA2UndefinedListDriftTests.cs`'s run → `DECLARED` | the same, that C# test | the same |
 | 27 | PB5406 | `scripts/spec/m*.py`–`w*.py`, with `test_render_figure.py`, `test_text_layer.py`, `test_transcribe_pdf.py`, `test_wf_spec_reconcile.py` | the same | the same |
 | 28 | PB5407 | `scripts/orchestrator/[a-r]*.py` (about 2,850 self-test lines; `enqueue`, `land_lane` done) | the same | the same |
-| 29 | PB5441 | `scripts/orchestrator/[s-z]*.py` with its standalone `test_*.py` files but `test_plan_wave.py` (about 2,000) | the same | the same |
+| 29 | PB5441 | `scripts/orchestrator/[s-z]*.py` with its standalone `test_*.py` files but the planner cases (about 2,000) | the same | the same |
 | 30 | PB5408 | `scripts/arch/`, `scripts/hooks/`, `scripts/semgrep/`, `scripts/models/`, `conformance-suite/harness/`, `.claude/`; `ArchCensusDriftTests.cs` and `ArchReviewFleetDriftTests.cs` → `DECLARED`, `SelfTestArmSource.cs` deleted | the same, those C# tests | the same |
 | 31 | PB5409 | the end state: `REMAINING` deleted, the runner's rule (a) for `.py` deleted and rule (b) narrowed to `selftests/`, the section 16.2 sweep re-run clean | `self_tests.py`, `selftest_layout.py`, `self_test_inputs.py`, the docs and skills | `self_tests.py --list` finds the same files before and after; the layout rule refuses a planted `test_*.py` outside `selftests/` |
 

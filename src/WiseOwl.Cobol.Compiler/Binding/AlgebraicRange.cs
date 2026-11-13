@@ -116,8 +116,7 @@ internal static class AlgebraicRanges
                 pic.EditingRules as WiseOwl.Cobol.Runtime.CobolEdit.EditRule[], '$', decimalPointIsComma);
             scale = frac;
             unscaled = Pow10(cap) - 1;      // all-nines over the mask's digit positions (§2023:13.18.40.4)
-            signable = pic.EditMask!.IndexOf('+') >= 0 || pic.EditMask!.IndexOf('-') >= 0
-                       || pic.EditMask!.Contains("CR") || pic.EditMask!.Contains("DB");
+            signable = pic.HoldsSign;
         }
         else if (pic.Truncation == WiseOwl.Cobol.Runtime.NumericTruncation.BinaryCapacity)
         {

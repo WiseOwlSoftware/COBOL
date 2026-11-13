@@ -829,6 +829,8 @@ Statement arithmetic (ADD/SUB/MUL/DIV with GIVING) enforces the composite-of-ope
 
 Mined from legacy ArithmeticLowerer.LowerDivide: it divides into a `decimal` accumulator (28-29 sig digits) then rescales to the receiver only on the final store. Reproduce with guardScale = max(receiver scales, operand scales) + DIV_GUARD_DIGITS(=14); RoundDiv at guardScale, then TryStore rounds once to the receiver scale per the ROUNDED mode. REMAINDER (DIVIDE…REMAINDER): quotient truncated to GIVING's fraction-digits (NOT rounded), remainder = dividend − quotient×divisor at the GIVING scale (legacy ComputeCobolRemainder / IrCobolRemainder uses givingFracDigits, no rounding).
 
+**The subsidiary quotient's sign is the edition's (kb/Work PB5182; `ArithmeticEmitter.UnsignedSubsidiary`).** From 2002 it is always signed (§2002:14.8.11.3 GR6c, §2023:14.9.12.4 GR6 c)); at --std 85 §1985:VI.6.11.4 GR6 gives the intermediate field "the same presence or absence of a sign as the quotient (identifier-3)", so an identifier-3 with no sign (`PicInfo.HoldsSign` false: no `S`, no `+ - CR DB` in an edited mask) forms the remainder from the absolute value of the quotient, whatever lane formed it: `DIVIDE -11 BY 3 GIVING PIC 9 REMAINDER` gives -20 at 85, -2 from 2002.
+
 **DIVIDE ... GIVING ... REMAINDER has one kernel per lane (kb/Work PB3017; `ArithmeticEmitter.EmitDivideRemainder`).** §2023:14.9.12.4
 GR1/GR7 define the quotient and the remainder as SDIDI expressions under standard-decimal arithmetic and GR6 c) derives the
 subsidiary quotient from that quotient by truncation, so the STANDARD / STANDARD-DECIMAL lane forms the quotient
