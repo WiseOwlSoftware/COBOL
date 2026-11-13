@@ -353,6 +353,16 @@ def imported_modules(source: str) -> set[str]:
     return out
 
 
+def _defines_self_test(source: str) -> bool:
+    """Whether a module defines a top-level `self_test`; one that does not parse defines none here (discovery in
+    scripts/self_tests.py fails it by name, as `holders` leaves it to, so the layout verdict is still printed)."""
+    try:
+        tree = ast.parse(source)
+    except (SyntaxError, ValueError):
+        return False
+    return any(f.name == "self_test" for f in _top_functions(tree))
+
+
 def holders(sources: Mapping[str, str], handles_flag: Callable[[str], bool]) -> set[str]:
     """The ratchet's measured set (module docstring): the Python files of `sources` (repository path -> text) outside
     `selftests/` that hold a self-test."""
@@ -402,8 +412,7 @@ def check(sources: Mapping[str, str], files: Iterable[str], exists: Callable[[st
                        f"{', '.join(SUBJECT_SUFFIXES)})")
         elif subject.endswith(".py") and handles_flag(sources.get(subject, "")):
             out.append(f"{subject}: still handles `--self-test` although its cases live in selftests/")
-        elif subject.endswith(".py") and any(f.name == "self_test" for f in _top_functions(
-                ast.parse(sources.get(subject, "")))):
+        elif subject.endswith(".py") and _defines_self_test(sources.get(subject, "")):
             out.append(f"{subject}: still defines `self_test` although its cases live in selftests/")
     trees = {Path(f).stem for f in tree_files if f.endswith(".py")}
     outside = {Path(f).stem for f in sources if not in_tree(f)}

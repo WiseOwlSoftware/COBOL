@@ -154,6 +154,15 @@ def case_11_remaining_is_one_sorted_path_per_line(expect):
            layout.check_repo(__import__("self_tests").py_handles_flag), [])
 
 
+def case_12_a_subject_that_does_not_parse_is_not_a_traceback(expect):
+    try:
+        found, raised = _check(_tree(**{SUBJECT: "def (:\n"})), ""
+    except SyntaxError as e:
+        found, raised = [], str(e)
+    expect.equal("a converted subject that does not parse: no SyntaxError out of the layout rule", raised, "")
+    expect.equal("and no layout refusal for it (discovery names the file)", found, [])
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

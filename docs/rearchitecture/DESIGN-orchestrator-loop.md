@@ -1759,6 +1759,17 @@ landing, whichever subject converts later.
 lifecycle state, a planted gate host). A file per case would build each world once per case; a file per world builds it
 once per file, as today. A case that needs a world of its own builds it in the case, from a function of `fixtures.py`.
 
+**As built: a file may be ONE ORDER-DEPENDENT world (kb/Work PB5428).** `scripts/selftests/orchestrator/plan_wave/test_planner.py`
+is not a set of independent scenarios: its `case_000` builds the planner's world into module globals (the notes in `WORK`,
+`UN`, `DR_*`, `cl`, `gjson`) and the 232 cases after it read and mutate that state in NAME ORDER (the converted self-test
+shared one world across hundreds of lines). So in a converted file of that kind the case order is load-bearing, and the
+rule "a new case goes where its name sorts" does not hold: a new case there must plant nothing into the shared world
+(`fixtures.note()` into the shared `WORK` changes the input of every later case, the golden whole-plan comparison
+included), or it builds a world of its own in the case; one that must plant into the shared world is named to sort AFTER
+every case that reads it. Splitting the file into independent worlds is the work of the next PB3726 conversion of a
+subject of that size (each block's reads of earlier state made explicit in `fixtures.py`); until then the file's
+docstring says so and this paragraph is the rule.
+
 **How a test reaches its subject's internals: `selftest_cases.subject(__file__)`.** It derives the subject from the test
 file's place by the rule above, puts the subject's directory first on `sys.path` (so the subject's own sibling imports
 resolve as they do when it runs), imports it once and returns the module. A test reads and plants internals as attributes
@@ -1839,7 +1850,7 @@ self-tests of a tree that breaks it. It refuses, over every live root:
   or defines a top-level `self_test*` or `*_arms` function (the eight `scripts/docchecks/*.py` modules, reached only
   through `doc_audits.py`: a delegate is counted, or a conversion that deletes the caller would stop running it with no
   count changing; the rule is the name, so it needs no resolution of who calls it, and the measured set on 2026-11-12 is
-  127 files that handle `--self-test`, 28 standalone `test_*.py` and these 8, 163 in all). A path in the tree and not in the set is a NEW in-file self-test, refused
+  127 files that handle `--self-test`, 28 standalone `test_*.py` and these 8, 163 in all before plan_wave's conversion, 162 on the tree that landed it). A path in the tree and not in the set is a NEW in-file self-test, refused
   (write its cases under `selftests/`); a path in the set and not in the tree is a conversion, or a deletion, that did
   not remove its line, refused. Each conversion removes exactly its own subjects' lines in the landing that converts
   them. When the set is empty the last step deletes it and the rule becomes absolute (PB5409).
@@ -2350,7 +2361,7 @@ resolves to a real clause of the standard's "Standard classes", so no audit coul
 | 1 | PB3637 | LANDED: the UTF-8 switch, `standard_streams.ensure_utf8` in every live entry point | — | — |
 | 1 | PB3727 | LANDED, then RETIRED by PB5110: the PublicAPI driver | — | — |
 | 2 | PB3728 | LANDED: section 16.3, `plan_wave.py` split by job | — | — |
-| 2 | PB5428 | section 16.2's mechanism, with plan_wave's cases: `selftest_cases.py`, `selftest_layout.py` and its call in `self_tests.py` (with `--only` and the case files' `PYTHONPATH`), the `REMAINING` set, `self_test_arms.py` reading case names, the static readers' two edges, `scratch_repo`'s reach; the plan_wave cases → `scripts/selftests/orchestrator/plan_wave/` | those files, `inert_lane.py` (`_imports`), `script_layering.py`, `scratch_repo.py`, the plan_wave cases (deleted), `testdata/plan_wave_default.json` | the same labels (the 416 `check(` calls); `--list` the same; the golden plan unchanged; the planted breaches RED |
+| 2 | PB5428 | section 16.2's mechanism, with plan_wave's cases: `selftest_cases.py`, `selftest_layout.py` and its call in `self_tests.py` (with `--only` and the case files' `PYTHONPATH`), the `REMAINING` set, `self_test_arms.py` reading case names, the static readers' two edges, `scratch_repo`'s reach; `scripts/orchestrator/test_plan_wave.py` → the cases in `scripts/selftests/orchestrator/plan_wave/` | those files, `inert_lane.py` (`_imports`), `scratch_repo.py`, `scripts/orchestrator/test_plan_wave.py` (deleted), `testdata/plan_wave_default.json` | the same labels (the 507 `check(` calls); `--list` the same; the golden plan unchanged; the planted breaches RED |
 | 3 | PB5395 | section 16.8 step A: `conformance_source.py`, the one reader; every reader re-pointed; its CODE_READS entry | `conformance_source.py` (new), `inventory_schema.py`, `inventory_view.py`, `docchecks/{common,register,facts,inventory,design}.py`, `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py`, `differential_fuzz.py`, `phase_b_batch.py`, `conformance-suite/harness/generate.py`, `inert_lane.py` (`CLASSIFICATION`) | every reader's output byte-identical before/after; one PATH spelling of the file left; INERT LANE GREEN |
 | 4 | PB5396 | section 16.9: the Unshipped baselines in one order; `public_api_baselines.py`; the PUBLIC API BASELINES audit | `public_api_baselines.py` (new), `landing_check.py`, `gate.py` (`AUDITS`), the CI workflow, `PublicAPI.Unshipped.txt` | the line multiset unchanged; no RS0016/RS0017/RS0025 |
 | 5 | PB5429 | section 16.8 step B1: the document made regular in place (keys, order, bodies, epilogues, 3.7.1) | `docs/CONFORMANCE.md`, `conformance_source.py`, `docchecks/register.py` | the readers' outputs equal step A's; the line-multiset diff only the keys, headings and markers |

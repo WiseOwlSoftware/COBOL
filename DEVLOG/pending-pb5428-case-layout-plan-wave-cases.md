@@ -40,3 +40,10 @@ fixtures, not a move. The case order is therefore load-bearing for this one file
 tree not, `REMAINING` sorted one per line and equal to the measured set) and `scripts/selftests/selftest_cases/test_collector.py`
 (the collector's arms, `subject`'s refusals and a case file run bare failing at its import). `self_tests.py` gained arms for
 the layout RED verdict, `--only` and the `PYTHONPATH` of a case file.
+
+**Review round 1.** The one blocking finding (R1-1) was the order-dependent world recorded only here: DESIGN-orchestrator-loop
+section 16.2 now carries an "as built" paragraph saying a converted file may be one order-dependent world, what a new case in
+it may plant, and that splitting it is the next conversion's work. The leads were fixed in the files already open: the
+design's ratchet count (162 after this conversion), the mangled step row of section 16.10 and two ungrammatical lines in
+DESIGN-architecture-review, and `selftest_layout.check` no longer raises on a subject that does not parse
+(`_defines_self_test`, with `case_12` in `test_refusals.py`: 13 cases, 29 expectations).
