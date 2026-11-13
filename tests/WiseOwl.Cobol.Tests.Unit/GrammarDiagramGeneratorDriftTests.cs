@@ -76,9 +76,9 @@ public sealed class GrammarDiagramGeneratorDriftTests
         Assert.True(exitCode == 0,
             $"gen-grammar-diagrams.ps1 -Check exited {exitCode} while this test held every fresh file under {temp} ({held})\n" +
             $"STDOUT:\n{stdout}\nSTDERR:\n{stderr}");
-        Assert.True(held.WatcherErrors.Count == 0,
-            $"the watcher under {temp} reported an error, so it may have missed files the generator wrote ({held}):\n" +
-            string.Join("\n", held.WatcherErrors));
+        Assert.True(held.Errors.Count == 0,
+            $"the holder under {temp} failed (a watcher error or a take that threw), so it may have missed files the generator wrote ({held}):\n" +
+            string.Join("\n", held.Errors));
         string? outDir = GeneratorOutputDirectory(stdout);
         Assert.True(outDir is not null, $"no generation summary line in the generator's output\nSTDOUT:\n{stdout}");
         // The generator wrote where this test held files: it reports the directory its -Check run wrote, and that
@@ -116,10 +116,10 @@ public sealed class GrammarDiagramGeneratorDriftTests
     }
 
     /// <summary>What a <see cref="FreshFileHolder"/> did, for the failure messages: how many files it held and skipped,
-    /// and every error its watcher raised.</summary>
-    private sealed record HolderReport(int Held, int Skipped, IReadOnlyList<string> WatcherErrors)
+    /// and every error its watcher raised or a take threw.</summary>
+    private sealed record HolderReport(int Held, int Skipped, IReadOnlyList<string> Errors)
     {
-        public override string ToString() => $"held {Held} file(s), skipped {Skipped}, watcher errors {WatcherErrors.Count}";
+        public override string ToString() => $"held {Held} file(s), skipped {Skipped}, errors {Errors.Count}";
     }
 
     /// <summary>
@@ -149,20 +149,39 @@ public sealed class GrammarDiagramGeneratorDriftTests
         {
             _probe = Path.Combine(directory, ProbeName);
             _watcher = new FileSystemWatcher(directory) { IncludeSubdirectories = true, NotifyFilter = NotifyFilters.FileName };
-            _watcher.Created += (_, e) => ThreadPool.QueueUserWorkItem(static s => s.holder.Take(s.path), (holder: this, path: e.FullPath), preferLocal: false);
-            _watcher.Error += (_, e) => { lock (_gate) _errors.Add(e.GetException().ToString()); };
+            _watcher.Created += (_, e) => ThreadPool.QueueUserWorkItem(static s => s.holder.RunTake(s.path), (holder: this, path: e.FullPath), preferLocal: false);
+            _watcher.Error += (_, e) => Fail("the watcher reported an error", e.GetException());
             _watcher.EnableRaisingEvents = true; // the watch on the directory is in place when this returns
         }
 
         /// <summary>
         /// Plants a fresh file under the directory and completes when the holder has taken it, so the caller that
         /// awaits it knows the hold is live before it starts the process it observes. It waits for that fact, not for a
-        /// time: the file is created after the watch is in place, so its event is certain to come.
+        /// time: the file is created after the watch is in place, so its event is certain to come. Every way the probe can
+        /// fail to be taken ends the wait with an exception naming the cause (kb/Work PB5463 review R1-1): a watcher
+        /// error (<see cref="Fail"/>), a probe gone or unopenable when its event is handled, a take that threw, or the
+        /// holder stopped first.
         /// </summary>
         public Task ProveAsync()
         {
             File.WriteAllBytes(_probe, []);
             return _probeHeld.Task;
+        }
+
+        /// <summary>Records a failure the test's verdict must carry (<see cref="HolderReport.Errors"/>) and ends a pending
+        /// probe wait with it.</summary>
+        private void Fail(string what, Exception cause)
+        {
+            lock (_gate) _errors.Add($"{what}: {cause}");
+            _probeHeld.TrySetException(new InvalidOperationException($"the holder's probe was not taken: {what}", cause));
+        }
+
+        /// <summary>The thread-pool work item: an exception a take throws reaches the test's verdict through
+        /// <see cref="Fail"/>; it never vanishes and never reaches the pool, which would end the test host.</summary>
+        private void RunTake(string path)
+        {
+            try { Take(path); }
+            catch (Exception ex) { Fail($"taking {path} threw", ex); }
         }
 
         private void Take(string path)
@@ -174,7 +193,12 @@ public sealed class GrammarDiagramGeneratorDriftTests
                     if (_stopped) return;
                     try
                     {
-                        if (!File.Exists(path)) { _skipped++; return; } // deleted already, or a directory
+                        if (!File.Exists(path)) // deleted already, or a directory
+                        {
+                            _skipped++;
+                            if (path == _probe) _probeHeld.TrySetException(new FileNotFoundException("the holder's probe was gone when its event was handled", path));
+                            return;
+                        }
                         _held.Add(new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete));
                         if (path == _probe) _probeHeld.TrySetResult();
                         return;
@@ -208,6 +232,7 @@ public sealed class GrammarDiagramGeneratorDriftTests
                 _stopped = true;
                 _watcher.EnableRaisingEvents = false;
                 _report = new HolderReport(_held.Count, _skipped, [.. _errors]);
+                _probeHeld.TrySetException(new InvalidOperationException("the holder was stopped before its probe was taken"));
                 foreach (var stream in _held) stream.Dispose();
                 _held.Clear();
                 return _report;
