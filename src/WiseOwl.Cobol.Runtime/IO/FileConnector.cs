@@ -1523,7 +1523,10 @@ public abstract class FileConnector
         if (++_recordsSinceOpen % point.Every != 0) return status;
         try
         {
-            using var device = Medium.OpenAuxiliary(CobolFile.ResolveHostPath(point.Device), FileMode.Append, FileAccess.Write);
+            // The device may be shared with another connector or run unit, so every write lands at the end as the file stands then
+            // (HostFile.OpenConnectorWriteStream under FileShare.ReadWrite); OpenOrCreate makes the device on its first rerun point.
+            using var device = Medium.OpenConnectorWriteStream(CobolFile.ResolveHostPath(point.Device), FileMode.OpenOrCreate,
+                FileAccess.Write, FileShare.ReadWrite);
             device.Write(System.Text.Encoding.UTF8.GetBytes(point.Information(_recordsSinceOpen)));
             device.Flush();
             return status;
