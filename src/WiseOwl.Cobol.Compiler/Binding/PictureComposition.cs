@@ -329,11 +329,21 @@ internal static class PictureComposition
         }
 
         // SR22 "Neither the symbol 'S' nor the symbol '*' shall be specified in character-string-1 when the
-        // BLANK WHEN ZERO clause is specified for the subject of the entry."
-        if (blankWhenZero && (Count("S") > 0 || Count("*") > 0))
+        // BLANK WHEN ZERO clause is specified for the subject of the entry." (the 2002 text's SR18 says the same). COBOL-85
+        // bars the asterisk alone: "The asterisk when used as the zero suppression symbol and the clause BLANK WHEN ZERO
+        // may not appear in the same entry" (§1985:VI.5.9.3 SR7), and its BLANK WHEN ZERO clause takes any numeric
+        // PICTURE (§1985:VI.5.4.3 SR1), so PIC S9(4) BLANK WHEN ZERO is a COBOL-85 entry (kb/Work PB5191).
+        if (blankWhenZero && Count("*") > 0)
             return Fail(DiagnosticCatalog.PictureComposition,
-                $"the symbol '{(Count("S") > 0 ? 'S' : '*')}' is specified beside a BLANK WHEN ZERO clause — neither "
-                + "'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)");
+                "the symbol '*' is specified beside a BLANK WHEN ZERO clause — "
+                + (edition.DialectLevel < 2002
+                    ? "the asterisk when used as the zero suppression symbol and the clause BLANK WHEN ZERO may not appear in "
+                      + "the same entry (ISO §1985:VI.5.9.3 SR7)"
+                    : "neither 'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)"));
+        if (blankWhenZero && Count("S") > 0 && edition.DialectLevel >= 2002)
+            return Fail(DiagnosticCatalog.PictureComposition,
+                "the symbol 'S' is specified beside a BLANK WHEN ZERO clause — neither 'S' nor '*' may be (ISO "
+                + "§2023:13.18.40.3 SR22)");
 
         // SR24 "For fixed insertion with editing sign control symbols, only one currency symbol and only one
         // editing sign control symbol may be used in character-string-1."

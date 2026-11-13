@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb5424-use-control-name-in-footing-legal
       *> rules: [SR-14.9.49.3-11]
-      *> accept: [85]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

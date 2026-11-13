@@ -471,14 +471,23 @@ public static class PictureAnalyzer
         // shape. The usage pair is asked of UsageFamilies.IsDisplayOrNational, the predicate SR2's own screen
         // (DataBinder.BlankWhenZeroViolation) asks, so the screen and this promotion cannot name different usages
         // (BlankWhenZeroUsagePairDriftTests).
-        if (anyEdit || (blankWhenZero && digits > 0 && !signed && UsageFamilies.IsDisplayOrNational(usage)))
+        // COBOL-85 has no bar on S beside the clause, and its GR2 is about the PICTURE alone: "When the BLANK WHEN ZERO clause
+        // is used for an item whose PICTURE is numeric, the category of the item is considered to be numeric edited"
+        // (§1985:VI.5.4.4 GR2), so a signed numeric picture is promoted there too (kb/Work PB5191). The S of such a picture
+        // is no editing symbol ("The 'S' is not counted in determining the size", §1985:VI.5.9.4 GR8), and a numeric edited
+        // item holds no operational sign, so it leaves the edit mask: PIC S9(4) BLANK WHEN ZERO edits as 9999, zero as
+        // four spaces. (Validate refuses S beside any editing symbol, so only this arm brings an S here.)
+        if (anyEdit || (blankWhenZero && digits > 0 && (!signed || edition.DialectLevel < 2002) && UsageFamilies.IsDisplayOrNational(usage)))
+        {
+            string mask = signed ? expanded.Replace("S", "", StringComparison.Ordinal) : expanded;
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§2023:13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
-                Length: CharacterPositions(expanded, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: signed)
-            { SignKind = signKind, EditMask = CanonicalCurrencyMask(expanded, cs), EditingRules = editRules, DigitPositions = digitPos,
+                Length: CharacterPositions(mask, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: false)
+            { SignKind = PicInfo.SignKindFor(usage, false, sign), EditMask = CanonicalCurrencyMask(mask, cs), EditingRules = editRules, DigitPositions = digitPos,
               CurrencyString = currencyString == "$" ? null : currencyString, CurrencyClass = currencyClass };
+        }
 
         // ⛔ GR11's ANTECEDENT, at the arm that answers it (kb/Work PB535). This arm is the FALL-THROUGH — it is
         // reached by exhaustion, by everything that is not national, boolean, alphabetic/alphanumeric or edited —

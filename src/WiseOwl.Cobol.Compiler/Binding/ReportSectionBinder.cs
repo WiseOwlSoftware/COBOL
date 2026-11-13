@@ -2569,8 +2569,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // downstream applies it to an item it may not describe.
                 if (blankWhenZero && DataBinder.BlankWhenZeroViolation(pic) is { } bwzFault)
                 {
-                    Edition.Error(DiagnosticCatalog.ClauseSubjectCategory,
-                        $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {bwzFault}");
+                    // A recovery profile (the PICTURE refused by its own rule) has no category to judge (kb/Work PB5191).
+                    if (!pic.IsRecovery)
+                        Edition.Error(DiagnosticCatalog.ClauseSubjectCategory,
+                            $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {bwzFault}");
                     blankWhenZero = false;
                 }
                 if (justified && DataBinder.JustifiedViolation(pic) is { } justifiedFault)
