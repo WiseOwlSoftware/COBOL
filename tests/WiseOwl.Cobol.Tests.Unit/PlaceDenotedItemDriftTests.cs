@@ -157,4 +157,32 @@ public sealed class PlaceDenotedItemDriftTests
             "A hand-written \"is this reference a whole item\" test re-derives ISO §2023:8.4.3.3.4 GR5 instead of "
             + "asking Place.DenotedItem (kb/Work PB602):\n  " + string.Join("\n  ", offenders));
     }
+
+    /// <summary>⛔ THE CODE GENERATOR ASKS AN OPERAND'S DESCRIPTION, NEVER ITS IDENTITY (kb/Work PB5335). Every rule of the
+    /// form "shall be the data item …" is a binder screen; what the backend needs of a place is its attributes — PICTURE,
+    /// length, profile, atoms, group members — which <see cref="Place.DescribedItem"/> answers. Asked of
+    /// <see cref="Place.DenotedItem"/>, a non-THROUGH level-66 alias answered with its own entry, which has no members
+    /// (§2023:13.18.45.4 GR1 gives it data-name-2's attributes), so a CALL argument <c>GT-ALIAS</c> over a table group
+    /// stated no length, atoms or description and EC-PROGRAM-ARG-MISMATCH could not compare it. The run-time descriptions
+    /// an activation compares (<c>Oo/ActivationDescriptions.cs</c>) are the same question.</summary>
+    [Fact]
+    public void TheBackendAsksTheDescriptionNotTheIdentity()
+    {
+        var sep = System.IO.Path.DirectorySeparatorChar;
+        string compiler = WiseOwl.Cobol.Tests.Shared.TestRepo.Src("WiseOwl.Cobol.Compiler");
+        string[] offenders =
+        [
+            .. System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(compiler, "CodeGen"), "*.cs", System.IO.SearchOption.AllDirectories)
+                .Append(System.IO.Path.Combine(compiler, "Oo", "ActivationDescriptions.cs"))
+                .Where(p => !p.Contains($"{sep}obj{sep}") && !p.Contains($"{sep}bin{sep}"))
+                .SelectMany(p => System.IO.File.ReadAllLines(p)
+                    .Select((line, i) => (line, n: i + 1))
+                    .Where(x => x.line.Contains(nameof(Place.DenotedItem), StringComparison.Ordinal))
+                    .Select(x => $"{System.IO.Path.GetFileName(p)}:{x.n}"))
+                .OrderBy(s => s, StringComparer.Ordinal)
+        ];
+        Assert.True(offenders.Length == 0,
+            "The code generator reads Place.DenotedItem, the identity question, where it needs the operand's description "
+            + "(Place.DescribedItem; kb/Work PB5335):\n  " + string.Join("\n  ", offenders));
+    }
 }

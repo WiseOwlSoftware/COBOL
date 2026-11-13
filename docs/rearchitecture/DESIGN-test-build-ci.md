@@ -1056,6 +1056,15 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
 Every gate runs the ~70 script self-tests (§3.14.3), and a self-test is judged by what it does, never by how long it takes:
 a test that fails with no regression, which the owner forbids (2026-09-25), must not sit inside the gate. Three rules follow.
 
+**The case layout (kb/Work PB3726, PB5428; DESIGN-orchestrator-loop.md §16.2).** A script's tests live in
+`<root>/selftests/<path>/<name>/` (`live_tools.ROOTS`), as `fixtures.py` and `test_<world>.py` files of `case_<name>(expect)`
+functions that end in `selftest_cases.run`. `scripts/self_tests.py` calls `scripts/selftest_layout.py` before it runs
+anything (a refusal is the run's RED verdict, `=== SELF-TESTS: RED — layout: … ===`), runs each case file as it runs any
+`test_*.py` (discovery rule b) with `PYTHONPATH` = `scripts/` prepended in `Runner.run_one`, and takes `--only <path> ...`
+to run named files by hand. Each case file is a standalone test to every rule below: its PASS is keyed on what it read,
+and a change to the subject or to `fixtures.py` re-runs every file of the subject. `selftest_layout.REMAINING` is the set
+of Python files that still hold an in-file self-test (a ratchet: a new one, or a stale line, is refused).
+
 **1. Reuse — who records, who reuses.** `scripts/self_tests.py` TRACES every self-test it runs and records each PASS with
 the content of everything it read, in ONE store shared by every checkout of the repository:
 `<git common dir>/cobol-self-test-passes/<platform>/<test digest>/<deps digest>.json` (the newest PASS_KEEP per self-test).
@@ -1248,7 +1257,7 @@ the reason, among its first five lines: `# SELF-TEST-CLOCK: real — <why>`, and
 not reused past the day it was recorded either (review R1-2: a declared PASS with no horizon would be answered REUSED
 forever while CI runs the self-test fresh). Measured 2026-11-01 over every self-test (PB4353's shifted-clock sweep, repeated
 through this runner): the Python ones that compare file modification times, a process's start time or git commit times with
-the clock declare it (`gate_slot.py`, `prune_worktrees.py`, `orchestrator/test_plan_wave.py`, `orchestrator/test_alloc.py`;
+the clock declare it (`gate_slot.py`, `prune_worktrees.py`, `selftests/orchestrator/plan_wave/test_planner.py`, `orchestrator/test_alloc.py`;
 `spec/impact_store.py` did until PB4328 deleted it), and so do the runner's own self-test (`self_tests.py`: its arms nest
 runners that move the clock themselves and compare it with modification times) and this module's (`self_test_clock.py`: its
 arms compare child processes' clocks with its own); every other shifted self-test passed. The runner removes

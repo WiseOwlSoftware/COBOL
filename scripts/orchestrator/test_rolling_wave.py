@@ -4,7 +4,7 @@
 
     python scripts/orchestrator/test_rolling_wave.py
 
-The wave script had no harness: its rules were pinned only as source text (test_plan_wave.py), so the hold that kept a
+The wave script had no harness: its rules were pinned only as source text (the plan_wave cases), so the hold that kept a
 finished, CLEAN predecessor off main behind its same-file successor (wave 1118: six DONE groups, none landed in seven
 hours) was never seen to run. This runs the script itself, as the Workflow runtime does (its body as an async function
 of `args`, `agent`, `parallel`, `log` and `phase`), against scripted agent results keyed by each agent's label, and

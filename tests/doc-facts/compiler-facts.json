@@ -40,6 +40,10 @@
   ],
   "dialectBehaviors": [
     {
+      "id": "cancel-refuses-every-active-program",
+      "vcrRow": "7.66"
+    },
+    {
       "id": "compile-time-arithmetic-mode",
       "vcrRow": "12"
     },
@@ -914,7 +918,10 @@
     "COBOL6947",
     "COBOL6948",
     "COBOL6973",
-    "COBOL7006"
+    "COBOL7006",
+    "COBOL7039",
+    "COBOL7060",
+    "COBOL7061"
   ],
   "cliOptions": [
     "--copy",

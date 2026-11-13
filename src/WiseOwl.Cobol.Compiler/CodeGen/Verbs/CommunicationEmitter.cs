@@ -23,9 +23,15 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
 
     private static string FormatOf(CommunicationDescription cd) => RuntimeApi.CommunicationEnum(cd.Format);
 
-    /// <summary>The members of a program with a CD of the INITIAL clause: its once-per-instance flag.</summary>
+    /// <summary>The member that holds a CD's state in this program instance (<c>CdActivation</c>): what the program holds about the CD lives and dies with the instance, so a
+    /// CANCELled program and each CALL of an INITIAL program start with none of it (§1985:XIV.2.2.4 GR31; kb/Work PB5381).</summary>
+    private string ActivationOf(CommunicationDescription cd) => $"__cdActivation{ctx.Data.Communication.Declared.ToList().IndexOf(cd)}";
+
+    /// <summary>The members of a program with a CD: each CD's activation, and for a CD of the INITIAL clause the once-per-instance flag.</summary>
     public void EmitMembers(CodeWriter w)
     {
+        foreach (var cd in ctx.Data.Communication.Declared)
+            w.Line($"private readonly {RuntimeApi.CdActivationType} {ActivationOf(cd)} = new();");
         if (ctx.Data.Communication.Declared.Any(cd => cd.IsInitial))
             w.Line("private bool __initialCdSet;   // the INITIAL CD's symbolic names are set before the first statement (ISO/IEC 1989:2002 A.1.2.3 GR6, GR28)");
     }
@@ -40,7 +46,7 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
             using (w.Block("if (!__initialCdSet)"))
             {
                 w.Line("__initialCdSet = true;");
-                seqIo.EmitImageInto(area, RuntimeApi.McsInitialArea(CsLiteral(cd.Key), FormatOf(cd), OperandText.RecordAreaImage(area)), storesIntoOwnItem: false);
+                seqIo.EmitImageInto(area, RuntimeApi.McsInitialArea(ActivationOf(cd), FormatOf(cd), OperandText.RecordAreaImage(area)), storesIntoOwnItem: false);
             }
         }
     }
@@ -48,7 +54,7 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
     public void Emit(BoundCommunicationStatement n)
     {
         string image = OperandText.RecordAreaImage(n.Area);
-        string cd = CsLiteral(n.Cd.Key);
+        string cd = ActivationOf(n.Cd);
         string format = FormatOf(n.Cd);
         switch (n.Verb)
         {

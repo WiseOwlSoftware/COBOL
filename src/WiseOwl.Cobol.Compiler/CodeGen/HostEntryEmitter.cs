@@ -170,8 +170,10 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
                 EmitCallBody(unit, formals, returning, w);
             if (!unit.IsFunction)
             {
+                // A host's CANCEL is no COBOL statement of any edition, so it obeys the current GR5 (kb/Work PB5241).
                 w.Line($"/// <summary>CANCEL {unit.Name} (ISO §2023:14.9.5) in the current run unit.</summary>");
-                w.Line($"public static void Cancel() => ProgramRegistry.Cancel({CsLiteral(unit.ExternalizedName)}, null);");
+                w.Line($"public static void Cancel() => ProgramRegistry.Cancel({CsLiteral(unit.ExternalizedName)}, null, "
+                    + "refusesEveryActiveProgram: true);");
             }
         }
     }

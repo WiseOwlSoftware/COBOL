@@ -93,7 +93,9 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains(ReferenceFormatProcessor.DebugLineCarrier + "    KK.", free);
         var (text, bag) = Run("REPLACE ==DISPLAY KK== BY ==DISPLAY W1==.\n" + free);
         Clean(bag);
-        Assert.Contains("DISPLAY W1.", text);   // the match spans the debugging line's text-word
+        // The match spans the debugging line's text-word; the text after it keeps the indicator of the line the
+        // match ends on (§1985:XII.3.4 GR11 decides only the introduced lines), so the period stays on that line.
+        Assert.Contains("DISPLAY W1\n" + ReferenceFormatProcessor.DebugLineCarrier + ".", text);
         Assert.DoesNotContain("KK", text);
     }
 

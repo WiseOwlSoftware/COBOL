@@ -181,9 +181,9 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                 return RuntimeApi.FunctionFieldOfDigits(num.DecOperand(num.AsNum(a, ReceiverContext.None)), deviceDigits);
             case BoundFieldOperand { Place.Item.FunctionValueSeparator: not null }:
                 return ValueField(num.AsNum(a, ReceiverContext.None, keepWide: true));
-            // A whole data item (a reference-modified slice is no declared item, Place.DenotedItem); a floating-point item orders by
+            // A whole data item (a reference-modified slice is no declared item, Place.DescribedItem); a floating-point item orders by
             // its exact value (the one float-item lift) and shows its own DISPLAY image.
-            case BoundFieldOperand { Place: { DenotedItem: not null, Item.IsGroup: false, Item.Pic: { Category: PicCategory.Numeric } pic } place }:
+            case BoundFieldOperand { Place: { DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } pic } } place }:
                 NumX read = num.AsNum(a, ReceiverContext.None);
                 // The copy's length is the item's own, by the one reading the binder gives FUNCTION LENGTH(field) and BYTE-LENGTH(field):
                 // positions (§2023:15.50.4 r2/r3) and bytes (§2023:15.14.4 r1) differ for a usage-national item.
