@@ -1,4 +1,4 @@
-## PB5460: one NIST acceptance basis in two languages, held to one table; a form feed is a page eject everywhere a harness compares program output
+## Entry 3560 — 2026-11-13 02:50 PST — PB5460: one NIST acceptance basis in two languages, held to one table; a form feed is a page eject everywhere a harness compares program output
 
 The nightly `Guard (WiseOwl COBOL NIST, parallel)` job had been red on SQ101M since PB2509 (pull request #1091). The
 re-probe at 9dbc2cac09 reproduced it alone: `GUARD_TESTS=SQ101M bash scripts/guard-fast.sh` printed `UNEXPECTED: SQ101M
@@ -29,3 +29,4 @@ the old basis turned the overprint's lone CR into a line break, while the progra
 `AAAA␠␠␠␠\rBBBB` (the whole record, kb/Work PB2509, then the zero advance's CR). Its expected value now states the CRs
 and the padding. The other sites compare diagnostics, source or repository text, or a fixed literal the test's own program DISPLAYs;
 the note's landing addendum lists each with its decision. DESIGN-test-build-ci.md §1.2 states both bases.
+
