@@ -124,6 +124,50 @@ public sealed class RerunRecordsTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    /// <summary>An OPEN of an open file is unsuccessful ('41') and leaves the file unaffected (§2023:14.9.27.4 GR25), so the
+    /// count of records processed since its one successful OPEN goes on (§1985:VII.2.12.4 GR2 d).</summary>
+    [Fact]
+    public void AnOpenRefusedAs41_DoesNotRestartTheCount()
+    {
+        string dir = ScratchDirectory.Create("pb5198-");
+        try
+        {
+            var (reg, _, device) = Sequential(dir, every: 2);
+            reg.OpenStatic(File, FileOpenMode.Output);
+            Assert.Equal("00", Write(reg, "ABCD"));
+            reg.OpenStatic(File, FileOpenMode.Output);
+            Assert.Equal("41", reg.Status(File));
+            for (int i = 0; i < 3; i++) Assert.Equal("00", Write(reg, "ABCD"));
+            reg.Close(File);
+            Assert.Equal("RERUN F 2\nRERUN F 4\n", System.IO.File.ReadAllText(device));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>The sequential WRITE ADVANCING and REWRITE are connector methods of their own beside WRITE; each counts.</summary>
+    [Fact]
+    public void ASequentialWriteAdvancingAndRewrite_AreRecordsProcessed()
+    {
+        string dir = ScratchDirectory.Create("pb5198-");
+        try
+        {
+            var (reg, data, device) = Sequential(dir, every: 1);
+            reg.OpenStatic(File, FileOpenMode.Output);
+            reg.WriteAdvancing(File, "ABCD", 1, before: false, page: null);
+            Assert.Equal("00", reg.Status(File));
+            reg.Close(File);
+            Assert.Equal("RERUN F 1\n", System.IO.File.ReadAllText(device));
+
+            System.IO.File.WriteAllText(data, "ABCD");
+            reg.OpenStatic(File, FileOpenMode.IO);
+            Assert.Equal("00", Read(reg));                    // record 1
+            Assert.Equal("00", reg.RewriteShared(File, "WXYZ", -1, FileRecordLock.None, FileRetryKind.None, 0));   // record 2
+            reg.Close(File);
+            Assert.Equal("RERUN F 1\nRERUN F 1\nRERUN F 2\n", System.IO.File.ReadAllText(device));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     /// <summary>A device the host refuses is told to the program as the file's I-O status, and the record the statement
     /// wrote is written.</summary>
     [Theory]

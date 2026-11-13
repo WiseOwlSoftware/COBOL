@@ -1000,6 +1000,7 @@ public abstract class FileConnector
     /// race, and the last attempt's '30' stands.</para></summary>
     public string Open(FileOpenMode mode)
     {
+        bool wasOpen = IsOpen;   // an OPEN of an open file is unsuccessful ('41') and leaves it as it was (§2023:14.9.27.4 GR25)
         bool ownedWritesAdmitted = false;
         int pathChangedMeanwhile = 0;
         while (true)
@@ -1014,7 +1015,7 @@ public abstract class FileConnector
                     pathChangedMeanwhile++;
                     break;
                 default:
-                    if (IsOpen) _recordsSinceOpen = 0;   // the integer-1 RECORDS count is of the records processed since the file's OPEN
+                    if (IsOpen && !wasOpen) _recordsSinceOpen = 0;   // the integer-1 RECORDS count is of the records processed since the file's OPEN
                     return status;
             }
         }
