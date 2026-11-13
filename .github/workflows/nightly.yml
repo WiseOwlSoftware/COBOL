@@ -33,8 +33,13 @@ name: Nightly
 #
 # The `images` job holds the one thing CI does not install, each runner image's own git (toolchain.env says why), on
 # the image itself: `toolchain.py check --scope image` is red while the image's git differs from GIT_LINUX_VERSION or
-# GIT_WINDOWS_VERSION. A build-and-test job on such an image only warns, so GitHub rolling an image never stops a
-# landing, and this run is where the move is red until `bump` follows it.
+# GIT_WINDOWS_VERSION AND the image's newest release (actions/runner-images' newest release tagged for the image, a
+# prerelease being rolled out included, the git its readme names at that tag) carries that git too, so the red is
+# always one `bump` clears: `latest` and `bump` read the same release (`toolchain.image_release`, kb/Work PB5458), never
+# the readme on `main`, which moves only once a rollout completes. A job that landed on an image other than the newest
+# release (the rollout's old image, or one newer than any published release) is a ROLLOUT warning and green, and a
+# release that cannot be read is red. A build-and-test job on a moved image only warns, so GitHub rolling an image
+# never stops a landing, and this run is where the move is red until `bump` follows it.
 #
 # ⛔ THE SCHEDULE: 09:17 UTC (02:17 PDT), so every verdict is in before the working day's first landing. A scheduled run
 # reads the default branch, so it measures main as the day's landings left it.
@@ -326,6 +331,8 @@ jobs:
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
         uses: ./.github/actions/setup-toolchain
         timeout-minutes: 5
-      - name: The image's own tools, strictly (toolchain.py check --scope image)
+      - name: The image's own tools against the manifest and the image's newest release (toolchain.py check --scope image)
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}   # the image's releases come from api.github.com (60 unauthenticated requests an hour)
         run: python scripts/toolchain.py check --scope image

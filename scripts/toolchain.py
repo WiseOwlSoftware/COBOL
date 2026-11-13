@@ -27,10 +27,12 @@ one row here, one manifest line and, for an install-tool row, one `tool_spec` ar
 git is the runner image's in CI. actions/checkout runs it before any repository file exists, and no publisher ships a
 Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl headers a source build needs), so CI cannot
 install it from the manifest. The manifest names each image's git (GIT_LINUX_VERSION, GIT_WINDOWS_VERSION), `latest`
-reads it from the image's own readme, and each host installs that release. A CI job reports an image whose git moved as
-a warning, never a failure: GitHub rolls each image on its own schedule, and a hard failure there would stop every
-landing until a bump, or, with the two images on different weeks, until both converged. The daily nightly workflow
-run holds each image strictly (`check --scope image`), so a moved image is a red scheduled run within a day.
+reads it from the image's newest release (image_release, the one source of an image's git: kb/Work PB5458), and each
+host installs that release. A CI job reports an image whose git moved as a warning, never a failure: GitHub rolls each
+image on its own schedule, and a hard failure there would stop every landing until a bump, or, with the two images on
+different weeks, until both converged. The daily nightly workflow run holds each image to its newest release
+(`check --scope image`), so a moved image is a red scheduled run within a day, and a job that landed on an image other
+than the newest release mid-rollout is a warning, since no bump can follow it.
 """
 from __future__ import annotations
 
@@ -63,7 +65,8 @@ EXACT = re.compile(r"^\d+(?:\.\d+)+$")
 VERDICT = "=== TOOLCHAIN: "
 
 #: The scopes `check` holds. `ci`: what a CI job runs once setup-toolchain installed it (a runner image's own tool is
-#: reported there, never failed). `image`: the runner image's own tools, strictly (the nightly `images` job, on each image).
+#: reported there, never failed). `image`: the runner image's own tools against the manifest and the image's newest
+#: release (the nightly `images` job, on each image; compare).
 #: `gate`: what the local gate runs. `host`: everything a host carries.
 SCOPES = ("ci", "image", "gate", "host")
 
@@ -93,6 +96,7 @@ class Tool:
     runs: str                           # CI or HOST
     latest: Latest
     system: str | None = None
+    image: str | None = None            # an IMAGE row: the manifest key of the runner label whose image carries it
 
     @property
     def scopes(self) -> frozenset[str]:
@@ -148,22 +152,70 @@ def _jdk(fetch: Callable[[str], str], manifest: dict[str, str]) -> Release:
     return ".".join(newest["latestReleaseVersion"].split(".")[:3]), None
 
 
-def image_readme(label: str) -> str:
-    """The runner image's readme, which lists its tools: `ubuntu-26.04` is images/ubuntu/Ubuntu2604-Readme.md and
-    `windows-2025-vs2026` images/windows/Windows2025-VS2026-Readme.md in actions/runner-images."""
+#: The runner images' repository. It publishes each image as a release tagged `<image>/<version>` (`ubuntu26/20261111.196`,
+#: the `Image Release:` line a job's log prints) when GitHub starts rolling the image out, a prerelease until the rollout
+#: completes, and moves the readme under images/ on `main` only once it has: on 2026-11-12 the nightly ran on
+#: ubuntu26/20261111.196 (git 2.56.1) while `main`'s readme still described 20261101.186 (git 2.56.0), so the readme on
+#: `main` is not the image a job runs on (kb/Work PB5458).
+RUNNER_IMAGES = "actions/runner-images"
+#: The `- Git 2.56.1` line of an image's readme (Git for Windows' `- Git 2.56.0.windows.4` read as 2.56.0).
+README_GIT = re.compile(r"(?m)^- Git (\d+\.\d+\.\d+)")
+
+
+def image_tag_prefix(label: str) -> str:
+    """The release-tag prefix of the runner image `label` names: `ubuntu-26.04` is `ubuntu26`, `windows-2025-vs2026`
+    `win25-vs2026`. ValueError for a family whose tags this function does not know (never a guessed prefix)."""
+    family, release, *variant = label.split("-")
+    if family == "ubuntu":
+        short = "ubuntu" + release.split(".")[0]
+    elif family == "windows":
+        short = "win" + release[-2:]
+    else:
+        raise ValueError(f"no actions/runner-images release tag is known for the runner label {label}")
+    return "-".join([short, *variant])
+
+
+def image_readme(label: str, ref: str) -> str:
+    """The readme of the runner image `label` names at `ref` (a release tag), which lists its tools: `ubuntu-26.04` is
+    images/ubuntu/Ubuntu2604-Readme.md and `windows-2025-vs2026` images/windows/Windows2025-VS2026-Readme.md."""
     family, release, *variant = label.split("-")
     name = family.capitalize() + release.replace(".", "") + "".join(f"-{v.upper()}" for v in variant)
-    return f"https://raw.githubusercontent.com/actions/runner-images/main/images/{family}/{name}-Readme.md"
+    return f"https://raw.githubusercontent.com/{RUNNER_IMAGES}/{ref}/images/{family}/{name}-Readme.md"
+
+
+@dataclasses.dataclass(frozen=True)
+class ImageRelease:
+    """The newest release of a runner image: its tag, the git its readme names, and whether GitHub is still rolling it
+    out (a prerelease), when a job may land on it or on the release before it."""
+    tag: str
+    git: str
+    rolling_out: bool
+
+
+def image_release(label: str, fetch: Callable[[str], str]) -> ImageRelease:
+    """THE ONE SOURCE OF AN IMAGE'S GIT (kb/Work PB5458): the newest release of the image `label` names, a prerelease
+    being rolled out included (a job lands on it from the day the rollout starts), drafts never, and the git its readme
+    at that tag names. `latest` and `bump` read it, and the `images` job's `check --scope image` reads it to tell a
+    manifest behind the image from an image other than its newest release. ValueError when no release of the image is
+    among the newest 100 or its readme names no git."""
+    prefix = image_tag_prefix(label) + "/"
+    releases = json.loads(fetch(f"https://api.github.com/repos/{RUNNER_IMAGES}/releases?per_page=100"))
+    own = [r for r in releases if r["tag_name"].startswith(prefix) and not r.get("draft")]
+    if not own:
+        raise ValueError(f"no {prefix}* release among {RUNNER_IMAGES}' newest 100 releases")
+    newest_release = max(own, key=lambda r: _key(r["tag_name"].removeprefix(prefix)))
+    tag = newest_release["tag_name"]
+    m = README_GIT.search(fetch(image_readme(label, tag)))
+    if m is None:
+        raise ValueError(f"the {tag} readme names no git")
+    return ImageRelease(tag, m.group(1), bool(newest_release.get("prerelease")))
 
 
 def _image_git(label_key: str) -> Latest:
-    """The git the runner image named by `label_key` carries, from its readme's `- Git 2.56.0` line (Git for Windows'
-    `.windows.N` revision dropped): the only git a CI job can run, so the release the manifest and the hosts follow."""
+    """The git of the newest release of the runner image named by the manifest's `label_key` (image_release): the only
+    git a CI job can run, so the release the manifest and the hosts follow."""
     def latest(fetch: Callable[[str], str], manifest: dict[str, str]) -> Release:
-        m = re.search(r"(?m)^- Git (\d+\.\d+\.\d+)", fetch(image_readme(manifest[label_key])))
-        if m is None:
-            raise ValueError(f"the {manifest[label_key]} readme names no git")
-        return m.group(1), None
+        return image_release(manifest[label_key], fetch).git, None
     return latest
 
 
@@ -175,13 +227,21 @@ def _pypi(package: str) -> Latest:
 
 #: git's own release: Git for Windows reports `2.56.0.windows.3`, its packaging revision after git's version.
 GIT = r"git version (\d+\.\d+\.\d+)"
+
+
+def _image_tool(name: str, key: str, label_key: str, system: str) -> Tool:
+    """The git row of the runner image the manifest's `label_key` names: its newest release is where `latest` reads it
+    and where the image scope tells a manifest behind from a rollout, both through image_release."""
+    return Tool(name, key, ("git", "--version"), GIT, IMAGE, CI, _image_git(label_key), system, label_key)
+
+
 TOOLS: tuple[Tool, ...] = (
     Tool("dotnet-sdk", "DOTNET_SDK_VERSION", ("dotnet", "--version"), r"^(\d+\.\d+\.\d+)\s*$", INSTALL_TOOL, CI, _dotnet_sdk),
     Tool("python", "PYTHON_VERSION", None, r"^(\d+\.\d+\.\d+)$", SETUP_PYTHON, CI, _python),
     Tool("jdk", "JDK_VERSION", ("java", "-version"), r'version "(\d+(?:\.\d+)*)', INSTALL_TOOL, CI, _jdk),
     Tool("pwsh", "PWSH_VERSION", ("pwsh", "--version"), r"PowerShell (\d+\.\d+\.\d+)", INSTALL_TOOL, CI, _github("PowerShell/PowerShell")),
-    Tool("git-linux", "GIT_LINUX_VERSION", ("git", "--version"), GIT, IMAGE, CI, _image_git("CI_LINUX_IMAGE"), "Linux"),
-    Tool("git-windows", "GIT_WINDOWS_VERSION", ("git", "--version"), GIT, IMAGE, CI, _image_git("CI_WINDOWS_IMAGE"), "Windows"),
+    _image_tool("git-linux", "GIT_LINUX_VERSION", "CI_LINUX_IMAGE", "Linux"),
+    _image_tool("git-windows", "GIT_WINDOWS_VERSION", "CI_WINDOWS_IMAGE", "Windows"),
     Tool("gh", "GH_VERSION", ("gh", "--version"), r"gh version (\d+\.\d+\.\d+)", INSTALL_TOOL, CI, _github("cli/cli")),
     Tool("jq", "JQ_VERSION", ("jq", "--version"), r"jq-(\d+\.\d+(?:\.\d+)?)", INSTALL_TOOL, CI, _github("jqlang/jq", "jq-")),
     Tool("uv", "UV_VERSION", ("uv", "--version"), r"uv (\d+\.\d+\.\d+)", INSTALL_TOOL, HOST, _github("astral-sh/uv", "")),
@@ -263,21 +323,51 @@ def held(scope: str, system: str = platform.system()) -> list[Tool]:
     return [t for t in TOOLS if scope in t.scopes and t.applies(system)]
 
 
+def _image_moved(tool: Tool, got: str, want: str, manifest: dict[str, str],
+                 fetch: Callable[[str], str]) -> tuple[str, str | None]:
+    """(state, the clause the check line adds) for an image's own tool reporting `got` where the manifest names `want`,
+    in the image scope: MISMATCH when the image's newest release carries `got` too (the manifest is behind the release
+    `bump` reads, or names a git no release carries), so the run is red and `bump` clears it; ROLLOUT, a warning, when
+    the job ran on an image other than that newest release (GitHub rolling an image out, either side of it), which no
+    change of the manifest can follow; MISMATCH when the release cannot be read (a check that cannot see is not green)."""
+    label = manifest[tool.image]
+    try:
+        release = image_release(label, fetch)
+    except Exception as e:  # noqa: BLE001 — an unreadable release is reported and red, never a pass
+        return "MISMATCH", f"the newest {label} release was not read ({type(e).__name__}: {e})"
+    if got == release.git:
+        return "MISMATCH", f"the newest {label} release {release.tag} carries {got}: `python scripts/toolchain.py bump`"
+    side = "an older" if _key(got) < _key(release.git) else "a newer"
+    rollout = "is rolling out" if release.rolling_out else "is deployed"
+    return "ROLLOUT", (f"the job ran on {side} image than the newest {label} release {release.tag} ({rollout}, git "
+                       f"{release.git}), which `bump` follows; no change of the manifest follows this image")
+
+
 def compare(manifest: dict[str, str], scope: str, run: Callable[[tuple[str, ...]], str | None] = _run,
-            system: str = platform.system()) -> tuple[list[str], list[str]]:
+            system: str = platform.system(),
+            fetch: Callable[[str], str] | None = None) -> tuple[list[str], list[str]]:
     """(the lines `check` prints, the mismatches): each tool of `scope` on `system`, the version it reports and the
     manifest's. In the `ci` scope a runner image's own tool (git) that differs is a GitHub warning line, never a
-    mismatch: the image moved under the job, and the nightly `images` job's `image` scope is where it is red."""
+    mismatch: the image moved under the job, and the nightly `images` job's `image` scope is where it is red. The image
+    scope reads the image's newest release (`fetch`, the network by default) for a git that differs, and is red only
+    when that release carries it too (_image_moved)."""
     lines, bad = [], []
     for tool in held(scope, system):
         want, got = manifest[tool.key], installed(tool, run)
         state = "OK" if got == want else ("ABSENT" if got is None else "MISMATCH")
+        why = None
         if state != "OK" and scope == "ci" and tool.source == IMAGE:
             lines.append(f"::warning title=toolchain::the runner image's {tool.name} is {got or 'absent'}, toolchain.env "
-                         f"names {want}: the image moved; the nightly run is red until `toolchain.py bump` "
-                         "follows it (kb/Work PB4007)")
+                         f"names {want}: the image moved; the nightly `images` job is red while the image's newest "
+                         "release carries it, until `toolchain.py bump` follows it (kb/Work PB4007, PB5458)")
             state = "IMAGE"
-        lines.append(f"  {state:8} {tool.name} {got or '(none)'}" + ("" if state == "OK" else f" — toolchain.env names {want}"))
+        if state == "MISMATCH" and scope == "image" and tool.source == IMAGE:
+            state, why = _image_moved(tool, got, want, manifest, fetch or fetch_url)
+            if state == "ROLLOUT":
+                lines.append(f"::warning title=toolchain::the runner image's {tool.name} is {got}, toolchain.env names "
+                             f"{want}: {why} (kb/Work PB5458)")
+        lines.append(f"  {state:8} {tool.name} {got or '(none)'}"
+                     + ("" if state == "OK" else f" — toolchain.env names {want}") + (f"; {why}" if why else ""))
         if state in ("ABSENT", "MISMATCH"):
             bad.append(f"{tool.name} {got or 'absent'} (toolchain.env {want})")
     return lines, bad
@@ -311,11 +401,12 @@ def installer_problems(text: str) -> list[str]:
 
 def check(scope: str, manifest: dict[str, str] | None = None,
           run: Callable[[tuple[str, ...]], str | None] = _run, system: str = platform.system(),
-          installer: str | None = None) -> tuple[int, str]:
-    """(exit code, report): 0 GREEN when every tool of `scope` on `system` reports the manifest's version and the
-    installer lists exactly TOOLS' install-tool rows, else 1 RED naming each."""
+          installer: str | None = None, fetch: Callable[[str], str] | None = None) -> tuple[int, str]:
+    """(exit code, report): 0 GREEN when every tool of `scope` on `system` reports the manifest's version (in the image
+    scope, or differs only because the job ran on an image other than its newest release) and the installer lists
+    exactly TOOLS' install-tool rows, else 1 RED naming each."""
     manifest = manifest if manifest is not None else load()
-    lines, bad = compare(manifest, scope, run, system)
+    lines, bad = compare(manifest, scope, run, system, fetch)
     bad += installer_problems(installer if installer is not None else INSTALLER.read_text(encoding="utf-8"))
     verdict = (f"{VERDICT}GREEN — {scope}: {summary(manifest, scope, system)} ===" if not bad else
                f"{VERDICT}RED — {scope}: {'; '.join(bad)}; install the manifest's version (winget on the Windows dev "
@@ -478,9 +569,6 @@ def self_test() -> int:
     expect("a CI job on an image whose git moved is GREEN with a warning naming it",
            code == 0 and "::warning title=toolchain::the runner image's git-linux is 2.56.0, toolchain.env names 2.55.0"
            in report and "IMAGE    git-linux 2.56.0" in report)
-    expect("the image scope holds the image's git strictly",
-           check("image", moved, run, "Linux", installer)[0] == 1
-           and check("image", moved, run, "Windows", installer)[0] == 0)
     expect("the gate holds a host's git strictly", check("gate", moved, run, "Linux", installer)[0] == 1)
     code, report = check("ci", {**moved, "JDK_VERSION": "27.0.2"}, run, "Linux", installer)
     expect("an installed tool that differs still fails a CI job", code == 1 and "jdk 27.0.1 (toolchain.env 27.0.2)" in report)
@@ -494,9 +582,19 @@ def self_test() -> int:
     expect("CI installs the install-tool rows that run in CI", ci_installs() == ["dotnet-sdk", "jdk", "pwsh", "gh", "jq"])
     expect("the scopes: CI and the gate hold seven tools on each OS, the image one, the host nine",
            all([len(held(s, system)) for s in SCOPES] == [7, 1, 7, 9] for system in ("Linux", "Windows")))
-    expect("the image readme of each label",
-           image_readme("ubuntu-26.04").endswith("/images/ubuntu/Ubuntu2604-Readme.md")
-           and image_readme("windows-2025-vs2026").endswith("/images/windows/Windows2025-VS2026-Readme.md"))
+    expect("the image readme of each label at a release tag",
+           image_readme("ubuntu-26.04", "ubuntu26/20261111.196").endswith(
+               "/runner-images/ubuntu26/20261111.196/images/ubuntu/Ubuntu2604-Readme.md")
+           and image_readme("windows-2025-vs2026", "win25-vs2026/20261103.298").endswith(
+               "/runner-images/win25-vs2026/20261103.298/images/windows/Windows2025-VS2026-Readme.md"))
+    try:
+        image_tag_prefix("macos-15")
+        unknown_refused = False
+    except ValueError:
+        unknown_refused = True
+    expect("each label's release-tag prefix, and a family with no known tags refused",
+           image_tag_prefix("ubuntu-26.04") == "ubuntu26" and image_tag_prefix("windows-2025-vs2026") == "win25-vs2026"
+           and image_tag_prefix("ubuntu-24.04") == "ubuntu24" and unknown_refused)
 
     # The publishers' answers, in the shapes measured on 2026-10-28.
     answers = {
@@ -510,8 +608,22 @@ def self_test() -> int:
             {"jdkDetails": {"jdkVersion": "25", "latestReleaseVersion": "25.0.5.0.3"}},
             {"jdkDetails": {"jdkVersion": "8-perf", "latestReleaseVersion": "8.0.471.0.1"}},
             {"jdkDetails": {"jdkVersion": "27", "latestReleaseVersion": "27.0.1.0.3"}}]}),
-        "Ubuntu2604-Readme.md": "### Tools\n- Git 2.56.0\n- Git LFS 3.8.1\n",
-        "Windows2025-VS2026-Readme.md": "### Tools\n- Git 2.56.0.windows.2\n- Git LFS 3.8.0\n",
+        # actions/runner-images on 2026-11-12 (kb/Work PB5458): the Ubuntu 26.04 image 20261111.196 rolls out as a
+        # prerelease carrying git 2.56.1 while the readme on `main` still describes 20261101.186 and its git 2.56.0; the
+        # newest Windows 2025 VS2026 image is a full release; a draft and the other images' tags are never the image's.
+        "repos/actions/runner-images/releases": json.dumps([
+            {"tag_name": "ubuntu26/20261120.1", "prerelease": True, "draft": True},
+            {"tag_name": "win25/20261111.331", "prerelease": True, "draft": False},
+            {"tag_name": "ubuntu26/20261111.196", "prerelease": True, "draft": False},
+            {"tag_name": "ubuntu26-arm64/20261111.184", "prerelease": True, "draft": False},
+            {"tag_name": "win25-vs2026/20261103.298", "prerelease": False, "draft": False},
+            {"tag_name": "ubuntu26/20261101.186", "prerelease": False, "draft": False},
+            {"tag_name": "win25-vs2026/20261030.294", "prerelease": False, "draft": False}]),
+        "runner-images/main/images/ubuntu/Ubuntu2604-Readme.md": "### Tools\n- Git 2.56.0\n- Git LFS 3.8.1\n",
+        "runner-images/ubuntu26/20261111.196/images/ubuntu/Ubuntu2604-Readme.md": "### Tools\n- Git 2.56.1\n- Git LFS 3.8.1\n",
+        "runner-images/main/images/windows/Windows2025-VS2026-Readme.md": "### Tools\n- Git 2.56.0.windows.2\n",
+        "runner-images/win25-vs2026/20261103.298/images/windows/Windows2025-VS2026-Readme.md":
+            "### Tools\n- Git 2.56.0.windows.4\n- Git LFS 3.8.1\n",
         "PowerShell/PowerShell/releases": json.dumps({"tag_name": "v7.6.9"}),
         "cli/cli/releases": json.dumps({"tag_name": "v2.103.3"}),
         "jqlang/jq/releases": json.dumps({"tag_name": "jq-1.8.2"}),
@@ -522,10 +634,13 @@ def self_test() -> int:
     def fetch(url: str) -> str:
         return next(v for k, v in answers.items() if k in url)
 
+    # The manifest at the newest git of each image's newest release, so dotnet-sdk is the one tool behind below.
+    fixed = {**fixed, "GIT_LINUX_VERSION": "2.56.1"}
     rows = newest(fixed, fetch)
-    expect("each publisher's newest stable release is read (a release candidate, a preview channel and an alpha never)",
+    expect("each publisher's newest stable release is read (a release candidate, a preview channel and an alpha never; "
+           "an image's git from its newest release, never the lagging readme on main)",
            {r.tool.name: r.new for r in rows} == {"dotnet-sdk": "10.0.404", "python": "3.15.2", "jdk": "27.0.1",
-                                                  "pwsh": "7.6.9", "git-linux": "2.56.0", "git-windows": "2.56.0",
+                                                  "pwsh": "7.6.9", "git-linux": "2.56.1", "git-windows": "2.56.0",
                                                   "gh": "2.103.3", "jq": "1.8.2", "uv": "0.13.6", "semgrep": "1.182.1"}
            and all(r.note is None and r.error is None for r in rows))
     code, report = latest_report(rows)
@@ -542,11 +657,37 @@ def self_test() -> int:
     expect("an unreadable publisher is UNREAD, exit 2, never LATEST", code == 2 and "UNREAD   semgrep" in report)
     code, report = latest_report(newest(at_newest, fetch))
     expect("latest exits 0 at every newest release", code == 0 and "LATEST — every tool" in report)
-    readme = answers.pop("Windows2025-VS2026-Readme.md")
-    answers["Windows2025-VS2026-Readme.md"] = "### Tools\n- Git LFS 3.8.0\n"
+    windows = "runner-images/win25-vs2026/20261103.298/images/windows/Windows2025-VS2026-Readme.md"
+    readme, answers[windows] = answers[windows], "### Tools\n- Git LFS 3.8.0\n"
     code, report = latest_report(newest(at_newest, fetch))
     expect("an image readme naming no git is UNREAD", code == 2 and "UNREAD   git-windows" in report)
-    answers["Windows2025-VS2026-Readme.md"] = readme
+    answers[windows] = readme
+
+    # The nightly `images` job (`check --scope image`) reads the same release `latest` does (kb/Work PB5458).
+    def on_image(git: str) -> Callable[[tuple[str, ...]], str | None]:
+        return lambda c: f"git version {git}\n" if c[0] == "git" else run(c)
+
+    def unreachable(url: str) -> str:
+        raise OSError(f"offline: {url}")
+
+    code, report = check("image", {**fixed, "GIT_LINUX_VERSION": "2.56.0"}, on_image("2.56.1"), "Linux", installer, fetch)
+    expect("the image scope is RED when the image's newest release carries the git the manifest lacks (2026-11-12)",
+           code == 1 and "MISMATCH git-linux 2.56.1" in report
+           and "the newest ubuntu-26.04 release ubuntu26/20261111.196 carries 2.56.1" in report)
+    code, report = check("image", {**fixed, "GIT_LINUX_VERSION": "2.56.1"}, on_image("2.56.0"), "Linux", installer, fetch)
+    expect("the image scope warns, GREEN, on an older image while its newest release rolls out",
+           code == 0 and "ROLLOUT  git-linux 2.56.0" in report and "an older image than" in report
+           and "(is rolling out, git 2.56.1)" in report and "::warning title=toolchain::" in report)
+    code, report = check("image", {**fixed, "GIT_LINUX_VERSION": "2.56.1"}, on_image("2.56.2"), "Linux", installer, fetch)
+    expect("the image scope warns, GREEN, on an image newer than every published release",
+           code == 0 and "ROLLOUT  git-linux 2.56.2" in report and "a newer image than" in report)
+    code, report = check("image", {**fixed, "GIT_LINUX_VERSION": "2.56.0"}, on_image("2.56.1"), "Linux", installer,
+                         unreachable)
+    expect("the image scope is RED when the image's newest release cannot be read",
+           code == 1 and "was not read (OSError: offline" in report)
+    code, report = check("image", fixed, on_image("2.56.0.windows.4"), "Windows", installer, unreachable)
+    expect("the image scope reads no release when the image's git is the manifest's",
+           code == 0 and "OK       git-windows 2.56.0" in report)
 
     # .NET 11 GA: the owner's decision, so a note, never BEHIND, and `bump` keeps the manifest's channel.
     answers["releases-index.json"] = json.dumps({"releases-index": [
