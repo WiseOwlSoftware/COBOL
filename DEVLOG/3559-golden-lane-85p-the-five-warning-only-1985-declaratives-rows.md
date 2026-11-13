@@ -1,4 +1,4 @@
-## Golden lane 85p: the five warning-only 1985 declaratives rows get accepted witnesses; their warning pins wait (PB5461)
+## Entry 3559 — 2026-11-13 02:31 PST — Golden lane 85p: the five warning-only 1985 declaratives rows get accepted witnesses; their warning pins wait (PB5461)
 
 Five 1985 rows forbid a declarative procedure to reference a nondeclarative procedure. Four are the USE statement's GR2
 in Sequential, Relative and Indexed I-O and in Report Writer; the fifth is the Debug module's §1985:XV.3.2.3 SR2. WiseOwl
@@ -21,3 +21,4 @@ COBOL2375 for the four GR rows. On main, the generator refuses any flagged test 
 probe flagged twin was refused by `generate.py --check`, and I removed it. I did not bend the format or pin a refusal.
 kb/Work PB5461 records the gap, the reader that enforces it, and the five pins to place once the design's S6 forms
 (`.flagged.jsonl` and the severity-bearing WiseOwl layer) land.
+
