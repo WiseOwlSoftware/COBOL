@@ -2143,6 +2143,18 @@ of an unsupported facility.
   `StatementValidation.CheckDeclarativesBoundary`), so every statement that takes a procedure-name inherits them.
   Only PERFORM and RESUME claim an exemption. Pinned by `unit:DeclarativesStructuralRulesTests`,
   `conformance:cases/14.9.49-USE/pb362_declaratives_reference_boundary` and `conformance:cases/14.9.49-USE/pb362-goto-into-declarative`.
+  **At 85 (kb/Work PB4995).** SR3's ancestors are five 1985 rules: the USE statement's GR2 in four modules,
+  §1985:VII.4.6.4 GR2, §1985:VIII.4.8.4 GR2, §1985:IX.4.8.4 GR2 and §1985:XIII.4.8.4 GR2 ("Within a declarative
+  procedure, there must be no reference to any nondeclarative procedures"), and the Debug module's §1985:XV.3.2.3 SR2
+  ("Except in the USE FOR DEBUGGING statement itself, there must be no reference to any non-declarative procedure
+  within the debugging section"). WiseOwl reports each violation at `--std 85` as the same **WARNING, COBOL2375**, and
+  compiles the program. The basis is §1985:I.1.6: "The results of violating the formats or rules of Standard COBOL are
+  undefined unless otherwise specified in this standard", and none of the five specifies otherwise, so a 1985 compiler
+  need not refuse the program. Witnessed by the accepted 85 tests `conformance:cases/VII.4.6@1985-USE-STATEMENT/1985-GR-VII_4_6_4-2`,
+  `…/VIII.4.8@1985-USE-STATEMENT/1985-GR-VIII_4_8_4-2`, `…/IX.4.8@1985-USE-STATEMENT/1985-GR-IX_4_8_4-2`,
+  `…/XIII.4.8@1985-USE-AFTER-STANDARD-EXCEPTION-PROCEDURE-STATEMENT/1985-GR-XIII_4_8_4-2` and
+  `…/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-1`. The warning's own pins wait on kb/Work PB5461:
+  the suite cannot yet pin a warning on a program it accepts.
 
 - **D-RELCLASS — a relation outside §2023:8.8.4.2.1's "Comparisons are defined for the following:" list is refused
   (kb/Work PB1468).** The list is closed, and two of its limits are class/usage/form facts of the source, so §2023:4.2.2
