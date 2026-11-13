@@ -2116,11 +2116,12 @@ plant its reader): `scripts/spec/inventory_schema.py` (`REGISTER_PATH`, `registe
 2, 5, 7, 8, the extract), `scripts/docchecks/facts.py` (section 3.2, D-RW1, section 4, the section 7 rows),
 `scripts/docchecks/inventory.py` (the `#anchor`s of inventory rows), `scripts/docchecks/design.py` (`user_documents` and
 `_boolean` read the whole through `common.CONFORMANCE`), `scripts/spec/audit_annex_a1.py` (section 7),
-`scripts/spec/audit_derivations.py` (section 8, through `inventory_schema`), `scripts/spec/gen_ledger.py` (sections 2,
+`scripts/spec/audit_derivations.py` (none: it reads section 8 through the registers' extract, never the Markdown), `scripts/spec/gen_ledger.py` (sections 2,
 4 and 5, posture by heading number), `scripts/differential_fuzz.py` (the section 5 table), `scripts/spec/phase_b_batch.py`
 (whole-text search for dossiers), `scripts/spec/inventory_view.py` (its self-test plants
 `inventory_schema.register_determinations` to prove the view opens no Markdown), `conformance-suite/harness/generate.py`
-(the completeness report, through `inventory_schema`). Data that names it: `tests/version-matrix/inventory-schema.json`
+(none: the completeness report reads section 7's keys through `Schema.register_items`, which reads the registers' extract,
+never the Markdown). Data that names it: `tests/version-matrix/inventory-schema.json`
 (`anchor-template` `docs/CONFORMANCE.md#{rule-id}` and `#DRV-{rule-id}`, and the anchor pattern of the
 `docs/CONFORMANCE.md` key), `scripts/spec/data/cite-resolve-baseline.json` (the CITATIONS audit's debt, keyed by FILE and
 LINE, with entries in `docs/CONFORMANCE.md`). Its lane: `docs/**/*.md` is inert (`inert_lane.MARKDOWN_ENTRY`).
@@ -2136,7 +2137,7 @@ MANDATORY-PRACTICES and `land-a-fix` do not name it).
 
 **Four steps, so the readers move before the storage does and the storage is regular before it is cut.**
 
-*Step A — the one reader (PB5395).* `scripts/spec/conformance_source.py` becomes the ONE module that opens the
+*Step A — the one reader (PB5395) — LANDED, with the corrections below.* `scripts/spec/conformance_source.py` becomes the ONE module that opens the
 conformance document: `load(root) -> Conformance`, with `.section(number) -> Section` (its heading, its preamble, its
 entries, its epilogue), `.rows(number) -> list[list[str]]` (a table section's rows, cells in column order, keyed by the
 first cell), `.determinations -> dict[key, Determination]` (sections 3 and 3.1), `.text` (the whole, for a search).
@@ -2149,15 +2150,18 @@ changes: the oracle is the readers' own outputs, byte for byte, before and after
 writes the same extract, `audit_annex_a1.py --json`, `audit_derivations.py --check`, `gen_ledger.py --check` and
 `differential_fuzz.py`'s declined-module set give the same answers, the cases of every reader pass, and `git grep -n
 'CONFORMANCE.md'` over `scripts/` and `conformance-suite/harness/` finds a PATH only in `conformance_source.py`
-(comments and messages may still name the document). **The lane fact it changes, decided:** `inventory_schema.py` and
-`generate.py` are in a compiler test's import closure (the conformance manifest's generator, `tests/_shared/
-SuiteManifest.cs`, kb/Work PB4992). `inventory_schema.py`'s state rule reads the extract, never the Markdown, so after
-step A it imports nothing that opens the document. `generate.py`'s completeness report does read the register, and its
-lazy import of `conformance_source` puts that module in `code_readers`' closure (`inert_lane._imports` reads lazy imports
-too); the INERT LANE audit then refuses the tree until `conformance_source.py` has a CODE_READS entry naming
-`generate.py` as its reader, so step A adds that entry to `scripts/inert_lane.py`'s `CLASSIFICATION`. A change to the
-reader then runs the compiler tests, which is true: a compiler test's script reaches it. The report keeps its read; no
-compiler test runs it, and the Markdown it opens stays inert (the inotify watch would see an open).
+(comments and messages may still name the document). **The lane fact, corrected in step A (rule 5: the design's estimate was wrong).** The design first said `generate.py`'s
+completeness report reads the register and so needs a lazy import of `conformance_source` and a CODE_READS entry. It does
+not: the report asks `Schema.register_items()`, which reads the registers' EXTRACT (`inventory_schema.register_extract`), and
+`inventory_schema.py` never opened the Markdown for the state rule. So `generate.py` is untouched, `conformance_source.py` is in
+no compiler test's import closure, and `scripts/inert_lane.py` gains no CODE_READS entry: the entry the design asked for would
+name a reader that does not exist, and the INERT LANE audit refuses a stale entry as it refuses a missing one. The one place
+`inventory_schema.py` DID open the document was `DerivedSelector.register` (the `determination-prefix` arm, through
+`register_determinations()` from disk); it now reads `Schema.register_leads`, the extract's `annexA1` leads, and
+`register_determinations`, `register_section*`, `section7_rows*` and `derivation_rows` are deleted from it. The reader's API as built
+names the §7 map `Conformance.a1_determinations()` and the typed rows `a1_rows()`, `a1_rows_at()` and `derivation_rows(number)`
+beside the design's `section`, `rows` and `text`; the `determinations` property over sections 3 and 3.1 waits for step B1, which
+is what keys them (50 of the 125 bullets carry no key today, so a reader of them cannot exist before it).
 
 *Step B1 — the document made regular, in place (PB5429).* Before any cut, `docs/CONFORMANCE.md` is put in the exact
 shape the renderer writes, inside the one file, with the readers of step A as the oracle:
@@ -2362,7 +2366,7 @@ resolves to a real clause of the standard's "Standard classes", so no audit coul
 | 1 | PB3727 | LANDED, then RETIRED by PB5110: the PublicAPI driver | — | — |
 | 2 | PB3728 | LANDED: section 16.3, `plan_wave.py` split by job | — | — |
 | 2 | PB5428 | section 16.2's mechanism, with plan_wave's cases: `selftest_cases.py`, `selftest_layout.py` and its call in `self_tests.py` (with `--only` and the case files' `PYTHONPATH`), the `REMAINING` set, `self_test_arms.py` reading case names, the static readers' two edges, `scratch_repo`'s reach; `scripts/orchestrator/test_plan_wave.py` → the cases in `scripts/selftests/orchestrator/plan_wave/` | those files, `inert_lane.py` (`_imports`), `scratch_repo.py`, `scripts/orchestrator/test_plan_wave.py` (deleted), `testdata/plan_wave_default.json` | the same labels (the 507 `check(` calls); `--list` the same; the golden plan unchanged; the planted breaches RED |
-| 3 | PB5395 | section 16.8 step A: `conformance_source.py`, the one reader; every reader re-pointed; its CODE_READS entry | `conformance_source.py` (new), `inventory_schema.py`, `inventory_view.py`, `docchecks/{common,register,facts,inventory,design}.py`, `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py`, `differential_fuzz.py`, `phase_b_batch.py`, `conformance-suite/harness/generate.py`, `inert_lane.py` (`CLASSIFICATION`) | every reader's output byte-identical before/after; one PATH spelling of the file left; INERT LANE GREEN |
+| 3 | PB5395 | section 16.8 step A: `conformance_source.py`, the one reader; every reader re-pointed | `conformance_source.py` (new), `inventory_schema.py`, `inventory_view.py`, `derive_verdict_batch.py`, `docchecks/{common,register,facts,inventory,design}.py`, `audit_annex_a1.py`, `gen_ledger.py`, `differential_fuzz.py`, `phase_b_batch.py` | every reader's output byte-identical before/after; one PATH spelling of the file left in the readers; INERT LANE GREEN |
 | 4 | PB5396 | section 16.9: the Unshipped baselines in one order; `public_api_baselines.py`; the PUBLIC API BASELINES audit | `public_api_baselines.py` (new), `landing_check.py`, `gate.py` (`AUDITS`), the CI workflow, `PublicAPI.Unshipped.txt` | the line multiset unchanged; no RS0016/RS0017/RS0025 |
 | 5 | PB5429 | section 16.8 step B1: the document made regular in place (keys, order, bodies, epilogues, 3.7.1) | `docs/CONFORMANCE.md`, `conformance_source.py`, `docchecks/register.py` | the readers' outputs equal step A's; the line-multiset diff only the keys, headings and markers |
 | 6 | PB5430 | section 16.8 step B2: the sources under `docs/conformance/`, the renderer, the view with its stamp and rule (e), the citation arm after its burn-down, every instruction and link moved | `docs/CONFORMANCE.md` (deleted from the tree), `docs/conformance/**`, `conformance_source.py`, `conformance_doc.py`, `rendered_views.py`, `.gitignore`, `audit_code_citations.py`, `cite-resolve-baseline.json`, `RegistryShapeDriftTests.cs`, CLAUDE.md, the skills, templates and issue template that name the file, README and manual links, `DOC_INDEX.md` | the render byte-identical to the normalised monolith; every citation resolves; the readers' outputs unchanged |

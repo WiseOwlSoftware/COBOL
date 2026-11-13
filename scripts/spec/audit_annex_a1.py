@@ -38,19 +38,14 @@ import pathlib
 import re
 import sys
 
-# ⛔ THE §7 TABLE PARSER IS NO LONGER WRITTEN HERE. It was, and then three readers needed it — this audit, which
-# CHECKS the rows; `Schema.anchor_obliged`, which asks whether an item has a determination at all; and
-# `DerivedSelector`'s `determination-prefix` arm, which reads what the determination SAYS. A markdown table read
-# three ways is `feedback_one_rule_one_place` waiting to happen, so it moved down into the module every consumer
-# already imports, and the two names this file used keep working unchanged.
-from inventory_schema import NEWEST, SCHEMA_PATH, derivation_rows, load_schema
-from inventory_schema import register_cells as cells_of
-from inventory_schema import section7_rows
+# ⛔ THE §7 TABLE PARSER IS NOT WRITTEN HERE: `conformance_source.py` is the ONE reader of docs/CONFORMANCE.md (kb/Work PB5395), and
+# this audit, which CHECKS the rows, asks it for them like every other reader of the register.
+import conformance_source
+from inventory_schema import NEWEST, SCHEMA_PATH, load_schema
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-CONFORMANCE = ROOT / 'docs' / 'CONFORMANCE.md'
 
 #: Words that must appear in a §7 row for it to be judged as naming the same element as the catalog. Kept
 #: deliberately weak — this checks that the NUMBER and the ELEMENT are not wildly divorced, which is the defect
@@ -390,7 +385,8 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
     unnumbered: list[str] = []
     pinned: dict[int, list[str]] = {}
     keys: collections.Counter[str] = collections.Counter()
-    for key, element, _determination, pins in section7_rows(text):
+    conformance = conformance_source.parse(text)
+    for key, element, _determination, pins in conformance.a1_rows():
         if (m := ITEM_KEY_RX.match(key)) is not None:
             n = int(m.group(1))
             keys[key] += 1
@@ -442,7 +438,7 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
     # token. The invariant is therefore stated over BOTH registers — a row key here or a row key there — which
     # keeps it exactly as sharp against the thing it was written for: a PROSE mention, which is a key of neither.
     if (deriv := load_schema().derivation) is not None:
-        for row in derivation_rows(text, deriv.heading):
+        for row in conformance.derivation_rows(conformance_source.number_of(deriv.heading)):
             if row.key.startswith('DRV-') and ITEM_KEY_RX.match(row.key[len('DRV-'):]):
                 keys[row.key[len('DRV-'):]] += 1
 
@@ -748,7 +744,7 @@ def sweep_inherited_grounds(conformance: str, inventory: list[dict], schema_json
     a §7 row or a preamble paragraph is one line), the inventory's notes, and the schema's own prose."""
     findings: list[str] = []
     for first_line, unit in register_units(conformance):
-        findings.extend(inherited_ground_findings(f'docs/CONFORMANCE.md:{first_line}', unit))
+        findings.extend(inherited_ground_findings(f'{conformance_source.PATH_REL}:{first_line}', unit))
     for row in inventory:
         findings.extend(inherited_ground_findings(row.get('rule-id', '?'), row.get('notes') or '',
                                                   a1_item=row.get('kind') == 'DOC'))
@@ -800,8 +796,9 @@ def main(argv: list[str]) -> int:
         return self_test()
 
     register = load_register()
-    text = CONFORMANCE.read_text(encoding='utf-8')
-    rows = section7_rows(text)
+    conformance = conformance_source.load(ROOT)
+    text = conformance.text
+    rows = conformance.a1_rows()
     findings: list[str] = []
 
     required = sum(1 for r in register.values() if r['requirement'] == 'required')

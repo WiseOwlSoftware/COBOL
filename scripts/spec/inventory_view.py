@@ -332,7 +332,7 @@ import inventory_schema, inventory_view
 schema = inventory_schema.load_schema()
 for year in inventory_schema.HELD:
     inventory_view.inventory(year, schema)
-schema.register_items(), schema.derivation.register, schema.derivation.undefined, schema.catalog
+schema.register_items(), schema.register_leads(), schema.derivation.register, schema.derivation.undefined, schema.catalog
 print("OPENED " + json.dumps(opened))
 """
 
@@ -470,8 +470,8 @@ def self_test() -> int:
     # already filled every lazy input, so a hook armed here could see nothing.
     opened = markdown_opened()
     ok(opened == [], f"the view and the state rule open no Markdown document (opened {opened[:3]})")
-    planted = markdown_opened("inventory_schema.Schema.register_items = "
-                              "lambda self: set(inventory_schema.register_determinations())")
+    planted = markdown_opened("import conformance_source; inventory_schema.Schema.register_items = "
+                              "lambda self: set(conformance_source.load().a1_determinations())")
     ok(any(p.replace("\\", "/").endswith("docs/CONFORMANCE.md") for p in planted),
        f"the probe sees a state input that reads the Markdown register (planted; opened {planted[:3]})")
     # Branch review R2-1: a tree main never held (a WIP checkpoint whose schema predates `editions.of`) is refused by name.

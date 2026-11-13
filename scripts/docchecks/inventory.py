@@ -15,6 +15,7 @@ from pathlib import Path
 from . import common
 from .common import Check
 
+import conformance_source  # noqa: E402
 import inventory_schema as schema  # noqa: E402
 import inventory_view  # noqa: E402
 
@@ -63,8 +64,13 @@ def _inventory(root: Path) -> list[str]:
     rows = inventory_view.inventory(schema=sch, tree=tree)
     resolved = tuple(json.loads(common.text(root, KINDS_PATH))["documentKinds"])
     paths = {p for r in rows for p in _paths(r, sch.code_location_sep, resolved)}
-    texts = {p: common.text(root, p) for p in paths if (root / p).is_file()}
+    texts = {p: _document_text(root, p) for p in paths if (root / p).is_file()}
     return anchor_findings(rows, texts, sch.code_location_sep, schema.prose_of, resolved)
+
+
+def _document_text(root: Path, rel: str) -> str:
+    """A document's text: the conformance statement through its one reader, any other file as it is."""
+    return conformance_source.load(root).text if rel == conformance_source.PATH_REL else common.text(root, rel)
 
 
 def _paths(row: dict, sep: str, resolved: tuple[str, ...]) -> set[str]:
@@ -77,16 +83,17 @@ CHECKS = (Check("INVENTORY ANCHORS into documents resolve", _inventory),)
 
 
 def self_test() -> list[str]:
-    rows = [{"rule-id": f"DOC-A.1-{n}", "code-location": f"src/a.cs#X; docs/CONFORMANCE.md#DOC-A.1-{n}", "notes": ""} for n in range(120)]
-    texts = {"docs/CONFORMANCE.md": " ".join(f"DOC-A.1-{n}" for n in range(120)) + " DOC-A.1-1000x"}
-    noted = {"rule-id": "SR-1", "code-location": "", "notes": "see docs/CONFORMANCE.md#DOC-A.1-7. and docs/gone.md#X"}
+    DOC = conformance_source.PATH_REL
+    rows = [{"rule-id": f"DOC-A.1-{n}", "code-location": f"src/a.cs#X; {DOC}#DOC-A.1-{n}", "notes": ""} for n in range(120)]
+    texts = {DOC: " ".join(f"DOC-A.1-{n}" for n in range(120)) + " DOC-A.1-1000x"}
+    noted = {"rule-id": "SR-1", "code-location": "", "notes": f"see {DOC}#DOC-A.1-7. and docs/gone.md#X"}
     ident = lambda s: s  # noqa: E731 — the prose reader of a fabricated row: no retired-witness mark
     return common.self_test_arms([
         ("whole anchors resolve", anchor_findings(rows, texts, "; ", ident), []),
-        ("a symbol the file lost is a finding", len(anchor_findings(rows + [{"rule-id": "X", "code-location": "docs/CONFORMANCE.md#DOC-A.1-999"}],
+        ("a symbol the file lost is a finding", len(anchor_findings(rows + [{"rule-id": "X", "code-location": f"{DOC}#DOC-A.1-999"}],
                                                                      texts, "; ", ident)), 1),
         ("a symbol that is only a prefix of an identifier is not whole", len(anchor_findings(
-            rows + [{"rule-id": "X", "code-location": "docs/CONFORMANCE.md#DOC-A.1-100"}], {**texts, "docs/CONFORMANCE.md": texts["docs/CONFORMANCE.md"].replace("DOC-A.1-100 ", "DOC-A.1-100x ")}, "; ", ident)), 2),
+            rows + [{"rule-id": "X", "code-location": f"{DOC}#DOC-A.1-100"}], {**texts, DOC: texts[DOC].replace("DOC-A.1-100 ", "DOC-A.1-100x ")}, "; ", ident)), 2),
         ("a file that is not there is a finding", len(anchor_findings(rows + [noted], texts, "; ", ident)), 1),
         ("a source file's anchor is the compiler test's, not judged here", anchor_findings(rows + [{"rule-id": "Y", "code-location": "src/q.cs#Nope"}],
                                                                                            texts, "; ", ident), []),
@@ -106,11 +113,11 @@ def _planted_root_findings() -> list[str]:
              for n in range(120)]
     files = {schema.SCHEMA_REL: schema.WORKING_TREE.text(schema.SCHEMA_REL), KINDS_PATH: json.dumps({"documentKinds": [".md"]}),
              newest.catalog: json.dumps({"rules": rules}),
-             common.CONFORMANCE: " ".join(f"Anchor{n}" for n in range(120) if n != 7)}
+             conformance_source.PATH_REL: " ".join(f"Anchor{n}" for n in range(120) if n != 7)}
     for rel, text in files.items():
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
         (root / rel).write_text(text, encoding="utf-8", newline="\n")
     inventory_store.write_store([{"rule-id": r["id"], "rule-digest": inventory_view.rule_digest(r["text"]),
-                                  "verdict": "CONFORMS", "code-location": f"{common.CONFORMANCE}#Anchor{r['ordinal']}"}
+                                  "verdict": "CONFORMS", "code-location": f"{conformance_source.PATH_REL}#Anchor{r['ordinal']}"}
                                  for r in rules], inventory_store.inventory_dir(newest, root))
     return [f.partition(":")[0] for f in _inventory(root)]

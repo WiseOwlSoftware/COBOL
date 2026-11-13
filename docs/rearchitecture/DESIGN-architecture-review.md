@@ -1032,7 +1032,7 @@ first_line, last_line, body, source, lead)`, comments and actions blanked, the p
 three private readers that did not agree on which rules the grammar declares (the dossier's missed 78 of 1,205);
 its self-test plants each trap they fell into and refuses
 a script that declares one of their names again. The `docs/CONFORMANCE.md` register tables are read by
-`inventory_schema.register_section_at` (with each row's line, for a line-by-line reader such as the Phase-B
+`conformance_source.Conformance.rows_at` (with each row's line, for a line-by-line reader such as the Phase-B
 dossier), the rule catalog by `inventory_schema.Edition.rules` and the traceability inventory by
 `inventory_view.inventory`.
 
