@@ -3320,10 +3320,10 @@ public static class DiagnosticCatalog
     /// (<c>VersionConformancePass.GateSortMergeProcedures</c>).</summary>
     public static readonly DiagnosticDescriptor ReleaseReturnPlacement = new(
         "COBOL7081", "release-return-placement", EditionSeverity.Error,
-        "A RELEASE or RETURN statement stands outside the range of a SORT or MERGE procedure that names its file. §1985:XI.4.2.3 SR2: "
+        "A RELEASE or RETURN statement stands outside the range of a SORT or MERGE procedure that names its file. "
         + "\"A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement for the file-name "
-        + "whose sort-merge file description entry contains record-name-1.\" §1985:XI.4.3.3 SR3: \"A RETURN statement may only be used within "
-        + "the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\"",
+        + "whose sort-merge file description entry contains record-name-1.\" (§1985:XI.4.2.3 SR2) \"A RETURN statement may only be used within "
+        + "the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\" (§1985:XI.4.3.3 SR3)",
         "§1985:XI.4.2.3 SR2; §1985:XI.4.3.3 SR3");
 
     /// <summary>COBOL2689 — an inline comment on a line that ends in a floating literal continuation indicator

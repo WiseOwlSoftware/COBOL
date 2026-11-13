@@ -63,9 +63,9 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     internal static bool IsFileFormat(BinderContext ctx, Core.SortStatementContext s) =>
         ctx.Data.State.VisibleFiles.ContainsKey(SubjectName(s));
 
-    /// <summary>⛔ THE DECLARATIVE LEG OF THE SORT/MERGE PLACEMENT RULES (kb/Work PB1139, PB5275): at COBOL-85 a SORT or MERGE "may appear
-    /// anywhere in the Procedure Division except in the declarative portion" (§1985:XI.4.4.3 SR1) and "except in the declaratives portion"
-    /// (§1985:XI.4.1.3 SR1), and a USE FOR DEBUGGING section is in it (§1985:XV.3.2.3 SR1). "A SORT statement shall not
+    /// <summary>⛔ THE DECLARATIVE LEG OF THE SORT/MERGE PLACEMENT RULES (kb/Work PB1139, PB5275): at COBOL-85 a SORT "may appear
+    /// anywhere in the Procedure Division except in the declarative portion" (§1985:XI.4.4.3 SR1), a MERGE "may appear anywhere in the
+    /// Procedure Division except in the declaratives portion" (§1985:XI.4.1.3 SR1), and a USE FOR DEBUGGING section is in it (§1985:XV.3.2.3 SR1). "A SORT statement shall not
     /// appear in … a declarative procedure" (§2023:14.9.40.3 SR3, FORMAT 1) and a MERGE statement "may appear anywhere in
     /// the procedure division except … in a declarative procedure" (§2023:14.9.24.3 SR1). Asked ONCE here for both verbs,
     /// from the bind position's own <see cref="EnclosingContext.InDeclarative"/>; it holds at every edition (Annex
