@@ -483,6 +483,7 @@ public sealed class Frontend
         // The debugging lines that stay SOURCE: the region lines blanked on the way (their marker is gone from the final
         // stream) and the final stream's own (kb/Work PB2490).
         var sourceDebuggingLines = new List<IToken>();
+        var misplacedDebuggingLines = new List<IToken>();   // the final stream's own (§1985:VI.7.3)
         LexerErrorListener lexErrors;
         while (true)
         {
@@ -491,7 +492,8 @@ public sealed class Frontend
             lexErrors = LexerErrorListener.AttachTo(lexer);
             tokens = new CommonTokenStream(lexer);
             var streamSourceLines = new List<IToken>();
-            if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines) is not { } sourceRegionLine)
+            misplacedDebuggingLines.Clear();
+            if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines) is not { } sourceRegionLine)
             {
                 sourceDebuggingLines.AddRange(streamSourceLines);
                 break;
@@ -510,7 +512,7 @@ public sealed class Frontend
         // precompiler writes, BEFORE every reader of the stream: the screens below skip its text, which is another
         // language, and every prediction of the parse sees the token (kb/Work PB4341). A no-op for a source with none.
         var embeddedBlocks = EmbeddedBlockReading.Read(tokens,
-            () => ParsesCleanly(tokens, retypes, edition, cobolWordsMap, sourcePath, cuts));
+            () => ParseCopyOf(tokens.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts).Clean);
 
         // ISO §2023:13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
@@ -589,7 +591,47 @@ public sealed class Frontend
         // and placed among the parse's reports by position like the other causes (DiagnosticBag.AddBeforeEffects).
         diagnostics.AddBeforeEffects(MarginRCutScreen.Warnings(tokens.GetTokens(), tree, cuts, diagnostics.Diagnostics), parseStart);
 
+        // §1985:VI.7.3, the two rules of the debugging-line presentation (kb/Work PB5212). A COBOL-85 rule: the later editions
+        // carry the facility as obsolete or not at all (docs/CONFORMANCE.md D-DEBUG).
+        if (DialectLevel < 2002)
+        {
+            ReportMisplacedDebuggingLines(misplacedDebuggingLines, diagnostics, sourcePath);
+            if (parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any && sourceDebuggingLines.Count > 0)
+                ReportDebuggingLinesBreakingTheProgram(tokens.GetTokens(), sourceDebuggingLines, retypes, edition, cobolWordsMap,
+                    sourcePath, cuts, diagnostics);
+        }
+
         return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines);
+    }
+
+    /// <summary>§1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the OBJECT-COMPUTER
+    /// paragraph." Each line <see cref="DebuggingLineRewriter.Rewrite"/> found before it is COBOL7060, at the line.</summary>
+    private void ReportMisplacedDebuggingLines(List<IToken> misplaced, DiagnosticBag diagnostics, string sourcePath)
+    {
+        var descriptor = Editions.Diagnostics.DiagnosticCatalog.DebuggingLineBeforeObjectComputer;
+        foreach (var marker in misplaced)
+            diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(marker.Line, marker.Column, sourcePath), default);
+    }
+
+    /// <summary>§1985:VI.7.3: "The content of a debugging line must be such that a syntactically correct program is formed with or
+    /// without the debugging lines being considered as comment lines." The stream parsed clean with its
+    /// <paramref name="sourceLines"/> (the debugging lines that are source) as they stand; here it is parsed again with them
+    /// hidden, and a program that no longer parses is COBOL7061 at the last such line before the first syntax error (the
+    /// one whose removal left what the error found), or at the first when none precedes it.</summary>
+    private void ReportDebuggingLinesBreakingTheProgram(IList<IToken> tokens, List<IToken> sourceLines, TokenRetypes retypes,
+        EditionInfo edition, CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts, DiagnosticBag diagnostics)
+    {
+        var lineNumbers = sourceLines.Select(t => t.Line).ToHashSet();
+        var hidden = tokens.Select(t => lineNumbers.Contains(t.Line) && t.Type != TokenConstants.EOF
+            && t.Channel == TokenConstants.DefaultChannel
+            ? new CommonToken(t) { Channel = CobolLexer.ABSENT_DEBUG_LINE }
+            : t).ToList();
+        var verdict = ParseCopyOf(hidden, retypes, edition, cobolWordsMap, sourcePath, cuts);
+        if (verdict.Clean) return;
+        int errorLine = verdict.Offender?.Line ?? int.MaxValue;
+        var at = sourceLines.Where(t => t.Line <= errorLine).MaxBy(t => t.Line) ?? sourceLines.MinBy(t => t.Line)!;
+        var descriptor = Editions.Diagnostics.DiagnosticCatalog.DebuggingLineSyntaxBothWays;
+        diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(at.Line, at.Column, sourcePath), default);
     }
 
     /// <summary>The whole-group parser of <paramref name="tokens"/>: the ONE place the driver hands it the edition (both axes) and
@@ -597,17 +639,41 @@ public sealed class Frontend
     private static CobolParserCore NewParser(CommonTokenStream tokens, EditionInfo edition, CobolWordsMap cobolWordsMap)
         => new(tokens) { Edition = edition, CobolWords = cobolWordsMap };
 
-    /// <summary>Does the source parse with no syntax error as it stands? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
+    /// <summary>Does the token list parse with no syntax error as it stands, and where is its first one? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
     /// EXEC only the grammar can classify (kb/Work PB4381): one whole parse, the gate's loop included, of a COPY of the
     /// stream (the loop retypes the tokens it is handed) into a bag nothing reads.</summary>
-    private bool ParsesCleanly(CommonTokenStream tokens, TokenRetypes retypes, EditionInfo edition,
+    private (bool Clean, IToken? Offender) ParseCopyOf(IList<IToken> tokens, TokenRetypes retypes, EditionInfo edition,
         CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts)
     {
-        var copy = new CommonTokenStream(new ListTokenSource(tokens.GetTokens().Select(t => (IToken)new CommonToken(t)).ToList()));
+        var copy = new CommonTokenStream(new ListTokenSource(tokens.Select(t => (IToken)new CommonToken(t)).ToList()));
         var parser = NewParser(copy, edition, cobolWordsMap);
-        ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(),
-            (bag, witness) => ParsePass(parser, copy, bag, witness, sourcePath, cuts));
-        return parser.NumberOfSyntaxErrors == 0;
+        var first = new FirstOffender();
+        ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(), (bag, witness) =>
+        {
+            first.Offender = null;   // only the last pass of the gate's loop describes the stream
+            return ParsePass(parser, copy, bag, new Tee(witness, first), sourcePath, cuts);
+        });
+        return (parser.NumberOfSyntaxErrors == 0, first.Offender);
+    }
+
+    /// <summary>Remembers the offending token of the first syntax error of a pass.</summary>
+    private sealed class FirstOffender : BaseErrorListener
+    {
+        public IToken? Offender { get; set; }
+
+        public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
+            int charPositionInLine, string msg, RecognitionException e) => Offender ??= offendingSymbol;
+    }
+
+    /// <summary>Two listeners that hear every syntax error.</summary>
+    private sealed class Tee(IAntlrErrorListener<IToken> a, IAntlrErrorListener<IToken> b) : BaseErrorListener
+    {
+        public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
+            int charPositionInLine, string msg, RecognitionException e)
+        {
+            a.SyntaxError(output, recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+            b.SyntaxError(output, recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+        }
     }
 
     /// <summary>One parse of the whole token stream from token 0: fast SLL prediction first (with a
