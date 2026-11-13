@@ -806,7 +806,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     {
         int pc = subject.StartPc;
         AddDebugSubject(new BoundDebugSubject(
-            pc, subject.Name, _paraLine[pc], debugging.StartPc, debugging.EndPc, IsSection: true));
+            pc, subject.Name, _paraLine[pc], debugging.StartPc, debugging.EndPc, IsSection: true, SubjectEndPc: subject.EndPc));
     }
 
     private void AddDebugSubject(BoundDebugSubject subject) => _debugSubjects.Add(subject);

@@ -241,6 +241,16 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             EmitPerform(p.Control, static () => { }, inline: false);
             return;
         }
+        // §1985:XVI.1.4.3: the PERFORM's first execution of the range is an explicit transfer, and every later one an implicit
+        // transfer from the control mechanism (§1985:IV.4.4.2 GR1), which enters an independent segment in its last-used state
+        // (kb/Work PB5380). The flag is unique to this statement and declared where the statement runs, so each execution of the
+        // PERFORM starts with its explicit entry; a unit with no independent segment emits no flag.
+        string? lastUsed = null;
+        if (dispatch.SegmentEntry)
+        {
+            lastUsed = $"__segIter{ctx.Names.NextLoop()}";
+            w.Line($"bool {lastUsed} = false;   // false until the range has been entered once (§1985:XVI.1.4.3)");
+        }
         if (dispatch.DebugActive)
         {
             // §1985:XV.3.2.4 GR20: "If the transfer of control from the control mechanism associated with a PERFORM
@@ -250,12 +260,12 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             // per execution, and the first one is no exception (DB101A SIMPLE-PERFORM-TEST).
             EmitPerform(p.Control, () =>
             {
-                dispatch.EmitDebugCause(w, "PerformLoop", p.SourceLine);
-                EmitPerformedRange(p);
+                dispatch.EmitDebugCause(w, "PerformLoop", p.SourceLine, p.Range);
+                EmitPerformedRange(p, lastUsed);
             }, inline: false);
         }
         else
-            EmitPerform(p.Control, () => EmitPerformedRange(p), inline: false);
+            EmitPerform(p.Control, () => EmitPerformedRange(p, lastUsed), inline: false);
     }
 
     /// <summary>One execution of an out-of-line PERFORM's range — the bounded dispatch, and, for a PERFORM that
@@ -272,17 +282,17 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// an exception (§2023:14.9.49 — <c>__RunUse</c> catches the <c>ResumeSignal</c> and returns the action to the raise
     /// site) or by this PERFORM (SR4); only the first had a landing, so a performed declarative's RESUME escaped
     /// every frame and killed the run unit with an unhandled .NET exception.</summary>
-    private void EmitPerformedRange(BoundOutOfLinePerform p)
+    private void EmitPerformedRange(BoundOutOfLinePerform p, string? lastUsedFlag)
     {
         if (!(p.EntersDeclarative && dispatch.UnitHasResume))
         {
-            Statements.EmitProcedureRange(p.Range);
+            Statements.EmitProcedureRange(p.Range, lastUsedFlag: lastUsedFlag);
             return;
         }
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
         using (w.Block("try"))
-            Statements.EmitProcedureRange(p.Range);
+            Statements.EmitProcedureRange(p.Range, lastUsedFlag: lastUsedFlag);
         w.Line($"catch (ResumeSignal __rp{id}) {{ {dispatch.ResumeTransfer($"__rp{id}.TargetPc", "")} }}"
             + "   // §2023:14.9.33.4 GR2 b) NEXT STATEMENT → after the range's last statement; GR3 procedure-name → GO TO");
     }

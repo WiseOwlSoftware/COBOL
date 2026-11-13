@@ -60,7 +60,9 @@ public sealed record BoundProgram(
 /// (DB101A "USE PROCEDURE NOT EXECUTED"); a USE procedure of another declarative section is a subject
 /// (§1985:XV.3.2.4 GR21). A SECTION subject (<paramref name="IsSection"/>) triggers at the section's first pc, named by the
 /// section; a paragraph subject at its own pc: one procedure-name is one trigger point, so several subjects share a pc
-/// (a section and its first paragraph). The data-name, ALL REFERENCES OF and cd-name
+/// (a section and its first paragraph). A section subject runs only when control reaches the section from OUTSIDE it (<paramref name="SubjectEndPc"/>
+/// is the section's last pc, -1 for a paragraph subject): a transfer from one of its own paragraphs, a loop back to its first paragraph,
+/// is no new execution of the section (§1985:XV.3.2.4 GR3 a; kb/Work PB5414). The data-name, ALL REFERENCES OF and cd-name
 /// targets are <see cref="BoundDebugTarget"/>s (docs/CONTROL_FLOW_DESIGN.md D20), and so is the file-name target.</summary>
 public sealed record BoundDebugSubject(
     int SubjectPc,
@@ -68,7 +70,8 @@ public sealed record BoundDebugSubject(
     int SourceLine,
     int SectionStartPc,
     int SectionEndPc,
-    bool IsSection = false);
+    bool IsSection = false,
+    int SubjectEndPc = -1);
 
 /// <summary>The kind of a <see cref="BoundDebugTarget"/> (X3.23-1985 USE FOR DEBUGGING general format).</summary>
 public enum DebugTargetKind
