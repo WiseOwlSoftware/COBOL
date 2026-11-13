@@ -26,3 +26,8 @@ copy, is deleted; every `DenotedItem` read in `CodeGen/` and `Oo/ActivationDescr
 
 Found on the way, not fixed (outside the group): an INVOKE's BY CONTENT phrase is not transitive, so `INVOKE C "M" USING BY
 CONTENT G N` passes N by reference and the method's store reaches the caller.
+
+Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance up to date (run 000002-20261113T005546Z ...) · Unit 40,821/40,821 ran ·
+Characterization 37/37 ran (skipped 0) ... (run 000003-20261113T010745Z) ===`, after two reds fixed at their roots: the citation
+audit (ProgramTable's CANCEL and GOBACK citations now name §2023:14.9.5.4 and §2023:14.9.18.4) and the 14 emitted-C# snapshots,
+whose only difference is the host entry's `Cancel()` passing `refusesEveryActiveProgram: true`.
