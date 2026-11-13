@@ -990,7 +990,7 @@ def self_test() -> int:
         "gate, the Linux gate and the battery",
         not bad and all(any(f"  writer  {w}  " in s for s in seen) for w in want_writers), f"{bad} {seen}")
     seen, bad = audit_trx_readers(REPO)
-    want_readers = ("  trx-schema  scripts/test_population.py  parses XML", "  trx-schema  scripts/gate.py  no XML parser",
+    want_readers = ("  trx-schema  scripts/test_population.py  parses XML", "  trx-schema  scripts/selftests/gate/test_runs_and_locks.py  no XML parser",
                     "  trx-schema  scripts/profile-test-parallelism.py  no XML parser")
     arm("the real tree: every live tool reads a trx file through trx_root (PB3661), and the audit sees the one reader "
         "and the tools that only name the schema", not bad and all(w in seen for w in want_readers), f"{bad} {seen}")

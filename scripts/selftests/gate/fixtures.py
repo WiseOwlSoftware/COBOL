@@ -16,11 +16,10 @@ Gate = gate_mod.Gate
 Outcome = gate_mod.Outcome
 audit_shape = gate_mod.audit_shape
 
-isolate()  # ⛔ hermetic: the cases make git repositories (scratch_repo.isolate, kb/Work PB1719)
-
 
 def world():
     """(root, sink, gate, said): a scratch directory of this case's own, the console lines of the last gate run in it, and the helpers."""
+    isolate()  # ⛔ hermetic: the cases make git repositories (scratch_repo.isolate, kb/Work PB1719)
     root = scratch_dir("gate-legs-selftest-")
     sink: list[str] = []
 
