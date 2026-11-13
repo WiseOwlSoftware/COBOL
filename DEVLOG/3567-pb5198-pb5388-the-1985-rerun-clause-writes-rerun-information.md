@@ -1,4 +1,4 @@
-## PB5198, PB5388: the 1985 RERUN clause writes rerun information in its integer-1 RECORDS form, and its doc comment sits on its own method
+## Entry 3567 — 2026-11-13 05:50 PST — PB5198, PB5388: the 1985 RERUN clause writes rerun information in its integer-1 RECORDS form, and its doc comment sits on its own method
 
 **PB5198.** At `--std 85` the RERUN clause was parsed, its five syntax rules were asked, and then `BindIoControl` dropped it: no form wrote any rerun information,
 though §1985:VII.2.12.4 GR2 says "The implementor must provide at least one of the specified forms of the RERUN clause." and the clause is not in the hardware
@@ -33,3 +33,4 @@ No diagnostic code was used (COBOL7090-COBOL7092 returned): a warning for an unp
 cited is GR2 d, not a paraphrase, and the sibling arms (sequential, relative, indexed) all reach the one count. Performance: the unregistered case is one null test per
 terminal. Duplication: no second copy of the count. The review lenses found the first draft's '37' for a refused permission unsupported by item 6 b and the registry key in
 the written line; both fixed.
+
