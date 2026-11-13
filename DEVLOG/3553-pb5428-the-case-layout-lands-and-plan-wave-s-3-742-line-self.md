@@ -1,4 +1,4 @@
-## PB5428: the case layout lands, and plan_wave's 3,742-line self-test becomes 233 cases under `scripts/selftests/`
+## Entry 3553 — 2026-11-12 16:23 PST — PB5428: the case layout lands, and plan_wave's 3,742-line self-test becomes 233 cases under `scripts/selftests/`
 
 PB3726's second step (DESIGN-orchestrator-loop.md section 16.2). A script's tests now live in
 `<root>/selftests/<path>/<name>/`, as a `fixtures.py` and `test_<world>.py` files of `case_<name>(expect)` functions that end
@@ -47,3 +47,4 @@ it may plant, and that splitting it is the next conversion's work. The leads wer
 design's ratchet count (162 after this conversion), the mangled step row of section 16.10 and two ungrammatical lines in
 DESIGN-architecture-review, and `selftest_layout.check` no longer raises on a subject that does not parse
 (`_defines_self_test`, with `case_12` in `test_refusals.py`: 13 cases, 29 expectations).
+
