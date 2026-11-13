@@ -162,6 +162,27 @@ public sealed class DebuggingLineRewriterTests
         Assert.Equal(3, kept.Line);                       // the line of unit A; unit B's line is a comment
     }
 
+    /// <summary>§1985:VI.7.3 (kb/Work PB5212): "A debugging line is only permitted in the separately compiled program after the
+    /// OBJECT-COMPUTER paragraph" — the lines that begin before that paragraph's end, or, in a unit with no such paragraph,
+    /// before its Data or Procedure Division, are named, with or without the mode.</summary>
+    [Theory]
+    [InlineData("PROGRAM-ID. P.|{D}|SOURCE-COMPUTER. X WITH DEBUGGING MODE.|OBJECT-COMPUTER. X.|PROCEDURE DIVISION.", 1)]
+    [InlineData("PROGRAM-ID. P.|SOURCE-COMPUTER. X.|{D}|OBJECT-COMPUTER. X.|PROCEDURE DIVISION.", 1)]
+    [InlineData("PROGRAM-ID. P.|SOURCE-COMPUTER. X.|OBJECT-COMPUTER. X|{D}|MEMORY SIZE 10 WORDS.|PROCEDURE DIVISION.", 1)]
+    [InlineData("PROGRAM-ID. P.|SOURCE-COMPUTER. X.|OBJECT-COMPUTER. X.|{D}|DATA DIVISION.|{D}|PROCEDURE DIVISION.|{D}", 0)]
+    [InlineData("PROGRAM-ID. P.|SOURCE-COMPUTER. X.|{D}|PROCEDURE DIVISION.|{D}", 1)]
+    [InlineData("{D}|PROGRAM-ID. P.|OBJECT-COMPUTER. X.|{D}", 1)]
+    [InlineData("PROGRAM-ID. O.|OBJECT-COMPUTER. X.|PROCEDURE DIVISION.|PROGRAM-ID. I.|{D}|PROCEDURE DIVISION.|END PROGRAM I.|END PROGRAM O.", 0)]   // review R1-1: a contained program follows its container's OBJECT-COMPUTER
+    [InlineData("PROGRAM-ID. O.|PROCEDURE DIVISION.|PROGRAM-ID. I.|OBJECT-COMPUTER. X.|{D}|END PROGRAM I.|END PROGRAM O.", 0)]
+    public void Rewrite_NamesTheDebuggingLinesBeforeTheEndOfObjectComputer(string program, int expected)
+    {
+        var stream = new CommonTokenStream(new CobolLexer(new AntlrInputStream(
+            string.Join("\n", program.Split('|').Select(l => l == "{D}" ? D("DISPLAY X.") : l)) + "\n")));
+        var misplaced = new List<IToken>();
+        DebuggingLineRewriter.Rewrite(stream, misplacedLines: misplaced);
+        Assert.Equal(expected, misplaced.Count);
+    }
+
     [Fact]
     public void HideAll_HidesEveryLine_ClauseOrNot()
     {

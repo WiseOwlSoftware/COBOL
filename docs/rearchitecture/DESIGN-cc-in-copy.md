@@ -214,8 +214,10 @@ COBOL-85 and the editions from 2002 differ in three rules of this stage, each as
 
 - **A REPLACE statement's place.** §1985:XII.3.3 SR1 requires a separator period before it (or the start of a separately compiled
   program); §2002:7.1.3.2 SR1 allows it wherever a character-string may stand. `ApplyReplaceStatements` asks the constructs row
-  `replace-anywhere-2002` of a REPLACE that `FollowsSeparatorPeriod` does not accept (text that came from a library file is taken to
-  follow the COPY statement's own period).
+  `replace-anywhere-2002` of a REPLACE that `FollowsSeparatorPeriod` does not accept. It asks the COPY-expanded text, whatever file each
+  character came from (kb/Work PB5422): a COPY statement and its period are not part of the resultant text, so a REPLACE that begins
+  library text follows what preceded the COPY statement. It reads the last text-word before the REPLACE, so a comment, a comment-entry carrier
+  and a debugging line's carrier are spaces to it.
 - **COPY in library text.** §1985:XII.2.4 GR12 forbids it; §2002:7.1.2.3 GR14 allows it without REPLACING. `ResolveOneCopy` asks the
   row `copy-nested-library-text-2002` of the library text it has read, and reports at the OUTER statement. Below 2002 the one
   report speaks for the REPLACING arm (the 2023 GR10 diagnostic) too.
@@ -228,6 +230,30 @@ The word COPY as word-1 or word-2 of a COPY REPLACING phrase is refused by COBOL
 §2014:7.2.2.2 SR10), and so are the compiler directive indicator `>>` (2002, 2014) and the floating debug indicator `>>D` (2002); the comment
 indicator is a comment to the scanner and never a word. 2023 removed the word forms (COBOL0902); under `--permissive`, which still accepts them,
 the 2014 set applies (`OperandScreen.CopyWord`).
+
+### §3.7 The lines a replacement introduces (kb/Work PB5382)
+
+A debugging line reaches this stage as `ReferenceFormatProcessor.DebugLineCarrier` plus its text, and `DebuggingLineRewriter` later keeps or
+hides each carrier's line by the unit's WITH DEBUGGING MODE. A whole replacement whose pseudo-text-2 spans lines therefore has to write the
+carrier on every line it introduces that is a debugging line, or the rewriter sees source. `ApplyReplacements` asks `IntroducedText` for
+the text it writes, decided by the line the match begins on (`firstLineIsDebugging` covers a slice that begins inside a line):
+
+- **The replaced text begins on a debugging line:** every introduced line is a debugging line (§1985:XII.3.4 GR11, §1985:XII.2.4 GR9,
+  §2002:7.1.3.3 GR11, §2002:7.1.2.3 GR13); a carrier pseudo-text-2 wrote at its own start is dropped, because its first line lands on the
+  replaced line.
+- **It begins on a source line:** a COPY keeps the debugging lines pseudo-text-2 wrote (GR9 / GR13: "only those text words that are specified
+  on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines"), and so does REPLACE from 2002; COBOL-85's
+  REPLACE gives each introduced line the replaced line's indicator, so it drops them (`ResultRule.KeepsPseudoTextDebuggingLines`, asked
+  with `EditionInfo.ReplacedTextIsLaidOutInFixedForm`).
+- The text after the match keeps the indicator of the line the match ENDS on (GR11 decides the introduced lines only). When the line the
+  replacement ends on differs in kind from that line (a match crossing between a debugging line and a source line, either way) or a kept
+  directive line intervenes, the rest starts a line of its own, with the carrier when the end line is a debugging line.
+
+At COBOL-85 (`ReplacedTextIsLaidOutInFixedForm`) the resultant text is laid out in fixed-form lines, so a literal a replacement places on a
+debugging line that the program-text area cannot hold from the margin of the area it begins in (65 positions in area A, 61 in area B; a
+pseudo-text-2 literal keeps the area it was written in, literal-2 takes the replaced word's, §1985:XII.2.4 GR9) would be continued on a
+debugging line: COBOL7039 (§1985:XII.2.4 GR9, §1985:XII.3.4 GR11). The 2002 rules drop that error. A COPY statement written on a debugging
+line writes its whole library text behind the carrier (`ExpandCopiesOneLevel`: `LineIsDebugging`, `AppendAsDebuggingLines`; §1985:XII.2.4 GR9).
 
 ## §4 Wiring (greenfield only)
 

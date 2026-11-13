@@ -2303,6 +2303,26 @@ of an unsupported facility.
   comment), `conformance:cases/_unassigned/pb1705_debugging_mode_obsolete_2002`, `conformance:cases/_unassigned/debugging-mode`,
   `conformance:cases/_unassigned/pb1494-debugging-line-at-2014`, `unit:DebuggingLineRewriterTests`.
 
+  **What a COPY statement on a debugging line introduces, and the two rules of the debugging-line presentation (--std 85; kb/Work
+  PB5214, PB5212).** §1985:XII.2.4 GR9: "each text word introduced appears on a debugging line if the COPY statement begins on a
+  debugging line" (`cite.py --check "§1985:XII.2.4 GR9"` → OK), so the library text of a COPY that begins on a debugging line is
+  debugging lines, source under the clause and comment without it (§1985:VI.4.3.4 GR4, GR5). `CopyProcessor.ExpandCopiesOneLevel`
+  is the one place text is introduced: it writes each non-blank line of the (replaced, nested-expanded) library text behind the
+  carrier, and the text after the statement's period on a debugging line keeps its line's kind. Only the carrier is written, so
+  `DebuggingLineRewriter` still makes the one decision. §1985:VI.7.3 adds two rules `DebuggingLineRewriter` and the front end now
+  check: "A debugging line is only permitted in the separately compiled program after the OBJECT-COMPUTER paragraph" (COBOL7060,
+  at the line, with or without the mode: a line that begins before the end of the unit's OBJECT-COMPUTER paragraph, or, in a unit
+  with none, before its Data or Procedure Division) and "The content of a debugging line must be such that a syntactically
+  correct program is formed with or without the debugging lines being considered as comment lines" (COBOL7061: a program that
+  parses with its debugging lines as source is parsed again with them hidden, and reported at the last debugging line before the
+  first syntax error of that parse; the converse direction, a unit without the mode whose debugging lines would not parse as source, is
+  not asked). Both are 1985 rules and bind below COBOL-2002 only: the later editions carry the facility as
+  obsolete or removed (the edition windows above). Witnesses:
+  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-no-mode`,
+  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-mode`,
+  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-before-object-computer`,
+  `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-syntax-both-ways`.
+
   **The FLOATING spelling `>>D`** (ISO/IEC 1989:2002 clause 6.1.2 "`>>D` debugging indicator — a debugging line when followed by
   at least one space character", clause 6.3.4, clause 6.1.2.1 SR7 and SR8; the 2002 text is not in the repository and is read from the
   archived draft, so `cite.py` cannot check those clauses; kb/Work PB4298). ISO/IEC 1989:2023 §2023:6.2.3.1 lets a floating
