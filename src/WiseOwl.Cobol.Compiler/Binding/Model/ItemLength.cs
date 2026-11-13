@@ -64,7 +64,7 @@ internal static class ItemLength
     /// <summary>Whether an elementary item's storage is not its standard data format: a numeric item of usage binary, packed
     /// decimal or COMP-5 is stored in a radix-2 or BCD form whose standard characters are its digits
     /// (<see cref="StandardDataFormatCharacters"/>).</summary>
-    private static bool IsStoredAsDigits(PicInfo pic) =>
+    internal static bool IsStoredAsDigits(PicInfo pic) =>
         pic is { Category: PicCategory.Numeric, Usage: Usage.Binary or Usage.Packed or Usage.Comp5 };
 
     /// <summary>One part of <see cref="StandardLayout"/>: an elementary item or a group occurring <paramref name="Count"/> times,

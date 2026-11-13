@@ -12,7 +12,7 @@
       *> VARYING ... DEPENDING ON it is the length the data-name holds.
       *> The current record is the record the READ made available in the
       *> record area, so the OCCURS DEPENDING ON item of a record
-      *> description (§1985:VI.5.8.4 GR3a: "the part of the table area
+      *> description (§1985:VI.5.8.4 GR3: "the part of the table area
       *> used in the operation") does not shorten it. FA describes the
       *> table in its FIRST record, FB in its SECOND; the table count is
       *> 2 and the record is 12 characters, so both INTO moves send

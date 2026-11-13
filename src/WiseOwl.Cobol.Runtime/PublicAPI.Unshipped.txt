@@ -1140,5 +1140,7 @@ WiseOwl.Cobol.Runtime.ProgramTable.Cancel(string! name, string? callerPath, bool
 static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 WiseOwl.Cobol.Runtime.CobolStandardData
 static WiseOwl.Cobol.Runtime.CobolStandardData.Image(string! storage, WiseOwl.Cobol.Runtime.StandardDataPart![]! parts) -> string!
+static WiseOwl.Cobol.Runtime.CobolStandardData.Characters(string! image, in WiseOwl.Cobol.Runtime.NumProfile profile) -> string!
+static WiseOwl.Cobol.Runtime.CobolStandardData.Characters(System.Int128 value, in WiseOwl.Cobol.Runtime.NumProfile profile) -> string!
 WiseOwl.Cobol.Runtime.StandardDataPart
 WiseOwl.Cobol.Runtime.StandardDataPart.StandardDataPart(int offset, int width, WiseOwl.Cobol.Runtime.NumProfile? profile = null, int count = 1, WiseOwl.Cobol.Runtime.StandardDataPart![]? members = null) -> void

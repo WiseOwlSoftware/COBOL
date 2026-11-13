@@ -2127,6 +2127,11 @@ internal static class RuntimeApi
     public static string StandardDataImage(string storage, IReadOnlyList<ItemLength.StandardPart> layout) =>
         $"{nameof(CobolStandardData)}.{nameof(CobolStandardData.Image)}({storage}, {StandardParts(layout)})";
 
+    /// <summary>The characters in standard data format (§1985:IV.4.3.4) of the elementary binary or packed item whose own-sign image is
+    /// <paramref name="image"/>, its digits with the operational sign over-punched (<c>CobolStandardData.Characters</c>; kb/Work PB5378).</summary>
+    public static string StandardDataCharacters(string image, string profile) =>
+        $"{nameof(CobolStandardData)}.{nameof(CobolStandardData.Characters)}({image}, {profile})";
+
     private static string StandardParts(IReadOnlyList<ItemLength.StandardPart> parts) =>
         $"new {nameof(StandardDataPart)}[] {{ {string.Join(", ", parts.Select(StandardPart))} }}";
 

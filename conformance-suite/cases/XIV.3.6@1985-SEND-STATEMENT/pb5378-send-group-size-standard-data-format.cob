@@ -17,6 +17,14 @@
       *> accepted and sends AB0012, 4 sends AB00 and 7 is refused. GD
       *> holds PK (PIC 9(3) PACKED-DECIMAL, 123) and a table of two
       *> PIC 99 COMP items (5 and 7): 3 + 2 + 2 = 7 characters, 1230507.
+      *> A SIGNED binary or packed item is the same size: "The 'S' is not
+      *> counted in determining the size (in terms of standard data format
+      *> characters) of the elementary item" (§1985:VI.5.9.4 GR8d), the
+      *> sign being an operational sign with no character of its own. SB
+      *> (S9(4) BINARY, -12) is four characters, so 4 is accepted and 5 is
+      *> not; GS (XX, S9(4) BINARY and S9(3) PACKED-DECIMAL) is 2 + 4 + 3
+      *> = 9, so 9 is accepted and 10 is not. Only the lengths are shown:
+      *> the representation of the sign is the implementor's.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5378A.
        ENVIRONMENT DIVISION.
@@ -35,6 +43,11 @@
        01  GD.
            05  PK   PIC 9(3) PACKED-DECIMAL VALUE 123.
            05  GT   PIC 99 COMP OCCURS 2 TIMES.
+       01  SB PIC S9(4) BINARY VALUE -12.
+       01  GS.
+           05  GY   PIC XX VALUE "AB".
+           05  SB2  PIC S9(4) BINARY VALUE -12.
+           05  SP   PIC S9(3) PACKED-DECIMAL VALUE -123.
        01  BUF PIC X(20).
        COMMUNICATION SECTION.
        CD  CIN FOR INPUT
@@ -98,9 +111,27 @@
            SEND COUT FROM GD WITH EMI.
            DISPLAY "GD 7 " OUT-STAT.
            PERFORM RCV-PARA.
+           MOVE 4 TO OUT-LEN.
+           SEND COUT FROM SB WITH EMI.
+           DISPLAY "SB 4 " OUT-STAT.
+           PERFORM RCV-LEN-PARA.
+           MOVE 5 TO OUT-LEN.
+           SEND COUT FROM SB WITH EMI.
+           DISPLAY "SB 5 " OUT-STAT.
+           MOVE 9 TO OUT-LEN.
+           SEND COUT FROM GS WITH EMI.
+           DISPLAY "GS 9 " OUT-STAT.
+           PERFORM RCV-LEN-PARA.
+           MOVE 10 TO OUT-LEN.
+           SEND COUT FROM GS WITH EMI.
+           DISPLAY "GS 10 " OUT-STAT.
            STOP RUN.
        RCV-PARA.
            MOVE SPACES TO BUF.
            RECEIVE CIN MESSAGE INTO BUF
                NO DATA DISPLAY "NO DATA".
            DISPLAY "MSG " IN-LEN " [" BUF "]".
+       RCV-LEN-PARA.
+           RECEIVE CIN MESSAGE INTO BUF
+               NO DATA DISPLAY "NO DATA".
+           DISPLAY "LEN " IN-LEN.
