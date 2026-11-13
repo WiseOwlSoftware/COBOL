@@ -94,6 +94,16 @@ same file (`scripts/guard-population.sh#guard_nist_population`: the asserted row
 so the two NIST legs run one population by construction (kb/Work PB925, PB3383). `CorpusManifestTests.GuardNistPopulation_*`
 keep the derivation in place and the script's `--self-test` proves it.
 
+Both legs compare a report on ONE acceptance basis, written in two languages by nature: `NistRunner.Normalize` (C#) and
+`scripts/guard-verdict.sh#guard_normalize_into` (shell). Lines end at LF; every CR goes with the spaces before it (a CR
+LF golden, and the overprint `marker   \rtext` of a WRITE … ADVANCING 0); the spaces before a form feed go and the form
+feed stays, because a page eject is not a line advance; each line loses its trailing spaces; the COMPUTED= operand is
+masked; trailing empty lines and the final line end go. NEL, LS, PS and a vertical tab are characters. Both arms are held
+to every case of `tests/nist/normalization-cases.json` (`NistWrittenFilesTests` and `guard-verify.sh --self-test`), so
+a change to one that the other does not make is red (kb/Work PB5460: the shell arm kept the padding before a form feed and
+the C# arm read a form feed as a line break, so SQ101M was a false red in the nightly guard while the in-process gate
+compared a page eject equal to a line advance).
+
 ### 1.3 Guard scripts (bash, Linux, over the `cobol` CLI)
 ⛔ **The NIST leg drives `cobol` (`src/WiseOwl.Cobol.Cli`)** and no other compiler (kb/Work PB750, PB2109). A guard that
 drives a binary lacking `WiseOwl.Cobol.Compiler`, the Roslyn code generator that IS the product, is structurally blind to
