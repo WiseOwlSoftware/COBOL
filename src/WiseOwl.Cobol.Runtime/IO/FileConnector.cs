@@ -687,7 +687,7 @@ public abstract class FileConnector
         Status = status;
         PrevOpWasSuccessfulRead = true;
         LastReadUnsuccessful = false;
-        return status;
+        return RecordProcessed(status);
     }
 
     /// <summary>The file position indicator's "optional file not present" state (ISO §2023:9.1.13.2 item 5 /
@@ -1014,6 +1014,7 @@ public abstract class FileConnector
                     pathChangedMeanwhile++;
                     break;
                 default:
+                    if (IsOpen) _recordsSinceOpen = 0;   // the integer-1 RECORDS count is of the records processed since the file's OPEN
                     return status;
             }
         }
@@ -1498,6 +1499,37 @@ public abstract class FileConnector
     /// <see cref="HostFile.InputOutputAreaBuffer"/> when its OPEN takes its streams, so it is read at every OPEN
     /// and never cached.</summary>
     public int InputOutputAreas { get; internal set; } = HostFile.ImplementorInputOutputAreas;
+
+    /// <summary>⛔ The X3.23-1985 RERUN clause's integer-1 RECORDS form for this file (§1985:VII.2.12.4 GR2 d), set by the
+    /// emitter right after registration for exactly the files an I-O-CONTROL RERUN clause names with that phrase
+    /// (the <see cref="InputOutputAreas"/> pattern; kb/Work PB5198), else null.</summary>
+    internal RerunRecordsPoint? RerunRecords { get; set; }
+
+    private long _recordsSinceOpen;
+
+    /// <summary>⛔ THE ONE COUNT OF A PROCESSED RECORD, asked at the terminal of every READ, WRITE, REWRITE and DELETE of
+    /// every organization (the READ terminals through <see cref="ReadSucceeded"/>, the others at their public entry
+    /// or their one success return), and the ONE WRITER of rerun information (§1985:VII.2.12.4 GR1 b, GR2 d: "the rerun
+    /// information is written on the device specified by implementor-name-1 … whenever integer-1 records of file-name-2
+    /// have been processed"). A statement that completed successfully (an I-O status of class '0', §2023:9.1.13.1) is a
+    /// record processed; the count is per OPEN. A device the host refuses to write (an I-O failure or an insufficient
+    /// authority) is the file's own I-O status '30', as a record the medium refuses is (§2023:9.1.13.6 item 1: "A permanent
+    /// error exists and no further information is available concerning the input-output operation"; item 6 b's '37' is
+    /// stated of OPEN and DELETE FILE alone): the rerun information that was promised is not on the device, and the program
+    /// is told. Returns <paramref name="status"/>, or the refusal.</summary>
+    private protected string RecordProcessed(string status)
+    {
+        if (RerunRecords is not { } point || status.Length == 0 || status[0] != '0') return status;
+        if (++_recordsSinceOpen % point.Every != 0) return status;
+        try
+        {
+            using var device = Medium.OpenRerunDevice(CobolFile.ResolveHostPath(point.Device));
+            device.Write(System.Text.Encoding.UTF8.GetBytes(point.Information(_recordsSinceOpen)));
+            device.Flush();
+            return status;
+        }
+        catch (Exception refused) when (refused is IOException or UnauthorizedAccessException) { return Status = FileStatusCode.PermanentError; }
+    }
 
     // ── Record-area shaping ──────────────────────────────────────────────────────────────────────────────────
 

@@ -701,7 +701,7 @@ public sealed class IndexedConnector : KeyedConnector
         if (!done) return Status = FileStatusCode.DuplicateKey;            // '22' — the tree declined (GR42 b))
         if (sequentialRelease) _lastWrittenPrime = prime;   // GR38's running "highest … written" — sequential access only
         _lastWrittenPrimeId = prime;   // §2023:9.1.16 lock identity of the record just released (§2023:14.9.51 GR11)
-        return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
+        return RecordProcessed(Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success);
     }
 
     /// <summary>A freshly released record's ordinal vector: ONE ordinal in every slot the file records — a WRITE releases
@@ -792,7 +792,7 @@ public sealed class IndexedConnector : KeyedConnector
                 .OfType<byte[]>()]));
         if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§2023:9.1.13.5 4) / '30' (§2023:9.1.13.6 1)
         if (!done) return Status = FileStatusCode.RecordNotFound;
-        return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
+        return RecordProcessed(Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success);
     }
 
     /// <summary>DELETE RECORD (§2023:14.9.10): open mode I-O ('49', GR1); sequential access removes the prior READ's
@@ -825,7 +825,7 @@ public sealed class IndexedConnector : KeyedConnector
         var removed = _st.Remove(Entered, _orders, prime, entries, out bool done, TransactionFor(prime, frame,
             () => [.. entries.Select(e => UniqueValueHolding(e.Key, IndexedStore.Split(e.Entry).KeyPart)).OfType<byte[]>()]));
         if (Failed(removed) is { } refused) return Status = refused;       // '30' §2023:9.1.13.6 item 1, the boundary too
-        return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
+        return RecordProcessed(Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound);
     }
 
     // ── START (ISO §2023:14.9.41) ─────────────────────────────────────────────────────────────────────────────────
