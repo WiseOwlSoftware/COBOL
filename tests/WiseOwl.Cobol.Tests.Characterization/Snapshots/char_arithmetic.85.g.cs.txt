@@ -95,7 +95,7 @@ public static class CHAR_ARITHMETIC
         ProgramRegistry.CallProgram("CHAR-ARITHMETIC", null, global::System.Array.Empty<CobolArg>(), null, siteArgMismatchChecking: true);
     }
     /// <summary>CANCEL CHAR-ARITHMETIC (ISO §2023:14.9.5) in the current run unit.</summary>
-    public static void Cancel() => ProgramRegistry.Cancel("CHAR-ARITHMETIC", null);
+    public static void Cancel() => ProgramRegistry.Cancel("CHAR-ARITHMETIC", null, refusesEveryActiveProgram: true);
 }
 public static class __CobolModule
 {
