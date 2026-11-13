@@ -43,6 +43,7 @@
         "scripts/live_tools.py": "imported by scripts/standard_streams.py when it lists the live tools",
         "scripts/git_batch.py": "imported by scripts/spec/inventory_store.py",
         "scripts/scratch_repo.py": "imported lazily by the self-tests of generate.py and scripts/spec/inventory_store.py: in the static import closure (buildgraph.static_check), never loaded by --out",
+        "scripts/selftest_layout.py": "imported by scripts/scratch_repo.py (the path rule of its audit): in the static import closure, never loaded by --out",
         "tests/conformance/": "removed_corpus_files probes it (REMOVED_CORPUS): a file there, a test the suite replaced, is a refusal",
         ".gitattributes": "the checkout's bytes of every file it reads"
       },
@@ -68,6 +69,8 @@
         "scripts/live_tools.py|tracked|(root / p).is_file()": "not on the --out path: tracked() serves standard_streams' --check and scratch_repo's audit; the generator calls only standard_streams.ensure_utf8",
         "scripts/scratch_repo.py|remove_tree|os.path.lexists(path)": "reached only from the self-tests that import scratch_repo: a scratch directory, never a repository path",
         "scripts/scratch_repo.py|ScratchRepo._configure|config.is_file()": "reached only from the self-tests: a scratch repository's own config",
+        "scripts/selftest_layout.py|subject_of|(repo / f'{stem}{suffix}').is_file()": "reached only from the self-tests and the runner: a case file's subject, never on the --out path",
+        "scripts/selftest_layout.py|check_repo|(repo / p).is_file()": "reached only from the runner (scripts/self_tests.py): a tracked file of the live trees, never on the --out path",
         "scripts/spec/generated_output.py|prepare|out.exists()": "the output directory {out} (TestResults/generated/<target>, ignored), not an input",
         "scripts/spec/generated_output.py|prepare|out.is_dir()": "the output directory {out}, not an input",
         "scripts/spec/generated_output.py|prepare|entry.is_dir()": "an entry of the output directory {out}, not an input",

@@ -254,6 +254,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             global.json
           sparse-checkout-cone-mode: false
       - if: steps.checkout.outcome != 'success'
@@ -269,6 +270,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             global.json
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
@@ -302,6 +304,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             global.json
           sparse-checkout-cone-mode: false
       - if: steps.checkout.outcome != 'success'
@@ -317,6 +320,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             global.json
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
