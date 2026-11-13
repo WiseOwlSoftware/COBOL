@@ -19,3 +19,13 @@ so.
 Proof: `audit_annex_a1.py --json`, `audit_derivations.py --check`, `gen_ledger.py --check` and `doc_audits.py --check` print the
 same bytes before and after; `measure_conformance()` and `declined_modules()` compared old against new in one process are equal;
 the new cases (`scripts/selftests/spec/conformance_source/test_reader.py`, 6 cases, 31 expectations) pass.
+
+### PB3726 step PB5396: `public_api_baselines.py`, one order for PublicAPI.Unshipped.txt
+
+The baselines' rules (`SYMBOL_BASELINE`, `is_symbol_baseline`, `baseline_duplicates`, `baseline_texts`, `baseline_stops`) moved out
+of `landing_check.py` into `scripts/public_api_baselines.py`, whose arm 0b now calls it; the module adds `ordered`,
+`order_problems`, `check` and `write`. `--check` is the gate audit `PUBLIC API BASELINES` (gate.py `AUDITS`) and a step of CI's
+`audits` job, the same list (`ci_audits_not_in_gate` stays GREEN). The runtime's Unshipped baseline was out of order from line 138
+(`sort -c`); `--write` put it in ordinal order once, its line multiset unchanged (`sort | md5sum` before and after equal, 1,140 lines).
+Cases: `scripts/selftests/public_api_baselines/test_rules.py` (5 cases): duplicates, out-of-order, the fixer, the audit RED on each breach
+and on a tree with no Unshipped baseline.

@@ -513,6 +513,11 @@ jobs:
       - name: Conflict markers — no tracked file carries an unresolved merge conflict (conflict_markers.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/conflict_markers.py --check
+      # The public-API baselines (kb/Work PB5396, PB3694): no symbol listed twice (RS0025) and every Unshipped baseline in ordinal
+      # order, so plain git merges two branches' new symbols; `public_api_baselines.py --write` is the fixer.
+      - name: Public API baselines — no symbol listed twice, every Unshipped baseline in order (public_api_baselines.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/public_api_baselines.py --check
       # No compiler test reads a Markdown file (kb/Work PB4453): what a document says about the compiler or about another
       # document is checked by these three audits, in every merge group, and the Markdown is inert to the test legs.
       - name: Doc audits — the Markdown agrees with the facts it states (doc_audits.py --check)

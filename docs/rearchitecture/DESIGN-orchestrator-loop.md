@@ -2318,7 +2318,7 @@ Unshipped baselines keep ONE order** — the `#nullable enable` header, then the
 merges them, two that add the same symbol make the same edit and merge clean, and the duplicate that PB3694 met cannot be
 written by an ordered file. **`scripts/public_api_baselines.py`** becomes the one module of the baselines' rules:
 `SYMBOL_BASELINE`, `is_symbol_baseline`, `baseline_texts`, `baseline_duplicates` and `baseline_stops` move there from
-`landing_check.py` (which imports them; arm 0b unchanged), and it adds `order_problems` (an Unshipped baseline out of
+`landing_check.py` (whose arm 0b calls `public_api_baselines.baseline_stops`, the only name it keeps using; LANDED, PB5396), and it adds `order_problems` (an Unshipped baseline out of
 order) and `--check` (the tree's baselines: duplicates and order) and `--write` (puts each Unshipped baseline in order:
 the one fixer). `--check` is a gate audit, `PUBLIC API BASELINES` in `gate.py`'s `AUDITS` (PB5396 lands before the
 module split, PB5433, which moves the list) and in CI's `audits` job, the SAME list (`ci_audits_not_in_gate`). Its

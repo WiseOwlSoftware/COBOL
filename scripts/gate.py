@@ -381,6 +381,10 @@ AUDITS = (
     ("LINE ENDINGS", ["scripts/line_endings.py", "--check"]),
     # kb/Work PB735, PB2878: a byte-level fact about the committed tree, an audit so that no test reads every path.
     ("CONFLICT MARKERS", ["scripts/conflict_markers.py", "--check"]),
+    # kb/Work PB5396, PB3694: the public-API baselines list no symbol twice (RS0025 fails the Release build on one) and every
+    # Unshipped one is in ordinal order, the one order that lets plain git merge two branches' new symbols; the module's `--write`
+    # is the fixer. A byte-level fact about the committed tree, an audit like CONFLICT MARKERS.
+    ("PUBLIC API BASELINES", ["scripts/public_api_baselines.py", "--check"]),
     # kb/Work PB4453: no compiler test reads a Markdown file (owner 2026-11-02), so what a document says about the compiler
     # or about another document is checked HERE, in every lane: the documentation audits (scripts/doc_audits.py), and the two
     # register audits that were Unit tests running these scripts to read docs/CONFORMANCE.md.
