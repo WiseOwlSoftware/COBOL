@@ -828,6 +828,16 @@ public static partial class CobolNum
             ? FormatDisplaySigned(unscaled, receiver)
             : FormatUnsignedDisplay(unscaled, receiver.Digits);
 
+    /// <summary>The characters of a numeric item in STANDARD DATA FORMAT (§1985:IV.4.3.4), the size SEND counts (kb/Work PB5378): the
+    /// zero-padded magnitude digits, and for a signed item the sign fused onto the last digit as a DISPLAY item of the same picture
+    /// holds it (the S is "not counted in determining the size", §1985:VI.5.9.4 GR8d, so no character is added for it, unlike
+    /// <see cref="FormatDisplay(Int128, in NumProfile)"/> whose binary sign is a leading minus).</summary>
+    public static string FormatStandardData(Int128 unscaled, in NumProfile item)
+    {
+        string mag = FormatUnsignedDisplay(unscaled, item.Digits);
+        return item.Signed ? Overpunch(mag, mag.Length - 1, unscaled < 0, item.SignEncoding) : mag;
+    }
+
     /// <summary>Storage-form bridge (the <c>CobolTable.Occ</c> pattern): a numeric-DISPLAY field whose backing the
     /// post-bind whole-group analysis turned into its character IMAGE is already display-formatted — pass through.
     /// Lets the compiler emit ONE expression for an image view whose field's storage form is decided later.</summary>

@@ -96,9 +96,12 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
     private string SendingText(BoundOperand from)
     {
         string text = OperandText.AsTransferString(from, num, "SEND FROM");
-        return ctx.Data.DialectLevel < 2002 && from is BoundFieldOperand { Place: { Item.IsGroup: true } group and not RefModPlace }
-            && ItemLength.StandardLayout(group.Item) is { } layout
-            ? RuntimeApi.StandardDataImage(text, layout)
+        if (ctx.Data.DialectLevel >= 2002 || from is not BoundFieldOperand { Place: { } place } || place is RefModPlace) return text;
+        if (place.Item.IsGroup)
+            return ItemLength.StandardLayout(place.Item) is { } layout ? RuntimeApi.StandardDataImage(text, layout) : text;
+        // A signed binary or packed item's DISPLAY image has a leading minus, a character the size does not count (§1985:VI.5.9.4 GR8d).
+        return place.Item.Pic is { Signed: true } pic && ItemLength.IsStoredAsDigits(pic)
+            ? RuntimeApi.StandardDataCharacters(text, place.Item.ProfileName)
             : text;
     }
 

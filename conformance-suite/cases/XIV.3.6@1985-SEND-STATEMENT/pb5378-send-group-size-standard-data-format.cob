@@ -17,6 +17,12 @@
       *> accepted and sends AB0012, 4 sends AB00 and 7 is refused. GD
       *> holds PK (PIC 9(3) PACKED-DECIMAL, 123) and a table of two
       *> PIC 99 COMP items (5 and 7): 3 + 2 + 2 = 7 characters, 1230507.
+      *> A signed item is measured the same way: the S is "not counted
+      *> in determining the size" (§1985:VI.5.9.4 GR8d), so BS (PIC S9(4)
+      *> BINARY, -12) is four characters (the sign is carried by its
+      *> last, whose character the implementor defines) and GS (XX and
+      *> an S9(4) BINARY holding -12) is six: 6 is accepted, 7 refused,
+      *> and 3 and 2 send the characters 001 and AB.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5378A.
        ENVIRONMENT DIVISION.
@@ -35,6 +41,10 @@
        01  GD.
            05  PK   PIC 9(3) PACKED-DECIMAL VALUE 123.
            05  GT   PIC 99 COMP OCCURS 2 TIMES.
+       01  BS PIC S9(4) BINARY VALUE -12.
+       01  GS.
+           05  GSX  PIC XX VALUE "AB".
+           05  GSB  PIC S9(4) BINARY VALUE -12.
        01  BUF PIC X(20).
        COMMUNICATION SECTION.
        CD  CIN FOR INPUT
@@ -98,9 +108,32 @@
            SEND COUT FROM GD WITH EMI.
            DISPLAY "GD 7 " OUT-STAT.
            PERFORM RCV-PARA.
+           MOVE 4 TO OUT-LEN.
+           SEND COUT FROM BS WITH EMI.
+           DISPLAY "BS 4 " OUT-STAT.
+           PERFORM RCV3-PARA.
+           MOVE 5 TO OUT-LEN.
+           SEND COUT FROM BS WITH EMI.
+           DISPLAY "BS 5 " OUT-STAT.
+           MOVE 6 TO OUT-LEN.
+           SEND COUT FROM GS WITH EMI.
+           DISPLAY "GS 6 " OUT-STAT.
+           PERFORM RCV3-PARA.
+           MOVE 7 TO OUT-LEN.
+           SEND COUT FROM GS WITH EMI.
+           DISPLAY "GS 7 " OUT-STAT.
+           MOVE 2 TO OUT-LEN.
+           SEND COUT FROM GS WITH EMI.
+           DISPLAY "GS 2 " OUT-STAT.
+           PERFORM RCV3-PARA.
            STOP RUN.
        RCV-PARA.
            MOVE SPACES TO BUF.
            RECEIVE CIN MESSAGE INTO BUF
                NO DATA DISPLAY "NO DATA".
            DISPLAY "MSG " IN-LEN " [" BUF "]".
+       RCV3-PARA.
+           MOVE SPACES TO BUF.
+           RECEIVE CIN MESSAGE INTO BUF
+               NO DATA DISPLAY "NO DATA".
+           DISPLAY "MSG " IN-LEN " [" BUF (1:3) "]".

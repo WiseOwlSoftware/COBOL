@@ -14,14 +14,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class StandardDataFormatTests
 {
-    private static NumProfile Profile(Usage usage, int digits)
+    private static NumProfile Profile(Usage usage, int digits, bool signed = false)
     {
-        var pic = new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: 0, Signed: false);
+        var pic = new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: 0, Signed: signed);
         return new NumProfile
         {
             Digits = digits,
             FractionDigits = 0,
-            Signed = false,
+            Signed = signed,
             SignKind = NumericSign.BinaryMinus,
             Truncation = pic.Truncation,
             ByteForm = pic.ByteForm,
@@ -55,5 +55,20 @@ public sealed class StandardDataFormatTests
         var table = new[] { new StandardDataPart(0, width, null, 3, element) };
         Assert.Equal("0507", CobolStandardData.Image(two, table));
         Assert.Equal("0507", CobolStandardData.Image(two + CobolNum.FormatImage(9, binary), new[] { new StandardDataPart(0, width, null, 2, element) }));
+    }
+
+    [Fact]
+    public void ASignedItemIsItsDigitsWithTheSignFusedOntoTheLast_NotACharacterMore()
+    {
+        // §1985:VI.5.9.4 GR8d: the S "is not counted in determining the size", so -12 in S9(4) is four characters, in a group or alone.
+        var binary = Profile(Usage.Binary, 4, signed: true);
+        string negative = CobolStandardData.Characters("-0012", binary);
+        string positive = CobolStandardData.Characters("0012", binary);
+        Assert.Equal(4, negative.Length);
+        Assert.Equal(4, positive.Length);
+        Assert.Equal("001", negative[..3]);
+        Assert.NotEqual(negative, positive);   // the sign is carried, by the last character
+        string storage = "AB" + CobolNum.FormatImage(-12, binary);
+        Assert.Equal("AB" + negative, CobolStandardData.Image(storage, new[] { new StandardDataPart(0, 2), new StandardDataPart(2, binary.StorageLength, binary) }));
     }
 }

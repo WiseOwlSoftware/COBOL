@@ -37,9 +37,9 @@ public sealed class StandardDataPart
 
 /// <summary>⛔ THE ONE COMPOSER OF A GROUP'S CHARACTERS IN STANDARD DATA FORMAT (kb/Work PB5378): the image a statement that
 /// takes "the number of characters in standard data format" of a group (§1985:IV.4.3.4), such as SEND's text length
-/// (§1985:XIV.3.6.4 GR3), counts and transfers. An elementary item of binary or packed usage contributes the digits
-/// <see cref="CobolNum.FormatDisplay(Int128, in NumProfile)"/> gives it, the characters an elementary operand of the same
-/// statement is rendered as, and every other part contributes its storage characters.</summary>
+/// (§1985:XIV.3.6.4 GR3), counts and transfers. An elementary item of binary or packed usage contributes the characters
+/// <see cref="CobolNum.FormatStandardData"/> gives it (its digits, a sign fused onto the last), the same <see cref="Characters"/> gives an elementary operand of the same
+/// statement, and every other part contributes its storage characters.</summary>
 public static class CobolStandardData
 {
     /// <summary>The standard data format characters of the group whose storage image is <paramref name="storage"/>. An OCCURS
@@ -52,6 +52,11 @@ public static class CobolStandardData
         return text.ToString();
     }
 
+    /// <summary>The standard data format characters of an elementary binary or packed item whose DISPLAY image (a leading minus when
+    /// negative) is <paramref name="displayImage"/>: the characters <see cref="Image"/> gives the same item inside a group.</summary>
+    public static string Characters(string displayImage, in NumProfile profile) =>
+        CobolNum.FormatStandardData(CobolNum.ParseDisplay(displayImage, profile), profile);
+
     private static void Append(StringBuilder text, string storage, int origin, StandardDataPart[] parts)
     {
         foreach (var part in parts)
@@ -61,7 +66,7 @@ public static class CobolStandardData
                 if (at >= storage.Length) break;
                 if (part.Members is { } members) Append(text, storage, at, members);
                 else if (part.Profile is { } profile && at + part.Width <= storage.Length)
-                    text.Append(CobolNum.FormatDisplay(CobolNum.ParseImage(storage.Substring(at, part.Width), profile), profile));
+                    text.Append(CobolNum.FormatStandardData(CobolNum.ParseImage(storage.Substring(at, part.Width), profile), profile));
                 else text.Append(storage, at, Math.Min(part.Width, storage.Length - at));
             }
     }
