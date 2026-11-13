@@ -1,4 +1,4 @@
-## PB5241, PB5335: a COBOL-85 CANCEL of the main program takes no action, and the code generator asks an operand's description
+## Entry 3556 — 2026-11-12 17:20 PST — PB5241, PB5335: a COBOL-85 CANCEL of the main program takes no action, and the code generator asks an operand's description
 
 **PB5241.** Re-probed: `K2.cob` at `--std 85` (a main program that CALLs a contained one and then CANCELs itself) printed
 `SUBX 1` and ended the run unit abnormally with EC-PROGRAM-CANCEL-ACTIVE. §2023:14.9.5.4 GR5 and §2002:14.8.5.3 GR5 refuse a
@@ -31,3 +31,4 @@ Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance up to date (run 000002-202611
 Characterization 37/37 ran (skipped 0) ... (run 000003-20261113T010745Z) ===`, after two reds fixed at their roots: the citation
 audit (ProgramTable's CANCEL and GOBACK citations now name §2023:14.9.5.4 and §2023:14.9.18.4) and the 14 emitted-C# snapshots,
 whose only difference is the host entry's `Cancel()` passing `refusesEveryActiveProgram: true`.
+
