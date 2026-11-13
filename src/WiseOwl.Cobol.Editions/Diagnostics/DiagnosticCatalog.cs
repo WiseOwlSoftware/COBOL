@@ -3317,7 +3317,7 @@ public static class DiagnosticCatalog
     /// statement may only be used within the range of an output procedure associated with a SORT or MERGE statement for file-name-1." The range
     /// is the procedure's paragraphs and every statement executed as the result of a transfer of control in it (§1985:XI.4.4.4 GR7, GR10).
     /// A COBOL-85 rule, reported at --std 85, asked of the bound program once every SORT and MERGE statement is bound
-    /// (<c>VersionConformancePass.GateSortMergeProcedures</c>).</summary>
+    /// (<c>VersionConformancePass.GateReleaseReturnRange</c>).</summary>
     public static readonly DiagnosticDescriptor ReleaseReturnPlacement = new(
         "COBOL7081", "release-return-placement", EditionSeverity.Error,
         "A RELEASE or RETURN statement stands outside the range of a SORT or MERGE procedure that names its file. "

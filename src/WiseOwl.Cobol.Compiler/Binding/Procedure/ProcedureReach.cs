@@ -50,10 +50,12 @@ internal static class ProcedureReach
         }
     }
 
-    /// <summary>Every paragraph a GO TO in a statement list transfers control to, at any nesting depth: GO TO (format 1 and its
-    /// DEPENDING form), an alterable GO TO's written target, and the destination of an ALTER (the paragraph it makes a GO TO
-    /// proceed to). Each is the transfer's own destination paragraph; where control goes from there is the caller's walk.</summary>
-    public static IEnumerable<int> GoToTargetsIn(IEnumerable<BoundStatement> statements)
+    /// <summary>Every paragraph a GO TO in a statement list transfers to, at any nesting depth: GO TO (format 1 and its DEPENDING
+    /// form) and an alterable GO TO's written target, plus every paragraph an ALTER ANYWHERE in the program makes that GO TO proceed
+    /// to (<paramref name="alteredTargets"/>, by the GO TO's paragraph-name: an ALTER executed before the range was entered changes
+    /// where the range's GO TO leads just as one executed inside it — §1985:XI.4.4.4 GR7). Each is the transfer's own destination
+    /// paragraph; where control goes from there is the caller's walk.</summary>
+    public static IEnumerable<int> GoToTargetsIn(IEnumerable<BoundStatement> statements, ILookup<string, int> alteredTargets)
     {
         foreach (var s in statements)
         {
@@ -61,11 +63,29 @@ internal static class ProcedureReach
             {
                 case BoundGoTo g: yield return g.TargetPc; break;
                 case BoundGoToDepending d: foreach (int t in d.Targets) yield return t; break;
-                case BoundGoToAlterable a: if (a.DefaultPc >= 0) yield return a.DefaultPc; break;
-                case BoundAlter al: foreach (var e in al.Entries) yield return e.NewPc; break;
+                case BoundGoToAlterable a:
+                    if (a.DefaultPc >= 0) yield return a.DefaultPc;
+                    foreach (int t in alteredTargets[a.AlterField]) yield return t;
+                    break;
             }
-            foreach (int nested in GoToTargetsIn(s.StatementChildren())) yield return nested;
+            foreach (int nested in GoToTargetsIn(s.StatementChildren(), alteredTargets)) yield return nested;
         }
+    }
+
+    /// <summary>Every ALTER destination the program holds, keyed by the alterable GO TO's paragraph-name.</summary>
+    private static ILookup<string, int> AlteredTargetsOf(IReadOnlyList<BoundParagraph> paragraphs)
+    {
+        var entries = new List<BoundAlterEntry>();
+        void Collect(IEnumerable<BoundStatement> statements)
+        {
+            foreach (var s in statements)
+            {
+                if (s is BoundAlter al) entries.AddRange(al.Entries);
+                Collect(s.StatementChildren());
+            }
+        }
+        foreach (var p in paragraphs) Collect(p.Statements);
+        return entries.ToLookup(e => e.AlterField, e => e.NewPc, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>The paragraph pcs executed under <paramref name="seeds"/>, each mapped to the origin of the FIRST
@@ -73,7 +93,7 @@ internal static class ProcedureReach
     /// shortest chain — every range a reached paragraph transfers to and returns from.
     /// <para><paramref name="followGoTo"/> is the reading of a RANGE the 1985 sort-merge rules use (§1985:XI.4.4.4 GR7: "The range includes all
     /// statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the
-    /// input procedure"; kb/Work PB5104): a GO TO in a reached paragraph also reaches its destination, and — since where a destination's
+    /// input procedure"; kb/Work PB5104): a GO TO in a reached paragraph also reaches its destination (an alterable one, every paragraph any ALTER of it names), and — since where a destination's
     /// sequential flow ends is a run-time fact — every paragraph after it to the end of the program, so a statement this walk does not reach
     /// is one no execution of the range can reach. False keeps the model above, which a syntax rule about "under" needs (it does not
     /// follow a GO TO, so it never refuses a statement no execution reaches under the PERFORM).</para></summary>
@@ -83,6 +103,7 @@ internal static class ProcedureReach
         var reached = new Dictionary<int, TOrigin>();
         var work = new Queue<int>();
         var flowed = new HashSet<int>();
+        var altered = followGoTo ? AlteredTargetsOf(paragraphs) : null;
         void Enter(PcRange range, TOrigin origin)
         {
             foreach (int pc in range.SpannedPcs())
@@ -102,7 +123,7 @@ internal static class ProcedureReach
             foreach (var range in ReturningTransfersIn(paragraphs[pc].Statements))
                 Enter(range, reached[pc]);
             if (followGoTo)
-                foreach (int destination in GoToTargetsIn(paragraphs[pc].Statements))
+                foreach (int destination in GoToTargetsIn(paragraphs[pc].Statements, altered!))
                     EnterFlow(destination, reached[pc]);
         }
         return reached;
