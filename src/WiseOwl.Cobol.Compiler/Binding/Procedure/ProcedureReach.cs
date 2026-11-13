@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -85,7 +86,7 @@ internal static class ProcedureReach
             }
         }
         foreach (var p in paragraphs) Collect(p.Statements);
-        return entries.ToLookup(e => e.AlterField, e => e.NewPc, StringComparer.OrdinalIgnoreCase);
+        return entries.ToLookup(e => e.AlterField, e => e.NewPc, CobolNames.Comparer);
     }
 
     /// <summary>The paragraph pcs executed under <paramref name="seeds"/>, each mapped to the origin of the FIRST
