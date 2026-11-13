@@ -1,4 +1,4 @@
-## PB5463: the grammar-diagram test reads its liveness witness instead of counting what a watcher caught
+## Entry 3564 — 2026-11-13 05:01 PST — PB5463: the grammar-diagram test reads its liveness witness instead of counting what a watcher caught
 
 `GrammarDiagramGeneratorDriftTests.Generator_RunsClean` bounced two landings out of the merge queue on Linux (#1580,
 run 43327928785; #1590, run 43412496532), each time with `no file appeared under /tmp/...: the generator did not write
@@ -50,3 +50,4 @@ waits for the asynchronous readers to reach end of file. No other test uses `Fil
 kb/Work PB5464: `landing_measure` records each red's cases only inside the free-text `why`, its `summary` counts reds by
 class, and the session probe reads none of it. The fix is a schema field, two views and a probe line in three tooling
 files, which is a design of its own.
+
