@@ -84,8 +84,11 @@ Every one is gated whole (§3.13), runs under `GateTestFramework` (§3.14.3) and
 
 ### 1.2 The differential oracle
 `CompilerUnderTest.cs` defines `WiseOwlCobolCompiler` (drives `CompilerDriver`) and `CutRunner`. The `*DifferentialTests.cs`
-compile each source and compare its normalized stdout (`CutRunner.Normalize` = the guard's `normalize()`: drop CR,
-per-line trailing-trim) with a committed golden under `tests/differential/` (`DifferentialGolden.Assert`). There is no
+compile each source and compare its normalized stdout (`CutRunner.Normalize`: the host's newline, CR LF or LF, as LF,
+per-line trailing-trim, trailing line ends dropped; a lone CR, a form feed, NEL, LS and PS are output and stay, kb/Work
+PB5460; the conformance suite's `run.py` `normalize()` is the same rule, both held to
+`conformance-suite/harness/normalization-fixture.json`) with a committed golden under `tests/differential/`
+(`DifferentialGolden.Assert`). There is no
 second compiler to compare against, so a new golden is spec-derived and never baked from another engine.
 
 `NistDifferentialTests` compares output to the committed goldens `tests/nist/valid/*.txt`. Its program set and every
@@ -93,6 +96,16 @@ chain's predecessors come from `tests/nist/corpus.tsv` through `CorpusManifest`;
 same file (`scripts/guard-population.sh#guard_nist_population`: the asserted rows plus their declared chain predecessors),
 so the two NIST legs run one population by construction (kb/Work PB925, PB3383). `CorpusManifestTests.GuardNistPopulation_*`
 keep the derivation in place and the script's `--self-test` proves it.
+
+Both legs compare a report on ONE acceptance basis, written in two languages by nature: `NistRunner.Normalize` (C#) and
+`scripts/guard-verdict.sh#guard_normalize_into` (shell). Lines end at LF; every CR goes with the spaces before it (a CR
+LF golden, and the overprint `marker   \rtext` of a WRITE … ADVANCING 0); the spaces before a form feed go and the form
+feed stays, because a page eject is not a line advance; each line loses its trailing spaces; the COMPUTED= operand is
+masked; trailing empty lines and the final line end go. NEL, LS, PS and a vertical tab are characters. Both arms are held
+to every case of `tests/nist/normalization-cases.json` (`NistWrittenFilesTests` and `guard-verify.sh --self-test`), so
+a change to one that the other does not make is red (kb/Work PB5460: the shell arm kept the padding before a form feed and
+the C# arm read a form feed as a line break, so SQ101M was a false red in the nightly guard while the in-process gate
+compared a page eject equal to a line advance).
 
 ### 1.3 Guard scripts (bash, Linux, over the `cobol` CLI)
 ⛔ **The NIST leg drives `cobol` (`src/WiseOwl.Cobol.Cli`)** and no other compiler (kb/Work PB750, PB2109). A guard that

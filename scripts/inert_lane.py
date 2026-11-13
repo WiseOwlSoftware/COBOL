@@ -404,6 +404,7 @@ CLASSIFICATION = Classification(inert={
        "tests/external/gnucobol-verdict-baseline.tsv": "scripts/corpus_sweep.py (the differential's committed cases)",
        "tests/nist/corpus.tsv": "scripts/guard-nist-audit.sh, guard-verify.sh, linux-gate.sh, "
                                 "scripts/orchestrator/test_orchestrate_account.ps1",
+       "tests/nist/normalization-cases.json": "scripts/guard-verify.sh (the acceptance basis's parity table, kb/Work PB5460)",
        "tests/version-matrix/": "the inventory and its schema: scripts/spec/audit_*.py, ledger_plan.py, "
                                 "scripts/orchestrator/land_lane.py, test_ledger_state.py, the rename audits and "
                                 "the eleven test_orchestrate_*.ps1 parts",

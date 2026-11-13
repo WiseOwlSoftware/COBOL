@@ -66,19 +66,30 @@ guard_first_line() {
     return 0
 }
 
-# The comparison normalization, written down ONCE.
+# The comparison normalization (the NIST acceptance basis), ONE rule in two languages: this and
+# NistRunner.Normalize (tests/WiseOwl.Cobol.Tests.Conformance/NistRunner.cs), each held to every case of
+# tests/nist/normalization-cases.json (guard-verify.sh's parity witness and NistWrittenFilesTests; kb/Work PB5460).
 #   's/ *\r//g' FIRST: it drops every CR together with the spaces before it (CRLF golden vs LF program output on
 #   Linux; and a print stream's OVERPRINT, `marker   \rtext`, whose record sequential records are written whole, kb/Work
 #   PB2509: the spaces before the return strike nothing, as the trailing spaces of any line). It must precede
-#   's/ *$//', which is a no-op while a trailing \r remains. Idempotent on Windows. Then the time-dependent COMPUTED=
-#   values are masked.
+#   's/ *$//', which is a no-op while a trailing \r remains. Idempotent on Windows.
+#   's/ *\f/\f/g': the spaces before a FORM FEED go, for the same reason: a whole record's padding precedes the page
+#   eject an ADVANCING PAGE writes after it (SQ101M). The form feed itself STAYS — a page eject is not a line advance.
+#   Then each line's trailing spaces go and the time-dependent COMPUTED= values are masked; the second sed drops the
+#   trailing empty lines and the last step the final line end, so the result is the C# arm's string byte for byte.
 # $1 = source file, $2 = destination file. Returns 0 only if the source existed AND the whole pipeline
 # completed — a normalization that did not finish is a LOST observation, never an empty one.
 guard_normalize_into() {
     local -
     set +e -o pipefail
     [ -f "$1" ] || return 2
-    sed 's/ *\r//g; s/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/' < "$1" > "$2"
+    local last
+    sed 's/ *\r//g; s/ *\f/\f/g; s/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/' < "$1" \
+        | sed -e ':a' -e '/^\n*$/{$d;N;ba' -e '}' > "$2" || return
+    [ -s "$2" ] || return 0
+    last="$(tail -c 1 "$2" | od -An -tx1)" || return
+    [ "${last// /}" = "0a" ] || return 0
+    truncate -s -1 "$2"
 }
 
 # COMPILE ARM.  guard_compile_verdict TEST CRC CLOG

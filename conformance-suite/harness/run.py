@@ -52,7 +52,6 @@ import contextlib
 import io
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -78,14 +77,13 @@ VERDICT = "=== CONFORMANCE RUN: "
 HANG_GUARD = 600
 #: The verdicts a test must not newly reach (with no recorded verdict, or a different one).
 BAD = (FAIL, NO_VERDICT)
-#: Line ends as .NET's String.ReplaceLineEndings reads them: CR LF, CR, LF, NEL, LS, FF and PS
-#: (CutRunner.Normalize, tests/WiseOwl.Cobol.Tests.Conformance/CompilerUnderTest.cs). The two normalizations are one rule.
-_LINE_END = re.compile("\r\n|[\r\n\u0085  \u000c]")
 
 
 def normalize(text: str) -> str:
-    """CutRunner.Normalize: line ends to LF, each line's trailing spaces dropped, trailing LFs dropped."""
-    return "\n".join(line.rstrip(" ") for line in _LINE_END.split(text)).rstrip("\n")
+    """CutRunner.Normalize (tests/WiseOwl.Cobol.Tests.Conformance/CompilerUnderTest.cs), the same rule: the host's newline
+    (CR LF, or LF) ends a line, each line's trailing spaces are dropped, trailing LFs are dropped. A lone CR, a form feed,
+    NEL, LS and PS are what the program printed and stay (kb/Work PB5460)."""
+    return "\n".join(line.rstrip(" ") for line in text.replace("\r\n", "\n").split("\n")).rstrip("\n")
 
 
 # ── one process ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -263,7 +261,8 @@ class Run:
         expected_path = entry["expected-output"].get(key)
         if expected_path is None:
             raise HarnessError(f"the manifest has no expected output for {key or 'no A.1 value'}")
-        expected = normalize((self.root / expected_path).read_text(encoding="utf-8"))
+        # read_bytes, not read_text: text mode turns a lone CR into a line end before normalize sees it.
+        expected = normalize((self.root / expected_path).read_bytes().decode("utf-8"))
         actual = normalize(ran.stdout.decode("utf-8", errors="replace"))
         if actual == expected:
             return PASS, ""
@@ -658,10 +657,10 @@ def self_test() -> int:
         rc |= 0 if ok else 1
 
     print("=== run.py --self-test ===")
-    check("arm: normalize is CutRunner.Normalize (CR LF, CR, NEL, LS, FF and PS end a line; trailing spaces and "
-          "trailing line ends go; inner spaces stay)",
-          normalize("a  \r\nb\rc\u0085d e\u000cf g \n\n") == "a\nb\nc\nd\ne\nf\ng"
-          and normalize(" x ] \n") == " x ]", normalize("a  \r\nb\rc\u0085d e\u000cf g \n\n"))
+    check("arm: normalize is CutRunner.Normalize (CR LF and LF end a line; a lone CR, NEL, FF, LS and PS do not; "
+          "trailing spaces and trailing line ends go; inner spaces stay)",
+          normalize("a  \r\nb\rc\u0085d \u000ce \n\n") == "a\nb\rc\u0085d \u000ce"
+          and normalize(" x ] \n") == " x ]", normalize("a  \r\nb\rc\u0085d \u000ce \n\n"))
     c = "1.1.1-Rule"
     stub_tests: dict[str, tuple[list[str], str | None, dict[str, Any]]] = {
         # id: (STUB directives, expected .out text or None, manifest entry)
