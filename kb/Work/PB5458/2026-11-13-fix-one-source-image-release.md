@@ -7,6 +7,9 @@ through `_image_moved`: an image git that differs from the manifest is RED only 
 that release, and RED when the release cannot be read. Branch review R1-1 (rule decided by the Mythos session,
 2026-11-13): ROLLOUT holds only while the manifest names the newest release's git; a job on another image with the
 manifest off the release (ahead of every release, or behind both image and release) is MISMATCH naming all three gits.
+Review R2-1: an image's git FOLLOWS its newest release either way (`Newest.state`, the one decision `latest` and `bump`
+share): `latest` reports a manifest newer than it AHEAD with exit 1 and `bump` sets it to the release's git, so the
+MISMATCH's `bump` remedy is true; installable tools still never move backward.
 
 **Re-probe before the fix (2026-11-13):** `python scripts/toolchain.py latest` printed `LATEST   git-linux 2.56.0`; the
 readme on `main` still named `Image Version: 20261101.186.1` / `- Git 2.56.0`, while the readme at tag

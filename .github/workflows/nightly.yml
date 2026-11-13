@@ -36,7 +36,8 @@ name: Nightly
 # image's newest release (actions/runner-images' newest release tagged for the image, a prerelease being rolled out
 # included, the git its readme names at that tag), the release `latest` and `bump` read too (`toolchain.image_release`,
 # kb/Work PB5458), never the readme on `main`, which moves only once a rollout completes. An image whose git differs
-# from the manifest's is red, a red `bump` clears, unless the manifest names the newest release's git and the job
+# from the manifest's is red, a red `bump` clears (an image's git follows the newest release either way: `latest` says
+# AHEAD for a manifest newer than it, and `bump` sets the release's git), unless the manifest names that git and the job
 # landed on another image (the rollout's old image, or one newer than any published release): that is a ROLLOUT
 # warning and green, since no change of the manifest can follow it. A release that cannot be read is red. A build-and-test job on a moved image only warns, so GitHub rolling an image
 # never stops a landing, and this run is where the move is red until `bump` follows it.

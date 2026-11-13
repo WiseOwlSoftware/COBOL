@@ -27,8 +27,9 @@ one row here, one manifest line and, for an install-tool row, one `tool_spec` ar
 git is the runner image's in CI. actions/checkout runs it before any repository file exists, and no publisher ships a
 Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl headers a source build needs), so CI cannot
 install it from the manifest. The manifest names each image's git (GIT_LINUX_VERSION, GIT_WINDOWS_VERSION), `latest`
-reads it from the image's newest release (image_release, the one source of an image's git: kb/Work PB5458), and each
-host installs that release. A CI job reports an image whose git moved as a warning, never a failure: GitHub rolls each
+reads it from the image's newest release (image_release, the one source of an image's git: kb/Work PB5458), the
+manifest follows that release either way (`latest` says AHEAD for a git newer than it and `bump` sets it back,
+Newest.state), and each host installs that release. A CI job reports an image whose git moved as a warning, never a failure: GitHub rolls each
 image on its own schedule, and a hard failure there would stop every landing until a bump, or, with the two images on
 different weeks, until both converged. The daily nightly workflow run holds each image to its newest release
 (`check --scope image`), so a moved image is a red scheduled run within a day; a job that landed on an image other than
@@ -442,6 +443,20 @@ class Newest:
     error: str | None = None
     note: str | None = None
 
+    @property
+    def state(self) -> str:
+        """THE ONE DECISION `latest` and `bump` share: UNREAD (no newest release read), BEHIND (the manifest is older
+        than it), AHEAD (an image's own tool newer than the image's newest release: no release carries it, kb/Work
+        PB5458 review R2-1) or LATEST. A tool the image carries FOLLOWS that release either way, so the manifest must
+        equal it; an installable tool never moves backward (a manifest ahead of its publisher fails loudly at install)."""
+        if self.error is not None or self.new is None:
+            return "UNREAD"
+        if _key(self.new) > _key(self.have):
+            return "BEHIND"
+        if self.tool.source == IMAGE and self.new != self.have:
+            return "AHEAD"
+        return "LATEST"
+
 
 def newest(manifest: dict[str, str], fetch: Callable[[str], str] = fetch_url) -> list[Newest]:
     """Every tool's freshness, each publisher asked once."""
@@ -457,39 +472,45 @@ def newest(manifest: dict[str, str], fetch: Callable[[str], str] = fetch_url) ->
 
 def latest_report(rows: list[Newest]) -> tuple[int, str]:
     """(exit code, report): 0 when the manifest is at every publisher's newest release it may move to, 1 when it is
-    behind on one, 2 when a publisher could not be read (a freshness check that cannot see is not green). A note (a new
-    major .NET channel) is a GitHub warning line for the owner and changes no exit code, so the run's colour keeps
-    following the releases `bump` can take."""
-    lines, behind, unread = [], [], []
+    behind on one, or names an image's git newer than the image's newest release (AHEAD, Newest.state), 2 when a
+    publisher could not be read (a freshness check that cannot see is not green). A note (a new major .NET channel) is a
+    GitHub warning line for the owner and changes no exit code, so the run's colour keeps following the releases `bump`
+    can take."""
+    lines, behind, ahead, unread = [], [], [], []
     for row in rows:
-        tool, have, new = row.tool, row.have, row.new
-        if row.error is not None or new is None:
+        tool, have, new, state = row.tool, row.have, row.new, row.state
+        if state == "UNREAD":
             unread.append(tool.name)
             lines.append(f"  UNREAD   {tool.name} {have} — {row.error}")
-        elif _key(new) > _key(have):
+        elif state == "BEHIND":
             behind.append(f"{tool.name} {have} → {new}")
             lines.append(f"  BEHIND   {tool.name} {have} — the newest release is {new}")
+        elif state == "AHEAD":
+            ahead.append(f"{tool.name} {have} → {new}")
+            lines.append(f"  AHEAD    {tool.name} {have} — no release carries it; the image's newest release carries "
+                         f"{new}, and `bump` sets it to that")
         else:
             lines.append(f"  LATEST   {tool.name} {have}")
         if row.note is not None:
             lines.append(f"::warning title=toolchain::{tool.name}: {row.note}")
-    if behind:
-        verdict = (f"{VERDICT}BEHIND — {'; '.join(behind)}: run `python scripts/toolchain.py bump` in a change of its "
-                   "own, update the hosts to it, and gate and land it ===")
+    if behind or ahead:
+        off = [*([f"BEHIND — {'; '.join(behind)}"] if behind else []), *([f"AHEAD — {'; '.join(ahead)}"] if ahead else [])]
+        verdict = (f"{VERDICT}{'; '.join(off)}: run `python scripts/toolchain.py bump` in a change of its own, update "
+                   "the hosts to it, and gate and land it ===")
     elif unread:
         verdict = f"{VERDICT}UNREAD — no newest release read for {', '.join(unread)} ==="
     else:
         verdict = f"{VERDICT}LATEST — every tool is at its newest release ==="
-    return (1 if behind else 2 if unread else 0), "\n".join([*lines, verdict])
+    return (1 if behind or ahead else 2 if unread else 0), "\n".join([*lines, verdict])
 
 
 def bumped(text: str, rows: list[Newest]) -> tuple[str, list[str]]:
-    """`text` (the manifest, or setup-env.sh's copy) with every tool moved to its newer release, and what moved. A new
-    major .NET channel is never among them: `latest` offers the manifest's own channel's newest SDK, and the newer
-    channel only as a note."""
+    """`text` (the manifest, or setup-env.sh's copy) with every tool moved to its newer release, and an image's git
+    ahead of the image's newest release set back to it (Newest.state), and what moved. A new major .NET channel is
+    never among them: `latest` offers the manifest's own channel's newest SDK, and the newer channel only as a note."""
     moved = []
     for row in rows:
-        if row.error is not None or row.new is None or _key(row.new) <= _key(row.have):
+        if row.state not in ("BEHIND", "AHEAD"):
             continue
         text = re.sub(rf"(?m)^{row.tool.key}={re.escape(row.have)}$", f"{row.tool.key}={row.new}", text)
         moved.append(f"{row.tool.name} {row.have} → {row.new}")
@@ -663,6 +684,21 @@ def self_test() -> int:
     expect("an unreadable publisher is UNREAD, exit 2, never LATEST", code == 2 and "UNREAD   semgrep" in report)
     code, report = latest_report(newest(at_newest, fetch))
     expect("latest exits 0 at every newest release", code == 0 and "LATEST — every tool" in report)
+
+    # An image's git FOLLOWS the image's newest release, either way; an installable tool never moves backward (R2-1).
+    ahead = newest({**at_newest, "GIT_LINUX_VERSION": "2.57.0", "GH_VERSION": "2.200.0"}, fetch)
+    code, report = latest_report(ahead)
+    expect("latest names an image's git ahead of the image's newest release AHEAD and exits 1; an installable tool "
+           "ahead of its publisher stays LATEST",
+           code == 1 and "  AHEAD    git-linux 2.57.0 — no release carries it" in report
+           and "  LATEST   gh 2.200.0" in report
+           and "AHEAD — git-linux 2.57.0 → 2.56.1" in report)
+    text = good.replace("GIT_LINUX_VERSION=1.2.3", "GIT_LINUX_VERSION=2.57.0").replace("GH_VERSION=1.2.3",
+                                                                                      "GH_VERSION=2.200.0")
+    new, moved_lines = bumped(text, ahead)
+    expect("bump sets an image's git ahead of its newest release to the release's, and leaves an installable tool ahead",
+           "GIT_LINUX_VERSION=2.56.1" in new and "GH_VERSION=2.200.0" in new
+           and moved_lines == ["git-linux 2.57.0 → 2.56.1"])
     windows = "runner-images/win25-vs2026/20261103.298/images/windows/Windows2025-VS2026-Readme.md"
     readme, answers[windows] = answers[windows], "### Tools\n- Git LFS 3.8.0\n"
     code, report = latest_report(newest(at_newest, fetch))

@@ -14,7 +14,10 @@ image`: a git that differs from the manifest is red only when the newest release
 `ROLLOUT` warning when the job ran on an image other than the newest release (the rollout's old image, or one newer than
 any published release), and red when the release cannot be read. The branch review's lead R1-1 narrowed ROLLOUT to a
 manifest that names the newest release's git: a manifest ahead of every release, or behind both the image and the
-release, is red naming all three gits, two self-test cases that failed before that change and pass after it. The nightly `images` step gains `GH_TOKEN`, since the
+release, is red naming all three gits, two self-test cases that failed before that change and pass after it. Round 2's
+lead R2-1 made that red's `bump` remedy true: an image's git follows its newest release either way (`Newest.state`, the
+one decision `latest` and `bump` share), so `latest` reports a manifest ahead of the release AHEAD with exit 1 and `bump`
+sets it back, while an installable tool still never moves backward. The nightly `images` step gains `GH_TOKEN`, since the
 releases come from api.github.com. The design doc (DESIGN-test-build-ci.md §1.4 and its nightly table), the nightly
 workflow's header and the module docstring now describe it. `toolchain.env` and `scripts/cloud/setup-env.sh` are
 untouched: the move to git-linux 2.56.1 is kb/Work PB5459's bump, rerun after this lands.

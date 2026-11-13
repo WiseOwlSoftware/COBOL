@@ -185,7 +185,10 @@ the `images` job was red on a git `bump` could not see. Its `images` job runs `t
 runner image. The manifest's duty is to name the git of the image's newest release. An image whose git is the
 manifest's is OK and reads nothing. One whose git differs is red when the image's newest release carries that git too
 (the manifest is behind it), and red, naming the manifest's, the image's and the release's gits, when the job ran on
-another image and the manifest is off the release too, behind or ahead of it; `bump` clears both. Only when the
+another image and the manifest is off the release too, behind or ahead of it; `bump` clears both, because an image's
+git FOLLOWS the image's newest release either way: `latest` reports a manifest newer than that release `AHEAD` (no
+release carries it, a nonzero exit) and `bump` sets it to the release's git, while an installable tool never moves
+backward (a manifest ahead of its publisher fails loudly at install). One decision, `Newest.state`, serves both. Only when the
 manifest names the newest release's git and the job ran on another image (the rollout's old image, or one newer than
 any published release) is it a warning, `ROLLOUT`, and green: then no change of the manifest can follow it. A release
 that cannot be read is red.
