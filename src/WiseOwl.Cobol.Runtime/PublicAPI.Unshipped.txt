@@ -1144,3 +1144,5 @@ WiseOwl.Cobol.Runtime.StandardDataPart
 WiseOwl.Cobol.Runtime.StandardDataPart.StandardDataPart(int offset, int width, WiseOwl.Cobol.Runtime.NumProfile? profile = null, int count = 1, WiseOwl.Cobol.Runtime.StandardDataPart![]? members = null) -> void
 static WiseOwl.Cobol.Runtime.CobolStandardData.Characters(string! displayImage, in WiseOwl.Cobol.Runtime.NumProfile profile) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.FormatStandardData(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> string!
+WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterRerunRecords(string! name, long every, string! device, string! file) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.RegisterRerunRecords(string! name, long every, string! device, string! file) -> void

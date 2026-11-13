@@ -1783,6 +1783,16 @@ public sealed class FileRegistry
         if (_files.TryGetValue(name, out var c)) c.InputOutputAreas = areas;
     }
 
+    /// <summary>Declare the file's X3.23-1985 RERUN clause of the integer-1 RECORDS form (§1985:VII.2.12.4 GR2 d: the rerun
+    /// information is written on the device of implementor-name-1 "whenever integer-1 records of file-name-2 have been
+    /// processed"; kb/Work PB5198), emitted right after registration for exactly the files such a clause names. The compiler
+    /// registers no clause whose integer-1 is zero, so a value below 1 here is a broken caller.</summary>
+    public void RegisterRerunRecords(string name, long every, string device, string file)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(every, 1);
+        if (_files.TryGetValue(name, out var c)) c.RerunRecords = new RerunRecordsPoint(every, device, file);
+    }
+
     /// <summary>Declare the file's §2023:13.18.13 CODE-SET conversion (§2023:13.18.13.4 GR2: the coded character set used
     /// to represent data on the storage medium, established at OPEN and constant thereafter).
     /// <paramref name="toNative"/> is §2023:12.3.7.4 GR7 i's correspondence — the native character each medium code

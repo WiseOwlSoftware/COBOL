@@ -19,9 +19,9 @@
       *> here (§1985:VIII.2.6.3 GR1). The legs respect the clause's
       *> syntax rules: RECORDS names an implementor-name in ON (SR3),
       *> no file-name-2 repeats within RECORDS or END OF REEL/UNIT
-      *> (SR4), and file-name-1 is a sequential file (SR1). A null
-      *> rerun facility is conforming (GR2), so the clause has no
-      *> program-visible effect.
+      *> (SR4), and file-name-1 is a sequential file (SR1). Only the
+      *> RECORDS form writes rerun information (kb/Work PB5198), onto
+      *> SYSRR, so the clause has no effect on stdout.
       *> Expected: the program compiles at 85 and displays its name.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P4919RR.

@@ -45,6 +45,8 @@ internal static class BackendContract
             "Model.FileModel.RecordDelimiter", "Model.FileModel.RecordKeyName", "Model.FileModel.RecordKeyQualifiers",
             // the PADDING CHARACTER clause as written (kb/Work PB5069, PB5070)
             "Model.PaddingCharacterSpec.DataName", "Model.PaddingCharacterSpec.Qualifiers",
+            // the RERUN clause's implementor-name-1 as written (kb/Work PB5198)
+            "Model.RerunRecordsClause.Device",
             "Model.FileModel.RelativeKeyName", "Model.FileModel.RelativeKeyQualifiers", "Model.FileModel.SelectName",
             "Model.IndexDeclaration.Name", "Model.KeyLevelCollatingClause.Alphabet",
             "Model.KeySourceOperand.Name", "Model.KeySourceOperand.Qualifiers",

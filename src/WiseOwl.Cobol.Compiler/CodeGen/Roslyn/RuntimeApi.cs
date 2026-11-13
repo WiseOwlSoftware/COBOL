@@ -1766,6 +1766,13 @@ internal static class RuntimeApi
     public static string FileRegisterReserve(string name, int areas) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterReserve)}({name}, {areas})";
 
+    /// <summary>Declare the connector's RERUN clause of the integer-1 RECORDS form — <c>CobolFile.RegisterRerunRecords</c>,
+    /// emitted right after the registration (the <see cref="FileRegisterReserve"/> pattern) for exactly the files such a
+    /// clause names (§1985:VII.2.12.4 GR2 d; kb/Work PB5198). <paramref name="device"/> and <paramref name="file"/> are
+    /// C# string literals.</summary>
+    public static string FileRegisterRerunRecords(string name, long every, string device, string file) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRerunRecords)}({name}, {every}L, {device}, {file})";
+
     /// <summary>Declare the connector's §2023:13.18.13 CODE-SET conversion — <c>CobolFile.RegisterCodeSet</c>,
     /// emitted right after the registration (the <see cref="FileRegisterNationalArea"/> pattern) for exactly the
     /// files whose CODE-SET clause names a coded character set whose correspondence with the native one is NOT

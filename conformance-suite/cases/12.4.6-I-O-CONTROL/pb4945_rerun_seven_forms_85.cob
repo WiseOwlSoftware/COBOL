@@ -16,9 +16,11 @@
       *>         each, which SR4 permits.
       *>   SR5 - one CLOCK-UNITS phrase.
       *> The RECORDS phrase's file-name-2 may have "any organization or
-      *> access" (GR2 d), so FI, an indexed file, is legal there. A null
-      *> rerun facility is conforming (GR2: "at least one of the
-      *> specified forms"), so the clause has no program-visible effect.
+      *> access" (GR2 d), so FI, an indexed file, is legal there. Of
+      *> the seven forms only integer-1 RECORDS writes rerun
+      *> information (kb/Work PB5198; its own test is pb5198_rerun_
+      *> records_device_85), so the clause has no program-visible
+      *> effect on stdout.
       *> FS, FT and FU are sequential, FR relative, FI indexed.
       *> Expected: the program compiles at 85 and displays its name.
        IDENTIFICATION DIVISION.

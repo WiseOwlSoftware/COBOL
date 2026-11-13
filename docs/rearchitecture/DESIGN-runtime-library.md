@@ -3251,7 +3251,7 @@ reached), so a later change that weakens the oracle, the fault injector or a row
 watchdog that no longer bites (`--mutations` runs that arm alone, `--mutation <name>` applies one to a hand sweep). It models the PROTOCOL, not the bytes (a record is a token,
 L a count, a checksum "the record is whole or it is not"); the bytes are PB3340's, whose **`IHostMedium` seam** (`IO/IHostMedium.cs`) — `HostFile`'s
 roles that change a file or a name (`OpenConnectorStream`, `OpenConnectorWriteStream`, `OpenAuxiliary`, `OpenTransient` for the
-journal's files, the removal of a file, `SyncDirectory`, the lock-directory listing, the holder's publication and probe, the
+journal's files, `OpenRerunDevice` for a RERUN clause's device (§2.2.4), the removal of a file, `SyncDirectory`, the lock-directory listing, the holder's publication and probe, the
 retirement of a name and of the directory, the entry mutex) made instance-scoped on the run unit (`FileRegistry.Medium`, handed
 to every sequential connector and journal through `SequentialTransactions`; the production implementation is
 `HostMedium.Production`, which is `HostFile` and nothing else, as `RunUnitPageMedium` is the production `IPageMedium`), with a
@@ -3472,6 +3472,19 @@ structural scan finds no `List<long>` in the sequential I/O layer but the index'
 cross the span boundary with a 4100-record RECORD VARYING file: `14.9.30-READ/pb3350_read_previous_varying_span` (GR21 c
 and e, the forward walk's checkpoints) and `_unassigned/pb3350_open_reversed_varying_span_85` (the counting walk's); the
 existing PREVIOUS and REVERSED cases stay byte-identical.
+
+#### 2.2.4 The X3.23-1985 RERUN clause's integer-1 RECORDS form (kb/Work PB5198)
+
+§1985:VII.2.12.4 GR2 requires the implementor to provide at least one of the clause's seven forms; the form provided is d, `RERUN ON implementor-name-1 EVERY integer-1
+RECORDS OF file-name-2`, because it applies to every organization and access and needs no reel device. The determination (the device, the line written, what "processed"
+counts, the failure status, the six forms not provided) is docs/CONFORMANCE.md section 3.11. The shape is RESERVE's: a property of the I-O-CONTROL paragraph told to the
+connector right after registration. `FileControlBinder.RecordRerunRecords` keeps the clause on `FileModel.RerunRecords`; `SequentialIoEmitter.EmitAreaRegistrations`, the one
+call site every registering arm makes, emits `CobolFile.RegisterRerunRecords(file, every, device, file-name)`; the connector holds a `RerunRecordsPoint`. **One count, one
+writer:** `FileConnector.RecordProcessed(status)` is asked at the terminal of every READ (through `ReadSucceeded`, the one terminal of a successful read of every
+organization), WRITE, WRITE ADVANCING, REWRITE and DELETE (the public entries of the sequential connector, the success returns of the relative and indexed ones). A status of
+class 0 counts, the count restarts at each OPEN, and each integer-1 records `HostFile.OpenRerunDevice` (the seventh `HostFile` role and an `IHostMedium` member, so the fault
+medium refuses it like any other handle) appends one line and closes. A device the host refuses is the file's I-O status '30'. Nothing is counted or opened for a file with no
+clause: the cost of the feature is one null test per terminal.
 
 ### 2.3 Values — the value library (numeric + text + tables), role-grouped
 ```
