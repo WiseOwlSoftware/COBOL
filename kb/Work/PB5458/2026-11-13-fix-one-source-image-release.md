@@ -4,7 +4,9 @@ prerelease being rolled out included and a draft never, and the git its readme n
 ref)`). `latest` and `bump` read it through `_image_git`, and the nightly `images` job's `check --scope image` reads it
 through `_image_moved`: an image git that differs from the manifest is RED only when the newest release carries it too
 (the manifest is behind the release `bump` reads), a `ROLLOUT` warning (green) when the job ran on an image other than
-that release, and RED when the release cannot be read.
+that release, and RED when the release cannot be read. Branch review R1-1 (rule decided by the Mythos session,
+2026-11-13): ROLLOUT holds only while the manifest names the newest release's git; a job on another image with the
+manifest off the release (ahead of every release, or behind both image and release) is MISMATCH naming all three gits.
 
 **Re-probe before the fix (2026-11-13):** `python scripts/toolchain.py latest` printed `LATEST   git-linux 2.56.0`; the
 readme on `main` still named `Image Version: 20261101.186.1` / `- Git 2.56.0`, while the readme at tag

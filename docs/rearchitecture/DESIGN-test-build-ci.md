@@ -182,10 +182,13 @@ and the git its readme names at that tag. The readme on `main` is not a source: 
 release when GitHub starts rolling the image out and moves `main`'s readme only when the rollout completes, so on
 2026-11-12 the nightly ran on 20261111.196 (git 2.56.1) while `main`'s readme still named 20261101.186 (git 2.56.0), and
 the `images` job was red on a git `bump` could not see. Its `images` job runs `toolchain.py check --scope image` on each
-runner image. An image whose git is the manifest's is OK and reads nothing. One whose git differs is red only when the
-image's newest release carries that git too: the manifest is behind the release `bump` reads, and `bump` clears it. A
-job that ran on an image other than the newest release (the rollout's old image, or one newer than any published
-release) is a warning, `ROLLOUT`, and green: no change of the manifest can follow it. A release that cannot be read is red.
+runner image. The manifest's duty is to name the git of the image's newest release. An image whose git is the
+manifest's is OK and reads nothing. One whose git differs is red when the image's newest release carries that git too
+(the manifest is behind it), and red, naming the manifest's, the image's and the release's gits, when the job ran on
+another image and the manifest is off the release too, behind or ahead of it; `bump` clears both. Only when the
+manifest names the newest release's git and the job ran on another image (the rollout's old image, or one newer than
+any published release) is it a warning, `ROLLOUT`, and green: then no change of the manifest can follow it. A release
+that cannot be read is red.
 `python scripts/toolchain.py bump` moves the manifest and its cloud copy forward within the .NET major. It does so in a
 change of its own that carries the hosts' update and lands like any other, so CI and the hosts move together. The drift test holds the rest. The manifest names each tool once, exactly; the
 cloud setup carries the manifest's block byte for byte; every job sets up the toolchain right after its checkout and runs
@@ -301,7 +304,7 @@ is the ref a scheduled run reads:
 | `differential` (Windows) | the GnuCOBOL differential: `scripts/battery.sh` with `SKIP_TESTS=1 SKIP_GUARD=1`, so the citation audits, the corpus fetch, the solution build and phase 3, the battery's one definition and never a copy | a per-case verdict flip against the committed baseline, or a case with no compiler verdict. Windows, because the baseline was measured there and `gnucobol_differential.py` defaults to the `cobol.exe` apphost |
 | `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-shard-<k>` shard's wall (the sum of its trx `<Times>`) over the mean shard wall | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating, `shard_weights.py generate`), or a download or trx cannot be read (exit 2, UNMEASURED). NOT MEASURED and green on a day with no matrix run. Live while `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (the weighted shards, PB4329), since regenerating that file is its remedy |
 | `latest` | `toolchain.py latest`: is `toolchain.env` at every publisher's newest release (§1.4) | the manifest is behind a tool, or a publisher cannot be read |
-| `images` (both OSes) | `toolchain.py check --scope image`: each runner image's own git against `toolchain.env` and the image's newest release (§1.4) | the image's git differs from the manifest's and its newest release carries it too, or that release cannot be read (an image other than the newest release warns) |
+| `images` (both OSes) | `toolchain.py check --scope image`: each runner image's own git against `toolchain.env` and the image's newest release (§1.4) | the image's git differs from the manifest's, unless the manifest names the newest release's git and the job ran on another image (a ROLLOUT warning); or that release cannot be read |
 
 `latest` and `images` were the `toolchain-freshness.yml` workflow; folding them in keeps one daily schedule. The Guard
 job's one home is the nightly: the weighted-shard step (PB4329) took it out of the merge group, whose shards run the same

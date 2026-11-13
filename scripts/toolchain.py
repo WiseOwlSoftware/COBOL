@@ -31,8 +31,9 @@ reads it from the image's newest release (image_release, the one source of an im
 host installs that release. A CI job reports an image whose git moved as a warning, never a failure: GitHub rolls each
 image on its own schedule, and a hard failure there would stop every landing until a bump, or, with the two images on
 different weeks, until both converged. The daily nightly workflow run holds each image to its newest release
-(`check --scope image`), so a moved image is a red scheduled run within a day, and a job that landed on an image other
-than the newest release mid-rollout is a warning, since no bump can follow it.
+(`check --scope image`), so a moved image is a red scheduled run within a day; a job that landed on an image other than
+the newest release mid-rollout is a warning only while the manifest names that release's git, since then no bump can
+follow it.
 """
 from __future__ import annotations
 
@@ -326,10 +327,12 @@ def held(scope: str, system: str = platform.system()) -> list[Tool]:
 def _image_moved(tool: Tool, got: str, want: str, manifest: dict[str, str],
                  fetch: Callable[[str], str]) -> tuple[str, str | None]:
     """(state, the clause the check line adds) for an image's own tool reporting `got` where the manifest names `want`,
-    in the image scope: MISMATCH when the image's newest release carries `got` too (the manifest is behind the release
-    `bump` reads, or names a git no release carries), so the run is red and `bump` clears it; ROLLOUT, a warning, when
-    the job ran on an image other than that newest release (GitHub rolling an image out, either side of it), which no
-    change of the manifest can follow; MISMATCH when the release cannot be read (a check that cannot see is not green)."""
+    in the image scope. The manifest's duty is to name the git of the image's newest release (review R1-1, Mythos
+    session 2026-11-13), so: MISMATCH when that release carries `got` too (the manifest is behind it), red, and `bump`
+    clears it; ROLLOUT, a warning, only when the manifest names that release's git and the job ran on another image
+    (GitHub rolling an image out, either side of it), which no change of the manifest can follow; MISMATCH, naming all
+    three gits, when the job ran on another image and the manifest is off the release too, behind or ahead of it;
+    MISMATCH when the release cannot be read (a check that cannot see is not green)."""
     label = manifest[tool.image]
     try:
         release = image_release(label, fetch)
@@ -337,6 +340,9 @@ def _image_moved(tool: Tool, got: str, want: str, manifest: dict[str, str],
         return "MISMATCH", f"the newest {label} release was not read ({type(e).__name__}: {e})"
     if got == release.git:
         return "MISMATCH", f"the newest {label} release {release.tag} carries {got}: `python scripts/toolchain.py bump`"
+    if want != release.git:
+        return "MISMATCH", (f"toolchain.env names {want}, this image carries {got} and the newest {label} release "
+                            f"{release.tag} carries {release.git}: `python scripts/toolchain.py bump`")
     side = "an older" if _key(got) < _key(release.git) else "a newer"
     rollout = "is rolling out" if release.rolling_out else "is deployed"
     return "ROLLOUT", (f"the job ran on {side} image than the newest {label} release {release.tag} ({rollout}, git "
@@ -349,8 +355,8 @@ def compare(manifest: dict[str, str], scope: str, run: Callable[[tuple[str, ...]
     """(the lines `check` prints, the mismatches): each tool of `scope` on `system`, the version it reports and the
     manifest's. In the `ci` scope a runner image's own tool (git) that differs is a GitHub warning line, never a
     mismatch: the image moved under the job, and the nightly `images` job's `image` scope is where it is red. The image
-    scope reads the image's newest release (`fetch`, the network by default) for a git that differs, and is red only
-    when that release carries it too (_image_moved)."""
+    scope reads the image's newest release (`fetch`, the network by default) for a git that differs, and only warns when
+    the manifest names that release's git and the job ran on another image (_image_moved)."""
     lines, bad = [], []
     for tool in held(scope, system):
         want, got = manifest[tool.key], installed(tool, run)
@@ -681,6 +687,20 @@ def self_test() -> int:
     code, report = check("image", {**fixed, "GIT_LINUX_VERSION": "2.56.1"}, on_image("2.56.2"), "Linux", installer, fetch)
     expect("the image scope warns, GREEN, on an image newer than every published release",
            code == 0 and "ROLLOUT  git-linux 2.56.2" in report and "a newer image than" in report)
+    # The manifest's duty is the newest release's git: off it, a job on another image is red too (review R1-1).
+    code, report = check("image", {**fixed, "GIT_LINUX_VERSION": "2.57.0"}, on_image("2.56.0"), "Linux", installer, fetch)
+    expect("the image scope is RED when the manifest is ahead of every release, mid-rollout",
+           code == 1 and "MISMATCH git-linux 2.56.0" in report and "toolchain.env names 2.57.0" in report
+           and "the newest ubuntu-26.04 release ubuntu26/20261111.196 carries 2.56.1" in report and "bump" in report)
+    newer = "repos/actions/runner-images/releases"
+    releases, answers[newer] = answers[newer], json.dumps(
+        [{"tag_name": "ubuntu26/20261118.200", "prerelease": True, "draft": False}, *json.loads(answers[newer])])
+    answers["runner-images/ubuntu26/20261118.200/images/ubuntu/Ubuntu2604-Readme.md"] = "### Tools\n- Git 2.56.2\n"
+    code, report = check("image", {**fixed, "GIT_LINUX_VERSION": "2.56.0"}, on_image("2.56.1"), "Linux", installer, fetch)
+    expect("the image scope is RED when the manifest is behind both the image and its newest release",
+           code == 1 and "MISMATCH git-linux 2.56.1" in report and "toolchain.env names 2.56.0" in report
+           and "ubuntu26/20261118.200 carries 2.56.2" in report and "bump" in report)
+    answers[newer] = releases
     code, report = check("image", {**fixed, "GIT_LINUX_VERSION": "2.56.0"}, on_image("2.56.1"), "Linux", installer,
                          unreachable)
     expect("the image scope is RED when the image's newest release cannot be read",

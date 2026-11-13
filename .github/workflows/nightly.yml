@@ -32,13 +32,13 @@ name: Nightly
 # every TargetFramework move with it), and a standing red would hide the next release `bump` can take.
 #
 # The `images` job holds the one thing CI does not install, each runner image's own git (toolchain.env says why), on
-# the image itself: `toolchain.py check --scope image` is red while the image's git differs from GIT_LINUX_VERSION or
-# GIT_WINDOWS_VERSION AND the image's newest release (actions/runner-images' newest release tagged for the image, a
-# prerelease being rolled out included, the git its readme names at that tag) carries that git too, so the red is
-# always one `bump` clears: `latest` and `bump` read the same release (`toolchain.image_release`, kb/Work PB5458), never
-# the readme on `main`, which moves only once a rollout completes. A job that landed on an image other than the newest
-# release (the rollout's old image, or one newer than any published release) is a ROLLOUT warning and green, and a
-# release that cannot be read is red. A build-and-test job on a moved image only warns, so GitHub rolling an image
+# the image itself: `toolchain.py check --scope image` holds GIT_LINUX_VERSION and GIT_WINDOWS_VERSION to the git of the
+# image's newest release (actions/runner-images' newest release tagged for the image, a prerelease being rolled out
+# included, the git its readme names at that tag), the release `latest` and `bump` read too (`toolchain.image_release`,
+# kb/Work PB5458), never the readme on `main`, which moves only once a rollout completes. An image whose git differs
+# from the manifest's is red, a red `bump` clears, unless the manifest names the newest release's git and the job
+# landed on another image (the rollout's old image, or one newer than any published release): that is a ROLLOUT
+# warning and green, since no change of the manifest can follow it. A release that cannot be read is red. A build-and-test job on a moved image only warns, so GitHub rolling an image
 # never stops a landing, and this run is where the move is red until `bump` follows it.
 #
 # ⛔ THE SCHEDULE: 09:17 UTC (02:17 PDT), so every verdict is in before the working day's first landing. A scheduled run
