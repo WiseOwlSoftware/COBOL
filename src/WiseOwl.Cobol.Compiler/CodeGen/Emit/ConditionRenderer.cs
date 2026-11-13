@@ -393,10 +393,18 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// relation, the figurative relation and the EVALUATE range): the operand's sending image, except at --std 85 where the
     /// numeric operand is "treated as though it were moved to an elementary alphanumeric data item of the same size as the
     /// numeric data item (in terms of standard data format characters)" (§1985:VI.6.3.1.1.2 GR1), which has no room for a
-    /// scaling position (<see cref="OperandText.AsItemSizeTemporary"/>, kb/Work PB5187). From 2002 the temporary is the number
-    /// of digits in the integer long (§2023:8.8.4.2.5), the sending image whole.</summary>
-    private string ComparisonText(BoundOperand op, bool deSign) =>
-        ctx.Data.DialectLevel < 2002 ? OperandText.AsItemSizeTemporary(op, num, deSign) : OperandText.AsString(op, num, deSign);
+    /// scaling position (<see cref="OperandText.AsItemCharacters"/>, kb/Work PB5187). From 2002 the temporary is the number
+    /// of digits in the integer long (§2023:8.8.4.2.5), the sending image whole.
+    /// <para>⛔ A NUMERIC LITERAL IS ITS DIGITS WHATEVER <paramref name="deSign"/> SAYS (kb/Work PB5419): <paramref name="deSign"/> keeps an
+    /// ITEM's own sign character opposite a 1985 group (<see cref="DropsOperationalSign"/>), but a literal has no stored image to
+    /// keep, and its size "in standard data format characters is equal to the number of digits" (§1985:IV.4.2.2.2.2 GR4), so the
+    /// operand "treated as though it were moved to a group item of the same size" (§1985:VI.6.3.1.1.2 GR2) is the digits a
+    /// MOVE of the literal to a group stores (<c>MoveEmitter</c>, D-B4), never the source text with its sign.</para></summary>
+    private string ComparisonText(BoundOperand op, bool deSign)
+    {
+        deSign |= op is BoundNumericLiteral;
+        return ctx.Data.DialectLevel < 2002 ? OperandText.AsItemCharacters(op, num, deSign) : OperandText.AsString(op, num, deSign);
+    }
 
     /// <summary>⛔ WHETHER A CHARACTER COMPARISON OF THE PAIR (<paramref name="a"/>, <paramref name="b"/>) READS A SIGNED
     /// NUMERIC OPERAND WITHOUT ITS OPERATIONAL SIGN — the ONE answer for every string-relation surface (the direct

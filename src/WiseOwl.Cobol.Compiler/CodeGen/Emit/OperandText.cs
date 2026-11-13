@@ -12,6 +12,22 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 /// alphanumeric field is its <see cref="Place"/> value.</summary>
 internal static class OperandText
 {
+    /// <summary>⛔ HOW MUCH OF AN OCCURS DEPENDING GROUP AN OPERATION USES OF ITS RECORD AREA - the one vocabulary of the callers of
+    /// <see cref="RecordAreaImage"/> (kb/Work PB5309, PB5377). <see cref="Sending"/> is §1985:VI.5.8.4 GR3's sending reading (and
+    /// §2023:13.18.38.4 GR8): the part the DEPENDING item's value at the start of the operation specifies.
+    /// <see cref="Receiving"/> is the area the operation FILLS: the part so specified when the DEPENDING item lies outside the
+    /// group (GR3a), the group's maximum length when it lies inside (GR3b - "If the group is a receiving item, the maximum length of
+    /// the group will be used"), as <c>PlaceRenderer.WriteGroupImage</c> stores it. <see cref="Whole"/> is the area's whole storage,
+    /// for an operation whose length a rule of its own fixes (a READ ... INTO sender, §1985:VII.3.8.4 GR12).</summary>
+    internal enum AreaUse { Sending, Receiving, Whole }
+
+    private static bool UsesWholeTable(this AreaUse use, OdoGroupPlace o) => use switch
+    {
+        AreaUse.Whole => true,
+        AreaUse.Receiving => !PlaceRenderer.UsesCurrentExtent(o, AccessDir.Receiving),
+        _ => false,
+    };
+
     /// <summary>A bound operand rendered as a C# <see cref="string"/> (its character image). When
     /// <paramref name="deSign"/> is set, a SIGNED numeric operand drops its operational sign (ISO §2023:14.9.25.4 GR6a /
     /// §2023:8.8.4.2.5 — a signed numeric used as / compared against an alphanumeric operand moves the de-signed magnitude
@@ -110,23 +126,26 @@ internal static class OperandText
             ? bo.AtItemWidth ? BooleanRenderer.RenderAtItemWidth(bo.Expr, num, sending) : BooleanRenderer.Render(bo.Expr, num, sending)
             : op.Accept(Visitor(deSign, sending));
 
-    /// <summary>⛔ THE ALPHANUMERIC TEMPORARY OF A 1985 MIXED COMPARISON — the numeric operand "treated as though it were
-    /// moved to an elementary alphanumeric data item of the same size as the numeric data item (in terms of standard data
-    /// format characters)" (§1985:VI.6.3.1.1.2 GR1; kb/Work PB5187). <see cref="AsString"/> is the MOVE's sending image, in
-    /// which a P scaling position is a zero counted in the sending size (§1985:VI.6.19.4 GR4), and a receiver of the item's
-    /// size keeps its leftmost characters, so the temporary of <c>PIC 99PP</c> holding 1200 is "12": the item's size
-    /// excludes the P positions (§1985:VI.5.9.4 GR8). Only an elementary numeric item with P scaling differs from the
-    /// sending image, so every other operand is <see cref="AsString"/>'s unchanged. The editions that state the temporary
-    /// by the number of digits in the integer (§2023:8.8.4.2.5) ask <see cref="AsString"/> directly.</summary>
-    public static string AsItemSizeTemporary(BoundOperand op, NumericRenderer num, bool deSign)
+    /// <summary>⛔ THE CHARACTERS A NUMERIC ITEM HOLDS, for a statement that reads the item "as alphanumeric" or as a temporary
+    /// "of the same size" in standard data format characters: a P scaling position "is not counted in the size of the data item"
+    /// (§1985:VI.5.9.4 GR8, symbol P), so it is no character of the item. <see cref="AsString"/> is the MOVE's sending image, in
+    /// which a P scaling position is a zero counted in the sending size (§1985:VI.6.19.4 GR4), so this cuts the zeros it laid:
+    /// the trailing zeros of <c>PIC 99PP</c> holding 1200 and the leading zeros of <c>PIC PP9</c> holding .007, leaving "12" and
+    /// "7". Its consumers are the 1985 mixed comparison, "treated as though it were moved to an elementary alphanumeric data
+    /// item of the same size as the numeric data item (in terms of standard data format characters)" (§1985:VI.6.3.1.1.2 GR1;
+    /// kb/Work PB5187), and INSPECT, which inspects an unsigned numeric item "as though it had been redefined as alphanumeric"
+    /// (§1985:VI.6.18.4 GR3b; kb/Work PB5375). Only an elementary numeric item with P scaling differs from the sending image, so
+    /// every other operand is <see cref="AsString"/>'s unchanged. The editions that state the comparison's temporary by the
+    /// number of digits in the integer (§2023:8.8.4.2.5) ask <see cref="AsString"/> directly.</summary>
+    public static string AsItemCharacters(BoundOperand op, NumericRenderer num, bool deSign, PicCategory? characterCategory = null)
     {
-        string text = AsString(op, num, deSign);
+        string text = AsString(op, num, deSign, characterCategory: characterCategory);
         // Only the sending image that drops the sign (deSign) lays the P zeros: opposite a GROUP the image is the item's own
         // storage characters (§1985:VI.6.3.1.1.2 GR2; ConditionRenderer.DropsOperationalSign), which hold no P position.
-        return deSign && op is BoundFieldOperand { Place: var p and not RefModPlace }
-            && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, HasPScaling: true } pic
-            ? $"({text})[..{pic.Digits}]"
-            : text;
+        if (!deSign || op is not BoundFieldOperand { Place: var p and not RefModPlace }
+            || p.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false, HasPScaling: true } pic)
+            return text;
+        return pic.TrailingPScaling > 0 ? $"({text})[..{pic.Digits}]" : $"({text})[{pic.LeadingPScaling}..]";
     }
 
     /// <summary>Whether a computed operand IS a counter register (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), the shape
@@ -219,9 +238,12 @@ internal static class OperandText
     /// the dynamic-length elementary item's current length"; the storage arm below already renders exactly that),
     /// and a POINTER or MESSAGE-TAG record its 8-position TOKEN (kb/Work PB4838; A.1 items 212/216 - the file carries the token and READ decodes it back);
     /// an object-reference record the zero-length image - it has no character image (A.1 item 210), so there is nothing of it for a file to carry.
-    /// <paramref name="transfer"/> asks for the one-way current-extent image of a variable-length group holding a message tag, the SEND's (kb/Work PB4744).</para></summary>
-    public static string RecordAreaImage(Place record, bool transfer = false) =>
-        IsVarGroupRecord(record)
+    /// <paramref name="transfer"/> asks for the one-way current-extent image of a variable-length group holding a message tag, the SEND's (kb/Work PB4744).
+    /// <paramref name="use"/> is how much of an OCCURS DEPENDING group the operation uses (<see cref="AreaUse"/>).</para></summary>
+    public static string RecordAreaImage(Place record, bool transfer = false, AreaUse use = AreaUse.Sending) =>
+        record is OdoGroupPlace o && use.UsesWholeTable(o)
+            ? RecordAreaImage(o.Inner, transfer, use)
+        : IsVarGroupRecord(record)
             ? PlaceRenderer.VarGroupCurrentImage(record, "record-area image of", transfer)
         // An ELEMENTARY pointer or message-tag record sends its 8-position token, as one inside a group does (kb/Work PB4838);
         // an object-reference record has no image (and no file section holds one, §2023:13.18.57.3 SR8).
@@ -277,14 +299,16 @@ internal static class OperandText
     /// <c>RETURN … INTO</c> implicit MOVE (ISO §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4 GR5 b): the record area's image
     /// (through THE ONE record-area channel above) sliced to the §2023:13.18.43.4 GR16 byte count. The slice starts at
     /// position 1 because the record occupies the leading positions of the area; the area's remaining positions
-    /// are padding, and sending them is what kb/Work PB339 fixes.
+    /// are padding, and sending them is what kb/Work PB339 fixes. The area is read WHOLE (<see cref="AreaUse.Whole"/>): the positions that
+    /// participate are fixed by §1985:VII.3.8.4 GR12 alone, so an OCCURS DEPENDING item of the area's first record description
+    /// does not cut the sender short (kb/Work PB5309).
     /// <para>ZERO IS A LEGAL LENGTH here and must not raise EC-BOUND-REF-MOD: GR16's closing sentence is "If the
     /// number of bytes determined as above is zero, the record is a zero-length item", and §2023:14.9.25.4 GR1/GR2
     /// then space-fill the receiver — which is exactly what a zero-length window moves. It is an image WINDOW
     /// (<see cref="RuntimeApi.StrWindow"/>), not a reference modification the program wrote, so no range
     /// violation exists to raise (kb/Work PB1707).</para></summary>
     public static string CurrentRecordImage(BoundCurrentRecord n) =>
-        RuntimeApi.StrWindow(RecordAreaImage(n.Area), "1", CurrentRecordLength(n));
+        RuntimeApi.StrWindow(RecordAreaImage(n.Area, use: AreaUse.Whole), "1", CurrentRecordLength(n));
 
     /// <summary>§2023:13.18.43.4 GR16's two arms, rendered — "the number of bytes in the current record that
     /// participate as the sending operands in the implicit MOVE statement": GR16 a) "If data-name-1 is specified,
