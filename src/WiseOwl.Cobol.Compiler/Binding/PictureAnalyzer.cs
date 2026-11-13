@@ -898,10 +898,15 @@ public static class PictureAnalyzer
     /// (§1985:VI.5.9.4 GR7), so S, V, the decimal point, CR and DB take none. The comma of that list is the comma's role, the
     /// insertion one: under DECIMAL-POINT IS COMMA "the functions of comma and period are exchanged in the character-string
     /// of the PICTURE clause" (§1985:VI.4.5.4 GR12), so it is the period there
-    /// (<see cref="PictureComposition.GroupingSeparator"/>).</summary>
+    /// (<see cref="PictureComposition.GroupingSeparator"/>).
+    /// <para>So the 1985 symbols the list leaves out are S, V, the decimal point and the letters of CR and DB (a factor follows
+    /// the symbol's last letter, R or B; DB(n) repeats a B, whose string the precedence walk then refuses). A character that
+    /// is no COBOL-85 PICTURE symbol at all (N, 1, E, a lowercase letter SR3 does not fold) is not this rule's: its own gate
+    /// or the SR2 whitelist refuses it, by name (the national and boolean introduction gates, COBOL0900), and a currency
+    /// symbol is in the list whatever letter it is (kb/Work PB5173: E and N may be the 1985 currency symbol).</para></summary>
     private static bool RepeatableSymbol(char symbol, int dialectLevel, Func<char, bool> isCurrencySymbol, bool decimalPointIsComma) =>
-        dialectLevel >= 2002 || "AX9PZ*B/0+-".Contains(symbol)
-        || symbol == PictureComposition.GroupingSeparator(decimalPointIsComma) || isCurrencySymbol(symbol);
+        dialectLevel >= 2002 || isCurrencySymbol(symbol)
+        || !(symbol is 'S' or 'V' or 'C' or 'R' or 'D' || symbol == PictureComposition.DecimalSeparator(decimalPointIsComma));
 
     /// <summary>The character-string with the case equivalence of <paramref name="dialectLevel"/> applied, the one fold every
     /// symbol is read through (kb/Work PB5174). From COBOL-2002 every letter of a character-string is its uppercase letter
@@ -909,14 +914,16 @@ public static class PictureAnalyzer
     /// letters of its symbols: "The lowercase letters corresponding to the uppercase letters representing the PICTURE
     /// symbols A, B, P, S, V, X, Z, CR, and DB are equivalent to their uppercase representations in a PICTURE
     /// character-string. All other lowercase letters are not equivalent to their corresponding uppercase representations."
-    /// (§1985:VI.5.9.3 SR3) — so under CURRENCY SIGN IS "W" the letter w is no symbol, and the SR2 whitelist refuses it.</summary>
+    /// (§1985:VI.5.9.3 SR3) — so under CURRENCY SIGN IS "W" the letter w is no symbol, and the SR2 whitelist refuses it.
+    /// SR3 is about the letters of the COBOL character set; a character outside it (a currency symbol such as é) keeps the
+    /// implementor's equivalence, the invariant uppercase mapping at every edition (docs/CONFORMANCE.md DOC-A.1-43).</summary>
     internal static string FoldPictureCase(string picture, int dialectLevel)
     {
         if (dialectLevel >= 2002) return picture.ToUpperInvariant();
         return string.Create(picture.Length, picture, static (span, source) =>
         {
             for (int i = 0; i < source.Length; i++)
-                span[i] = source[i] is 'a' or 'b' or 'p' or 's' or 'v' or 'x' or 'z' or 'c' or 'r' or 'd'
+                span[i] = source[i] is (< 'a' or > 'z') or 'a' or 'b' or 'p' or 's' or 'v' or 'x' or 'z' or 'c' or 'r' or 'd'
                     ? char.ToUpperInvariant(source[i]) : source[i];
         });
     }

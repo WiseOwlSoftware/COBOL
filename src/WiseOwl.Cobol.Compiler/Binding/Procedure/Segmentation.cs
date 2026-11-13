@@ -93,8 +93,8 @@ internal static class Segmentation
     {
         if (!RulesInForce(ctx)) return;
         int from = ctx.CurrentSection?.Segment ?? 0;
-        if (!SegmentNumber.HasMeaning(from) || RangeAllowed(from, SegmentsOf(ctx, range.SpannedPcs()))) return;
-        var reached = SegmentsOf(ctx, ReachedPcs(ctx, range));
+        if (!SegmentNumber.HasMeaning(from) || RangeAllowed(from, SegmentNumbersOf(ctx, range.SpannedPcs()))) return;
+        var reached = SegmentNumbersOf(ctx, ReachedPcs(ctx, range));
         if (RangeAllowed(from, reached)) return;
         ctx.Edition.Error(DiagnosticCatalog.SegmentationFlowRestriction,
             $"the procedures this {verb} statement in segment {from} names lie in segments {string.Join(", ", reached)}: they "
@@ -105,7 +105,7 @@ internal static class Segmentation
 
     /// <summary>The distinct meaningful segment-numbers of the sections owning <paramref name="pcs"/>, lowest first (a number out
     /// of range is already COBOL6819 and lies in no segment).</summary>
-    private static List<int> SegmentsOf(BinderContext ctx, IEnumerable<int> pcs)
+    private static List<int> SegmentNumbersOf(BinderContext ctx, IEnumerable<int> pcs)
     {
         var sections = ctx.Table.ParaSections;
         return pcs.Select(pc => (uint)pc < (uint)sections.Count ? sections[pc]?.Segment ?? 0 : 0)
