@@ -179,6 +179,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             var (dividend, divisor, subsidiary, quotientFor) = num.StandardDecimal || shape.Form != SubsidiaryForm.FixedPoint
                 ? CarriedSubsidiaryQuotient(d, Snapshot(num.Render(d.Dividend, rcv, keepWide: true)), Snapshot(num.Render(d.Divisor, rcv, keepWide: true)), ise, shape)
                 : NativeSubsidiaryQuotient(d, rcv, ise, shape);
+            subsidiary = UnsignedSubsidiary(subsidiary, shape);
             // The back-multiply rides Combine — the native product's digit-bound arms, the Dec lane under a standard
             // mode - instead of a raw C# splice whose Int128 product wrapped silently (PB129). A product past the Int128
             // carrier is the exact wide form, KEPT exact into the subtraction (keepWide) so the remainder is formed from
@@ -242,6 +243,27 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         null => new(SubsidiaryForm.FixedPoint, null),
         { } pic => new(SubsidiaryForm.FixedPoint, pic, ScaleOf(p)),
     };
+
+    /// <summary>⛔ THE 1985 SUBSIDIARY QUOTIENT HAS IDENTIFIER-3'S PRESENCE OR ABSENCE OF A SIGN (kb/Work PB5182). §1985:VI.6.11.4 GR6
+    /// forms the remainder from "an intermediate field ... which contains the same number of digits, the same decimal point
+    /// location, and the same presence or absence of a sign as the quotient (identifier-3)", so for an UNSIGNED identifier-3
+    /// the quotient the remainder is formed from is the one that item holds: the absolute value
+    /// (§1985:VI.6.19.4, an unsigned receiver takes the magnitude). <c>DIVIDE -11 BY 3 GIVING PIC 9 REMAINDER</c> gives
+    /// -11 - 3 x 3 = -20. §2002:14.8.11.3 GR6c (and §2023:14.9.12.4 GR6 c)) made the subsidiary quotient always SIGNED, "the same value
+    /// for the remainder regardless of the presence or absence of a sign in the receiving operand" (§2002:F.1), so the
+    /// subsidiary is left as formed from 2002 on and for a signed identifier-3 at 1985. The one edition test lives here, applied
+    /// to the subsidiary of every lane (native, carried, fixed-point and exact), which is scaled Int128, SDIDI or exact.</summary>
+    private NumX UnsignedSubsidiary(NumX subsidiary, SubsidiaryShape shape)
+    {
+        if (ctx.Data.DialectLevel >= 2002 || shape.Form != SubsidiaryForm.FixedPoint || shape.Pic is not { HoldsSign: false })
+            return subsidiary;
+        if (subsidiary.Real || subsidiary.Wide)
+            throw new InvalidOperationException("DIVIDE REMAINDER: a subsidiary quotient on a binary64 or wide carrier for a fixed-point identifier-3");
+        string abs = subsidiary.Exact ? RuntimeApi.Intrinsic("AbsExact", subsidiary.Expr)
+            : subsidiary.Dec ? RuntimeApi.Intrinsic("AbsDec", subsidiary.Expr)
+            : $"Int128.Abs({subsidiary.Expr})";
+        return subsidiary with { Expr = abs };
+    }
 
     /// <summary>The native lane of <see cref="EmitDivideRemainder"/> for a FIXED-POINT identifier-3: two scaled senders
     /// (an unsigned-wide read funnels through Widen) divide in the exact Int128 kernel, and the subsidiary quotient is a
