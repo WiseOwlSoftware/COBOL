@@ -4,7 +4,7 @@
  "description": "The VALUES spelling of a report group description entry's VALUE clause (kb/Work PB5242). §1985:XIII.3.22.2 prints `VALUE IS literal-1` for \"Report Section printable items\" (§1985:XIII.3.22.1); ISO/IEC 1989:2002 13.16.61.1 Format 4 prints `{VALUE IS | VALUES ARE} {literal-1}...`, its SR7 \"The words VALUE and VALUES are equivalent\". The more-than-one-literal form needs a repeating entry (§2023:13.18.63.3 SR35, COBOL2012), every one of which is already a 2002 form, so it is not this row's. Gated by recognition, VersionConformancePass ParseArm.VisitValueClause inside a report group description entry, once per written clause (VCR row 7.45 (f)).",
  "display": "the VALUES spelling of the VALUE clause (report group description)",
  "diagnosticCode": "COBOL0900",
- "citation": "§1985:XIII.3.22.1, §1985:XIII.3.22.2; ISO/IEC 1989:2002 13.16.61.1 Format 4, 13.16.61.2 SR7; ISO §2023:13.18.63.2 Format 4 (2023 text)",
+ "citation": "§1985:XIII.3.22.1, §1985:XIII.3.22.2; ISO/IEC 1989:2002 13.16.61.1 Format 4, 13.16.61.2 SR7; ISO §2023:13.18.63.2 Format 4, §2023:13.18.63.3 SR17 (2023 text)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

@@ -4,7 +4,7 @@
  "description": "The 2002 forms of the RD PAGE clause (kb/Work PB5242): the page width `integer-2 {COLS | COLUMNS}`, the page limit omitted, the LAST CONTROL HEADING (LAST CH) phrase, the DE abbreviation of DETAIL in FIRST DETAIL and LAST DETAIL, and the optional word IS before a phrase's integer. §1985:XIII.3.8.2 prints `PAGE [LIMIT IS | LIMITS ARE] integer-1 [LINE | LINES] [HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]` (the PDF page rendered: only PAGE, HEADING, FIRST, DETAIL, LAST and FOOTING are underlined, so `PAGE IS 20` and `PAGE LIMIT 20` stay COBOL-85, as kb/Work PB3751 reads the 2023 bracket); ISO/IEC 1989:2002 13.16.37.1 adds the rest, its SR1 the DE and CH synonyms and its SR2 an omissible integer-1, and Annex F.2 item 115 lists \"PAGE LIMIT includes COLUMN phrase\". Gated by recognition, VersionConformancePass ParseArm.VisitReportPageClause and VisitReportPageSubclause, once per written form (VCR row 7.45 (f)).",
  "display": "a 2002 form of the PAGE clause (report description)",
  "diagnosticCode": "COBOL0900",
- "citation": "§1985:XIII.3.8.2; ISO/IEC 1989:2002 13.16.37.1, 13.16.37.2 SR1 and SR2, Annex F.2 item 115; ISO §2023:13.18.39.2 (2023 text)",
+ "citation": "§1985:XIII.3.8.2; ISO/IEC 1989:2002 13.16.37.1, 13.16.37.2 SR1 and SR2, Annex F.2 item 115; ISO §2023:13.18.39.2, §2023:13.18.39.3 SR1, §2023:13.18.39.3 SR2 (2023 text)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
