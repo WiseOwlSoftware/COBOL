@@ -3,14 +3,16 @@
 import sys
 
 import fixtures
+import lane_classification
+import source_reads
 import selftest_cases
 from standard_streams import ensure_utf8
 
 il = selftest_cases.subject(__file__)   # scripts/inert_lane.py
-Classification = il.Classification
-changed = il.changed
-code_readers = il.code_readers
-tracked = il.tracked
+Classification = lane_classification.Classification
+changed = lane_classification.changed
+code_readers = source_reads.code_readers
+tracked = lane_classification.tracked
 
 # The mechanics, on a planted classification with a READ entry.
 c = Classification(inert={"DEVLOG/": "", "kb/": "", "tools/pin": ""}, read={"kb/Work/": ""})
@@ -33,7 +35,7 @@ def case_01_watch_covers_directory_every_inert_tracked_file(expect):
 def case_02_check_entry_naming_no_tracked_path_stale(expect):
     root, repo, base = fixtures.world('rename')
     expect.equal("check: an entry naming no tracked path is stale, and so is a READ entry under no INERT one",
-                 len(Classification(inert={"DEVLOG/": "", "gone/": ""}, read={"elsewhere/": ""}).check(root)), 3)
+                 len(il.check(Classification(inert={"DEVLOG/": "", "gone/": ""}, read={"elsewhere/": ""}), root)), 3)
 
 
 def case_03_code_readers_build_s_exec_property_resolved(expect):
@@ -48,10 +50,10 @@ def case_04_check_each_tooling_path_build_or_compiler(expect):
     root, repo, base = fixtures.world('rename', 'tooling')
     expect.equal("check: each tooling path the build or a compiler test reads must lie under a CODE_READS entry; with them "
                  "it is clean, and a CODE_READS entry outside the tooling trees is refused",
-                 (len(tc2.check(root)),
-                  Classification(inert={"DEVLOG/": "", "kb/": ""}, tooling_under=("scripts/",), code_reads={
+                 (len(il.check(tc2, root)),
+                  il.check(Classification(inert={"DEVLOG/": "", "kb/": ""}, tooling_under=("scripts/",), code_reads={
                       "scripts/Gen.ps1": "", "scripts/a.py": "", "scripts/built.py": "", "scripts/spec/": "",
-                      "src/P/": ""}).check(root)),
+                      "src/P/": ""}), root)),
                  (4, ["the CODE_READS entry 'src/P/' lies in no tooling tree (TOOLING_UNDER), so it changes no lane: remove it"]))
 
 
@@ -78,7 +80,7 @@ def case_06_code_readers_import_closure_every_script_test(expect):
 def case_07_check_imported_module_required_be_code_reads(expect):
     root, repo, base = fixtures.world('rename', 'tooling', 'listings', 'imports')
     expect.equal("check: an imported module is required to be CODE_READS, naming the importer",
-                 [b for b in tc2.check(root) if "reads scripts/streams.py" in b and "through suite/h.py" in b] != [], True)
+                 [b for b in il.check(tc2, root) if "reads scripts/streams.py" in b and "through suite/h.py" in b] != [], True)
 
 
 def case_08_code_readers_case_file_under_selftests_tree(expect):

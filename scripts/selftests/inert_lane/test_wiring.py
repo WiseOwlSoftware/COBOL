@@ -5,11 +5,11 @@ import sys
 from pathlib import Path
 
 import fixtures
+import lane_classification
 import selftest_cases
 from standard_streams import ensure_utf8
 
-il = selftest_cases.subject(__file__)   # scripts/inert_lane.py
-REPO = il.REPO
+REPO = lane_classification.REPO
 
 
 def _wiring(root: Path) -> list[str]:
@@ -46,7 +46,7 @@ def _wiring(root: Path) -> list[str]:
     need('export PYTHONPYCACHEPREFIX="$gate/$leg.pycache"' in linux_gate,
          "the Linux gate's test legs no longer run with a fresh bytecode cache, so its watch misses a script served from "
          "an earlier __pycache__ that CI's watch sees (PB4395 review R2-1)")
-    for want in ("import inert_lane", "inert_lane.CLASSIFICATION.classify(", "return self._inert(out, run, lane)",
+    for want in ("import lane_classification", "lane_classification.CLASSIFICATION.classify(", "return self._inert(out, run, lane)",
                  "return self._tooling(out, run, lane)", 'TOOLING_ONLY = ("SELF-TESTS",)',
                  "if tooling or name not in TOOLING_ONLY", "self.host.audits(_no_slot, lines.append, tooling, change)",
                  'self._beside(out, "audits", lambda: self._audits(out, lane.tooling))',
@@ -77,7 +77,7 @@ def _wiring(root: Path) -> list[str]:
          "inert_lane.py classify no longer prints the `reads_tooling=` line CI's `changes` job reads")
     # The tooling flag is PROVED against what every self-test read (PB4326 R1-1), before its PASS is recorded; the one
     # exemption is a DECLARED population, held to the trace.
-    for want in ("import inert_lane", "classification: inert_lane.Classification = inert_lane.CLASSIFICATION",
+    for want in ("import lane_classification", "classification: lane_classification.Classification = lane_classification.CLASSIFICATION",
                  "self.classification.unclassified_reads(", "if not test.population:",
                  "if test.population and not whole:"):
         need(want in runner, f"scripts/self_tests.py no longer says `{want}`")

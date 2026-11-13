@@ -4,12 +4,13 @@ import subprocess
 import sys
 
 import fixtures
+import inert_watch
+import lane_classification
 import selftest_cases
 from standard_streams import ensure_utf8
 
-il = selftest_cases.subject(__file__)   # scripts/inert_lane.py
-Classification = il.Classification
-watch = il.watch
+Classification = lane_classification.Classification
+watch = inert_watch.watch
 
 # The mechanics, on a planted classification with a READ entry.
 c = Classification(inert={"DEVLOG/": "", "kb/": "", "tools/pin": ""}, read={"kb/Work/": ""})

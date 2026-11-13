@@ -52,11 +52,11 @@ the program's import closure (every import, a lazy one included) lies in its inp
 it and its closure probes a path under its inputs, decided from literals and the module's static names; a call that
 cannot be decided is a finding until the target's `judged` map states why its path is an input (review R1-3).
 
-THE INPUT PATTERNS are matched by the one matcher of the classification, `inert_lane.under`: `dir/` is every path below
+THE INPUT PATTERNS are matched by the one matcher of the classification, `lane_classification.under`: `dir/` is every path below
 it; a pattern with `*` or `?` is a listing pattern (within one directory and case-insensitive, as a .NET directory
 listing matches, so a key changes for every file a test's listing reads); anything else is that path or, when it names a
 directory, every path below it. `@build` is the shared build inputs of the targets file;
-`@population-inputs` is every path a compiler test or the build may read (`inert_lane.Classification.is_population_input`).
+`@population-inputs` is every path a compiler test or the build may read (`lane_classification.Classification.is_population_input`).
 An EXCLUSION is a class, `@inert` (no test reads it, proven by the inert lane's watch) or `@tooling-lane` (no compiler
 test or build reads it, proven by the same watch and the INERT LANE audit), or a path pattern: a path a dependency reads
 for the target and the target does not read itself (the conformance suite's generator, for `conformance`).
@@ -116,8 +116,9 @@ from pathlib import Path
 from typing import ClassVar
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import csharp_lexer  # noqa: E402  — THE one lexer of a C# source, shared with inert_lane (kb/Work PB5230 review R2-1)
-import inert_lane  # noqa: E402  — THE classification: what is inert, what is tooling no compiler test reads
+import csharp_lexer  # noqa: E402  — THE one lexer of a C# source, shared with source_reads (kb/Work PB5230 review R2-1)
+import lane_classification  # noqa: E402  — THE classification: what is inert, what is tooling no compiler test reads
+import source_reads
 from standard_streams import ensure_utf8  # noqa: E402
 from test_population import is_scrubbed  # noqa: E402  — THE scrub rule a test host's environment is made by
 
@@ -205,20 +206,20 @@ class Target:
         resolve; a narrowly declared one cannot (`check`)."""
         return "@population-inputs" in self.inputs
 
-    def matches(self, path: str, cls: inert_lane.Classification = inert_lane.CLASSIFICATION) -> bool:
+    def matches(self, path: str, cls: lane_classification.Classification = lane_classification.CLASSIFICATION) -> bool:
         """Whether the tracked `path` is an input of this target."""
         if any(_excluded(path, e, cls) for e in self.exclude):
             return False
         return any(_matches(path, p, cls) for p in self.inputs)
 
-    def covers(self, read: str, cls: inert_lane.Classification = inert_lane.CLASSIFICATION) -> bool:
+    def covers(self, read: str, cls: lane_classification.Classification = lane_classification.CLASSIFICATION) -> bool:
         """Whether a READ a test source spells (a path, or a directory ending in `/`) lies inside the declared inputs. A
         read of an excluded PATH is not covered (a directory holding one still is: the exclusion is of that path). A
         directory read is covered when the directory itself lies under an input pattern, or when it is a LISTING by a
         pattern (`dir/guard*.sh`) an input pattern equals. For `@population-inputs` a read is covered unless it is a
         tooling-lane path: a test's read of an INERT path is the inert lane's to judge (its watch and its audits:
         `inert_lane.py check`, DOC AUDITS), and the key of such a target already leaves inert paths out."""
-        if any(not e.startswith("@") and inert_lane.under(read, e) for e in self.exclude):
+        if any(not e.startswith("@") and lane_classification.under(read, e) for e in self.exclude):
             return False
         for p in self.inputs:
             if p == "@population-inputs":
@@ -232,7 +233,7 @@ class Target:
         """Whether a LISTING of the tracked `directory` (ending in `/`; "" is the root) lies in the declared inputs: the
         directory lies under an input, or holds one (the import system lists every directory on the module path to find
         a declared module, and a walk lists the directories above what it reads)."""
-        return any(_matches(directory, p, inert_lane.CLASSIFICATION) or p.startswith(directory) for p in self.inputs)
+        return any(_matches(directory, p, lane_classification.CLASSIFICATION) or p.startswith(directory) for p in self.inputs)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -279,20 +280,20 @@ class GeneratedTarget(Target):
         return [str(out) if a == OUT else a for a in self.command[1:]]
 
 
-def _matches(path: str, pattern: str, cls: inert_lane.Classification) -> bool:
+def _matches(path: str, pattern: str, cls: lane_classification.Classification) -> bool:
     if pattern == "@population-inputs":
         return cls.is_population_input(path)
-    return inert_lane.under(path, pattern)
+    return lane_classification.under(path, pattern)
 
 
-def _excluded(path: str, entry: str, cls: inert_lane.Classification) -> bool:
+def _excluded(path: str, entry: str, cls: lane_classification.Classification) -> bool:
     if entry == "@inert":
         return cls.is_inert(path)
     if entry == "@tooling-lane":
         return cls.in_tooling_lane(path)
     if entry.startswith("@"):
         raise GraphError(f"no such excluded class {entry!r} (one of {', '.join(CLASSES)})")
-    return inert_lane.under(path, entry)
+    return lane_classification.under(path, entry)
 
 
 @dataclass(frozen=True)
@@ -439,7 +440,7 @@ def tree_entries(repo: Path, tree: str) -> list[tuple[bytes, str]]:
 
 
 def key(target: Target, entries: list[tuple[bytes, str]], facets: Mapping[str, str],
-        outputs: Mapping[str, str] | None = None, cls: inert_lane.Classification = inert_lane.CLASSIFICATION) -> str:
+        outputs: Mapping[str, str] | None = None, cls: lane_classification.Classification = lane_classification.CLASSIFICATION) -> str:
     """THE TARGET'S KEY: sha256 of KEY_VERSION, its name, its own facets, the OUTPUT DIGEST of each target it depends on
     (`outputs`, by name) and every entry its inputs match. Raises Unresolved naming a facet or a dependency's output that
     is not given."""
@@ -850,7 +851,7 @@ def traced_run(repo: Path, target: GeneratedTarget, out: Path) -> Trace:
 
 
 def undeclared(target: GeneratedTarget, trace: Trace, repo: Path, tracked: set[str],
-               cls: inert_lane.Classification = inert_lane.CLASSIFICATION) -> list[str]:
+               cls: lane_classification.Classification = lane_classification.CLASSIFICATION) -> list[str]:
     """What a traced run read outside `target`'s declared inputs: a TRACKED path it opened that its inputs do not match
     (an input excluded as @inert or @tooling-lane included: then the classification is wrong), a tracked directory it
     listed that no input lies in or under (`Target.lists`), and every process it started. Untracked and ignored paths
@@ -935,18 +936,18 @@ def _probes(rel: str, tree: ast.Module) -> list[tuple[int, str, str, ast.expr]]:
 
 def static_check(repo: Path, target: GeneratedTarget, tracked: set[str]) -> list[str]:
     """THE STATIC HALF OF A GENERATED TARGET'S DECLARATION (kb/Work PB5231 R1-1, R1-3), decided before any run:
-      * its program's IMPORT CLOSURE under the repository (`inert_lane.import_closure`: every `import` anywhere in a file,
+      * its program's IMPORT CLOSURE under the repository (`source_reads.import_closure`: every `import` anywhere in a file,
         a lazy one included, resolved against the importer's directory and every directory its chain puts on
         `sys.path`) lies in its inputs; a module outside them is a finding naming the importer chain;
       * every existence or stat call in the program and its closure (`_probes`), which no audit hook sees, probes a path
-        under its inputs: a path `inert_lane.static_dir` decides from literals and the module's static names is judged
+        under its inputs: a path `source_reads.static_dir` decides from literals and the module's static names is judged
         here; a call it cannot decide is a finding until the target's `judged` map states, under the key
         `<file>|<function>|<call>`, why the path it probes is one of its inputs. A `judged` key that names no call any
         more is a finding too (a stale judgment).
     Returns the findings, each naming its file and line."""
     if target.program not in tracked:
         return [f"{target.name}: its program {target.program} is not a tracked file"]
-    closure = list(inert_lane.import_closure(repo, [(target.program, "its program")], tracked))
+    closure = list(source_reads.import_closure(repo, [(target.program, "its program")], tracked))
     found = [f"{target.name}: {target.program} imports {m} ({how}), which is not among its inputs"
              for m, how in closure if not target.matches(m)]
     judged = {k for k, _ in target.judged}
@@ -957,9 +958,9 @@ def static_check(repo: Path, target: GeneratedTarget, tracked: set[str]) -> list
         except (OSError, UnicodeDecodeError, SyntaxError) as e:
             found.append(f"{target.name}: {rel} cannot be read for its static check ({type(e).__name__}: {e})")
             continue
-        names = inert_lane.static_names(tree, rel)
+        names = source_reads.static_names(tree, rel)
         for line, scope, call, expr in _probes(rel, tree):
-            path = inert_lane.static_dir(expr, names)
+            path = source_reads.static_dir(expr, names)
             if path is not None:
                 if not (target.matches(path) or target.lists(path.rstrip("/") + "/")):
                     found.append(f"{target.name}: {rel}:{line}: {call} probes {path or '(the repository root)'}, "
@@ -1451,7 +1452,7 @@ def _ignored(repo: Path, reads: list[str]) -> set[str]:
 
 
 def scan(repo: Path, target: TestTarget, top_dirs: list[str], tracked: tuple[set[str], set[str]],
-         cls: inert_lane.Classification = inert_lane.CLASSIFICATION,
+         cls: lane_classification.Classification = lane_classification.CLASSIFICATION,
          dependencies: tuple[GeneratedTarget, ...] = (), *, anchors: tuple[str, ...]) -> Scan:
     """Read `target`'s sources once and return every half of its audit. The tree's top directories and tracked paths
     are the caller's, computed once for every target (kb/Work PB5218 review R1-1: per-file recomputation cost ~60 s).

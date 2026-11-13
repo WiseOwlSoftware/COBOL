@@ -51,7 +51,7 @@ The default run names it `deferred to --built` in its verdict; `--built` runs ex
 `linux-built-self-tests` job; linux-gate.sh after its unit and conformance legs). The default run never builds: it is one of the
 gate's audits, which run outside the gate slot, and the slot is what rations builds.
 
-POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/inert_lane.py): what it read
+POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/lane_classification.py): what it read
 must be tooling, a TOOLING_READS entry or an inert corpus, else it is RED naming the path. The one exemption is a self-test
 that reads the tracked tree as a population, declared the same way and checked against the trace (a declaration whose
 trace shows no git command over the whole repository is RED; a whole-tree git command without the declaration is judged):
@@ -157,7 +157,7 @@ import process_job  # this directory's: the self-test's whole process tree, stop
 import sharedfile  # this directory's: the one Windows share-retry rule for files several processes read and replace
 import live_tools  # this directory's: the one list of the live tools' trees, which discovery reads
 import selftest_layout  # this directory's: the case layout rule, called first by every run (kb/Work PB5428)
-import inert_lane  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
+import lane_classification  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
 import self_test_inputs as inputs  # this directory's: what a self-test read, and the tracer that records it
 import self_test_clock as clocks  # this directory's: the clock a self-test's PASS is proven against (kb/Work PB4358)
 from gate_slot import ExclusiveLock, git_common_dir  # this directory's: the OS file lock every gate place is
@@ -635,7 +635,7 @@ class Runner:
     hang_after_s: float = HANG_AFTER_S
     by: str = ""
     #: What counts as tooling when a PASS is recorded (`_record`'s proof); the fleet arms plant their own.
-    classification: inert_lane.Classification = inert_lane.CLASSIFICATION
+    classification: lane_classification.Classification = lane_classification.CLASSIFICATION
 
     def __post_init__(self) -> None:
         self.budget = self.budget or Budget.for_repo(self.repo)
@@ -859,7 +859,7 @@ class Runner:
         if test.population and not whole:  # a declaration the trace does not bear out would exempt a self-test unproved
             raise ValueError(f"{test.path} declares SELF-TEST-POPULATION but its trace shows no git command over the "
                              f"whole tree: remove the declaration (the self-test no longer reads the tree as a population)")
-        if not test.population:  # only a DECLARED population reader is exempt: the flag's accepted residue (inert_lane.py)
+        if not test.population:  # only a DECLARED population reader is exempt: the flag's accepted residue (lane_classification.py)
             stray = self.classification.unclassified_reads((p for p, blob in deps.files.items() if blob != inputs.UNTRACKED),
                                                                  deps.trees)
             if stray:
@@ -867,7 +867,7 @@ class Runner:
                     f"it read {', '.join(stray[:6])}{' and more' if len(stray) > 6 else ''}, which the tooling flag does "
                     f"not see: a change to only {'it' if len(stray) == 1 else 'one of them'} would skip this self-test in "
                     f"a gate and turn it red in CI's merge group. Give the path a TOOLING_READS entry naming "
-                    f"{test.path} in scripts/inert_lane.py"
+                    f"{test.path} in scripts/lane_classification.py"
                     + (f"; or, if it reads the tracked tree as a population, declare `# SELF-TEST-POPULATION: tree — "
                        f"<why>` in its first {HEADER_LINES} lines" if whole else "") + " (kb/Work PB4326)")
         self.store.record(test.path, self.platform, deps, seconds, self.by, clock, key, reused)
@@ -1479,8 +1479,8 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         tests = [found[n] for n in sorted(bodies)]
         plat = this_platform()
         # The planted repository's own classification: its scripts are tooling, and the data its self-tests read is
-        # declared, as scripts/inert_lane.py declares the real tree's (the proof of the tooling flag, `_record`).
-        planted = inert_lane.Classification(inert={}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
+        # declared, as scripts/lane_classification.py declares the real tree's (the proof of the tooling flag, `_record`).
+        planted = lane_classification.Classification(inert={}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
                                             tooling_reads={"data/": "the fleet arms' fixtures"})
         budget_dir, store_dir = root / ".git" / BUDGET_DIR, root / ".git" / PASS_STORE_DIR
 

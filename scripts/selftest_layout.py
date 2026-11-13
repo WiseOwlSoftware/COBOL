@@ -9,7 +9,7 @@ the build targets' import closure, scripts/build_targets.json).
 WHERE A TEST LIVES. The tests of a script `<root>/<path>/<name>.<ext>`, for each live-tools root (`live_tools.ROOTS`),
 live in the directory `<root>/selftests/<path>/<name>/`; `subject_of` is the ONE function of that rule (a test file's
 repository path to its subject's), and `selftest_cases.subject`, the refusals below and the static readers
-(`inert_lane._imports`, `scratch_repo._self_test_scopes`) all call it. A test whose subject is no file under a root lives
+(`source_reads._imports`, `scratch_repo._self_test_scopes`) all call it. A test whose subject is no file under a root lives
 in `<root>/selftests/_tree/<name>/`, the one directory whose subject the rule does not look up.
 
 THE REFUSALS (`check` returns each as a line; scripts/self_tests.py turns the first into the run's RED verdict):

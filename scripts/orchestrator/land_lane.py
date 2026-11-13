@@ -785,7 +785,7 @@ def _iso(t: str) -> dt.datetime | None:
 # gate record (enqueue.tested_locally: the run that covers the queued head, or the run a REUSED answer names):
 #   INFRA         no test failed in the run (a job died before or outside its tests), or the run timed out
 #   RUNNER        every red case ran GREEN in that record, or the record is a lane's that runs no compiler test (the
-#                 inert or the tooling lane, inert_lane.TEST_FREE_LANES: no compiler test reads the change):
+#                 inert or the tooling lane, lane_classification.TEST_FREE_LANES: no compiler test reads the change):
 #                 a Linux, Release, host or runner difference, or a flake
 #   GENUINE       a red case the record lists but did not run (skipped on Windows): the merge group ran it first
 #   MERGE         a red case not in the record at all: main brought it, or the merged tree made it
@@ -861,7 +861,7 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
     bounce was before."""
     import enqueue  # noqa: PLC0415  (the one reader of a gate record that covers a head)
     import gate  # noqa: PLC0415  (scripts/: the record, the run root, where a bounce's results land)
-    import inert_lane  # noqa: PLC0415  (scripts/: the lanes whose record keeps no test result)
+    import lane_classification  # noqa: PLC0415  (scripts/: the lanes whose record keeps no test result)
     import queue_facts  # noqa: PLC0415
     import test_population as tp  # noqa: PLC0415  (scripts/: THE trx reader)
     wt = pathlib.Path(str(att.get("worktree") or ""))
@@ -891,7 +891,7 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
     # earlier runs of the same code state whose passes it counts (`gate.measuring_runs`, the one resolution).
     measuring = gate.measuring_runs(proof.run)
     measured = measuring[0] if measuring else proof.run
-    if rec.get("lane") in inert_lane.TEST_FREE_LANES:
+    if rec.get("lane") in lane_classification.TEST_FREE_LANES:
         return dataclasses.replace(facts, record=measured.name, test_free=str(rec["lane"]))
     trx = sorted(t for m in measuring for t in m.glob("*.trx"))
     if not trx:

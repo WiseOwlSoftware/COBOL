@@ -4,12 +4,12 @@ import sys
 import tempfile
 from pathlib import Path
 
+import source_reads
 import selftest_cases
 from standard_streams import ensure_utf8
 
-il = selftest_cases.subject(__file__)   # scripts/inert_lane.py
-csharp_parts = il.csharp_parts
-markdown_readers = il.markdown_readers
+csharp_parts = source_reads.csharp_parts
+markdown_readers = source_reads.markdown_readers
 
 
 def case_00_lexer_comments_character_literals_hold_no_literal(expect):

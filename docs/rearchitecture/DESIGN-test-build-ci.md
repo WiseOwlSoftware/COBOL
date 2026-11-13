@@ -1448,7 +1448,7 @@ register under `tests/version-matrix/`, `tests/nist/`, `conformance-suite/` (les
 through the dependency) and `tests/doc-facts/`; the inventory is not its input. `repo-drift` (the repository's drift tests,
 which bind the documents' data files, the records, the scripts a test runs, the CI files, every test source and the names of
 every tracked file to each other and to the compiler, and read the inventory themselves) declares every population input
-(`inert_lane.Classification.is_population_input`) and depends on nothing. The split between the two is the BUILD TARGETS
+(`lane_classification.Classification.is_population_input`) and depends on nothing. The split between the two is the BUILD TARGETS
 audit's, never a list (kb/Work PB5230; below). Every target excludes `@inert` and `@tooling-lane`, the classes the inert lane's
 watch proves no compiler test reads. The graph is refused when it is malformed (`Graph.of`): a dependency on an undeclared
 target or on a test target (which makes no output), a cycle (named: `a -> b -> a`), a generated program that is not among its
@@ -1482,9 +1482,9 @@ recorded (its digest, file count, seconds, worktree). A gate whose generated tar
 dependent run on another suite would be recorded under a key it did not run. The generator's seconds: about 13 s traced.
 THE TRACE'S RESIDUE: an existence or stat call (`Path.exists`, `is_file`, `is_dir`, `os.stat`, …) raises no audit event.
 The STATIC half of the declaration (`buildgraph.static_check`, part of the BUILD TARGETS audit, review R1-1 and R1-3)
-covers it before any run: the program's import closure (`inert_lane.import_closure`, every import, a lazy one included)
+covers it before any run: the program's import closure (`source_reads.import_closure`, every import, a lazy one included)
 lies in its inputs, and every existence or stat call in the program and its closure, outside self-test functions, probes a
-path under its inputs when `inert_lane.static_dir` can decide the path from literals and the module's static names; a call
+path under its inputs when `source_reads.static_dir` can decide the path from literals and the module's static names; a call
 it cannot decide is a finding until the target's `judged` map states, under `<file>|<function>|<call>`, why the path is an
 input, and a judgment that names no call any more is a finding.
 
@@ -2288,7 +2288,7 @@ run? I would think not." Of the 300 landings of 2026-10-16..23, 137 changed only
 still paid a full local gate. And the regex was not a classification: `docs/` and `kb/Work/` are test INPUTS, so CI skipped the
 very tests that read them (kb/Work PB3603).
 
-**The classification — ONE module, `scripts/inert_lane.py`.** A path is INERT when it lies under an `INERT` entry and under no
+**The classification — ONE module, `scripts/lane_classification.py`** (the static reads are `scripts/source_reads.py`, the watch `scripts/inert_watch.py`, the commands `scripts/inert_lane.py`; kb/Work PB5398)**.** A path is INERT when it lies under an `INERT` entry and under no
 `READ` entry; each entry names who reads it (an audit, a person; a READ entry names the tests that read it). A change is in the
 inert lane when its changed paths (`git diff --name-only --no-renames`, so a code file renamed into an inert directory shows
 its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/`, `kb/` (the knowledge base, THE work register
@@ -2408,7 +2408,7 @@ only), and tooling DATA a script reads (`model_rules.json`, `tools/rr/rr.war`), 
 compiler's test assembly that walk it; kb/Work PB4395 item 1 moves each into the self-test of the script it checks, and the
 entry narrows when its last walker leaves. CI runs the whole population for a tooling-lane change (it is the regression net),
 and the landing reads a tooling-lane record as it reads an inert one (`land_lane.red_facts`: no compiler test reads the
-change, `inert_lane.TEST_FREE_LANES`).
+change, `lane_classification.TEST_FREE_LANES`).
 
 **The proof — the inert watch.** A list of "what no test reads" that nobody proves drifts from the tests, and a test that
 starts reading an inert path would let an inert change land untested. So every whole-assembly test run on Linux runs under

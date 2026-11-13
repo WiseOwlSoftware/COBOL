@@ -41,3 +41,16 @@ tree's wiring, 1). Oracle: the multiset of expectation labels before (read from 
 45 (`labels.py`, output in the scratch directory); `selftest_layout.check_repo` is `[]` with `scripts/inert_lane.py` gone from
 `REMAINING`; `inert_lane.py check` GREEN. The converter that cut the function (statement-by-statement, a case per `expect`, a
 statement used by one case attached to it and one used by several hoisted) is not kept: the case files are the record.
+
+### PB3726 step PB5398: inert_lane.py split into the lanes' modules
+
+`inert_lane.py` (1,150 lines) is now the CLI (95 lines: `check`, `main`) over three modules: `lane_classification.py` (the lanes, `Classification`,
+`CLASSIFICATION`, `under`, `listing_glob`, and the git reads `changed`/`tracked` of the paths it classifies), `source_reads.py` (the build's
+and the compiler tests' static reads: `code_readers`, `import_closure`, the C# lexer, `markdown_readers`) and `inert_watch.py` (the inotify
+watch). Three corrections to design 16.12's table, recorded there: `Classification.check` became the CLI's `check(classification, root)` (the
+method would have made `lane_classification` import `source_reads`, which imports it back), `_listing_glob` is `lane_classification.listing_glob`
+because `under` calls it, and `changed`/`tracked` live with the classifier. Every category of `CLASSIFICATION` is in key order and
+`Classification.order_findings` (called by `check`) refuses one out of order, with cases. Importers re-pointed: `gate.py`, `buildgraph.py`,
+`line_endings.py`, `self_tests.py`, `land_lane.py` (and the messages that name where an entry is declared); `script_layering.py` declares the
+new line and split. Oracle: `classify` over the 20 landings before this branch's base gives the same lane, flags and reason with the old and the new module
+(20 of 20, `lane_oracle.txt`), the classification's four categories are equal as data, `inert_lane.py check` is `[]` on both, and the case files pass.

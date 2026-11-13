@@ -25,7 +25,7 @@ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-b
   2. a fresh RUN DIRECTORY `TestResults/build-local/<n>-<UTC stamp>Z/` (n = the run's number in its run root, taken under
      `runs.lock`, so start order never depends on the clock) holding the listings, every trx and log, the first-classes
      file and the verdict file; five are kept;
-  3. the toolchain (toolchain.env's versions, kb/Work PB4007), then the change's LANE (scripts/inert_lane.py: inert;
+  3. the toolchain (toolchain.env's versions, kb/Work PB4007), then the change's LANE (scripts/lane_classification.py: inert;
      tooling, a change no compiler test or build reads, kb/Work PB4395; or a code lane with or without TOOLING touched),
      then the audits (the one list below, run CONCURRENTLY; when the change touches tooling one of them is every script
      self-test, found by scripts/self_tests.py — kb/Work PB2563, PB4326), started BESIDE everything after them: the inert
@@ -109,7 +109,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 import external_corpus  # noqa: E402
 import gate_growth  # noqa: E402  — THE growth trigger's sample: one per GREEN code-lane gate (kb/Work PB4333)
-import inert_lane  # noqa: E402  — THE classification of a change no test reads (kb/Work PB2878)
+import lane_classification  # noqa: E402  — THE classification of a change no test reads (kb/Work PB2878)
 import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT, this_platform  # noqa: E402
 import buildgraph  # noqa: E402  — THE targets, their keys and the one store of their passes (kb/Work PB5207, PB5218)
@@ -418,12 +418,12 @@ AUDITS = (
     # refused test is red here in a fraction of a second, long before the test hosts end.
     ("CONFORMANCE SUITE", ["conformance-suite/harness/generate.py", "--check"]),
 )
-#: ⛔ THE AUDITS THAT RUN ONLY WHEN THE CHANGE TOUCHES A SCRIPT (kb/Work PB4326, PB4409; scripts/inert_lane.py
+#: ⛔ THE AUDITS THAT RUN ONLY WHEN THE CHANGE TOUCHES A SCRIPT (kb/Work PB4326, PB4409; scripts/lane_classification.py
 #: `Lane.tooling`): a script, a workflow, a tool, an agent definition, a root manifest the self-tests read or any
-#: .py/.ps1/.sh file. A compiler data file a self-test reads (inert_lane.py's TOOLING_READS) starts none here (owner
+#: .py/.ps1/.sh file. A compiler data file a self-test reads (lane_classification.py's TOOLING_READS) starts none here (owner
 #: 2026-11-01: "I see no reason why a compiler change should need to run script self-tests"); its first run is CI's.
 #: The rest of the population is CI's: the merge group's `audits` job runs every Linux self-test whatever the change (a
-#: declared population reader and the DEVLOG/kb corpora are the named residue, inert_lane.py) and `windows-self-tests`
+#: declared population reader and the DEVLOG/kb corpora are the named residue, lane_classification.py) and `windows-self-tests`
 #: the Windows ones whenever the change touches a script or that data (`Lane.reads_tooling`). The recorded-inputs
 #: reuse (PB2914) still lets a script change re-run exactly the self-tests that read it.
 TOOLING_ONLY = ("SELF-TESTS",)
@@ -579,15 +579,15 @@ class Host:
     def default_base(self) -> str:
         return self.git("merge-base", "HEAD", "origin/main")
 
-    def lane(self, base: str | None, tree: str | None) -> inert_lane.Lane:
+    def lane(self, base: str | None, tree: str | None) -> lane_classification.Lane:
         """The change's lane: what `tree` (the measured working tree) changes against `base`, classified by THE one
-        classification (scripts/inert_lane.py). No base or no tree, or a change git cannot list, is the full lane."""
+        classification (scripts/lane_classification.py). No base or no tree, or a change git cannot list, is the full lane."""
         if not base or not tree:
-            return inert_lane.Lane("full", "no base or no measured tree: the full lane", tooling=True, reads_tooling=True)
+            return lane_classification.Lane("full", "no base or no measured tree: the full lane", tooling=True, reads_tooling=True)
         try:
-            return inert_lane.CLASSIFICATION.classify(inert_lane.changed(self.repo, base, tree))
+            return lane_classification.CLASSIFICATION.classify(lane_classification.changed(self.repo, base, tree))
         except (subprocess.CalledProcessError, OSError) as e:
-            return inert_lane.Lane("full", f"the change could not be listed ({e}): the full lane", tooling=True,
+            return lane_classification.Lane("full", f"the change could not be listed ({e}): the full lane", tooling=True,
                                    reads_tooling=True)
 
     def graph(self) -> buildgraph.Graph:
@@ -1155,7 +1155,7 @@ class Outcome:
     base: str | None = None
     reused_from: str | None = None
     reused_detail: str | None = None  # the measuring gate's own verdict detail, carried along a chain of reuses
-    #: The change's lane (scripts/inert_lane.py, kb/Work PB2878): `inert` (no test reads it: the audits, then the
+    #: The change's lane (scripts/lane_classification.py, kb/Work PB2878): `inert` (no test reads it: the audits, then the
     #: verdict) or `full`; None until the lane is decided.
     lane: str | None = None
     #: Whether the change touches tooling (`Lane.tooling`, kb/Work PB4326): the script self-tests ran, or were left to
@@ -1781,7 +1781,7 @@ class Gate:
         self.say(f"build-local: toolchain (toolchain.env) {tools}")
         lane = self.host.lane(out.base, out.tree)
         out.lane, out.tooling = lane.name, lane.tooling
-        self.say(f"build-local: {lane.name} lane (scripts/inert_lane.py) — {lane.reason}")
+        self.say(f"build-local: {lane.name} lane (scripts/lane_classification.py) — {lane.reason}")
         # ⛔ THE AUDITS START NOW AND RUN BESIDE EVERYTHING AFTER (kb/Work PB4326, step 3 of PB4323). They read only the
         # tree and take about 40 s once the script self-tests are not among them (those run only when the change touches
         # tooling, `TOOLING_ONLY`), so they no longer stand ahead of the slot and the build as a serial valley: a red one
@@ -1956,14 +1956,14 @@ class Gate:
         return self._finish(out, run, "RED", f"{'; '.join(out.audit_reds)} — fail-fast: {how}; fix the audit "
                             f"and re-gate (run {run.name})", 1)
 
-    def _inert(self, out: Outcome, run: Path, lane: inert_lane.Lane) -> Outcome:
+    def _inert(self, out: Outcome, run: Path, lane: lane_classification.Lane) -> Outcome:
         """THE INERT LANE's end (kb/Work PB2878): no build and no test host, because no test reads the change; the
         audits were joined, GREEN, before this."""
         out.tree_end = self.host.measured_tree()
         return self._finish(out, run, "GREEN", f"INERT LANE (kb/Work PB2878): {lane.reason}; the audits are GREEN, "
                             f"and no build or test host ran · toolchain {out.toolchain} (run {run.name})", 0)
 
-    def _tooling(self, out: Outcome, run: Path, lane: inert_lane.Lane) -> Outcome:
+    def _tooling(self, out: Outcome, run: Path, lane: lane_classification.Lane) -> Outcome:
         """THE TOOLING LANE's end (kb/Work PB4395): no build and no test host, because no compiler test reads the change;
         the audits, the script self-tests among them, were joined, GREEN, before this."""
         out.tree_end = self.host.measured_tree()
@@ -2366,13 +2366,13 @@ class FakeHost(Host):
 
     def lane(self, base, tree):
         """The planted lane: `inert` plants a change no test reads, `tooling-lane` one no compiler test reads; the
-        classification itself is inert_lane.py's self-test."""
+        classification itself is scripts/selftests/inert_lane/'s."""
         if "inert" in self.plant:
-            return inert_lane.Lane("inert", "planted: all 2 changed path(s) are inert", tooling=False, reads_tooling=False)
+            return lane_classification.Lane("inert", "planted: all 2 changed path(s) are inert", tooling=False, reads_tooling=False)
         if "tooling-lane" in self.plant:
-            return inert_lane.Lane("tooling", "planted: 1 of 1 changed path(s) are tooling no compiler test reads", tooling=True,
+            return lane_classification.Lane("tooling", "planted: 1 of 1 changed path(s) are tooling no compiler test reads", tooling=True,
                                    reads_tooling=True)
-        return inert_lane.Lane("full", "planted: the full lane", tooling="tooling" in self.plant,
+        return lane_classification.Lane("full", "planted: the full lane", tooling="tooling" in self.plant,
                                reads_tooling="tooling" in self.plant)
 
     def platform(self) -> str:

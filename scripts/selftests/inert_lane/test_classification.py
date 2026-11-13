@@ -2,17 +2,17 @@
 """The lanes' classification (DESIGN-orchestrator-loop.md section 16.2, kb/Work PB5397; kb/Work PB2878, PB4326, PB4395, PB4409, PB4453): inert, read, tooling and code paths, the lane of a change, the two flags, the proof of the flag, the watch's coverage of a path and of a listing, and the real classification's entries. Pure: planted classifications and paths, no file."""
 import sys
 
+import lane_classification
 import selftest_cases
 from standard_streams import ensure_utf8
 from fixtures import refused
 
-il = selftest_cases.subject(__file__)   # scripts/inert_lane.py
-CLASSIFICATION = il.CLASSIFICATION
-Classification = il.Classification
-Lane = il.Lane
-MARKDOWN_ENTRY = il.MARKDOWN_ENTRY
-TEST_FREE_LANES = il.TEST_FREE_LANES
-under = il.under
+CLASSIFICATION = lane_classification.CLASSIFICATION
+Classification = lane_classification.Classification
+Lane = lane_classification.Lane
+MARKDOWN_ENTRY = lane_classification.MARKDOWN_ENTRY
+TEST_FREE_LANES = lane_classification.TEST_FREE_LANES
+under = lane_classification.under
 
 real = CLASSIFICATION
 # The mechanics, on a planted classification with a READ entry.
@@ -216,6 +216,18 @@ def case_23_real_classification_build_s_compiler_tests_tooling(expect):
                                                     "scripts/guard-a-new-guard.sh", "tools/a-new-tool.py",
                                                     "scripts/orchestrator/steer.ps1")],
                  ["full", "full", "full", "full", "full", "full", "tooling", "tooling"])
+
+
+def case_24_every_category_is_kept_in_key_order(expect):
+    expect.equal("the real classification keeps every category sorted, so two branches that each declare a path merge by plain git "
+                 "(kb/Work PB5398)", real.order_findings(), [])
+    found = Classification(inert={"b/": "", "a/": ""}, read={"c/": "", "d/": ""}, tooling_reads={"z": "", "y": ""},
+                           code_reads={"m": "", "n": ""}).order_findings()
+    expect("an INERT and a TOOLING_READS category out of order are each a finding naming the key that sorts early; a sorted READ and "
+           "CODE_READS category are none",
+           len(found) == 2 and "INERT entries are not in key order: 'a/' sorts before 'b/'" in found[0]
+           and "TOOLING_READS entries are not in key order: 'y' sorts before 'z'" in found[1], str(found))
+    expect.equal("an empty category and a one-entry category are in order", Classification(inert={"a/": ""}).order_findings(), [])
 
 
 if __name__ == "__main__":

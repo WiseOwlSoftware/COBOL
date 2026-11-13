@@ -48,6 +48,10 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 LINES: tuple[tuple[tuple[str, ...], ...], ...] = (
     # scripts/: the gate
     (("gate_verdict",), ("gate_runs",), ("gate_host",), ("gate",)),
+    # scripts/: the lanes' classification, the static reads and the watch built on it, the CLI last (kb/Work PB5398)
+    (("lane_classification",), ("source_reads", "inert_watch"), ("inert_lane",)),
+    # the gate decides the change's lane through the classification (`lane_classification.CLASSIFICATION.classify`)
+    (("lane_classification",), ("gate",)),
     # scripts/orchestrator/: the branch survey, its CLI last
     (("coord",), ("reports",), ("branch_classify",), ("review_coverage",), ("branch_lifecycle",), ("branch_survey",),
      ("prune_worktrees",)),
@@ -70,6 +74,10 @@ NODES: dict[str, tuple[str, str | None]] = {
     "gate_runs": ("scripts/gate_runs.py", "PB3733"),
     "gate_host": ("scripts/gate_host.py", "PB3733"),
     "gate": ("scripts/gate.py", None),
+    "lane_classification": ("scripts/lane_classification.py", "PB5398"),
+    "source_reads": ("scripts/source_reads.py", "PB5398"),
+    "inert_watch": ("scripts/inert_watch.py", "PB5398"),
+    "inert_lane": ("scripts/inert_lane.py", None),
     "coord": ("scripts/orchestrator/coord.py", None),
     "reports": ("scripts/orchestrator/reports.py", "PB3728"),
     "branch_classify": ("scripts/orchestrator/branch_classify.py", "PB3731"),
@@ -103,6 +111,7 @@ SPLITS: dict[str, tuple[str, tuple[str, ...]]] = {
     "plan_wave": ("PB3728", ("reports", "inflight", "clusters", "groups", "dispatch_ledger")),
     "prune_worktrees":("PB3731", ("branch_classify", "review_coverage", "branch_lifecycle", "branch_survey")),
     "gate": ("PB3733", ("gate_verdict", "gate_runs", "gate_host")),
+    "inert_lane": ("PB5398", ("lane_classification", "source_reads", "inert_watch")),
     "enqueue": ("PB3735", ("landing_verdict", "land_checks", "land_tree", "land_evidence", "land_queue")),
     "land_lane": ("PB3737", ("lane_state", "conflict_brief", "lane_decide", "lane_watch", "lane_status")),
 }

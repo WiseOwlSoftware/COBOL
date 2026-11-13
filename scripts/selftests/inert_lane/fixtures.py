@@ -33,7 +33,8 @@ def _tooling(repo):
                           "</Target></Project>\n",
         "scripts/Gen.ps1": "x\n", "scripts/a.py": "x\n", "scripts/spec/b.py": "x\n", "scripts/free.py": "x\n",
         "scripts/built.py": "#!/usr/bin/env python3\n# SELF-TEST-NEEDS: build — reads the built assemblies\n"
-                            "import argparse\nargparse.ArgumentParser().add_argument('--self-test')\n",
+                            "import argparse\nargparse.ArgumentParser().add_argument('--self-"
+                            "test')\n",
         "tests/T.cs": "class T { string a = File.ReadAllText(TestRepo.Scripts(\"a.py\")); string d = TestRepo.Scripts(\"spec\");\n"
                       "  // TestRepo.Scripts(\"free.py\") in a comment reads nothing\n"
                       "  string e = TestRepo.Scripts(name); }\n"})
