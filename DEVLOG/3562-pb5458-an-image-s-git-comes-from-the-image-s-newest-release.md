@@ -1,4 +1,4 @@
-## PB5458: an image's git comes from the image's newest release, and the nightly `images` job tells a rollout from a manifest behind
+## Entry 3562 — 2026-11-13 03:26 PST — PB5458: an image's git comes from the image's newest release, and the nightly `images` job tells a rollout from a manifest behind
 
 The nightly of 2026-11-12 (run 43270832950) was red in its `images` job, `MISMATCH git-linux 2.56.1 — toolchain.env names
 2.56.0`, while `python scripts/toolchain.py latest` printed `LATEST   git-linux 2.56.0` the same day, so `bump` could not
@@ -28,3 +28,4 @@ read as 2.56.0 from `main`, and the readme-without-git case), after it the self-
 cases (manifest behind, older image mid-rollout, image newer than every release, release unreadable, no release read when
 the git matches). Live, `latest` now prints `BEHIND   git-linux 2.56.0 — the newest release is 2.56.1`. The sibling sweep
 found no other tool whose `latest` source is a document about a release rather than the release or its install source.
+
