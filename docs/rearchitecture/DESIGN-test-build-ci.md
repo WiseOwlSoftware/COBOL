@@ -84,8 +84,11 @@ Every one is gated whole (§3.13), runs under `GateTestFramework` (§3.14.3) and
 
 ### 1.2 The differential oracle
 `CompilerUnderTest.cs` defines `WiseOwlCobolCompiler` (drives `CompilerDriver`) and `CutRunner`. The `*DifferentialTests.cs`
-compile each source and compare its normalized stdout (`CutRunner.Normalize` = the guard's `normalize()`: drop CR,
-per-line trailing-trim) with a committed golden under `tests/differential/` (`DifferentialGolden.Assert`). There is no
+compile each source and compare its normalized stdout (`CutRunner.Normalize`: the host's newline, CR LF or LF, as LF,
+per-line trailing-trim, trailing line ends dropped; a lone CR, a form feed, NEL, LS and PS are output and stay, kb/Work
+PB5460; the conformance suite's `run.py` `normalize()` is the same rule, both held to
+`conformance-suite/harness/normalization-fixture.json`) with a committed golden under `tests/differential/`
+(`DifferentialGolden.Assert`). There is no
 second compiler to compare against, so a new golden is spec-derived and never baked from another engine.
 
 `NistDifferentialTests` compares output to the committed goldens `tests/nist/valid/*.txt`. Its program set and every
