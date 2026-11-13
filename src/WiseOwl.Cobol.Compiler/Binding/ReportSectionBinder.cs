@@ -287,9 +287,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the page limit {limit} exceeds "
                 + $"{MaxPageLimit}; integer-1 shall not exceed {MaxPageLimit} (ISO §2023:13.18.39.3 SR5)");
         }
-        // §1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length." A leading zero is not a
-        // significant digit, so the value is what is bounded. COBOL-2002 replaced the digit count with the 9999 above.
-        else if (limit is > MaxPageLimit85 && Edition.DialectLevel < 2002 && page.integerOperand() is { } limit85Ctx)
+        // §1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length."
+        else if (limit is { } written && ExceedsThreeSignificantDigits85(written) && page.integerOperand() is { } limit85Ctx)
         {
             using var at = Edition.At(limit85Ctx);
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the page limit {limit} has more than "
@@ -316,8 +315,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>ISO §2023:13.18.39.3 SR5 — "Integer-1 shall not exceed 9999."</summary>
     private const int MaxPageLimit = 9999;
 
-    /// <summary>§1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length": 999.</summary>
-    private const int MaxPageLimit85 = 999;
+    /// <summary>⛔ THE COBOL-85 DIGIT LIMIT OF THE REPORT SECTION'S VERTICAL INTEGERS, ASKED BY EVERY CLAUSE THAT HAS IT
+    /// (kb/Work PB5252): "must not exceed three significant digits in length" — the PAGE clause's integer-1
+    /// (§1985:XIII.3.8.3 SR2), the LINE NUMBER clause's integer-1 and integer-2 (§1985:XIII.3.15.3 SR1) and the NEXT GROUP
+    /// clause's (§1985:XIII.3.16.3 SR2). A leading zero is not a significant digit, so the value is what is bounded: 999.
+    /// COBOL-2002 replaced the digit count with the page limit, or 9999 (<see cref="ReportModel.VerticalLimit"/>), so the
+    /// test is true only below 2002.</summary>
+    private bool ExceedsThreeSignificantDigits85(int value) =>
+        Edition.DialectLevel < 2002 && value > MaxThreeSignificantDigits85;
+
+    /// <summary>999, the largest integer of three significant digits.</summary>
+    private const int MaxThreeSignificantDigits85 = 999;
 
     /// <summary>Capture the RD's CODE clause (ISO §2023:13.18.12.2 — <c>CODE IS {literal-1 | identifier-1}</c>; kb/Work
     /// PB1129). literal-1 is screened here (SR1 — "Literal-1 shall be an alphanumeric literal": a numeric, national or
@@ -866,6 +874,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} exceeds {model.VerticalLimitWords}"
                     + "; integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
                     + "divided into pages (ISO §2023:13.18.37.3 SR1)");
+            else if (ExceedsThreeSignificantDigits85(ng.Value))
+                Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} has more than three "
+                    + "significant digits; integer-1 and integer-2 must not exceed three significant digits in length "
+                    + "(ISO §1985:XIII.3.16.3 SR2)");
             if (!model.Paged)
             {
                 if (absolute)
@@ -969,8 +981,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// places them), the widest region the group's own PRESENT WHEN clauses leave open. The screen is a syntax-rule
     /// screen: a line outside the widest region is outside every presentation's. A heading's last line is walked
     /// from the last line of the nearest OR PAGE heading ABOVE it (every page advance prints those first, GR6 c)),
-    /// so the d) 2./3./4. limits of a group below two OR PAGE headings sit below both of them (kb/Work PB2513).</para></summary>
-    private static (int Upper, int Lower) GroupLimits(ReportGroupModel g, ReportModel model)
+    /// so the d) 2./3./4. limits of a group below two OR PAGE headings sit below both of them (kb/Work PB2513).</para>
+    /// <para>⚖ EDITION (kb/Work PB5244): at COBOL-85 the report footing's f)/g) upper limit is "one greater than the final
+    /// LINE-COUNTER setting established by the page footing report group" (§1985:XIII.3.10.10 GR1 a.), and the page
+    /// footing's NEXT GROUP clause sets that LINE-COUNTER (<see cref="Cobol85FinalLineCounter"/>); from COBOL-2002 it is
+    /// the line after the page footing's last line (§2002:13.16.55.3 GR7 g)), the NEXT GROUP clause reaching only a report
+    /// footing of relative lines (§2002:13.16.35.3 GR5). <paramref name="year"/> is the edition.</para></summary>
+    private static (int Upper, int Lower) GroupLimits(ReportGroupModel g, ReportModel model, int year)
     {
         var controlHeadings = model.Groups.Where(x => x.Kind == ReportGroupKindModel.ControlHeading && x.ControlLevel >= 0).ToList();
         var orPage = controlHeadings.Where(x => x.OrPage).ToList();
@@ -1022,11 +1039,23 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 if (g.Lines is [{ NextPage: true }, ..]) return (model.Heading, model.PageLimit);
                 var pageFooting = model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.PageFooting);
-                int below = pageFooting is not null && MinimumLastLine(pageFooting, model) is { } last ? last + 1 : model.Footing + 1;
+                int below = pageFooting is not null && MinimumLastLine(pageFooting, model) is { } last
+                    ? (year < 2002 ? Cobol85FinalLineCounter(pageFooting, last) : last) + 1
+                    : model.Footing + 1;
                 return (below, model.PageLimit);
             }
         }
     }
+
+    /// <summary>The final LINE-COUNTER setting a COBOL-85 page footing whose last line is <paramref name="last"/>
+    /// establishes (§1985:XIII.3.10.9 GR5): a. its absolute NEXT GROUP integer; b. that line plus its NEXT GROUP PLUS
+    /// integer; c. with no NEXT GROUP clause, that line.</summary>
+    private static int Cobol85FinalLineCounter(ReportGroupModel pageFooting, int last) => pageFooting.NextGroup switch
+    {
+        { Kind: WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.Absolute, Value: var v } => v,
+        { Kind: WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.Relative, Value: var v } => last + v,
+        _ => last,
+    };
 
     /// <summary>⛔ THE CENSUS OF A REPORT'S GROUPS (ISO §2023:13.18.57.3 SR13–SR15; kb/Work PB1299), asked once every CH/CF
     /// has its control level (<see cref="ControlLevelOf"/>, SR10/SR11):
@@ -1144,7 +1173,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 }
 
             if (!model.Paged) continue;
-            var (upper, lower) = GroupLimits(g, model);
+            var (upper, lower) = GroupLimits(g, model, Edition.DialectLevel);
             var reportedEntries = new HashSet<Core.ReportGroupEntryContext?>(ReferenceEqualityComparer.Instance);
             foreach (var l in g.Lines)
             {
@@ -1299,10 +1328,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     bool absolute = op.integerOperand() is not null && op.reportRelativeSign() is null;
                     if (op.integerOperand() is { } lit)
                     {
-                        if ((_d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand) > model.VerticalLimit)
+                        int value = _d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand;
+                        if (value > model.VerticalLimit)
                             Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
                                 + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
                                 + "is not divided into pages (ISO §2023:13.18.35.3 SR3)");
+                        else if (ExceedsThreeSignificantDigits85(value))
+                            Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} has more than three significant "
+                                + "digits; integer-1 and integer-2 must not exceed three significant digits in length "
+                                + "(ISO §1985:XIII.3.15.3 SR1)");
                     }
                     if (!model.Paged && (absolute || op.NEXT() is not null))
                         Violation($"the report is not divided into pages, so all its LINE clauses shall be relative — "
@@ -3057,16 +3091,28 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// character ('B', '0', '/' — the simple insertion of §2023:13.18.40.5 GR1): the MOVE of an unsigned integer into such an
     /// item places one digit per position, so X(4) holds a four-digit counter. The clamp this replaced read the
     /// category's zero '9' count as ONE digit, printing "4" for a total of 24 (or spaces once the size error
-    /// indicator existed).</item>
+    /// indicator existed). At COBOL-85 that count is capped: §1985:XIII.3.19.4 GR1 c. gives the alphanumeric and
+    /// alphanumeric edited counter "the size of that data item, excluding any editing characters, or 18 characters,
+    /// whichever is smaller", so an X(20) entry has an 18-digit counter that the GR4 MOVE left-justifies in its 20
+    /// positions. The 2002 text dropped the cap (§2002:13.16.52.3 GR1 reads every category's digits the 2023 way;
+    /// kb/Work PB5247).</item>
     /// </list></summary>
-    private static int SumCounterDigits(PicInfo pic) => pic.Category switch
+    private static int SumCounterDigits(PicInfo pic, int year) => pic.Category switch
     {
         PicCategory.Numeric => pic.Digits,
         PicCategory.NumericEdited => pic.DigitPositions,
-        _ => pic.EditMask is { } mask
-            ? mask.Count(c => c is not ('B' or '0' or '/'))
-            : DataItem.DisplayTextWidthOf(pic),
+        _ when year < 2002 => Math.Min(CharacterDigits(pic), Cobol85AlphanumericSumCounterDigits),
+        _ => CharacterDigits(pic),
     };
+
+    /// <summary>§1985:XIII.3.19.4 GR1 c.'s "18 characters" (kb/Work PB5247).</summary>
+    private const int Cobol85AlphanumericSumCounterDigits = 18;
+
+    /// <summary>The character positions of an alphanumeric or national SUM entry's PICTURE, less its insertion editing
+    /// characters ('B', '0', '/').</summary>
+    private static int CharacterDigits(PicInfo pic) => pic.EditMask is { } mask
+        ? mask.Count(c => c is not ('B' or '0' or '/'))
+        : DataItem.DisplayTextWidthOf(pic);
 
     /// <summary>
     /// The <see cref="ReportSumFamily"/> of SUM entry <paramref name="ge"/> — created at the entry's FIRST replay and
@@ -3141,7 +3187,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 DeclaredAt = Edition.Cursor,
                 CobolName = entryName,
                 ClrName = NamingConvention.SumCounterName(model.Name, baseId),
-                Pic = PicInfo.SumCounterItem(pic is null ? 18 : SumCounterDigits(pic), sumScale),
+                Pic = PicInfo.SumCounterItem(pic is null ? 18 : SumCounterDigits(pic, Edition.DialectLevel), sumScale),
                 Occurs = columnCount > 1 ? columnCount : null,
                 Parent = parent,
                 Uid = _d.TakeUid(),
@@ -3727,11 +3773,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>The PRESENT WHEN clauses a printable item is subject to BELOW its report line — the line's own chain
     /// gates every item on it alike and so tells two of them apart never (§2023:13.18.41.4 GR2b). A GROUP INDICATE clause
-    /// "has the same effect as a PRESENT WHEN clause" (§2023:13.18.28.4 GR1): its entry stands as that clause.</summary>
-    private static List<object> PresentWhenClausesOf(ReportFieldModel f)
+    /// "has the same effect as a PRESENT WHEN clause" (§2023:13.18.28.4 GR1, from §2002:13.16.26.3 GR1): its entry stands
+    /// as that clause. At COBOL-85 it stands as none: the 1985 language has no PRESENT WHEN clause, and its column rule
+    /// has no exception — "Within a given print line, the printable items must be defined in ascending column number
+    /// order such that each printable item defined occupies a unique sequence of contiguous character positions"
+    /// (§1985:XIII.3.11.3 SR2; kb/Work PB5251). <paramref name="year"/> is the edition.</summary>
+    private static List<object> PresentWhenClausesOf(ReportFieldModel f, int year)
     {
         var clauses = new List<object>(f.PresentWhenCtxs);
-        if (f.GroupIndicate) clauses.Add((object?)f.Entry ?? f);
+        if (f.GroupIndicate && year >= 2002) clauses.Add((object?)f.Entry ?? f);
         return clauses;
     }
 
@@ -3811,8 +3861,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // by ScreenReportColumnClauses; only increasing operands that overlap are left for SR8 a).
                 if (sameEntry && pi.Spec.Kind == ReportColumnKindModel.Absolute && pj.Spec.Kind == ReportColumnKindModel.Absolute
                     && pj.Spec.Value <= pi.Spec.Value) continue;
-                var clausesI = PresentWhenClausesOf(pi.Field);
-                var clausesJ = PresentWhenClausesOf(pj.Field);
+                var clausesI = PresentWhenClausesOf(pi.Field, Edition.DialectLevel);
+                var clausesJ = PresentWhenClausesOf(pj.Field, Edition.DialectLevel);
                 if (DifferentPresentWhen(clausesI, clausesJ)) continue;
                 // SR7 — absolute items by their written column numbers, in the order they are written.
                 if (!sameEntry && pi.Spec.Kind == ReportColumnKindModel.Absolute && pj.Spec.Kind == ReportColumnKindModel.Absolute
@@ -3838,7 +3888,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (lastAbsolute == all.Count - 1) return;
         var tail = all.Skip(lastAbsolute + 1).ToList();
         int prefixEnd = lastAbsolute >= 0 ? all[lastAbsolute].Right : 0;
-        int extent = EachDifferentPresentWhen(tail.Select(p => (IReadOnlyList<object>)PresentWhenClausesOf(p.Field)).ToList())
+        int extent = EachDifferentPresentWhen(tail.Select(p => (IReadOnlyList<object>)PresentWhenClausesOf(p.Field, Edition.DialectLevel)).ToList())
             ? tail.Max(p => p.Spec.Kind is ReportColumnKindModel.Relative or ReportColumnKindModel.AnchorSeed
                 ? prefixEnd + p.Spec.Value + p.Size - 1 : p.Right)
             : tail.Max(p => p.Right);
@@ -4063,6 +4113,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (RolledRepetitionFault(data, target) is { } fault)
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} names '{data.Name}': {fault}");
+            return null;
+        }
+        // §1985:XIII.3.19.3 SR1 — with no UPON phrase a sum counter addend "must be defined either in the same report
+        // group that contains this SUM clause or in a report group which is at a lower level in the control hierarchy of
+        // this report": a counter of ANOTHER report is in neither. SR4 g) ("there are no restrictions" for a different
+        // report description) is COBOL-2002's (§2002:13.16.52.2 SR3 g)), so below 2002 it is refused (kb/Work PB5253).
+        if (Edition.DialectLevel < 2002 && !ReferenceEquals(data.Report, target.Report))
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumDataNameGroups, $"{where} names the sum counter '{data.Name}' of report "
+                + $"'{data.Report.Name}', another report than the SUM entry's '{model.Name}': it must be defined either in the "
+                + "same report group that contains this SUM clause or in a report group which is at a lower level in the "
+                + "control hierarchy of this report (ISO §1985:XIII.3.19.3 SR1)");
             return null;
         }
         // SR4 f)/g)
