@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-3",
  "rule-digest": "f113c0adfad4",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitReceive; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#RecordAreaImage",
- "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-3",
- "notes": "Overturn confirmed. GR3 transfers the text to 'the receiving character positions of the area referenced by identifier-1'. When identifier-1 is a group holding its own ODO object, it is a receiving item, and 'the maximum length of the group will be used' (VI.5.8.4 GR3b). EmitReceive passes OperandText.RecordAreaImage(into), the image at the object's current value (CommunicationEmitter.cs line 93), so the runtime fills the current length. Rerun g2.cob: with GN=3 the 9-character message gives TEXT LENGTH 0004 and END KEY 0, and the rest comes back as a new message. Expected TEXT LENGTH 0009, END KEY 2. MOVE into the same group uses 10 positions (MV [9ABCDEFGH ]). The own probe separates the readings with a 4-character message at GN=1 (current length 2): observed 0002/0, expected 0004/2. Its control, with the ODO object outside the group (GR3a, current length), gives 0002 and is right. A side observation for the fix: after RECEIVE, the positions past the transferred text up to the group's maximum length come back as spaces, while the control (no RECEIVE) keeps them. With the area at its maximum length, GR3's 'without space fill' and GR8b's 'are not changed' cover those positions, so the fix's test must check them. The note PB5377 is right in its citations, its expected result ('position 10 unchanged') and its sites. kb/Work PB5377 holds the defect (adjudication: held-85/set5/decisions.json).",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#RecordAreaImage",
+ "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-3; conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/pb5377-receive-into-group-with-own-odo",
+ "notes": "CONFORMS since kb/Work PB5377. RECEIVE INTO hands the MCS the receiving item through OperandText.RecordAreaImage with AreaUse.Receiving, so a group that holds its own OCCURS DEPENDING ON object is a receiving group of its maximum length (VI.5.8.4 GR3b), the sizing PlaceRenderer.WriteGroupImage applies to the store back. The golden's group GOD (GN, then GT up to nine times) receives a nine-character message and segment as TEXT LENGTH 0009 with END KEY 2 and 1, the whole text in GOD(1:9).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

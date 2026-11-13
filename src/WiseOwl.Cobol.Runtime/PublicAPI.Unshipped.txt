@@ -1138,3 +1138,9 @@ WiseOwl.Cobol.Runtime.ModuleStack.RunningIsMain.get -> bool
 WiseOwl.Cobol.Runtime.DialectBehavior.CancelRefusesEveryActiveProgram = 16 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.ProgramTable.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
+WiseOwl.Cobol.Runtime.CobolStandardData
+static WiseOwl.Cobol.Runtime.CobolStandardData.Image(string! storage, WiseOwl.Cobol.Runtime.StandardDataPart![]! parts) -> string!
+WiseOwl.Cobol.Runtime.StandardDataPart
+WiseOwl.Cobol.Runtime.StandardDataPart.StandardDataPart(int offset, int width, WiseOwl.Cobol.Runtime.NumProfile? profile = null, int count = 1, WiseOwl.Cobol.Runtime.StandardDataPart![]? members = null) -> void
+static WiseOwl.Cobol.Runtime.CobolStandardData.Characters(string! displayImage, in WiseOwl.Cobol.Runtime.NumProfile profile) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.FormatStandardData(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> string!

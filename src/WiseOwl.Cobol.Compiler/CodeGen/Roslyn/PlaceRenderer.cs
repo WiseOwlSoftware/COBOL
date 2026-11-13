@@ -1095,7 +1095,7 @@ internal static class PlaceRenderer
     /// OUTSIDE it (GR8a, either direction); only a depending-INSIDE group as a RECEIVING operand takes the maximum
     /// length (GR8b's second sentence). Every channel reader below — image, bit, national — asks THIS, so the two
     /// directions cannot drift apart per channel again.</summary>
-    private static bool UsesCurrentExtent(OdoGroupPlace o, AccessDir dir) =>
+    internal static bool UsesCurrentExtent(OdoGroupPlace o, AccessDir dir) =>
         dir == AccessDir.Sending || !o.DependingInside;
 
     /// <summary>A group operand's character image as seen in direction <paramref name="dir"/> — the GR8
