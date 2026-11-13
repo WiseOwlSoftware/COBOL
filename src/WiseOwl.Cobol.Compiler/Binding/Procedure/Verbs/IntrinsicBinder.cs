@@ -1981,7 +1981,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // deliberately-unscreened function is unscreened for CLASS, not for this shape rule.
         if (sig.Name is not ("LENGTH" or "BYTE-LENGTH"))
             for (int i = 0; i < args.Count; i++)
-                if (args[i] is BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { IsGroup: true } g }
+                if (args[i] is BoundFieldOperand { Place.DescribedItem: { IsGroup: true } g }
                     && IsVariableLengthGroup(g))
                     Report($"FUNCTION {sig.Name} argument-{i + 1} ('{g.CobolName}') is a variable-length "
                         + "group, which ISO §2023:15.3 admits only where the function definition explicitly "
@@ -2087,7 +2087,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // (AlgebraicRanges.CounterRegisterUsage; kb/Work PB4766 review R1-1): LINAGE-COUNTER display, LINE-/PAGE-COUNTER binary.
             (Usage Usage, bool Signed, int Scale)? numeric = a switch
             {
-                BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } }
+                BoundFieldOperand { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } }
                     => (np.Usage, np.Signed, np.Scale),
                 BoundComputedOperand { Expr: var register } when AlgebraicRanges.CounterRegisterUsage(register) is { } registerUsage
                     => (registerUsage, false, 0),

@@ -209,6 +209,15 @@ consolidation:
    is the same question negated — twenty callers had written that out by hand as `p is not RefModPlace` beside a
    `p.Item` test. `PlaceDenotedItemDriftTests` holds the roster of which kinds forward and which override, with the
    reason, and forbids a twenty-first hand-written copy.
+   **A question about the operand's ATTRIBUTES that must not see through a reference modifier asks
+   `Place.DescribedItem`** — `Item` for a whole declared item, `null` for a reference-modified view — never
+   `DenotedItem` (kb/Work PB5335). The two differ exactly for the non-THROUGH alias: its identity is its own level-66
+   entry, which has no members, while its description is the renamed item's (GR1). The code generator and the run-time
+   activation descriptions (`Oo/ActivationDescriptions.cs`) ask only the description, and
+   `PlaceDenotedItemDriftTests.TheBackendAsksTheDescriptionNotTheIdentity` refuses a `DenotedItem` read there; a CALL
+   argument `66 GT-ALIAS RENAMES GT` over a table group used to state no length, atoms or description, so
+   EC-PROGRAM-ARG-MISMATCH could not compare it. The binder's attribute screens read it too (`MoveTable16.OperandItem` of
+   an operand is the place's `DescribedItem`).
 
 2. **`Place` is built from `StorageForm`, not re-inference.** `ReferenceResolver` selects the concrete place from the
    resolved item's `Storage`:

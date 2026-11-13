@@ -497,7 +497,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// a pointer or object reference, an index item, a group with no boundary image.</summary>
     private string? PlaceSending(Place p)
     {
-        if (SlotWindow.CarriedBySlot(p.Item) || p.DenotedItem is { Pic.Usage: Usage.Index }
+        if (SlotWindow.CarriedBySlot(p.Item) || p.DescribedItem is { Pic.Usage: Usage.Index }
             || HasNoBoundaryImage(p))
             return null;
         var op = new BoundFieldOperand(p);
@@ -525,7 +525,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         bool numeric = op switch
         {
             BoundNumericLiteral => true,
-            BoundFieldOperand f => f.Place.DenotedItem?.Pic?.Category is PicCategory.Numeric or PicCategory.NumericEdited,
+            BoundFieldOperand f => f.Place.DescribedItem?.Pic?.Category is PicCategory.Numeric or PicCategory.NumericEdited,
             _ => false,
         };
         if (!numeric) return RuntimeApi.MoveSendingNew(chars, image);
@@ -592,7 +592,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>⛔ THE DESCRIPTION a place's storage carries across the activation boundary, as the trailing
     /// <c>CobolArg</c> constructor arguments (kb/Work PB873 + PB965): an elementary NUMERIC item's whole
-    /// <c>NumProfile</c> (Place.DenotedItem — a reference-modified view denotes no item and is character storage;
+    /// <c>NumProfile</c> (Place.DescribedItem — a reference-modified view denotes no item and is character storage;
     /// a USAGE INDEX item's storage description has no digit positions for a profile to state), and a GROUP's
     /// §2023:8.5.1.12 atoms when it has a table or a variable-length member (<see cref="BoundaryAtoms"/> — the fact
     /// §2023:8.5.1.12.2's correspondence needs from each side, since the two sides are compiled apart). ONE
@@ -607,7 +607,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// <summary>The emitted <c>NumProfile</c> of an elementary NUMERIC place's storage, or null when it has none
     /// (see <see cref="PlaceDescription"/>) — the ONE place that decides which items state a numeric profile, for the
     /// activating element's <c>CobolArg</c> and the activated unit's registration alike (kb/Work PB1040).</summary>
-    private static string? BoundaryProfile(Place p, SignEncoding signEncoding) => BoundaryProfile(p.DenotedItem, signEncoding);
+    private static string? BoundaryProfile(Place p, SignEncoding signEncoding) => BoundaryProfile(p.DescribedItem, signEncoding);
 
     /// <summary>The emitted <c>NumProfile</c> storage of <paramref name="item"/>'s description states across the boundary,
     /// or null — the rule of <see cref="BoundaryProfile(Place, SignEncoding)"/>, for storage that is no place's: the .NET
@@ -644,7 +644,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// positional.</summary>
     internal string RegisteredFormal(Place p, bool describe, ActivationDescription? description) =>
         RegisteredBoundary(p, ctx.SignEncoding, describe ? ArgumentLength(p) : RuntimeApi.UnstatedBoundaryLength,
-            description, p.DenotedItem is { } formal ? FormalLanding(formal) : null)
+            description, p.DescribedItem is { } formal ? FormalLanding(formal) : null)
         ?? RuntimeApi.UnstatedBoundaryItem;
 
     /// <summary>The registered landing of <paramref name="formal"/> (<c>BoundaryItem.Landing</c>), or null when the crossing
@@ -717,7 +717,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// formal are both four long. A USAGE INDEX item, a pointer or object reference and a variable-length group state none
     /// (their conformance is another rule's); ONLY a RETURNING item's FIT uses <see cref="BoundaryLength"/> alone, because a
     /// native cell is not fitted.</summary>
-    internal static int ArgumentLength(Place p) => ArgumentLength(p.DenotedItem, CrossingOf(p));
+    internal static int ArgumentLength(Place p) => ArgumentLength(p.DescribedItem, CrossingOf(p));
 
     /// <summary>The rule of <see cref="ArgumentLength(Place)"/> for storage of <paramref name="item"/>'s description that
     /// crosses as <paramref name="crossing"/> — also the .NET host entry's detached storage, which is no place
@@ -737,7 +737,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // A redefinition or cell VIEW of a group is that group's storage and states its atoms like any other (the
         // group a CALL claims onto a cell is one — kb/Work PB2087); a reference-modified one denotes no item.
         // A bit / national group crosses as its ELEMENTARY value, which has no image layout (kb/Work PB1166).
-        p.DenotedItem is { IsAsIfElementary: false } item
+        p.DescribedItem is { IsAsIfElementary: false } item
         && VariableLengthCompatibility.GroupAtoms(item) is { } atoms
         && VariableLengthCompatibility.HasTableOrVariable(atoms)
             ? table.Ref(atoms)
@@ -791,7 +791,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // (one the binder already refused; a USAGE BIT run is one fixed atom since kb/Work PB2691) states no area: no
         // description could be shown to share its storage, so the formal holds a copy.
         if (view.Coding is VarGroupWindow g)
-            return view.DenotedItem is { } group && VariableLengthCompatibility.GroupAtoms(group) is { } atoms
+            return view.DescribedItem is { } group && VariableLengthCompatibility.GroupAtoms(group) is { } atoms
                 ? RuntimeApi.ArgArea(PlaceRenderer.RenderPath(cell, AccessDir.Sending), offset, PositionRenderer.Render(g.DynBase), table.Ref(atoms))
                 : null;
         return RuntimeApi.ArgArea(PlaceRenderer.RenderPath(cell, AccessDir.Sending), offset, extent: extent);
@@ -834,7 +834,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // A receiver whose values ride managed slots states its AREA, the storage §2023:14.6.5's delivery places the result
         // in (§2023:14.2.3 GR6 NOTE 1 — "the storage for the returning item is allocated in the activating source unit";
         // kb/Work PB1940): its references cannot cross as characters.
-        + $"{(rp.DenotedItem is { } g && ActivationCrossing.LeafCarried(g) ? AreaArgument(rp) : "")})";
+        + $"{(rp.DescribedItem is { } g && ActivationCrossing.LeafCarried(g) ? AreaArgument(rp) : "")})";
 
     /// <summary>⛔ THE FIXED CHARACTER LENGTH a place's text-carried storage has across the activation boundary
     /// (<see cref="CobolArg.Length"/>; kb/Work PB1040), <see cref="CobolArg.Unstated"/> when it has none. ONE
@@ -845,9 +845,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// managed slot and a variable-length group carry their own description. A DYNAMIC LENGTH item's length is a
     /// run-time value and an ANY LENGTH item takes the other side's (§2023:14.8.3.3 rules 4 and 5).</summary>
     internal static int BoundaryLength(Place p) =>
-        // DenotedItem is null for a reference-modified view, which is an alphanumeric slice with no item length of
+        // DescribedItem is null for a reference-modified view, which is an alphanumeric slice with no item length of
         // its own (§2023:8.4.3.3.4 GR5/GR6); the identity question is the model's, never re-derived here (kb/Work PB602).
-        BoundaryLength(p.DenotedItem, CrossingOf(p));
+        BoundaryLength(p.DescribedItem, CrossingOf(p));
 
     /// <summary>The rule of <see cref="BoundaryLength(Place)"/> for storage of <paramref name="item"/>'s description that
     /// crosses as <paramref name="crossing"/> (see <see cref="ArgumentLength(DataItem, CallCrossing)"/>).</summary>
@@ -900,7 +900,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // THE CARRIED DESCRIPTION (kb/Work PB873): the argument's WHOLE numeric profile — sign, sign
             // position and byte form, not just (digits, scale) — because a formal that sees this storage as
             // characters sees its representation (§2023:14.2.3 GR8 / GR9's first branch). Only an elementary NUMERIC
-            // item has one (Place.DenotedItem — a reference-modified view denotes no item and is character storage), and a USAGE INDEX item's storage
+            // item has one (Place.DescribedItem — a reference-modified view denotes no item and is character storage), and a USAGE INDEX item's storage
             // description has no digit positions for a profile to state.
             // ⛔ …and a GROUP's §2023:8.5.1.12 layout (kb/Work PB965) rides beside it: the one description a
             // variable-length group formal needs to meet a fixed-length group argument (§2023:14.8.2.2).
@@ -1504,10 +1504,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// <summary>True when an ELEMENTARY numeric place's storage is a character window holding its record image
     /// (an image-stored leaf, or a Tier-B REDEFINES view) — the numeric population of the <see cref="CallCrossing.Text"/>
     /// form, whose boundary image is its STORAGE (kb/Work PB970). ONE predicate for the read and the write half.
-    /// The identity question — is this reference the item itself, not a reference-modified view — is
-    /// <see cref="Place.DenotedItem"/>'s (kb/Work PB602).</summary>
+    /// The item whose description the reference has — none for a reference-modified view, the renamed item for a level-66
+    /// alias — is <see cref="Place.DescribedItem"/>'s (kb/Work PB602, PB5335).</summary>
     private static bool IsImageCarriedNumeric(Place p) =>
-        p.DenotedItem is { IsGroup: false, Pic.Category: PicCategory.Numeric } item
+        p.DescribedItem is { IsGroup: false, Pic.Category: PicCategory.Numeric } item
         && (item.StoreAsImage || p is RedefViewPlace);
 
     /// <summary>⛔ THE BY CONTENT READ of a character-image argument — <see cref="CallStringRead"/>, except that an
