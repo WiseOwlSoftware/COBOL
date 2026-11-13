@@ -27,7 +27,15 @@ is gone, a directory or a socket is skipped; a watcher `Error` fails the test. O
 (.NET's share modes are an advisory `flock` there), so the hostile half bites on Windows only, and the class remarks
 now say so.
 
-**Proved.** After the fix: 0 reds in 60 runs on Linux under the same load (4 copies at once, 32 busy workers). The pre-PB5447 generator passes the fixed test on Linux (1 run), as the advisory `flock` predicts. On Windows the fixed test passed against the
+**What shows it.** The proof is the mechanism: the cause was measured, and no assertion now depends on when a watcher
+event arrives. The counts are consistent with the fix and are not proof of it: after the fix, 0 reds in 60 runs on Linux
+under the same load (4 copies at once, 32 busy workers), but at the old rate of 1 in 40 the chance of 0 in 60 is
+(39/40)^60, about 0.22. The pre-PB5447 generator passes the fixed test on Linux (1 run), as the advisory `flock` predicts.
+Every way the holder's probe can fail to be taken (a watcher `Error`, a probe gone when its event is handled, a take that
+throws on its work item, the holder stopped first) ends the wait with its cause rather than hanging (review R1-1): a
+throwaway copy that raised `Error` through `FileSystemWatcher.OnError` failed in 77 ms with "the holder's probe was not
+taken: the watcher reported an error", and one whose take threw failed in 26 ms with "taking ...holder-probe threw".
+On Windows the fixed test passed against the
 current generator, and failed against the pre-PB5447 generator (`git show 2352eff5df:scripts/gen-grammar-diagrams.ps1`,
 swapped in uncommitted): `exited 1 while this test held every fresh file ... (held 23 file(s), skipped 2, watcher
 errors 0)`, `ReadAllText` of `ccf-<guid>\CobolWords.md` "being used by another process".
