@@ -494,7 +494,7 @@ public sealed class Frontend
             var streamSourceLines = new List<IToken>();
             misplacedDebuggingLines.Clear();
             if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines,
-                    debuggingSectionsAreComments: edition.Permissive || ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002)) is not { } sourceRegionLine)
+                    debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002)) is not { } sourceRegionLine)
             {
                 sourceDebuggingLines.AddRange(streamSourceLines);
                 break;

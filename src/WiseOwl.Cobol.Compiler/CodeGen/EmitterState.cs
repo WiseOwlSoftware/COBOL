@@ -118,14 +118,16 @@ internal sealed class DispatchState
     /// argument and sets it, so the PERFORM's first execution of the range is the explicit transfer it is and every later
     /// one is the implicit transfer from the control mechanism, which enters an independent segment in its last-used state
     /// (§1985:XVI.1.4.3, the last-used case (1); §1985:IV.4.4.2 GR1; kb/Work PB5380).</para></summary>
-    public string DispatchCall(PcRange range, string comment = "", string? lastUsedFlag = null) =>
-        range.IsEmpty
-            ? throw new InvalidOperationException(
+    public string DispatchCall(PcRange range, string comment = "", string? lastUsedFlag = null)
+    {
+        if (range.IsEmpty)
+            throw new InvalidOperationException(
                 $"internal: {DispatchName}{range} requested for an EMPTY procedure range — an empty specified "
-                + $"set of statements has no first statement to transfer to (ISO §2023:14.9.28.4 GR4/GR5)")
-            : lastUsedFlag is null
-                ? $"{DispatchName}({range.Start}, {range.End});{comment}"
-                : $"{DispatchName}({range.Start}, {range.End}, {lastUsedFlag}); {lastUsedFlag} = true;{comment}";
+                + $"set of statements has no first statement to transfer to (ISO §2023:14.9.28.4 GR4/GR5)");
+        string arg = lastUsedFlag is null ? "" : ", " + lastUsedFlag;
+        string mark = lastUsedFlag is null ? "" : $" {lastUsedFlag} = true;";
+        return $"{DispatchName}({range.Start}, {range.End}{arg});{mark}{comment}";
+    }
 
     /// <summary>Render the invocation of ONE selected declarative's use procedure — the single place a
     /// <see cref="BoundDeclarative"/> becomes a <c>__RunUse(id, start, end)</c> expression, for every selection

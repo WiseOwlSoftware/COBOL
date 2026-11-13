@@ -20,8 +20,8 @@ START PROGRAM once. The note's reading that GR9 also excludes `GO TO P1 OF S2` i
 D-DEBUG-PROCEDURE.
 
 **PB5291.** Without WITH DEBUGGING MODE a debugging section whose body was not COBOL syntax was refused by the parser. `DebuggingLineRewriter` (the
-one place the mode switch decides) now moves the tokens of a USE FOR DEBUGGING section to the absent channel for a unit with no mode, at 85 and under
---permissive, together with the DECLARATIVES header and END DECLARATIVES when the portion held nothing else. `m1i.cob` compiles and prints `P1 A`.
+one place the mode switch decides) now moves the tokens of a USE FOR DEBUGGING section to the absent channel for a unit with no mode, at 85 (a later edition
+recognizes the removed construct and says COBOL0902), together with the DECLARATIVES header and END DECLARATIVES when the portion held nothing else. `m1i.cob` compiles and prints `P1 A`.
 
 **PB5275, PB5276, PB5104.** A SORT or MERGE in a debugging section compiled: `EnclosingContext.InDeclarative` now includes a debugging section
 (`ProcedureTableBuilder.InDebuggingSection`; no `BoundDeclarative`, which would have joined the USE selection machinery). Two GIVING files of one SORT in

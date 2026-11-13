@@ -918,13 +918,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         statement.AddRange(usingFiles.Concat(givingFiles).Where(f => !ReferenceEquals(f, sd)).Distinct().ToList());
         string verb = merge ? "MERGE" : "SORT";
         bool held1985 = ctx.Edition.Edition.Year < 2002;
-        string rule = (merge, held1985) switch
-        {
-            (true, true) => "§1985:XI.4.1.3 SR8",
-            (true, false) => "ISO §2023:14.9.24.3 SR11",
-            (false, true) => "§1985:XI.4.4.3 SR9",
-            (false, false) => "ISO §2023:14.9.40.3 SR10",
-        };
+        string rule = merge ? "ISO §2023:14.9.24.3 SR11" : "ISO §2023:14.9.40.3 SR10";
         foreach (var clause in statement.SelectMany(f => f.SameClauses).Distinct())
         {
             var named = statement.Where(clause.Members.Contains).ToList();
@@ -945,8 +939,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 _ => null,
             };
             if (why is null) continue;
+            // the one arm whose rule is the 1985 text's alone: the 2023 sentence does not bar a record area (kb/Work PB5276)
+            string cited = clause.Kind == SameClauseKind.RecordArea && !merge ? "§1985:XI.4.4.3 SR9" : rule;
             ctx.Validation.RejectStatementOperand($"{verb} files {string.Join(", ", named.Select(f => $"'{f.CobolName}'"))} "
-                + $"are named in one SAME clause: {why} ({rule})");
+                + $"are named in one SAME clause: {why} ({cited})");
             return false;
         }
         return true;

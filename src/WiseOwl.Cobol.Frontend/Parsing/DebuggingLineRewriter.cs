@@ -27,8 +27,8 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// USE FOR DEBUGGING statements and all associated debugging sections are compiled as if they were comment lines", so a
 /// declarative section whose first sentence is a USE FOR DEBUGGING statement leaves the default channel with the rest of the
 /// unit's comment text — a body line that is not COBOL syntax, which a comment line may hold, never reaches the parser. Asked where
-/// the unit's mode is decided, only where the facility exists (<c>debuggingSectionsAreComments</c>: COBOL-85, and a later edition
-/// under --permissive), and when every section of a DECLARATIVES portion is one the portion's own header and END DECLARATIVES leave
+/// the unit's mode is decided, only where the facility exists (<c>debuggingSectionsAreComments</c>: COBOL-85; a later edition, under --permissive
+/// too, recognizes the section as the removed construct and says so, COBOL0902), and when every section of a DECLARATIVES portion is one the portion's own header and END DECLARATIVES leave
 /// with them, since the format admits no empty portion.</para>
 /// <para>A debugging line's tokens are those after its marker on the marker's own line; a fixed continuation line
 /// is joined to its line by the logical conversion (§2023:6.5 6)), so it is part of the line.</para>
