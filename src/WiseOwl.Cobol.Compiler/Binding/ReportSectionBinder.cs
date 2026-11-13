@@ -1647,6 +1647,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// …] [USAGE …]</c>) or format 3 (<c>PICTURE</c> in every row of its Table 1, SR11). An entry with no PICTURE clause and none of
     /// the clauses only format 3 prints is format 2.
     /// <list type="bullet">
+    /// <item>SR4 b — "Both format 2 and format 3 entries may be immediately subordinate to a format 1 entry", under SR4's "one,
+    /// two, or three hierarchic levels": a format 2 entry's parent is the format 1 entry (kb/Work PB5426).</item>
     /// <item>SR4 c — "At least one format 3 entry must be immediately subordinate to a format 2 entry."</item>
     /// <item>SR6 — "A format 2 entry must contain at least one optional clause": its data-name (SR2 calls the data-name a
     /// clause, SR7 says it is optional in format 2), a LINE NUMBER clause or a USAGE clause.</item>
@@ -1686,6 +1688,20 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (!hasName && !line && !usage)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a format 2 entry with no clause after its "
                     + "level-number; a format 2 entry must contain at least one optional clause (ISO §1985:XIII.3.9.3 SR6)");
+            // SR4 b — the levels: the entry a format 2 entry is immediately subordinate to is the group's format 1 entry, so a
+            // report group has at most three hierarchic levels (kb/Work PB5426). The nearest earlier entry of a lower level is
+            // that parent; a format 3 entry is elementary (SR4 d), so a parent below level 01 is a format 2 entry.
+            for (int j = self - 1; j >= 0; j--)
+            {
+                if (!int.TryParse(entries[j].levelNumber().GetText(), out int parentLevel)) break;
+                if (parentLevel >= level) continue;
+                if (parentLevel != 1)
+                    Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a format 2 entry immediately "
+                        + $"subordinate to the level {parentLevel:00} entry, which is not the group's format 1 entry; a description of "
+                        + "a report group may consist of one, two, or three hierarchic levels, and both format 2 and format 3 "
+                        + "entries may be immediately subordinate to a format 1 entry (ISO §1985:XIII.3.9.3 SR4 b)");
+                break;
+            }
             bool formatThreeChild = false;
             int childBound = int.MaxValue;
             for (int j = self + 1; j < entries.Length && !formatThreeChild; j++)
