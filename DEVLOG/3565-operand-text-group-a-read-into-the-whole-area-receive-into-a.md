@@ -1,4 +1,4 @@
-## Operand text group A: READ INTO the whole area, RECEIVE INTO a group at its maximum, INSPECT of a scaled item, SEND in standard data format, a numeric literal opposite a 1985 group
+## Entry 3565 — 2026-11-13 05:05 PST — Operand text group A: READ INTO the whole area, RECEIVE INTO a group at its maximum, INSPECT of a scaled item, SEND in standard data format, a numeric literal opposite a 1985 group
 
 Five open defects of the operand and image channels (PB5309, PB5377, PB5375, PB5378, PB5419), each re-probed on a fresh build first (every note reproduced), each fixed at its root, one golden each at --std 85.
 
@@ -17,3 +17,4 @@ Five open defects of the operand and image channels (PB5309, PB5377, PB5375, PB5
 **Rows.** Seven 1985 rows recorded CONFORMS in the 1985 store (`record_verdicts --edition 1985`, GAP 318 to 311): VII.3.8.4-12, XIV.3.5.4-3, -8, -9, VI.5.9.4-8, XIV.3.6.4-3, VI.6.3.1.1.2-2. The notes close no inventory row (the inventory has no 1985 rows, PB5094).
 
 **Review round 1 (finisher, wave 20262019 group D).** R1-1: a SIGNED binary or packed item was still measured and sent with a leading minus (`FormatDisplay`, BinaryMinus), digits plus one against a size of its digits, for the elementary item and inside a group. `CobolNum.FormatStandardData` now gives the digits with the sign fused onto the last (the S is not counted, §1985:VI.5.9.4 GR8d); `CobolStandardData.Image` uses it for the group's parts and the new `CobolStandardData.Characters` (through `RuntimeApi.StandardDataCharacters`, `CommunicationEmitter.SendingText`) for the elementary item. The SEND golden gained `BS` (S9(4) BINARY, -12) and a group `GS`: sizes 4 and 6 accepted, 5 and 7 refused (status 50); unit test `ASignedItemIsItsDigitsWithTheSignFusedOntoTheLast_NotACharacterMore`. R1-2: the PB5309 golden's citation is now `§1985:VI.5.8.4 GR3`, the rule that holds the quoted words (checked with `cite.py --check`). All four notes (PB5375, PB5377, PB5378, PB5419) re-probed on this build: their goldens' output equals the `.out` files.
+
