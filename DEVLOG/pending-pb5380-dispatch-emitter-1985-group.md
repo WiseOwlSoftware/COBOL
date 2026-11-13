@@ -35,3 +35,7 @@ refusals `pb5275-sort-merge-in-debugging-section`, `pb5276-sort-giving-same-reco
 `pb5104-return-of-file-no-sort-names-85`. Unit tests: four in `DebuggingLineRewriterTests`. Rows: none recorded (PB5094 keeps 1985 ids out of a note);
 all seven notes landed with `closes_rows: []` and a reason. Docs: CONFORMANCE D-DEBUG-PROCEDURE, D-DEBUG-COMMENT, D-SORT-RELEASE-RETURN-RANGE-85,
 D-SORT-GIVING-SAME-85, CONTROL_FLOW_DESIGN D4.
+
+### Review round 1 (PB5104)
+
+The reviewer found COBOL7081 refused legal COBOL-85: an alterable GO TO in a procedure range led only to its written target, so a paragraph reached through a GO TO that an ALTER outside the range had redirected counted as outside the range (§1985:XI.4.4.4 GR7). `ProcedureReach.Closure(followGoTo: true)` now follows an alterable GO TO to every destination any ALTER of it names, wherever the ALTER is written. Goldens added: `pb5104_release_return_through_goto_85` (RELEASE and RETURN reached only by GO TO, one through an ALTER before the SORT; prints BBB) and the refusal `pb5104-release-in-section-outside-every-procedure-85` (a RELEASE of a file a SORT does name, in a section no procedure reaches). The COBOL7081 catalog comment now names `GateReleaseReturnRange`.
