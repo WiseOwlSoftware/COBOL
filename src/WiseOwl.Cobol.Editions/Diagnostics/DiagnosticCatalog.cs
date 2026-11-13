@@ -9498,8 +9498,9 @@ public static class DiagnosticCatalog
         + "a lower level control than the associated control (§1985:XIII.3.19.3 SR4).",
         "ISO §2023:13.18.54.3 SR8; ISO §1985:XIII.3.19.3 SR4");
 
-    /// <summary>COBOL6825 — a SOURCE clause of a control footing, page heading, page footing or report footing report group
-    /// references a control data item or storage that shares it, at a dialect that forbids it (kb/Work PB5079). §1985:XIII.3.20.3
+    /// <summary>COBOL6825 — a SOURCE clause of a control footing, page heading, page footing or report footing report group, or
+    /// a statement of the USE BEFORE REPORTING procedure for one, references a control data item or storage that shares it, at a
+    /// dialect that forbids it (kb/Work PB5079, PB5424). §1985:XIII.3.20.3
     /// SR5: "In control footing, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE
     /// statements must not reference any of the following: a. Group data items containing a control data item. b. Data items
     /// subordinate to a control data item. c. A redefinition or renaming of any part of a control data item. In page heading
@@ -9508,9 +9509,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportSourceControlData = new(
         "COBOL6825", "report-source-control-data", EditionSeverity.Error,
         "§1985:XIII.3.20.3 SR5: in control footing, page heading, page footing and report footing report groups a SOURCE clause "
-        + "must not reference a group item containing a control data item, an item subordinate to one, or a redefinition or "
-        + "renaming of any part of one; in page heading and page footing report groups it must not reference a control "
-        + "data-name at all. (COBOL-2002 and later have no such restriction.)",
+        + "or an associated USE statement must not reference a group item containing a control data item, an item subordinate "
+        + "to one, or a redefinition or renaming of any part of one; in page heading and page footing report groups neither may "
+        + "reference a control data-name at all. (COBOL-2002 and later have no such restriction.)",
         "ISO §1985:XIII.3.20.3 SR5");
 
     /// <summary>COBOL6847 — two file control entries of one compilation group describe the same EXTERNAL file connector and
