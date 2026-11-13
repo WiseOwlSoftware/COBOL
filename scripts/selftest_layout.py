@@ -101,7 +101,6 @@ REMAINING: tuple[str, ...] = (
     "scripts/hooks/test_shell_location.py",
     "scripts/hooks/test_worktree_rm_allow.py",
     "scripts/hooks/tooling_check.py",
-    "scripts/inert_lane.py",
     "scripts/line_endings.py",
     "scripts/live_tools.py",
     "scripts/models/kept_liveness_model.py",

@@ -7,7 +7,6 @@ PB2878, PB4395; docs/rearchitecture/DESIGN-test-build-ci.md §3.18).
     python scripts/inert_lane.py watch [--root R] [--events F] -- <command …>   # Linux: run it, report any watched read
     python scripts/inert_lane.py check     # THE INERT LANE audit: every entry names a tracked path, every build step
                                            # and every compiler test that runs a script is CODE_READS
-    python scripts/inert_lane.py --self-test
 
 ⛔ WHY (owner 2026-10-09, on a one-change landing that edited a practices file and two briefs: "Should this require a
 full CI run? I would think not"). Measured over the 300 landings of 2026-10-16..23, 137 changed only files the CI
@@ -132,10 +131,9 @@ import struct
 import subprocess
 import sys
 import tempfile
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-import csharp_lexer  # THE one lexer of a C# source, shared with buildgraph.py (kb/Work PB5230 review R2-1)
 import selftest_layout  # this directory's: where a case file's subject is (kb/Work PB5428)
 from standard_streams import ensure_utf8
 
@@ -158,7 +156,7 @@ def under(path: str, entry: str) -> bool:
 #: compiler tests to (`markdown_readers`).
 MARKDOWN_ENTRY = "**/*.md"
 #: ⛔ THE LANES, cheapest first (module docstring): `inert` runs the audits; `tooling` the audits with the script
-#: self-tests; `full` (the code lane) the build and the gated whole populations beside the audits.
+#: self-tests; `full` (the code lane) the build and the three whole populations beside the audits.
 LANES = ("inert", "tooling", "full")
 #: The lanes whose gate runs no compiler test, so its record keeps no test result: no compiler test reads the change.
 TEST_FREE_LANES = frozenset({"inert", "tooling"})
@@ -187,7 +185,7 @@ class Lane:
 
     @property
     def builds(self) -> bool:
-        """The code lane: a build and the gated whole populations."""
+        """The code lane: a build and the three whole populations."""
         return self.name == "full"
 
 
@@ -221,9 +219,9 @@ class Classification:
 
     def is_population_input(self, path: str) -> bool:
         """Whether a compiler test or the build MAY read `path`: it is neither inert nor a tooling-lane path. THE ONE
-        DEFINITION of the code lane's paths (`classify`) and of `@population-inputs`, the declared inputs of the
-        repo-drift target (scripts/build_targets.json; kb/Work PB5218, PB5230): its pass stands for another tree exactly
-        when every such path, and the toolchain, are the same."""
+        DEFINITION of the code lane's paths (`classify`) and of the inputs of the Unit, Conformance and Characterization
+        populations (scripts/gate.py `Host.population_key`, kb/Work PB5205): a gate's population passes stand for another
+        tree exactly when every such path, and the toolchain, are the same."""
         return not self.is_inert(path) and not self.in_tooling_lane(path)
 
     def is_watched(self, path: str) -> bool:
@@ -363,12 +361,11 @@ CLASSIFICATION = Classification(inert={
     "specs/ANSI_COBOL_1985.md": "RecordClauseRuleDriftTests (the Since column's 1985 side, kb/Work PB5196)",  # spec_pdf: names-the-file
     # Every held edition's rule catalog (inventory-schema.json editions.of `catalog`): a pattern, so an edition that gains
     # a catalog is a READ path the day it lands (kb/Work PB4994's older-edition drift tests first read the 1985 one).
-    "docs/rearchitecture/spec-rule-catalog*.json": "RepoDrift's CatalogCoverageDriftTests and traceability-inventory drift "
-                                                   "tests (TraceabilityInventory.RowsOf and inventory_view.py --edition "
-                                                   "read every held edition's catalog), Unit's EcRaiseSiteDriftTests, "
-                                                   "and SuiteManifest's conformance-suite/harness/generate.py",
-    "docs/rearchitecture/architecture-edges.json": "RepoDrift's ArchitectureEdgesDriftTests and BackendContractDriftTests",
-    "docs/rearchitecture/evidence/arch-census/": "RepoDrift's ArchCensusDriftTests (CensusRecord)",
+    "docs/rearchitecture/spec-rule-catalog*.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests "
+                                                   "(TraceabilityInventory.RowsOf and inventory_view.py --edition read "
+                                                   "every held edition's catalog)",
+    "docs/rearchitecture/architecture-edges.json": "ArchitectureEdgesDriftTests",
+    "docs/rearchitecture/evidence/arch-census/": "ArchCensusDriftTests (CensusRecord)",
 }, tooling_under=("scripts/", ".github/", "tools/", ".claude/", ".gitattributes", "toolchain.env"),
    tooling_suffixes=(".py", ".ps1", ".sh"),
    # ⛔ TOOLING_READS: what the script self-tests read outside the scripts (module docstring), measured from the PASS store's
@@ -400,14 +397,12 @@ CLASSIFICATION = Classification(inert={
        "tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj": "scripts/linux-gate.sh",
-       "tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Unit/CarrierLandingFormTests.cs": "scripts/spec/audit_annex_a1.py",
        "tests/_shared/TestRepo.cs": "scripts/spec/drift_rules.py",
        "tests/_shared/SpecClauseText.cs": "scripts/spec/spec_headings.py",
        "tests/external/gnucobol-verdict-baseline.tsv": "scripts/corpus_sweep.py (the differential's committed cases)",
        "tests/nist/corpus.tsv": "scripts/guard-nist-audit.sh, guard-verify.sh, linux-gate.sh, "
                                 "scripts/orchestrator/test_orchestrate_account.ps1",
-       "tests/nist/normalization-cases.json": "scripts/guard-verify.sh (the acceptance basis's parity table, kb/Work PB5460)",
        "tests/version-matrix/": "the inventory and its schema: scripts/spec/audit_*.py, ledger_plan.py, "
                                 "scripts/orchestrator/land_lane.py, test_ledger_state.py, the rename audits and "
                                 "the eleven test_orchestrate_*.ps1 parts",
@@ -419,26 +414,19 @@ CLASSIFICATION = Classification(inert={
    code_reads={
        ".gitattributes": "every compiler test: the checkout's bytes (line endings) of every file it reads",
        "toolchain.env": "every compiler test and the build: the SDK they run on (the toolchain manifest, kb/Work PB4007)",
-       "scripts/spec/": "the spec extractors and audits a test runs or reads: RepoDrift's SpecTraceabilityInventoryDriftTests, "
-                      "AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, TrackedTreeScopeDriftTests, "
-                      "CatalogCoverageDriftTests and TestRepoDriftTests, and the modules SuiteManifest's generate.py "
-                      "imports (Unit, Conformance)",
-       "scripts/arch/": "RepoDrift's ArchCensusDriftTests (census.py) and ArchReviewFleetDriftTests (the R2 review workflow "
-                      "scripts)",
+       "scripts/spec/": "the spec extractors and audits a compiler test runs or reads (SpecTraceabilityInventoryDriftTests, "
+                      "AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, "
+                      "TrackedTreeScopeDriftTests, CatalogCoverageDriftTests, TestRepoDriftTests)",
+       "scripts/arch/": "ArchCensusDriftTests (census.py), ArchReviewFleetDriftTests (the R2 review workflow scripts)",
        "scripts/gen-reserved-words.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-cobol-words.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-constructs.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-diagnostics-doc.ps1": "a generator whose output a compiler drift test checks",
-       "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and RepoDrift's "
-                                          "VaultReferenceGeneratorDriftTests",
-       "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and RepoDrift's "
-                                           "GrammarDiagramGeneratorDriftTests",
+       "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and VaultReferenceGeneratorDriftTests",
+       "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and GrammarDiagramGeneratorDriftTests",
        "scripts/guard*.sh": "CorpusManifestTests, which LISTS scripts/ for every guard*.sh: a pattern, so a guard script "
                             "added later is the code lane too",
        "scripts/test_population.py": "every gate leg: it plans the population the compiler tests run",
-       "scripts/build_targets.json": "scripts/test_population.py (GATED_ASSEMBLIES, the gated assemblies' one statement) "
-                                     "and RepoDrift's GateLegDriftTests (the gated projects and the weights' assemblies, "
-                                     "kb/Work PB5230)",
        "scripts/filter_population.py": "its self-test reads the built test assemblies",
        # The modules the scripts above IMPORT (`code_readers`' import closure, kb/Work PB4395 review R2-1).
        "scripts/standard_streams.py": "imported at startup by every script a compiler test runs: conformance-suite/"
@@ -471,8 +459,7 @@ CLASSIFICATION = Classification(inert={
        ".claude/skills/workstream/templates/wf_r2_review.js": "scripts/arch/test_wf_r2_review.mjs, the workflow's dry "
                                                                "run ArchReviewFleetDriftTests runs",
        "tools/rr/rr.war": "scripts/gen-grammar-diagrams.ps1 (the build's Exec and GrammarDiagramGeneratorDriftTests)",
-       ".github/": "RepoDrift's CiArtifactDriftTests and ReadyToRunRuntimeDriftTests (every workflow and the results "
-                   "actions)",
+       ".github/": "CiArtifactDriftTests, ReadyToRunRuntimeDriftTests (every workflow and the results actions)",
    })
 
 
@@ -818,8 +805,136 @@ TESTS_MAY_NAME_MARKDOWN = {
     "DIAGNOSTICS.md": "the gitignored rendered view DiagnosticRegistryDriftTests WRITES when WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1 "
                       "(scripts/gen-diagnostics-doc.ps1); no test reads it",
 }
+STRING_START_RE = re.compile(r'[$@]*"{1,}')
 DOCS_WALK_RE = re.compile(r"\bTestRepo\s*\.\s*Docs\s*\(\s*\)")
 TREE_SCOPE_RE = re.compile(r"\bnew\s+TreeScope\s*\(|\bTreeScope\s+\w+\s*=\s*new\s*\(")
+
+
+def _blank(piece: str, fill: str) -> str:
+    """`piece` with every character but a newline replaced by `fill`, so an offset and a line keep their meaning."""
+    return re.sub(r"[^\n]", fill, piece)
+
+
+def csharp_parts(text: str) -> tuple[str, list[str]]:
+    """A C# source split into its CODE (every comment, preprocessor line and character literal blanked to spaces and every
+    string literal to underscores, so an offset and a line mean what they meant) and the VALUES of its string literals. A
+    string is regular, verbatim (`@"…"`), interpolated (`$"…"`, `$@"…"`) or raw (a run of three or more quotes, with any
+    number of leading `$`). An interpolated string's value is its text outside the holes; its holes are lexed as code in
+    their own right: their string literals are values too (they precede their string's own) and their code stays in the
+    CODE. A character literal's escape (an escaped quote, backslash or `\\u` sequence) is skipped before its closing quote
+    is sought."""
+    literals: list[str] = []
+    code, _ = _lex(text, 0, literals, 0)
+    return code, literals
+
+
+def _lex(text: str, i: int, literals: list[str], hole_close: int) -> tuple[str, int]:
+    """The CODE of `text` from `i`, appending the string values to `literals`: to the end of `text` (`hole_close` 0) or, inside
+    an interpolation hole, to the run of `hole_close` closing braces that ends it at bracket depth 0 (returned unconsumed).
+    A `:` at depth 0 in a hole starts its format string, which is text."""
+    code: list[str] = []
+    n = len(text)
+    depth = 0
+    while i < n:
+        ch = text[i]
+        pair = text[i:i + 2]
+        if hole_close and depth == 0 and text.startswith("}" * hole_close, i):
+            break
+        if hole_close and depth == 0 and ch == ":":
+            j = text.find("}" * hole_close, i)
+            j = n if j < 0 else j
+            code.append(_blank(text[i:j], " "))
+            i = j
+        elif pair == "//":
+            j = text.find("\n", i)
+            j = n if j < 0 else j
+            code.append(" " * (j - i))
+            i = j
+        elif pair == "/*":
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            code.append(_blank(text[i:j], " "))
+            i = j
+        elif ch == "#" and not text[text.rfind("\n", 0, i) + 1:i].strip():  # a preprocessor line may hold an apostrophe
+            j = text.find("\n", i)
+            j = n if j < 0 else j
+            code.append(" " * (j - i))
+            i = j
+        elif ch == "'":
+            j = i + 3 if text[i + 1:i + 2] == chr(92) else i + 1  # past the backslash and the escaped character
+            j = text.find("'", j)
+            j = n if j < 0 else j + 1
+            code.append(_blank(text[i:j], " "))
+            i = j
+        elif (m := STRING_START_RE.match(text, i)) is not None:
+            piece, i = _lex_string(text, i, m, literals)
+            code.append(piece)
+        else:
+            depth += ch in "([{"
+            depth -= ch in ")]}"
+            code.append(ch)
+            i += 1
+    return "".join(code), i
+
+
+def _lex_string(text: str, i: int, start: re.Match[str], literals: list[str]) -> tuple[str, int]:
+    """The string literal opening at `i` (`start` matched its opening): its CODE (underscores, but for the code of its
+    interpolation holes), appending its value to `literals`; and the offset after it."""
+    n = len(text)
+    prefix = start.group(0).rstrip('"')
+    quotes = len(start.group(0)) - len(prefix)
+    dollars = prefix.count("$")
+    verbatim = "@" in prefix
+    raw = quotes >= 3 and not verbatim
+    if quotes == 2 and not verbatim:  # the empty string
+        literals.append("")
+        return _blank(text[i:start.end()], "_"), start.end()
+    k = start.end() if (quotes == 1 or raw) else i + len(prefix) + 1
+    close_run = '"' * quotes
+    value: list[str] = []
+    code: list[str] = []
+    seg = i  # the start of the text not yet turned into CODE
+    while k < n:
+        c = text[k]
+        if raw and text.startswith(close_run, k):
+            break
+        if not raw and c == '"':
+            if verbatim and text[k + 1:k + 2] == '"':
+                value.append('"')
+                k += 2
+                continue
+            break
+        if dollars and c == "{":
+            run = len(text[k:]) - len(text[k:].lstrip("{"))
+            if not raw and text[k + 1:k + 2] == "{":  # `{{` is a brace of the text
+                value.append("{")
+                k += 2
+                continue
+            if raw and run < dollars:  # fewer braces than the string's dollars are text
+                value.append("{" * run)
+                k += run
+                continue
+            value.append("{" * (run - dollars if raw else 0))
+            hole_at = k + run
+            hole, end = _lex(text, hole_at, literals, dollars)
+            code.append(_blank(text[seg:hole_at], "_") + hole)
+            seg = end
+            k = min(end + dollars, n)
+            continue
+        if dollars and c == "}" and not raw and text[k + 1:k + 2] == "}":  # `}}` is a brace of the text
+            value.append("}")
+            k += 2
+            continue
+        if not raw and not verbatim and c == chr(92):
+            value.append(text[k + 1:k + 2])
+            k += 2
+            continue
+        value.append(c)
+        k += 1
+    j = n if k >= n else (k + quotes if raw else k + 1)
+    literals.append("".join(value))
+    code.append(_blank(text[seg:j], "_"))
+    return "".join(code), j
 
 
 def _balanced(code: str, open_at: int) -> str:
@@ -846,7 +961,7 @@ def markdown_readers(root: Path, paths: list[str], names_allowed: dict[str, str]
         if not (rel.startswith("tests/") and rel.endswith(".cs")):
             continue
         try:
-            code, literals = csharp_lexer.parts((root / rel).read_text(encoding="utf-8"))
+            code, literals = csharp_parts((root / rel).read_text(encoding="utf-8"))
         except OSError:
             continue
         for lit in literals:
@@ -989,395 +1104,7 @@ def watch(root: Path, command: list[str], events: Path | None, say=print, c: Cla
     return rc
 
 
-# ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────
-
-def wiring(root: Path) -> list[str]:
-    """⛔ ONE CLASSIFICATION DECIDES THE LANES, AND EVERY LINUX TEST RUN PROVES IT (kb/Work PB2878, PB4326, PB4395): the
-    WIRING a refactor of a workflow step or a gate script would silently drop, read from the real tree's scripts and
-    workflow (all tooling). A `dotnet test` step that loses its watch stops proving the classification, and a runner that
-    grows its own path list stops agreeing with the others (the CI invariant, kb/Work PB1957). Returns the findings."""
-    import ci_workflow  # noqa: PLC0415
-
-    def text(rel: str) -> str:
-        return (root / rel).read_text(encoding="utf-8").replace("\r\n", "\n")
-
-    bad: list[str] = []
-
-    def need(ok: bool, finding: str) -> None:
-        if not ok:
-            bad.append(finding)
-
-    jobs = {j.id: j for j in ci_workflow.jobs(text(".github/workflows/build-and-test.yml"))}
-    cls = "scripts/inert_lane.py"
-    changes = jobs["changes"].code
-    need(f"python3 {cls} classify --base" in changes, f"CI's `changes` job no longer decides the lane through {cls}")
-    need(not re.search(r"""grep -[A-Za-z]*E[A-Za-z]* "\$IGNORE"|IGNORE='|\^\((DEVLOG|docs|kb)/""", changes),
-         f"the `changes` job carries a path list of its own again; the lanes have ONE classification, {cls} (PB2878)")
-    steps = [(j.id, m.group(0).strip()) for j in jobs.values() if (j.value("runs-on") or "").startswith("ubuntu")
-             for m in re.finditer(r"^.*\bdotnet test tests/.*$", j.code, re.MULTILINE)]
-    need(len(steps) >= 4, f"found only {len(steps)} `dotnet test` step(s) in the Linux jobs: the scan is broken")
-    bad += [f"a Linux `dotnet test` step runs outside the watch, so a test that starts reading an inert or tooling-lane "
-            f"path is seen by no one (PB2878): {jid}: {line}" for jid, line in steps
-            if f"{cls} watch -- dotnet test" not in line]
-    linux_gate, driver, runner = text("scripts/linux-gate.sh"), text("scripts/gate.py"), text("scripts/self_tests.py")
-    need('inert_lane.py" classify' not in linux_gate, "the Linux gate classifies again (it classifies nothing, PB4327)")
-    need("scripts/inert_lane.py watch" in linux_gate, "the Linux gate's test legs no longer run under the watch")
-    need('export PYTHONPYCACHEPREFIX="$gate/$leg.pycache"' in linux_gate,
-         "the Linux gate's test legs no longer run with a fresh bytecode cache, so its watch misses a script served from "
-         "an earlier __pycache__ that CI's watch sees (PB4395 review R2-1)")
-    for want in ("import inert_lane", "inert_lane.CLASSIFICATION.classify(", "return self._inert(out, run, lane)",
-                 "return self._tooling(out, run, lane)", 'TOOLING_ONLY = ("SELF-TESTS",)',
-                 "if tooling or name not in TOOLING_ONLY", "self.host.audits(_no_slot, lines.append, tooling, change)",
-                 'self._beside(out, "audits", lambda: self._audits(out, lane.tooling))',
-                 'if out.tooling:\n            self._beside(out, "post_build_self_tests"'):
-        need(want in driver, f"scripts/gate.py no longer says `{want}`")
-    for lane in ("_inert", "_tooling"):
-        at = driver.find(f"    def {lane}(")
-        body = driver[at:driver.find("\n    def ", at + 1)] if at >= 0 else ""
-        need(bool(body) and "take_slot" not in body and "self.host.build(" not in body and "linux" not in body.lower(),
-             f"gate.py's {lane} lane takes a slot, builds or reaches Linux: it runs the audits and nothing else")
-    audits = jobs["audits"]
-    need("python3 scripts/self_tests.py" in audits.code, "CI's `audits` job no longer runs the Linux self-tests")
-    need(audits.value("if") == "github.event_name == 'merge_group' || needs.changes.outputs.run_matrix == 'true'",
-         f"CI's `audits` job's `if` changed: {audits.value('if')!r} (PB4330: every merge group, no pull request)")
-    need("pull_request" not in audits.code, "CI's `audits` job runs on a pull request again (PB4330)")
-    need(f"python3 {cls} check" in audits.code, "CI's `audits` job no longer runs THE INERT LANE audit (check)")
-    for want in ("reads_tooling: ${{ steps.decide.outputs.reads_tooling }}", "grep -qx 'reads_tooling=false'",
-                 "reads_tooling=true", 'echo "reads_tooling=$reads_tooling"'):
-        need(want in changes, f"CI's `changes` job no longer says `{want}` (the reads_tooling flag, PB4326, PB4409)")
-    need("outputs.tooling" not in changes and "grep -qx 'tooling=" not in changes,
-         "CI's `changes` job decides on the local gate's narrow `tooling=` flag: CI's self-tests run on `reads_tooling=` "
-         "(PB4409 review R1-1)")
-    need(jobs["windows-self-tests"].value("if")
-         == "needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.reads_tooling == 'true'",
-         "CI's `windows-self-tests` job no longer runs exactly when the change touches what a self-test reads "
-         "(`reads_tooling`, PB4409)")
-    need('print(f"reads_tooling={' in text("scripts/inert_lane.py"),
-         "inert_lane.py classify no longer prints the `reads_tooling=` line CI's `changes` job reads")
-    # The tooling flag is PROVED against what every self-test read (PB4326 R1-1), before its PASS is recorded; the one
-    # exemption is a DECLARED population, held to the trace.
-    for want in ("import inert_lane", "classification: inert_lane.Classification = inert_lane.CLASSIFICATION",
-                 "self.classification.unclassified_reads(", "if not test.population:",
-                 "if test.population and not whole:"):
-        need(want in runner, f"scripts/self_tests.py no longer says `{want}`")
-    need("if not whole:" not in runner, "scripts/self_tests.py exempts a whole-tree reader without its declaration")
-    need(runner.find("self.classification.unclassified_reads(") < runner.find("self.store.record(test.path"),
-         "scripts/self_tests.py records a PASS before the tooling flag's proof")
-    for rel in ("scripts/selftests/orchestrator/plan_wave/test_planner.py",):
-        need("# SELF-TEST-POPULATION: tree" in text(rel), f"{rel} no longer declares its population")
-    return bad
-
-
-def _refused(make: Callable[[], object]) -> bool:
-    try:
-        make()
-    except ValueError:
-        return True
-    return False
-
-
-def self_test() -> int:
-    failures: list[str] = []
-
-    def expect(label: str, got, want) -> None:
-        ok = got == want
-        print(f"  {'ok  ' if ok else 'FAIL'} {label}" + ("" if ok else f": got {got!r}, want {want!r}"))
-        if not ok:
-            failures.append(label)
-
-    real = CLASSIFICATION
-    expect("the classification (kb/Work PB4453): a DEVLOG entry, a note of the knowledge base (the register included), the "
-           "documentation tree, a brief, a skill, a README and every other Markdown file are inert, wherever they lie; code, "
-           "tests, the skills pin, a name that only starts like an inert directory, the ISO text (a READ entry) and the "
-           "data files a compiler test reads under docs/ are not",
-           [real.is_inert(p) for p in ("DEVLOG/2428-x.md", "kb/Work/PB1.md", "kb/Compiler/Pipeline.md", "docs/CONFORMANCE.md",
-                                        ".claude/skills/x/SKILL.md", "CLAUDE.md", "src/WiseOwl.Cobol.Runtime/README.md",
-                                        "docs/rearchitecture/evidence/x.json", "docs/manual/user-guide/files.md",
-                                        "src/a.cs", "tests/b.cs", "tools/claude-skills", "DEVLOG", "DEVLOGX/a.cs", "kb",
-                                        "kbx/a.cs", "specs/ISO_COBOL_2023.md", "docs/rearchitecture/spec-rule-catalog.json",  # spec_pdf: names-the-file
-                                        "docs/rearchitecture/architecture-edges.json",
-                                        "docs/rearchitecture/evidence/arch-census/a.json")],
-           [True] * 9 + [False] * 11)
-    expect("a `**/` entry is a pattern over a file NAME at any depth, case-insensitively, and never a longer name",
-           [under(p, MARKDOWN_ENTRY) for p in ("a.md", "d/e/f.md", "d/E.MD", "d/e.mdx", "d/e.md/x", "d/md", MARKDOWN_ENTRY)],
-           [True, True, True, False, False, False, True])
-    # The mechanics, on a planted classification with a READ entry.
-    c = Classification(inert={"DEVLOG/": "", "kb/": "", "tools/pin": ""}, read={"kb/Work/": ""})
-    expect("a path under an INERT entry is inert; under a READ entry it is not, nor its directory",
-           [c.is_inert("DEVLOG/a.md"), c.is_inert("kb/Spec/x.md"), c.is_inert("kb/Workshop.md"),
-            c.is_inert("kb/Work/PB1.md"), c.is_inert("kb/Work/")], [True, True, True, False, False])
-    expect("an exact-path entry covers that path and below it, never a sibling with a longer name",
-           [c.is_inert("tools/pin"), c.is_inert("tools/pin/x"), c.is_inert("tools/pin-x")], [True, True, False])
-    expect("an empty change is the full lane", c.classify([]).inert, False)
-    expect("an all-inert change is the inert lane", c.classify(["DEVLOG/pending-x.md", "kb/Spec/y.md"]).name, "inert")
-    expect("one path a test may read makes the change full", c.classify(["DEVLOG/a.md", "kb/Work/PB1.md"]).name, "full")
-    # The tooling flag (PB4326), on the real classification.
-    expect("tooling: scripts, workflows, tools, the agent definitions, the two root files the self-tests read, any "
-           "Python, PowerShell or shell file anywhere, and the data the self-tests read (TOOLING_READS: the test helper "
-           "TestRepo.cs, the grammar, the agent-fleet settings, the inventory) are tooling; code, tests, the documents (inert "
-           "since kb/Work PB4453, so no script self-test is bound to one) and a name that only starts like a tooling "
-           "directory or a read file are not",
-           [real.is_tooling(p) for p in ("scripts/gate_slot.py", ".github/workflows/build-and-test.yml", "tools/claude-skills",
-                                         ".claude/agents/x.md", ".gitattributes", "toolchain.env", "conformance-suite/harness/x.py",
-                                         "tests/x/run.sh", "tests/_shared/TestRepo.cs",
-                                         "src/WiseOwl.Cobol.Frontend/Grammar/Core/Data.g4", ".agent-fleet.json",
-                                         "tests/version-matrix/inventory/GR-4.4-1.json",
-                                         "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin",
-                                         "docs/CONFORMANCE.md", "docs/DESIGN.md", "docs/REARCHITECTURE_PLAN.md",
-                                         "src/a.cs", "tests/b.cs", "docs/DOC_INDEX.md", "scriptsx/a.md", "toolchain.env.bak",
-                                         "tests/_shared/TestRepoX.cs", ".agent-fleet.json.bak", "tests/_shared/Other.cs")],
-           [True] * 13 + [False] * 11)
-    expect("a full-lane change that touches a SCRIPT says so, one that does not says so, and an inert one never does; "
-           "a compiler change to only a file a script self-test reads (TestRepo.cs) runs no script "
-           "self-test (owner 2026-11-01)",
-           [real.classify(["src/a.cs", "scripts/x.py"]).tooling, real.classify(["src/a.cs", "docs/x.md"]).tooling,
-            real.classify(["kb/x.py", "DEVLOG/a.md"]).tooling, real.classify(["kb/x.py", "DEVLOG/a.md"]).inert,
-            real.classify(["tests/_shared/TestRepo.cs"]).tooling, real.classify(["src/a.cs", "tests/b.cs"]).tooling,
-            real.classify(["src/a.cs", "docs/CONFORMANCE.md"]).tooling],
-           [True, False, False, True, False, False, False])
-    tc = Classification(inert={"kb/": ""}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
-                        tooling_reads={"data/a.json": "x", "lib/": "y"})
-    expect("the proof of the flag: of what a self-test read, the paths neither tooling, nor a TOOLING_READS entry, nor "
-           "inert are named, a directory read by git too; a directory listing and the whole tree are not judged",
-           tc.unclassified_reads(["scripts/a.py", "data/a.json", "lib/x/y", "kb/Work/PB1.md", "docs/z.md", "src/q.cs"],
-                                 ["paths:lib", "paths:other", "content:kb/Work", "entries:docs", "content:", "paths:"]),
-           ["docs/z.md", "other/", "src/q.cs"])
-    expect("the proof of the flag finds nothing in what a self-test read when every path is classified",
-           tc.unclassified_reads(["scripts/a.py", "data/a.json"], ["paths:scripts", "content:lib"]), [])
-    expect("THE TWO FLAGS (owner 2026-11-01, kb/Work PB4409; the documents inert since kb/Work PB4453): a compiler change to a "
-           "file a script self-test reads (TestRepo.cs) sets `reads_tooling` (CI's Windows self-tests) and never `tooling` "
-           "(the local gate's); a script sets both; plain code, a document beside code and an inert change set neither; a "
-           "document alone, however many a self-test reads, is the inert lane (the audits run, no test does)",
-           [(real.classify(p).name, real.classify(p).tooling, real.classify(p).reads_tooling) for p in
-            (["tests/_shared/TestRepo.cs"], ["src/a.cs", "scripts/x.py"], ["src/a.cs", "tests/b.cs"],
-             ["src/a.cs", "docs/CONFORMANCE.md"], ["docs/CONFORMANCE.md"], ["docs/REARCHITECTURE_PLAN.md", "README.md"],
-             ["DEVLOG/a.md"], ["specs/ISO_COBOL_2023.md"], ["docs/rearchitecture/spec-rule-catalog.json"])],  # spec_pdf: names-the-file
-           [("full", False, True), ("full", True, True), ("full", False, False), ("full", False, False), ("inert", False, False),
-            ("inert", False, False), ("inert", False, False), ("full", False, True), ("full", False, True)])
-    expect("an empty change touches tooling and what a self-test reads: nothing proves it does not",
-           (real.classify([]).tooling, real.classify([]).reads_tooling), (True, True))
-    expect("a lane whose `tooling` is set without `reads_tooling`, an inert lane that reads tooling, and a tooling lane "
-           "without the flag are refused",
-           [_refused(lambda: Lane("full", "x", tooling=True, reads_tooling=False)),
-            _refused(lambda: Lane("inert", "x", tooling=False, reads_tooling=True)),
-            _refused(lambda: Lane("tooling", "x", tooling=False, reads_tooling=True)),
-            _refused(lambda: Lane("full", "x", tooling=False, reads_tooling=True))],
-           [True, True, True, False])
-    # THE TOOLING LANE (kb/Work PB4395), on a planted classification: scripts/ and .github/ are tooling trees, one script
-    # and one workflow are CODE_READS, and a .py file elsewhere is tooling by its suffix but in a compiler tree.
-    tl = Classification(inert={"DEVLOG/": "", "kb/": ""}, tooling_under=("scripts/", ".github/", "toolchain.env"),
-                        tooling_suffixes=(".py",), tooling_reads={"docs/CONFORMANCE.md": "x"},
-                        code_reads={"scripts/gen.ps1": "the build", "toolchain.env": "every test", "scripts/spec/": "y"})
-    expect("a change to tooling no compiler test reads is the tooling lane, inert paths beside it included; the lane "
-           "runs the self-tests and no build",
-           [(lane.name, lane.tooling, lane.builds) for lane in
-            (tl.classify(["scripts/steer.ps1"]), tl.classify(["scripts/a.py", ".github/w.yml", "DEVLOG/x.md", "kb/W/P.md"]))],
-           [("tooling", True, False)] * 2)
-    expect("a CODE_READS path, a directory entry's path, a script file outside the tooling trees, a TOOLING_READS data "
-           "file and any code path each make the change the full lane; the tooling flag is set by a changed script only, "
-           "never by a TOOLING_READS data file (owner 2026-11-01: a compiler change runs no script self-tests)",
-           [(tl.classify(p).name, tl.classify(p).tooling) for p in
-            (["scripts/gen.ps1"], ["scripts/spec/cite.py", "scripts/a.py"], ["toolchain.env"],
-             ["conformance-suite/harness/run.py"], ["docs/CONFORMANCE.md"], ["scripts/a.py", "src/a.cs"])],
-           [("full", True)] * 4 + [("full", False), ("full", True)])
-    expect("an exact CODE_READS entry covers that path, never a sibling with a longer name",
-           [tl.in_tooling_lane(p) for p in ("scripts/gen.ps1", "scripts/gen.ps1x", "scripts/specx/a.py")],
-           [False, True, True])
-    expect("the watch reports an inert path and a tooling-lane path, never a CODE_READS one or code",
-           [tl.is_watched(p) for p in ("DEVLOG/a.md", "scripts/a.py", "scripts/gen.ps1", "scripts/spec/x.py",
-                                       "src/a.cs", "docs/CONFORMANCE.md")],
-           [True, True, False, False, False, False])
-    expect("a LISTING (a directory) is reported when every name it can list is watched: an inert directory and a "
-           "tooling-lane one that holds no CODE_READS entry; never one that holds one (scripts/, which the import system "
-           "lists to resolve a CODE_READS module: kb/Work PB4395 review R2-1), a CODE_READS directory, or code",
-           [tl.is_watched(p) for p in ("DEVLOG/", "kb/W/", "scripts/orch/", "scripts/", "scripts/spec/", "scripts/spec/x/",
-                                       "src/")],
-           [True, True, True, False, False, False, False])
-    expect("a LISTING PATTERN entry covers every path it matches, a file added later and the pattern itself included, "
-           "case-insensitively within its one directory",
-           [under(p, "scripts/guard*.sh") for p in ("scripts/guard-a.sh", "scripts/guard-new.sh", "scripts/Guard-B.sh",
-                                                     "scripts/guard*.sh", "scripts/sub/guard-a.sh", "scripts/guard-a.py",
-                                                     "scripts/xguard.sh")],
-           [True, True, True, True, False, False, False])
-    expect("a lane is one of the three, and the tooling lane always runs the self-tests while the inert one never does",
-           [_refused(lambda n=n, t=t: Lane(n, "", tooling=t, reads_tooling=t)) for n, t in
-            (("inert", True), ("tooling", False), ("code", True), ("full", False))], [True, True, True, False])
-    expect("the lanes whose gate runs no compiler test", sorted(TEST_FREE_LANES), ["inert", "tooling"])
-    expect("THE WIRING (the real tree): CI's changes job and the gate decide through this classification and carry no "
-           "path list; every Linux dotnet test step and the Linux gate's legs run under the watch; the gate's inert and "
-           "tooling lanes take no slot and build nothing; CI's audits job runs the self-tests and the check; the tooling "
-           "flag reaches windows-self-tests and the gate; self_tests.py proves the flag before it records a PASS",
-           wiring(REPO), [])
-    expect("the data the self-tests are known to read are TOOLING_READS entries (PB4326 R1-1, R2-1)",
-           [e for e in ("tests/_shared/TestRepo.cs", "src/WiseOwl.Cobol.Frontend/Grammar/", ".agent-fleet.json",
-                        "tests/version-matrix/",
-                        "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin") if e not in real.tooling_reads], [])
-    expect("the real classification: the build's and the compiler tests' tooling is CODE_READS (.gitattributes, "
-           "toolchain.env, the generators under scripts/), while a tool no compiler test names is the tooling lane "
-           "(PB4395's acceptance: scripts/orchestrator/steer.ps1, which no CODE_READS entry may swallow again)",
-           [real.classify([p]).name for p in (".gitattributes", "toolchain.env", "scripts/gen-reserved-words.ps1",
-                                              "scripts/gen-grammar-diagrams.ps1", "scripts/standard_streams.py",
-                                              "scripts/guard-a-new-guard.sh", "tools/a-new-tool.py",
-                                              "scripts/orchestrator/steer.ps1")],
-           ["full", "full", "full", "full", "full", "full", "tooling", "tooling"])
-    # THE PIN THAT NO COMPILER TEST OPENS A MARKDOWN FILE (kb/Work PB4453), on planted test sources.
-    # The lexer's own arms are scripts/selftests/csharp_lexer/test_lexer.py (the one lexer, scripts/csharp_lexer.py).
-    with tempfile.TemporaryDirectory() as td:
-        planted = {
-            "tests/T1.cs": 'class T1 { string a = File.ReadAllText(TestRepo.At("README.md")); }\n',
-            "tests/T2.cs": 'class T2 { string a = TestRepo.Docs(); string b = TestRepo.Docs("rearchitecture", "a.json"); }\n',
-            "tests/T3.cs": 'class T3 { static readonly TreeScope A = new(Under: ["src/"]);\n'
-                           '  static readonly TreeScope B = new(Under: ["src/", "tests/"],\n    Kinds: [".cs"]); }\n',
-            "tests/T4.cs": 'class T4 { string a = TestRepo.Specs("ISO_COBOL_2023.md"); /* TestRepo.At("c.md") */ // "d.md"\n'
-                           '  string m = "see docs/CONFORMANCE.md rows"; }\n',
-            "src/Program.cs": 'class P { string a = "README.md"; }\n',
-        }
-        for rel, body in planted.items():
-            (Path(td) / rel).parent.mkdir(parents=True, exist_ok=True)
-            (Path(td) / rel).write_text(body, encoding="utf-8", newline="\n")
-        found = markdown_readers(Path(td), sorted(planted), {"ISO_COBOL_2023.md": "the oracle"})
-        expect("markdown_readers: a Markdown path a test spells, a docs walk and a TreeScope with no Kinds are each one "
-               "finding; an allowed name, a comment, a message that merely mentions a Markdown file and a non-test file are none",
-               sorted(f.split(" ", 1)[0] for f in found), ["tests/T1.cs", "tests/T2.cs", "tests/T3.cs"])
-        expect("markdown_readers: an allowed name no test spells any more is stale",
-               [f for f in markdown_readers(Path(td), ["tests/T3.cs"], {"GONE.md": "why"})
-                if "none spells it any more" in f], ["the Markdown name 'GONE.md' is allowed to a compiler test and none spells "
-                                                     "it any more: remove it"])
-    from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415
-
-    root = scratch_dir("inert-lane-")
-    repo = ScratchRepo.init(root)
-    repo.commit("base", {rel: rel + "\n" for rel in ("src/a.cs", "DEVLOG/0001-x.md", "kb/Work/PB1.md", "kb/Spec/s.md")})
-    base = repo.git("rev-parse", "HEAD")
-    repo.git("mv", "src/a.cs", "DEVLOG/a.cs")
-    repo.commit("rename")
-    expect("a code file renamed INTO an inert directory shows both names, so the change is full",
-           (sorted(changed(root, base)), c.classify(changed(root, base)).name),
-           (["DEVLOG/a.cs", "src/a.cs"], "full"))
-    expect("the watch covers the directory of every inert tracked file, none above them, the READ ones excluded",
-           c.watch_dirs(root), ["DEVLOG", "kb/Spec"])
-    expect("check: an entry naming no tracked path is stale, and so is a READ entry under no INERT one",
-           len(Classification(inert={"DEVLOG/": "", "gone/": ""}, read={"elsewhere/": ""}).check(root)), 3)
-    # The static twin of the tooling lane's watch (`code_readers`), on a planted tree: a csproj Exec of a script through
-    # a property, a compiler test naming a script and a directory through TestRepo (and one through a computed name,
-    # which only the watch can see), and a script whose self-test needs a build.
-    repo.commit("tooling", {
-        "src/P/P.csproj": "<Project><PropertyGroup><Gen>Gen.ps1</Gen></PropertyGroup><Target Name=\"G\">"
-                          "<Exec Command=\"pwsh -File &quot;$(MSBuildProjectDirectory)/../../scripts/$(Gen)&quot;\" />"
-                          "</Target></Project>\n",
-        "scripts/Gen.ps1": "x\n", "scripts/a.py": "x\n", "scripts/spec/b.py": "x\n", "scripts/free.py": "x\n",
-        "scripts/built.py": "#!/usr/bin/env python3\n# SELF-TEST-NEEDS: build — reads the built assemblies\n"
-                            "import argparse\nargparse.ArgumentParser().add_argument('--self-test')\n",
-        "tests/T.cs": "class T { string a = File.ReadAllText(TestRepo.Scripts(\"a.py\")); string d = TestRepo.Scripts(\"spec\");\n"
-                      "  // TestRepo.Scripts(\"free.py\") in a comment reads nothing\n"
-                      "  string e = TestRepo.Scripts(name); }\n"})
-    tc2 = Classification(inert={"DEVLOG/": "", "kb/": ""}, tooling_under=("scripts/",))
-    expect("code_readers: the build's Exec (its property resolved), a test's literal TestRepo names (a directory is every "
-           "path below it), the build-needing self-test; never a comment or a computed name",
-           sorted(p for p, _ in code_readers(root, tracked(root), tc2.tooling_under)),
-           ["scripts/Gen.ps1", "scripts/a.py", "scripts/built.py", "scripts/spec/b.py"])
-    expect("check: each tooling path the build or a compiler test reads must lie under a CODE_READS entry; with them "
-           "it is clean, and a CODE_READS entry outside the tooling trees is refused",
-           (len(tc2.check(root)),
-            Classification(inert={"DEVLOG/": "", "kb/": ""}, tooling_under=("scripts/",), code_reads={
-                "scripts/Gen.ps1": "", "scripts/a.py": "", "scripts/built.py": "", "scripts/spec/": "",
-                "src/P/": ""}).check(root)),
-           (4, ["the CODE_READS entry 'src/P/' lies in no tooling tree (TOOLING_UNDER), so it changes no lane: remove it"]))
-    # A listing by a literal pattern reads what it matches (PB4395 review R1-1: CorpusManifestTests lists the top-level
-    # scripts/guard*.sh): never a sibling the pattern misses, never a subdirectory without AllDirectories.
-    repo.commit("listings", {
-        "scripts/guard-a.sh": "x\n", "scripts/Guard-B.sh": "x\n", "scripts/other.sh": "x\n", "scripts/sub/guard-c.sh": "x\n",
-        "scripts/deep/x.py": "x\n", "scripts/deep/y/z.py": "x\n", "scripts/deep/y/z.sh": "x\n",
-        "tests/L.cs": "class L { void M() {\n"
-                      "  foreach (var f in Directory.EnumerateFiles(TestRepo.Scripts(), \"guard*.sh\").Order()) { }\n"
-                      "  var d = Directory.GetFiles(TestRepo.Scripts(\"deep\"), \"*.py\", SearchOption.AllDirectories);\n"
-                      "  var t = Directory.EnumerateFiles(TestRepo.Scripts(\"deep\"), \"?.sh\", SearchOption.TopDirectoryOnly); } }\n"})
-    expect("code_readers: a literal listing reads the files its pattern matches in that directory, or below it with "
-           "AllDirectories, and a one-directory listing its pattern too (a file added later); the directory's other "
-           "files and subdirectories are not read",
-           sorted(p for p, r in code_readers(root, tracked(root), tc2.tooling_under) if r == "tests/L.cs"),
-           ["scripts/Guard-B.sh", "scripts/deep/?.sh", "scripts/deep/x.py", "scripts/deep/y/z.py", "scripts/guard*.sh",
-            "scripts/guard-a.sh"])
-    # THE IMPORT CLOSURE (kb/Work PB4395 review R2-1): a script a compiler test runs is read with every module it
-    # imports, through the sys.path edits of the chain. A harness outside the tooling trees appends scripts/ and imports
-    # a module there; a script inserts its lib/ and imports a module there, which imports a package's module lazily.
-    repo.commit("imports", {
-        "suite/h.py": "import os, sys\nsys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', "
-                      "'scripts'))\nfrom streams import ensure\n",
-        "scripts/streams.py": "X = 1\n",
-        "scripts/run.py": "import sys\nfrom pathlib import Path\nHERE = Path(__file__).resolve().parent\n"
-                          "sys.path.insert(0, str(HERE / 'lib'))\nimport helper\n",
-        "scripts/lib/helper.py": "def f():\n    from pkg import mod\n",
-        "scripts/lib/pkg/__init__.py": "", "scripts/lib/pkg/mod.py": "Y = 2\n", "scripts/lib/unused.py": "Z = 3\n",
-        "scripts/dir/x.py": "import sys\nfrom pathlib import Path\n"
-                            "sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'lib'))\nimport unused\n",
-        "tests/I.cs": "class I { string h = TestRepo.At(\"suite\", \"h.py\"); string r = TestRepo.Scripts(\"run.py\");\n"
-                      "  string d = TestRepo.Scripts(\"dir\"); }\n"})
-    imported = sorted(p for p, r in code_readers(root, tracked(root), tc2.tooling_under) if r.startswith("tests/I.cs"))
-    expect("code_readers: the import closure of every script a test names reads each module it imports, through the "
-           "harness's appended scripts/, a script's inserted lib/, a lazy import and a package; a module nobody imports "
-           "and the imports of a script under a directory the test only names are not read",
-           imported, ["scripts/dir/x.py", "scripts/lib/helper.py", "scripts/lib/pkg/__init__.py",
-                      "scripts/lib/pkg/mod.py", "scripts/run.py", "scripts/streams.py"])
-    expect("check: an imported module is required to be CODE_READS, naming the importer",
-           [b for b in tc2.check(root) if "reads scripts/streams.py" in b and "through suite/h.py" in b] != [], True)
-    # A CASE FILE'S CLOSURE (kb/Work PB5428, DESIGN-orchestrator-loop.md section 16.2): `selftest_cases.subject(__file__)`
-    # is an import of the case file's subject, and `import selftest_cases` resolves against scripts/, as the runner's
-    # PYTHONPATH makes it; the subject's own sibling import is read through it.
-    repo.commit("case files", {
-        "scripts/selftest_cases.py": "X = 1\n",
-        "scripts/lib/tool.py": "import sibling\n", "scripts/lib/sibling.py": "Y = 1\n", "scripts/lib/other.py": "Z = 1\n",
-        "scripts/selftests/lib/tool/test_w.py": "import selftest_cases\nsubject = selftest_cases.subject(__file__)\n",
-        "tests/J.cs": "class J { string c = TestRepo.Scripts(\"selftests/lib/tool/test_w.py\"); }\n"})
-    expect("code_readers: a case file under a selftests/ tree reads its subject and everything the subject imports, and "
-           "the collector it imports from scripts/; a module of the subject's directory nobody imports is not read",
-           sorted(p for p, r in code_readers(root, tracked(root), tc2.tooling_under) if r.startswith("tests/J.cs")),
-           ["scripts/lib/sibling.py", "scripts/lib/tool.py", "scripts/selftest_cases.py",
-            "scripts/selftests/lib/tool/test_w.py"])
-    if sys.platform.startswith("linux"):
-        py = [sys.executable, "-c"]
-        out: list[str] = []
-        expect("a command that reads an inert file is RED, naming it",
-               (watch(root, py + [f"open({str(root / 'DEVLOG' / '0001-x.md')!r}).read()"], None, out.append, c) != 0,
-                any("opened: DEVLOG/0001-x.md" in s for s in out)), (True, True))
-        out.clear()
-        expect("a command that LISTS an inert directory is RED",
-               (watch(root, py + [f"import os; os.listdir({str(root / 'kb' / 'Spec')!r})"], None, out.append, c) != 0,
-                any("opened: kb/Spec/" in s for s in out)), (True, True))
-        out.clear()
-        events = root / "events.txt"
-        expect("a command that reads only a READ path and code is GREEN, keeps its own exit code, and leaves an "
-               "empty events file",
-               (watch(root, py + [f"open({str(root / 'kb' / 'Work' / 'PB1.md')!r}).read(); raise SystemExit(3)"],
-                      events, out.append, c), events.read_text(encoding="utf-8")), (3, ""))
-        out.clear()
-        tw = Classification(inert={"DEVLOG/": ""}, tooling_under=("scripts/",), code_reads={"scripts/a.py": "x"})
-        repo.commit("a module", {"scripts/mod.py": "X = 1\n"})
-        imp = py + [f"import sys; sys.path.insert(0, {str(root / 'scripts')!r}); import mod"]
-        subprocess.run(imp, check=True)  # leaves scripts/__pycache__/mod.*.pyc: the watched run must open the source anyway
-        expect("a command that imports a tooling-lane module is RED naming it, though a bytecode cache of it exists; one "
-               "that reads only a CODE_READS script is GREEN (kb/Work PB4395)",
-               (watch(root, imp, None, out.append, tw) != 0, any("opened: scripts/mod.py" in s for s in out),
-                watch(root, py + [f"open({str(root / 'scripts' / 'a.py')!r}).read()"], None, out.append, tw)),
-               (True, True, 0))
-        out.clear()
-        tm = Classification(inert={"DEVLOG/": ""}, tooling_under=("scripts/",), code_reads={"scripts/mod.py": "x"})
-        app = py + [f"import sys; sys.path.append({str(root / 'scripts')!r}); import mod"]
-        expect("the import system's LISTING of a directory that holds a CODE_READS module is GREEN when the module it "
-               "imports is CODE_READS (kb/Work PB4395 review R2-1: scripts/ for scripts/standard_streams.py); a listing "
-               "of a directory that holds none is RED, naming it",
-               (watch(root, app, None, out.append, tm),
-                watch(root, py + [f"import os; os.listdir({str(root / 'scripts' / 'deep')!r})"], None, out.append, tm) != 0,
-                any("opened: scripts/deep/" in s for s in out)), (0, True, True))
-    else:
-        print(f"  skip the inotify arms: this host is {sys.platform} (they run in CI's audits job and the Linux gate)")
-    print(f"=== INERT LANE SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
-    return 1 if failures else 0
-
-
 def main(argv: list[str]) -> int:
-    if argv[:1] == ["--self-test"]:
-        return self_test()
     command: list[str] = []
     if "--" in argv:
         i = argv.index("--")

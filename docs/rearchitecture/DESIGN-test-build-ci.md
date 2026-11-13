@@ -2381,7 +2381,7 @@ not when a listed file is edited.
 `self_tests.py` on Linux in every merge group, and those self-tests are audits that read the inert paths by design (the
 register, the DEVLOG, the skills submodule), so the inert watch cannot vouch for them and a `kb/` or `DEVLOG/` change can turn
 them red on Linux. The Windows gate's inert lane ends after its audits and takes no slot, and the merge group is the first
-Linux run of a notes-only change. `inert_lane.py --self-test` (its `wiring` arm) holds the CI job and the local lane's lack of
+Linux run of a notes-only change. the cases of `scripts/selftests/inert_lane/test_wiring.py` hold the CI job and the local lane's lack of
 a Linux step.
 
 **The tooling lane (kb/Work PB4395; PIPELINE-REVIEW §13, owner 2026-11-01 "Build the approved lane").** A change whose every
@@ -2429,14 +2429,14 @@ clone with its own build (kb/Work PB3529). Windows has no open events, so the Wi
 watch is a READ entry naming the reader (the path leaves the inert lane) or making the reader an audit, and for a tooling-lane
 path a CODE_READS entry naming it or making the reader a script's self-test, never deleting the watch.
 
-**Drift test.** `inert_lane.py --self-test`'s `wiring` arm (the real tree; kb/Work PB4395 moved it out of the compiler's test
+**Drift test.** `scripts/selftests/inert_lane/test_wiring.py` (the real tree; kb/Work PB4395 moved it out of the compiler's test
 assembly, where `InertLaneDriftTests` held it): the `changes` job classifies through the module and carries no path regex;
 every `dotnet test` line of a Linux job runs under the watch; `gate.py` classifies through the module and its inert and
 tooling lanes take no slot and build nothing, and `linux-gate.sh` classifies nothing but watches its test legs; CI's `audits`
 job runs the self-tests and `inert_lane.py check`. The `INERT LANE` audit (`inert_lane.py check`) holds every entry to a
 tracked path, every READ entry under an INERT one and every tooling the build or a compiler test is seen to read under
 CODE_READS. The classification's logic and the watch's firing (a read, a listing, a READ path, a tooling-lane import served
-from a stale bytecode cache, a CODE_READS read, the command's own exit code) are `inert_lane.py --self-test`'s arms, run by
+from a stale bytecode cache, a CODE_READS read, the command's own exit code) are the case files under `scripts/selftests/inert_lane/` (`test_classification.py`, `test_scratch_repository.py`, `test_static_reads.py`, `test_watch.py`), run by
 the self-test runner in every gate that touches tooling and in CI (the inotify arms on Linux).
 `self_tests.py --self-test` holds both self-test legs of the Linux tool to the audit clone.
 

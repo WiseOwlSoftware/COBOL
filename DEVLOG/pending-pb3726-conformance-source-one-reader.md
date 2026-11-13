@@ -29,3 +29,15 @@ of `landing_check.py` into `scripts/public_api_baselines.py`, whose arm 0b now c
 (`sort -c`); `--write` put it in ordinal order once, its line multiset unchanged (`sort | md5sum` before and after equal, 1,140 lines).
 Cases: `scripts/selftests/public_api_baselines/test_rules.py` (5 cases): duplicates, out-of-order, the fixer, the audit RED on each breach
 and on a tree with no Unshipped baseline.
+
+### PB3726 step PB5397: inert_lane.py's self-test became case files
+
+`inert_lane.py`'s 360-line `self_test`, its `wiring` check of the real tree, `_refused` and the `--self-test` flag are gone from the
+script. Its 45 expectations are 44 cases in `scripts/selftests/inert_lane/`: `test_classification.py` (the pure classification, 24
+cases), `test_scratch_repository.py` (the changed paths, `check` and `code_readers` on planted trees; each case asks
+`fixtures.world(*steps)` for the repository as it stood at that point, 9 cases), `test_static_reads.py` (the C# lexer and
+`markdown_readers`, 5), `test_watch.py` (the inotify arms, which pass with their reason off Linux, 5) and `test_wiring.py` (the real
+tree's wiring, 1). Oracle: the multiset of expectation labels before (read from the old source by `ast`) and after is equal, 45 and
+45 (`labels.py`, output in the scratch directory); `selftest_layout.check_repo` is `[]` with `scripts/inert_lane.py` gone from
+`REMAINING`; `inert_lane.py check` GREEN. The converter that cut the function (statement-by-statement, a case per `expect`, a
+statement used by one case attached to it and one used by several hoisted) is not kept: the case files are the record.
