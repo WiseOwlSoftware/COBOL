@@ -3311,6 +3311,21 @@ public static class DiagnosticCatalog
         + "debugging lines being considered as comment lines.\" Write the debugging line so that the statement or entry it "
         + "belongs to is complete without it.", "§1985:VI.7.3");
 
+    /// <summary>COBOL7081 - a RELEASE or RETURN statement outside the range of a SORT or MERGE procedure that names its sort-merge file
+    /// (kb/Work PB5104). §1985:XI.4.2.3 SR2: "A RELEASE statement may be used only within the range of an input procedure associated with a
+    /// SORT statement for the file-name whose sort-merge file description entry contains record-name-1." §1985:XI.4.3.3 SR3: "A RETURN
+    /// statement may only be used within the range of an output procedure associated with a SORT or MERGE statement for file-name-1." The range
+    /// is the procedure's paragraphs and every statement executed as the result of a transfer of control in it (§1985:XI.4.4.4 GR7, GR10).
+    /// A COBOL-85 rule, reported at --std 85, asked of the bound program once every SORT and MERGE statement is bound
+    /// (<c>VersionConformancePass.GateSortMergeProcedures</c>).</summary>
+    public static readonly DiagnosticDescriptor ReleaseReturnPlacement = new(
+        "COBOL7081", "release-return-placement", EditionSeverity.Error,
+        "A RELEASE or RETURN statement stands outside the range of a SORT or MERGE procedure that names its file. §1985:XI.4.2.3 SR2: "
+        + "\"A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement for the file-name "
+        + "whose sort-merge file description entry contains record-name-1.\" §1985:XI.4.3.3 SR3: \"A RETURN statement may only be used within "
+        + "the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\"",
+        "§1985:XI.4.2.3 SR2; §1985:XI.4.3.3 SR3");
+
     /// <summary>COBOL2689 — an inline comment on a line that ends in a floating literal continuation indicator
     /// (kb/Work PB1359). §2023:6.3.7.3 / §2023:6.4.4.3: an inline comment may be written on any line except one that contains
     /// a floating literal continuation indicator.</summary>

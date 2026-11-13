@@ -50,23 +50,61 @@ internal static class ProcedureReach
         }
     }
 
+    /// <summary>Every paragraph a GO TO in a statement list transfers control to, at any nesting depth: GO TO (format 1 and its
+    /// DEPENDING form), an alterable GO TO's written target, and the destination of an ALTER (the paragraph it makes a GO TO
+    /// proceed to). Each is the transfer's own destination paragraph; where control goes from there is the caller's walk.</summary>
+    public static IEnumerable<int> GoToTargetsIn(IEnumerable<BoundStatement> statements)
+    {
+        foreach (var s in statements)
+        {
+            switch (s)
+            {
+                case BoundGoTo g: yield return g.TargetPc; break;
+                case BoundGoToDepending d: foreach (int t in d.Targets) yield return t; break;
+                case BoundGoToAlterable a: if (a.DefaultPc >= 0) yield return a.DefaultPc; break;
+                case BoundAlter al: foreach (var e in al.Entries) yield return e.NewPc; break;
+            }
+            foreach (int nested in GoToTargetsIn(s.StatementChildren())) yield return nested;
+        }
+    }
+
     /// <summary>The paragraph pcs executed under <paramref name="seeds"/>, each mapped to the origin of the FIRST
     /// seed found to reach it: the seeds' own specified sets, then — breadth-first, so a pc is reached by its
-    /// shortest chain — every range a reached paragraph transfers to and returns from.</summary>
+    /// shortest chain — every range a reached paragraph transfers to and returns from.
+    /// <para><paramref name="followGoTo"/> is the reading of a RANGE the 1985 sort-merge rules use (§1985:XI.4.4.4 GR7: "The range includes all
+    /// statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the
+    /// input procedure"; kb/Work PB5104): a GO TO in a reached paragraph also reaches its destination, and — since where a destination's
+    /// sequential flow ends is a run-time fact — every paragraph after it to the end of the program, so a statement this walk does not reach
+    /// is one no execution of the range can reach. False keeps the model above, which a syntax rule about "under" needs (it does not
+    /// follow a GO TO, so it never refuses a statement no execution reaches under the PERFORM).</para></summary>
     public static Dictionary<int, TOrigin> Closure<TOrigin>(
-        IReadOnlyList<BoundParagraph> paragraphs, IEnumerable<(PcRange Range, TOrigin Origin)> seeds)
+        IReadOnlyList<BoundParagraph> paragraphs, IEnumerable<(PcRange Range, TOrigin Origin)> seeds, bool followGoTo = false)
     {
         var reached = new Dictionary<int, TOrigin>();
         var work = new Queue<int>();
+        var flowed = new HashSet<int>();
         void Enter(PcRange range, TOrigin origin)
         {
             foreach (int pc in range.SpannedPcs())
                 if (reached.TryAdd(pc, origin)) work.Enqueue(pc);
         }
+        void EnterFlow(int destination, TOrigin origin)
+        {
+            for (int pc = destination; (uint)pc < (uint)paragraphs.Count; pc++)
+            {
+                if (reached.TryAdd(pc, origin)) work.Enqueue(pc);
+                if (!flowed.Add(pc)) break;   // its sequential flow is already followed
+            }
+        }
         foreach (var (range, origin) in seeds) Enter(range, origin);
         while (work.TryDequeue(out int pc))
+        {
             foreach (var range in ReturningTransfersIn(paragraphs[pc].Statements))
                 Enter(range, reached[pc]);
+            if (followGoTo)
+                foreach (int destination in GoToTargetsIn(paragraphs[pc].Statements))
+                    EnterFlow(destination, reached[pc]);
+        }
         return reached;
     }
 }
