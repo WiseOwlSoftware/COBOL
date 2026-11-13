@@ -1620,7 +1620,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             string nameExpr = literal is { } l ? CsLiteral(l)
                 : RuntimeApi.ExternalizedNameInEdition(OperandText.AsString(dynamic!, num), ctx.Data.DialectLevel);
-            string call = $"ProgramRegistry.Cancel({nameExpr}, {CsLiteral(callState.SelfPath)});";
+            string call = $"ProgramRegistry.Cancel({nameExpr}, {CsLiteral(callState.SelfPath)}, "
+                + $"refusesEveryActiveProgram: {CallBool(c.RefusesEveryActiveProgram)});";
             if (ecProg.Count == 0)
             {
                 w.Line(call);

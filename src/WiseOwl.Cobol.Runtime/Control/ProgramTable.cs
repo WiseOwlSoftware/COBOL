@@ -46,6 +46,9 @@ public sealed class ProgramTable
         /// (§2023:8.4.6.3 first paragraph; kb/Work PB154).</summary>
         public bool IsFunction;
         public int Active;                  // activation depth (GR3f recursion check; GR5 cancel-active check)
+        public bool MainActive;             // one of Active's activations is the run unit's MAIN activation
+                                            // (ActivateMain), which no CALL entered: §1985:X.5.3.4 GR5 forbids a CANCEL
+                                            // only of a program "that has been called" and not exited (kb/Work PB5241)
         public bool CalledSinceCancel;      // §2023:14.9.5 GR7's own predicate — false = "has not been called in this
                                             // run unit" or "is at present canceled". NOT derivable from Instance:
                                             // a returned RECURSIVE activation restores a NULL slot while the unit
@@ -402,7 +405,10 @@ public sealed class ProgramTable
         var n = _byPath[path];
         var inst = n.Instance ??= Create(n, null, "EC-PROGRAM-NOT-FOUND");
         n.Active++;
-        n.CalledSinceCancel = true;   // §2023:14.9.5 GR7 — the main activation counts as "called in this run unit"
+        // NOT "called in this run unit" (§2023:14.9.5.4 GR7; §1985:X.5.3.4 GR8): no CALL entered the main activation, so it
+        // leaves CalledSinceCancel alone. From 2002 a CANCEL of the main is refused as ACTIVE before GR7 is asked; at 85
+        // it is GR8's "has not been called in this run unit", no action (kb/Work PB5241).
+        n.MainActive = true;
         _owner.Modules.PushMain(n.Name, n.Recursive);   // TOP-LEVEL / the run-unit main (§2023:15.65.4 r5/r10)
         // The §2023:14.6.13.1.4 #3 selector for a NONFATAL condition raised at a RUNTIME site is the ACTIVATION's
         // (kb/Work PB367b) — same scope, same boundary, as the ModuleStack frame and the §2023:14.9.28.4 PERFORM
@@ -414,7 +420,7 @@ public sealed class ProgramTable
         // is −1 for the main frame), so nothing can ever take it — §2023:14.9.18.4 GR3: "A RAISING phrase, if
         // specified, is ignored" (kb/Work PB892 Arm B).
         try { inst.Activate(); }
-        finally { n.Active--; _owner.Modules.Pop(); mainExc.NonfatalDispatcher = savedNonfatalDispatcher; }
+        finally { n.Active--; n.MainActive = false; _owner.Modules.Pop(); mainExc.NonfatalDispatcher = savedNonfatalDispatcher; }
     }
 
     /// <summary>The §2023:14.6.12 abnormal-run-unit-termination indication (§2023:14.6.11 CLOSE is the caller's finally): the
@@ -950,7 +956,13 @@ public sealed class ProgramTable
     /// </summary>
     /// <param name="callerPath">As <see cref="CallProgram"/>'s: <c>null</c> for a .NET host, whose CANCEL locates only an
     /// outermost program (§2023:8.4.6.3).</param>
-    public void Cancel(string name, string? callerPath)
+    /// <param name="refusesEveryActiveProgram">Which edition's GR5 the CANCEL statement obeys
+    /// (<see cref="DialectBehavior.CancelRefusesEveryActiveProgram"/>, folded where the statement is compiled): true from
+    /// 2002, where the program "shall not be in the active state"; false at 85, where §1985:X.5.3.4 GR5 forbids only a
+    /// program "that has been called and has not yet executed an EXIT PROGRAM statement", so the run unit's active MAIN
+    /// program, which was never called, is GR8's no-action case (kb/Work PB5241). A .NET host's CANCEL is no COBOL
+    /// statement of any edition and passes true.</param>
+    public void Cancel(string name, string? callerPath, bool refusesEveryActiveProgram)
     {
         string n = ExternalizedNames.Form(name);
         if (n.Length == 0) return;   // §2023:14.9.5 GR12
@@ -959,14 +971,17 @@ public sealed class ProgramTable
         // CALL's legitimate probe — kb/Work PB154); and a FUNCTION name is not a program-name (§2023:8.4.6.3).
         var node = ResolveVisible(n, callerPath, wantFunction: false, probe: false);
         if (node is null) return;
-        CancelNode(node);
+        CancelNode(node, refusesEveryActiveProgram);
     }
 
-    private void CancelNode(Node n)
+    private void CancelNode(Node n, bool refusesEveryActiveProgram)
     {
-        if (n.Active > 0)
+        if (refusesEveryActiveProgram ? n.Active > 0 : n.Active > (n.MainActive ? 1 : 0))
             throw new CobolCallException(
-                $"CANCEL '{n.Name}': program is active (ISO §2023:14.9.5.4 GR5 — EC-PROGRAM-CANCEL-ACTIVE; not canceled)",
+                refusesEveryActiveProgram
+                    ? $"CANCEL '{n.Name}': program is active (ISO §2023:14.9.5.4 GR5 — EC-PROGRAM-CANCEL-ACTIVE; not canceled)"
+                    : $"CANCEL '{n.Name}': program has been called and has not executed an EXIT PROGRAM statement "
+                      + "(ISO §1985:X.5.3.4 GR5 — EC-PROGRAM-CANCEL-ACTIVE; not canceled)",
                 "EC-PROGRAM-CANCEL-ACTIVE");
         // GR7 — "has not been called in this run unit or has been called and is at present canceled": NO
         // ACTION, the whole body. The predicate is modeled, never derived from Instance nullness (a returned
@@ -975,7 +990,7 @@ public sealed class ProgramTable
         // names the registry cannot hold — NIST IC203A CNCL-TEST-04 measured exactly that; kb/Work PB154).
         if (!n.CalledSinceCancel) return;
         for (int i = n.Children.Count - 1; i >= 0; i--)   // GR4 — contained programs, REVERSE source order
-            CancelNode(n.Children[i]);
+            CancelNode(n.Children[i], refusesEveryActiveProgram);
         // GR9 — implicit CLOSE of every open internal file connector, EVEN with no cached instance: a
         // RECURSIVE activation restores a NULL slot on return while its connectors persist (and stay open)
         // in the run-unit registry — the old instance-gated close leaked the OS handle and the post-CANCEL
@@ -1007,9 +1022,12 @@ public sealed class ProgramTable
         n.CalledSinceCancel = false;   // GR7 — "at present canceled": the next CANCEL is a no-op
     }
 
+    /// <summary>The implicit CANCEL of an INITIAL program's contained programs (§2023:11.10.4 GR3, §2023:14.9.18 GR2). No
+    /// contained program is active when its INITIAL container is entered or returns, so GR5's two editions agree here and
+    /// the 2002 test is asked.</summary>
     private void CancelContained(Node n)
     {
-        for (int i = n.Children.Count - 1; i >= 0; i--) CancelNode(n.Children[i]);
+        for (int i = n.Children.Count - 1; i >= 0; i--) CancelNode(n.Children[i], refusesEveryActiveProgram: true);
     }
 
     private ICobolProgram? ParentInstance(Node n) =>
