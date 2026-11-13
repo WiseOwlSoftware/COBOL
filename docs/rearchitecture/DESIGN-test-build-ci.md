@@ -84,8 +84,11 @@ Every one is gated whole (§3.13), runs under `GateTestFramework` (§3.14.3) and
 
 ### 1.2 The differential oracle
 `CompilerUnderTest.cs` defines `WiseOwlCobolCompiler` (drives `CompilerDriver`) and `CutRunner`. The `*DifferentialTests.cs`
-compile each source and compare its normalized stdout (`CutRunner.Normalize` = the guard's `normalize()`: drop CR,
-per-line trailing-trim) with a committed golden under `tests/differential/` (`DifferentialGolden.Assert`). There is no
+compile each source and compare its normalized stdout (`CutRunner.Normalize`: the host's newline, CR LF or LF, as LF,
+per-line trailing-trim, trailing line ends dropped; a lone CR, a form feed, NEL, LS and PS are output and stay, kb/Work
+PB5460; the conformance suite's `run.py` `normalize()` is the same rule, both held to
+`conformance-suite/harness/normalization-fixture.json`) with a committed golden under `tests/differential/`
+(`DifferentialGolden.Assert`). There is no
 second compiler to compare against, so a new golden is spec-derived and never baked from another engine.
 
 `NistDifferentialTests` compares output to the committed goldens `tests/nist/valid/*.txt`. Its program set and every
@@ -93,6 +96,16 @@ chain's predecessors come from `tests/nist/corpus.tsv` through `CorpusManifest`;
 same file (`scripts/guard-population.sh#guard_nist_population`: the asserted rows plus their declared chain predecessors),
 so the two NIST legs run one population by construction (kb/Work PB925, PB3383). `CorpusManifestTests.GuardNistPopulation_*`
 keep the derivation in place and the script's `--self-test` proves it.
+
+Both legs compare a report on ONE acceptance basis, written in two languages by nature: `NistRunner.Normalize` (C#) and
+`scripts/guard-verdict.sh#guard_normalize_into` (shell). Lines end at LF; every CR goes with the spaces before it (a CR
+LF golden, and the overprint `marker   \rtext` of a WRITE … ADVANCING 0); the spaces before a form feed go and the form
+feed stays, because a page eject is not a line advance; each line loses its trailing spaces; the COMPUTED= operand is
+masked; trailing empty lines and the final line end go. NEL, LS, PS and a vertical tab are characters. Both arms are held
+to every case of `tests/nist/normalization-cases.json` (`NistWrittenFilesTests` and `guard-verify.sh --self-test`), so
+a change to one that the other does not make is red (kb/Work PB5460: the shell arm kept the padding before a form feed and
+the C# arm read a form feed as a line break, so SQ101M was a false red in the nightly guard while the in-process gate
+compared a page eject equal to a line advance).
 
 ### 1.3 Guard scripts (bash, Linux, over the `cobol` CLI)
 ⛔ **The NIST leg drives `cobol` (`src/WiseOwl.Cobol.Cli`)** and no other compiler (kb/Work PB750, PB2109). A guard that
@@ -161,7 +174,8 @@ Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl heade
 names each image's git, `GIT_LINUX_VERSION` and `GIT_WINDOWS_VERSION` (git's own release, without Git for Windows'
 `.windows.N` suffix), one per image because GitHub rolls the two on different weeks, and each host installs that release.
 A job on an image whose git moved warns and runs: a failure there would stop every landing until a bump, and with the
-two images moving on different weeks no single value could clear it. The nightly's `images` job (§1.4a) holds each image strictly.
+two images moving on different weeks no single value could clear it. The nightly's `images` job (§1.4a) holds each image
+to its newest release.
 On the hosts, `scripts/wsl/setup-wsl.sh` and `scripts/cloud/setup-env.sh` install from the manifest (WSL's Python and semgrep through
 uv; semgrep runs on its own uv-managed CPython, `SEMGREP_PYTHON_VERSION`, until upstream ships a cp315 wheel). The
 Windows dev box installs with winget. The gate holds every host to the manifest: before its audits, `gate.py`
@@ -171,11 +185,26 @@ toolchain it ran under in its verdict line and its record. `scripts/python-resol
 every tool, ASK-OWNER on a mismatch. Identical holds at every commit; LATEST holds within a day. `nightly.yml`'s `latest` job
 runs `python scripts/toolchain.py latest` every day. It asks each publisher for its newest stable release (the newest
 SDK of the .NET release index's GA channel of the manifest's major; actions/python-versions' stable list, so the target
-is one setup-python can install; Oracle's current releases; GitHub's `releases/latest`; each runner image's readme for
-its git; PyPI for semgrep). The run is red, naming each tool, while the manifest is behind or a publisher cannot be read.
+is one setup-python can install; Oracle's current releases; GitHub's `releases/latest`; for each runner image's git,
+the image's newest release; PyPI for semgrep). The run is red, naming each tool, while the manifest is behind or a publisher cannot be read.
 A newer GA .NET major is a warning on the run, never red: moving to it also moves `global.json` and every
-TargetFramework, an owner's decision, and a standing red would hide the next release `bump` can take. Its `images` job
-runs `toolchain.py check --scope image` on each runner image, red while the image's git differs from the manifest's.
+TargetFramework, an owner's decision, and a standing red would hide the next release `bump` can take. An image's git
+has ONE source, `toolchain.image_release` (kb/Work PB5458): the newest release of actions/runner-images tagged for the
+image (`ubuntu26/20261111.196`, the `Image Release:` line a job's log prints), a prerelease included and a draft never,
+and the git its readme names at that tag. The readme on `main` is not a source: actions/runner-images publishes the
+release when GitHub starts rolling the image out and moves `main`'s readme only when the rollout completes, so on
+2026-11-12 the nightly ran on 20261111.196 (git 2.56.1) while `main`'s readme still named 20261101.186 (git 2.56.0), and
+the `images` job was red on a git `bump` could not see. Its `images` job runs `toolchain.py check --scope image` on each
+runner image. The manifest's duty is to name the git of the image's newest release. An image whose git is the
+manifest's is OK and reads nothing. One whose git differs is red when the image's newest release carries that git too
+(the manifest is behind it), and red, naming the manifest's, the image's and the release's gits, when the job ran on
+another image and the manifest is off the release too, behind or ahead of it; `bump` clears both, because an image's
+git FOLLOWS the image's newest release either way: `latest` reports a manifest newer than that release `AHEAD` (no
+release carries it, a nonzero exit) and `bump` sets it to the release's git, while an installable tool never moves
+backward (a manifest ahead of its publisher fails loudly at install). One decision, `Newest.state`, serves both. Only when the
+manifest names the newest release's git and the job ran on another image (the rollout's old image, or one newer than
+any published release) is it a warning, `ROLLOUT`, and green: then no change of the manifest can follow it. A release
+that cannot be read is red.
 `python scripts/toolchain.py bump` moves the manifest and its cloud copy forward within the .NET major. It does so in a
 change of its own that carries the hosts' update and lands like any other, so CI and the hosts move together. The drift test holds the rest. The manifest names each tool once, exactly; the
 cloud setup carries the manifest's block byte for byte; every job sets up the toolchain right after its checkout and runs
@@ -291,7 +320,7 @@ is the ref a scheduled run reads:
 | `differential` (Windows) | the GnuCOBOL differential: `scripts/battery.sh` with `SKIP_TESTS=1 SKIP_GUARD=1`, so the citation audits, the corpus fetch, the solution build and phase 3, the battery's one definition and never a copy | a per-case verdict flip against the committed baseline, or a case with no compiler verdict. Windows, because the baseline was measured there and `gnucobol_differential.py` defaults to the `cobol.exe` apphost |
 | `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-shard-<k>` shard's wall (the sum of its trx `<Times>`) over the mean shard wall | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating, `shard_weights.py generate`), or a download or trx cannot be read (exit 2, UNMEASURED). NOT MEASURED and green on a day with no matrix run. Live while `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (the weighted shards, PB4329), since regenerating that file is its remedy |
 | `latest` | `toolchain.py latest`: is `toolchain.env` at every publisher's newest release (§1.4) | the manifest is behind a tool, or a publisher cannot be read |
-| `images` (both OSes) | `toolchain.py check --scope image`: each runner image's own git against `toolchain.env` (§1.4) | the image's git differs from the manifest's |
+| `images` (both OSes) | `toolchain.py check --scope image`: each runner image's own git against `toolchain.env` and the image's newest release (§1.4) | the image's git differs from the manifest's, unless the manifest names the newest release's git and the job ran on another image (a ROLLOUT warning); or that release cannot be read |
 
 `latest` and `images` were the `toolchain-freshness.yml` workflow; folding them in keeps one daily schedule. The Guard
 job's one home is the nightly: the weighted-shard step (PB4329) took it out of the merge group, whose shards run the same
