@@ -5620,6 +5620,17 @@ public static class DiagnosticCatalog
         + "positive spelling was accepted silently (kb/Work PB531).",
         "ISO §2023:13.18.40.3 SR6");
 
+    /// <summary>COBOL7078 — at COBOL-85, a parenthesized repetition factor follows a symbol the 1985 list does not name (kb/Work
+    /// PB5118): S, V, the decimal point, CR or DB.</summary>
+    public static readonly DiagnosticDescriptor PictureRepetitionSymbol85 = new(
+        "COBOL7078", "picture-repetition-symbol-1985", EditionSeverity.Error,
+        "§1985:VI.5.9.4 GR7: \"An unsigned nonzero integer which is enclosed in parentheses following the symbols 'A', ',', "
+        + "'X', '9', 'P', 'Z', '*', 'B', '/', '0', '+', '-', or the currency symbol indicates the number of consecutive "
+        + "occurrences of the symbol.\" At COBOL-85 no other symbol takes a repetition factor, so `PIC 9(3)V(1)9`, "
+        + "`PIC S(1)9` and `PIC 9CR(1)` are not COBOL-85 character-strings; COBOL-2002 gives the factor to whatever symbol "
+        + "precedes the left parenthesis (§2002:13.16.38.2 SR7).",
+        "ISO §1985:VI.5.9.4 GR7");
+
     /// <summary>COBOL2148 — the repeat-expanded character-string describes more character positions than
     /// WiseOwl COBOL's implementor-defined maximum for one elementary item.</summary>
     public static readonly DiagnosticDescriptor PictureItemTooLarge = new(
