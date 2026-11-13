@@ -51,6 +51,20 @@ public abstract record Place
     /// than a silent inherit.</para></summary>
     public virtual DataItem? DenotedItem => DenotesAs ?? Item;
 
+    /// <summary>⛔ <b>THE DATA ITEM WHOSE DESCRIPTION THIS REFERENCE HAS</b> — <see cref="Item"/> when the reference is to a
+    /// whole declared data item, <see langword="null"/> when it denotes a data item no data description entry declares
+    /// (a reference-modified view, §2023:8.4.3.3.4 GR5: its unique data item is elementary alphanumeric or national whatever
+    /// the item underneath is, GR6). ONE reader for every question about an operand's ATTRIBUTES that must not see through a
+    /// reference modifier: its category, PICTURE, length, group members, profile, atoms (kb/Work PB5335).
+    /// <para>It is NOT <see cref="DenotedItem"/>, and the difference is exactly the non-THROUGH level-66 alias:
+    /// §2023:13.18.45.4 GR1 gives data-name-1 "all of the data attributes of data-name-2", so its description is the RENAMED
+    /// item's, which this place carries as <see cref="Item"/>, while its identity is the alias entry, whose own
+    /// <see cref="DataItem"/> has no members (<c>66 GS-ALIAS RENAMES GS</c> over a group is no group by its own entry: a
+    /// CALL argument stated no length, atoms or description, so EC-PROGRAM-ARG-MISMATCH could not compare it). A THROUGH
+    /// alias is a group item of its own (GR2), and its place's <see cref="Item"/> is that alias, so it answers right here
+    /// too.</para></summary>
+    public DataItem? DescribedItem => DenotedItem is null ? null : Item;
+
     /// <summary>The data item the reference's own NAME denotes, when that is not the item whose attributes and
     /// storage this place carries — set by the ONE resolver, and today exactly the non-THROUGH level-66 RENAMES
     /// alias (kb/Work PB602).

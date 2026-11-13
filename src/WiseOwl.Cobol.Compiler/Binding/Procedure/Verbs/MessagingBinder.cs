@@ -228,7 +228,7 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
         // A whole item's entries are read through the ONE operand-item reader and the ONE group-member reader, which a
         // level-66 alias answers too (kb/Work PB5120 review R1-1's sweep): a no-THROUGH alias has data-name-2's attributes
         // and subordinates (§2023:13.18.45.4 GR1), and its own entry, which has no Children, used to be all that was walked.
-        var described = MoveTable16.OperandItem(place);
+        var described = place.DescribedItem;
         var root = described ?? place.Item;
         IEnumerable<DataItem> items = described is null ? [root] : [root, .. DataItem.SubordinatesOf(root)];
         foreach (var item in items)

@@ -1092,7 +1092,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // The group and its subordinates through the ONE readers a level-66 alias answers too (kb/Work PB5120 review R1-1's
         // sweep): a no-THROUGH alias of such a group has its attributes (§2023:13.18.45.4 GR1), and asked as IsGroup over the
         // alias's own entry, which has no Children, it was admitted.
-        if (MoveTable16.OperandItem(p) is not { } g || !ItemCategory.IsGroupItem(g)) return true;
+        if (p.DescribedItem is not { } g || !ItemCategory.IsGroupItem(g)) return true;
         if (DataItem.SubordinatesOf(g).FirstOrDefault(d => d.Pic?.ObjectRef is { Kind: ObjectRefKind.ActiveClass })
             is not { } leaf)
             return true;

@@ -77,9 +77,9 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // dynamic-length item grows by — so GR7's "all other portions ... will contain data that was present
         // before" holds for every position the content already had. The new length is §2023:8.5.1.10.4's "length of
         // new content": the old content's, extended through the last position this execution wrote.
-        // Place.DenotedItem is the ONE "whole item" question (§2023:8.4.3.3.4 GR5; kb/Work PB602): a reference-modified
+        // Place.DescribedItem is the ONE "whole item's description" question (§2023:8.4.3.3.4 GR5; kb/Work PB602): a reference-modified
         // identifier-3 denotes no item, and §2023:8.5.1.10.4 makes it a fixed-length item of the current length.
-        bool dynInto = s.Into.DenotedItem is { IsDynamicLength: true };
+        bool dynInto = s.Into.DescribedItem is { IsDynamicLength: true };
         string old = $"__strOld{id}";
         // ⛔ kb/Work PB2078: identifier-3 is stored once, so an object-property identifier-3 has its SET after that store
         // (ReceiverBracketEmitter.Receive), and not after the statement's ON OVERFLOW phrase bodies.

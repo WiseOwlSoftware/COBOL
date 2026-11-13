@@ -923,7 +923,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// pair is compatible here, as it is for a MOVE.</summary>
     private static (GroupAtom[] Argument, GroupAtom[] Formal)? FixedArgumentShapes(Place arg, DataItem formal) =>
         !CallEmitter.CallPlaceIsVarGroup(arg)
-        && arg.DenotedItem is { IsImageCapable: true } item
+        && arg.DescribedItem is { IsImageCapable: true } item
         && VariableLengthCompatibility.GroupAtoms(item) is { } argShape
         && VariableLengthCompatibility.GroupAtoms(formal) is { } formalShape
             ? (argShape, formalShape)
@@ -948,7 +948,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// store overlaid back (<c>CobolVarGroup.Overlay</c>; kb/Work PB480). Null when the shapes are the same (the carrier
     /// crosses as it is) or either side is not a variable-length group.</summary>
     private static (GroupAtom[] PlaceShape, GroupAtom[] OtherShape)? VarGroupShapes(Place place, DataItem other) =>
-        CallEmitter.CallPlaceIsVarGroup(place) && place.DenotedItem is { } item
+        CallEmitter.CallPlaceIsVarGroup(place) && place.DescribedItem is { } item
         && VariableLengthCompatibility.IsVariableLength(other)
         && VariableLengthCompatibility.GroupAtoms(item) is { } placeShape
         && VariableLengthCompatibility.GroupAtoms(other) is { } otherShape
@@ -1966,7 +1966,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // redefinition VIEW of a fixed group is that group's storage (a receiver also passed BY REFERENCE somewhere is
             // claimed onto a cell, kb/Work PB2087/PB2089 — the FixedArgumentShapes twin); a reference-modified receiver
             // denotes no item.
-            if (OoVarGroupCarried(rs) && recv.DenotedItem is { } ri
+            if (OoVarGroupCarried(rs) && recv.DescribedItem is { } ri
                 && !CallEmitter.CallPlaceIsVarGroup(recv) && ItemCategory.IsGroupItem(ri)
                 && VariableLengthCompatibility.GroupAtoms(rs) is { } rsShape
                 && VariableLengthCompatibility.GroupAtoms(ri) is { } riShape)
@@ -2148,7 +2148,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // MOVE store below — the same bare-profile CS0103, and a MOVE where §2023:14.7.5 r4 owes the EC-SIZE raise.
         // StoreExpr tells the lanes apart (a Real intermediate lands through ToScaled, CHECKED when it raises).
         if (fp.IsClassNumericFixedPoint
-            && sp.DenotedItem is { Pic.IsClassNumeric: true })
+            && sp.DescribedItem is { Pic.IsClassNumeric: true })
         {
             return RuntimeApi.NumFormatImage(NumericRenderer.StoreExpr(
                 Num.AsNum(new BoundFieldOperand(sp), ReceiverContext.None), fp.Scale, qualProfile,

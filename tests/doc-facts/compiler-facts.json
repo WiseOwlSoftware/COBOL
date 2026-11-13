@@ -40,6 +40,10 @@
   ],
   "dialectBehaviors": [
     {
+      "id": "cancel-refuses-every-active-program",
+      "vcrRow": "7.66"
+    },
+    {
       "id": "compile-time-arithmetic-mode",
       "vcrRow": "12"
     },

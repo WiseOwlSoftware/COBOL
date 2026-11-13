@@ -191,9 +191,11 @@ public static class ActivationDescriptions
 
     /// <summary>The description of a PLACE an activation names — an argument or a RETURNING item: a reference-modified
     /// operand is the unique data item §2023:8.4.3.3.4 GR5 creates (<see cref="OfReferenceModification"/>), any other place
-    /// the item it denotes (<see cref="Of"/>). Null for a place that denotes no item and is not reference-modified.</summary>
+    /// the item whose description it has (<see cref="Of"/> of <see cref="Place.DescribedItem"/>: a level-66 alias has the
+    /// renamed item's, §2023:13.18.45.4 GR1, kb/Work PB5335). Null for a place that describes no item and is not
+    /// reference-modified.</summary>
     public static ActivationDescription? OfPlace(Place p, OoClassTable? classes) =>
-        p is RefModPlace r ? OfReferenceModification(r) : p.DenotedItem is { } item ? Of(item, classes) : null;
+        p is RefModPlace r ? OfReferenceModification(r) : p.DescribedItem is { } item ? Of(item, classes) : null;
 
     /// <summary>⛔ THE DESCRIPTION OF ONE CALL ARGUMENT whose activated program is located by name at run time (kb/Work
     /// PB165) — what §2023:14.9.4.4 GR3 d) compares with the activated program's registered formal

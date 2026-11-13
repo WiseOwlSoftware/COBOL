@@ -207,6 +207,17 @@ public enum DialectBehavior
     /// "encountered" in the scan's direction. The consumer is <c>InspectBinder.BindPhrases</c>, which sets
     /// <c>BoundInspect.BeforeFromLeftmost</c> for the emitter and so for <c>CobolInspect.Region</c>.</summary>
     InspectBeforeFromFirstEligiblePosition = 15,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.5.4 GR5 — "The program to be canceled shall not be in the active state or contain a
+    /// program in the active state"; the 2002 text (§2002:14.8.5.3 GR5) words it the same. §1985:X.5.3.4 GR5 forbids less: "A program
+    /// named in the CANCEL statement must not refer directly or indirectly to any program that has been called and has not yet
+    /// executed an EXIT PROGRAM statement", and the run unit's main program is active without having been called, so at
+    /// <c>--std 85</c> a CANCEL naming it is §1985:X.5.3.4 GR8's "No action is taken when an explicit or implicit CANCEL
+    /// statement is executed naming a program that has not been called in this run unit" (kb/Work PB5241; VCR row 7.66).
+    /// Both editions are QUOTED. The consumer is <c>CallBinder</c>'s CANCEL arm, which sets
+    /// <c>BoundCancel.RefusesEveryActiveProgram</c> for <c>CallEmitter.EmitCancel</c> and so for
+    /// <c>ProgramTable.Cancel</c>.</summary>
+    CancelRefusesEveryActiveProgram = 16,
 }
 
 /// <summary>
@@ -300,6 +311,11 @@ public static class DialectBehaviors
             "7.65", "14.9.22.4 GR9 b", "§1985:VI.6.18.4 GR8 b",
             "an INSPECT operand with both BEFORE and AFTER looks for the BEFORE delimiter from the AFTER-derived position "
             + "only from COBOL-2023; COBOL-85, 2002 and 2014 look from the leftmost position and use the intersection"),
+        new(DialectBehavior.CancelRefusesEveryActiveProgram, "cancel-refuses-every-active-program", 2002,
+            "7.66", "14.9.5.4 GR5", "§1985:X.5.3.4 GR5",
+            "a CANCEL naming any program in the active state, the run unit's main program included, raises "
+            + "EC-PROGRAM-CANCEL-ACTIVE only from COBOL-2002; COBOL-85 forbids only a program that has been called and "
+            + "has not exited, so a CANCEL of the main program, never called, takes no action"),
     ];
 
     static DialectBehaviors()

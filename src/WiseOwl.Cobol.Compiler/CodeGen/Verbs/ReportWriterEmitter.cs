@@ -677,9 +677,9 @@ internal sealed class ReportWriterEmitter(
                 // activation. The float arm reads the item on its OWN carrier (the same-usage MOVE read), keys it
                 // by its bits (CobolReport.FloatControlKey), writes it back through the item's own encoding, and
                 // breaks on a VALUE change (CobolReport.FloatControlEqual). A reference-modified operand denotes a
-                // character slice, not the item (§2023:8.4.3.3.4 GR5/GR6 — Place.DenotedItem is null for it), and keeps
+                // character slice, not the item (§2023:8.4.3.3.4 GR5/GR6 — Place.DescribedItem is null for it), and keeps
                 // the character arm.
-                if (place.DenotedItem is not null && place.Item.Pic is { IsFloat: true } fpic)
+                if (place.DescribedItem is { Pic: { IsFloat: true } fpic })
                 {
                     string carrier = NumericRenderer.FloatCarrierRead(place, SendingRef.SameUsageMove);
                     string restored = RuntimeApi.ReportFloatControlValue("__v", fpic.IsSingle);
