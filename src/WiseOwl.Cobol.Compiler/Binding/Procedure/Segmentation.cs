@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -73,29 +74,110 @@ internal static class Segmentation
     }
 
     /// <summary>The one rule §1985:XVI.3.3.2 (PERFORM), XVI.3.3.3 (MERGE) and XVI.3.3.4 (SORT) each state: the procedures a
-    /// statement names lie wholly in non-independent segments or wholly in a single independent segment, the statement's
-    /// own when it is itself in an independent segment. §1985:XVI.3.3.3: "(1) Totally within non-independent segments, or
-    /// (2) Wholly contained in a single independent segment."
-    /// <paramref name="range"/> is the procedures the statement names (procedure-name-1 through procedure-name-2, either
-    /// physical order): each PERFORM, SORT and MERGE that those procedures contain is asked about its own procedures, and
-    /// the procedures they perform are not added to the outer statement's (docs/CONFORMANCE.md §3.8: the CCVS-85 segmentation
-    /// programs SG102A and SG103A perform the fixed-portion report paragraphs from inside an independent segment's
-    /// performed range). Reports COBOL6877 at the current position, citing <paramref name="rule"/>.</summary>
+    /// statement's range holds lie wholly in non-independent segments or wholly in a single independent segment, the
+    /// statement's own when it is itself in an independent segment. §1985:XVI.3.3.3: "(1) Totally within non-independent
+    /// segments, or (2) Wholly contained in a single independent segment."
+    /// <para>⛔ THE RANGE IS THE EXECUTED ONE, AND WHAT IS DIAGNOSED IS A CHOICE (kb/Work PB5442; docs/CONFORMANCE.md §3.8). "The
+    /// range includes all statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and
+    /// PERFORM statements in the range of the PERFORM statement" (§1985:VI.6.21.4 GR11), and a program that breaks the rule
+    /// has an undefined result (§1985:I.1.6), so the compiler chooses which violations it diagnoses: the procedures the
+    /// statement names (<paramref name="range"/>, procedure-name-1 through procedure-name-2, either physical order) and
+    /// what of them execution reaches by fall-through and GO TO (<see cref="ReachedPcs"/>). The procedures a PERFORM, SORT
+    /// or MERGE inside the range transfers to are asked by that statement's own check, never added here (CCVS-85 SG102A and
+    /// SG103A perform the fixed-portion report paragraphs from inside an independent segment's performed range). A
+    /// section of the span that no path of the range reaches is not in the range, so it is not asked (s1: PERFORM A THRU C,
+    /// A in segment 60 going to C in 60 over B in 10, is legal). The walk runs only when the physical span breaks the rule,
+    /// and it only narrows that span.</para>
+    /// Reports COBOL6877 at the current position, citing <paramref name="rule"/>.</summary>
     public static void CheckProcedures(BinderContext ctx, PcRange range, string verb, string rule)
     {
         if (!RulesInForce(ctx)) return;
-        var sections = ctx.Table.ParaSections;
-        var spanned = range.SpannedPcs()
-            .Select(pc => (uint)pc < (uint)sections.Count ? sections[pc]?.Segment ?? 0 : 0)
-            .Where(SegmentNumber.HasMeaning)   // a number out of range is already COBOL6819 and lies in no segment
-            .Distinct().Order().ToList();
         int from = ctx.CurrentSection?.Segment ?? 0;
-        if (!SegmentNumber.HasMeaning(from) || RangeAllowed(from, spanned)) return;
+        if (!SegmentNumber.HasMeaning(from) || RangeAllowed(from, SegmentsOf(ctx, range.SpannedPcs()))) return;
+        var reached = SegmentsOf(ctx, ReachedPcs(ctx, range));
+        if (RangeAllowed(from, reached)) return;
         ctx.Edition.Error(DiagnosticCatalog.SegmentationFlowRestriction,
-            $"the procedures this {verb} statement in segment {from} names lie in segments {string.Join(", ", spanned)}: they "
+            $"the procedures this {verb} statement in segment {from} names lie in segments {string.Join(", ", reached)}: they "
             + "shall lie wholly in non-independent segments or wholly in one independent segment"
             + (SegmentNumber.IsIndependent(from) ? $", which for a {verb} statement in an independent segment is its own, {from}" : "")
             + $" ({rule})");
+    }
+
+    /// <summary>The distinct meaningful segment-numbers of the sections owning <paramref name="pcs"/>, lowest first (a number out
+    /// of range is already COBOL6819 and lies in no segment).</summary>
+    private static List<int> SegmentsOf(BinderContext ctx, IEnumerable<int> pcs)
+    {
+        var sections = ctx.Table.ParaSections;
+        return pcs.Select(pc => (uint)pc < (uint)sections.Count ? sections[pc]?.Segment ?? 0 : 0)
+            .Where(SegmentNumber.HasMeaning).Distinct().Order().ToList();
+    }
+
+    /// <summary>The paragraphs of <paramref name="range"/>'s span that execution of the range reaches from its first paragraph:
+    /// by fall-through to the next paragraph of the span, unless a paragraph's last statement is a GO TO without the DEPENDING
+    /// phrase or the paragraph ends the range, and by every GO TO in a reached paragraph (each procedure-name of a DEPENDING
+    /// one too) whose target lies in the span. An alterable GO TO also reaches each procedure an ALTER statement of the
+    /// program names for it (§1985:VI.6.7.4 GR1). PERFORM, SORT and MERGE ranges are their own statements' (see
+    /// <see cref="CheckProcedures"/>). The procedure-names resolve as the GO TO resolves them, implicitly qualified by the
+    /// paragraph's own section, through the quiet resolution: each GO TO's own bind
+    /// reports a name that resolves to nothing.</summary>
+    private static IEnumerable<int> ReachedPcs(BinderContext ctx, PcRange range)
+    {
+        if (range.IsEmpty) return [];
+        var paragraphs = ctx.Table.Paragraphs;
+        var saved = ctx.CurrentSection;
+        Dictionary<int, List<int>>? altered = null;
+        var reached = new HashSet<int>();
+        var work = new Stack<int>();
+        void Reach(int pc)
+        {
+            if (range.Spans(pc) && (uint)pc < (uint)paragraphs.Count && reached.Add(pc)) work.Push(pc);
+        }
+        try
+        {
+            Reach(range.Start);
+            while (work.TryPop(out int pc))
+            {
+                ctx.CurrentSection = ctx.Table.ParaSections[pc];
+                var sentences = paragraphs[pc].Sentences;
+                foreach (var goTo in sentences.SelectMany(ParseTreeWalk.SelfAndDescendants).OfType<CobolParserCore.GoToStatementContext>())
+                {
+                    foreach (var name in goTo.procedureName())
+                        if (ctx.Table.ResolveProcedureQuiet(name) is { Range.IsEmpty: false } target) Reach(target.Range.Start);
+                    if (GoToFormats.Of(goTo) is not GoToFormat.Depending)
+                        foreach (int destination in (altered ??= AlterDestinations(ctx)).GetValueOrDefault(pc) ?? [])
+                            Reach(destination);
+                }
+                bool transfersAway = sentences.Length > 0 && sentences[^1].statement() is { Length: > 0 } last
+                    && last[^1].goToStatement() is { } final && GoToFormats.Of(final) is not GoToFormat.Depending;
+                if (!transfersAway && pc != range.End) Reach(pc + 1);
+            }
+        }
+        finally { ctx.CurrentSection = saved; }
+        return reached;
+    }
+
+    /// <summary>For each paragraph an ALTER statement of the program names as procedure-name-1, the first paragraph of every
+    /// procedure-name-2 it is altered to proceed to (§1985:VI.6.7.4 GR1: "Execution of the ALTER statement modifies the GO TO
+    /// statement in the paragraph named procedure-name-1 so that subsequent executions of the modified GO TO statement
+    /// cause transfer of control to procedure-name-2"). Read off the text, as the ALTER switch prescan reads it.</summary>
+    private static Dictionary<int, List<int>> AlterDestinations(BinderContext ctx)
+    {
+        var map = new Dictionary<int, List<int>>();
+        var paragraphs = ctx.Table.Paragraphs;
+        for (int pc = 0; pc < paragraphs.Count; pc++)
+        {
+            ctx.CurrentSection = ctx.Table.ParaSections[pc];
+            foreach (var entry in paragraphs[pc].Sentences.SelectMany(ParseTreeWalk.SelfAndDescendants)
+                         .OfType<CobolParserCore.AlterStatementContext>().SelectMany(a => a.alterEntry()))
+                if (entry.procedureName() is { Length: >= 2 } names
+                    && ctx.Table.ResolveProcedureQuiet(names[0]) is { IsSection: false, Range.IsEmpty: false } altered
+                    && ctx.Table.ResolveProcedureQuiet(names[1]) is { Range.IsEmpty: false } destination)
+                {
+                    if (!map.TryGetValue(altered.Range.Start, out var list)) map[altered.Range.Start] = list = [];
+                    list.Add(destination.Range.Start);
+                }
+        }
+        return map;
     }
 
     /// <summary>The one rule of <see cref="CheckProcedures"/> over the segment-numbers <paramref name="spanned"/> of the
