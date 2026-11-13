@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <c>__CobolModule.EnsureRegistered()</c> and <see cref="RegisterModule"/>; CALL resolves names per the
 /// §2023:8.4.6.3 scope rules and drives the §2023:14.6.2.3 state model; CANCEL implements §2023:14.9.5. Instances ARE the
 /// state: a plain program's cached singleton realizes last-used persistence (§2023:8.6.4 / §2023:14.6.2.3.3); dropping the
-/// instance realizes initial-state-on-next-CALL (§2023:14.9.5 GR3); a fresh instance per activation realizes INITIAL
+/// instance realizes initial-state-on-next-CALL (§2023:14.9.5.4 GR3); a fresh instance per activation realizes INITIAL
 /// (§2023:14.6.2.3.2) and RECURSIVE (deep-dive D3/D4). In-assembly static registration is the primary profile; an
 /// unresolved outermost name additionally probes the application directory for a sibling compiled module
 /// (<c>&lt;name&gt;.dll</c>) and invokes the <c>EnsureRegistered()</c> of the registrar its
@@ -41,7 +41,7 @@ public sealed class ProgramTable
         public ICobolProgram? Instance;     // the cached (last-used) instance; null = initial state on next CALL
         public Action? StaticReset;         // re-initializes a RECURSIVE unit's STATIC working-storage (§2023:13.5.4 GR1
                                             // static data lives on the CLASS, not the per-activation instance, so
-                                            // dropping Instance alone cannot realize §2023:14.9.5 GR3 / §2023:14.6.2.3.2 for it)
+                                            // dropping Instance alone cannot realize §2023:14.9.5.4 GR3 / §2023:14.6.2.3.2 for it)
         /// <summary>A FUNCTION-ID unit — its name is a function-name, invisible to program-name lookups
         /// (§2023:8.4.6.3 first paragraph; kb/Work PB154).</summary>
         public bool IsFunction;
@@ -49,7 +49,7 @@ public sealed class ProgramTable
         public bool MainActive;             // one of Active's activations is the run unit's MAIN activation
                                             // (ActivateMain), which no CALL entered: §1985:X.5.3.4 GR5 forbids a CANCEL
                                             // only of a program "that has been called" and not exited (kb/Work PB5241)
-        public bool CalledSinceCancel;      // §2023:14.9.5 GR7's own predicate — false = "has not been called in this
+        public bool CalledSinceCancel;      // §2023:14.9.5.4 GR7's own predicate — false = "has not been called in this
                                             // run unit" or "is at present canceled". NOT derivable from Instance:
                                             // a returned RECURSIVE activation restores a NULL slot while the unit
                                             // still holds run-state to cancel (kb/Work PB154).
@@ -136,7 +136,7 @@ public sealed class ProgramTable
     /// (§2023:13.5.4 GR1: WS of a non-initial program / a function is static data, ONE copy on the class) and
     /// resets its static file-registration guard: invoked here so §2023:14.6.2.3.2 case 1 (initial state "the
     /// first time the function … or program … is activated in a run unit") holds even when the same loaded
-    /// module serves a SECOND run unit in one process, and by <see cref="CancelNode"/> (§2023:14.9.5 GR3 /
+    /// module serves a SECOND run unit in one process, and by <see cref="CancelNode"/> (§2023:14.9.5.4 GR3 /
     /// §2023:14.6.2.3.2 case 3).</summary>
     /// <param name="externalizedName">The PROGRAM-ID / FUNCTION-ID <c>AS literal-1</c> value (§2023:11.10.4 GR1 /
     /// §2023:11.5.4 GR1) — the name CALL, CANCEL and the program-address-identifier resolve. OMITTED (null) when the
@@ -398,7 +398,7 @@ public sealed class ProgramTable
     }
 
     /// <summary>Activate the run unit's main program: the ModuleStack main frame, the activation's nonfatal selector and the
-    /// §2023:14.9.5 GR7 "called" mark, all restored when the activation ends. Runs inside <see cref="RunOnThisThread"/>'s
+    /// §2023:14.9.5.4 GR7 "called" mark, all restored when the activation ends. Runs inside <see cref="RunOnThisThread"/>'s
     /// termination boundary.</summary>
     private void ActivateMain(string path)
     {
@@ -458,7 +458,7 @@ public sealed class ProgramTable
     /// <summary>
     /// Execute one CALL (ISO §2023:14.9.4.4): resolve <paramref name="name"/> from <paramref name="callerPath"/> per
     /// the §2023:8.4.6.3 scope rules (GR3b), enforce the non-recursive re-entry rule (GR3f), pick the instance per the
-    /// §2023:14.6.2.3 state model, activate, and apply the INITIAL program's implicit CANCEL on return (§2023:14.9.18 GR2).
+    /// §2023:14.6.2.3 state model, activate, and apply the INITIAL program's implicit CANCEL on return (§2023:14.9.18.4 GR2).
     /// Failures raise <see cref="CobolCallException"/> — the call site's ON OVERFLOW / ON EXCEPTION phrase (when
     /// present) converts it to the exception branch (GR3h); otherwise the run unit terminates loudly.
     /// </summary>
@@ -653,7 +653,7 @@ public sealed class ProgramTable
             inst = n.Instance ??= Create(n, ParentInstance(n), notFoundEc);   // cached singleton — last-used state (§2023:14.6.2.3.3)
 
         n.Active++;
-        n.CalledSinceCancel = true;   // §2023:14.9.5 GR7 — called in this run unit (cleared again by CANCEL)
+        n.CalledSinceCancel = true;   // §2023:14.9.5.4 GR7 — called in this run unit (cleared again by CANCEL)
         // §2023:15.65.4 r7/r8 frame; a RECURSIVE program or a function is a recursive runtime element (§2023:8.6.6: "Functions and
         // methods are always recursive"), which the frame records for §2023:9.1.18.7's "under the control of" (ModuleStack.AnyRecursive).
         _owner.Modules.Push(n.Name, OutermostName(n), n.ParentPath is not null, n.Recursive || n.IsFunction);
@@ -776,7 +776,7 @@ public sealed class ProgramTable
     private void EndInitialActivation(Node n, ICobolProgram inst)
     {
         // "If the program … is an initial program, an implicit CANCEL statement referencing that program is
-        // executed upon return" (ISO §2023:14.9.18 GR2): close its files (§2023:14.9.5 GR9), cascade (GR4), drop state.
+        // executed upon return" (ISO §2023:14.9.18.4 GR2): close its files (§2023:14.9.5.4 GR9), cascade (GR4), drop state.
         // No `Active == 0` guard (kb/Work PB1507): an INITIAL program is never recursive — §2023:11.10.3 SR5 forbids
         // the INITIAL clause under a recursive container, so the attribute §2023:11.10.4 GR4 hands down never reaches
         // one, and SR6/0886 keep the two attributes apart in a single program — hence it can never return
@@ -784,7 +784,7 @@ public sealed class ProgramTable
         inst.CloseFiles();
         CancelContained(n);
         n.Instance = null;
-        n.CalledSinceCancel = false;   // §2023:14.9.18 GR2 IS a CANCEL — the unit is "at present canceled",
+        n.CalledSinceCancel = false;   // §2023:14.9.18.4 GR2 IS a CANCEL — the unit is "at present canceled",
                                        // so a later explicit CANCEL is GR7's no-op
     }
 
@@ -965,7 +965,7 @@ public sealed class ProgramTable
     public void Cancel(string name, string? callerPath, bool refusesEveryActiveProgram)
     {
         string n = ExternalizedNames.Form(name);
-        if (n.Length == 0) return;   // §2023:14.9.5 GR12
+        if (n.Length == 0) return;   // §2023:14.9.5.4 GR12
         // GR7: a name not located in the run unit is NO ACTION — so the sibling-module probe must not run
         // (it loads assemblies, fires registrars/static resets, and caches the MISS, suppressing a later
         // CALL's legitimate probe — kb/Work PB154); and a FUNCTION name is not a program-name (§2023:8.4.6.3).
@@ -996,7 +996,7 @@ public sealed class ProgramTable
         // in the run-unit registry — the old instance-gated close leaked the OS handle and the post-CANCEL
         // reopen answered '30' (kb/Work PB154). A transient factory instance supplies the emitted CloseFiles
         // surface; its construction runs field initializers only. The parent lookup is TOLERANT here, unlike
-        // the activation path's ParentInstance invariant: the §2023:14.9.18 GR2 implicit cancel runs AFTER the
+        // the activation path's ParentInstance invariant: the §2023:14.9.18.4 GR2 implicit cancel runs AFTER the
         // activation's finally restored an INITIAL/RECURSIVE container's slot to null, so a canceled
         // containee's container legitimately has no live instance — and CloseFiles never touches container
         // data, only run-unit-registry connectors keyed by name.
@@ -1016,13 +1016,13 @@ public sealed class ProgramTable
         // ⛔ OUTSIDE the instance check (kb/Work PB133 wave A): the activation-slot restore leaves the cached
         // instance correctly NULL once every activation of a recursive unit has returned, so the GR3 reset can
         // no longer hide behind it — the old dangling depth-1 instance was MASKING this (recursive_ws's CANCEL
-        // then re-call found WS-CTR=03 where §2023:14.9.5 GR3 derives 0). On a never-called unit the reset is an
+        // then re-call found WS-CTR=03 where §2023:14.9.5.4 GR3 derives 0). On a never-called unit the reset is an
         // idempotent no-op, so GR7's no-op posture is preserved.
         n.StaticReset?.Invoke();
         n.CalledSinceCancel = false;   // GR7 — "at present canceled": the next CANCEL is a no-op
     }
 
-    /// <summary>The implicit CANCEL of an INITIAL program's contained programs (§2023:11.10.4 GR3, §2023:14.9.18 GR2). No
+    /// <summary>The implicit CANCEL of an INITIAL program's contained programs (§2023:11.10.4 GR3, §2023:14.9.18.4 GR2). No
     /// contained program is active when its INITIAL container is entered or returns, so GR5's two editions agree here and
     /// the 2002 test is asked.</summary>
     private void CancelContained(Node n)
