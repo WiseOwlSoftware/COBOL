@@ -23,5 +23,9 @@ conformance suite and the differential goldens. `CutRunner.Normalize` and `run.p
 newline (CR LF or LF); a lone CR, a form feed, NEL, LS and PS are what the program printed. Their shared
 `normalization-fixture.json` states it, and `run.py` reads an expected file's bytes, because text mode folds a lone CR.
 `DifferentialGolden.Assert`, `VersionBehaviorMatrixTests` and `WiseOwlCobolTestBase.RunAssembly` were changed the same
-way. The other sites compare diagnostics, source or repository text, or a fixed literal the test's own program DISPLAYs;
+way. The first gate went red on exactly one case, and it showed what the fold had hidden:
+`FileIoDifferentialTests.WriteAdvancingMnemonic_ZeroLineAdvance_RecordAlwaysReleased` expected `L=AAAA\nBBBB`, because
+the old basis turned the overprint's lone CR into a line break, while the program DISPLAYs the record it read back,
+`AAAA␠␠␠␠\rBBBB` (the whole record, kb/Work PB2509, then the zero advance's CR). Its expected value now states the CRs
+and the padding. The other sites compare diagnostics, source or repository text, or a fixed literal the test's own program DISPLAYs;
 the note's landing addendum lists each with its decision. DESIGN-test-build-ci.md §1.2 states both bases.
