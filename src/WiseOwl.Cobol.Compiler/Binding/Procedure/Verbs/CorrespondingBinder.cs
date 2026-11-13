@@ -113,9 +113,10 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         // a group operand moves the later pairs' element. The 2002 standard added the exception that freezes them
         // ("the subscript value used is that resulting from the evaluation of the subscript at the start of the execution
         // of the statement", §2023:14.9.25.4 GR11), and §2023:14.7.6 gives the same start-of-statement identification to
-        // ADD and SUBTRACT. 1985 says nothing of identification for ADD/SUBTRACT CORRESPONDING (§1985:VI.6.19 has no
-        // such statement for them), so those keep the one anchor at every edition.
-        bool perPair = verb is CorrVerb.Move && ctx.Edition.DialectLevel < 2002;
+        // ADD and SUBTRACT. §1985:VI.6.6.4 GR3 (ADD) and its SUBTRACT sibling print no identification time, so below 2002
+        // the choice is the implementor's and, by CLAUDE.md rule 1, GnuCOBOL's: it identifies afresh per pair for ADD and
+        // SUBTRACT as for MOVE (docs/CONFORMANCE.md D-CORR85). One edition rule for all three verbs.
+        bool perPair = ctx.Edition.DialectLevel < 2002;
         int id = _corrCounter++;
         var hoists = new List<CorrespondingHoist>();
         if (CorrAccess.Create(src, new StatementLocal(StatementLocalRole.CorrespondingSendingAnchor, id), hoists, ctx.Refs, perPair) is not { } srcAcc
@@ -420,7 +421,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         private readonly List<CorrespondingHoist> _hoists;
         private readonly MethodLocal _local;
         private readonly Place? _group;        // the member group's anchor Place (the `ref var` hoist target)
-        private readonly bool _perPair;        // 1985 MOVE: no anchor - every pair re-identifies the group (§1985:VI.6.19.4 GR1)
+        private readonly bool _perPair;        // below 2002: no anchor - every pair re-identifies the group (§1985:VI.6.19.4 GR1)
         private readonly Position? _viewOffset; // the view group's window offset (the `long` hoist init); null for any other group
         private readonly bool _isMember;       // MemberPlace group vs Tier-B RedefViewPlace group
         private readonly bool _subscripted;    // the member path evaluates a subscript (a table access)
