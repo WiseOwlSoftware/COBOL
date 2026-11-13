@@ -205,6 +205,9 @@ internal sealed class FaultHostMedium : IHostMedium
         return stream;
     }
 
+    public FileStream OpenRerunDevice(string hostPath) =>
+        Open("rerun", hostPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, FileOptions.None);
+
     public FileStream OpenTransient(string path, FileMode mode, FileAccess access) =>
         Open("transient", path, mode, access, FileShare.ReadWrite | FileShare.Delete, FileOptions.None);
 

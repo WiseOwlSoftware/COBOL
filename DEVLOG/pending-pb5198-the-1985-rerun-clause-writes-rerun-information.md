@@ -13,7 +13,9 @@ on file-name-2 (`FileModel.RerunRecords`) when its ON word is an implementor-nam
 registering arm already makes, emits `CobolFile.RegisterRerunRecords`; and `FileConnector.RecordProcessed` is the one count and the one writer: a READ (through
 `ReadSucceeded`, the one terminal of a successful read, so the five read entries need no edit), WRITE, WRITE ADVANCING, REWRITE or DELETE that completed (a status of
 class 0) is a record processed, the count belongs to the OPEN, and every integer-1 records one line (`RERUN <file-name-2> <count>`, a line feed on every host) is appended
-to the host file the implementor-name spells as an ASSIGN target spells one, through the run unit's host medium. A device the host refuses is the file's I-O status '30'
+to the host file the implementor-name spells as an ASSIGN target spells one, through the run unit's host medium (`HostFile.OpenRerunDevice`, the seventh `HostFile` role and an
+`IHostMedium` member: the first draft opened an `OpenAuxiliary` append handle and then a connector write stream, and the gate's drift tests on append handles, share modes
+and `OpenOrCreate` sites refused both, correctly, since the `HostFile` roles are the one place a host-path stream is opened). A device the host refuses is the file's I-O status '30'
 (§2023:9.1.13.6 item 1; item 6 b's '37' is stated of OPEN and DELETE FILE only), the record the statement wrote staying written. The six other forms stay accepted with
 their syntax rules asked and write nothing.
 
