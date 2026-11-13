@@ -251,6 +251,62 @@ public sealed class DebuggingLineRewriterTests
         Assert.DoesNotContain(stream.GetTokens(), t => t.Text == "X(5).");   // PICMODE skipped the line; it still waits for its string
     }
 
+    private static List<IToken> RewrittenWithSections(string[] lines)
+    {
+        var stream = new CommonTokenStream(new CobolLexer(new AntlrInputStream(string.Join("\n", lines) + "\n")));
+        DebuggingLineRewriter.Rewrite(stream, debuggingSectionsAreComments: true);
+        return [.. stream.GetTokens()];
+    }
+
+    private static string[] Unit(string computer, params string[] declaratives) =>
+        [.. new[] { "PROGRAM-ID. P.", computer, "PROCEDURE DIVISION." }, .. declaratives, "MAIN SECTION.", "P1.", "STOP RUN."];
+
+    private static string[] DefaultChannelWords(List<IToken> tokens) =>
+        [.. tokens.Where(t => t.Channel == TokenConstants.DefaultChannel && t.Type != TokenConstants.EOF).Select(t => t.Text)];
+
+    /// <summary>kb/Work PB5291, §1985:XV.2.1.3 GR2: without WITH DEBUGGING MODE a USE FOR DEBUGGING section is comment text, so its words
+    /// leave the default channel whatever they are, and the DECLARATIVES portion that held only such sections leaves with them.</summary>
+    [Fact]
+    public void NoMode_ADebuggingSectionIsComment_AndSoIsAPortionHoldingNothingElse()
+    {
+        var words = DefaultChannelWords(RewrittenWithSections(Unit("SOURCE-COMPUTER. X.",
+            "DECLARATIVES.", "DBG SECTION.", "USE FOR DEBUGGING ON ALL PROCEDURES.", "DBG-P.", "THIS IS NOT COBOL.", "END DECLARATIVES.")));
+        Assert.DoesNotContain("DBG", words);
+        Assert.DoesNotContain("COBOL", words);
+        Assert.DoesNotContain("DECLARATIVES", words);
+        Assert.Contains("MAIN", words);
+    }
+
+    [Fact]
+    public void NoMode_OnlyTheDebuggingSectionOfAMixedPortionIsComment()
+    {
+        var words = DefaultChannelWords(RewrittenWithSections(Unit("SOURCE-COMPUTER. X.",
+            "DECLARATIVES.", "ERR SECTION.", "USE AFTER STANDARD ERROR PROCEDURE ON F.", "E1.", "EXIT.",
+            "DBG SECTION.", "USE FOR DEBUGGING ON ALL PROCEDURES.", "DBG-P.", "NOT COBOL TEXT.", "END DECLARATIVES.")));
+        Assert.Contains("ERR", words);
+        Assert.Contains("DECLARATIVES", words);   // the portion still holds a section that is source
+        Assert.DoesNotContain("DBG", words);
+        Assert.DoesNotContain("TEXT", words);
+    }
+
+    [Fact]
+    public void WithMode_ADebuggingSectionIsSource()
+    {
+        var words = DefaultChannelWords(RewrittenWithSections(Unit("SOURCE-COMPUTER. X WITH DEBUGGING MODE.",
+            "DECLARATIVES.", "DBG SECTION.", "USE FOR DEBUGGING ON ALL PROCEDURES.", "DBG-P.", "DISPLAY 1.", "END DECLARATIVES.")));
+        Assert.Contains("DBG", words);
+        Assert.Contains("DECLARATIVES", words);
+    }
+
+    [Fact]
+    public void AnExitSectionStatementInADebuggingSection_IsNoSectionHeader()
+    {
+        var words = DefaultChannelWords(RewrittenWithSections(Unit("SOURCE-COMPUTER. X.",
+            "DECLARATIVES.", "DBG SECTION.", "USE FOR DEBUGGING ON ALL PROCEDURES.", "DBG-P.", "EXIT SECTION.", "NOT COBOL TEXT.", "END DECLARATIVES.")));
+        Assert.DoesNotContain("TEXT", words);   // the section ran on past EXIT SECTION to its END DECLARATIVES
+        Assert.DoesNotContain("EXIT", words);
+    }
+
     /// <summary>The carrier the logical conversion writes IS the spelling of the lexer's marker rule — one value, two
     /// places (a grammar literal cannot reference a C# constant), held equal here.</summary>
     [Fact]

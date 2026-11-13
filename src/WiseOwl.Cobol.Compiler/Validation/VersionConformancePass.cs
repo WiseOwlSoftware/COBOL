@@ -146,6 +146,62 @@ internal sealed class VersionConformancePass
             foreach (var stmt in para.Statements)
                 WalkStatement(stmt);
         GateSortMergeProcedures(prog);
+        if (_edition.Year < 2002) GateReleaseReturnRange(prog);
+    }
+
+    /// <summary>⛔ §1985:XI.4.2.3 SR2 AND §1985:XI.4.3.3 SR3 — A RELEASE STATEMENT IS WITHIN THE RANGE OF AN INPUT PROCEDURE OF A SORT NAMING
+    /// ITS SORT FILE, A RETURN WITHIN THE RANGE OF AN OUTPUT PROCEDURE OF A SORT OR MERGE NAMING ITS FILE (kb/Work PB5104; COBOL7081, COBOL-85).
+    /// The RANGE is the procedure's paragraphs and every statement executed as the result of a transfer of control in it
+    /// (§1985:XI.4.4.4 GR7, GR10), so it is the execution model <see cref="ProcedureReach.Closure{TOrigin}"/> with a GO TO followed, seeded from the
+    /// procedures of the statements that name this file — not the lexical span the "shall not appear in" rules of
+    /// <see cref="GateSortMergeProcedures"/> ask. A statement of the declaratives is not asked: the range includes "all statements in
+    /// declarative procedures that are executed as a result of" the range's statements, which is a run-time fact. At COBOL-2002 and later the
+    /// same misuse is the run-time exception EC-SORT-MERGE-RELEASE / EC-SORT-MERGE-RETURN (kb/Work PB1036).</summary>
+    private void GateReleaseReturnRange(BoundProgram prog)
+    {
+        var inputs = new List<(PcRange Range, FileModel File)>();
+        var outputs = new List<(PcRange Range, FileModel File)>();
+        var uses = new List<(BoundStatement Node, FileModel File, bool Release, int Pc)>();
+        void Collect(BoundStatement s, int pc)
+        {
+            switch (s)
+            {
+                case BoundSort so:
+                    if (so.InputProcedure is { } ip) inputs.Add((ip, so.File));
+                    if (so.OutputProcedure is { } op) outputs.Add((op, so.File));
+                    break;
+                case BoundMerge mg:
+                    if (mg.OutputProcedure is { } mop) outputs.Add((mop, mg.File));
+                    break;
+                case BoundRelease rl when pc >= prog.EntryPc: uses.Add((rl, rl.File, true, pc)); break;
+                case BoundReturn rt when pc >= prog.EntryPc: uses.Add((rt, rt.File, false, pc)); break;
+            }
+            foreach (var c in s.StatementChildren()) Collect(c, pc);
+        }
+        for (int i = 0; i < prog.Paragraphs.Count; i++)
+            foreach (var stmt in prog.Paragraphs[i].Statements) Collect(stmt, i);
+        if (uses.Count == 0) return;
+
+        var ranges = new Dictionary<(FileModel File, bool Release), Dictionary<int, FileModel>>();
+        foreach (var (node, file, release, pc) in uses)
+        {
+            if (!ranges.TryGetValue((file, release), out var range))
+                ranges[(file, release)] = range = ProcedureReach.Closure(prog.Paragraphs,
+                    (release ? inputs : outputs).Where(p => ReferenceEquals(p.File, file)).Select(p => (p.Range, p.File)), followGoTo: true);
+            if (range.ContainsKey(pc)) continue;
+            using var _ = _sink.At(node.At);
+            string verb = release ? "RELEASE" : "RETURN";
+            _sink.Report(new EditionDiagnostic(DiagnosticCatalog.ReleaseReturnPlacement.Code, EditionSeverity.Error,
+                DiagnosticCatalog.ReleaseReturnPlacement.Id,
+                release
+                    ? $"a RELEASE statement of the record of '{file.CobolName}' stands outside the range of every input procedure of a SORT "
+                        + $"statement for '{file.CobolName}' (§1985:XI.4.2.3 SR2: \"A RELEASE statement may be used only within the range of an input "
+                        + "procedure associated with a SORT statement for the file-name whose sort-merge file description entry contains record-name-1.\")"
+                    : $"a RETURN statement of '{file.CobolName}' stands outside the range of every output procedure of a SORT or MERGE "
+                        + $"statement for '{file.CobolName}' (§1985:XI.4.3.3 SR3: \"A RETURN statement may only be used within the range of an output "
+                        + "procedure associated with a SORT or MERGE statement for file-name-1.\")",
+                verb, release ? "§1985:XI.4.2.3 SR2" : "§1985:XI.4.3.3 SR3"));
+        }
     }
 
     /// <summary>⛔ THE SORT/MERGE-PROCEDURE LEG OF THE PLACEMENT RULES — ONE region and ONE membership test for every

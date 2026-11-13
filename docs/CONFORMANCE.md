@@ -2415,12 +2415,18 @@ of an unsupported facility.
 - **D-DEBUG-PROCEDURE — when a procedure-name or ALL PROCEDURES USE FOR DEBUGGING section runs, and what DEBUG-ITEM holds** (kb/Work PB5083). The
   text is X3.23-1985's Debug module, USE FOR DEBUGGING general rules 3, 4, 9 and 13 to 22 (§1985:XV.3.2.4); the design is `docs/CONTROL_FLOW_DESIGN.md`
   D20. **Determination (the text decides, no latitude):** one procedure-name is one trigger point. A paragraph-name subject runs the section immediately
-  before that paragraph executes; a section-name subject runs it once, when control reaches the section's first paragraph, with DEBUG-NAME the
-  section (GR3 a, GR13), so control entering the section at a later paragraph, by a GO TO or by a qualified reference `P2 OF S2`, runs nothing
-  (GR9: a qualifier is no reference). ALL PROCEDURES is every procedure-name outside a debugging section, sections and paragraphs, the declarative
+  before that paragraph executes; a section-name subject runs it once each time control reaches the section from OUTSIDE it, with DEBUG-NAME the
+  section (GR3 a, GR13): by a transfer made in another section, by the previous section's last paragraph falling through, or by a CALL that enters
+  the program there. A transfer made from one of the section's own paragraphs, a loop `GO TO P1` back to its first paragraph, is no new
+  execution of the section and runs nothing (kb/Work PB5414), and neither does control entering the section at a later paragraph, by a GO TO or by
+  a qualified reference `P2 OF S2` (GR9: a qualifier is no reference). A PERFORM or SORT/MERGE procedure that names only part of the section
+  executes some of its paragraphs and not the section, so it runs nothing either; one whose range runs from the section's first paragraph to its
+  last does (PERFORM S2, PERFORM S2-P1 THRU S2-P9). ALL PROCEDURES is every procedure-name outside a debugging section, sections and paragraphs, the declarative
   sections that are not debugging sections included (GR4), so a section and its first paragraph are two triggers, the section first (the order CCVS
   DB105A's name list shows); a paragraph-name omitted is no procedure-name. DEBUG-NAME is the name as the USE statement wrote it, qualifiers joined
-  by OF or IN (GR13). DEBUG-CONTENTS by cause: 'START PROGRAM' for the first execution of the first nondeclarative procedure (GR16); the TO phrase's
+  by OF or IN (GR13). DEBUG-CONTENTS by cause: 'START PROGRAM' for the first execution of the first nondeclarative procedure (GR16), that is once for a program instance
+  (its first CALL, the first after a CANCEL, and every CALL of an INITIAL program): a CALL of the instance in its last-used state enters its first
+  procedure as a transfer with no causing statement of the program, DEBUG-CONTENTS and DEBUG-LINE spaces (GR11; kb/Work PB5415); the TO phrase's
   procedure-name as the ALTER wrote it, for the section run immediately after an ALTER that references the subject, DEBUG-LINE the ALTER (GR3 b,
   GR17; DEBUG-CONTENTS is widened to the longest such name, GR15). An ALTER references the subject only when the subject is an ALTERED operand
   (GR3 b, "Immediately after the execution of an ALTER statement which references procedure-name-1"): GR17 b and c make DEBUG-NAME procedure-name-1
@@ -2534,6 +2540,35 @@ of an unsupported facility.
   named twice (SR6, COBOL6335, the data-, cd- and file-name operands' code); ALL PROCEDURES written twice in the program (SR7) and a
   procedure-name operand in a program with ALL PROCEDURES (SR8), both COBOL6947 (`ProcedureTableBuilder.AddNamedDebugSubject` and
   `FinalizeDebug`). Witnesses: `conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-1`, `-3`, `-5`, `-6`, `-7`, `-8`.
+
+- **D-DEBUG-COMMENT — a debugging section without WITH DEBUGGING MODE, and a SORT or MERGE in one** (kb/Work PB5291, PB5275; the text decides, no
+  latitude). §1985:XV.2.1.3 GR2: without the mode "any USE FOR DEBUGGING statements and all associated debugging sections are compiled as if they were
+  comment lines". The text is comment text BEFORE the parse, by the switch that already makes a debugging line a comment: `DebuggingLineRewriter` moves
+  the tokens of a declarative section whose first sentence is `USE FOR DEBUGGING` to the absent channel when the unit declares no mode (COBOL-85 only: a later edition, `--permissive` included, recognizes the section as the removed
+  construct and reports COBOL0902), so a body that is not COBOL syntax compiles and its paragraph names declare
+  nothing; a DECLARATIVES portion holding only such sections leaves with them, since the format admits no empty portion. With the mode, a debugging
+  section is a declarative section (§1985:XV.3.2.3 SR1: it follows "the DECLARATIVES header"), so the placement rules that ask whether a statement is in the
+  declaratives ask it of a debugging section too (`EnclosingContext.InDeclarative`): a SORT may appear "except in the declarative portion" (§1985:XI.4.4.3
+  SR1), a MERGE "except in the declaratives portion" (§1985:XI.4.1.3 SR1), COBOL2700. Witnesses:
+  `conformance:cases/XV.2.1@1985-WITH-DEBUGGING-MODE-CLAUSE/pb5291_debug_section_is_comment_without_mode_85`,
+  `conformance:wiseowl/diagnostics/pb5275-sort-merge-in-debugging-section`.
+
+- **D-SORT-RELEASE-RETURN-RANGE-85 — where a RELEASE or RETURN may stand at COBOL-85** (kb/Work PB5104; the text decides, no latitude). §1985:XI.4.2.3 SR2
+  and §1985:XI.4.3.3 SR3 bind a RELEASE to the range of an input procedure of a SORT naming its sort file, and a RETURN to the range of an output procedure
+  of a SORT or MERGE naming its file. The range is dynamic (§1985:XI.4.4.4 GR7, GR10: every statement executed as the result of a CALL, EXIT, GO TO or
+  PERFORM in the range), so the check is `ProcedureReach.Closure` with a GO TO followed: the procedure's paragraphs, the procedures its PERFORM, SORT and
+  MERGE statements transfer to and return from, and every GO TO destination and the paragraphs after it. A statement no such walk reaches is refused,
+  COBOL7081, asked of the bound program by `VersionConformancePass.GateReleaseReturnRange`. A statement written in the declaratives is not asked (the range
+  includes the declaratives its statements execute, a run-time fact), and at COBOL-2002 and later the same misuse is the run-time exception of
+  kb/Work PB1036. Witnesses: `conformance:cases/XI.4.2@1985-RELEASE-STATEMENT/pb5104_release_return_in_performed_range_85`,
+  `conformance:wiseowl/diagnostics/pb5104-release-of-file-no-sort-names-85`, `conformance:wiseowl/diagnostics/pb5104-return-of-file-no-sort-names-85`.
+
+- **D-SORT-GIVING-SAME-85 — two GIVING files of one SORT in a SAME RECORD AREA clause** (kb/Work PB5276; the text decides, no latitude). §1985:XI.4.4.3
+  SR9: "File-names associated with the GIVING phrase may not be specified in the same SAME clause", and SAME [RECORD] AREA is the 1985 clause
+  (§1985:VII.2.13.2), so COBOL-85 refuses two GIVING files in one SAME RECORD AREA clause (COBOL1757, `SortBinder.ScreenSameClauses`);
+  §2023:14.9.40.3 SR10 narrows the sentence to the SAME AREA clause, so they may share a record area at COBOL-2023 (the editions between are not decided here: the refusal is asked below 2002 only). MERGE's GIVING files may share a record
+  area at every edition (§1985:XI.4.1.3 SR8). Witnesses: `conformance:wiseowl/diagnostics/pb5276-sort-giving-same-record-area-85`,
+  `conformance:cases/14.9.40-SORT/pb5276_sort_giving_same_record_area_2023`.
 
 - **D-DEBUG-SUB — what DEBUG-SUB-1 to DEBUG-SUB-3 are** (kb/Work PB4810). General rule 10 of the 1985 text describes each as `PICTURE S9999
   SIGN IS LEADING SEPARATE`, and a member the reference does not use is SPACES. **Determination (the text decides, no latitude):** each is a
@@ -3608,7 +3643,7 @@ the source program"), and implements the two rules a program can observe. The de
 | Item | Determination |
 |---|---|
 | The procedures a PERFORM, SORT or MERGE names | §1985:XVI.3.3.2, XVI.3.3.3 and XVI.3.3.4 are asked of the procedures the statement NAMES (procedure-name-1 through procedure-name-2, in either physical order), and each PERFORM, SORT and MERGE those procedures contain is asked about its own; COBOL6877. Rejected: the closure over the procedures they perform in turn (the range of §1985:VI.6.21.4 GR11): the CCVS-85 segmentation programs SG102A and SG103A, written to be accepted, PERFORM the fixed-portion report paragraphs from inside an independent segment's performed range, and the closure refuses both |
-| An independent segment's initial state | §1985:XVI.1.4.3 and §1985:VI.6.7.4 GR1: its ALTERed GO TOs return to their written targets whenever control enters it from a segment with a different segment-number (falling through, a SORT or MERGE procedure entry, an explicit transfer), and keep their state when control returns to it implicitly or by EXIT PROGRAM. A CALL that re-enters a program is not a transfer from another segment of it: the program is in its last-used state (§1985:X.5.2.4 GR5), its independent segments included. The modified GO TO is the state the 1985 text names as returned (VI.6.7.4 GR1); data is not segmented (§1985:XVI.1.3: "COBOL segmentation deals only with segmentation of procedures"), so nothing else is reset |
+| An independent segment's initial state | §1985:XVI.1.4.3 and §1985:VI.6.7.4 GR1: its ALTERed GO TOs return to their written targets whenever control enters it from a segment with a different segment-number (falling through, a SORT or MERGE procedure entry, an explicit transfer), and keep their state when control returns to it implicitly (the return of a PERFORM, and each execution of an iterative PERFORM's range after the first, which the control mechanism enters implicitly, §1985:IV.4.4.2 GR1; kb/Work PB5380) or by EXIT PROGRAM. A CALL that re-enters a program is not a transfer from another segment of it: the program is in its last-used state (§1985:X.5.2.4 GR5), its independent segments included. The modified GO TO is the state the 1985 text names as returned (VI.6.7.4 GR1); data is not segmented (§1985:XVI.1.3: "COBOL segmentation deals only with segmentation of procedures"), so nothing else is reset |
 | SEGMENT-LIMIT and fixed overlayable segments | A null facility in function: a fixed overlayable segment "is always made available in its last used state" (§1985:XVI.1.4.2), which is what a resident segment is. Its range is checked (COBOL6819) |
 | --permissive at a later edition | The segment-number is a removed construct, accepted with a warning (COBOL0902); it keeps its 1985 run-time meaning (as ALTER does), so the two rules that make that meaning well-defined are asked: a section's range (§1985:XVI.3.2.3 SR1 and SR3, COBOL6819) and the ALTER restriction (§1985:XVI.3.3.1, COBOL6877), because the initial-state reset would silently undo an ALTER from another segment (kb/Work PB5223, PB5224). The PERFORM, SORT and MERGE restrictions (§1985:XVI.3.3.2-4) and the SEGMENT-LIMIT range restrict only what a program may write, change nothing the kept meaning runs, and are not asked |
 

@@ -166,7 +166,7 @@ public sealed class ProcedureRangeEmptinessDriftTests
         ["__Dispatch(__ds, __de)"] =
             "inside the emitted __RunDebug helper — the bounds are its runtime parameters (a debug SUBJECT's "
             + "section range, which by construction contains the subject paragraph)",
-        ["{DispatchName}({range.Start}, {range.End})"] =
+        ["{DispatchName}({range.Start}, {range.End}{arg})"] =
             "DispatchState.DispatchCall itself — THE one construction site, which refuses an empty range",
     };
 

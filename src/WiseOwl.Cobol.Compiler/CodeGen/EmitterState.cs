@@ -112,13 +112,22 @@ internal sealed class DispatchState
     /// sections once per iteration of whatever control phrase was written. Callers must therefore emit NOTHING
     /// for an empty range; asking for the call is an emitter bug and throws here rather than shipping that
     /// program (kb/Work PB440). Note that a LEGAL INVERTED range (GR6) also has <c>End &lt; Start</c>, so this
-    /// is <see cref="PcRange.IsEmpty"/> and never an arithmetic test.</para></summary>
-    public string DispatchCall(PcRange range, string comment = "") =>
-        range.IsEmpty
-            ? throw new InvalidOperationException(
+    /// is <see cref="PcRange.IsEmpty"/> and never an arithmetic test.</para>
+    /// <para><paramref name="lastUsedFlag"/> is the name of a per-PERFORM <c>bool</c> local an ITERATIVE out-of-line PERFORM
+    /// declared before its loop (null for every other call): the call passes it as the dispatch method's <c>__lastUsed</c>
+    /// argument and sets it, so the PERFORM's first execution of the range is the explicit transfer it is and every later
+    /// one is the implicit transfer from the control mechanism, which enters an independent segment in its last-used state
+    /// (§1985:XVI.1.4.3, the last-used case (1); §1985:IV.4.4.2 GR1; kb/Work PB5380).</para></summary>
+    public string DispatchCall(PcRange range, string comment = "", string? lastUsedFlag = null)
+    {
+        if (range.IsEmpty)
+            throw new InvalidOperationException(
                 $"internal: {DispatchName}{range} requested for an EMPTY procedure range — an empty specified "
-                + $"set of statements has no first statement to transfer to (ISO §2023:14.9.28.4 GR4/GR5)")
-            : $"{DispatchName}({range.Start}, {range.End});{comment}";
+                + $"set of statements has no first statement to transfer to (ISO §2023:14.9.28.4 GR4/GR5)");
+        string arg = lastUsedFlag is null ? "" : ", " + lastUsedFlag;
+        string mark = lastUsedFlag is null ? "" : $" {lastUsedFlag} = true;";
+        return $"{DispatchName}({range.Start}, {range.End}{arg});{mark}{comment}";
+    }
 
     /// <summary>Render the invocation of ONE selected declarative's use procedure — the single place a
     /// <see cref="BoundDeclarative"/> becomes a <c>__RunUse(id, start, end)</c> expression, for every selection
@@ -347,23 +356,36 @@ internal sealed class DispatchState
     /// <paramref name="causingLine"/> is the source line of the CAUSING (transferring) statement — the X3.23-1985
     /// DEBUG-LINE (VCR 7.17). A non-positive line is omitted (e.g. START PROGRAM, whose DEBUG-LINE is the subject's
     /// own first statement, applied in __RunDebug).</summary>
-    public void EmitDebugCause(CodeWriter w, string cause, int causingLine = 0)
+    public void EmitDebugCause(CodeWriter w, string cause, int causingLine = 0, PcRange? performed = null)
     {
         if (!DebugActive) return;
         // §1985:XV.3.2.4 GR1: "Automatic execution of a debugging section is not caused by a statement appearing in a debugging section." The
         // causing statement's place is known here, so the transfer says whether a debugging section wrote it (kb/Work PB5292; START PROGRAM is no statement's): the one fact
         // __RunDebug reads, in place of a run-time flag that suppressed every trigger while any debugging section ran.
-        w.Line(DebugCauseAssignments(cause, causingLine));
+        w.Line(DebugCauseAssignments(cause, causingLine, performed));
     }
 
     /// <summary>The statements that record a transfer's cause for the next debug trigger: <see cref="EmitDebugCause"/>'s text, for a transfer written inside another construct's
     /// own arm (GO TO ... DEPENDING's in-range case), where every transfer arm gives <c>__dbgInSection</c> its value with the cause (kb/Work PB5292).</summary>
-    public string DebugCauseAssignments(string cause, int causingLine = 0)
+    public string DebugCauseAssignments(string cause, int causingLine = 0, PcRange? performed = null)
     {
         string inSection = $"__dbgInSection = {(cause != "StartProgram" && InDebugSection ? "true" : "false")};";
+        string from = $"__dbgFrom = {DebugEntryFrom(cause, performed)};";
         return causingLine > 0
-            ? $"__dbgCause = DebugCause.{cause}; __dbgLine = {causingLine}; {inSection}"
-            : $"__dbgCause = DebugCause.{cause}; {inSection}";
+            ? $"__dbgCause = DebugCause.{cause}; __dbgLine = {causingLine}; {from} {inSection}"
+            : $"__dbgCause = DebugCause.{cause}; {from} {inSection}";
+    }
+
+    /// <summary>The pc a transfer's section-subject test reads (<c>__dbgFrom</c>): a section subject's debugging section runs "Immediately before each
+    /// execution of the named procedure" (§1985:XV.3.2.4 GR3 a), which is control reaching the section from outside it, so a transfer is "from" the
+    /// paragraph that makes it, and START PROGRAM and a CALL's entry come from no paragraph (-1). A PERFORM or SORT/MERGE procedure that names
+    /// only part of the section (<paramref name="performed"/> ends before the section's last pc) executes some of its paragraphs, not the section:
+    /// it is "from" its own first pc, inside the section (kb/Work PB5414).</summary>
+    private string DebugEntryFrom(string cause, PcRange? performed)
+    {
+        if (cause == "StartProgram") return "-1";
+        if (performed is { } r && DebugByPc[r.Start].Any(s => s.IsSection && s.SubjectEndPc > r.End)) return r.Start.ToString();
+        return CurrentPc.ToString();
     }
 
     /// <summary>Whether the statement being emitted lies in a debugging section (§1985:XV.3.2.4 GR1).</summary>
