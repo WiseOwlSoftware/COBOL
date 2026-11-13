@@ -37,6 +37,12 @@ public sealed record SameClause(SameClauseKind Kind, IReadOnlyList<FileModel> Me
 /// names that resolve to a declared file; one that does not is the clause's own error, reported where it is bound.</summary>
 public sealed record MultipleFileReel(IReadOnlyList<FileModel> Members);
 
+/// <summary>One X3.23-1985 RERUN clause of the integer-1 RECORDS form (§1985:VII.2.12.2: <c>RERUN ON implementor-name-1
+/// EVERY integer-1 RECORDS OF file-name-2</c>): the rerun information goes to the device implementor-name-1 names
+/// <i>"whenever integer-1 records of file-name-2 have been processed"</i> (§1985:VII.2.12.4 GR2 d; kb/Work PB5198).
+/// <see cref="Every"/> is at least 1.</summary>
+public sealed record RerunRecordsClause(string Device, long Every);
+
 /// <summary>One ALTERNATE RECORD KEY clause of a file control entry, AS WRITTEN (ISO §2023:12.4.5.6.2 — data-name-1,
 /// its IN/OF qualifiers, the WITH DUPLICATES and SUPPRESS WHEN phrases), plus the item data-name-1 resolved to
 /// and the source position its syntax rules report at.
@@ -916,6 +922,13 @@ public sealed class FileModel
     /// at every edition the clause compiles (it is deleted from 2002, COBOL0902). Empty for a file no clause names
     /// (kb/Work PB5086).</summary>
     public List<MultipleFileReel> MultipleFileReels { get; } = [];
+
+    /// <summary>This file's X3.23-1985 RERUN clause of the integer-1 RECORDS form (§1985:VII.2.12.4 GR2 d): the device
+    /// implementor-name-1 names and integer-1, recorded by <c>FileControlBinder.ScreenRerunClauses</c> for a clause whose
+    /// syntax rules held and whose integer-1 is nonzero (kb/Work PB5198). At most one per file, by §1985:VII.2.12.3 SR4 a.
+    /// Null for a file no such clause names. The code generator registers it on the file's connector, which writes the
+    /// rerun information.</summary>
+    public RerunRecordsClause? RerunRecords { get; set; }
 
     /// <summary>The OTHER files named with this one in a record-area SAME clause that give the area a record
     /// (§2023:12.4.6.4.4 GR2) — derived from <see cref="SameClauses"/>, so there is no second membership model.</summary>

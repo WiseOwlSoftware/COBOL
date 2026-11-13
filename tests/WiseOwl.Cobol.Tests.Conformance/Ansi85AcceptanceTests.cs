@@ -26,10 +26,10 @@ public sealed class Ansi85AcceptanceTests
         Assert.Equal(CutRunner.Normalize(expected), stdout);
     }
 
-    // ── RERUN (row 7.15): a checkpoint HINT — parsed-and-ignored is a conforming null rerun facility ──
+    // ── RERUN (row 7.15): the integer-1 RECORDS form writes rerun information onto its device (kb/Work PB5198); the I-O the program sees is unaffected ──
 
     [Fact]
-    public void Rerun_RecordsForm_InertAt85_IoUnaffected() => AssertRuns("""
+    public void Rerun_RecordsForm_At85_IoUnaffected() => AssertRuns("""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. A85RR1.
         ENVIRONMENT DIVISION.

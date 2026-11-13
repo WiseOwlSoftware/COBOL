@@ -362,7 +362,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (!inserted) return Status = FileStatusCode.DuplicateKey;        // '22' — the tree declined (GR33 a))
         if (sequentialRelease) _lastReleasedSlot = slot;
         _lastSlot = slot;                                                  // GR29 a) — MOVEd back into the key item
-        return Status = FileStatusCode.Success;
+        return RecordProcessed(Status = FileStatusCode.Success);
     }
 
     /// <summary>The relative record number the NEXT sequential-access release takes — ISO §2023:14.9.51.4
@@ -423,7 +423,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         var replaced = _st.Replace(slot, frame, Entered, out bool done, TransactionFor(RelativeStore.Key(slot), present));
         if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§2023:9.1.13.5 4) / '30' (§2023:9.1.13.6 1)
-        return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
+        return RecordProcessed(Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound);
     }
 
     /// <summary>DELETE RECORD (§2023:14.9.10): open mode must be I-O ('49', GR1). Sequential access removes the prior
@@ -449,7 +449,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (reevaluate) return Delete();                                   // against the file a rollback restored
         var deleted = _st.Delete(slot, Entered, out bool done, TransactionFor(RelativeStore.Key(slot), present));
         if (Failed(deleted) is { } refused) return Status = refused;       // '30' §2023:9.1.13.6 item 1, the boundary too
-        return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
+        return RecordProcessed(Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound);
     }
 
     // ── START (ISO §2023:14.9.41) ─────────────────────────────────────────────────────────────────────────────────

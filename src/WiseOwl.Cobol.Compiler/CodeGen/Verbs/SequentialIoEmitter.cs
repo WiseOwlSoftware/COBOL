@@ -507,6 +507,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             w.Line($"{RuntimeApi.FileRegisterRecordLengthFromDepending(FileKeyExpr(file))};");
         EmitCodeSetRegistration(w, file);        // §2023:13.18.13.4 GR2/GR6 (kb/Work PB793)
         EmitReserveRegistration(w, file);        // §2023:12.4.5.14.3 GR1 (kb/Work PB643)
+        EmitRerunRegistration(w, file);          // §1985:VII.2.12.4 GR2 d (kb/Work PB5198)
+    }
+
+    /// <summary>The I-O-CONTROL RERUN clause's integer-1 RECORDS form (§1985:VII.2.12.4 GR2 d), told to the connector:
+    /// the device implementor-name-1 names and the number of records of this file (file-name-2) between rerun points.
+    /// Emitted ONLY for a file such a clause names, so every other program's registration is unchanged byte for byte;
+    /// reached through <see cref="EmitAreaRegistrations"/>, which every registering arm calls.</summary>
+    private static void EmitRerunRegistration(CodeWriter w, FileModel file)
+    {
+        if (file.RerunRecords is { } point)
+            w.Line($"{RuntimeApi.FileRegisterRerunRecords(FileKeyExpr(file), point.Every, CsLiteral(point.Device), CsLiteral(file.SelectName))};");
     }
 
     /// <summary>§2023:12.4.5.14.3 GR1's input-output area count, told to the connector: <i>"If the RESERVE clause is
