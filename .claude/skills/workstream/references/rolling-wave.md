@@ -90,7 +90,7 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   the planner puts it in the spec, the args entry and the branch reviewer's prompt of every group whose notes name that
   cluster, in a fix-lane wave as in a campaign wave; never hand-edit it into `groups.json`. A bullet is a case only
   that campaign has: the owner's SORT and file I/O test rule lives in MANDATORY-PRACTICES I11 alone and is never copied
-  into a lead (kb/Work PB3369; `test_plan_wave.py` refuses the copy).
+  into a lead (kb/Work PB3369; the plan_wave cases, `scripts/selftests/orchestrator/plan_wave/`, refuse the copy).
 - **Why.** Orientation was ~46 % of every implementer's tokens (waves 45–57): a successor pays the file's context
   once, not once per cluster. It is a FRESH agent, not a longer transcript, because of the quadratic cost law (`references/cost-law-and-budget.md`):
   the cap exists because the sixth defect in one transcript costs more than a new agent, and the successor keeps the

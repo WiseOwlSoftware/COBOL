@@ -334,6 +334,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             .github/actions/setup-toolchain
             toolchain.env
             scripts/install-tool.sh
@@ -351,6 +352,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             .github/actions/setup-toolchain
             toolchain.env
             scripts/install-tool.sh
@@ -1055,6 +1057,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             global.json
           sparse-checkout-cone-mode: false
       - if: steps.checkout.outcome != 'success'
@@ -1070,6 +1073,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             global.json
           sparse-checkout-cone-mode: false
       - id: warm
@@ -1191,6 +1195,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             scripts/test_population.py
             scripts/ci_workflow.py
             .github/actions/download-results
@@ -1209,6 +1214,7 @@ jobs:
             scripts/standard_streams.py
             scripts/live_tools.py
             scripts/scratch_repo.py
+            scripts/selftest_layout.py
             scripts/test_population.py
             scripts/ci_workflow.py
             .github/actions/download-results

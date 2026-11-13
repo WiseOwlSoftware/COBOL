@@ -51,7 +51,10 @@ runs ONLY WHEN YOUR CHANGE TOUCHES A SCRIPT (a path under `scripts/`, `.github/`
 `TOOLING_READS` list, starts none, owner 2026-11-01, kb/Work PB4409; CI's merge group runs every Linux self-test
 whatever the change, and the Windows ones whenever the `reads_tooling=` line is true: a script or that data) — every gate
 passes `--reuse`, so a self-test whose inputs are unchanged since a recorded PASS is REUSED, not run; one still running an
-hour after taking its budget place is `SELF-TESTS HANG`, never RED, kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10) and
+hour after taking its budget place is `SELF-TESTS HANG`, never RED, kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10; a
+script's tests live in `<root>/selftests/<path>/<name>/` as `case_` functions, `scripts/selftest_layout.py` is the run's
+first step and its refusal is `=== SELF-TESTS: RED — layout: … ===`, and `python scripts/self_tests.py --only <case file>`
+runs one by hand, DESIGN-orchestrator-loop.md §16.2, kb/Work PB5428) and
 fetches the per-worktree GnuCOBOL corpus when absent, then takes a GATE SLOT (`scripts/gate_slot.py`: at most N gates
 build or test at once, repository-wide — `gate-slot: waiting, k ahead` is the cap working), builds the solution and runs
 the WHOLE Unit, Conformance and Characterization populations, three `dotnet test --no-build` hosts at once (Server GC,

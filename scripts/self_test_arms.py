@@ -30,6 +30,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import selftest_layout  # noqa: E402  (this directory's: where a converted subject's cases live, kb/Work PB5428)
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
@@ -532,6 +533,14 @@ def findings(root: Path = REPO, declared: dict[str, tuple[str, ...]] = DECLARED,
         if not path.is_file():
             bad.append(f"{rel}: the self-test's script is missing")
             continue
+        tests = selftest_layout.tests_dir_of(rel)
+        if tests is not None and (root / tests).is_dir():
+            # a CONVERTED subject (kb/Work PB5428, DESIGN-orchestrator-loop.md section 16.2): each arm is the name of a
+            # `case_` function of its tests directory, and a deleted case is a finding as a deleted arm is
+            cases = "\n".join(p.read_text(encoding="utf-8") for p in sorted((root / tests).glob("test_*.py")))
+            bad += [f"{rel}: its tests directory {tests} no longer defines the case {a!r} (a deleted case still exits 0)"
+                    for a in arms if not re.search(rf"^def {re.escape(a)}\(", cases, re.MULTILINE)]
+            continue
         source = path.read_text(encoding="utf-8")
         text = joined(source)
         bad += [f"{rel}: `--self-test` no longer declares the arm {a!r} (a deleted arm still exits 0)"
@@ -571,6 +580,16 @@ def self_test() -> int:
         expect("an EXACT script must call exactly its arms in order and count them",
                (findings(root, {"x.py": ("first", "second")}, frozenset({"x.py"})),
                 len(findings(root, {"x.py": ("second", "first")}, frozenset({"x.py"})))), ([], 1))
+        (root / "scripts" / "selftests" / "c").mkdir(parents=True)
+        (root / "scripts" / "c.py").write_text("X = 1\n", encoding="utf-8", newline="\n")
+        (root / "scripts" / "selftests" / "c" / "test_w.py").write_text(
+            "def case_one(expect):\n    expect('a', True)\n\ndef case_two(expect):\n    expect('b', True)\n",
+            encoding="utf-8", newline="\n")
+        expect("a CONVERTED subject's arms are case names of its tests directory: a case it no longer defines is "
+               "named, the script's own text is not read (kb/Work PB5428)",
+               findings(root, {"scripts/c.py": ("case_one", "case_two", "case_three")}, frozenset()),
+               ["scripts/c.py: its tests directory scripts/selftests/c no longer defines the case 'case_three' "
+                "(a deleted case still exits 0)"])
         (root / "s.ps1").write_text("function Start-It {\n    Start-PyBackground 'x.py' 'tick'\n    $p.WaitForExit()\n}\n"
                                     "function Next {\n    Start-It\n}\n", encoding="utf-8", newline="\n")
         (root / "u.md").write_text("1. one\n2. read `x.py status`\n   then go\n3. three REVIEW FIRST\n", encoding="utf-8",
