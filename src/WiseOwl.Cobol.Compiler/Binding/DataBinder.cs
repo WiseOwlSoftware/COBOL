@@ -1753,9 +1753,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // GR18 — Signed carries it; PB64 T6). Reading the empty mask here falsely rejected a legal negative
             // VALUE on a '+'-bearing format-2 picture.
             : pic.LocaleEdit is not null ? pic.Signed
-            : edited
-            ? mask.Any(c => c is '+' or '-') || CobolNames.Contains(mask, "CR") || CobolNames.Contains(mask, "DB")
-            : pic.Signed;
+            : pic.HoldsSign;
         if (signedLiteral && !signBearing)
         {
             Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: a signed numeric literal in the VALUE clause "
