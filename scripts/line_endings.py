@@ -727,7 +727,8 @@ def self_test() -> int:
         scratch = ScratchRepo.init(root, options=("-c", "core.autocrlf=false"))
         expect("the classifiers are this file and the modules of its directory it imports at module level, derived "
                "from its source (the self-test's function-level `scratch_repo` is not one)", sorted(classifiers()),
-               ["scripts/inert_lane.py", "scripts/line_endings.py", "scripts/live_tools.py", "scripts/standard_streams.py"])
+               ["scripts/inert_lane.py", "scripts/line_endings.py", "scripts/live_tools.py", "scripts/selftest_layout.py",
+                "scripts/standard_streams.py"])
         expect("a .gitattributes at any level classifies; a file merely named like one does not",
                [classifies(p) for p in (".gitattributes", "sub/dir/.gitattributes", "sub/x.gitattributes", "a.md")],
                [True, True, False, False])

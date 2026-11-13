@@ -75,7 +75,7 @@ tests/_shared/TestRepo.cs is read by drift_rules.py's self-test, the .g4 files b
 one of them turned a self-test red in CI's merge group after a green gate.
 THE ACCEPTED RESIDUE, named (owner 2026-10-31, kb/Work PB4323: a merge-group red may be one of five first-run classes, and
 the CI invariant is weakened knowingly): (a) a DECLARED POPULATION reader: a self-test whose first
-lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a population (test_plan_wave.py walks
+lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a population (the plan_wave cases walk
 every markdown file), so no set of paths bounds it and the proof
 does not apply to it. The declaration is checked against the trace (scripts/self_tests.py): one that ran no git command over
 the whole repository (the tracer records a read of directory "") is RED, and a self-test that ran such a command WITHOUT
@@ -135,6 +135,7 @@ import tempfile
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+import selftest_layout  # this directory's: where a case file's subject is (kb/Work PB5428)
 from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
@@ -436,6 +437,8 @@ CLASSIFICATION = Classification(inert={
        "scripts/live_tools.py": "imported by scripts/standard_streams.py, scratch_repo.py and test_population.py",
        "scripts/scratch_repo.py": "imported by conformance-suite/harness/generate.py (SuiteManifest) and "
                                   "test_population.py",
+       "scripts/selftest_layout.py": "imported by scripts/scratch_repo.py (its audit reads a file under a selftests/ tree as "
+                                     "self-test code by the path rule, kb/Work PB5428)",
        "scripts/ci_workflow.py": "imported by scripts/test_population.py",
        "scripts/git_batch.py": "imported by scripts/spec/inventory_schema.py and inventory_store.py (the inventory view "
                                "conformance-suite/harness/generate.py reads, SuiteManifest; a partial clone's batched "
@@ -668,11 +671,16 @@ def static_names(tree: ast.Module, rel: str) -> dict[str, str]:
     return names
 
 
-def _imports(rel: str, text: str) -> tuple[list[tuple[int, str, list[str]]], list[str]]:
+def _imports(rel: str, text: str, root: Path = REPO) -> tuple[list[tuple[int, str, list[str]]], list[str]]:
     """What the Python file `rel` imports and where it looks: every `import`/`from … import` anywhere in it (a lazy import
     inside a function included) as (relative level, module, imported names), and every directory a `sys.path.insert` /
     `sys.path.append` of it names statically (`static_dir`, over its module-level names). A file that does not parse
-    imports nothing this reader can know (the watch sees what it opens)."""
+    imports nothing this reader can know (the watch sees what it opens).
+
+    A file under a `selftests/` tree has two more facts (DESIGN-orchestrator-loop.md section 16.2, kb/Work PB5428): the
+    runner starts it with `scripts/` on `PYTHONPATH`, so `import selftest_cases` resolves there (that directory is one
+    it looks in), and the call `selftest_cases.subject(__file__)` is an import of its subject, `selftest_layout.subject_of`
+    (a Python one) in the tree at `root`, whose own sibling imports then resolve as they do when the subject runs."""
     try:
         tree = ast.parse(text, filename=rel)
     except (SyntaxError, ValueError):
@@ -691,6 +699,14 @@ def _imports(rel: str, text: str) -> tuple[list[tuple[int, str, list[str]]], lis
             d = static_dir(n.args[-1], names)
             if d is not None:
                 dirs.append(d)
+    if selftest_layout.in_tree(rel):
+        dirs.append("scripts")
+        if any(isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "subject"
+               and isinstance(n.func.value, ast.Name) and n.func.value.id == selftest_layout.COLLECTOR for n in ast.walk(tree)):
+            subject = selftest_layout.subject_of(rel, root)
+            if subject is not None and subject.endswith(".py"):
+                dirs.append(subject.rpartition("/")[0])
+                imports.append((0, subject.rpartition("/")[2][:-3], []))
     return imports, dirs
 
 
@@ -732,7 +748,7 @@ def import_closure(root: Path, seeds: list[tuple[str, str]], tracked_set: set[st
         via.setdefault(rel, reader)
         if rel not in parsed:
             try:
-                parsed[rel] = _imports(rel, (root / rel).read_text(encoding="utf-8"))
+                parsed[rel] = _imports(rel, (root / rel).read_text(encoding="utf-8"), root)
             except (OSError, UnicodeDecodeError):
                 parsed[rel] = ([], [])
         imports, dirs = parsed[rel]
@@ -1163,7 +1179,7 @@ def wiring(root: Path) -> list[str]:
     need("if not whole:" not in runner, "scripts/self_tests.py exempts a whole-tree reader without its declaration")
     need(runner.find("self.classification.unclassified_reads(") < runner.find("self.store.record(test.path"),
          "scripts/self_tests.py records a PASS before the tooling flag's proof")
-    for rel in ("scripts/orchestrator/test_plan_wave.py",):
+    for rel in ("scripts/selftests/orchestrator/plan_wave/test_planner.py",):
         need("# SELF-TEST-POPULATION: tree" in text(rel), f"{rel} no longer declares its population")
     return bad
 
@@ -1446,6 +1462,19 @@ def self_test() -> int:
                       "scripts/lib/pkg/mod.py", "scripts/run.py", "scripts/streams.py"])
     expect("check: an imported module is required to be CODE_READS, naming the importer",
            [b for b in tc2.check(root) if "reads scripts/streams.py" in b and "through suite/h.py" in b] != [], True)
+    # A CASE FILE'S CLOSURE (kb/Work PB5428, DESIGN-orchestrator-loop.md section 16.2): `selftest_cases.subject(__file__)`
+    # is an import of the case file's subject, and `import selftest_cases` resolves against scripts/, as the runner's
+    # PYTHONPATH makes it; the subject's own sibling import is read through it.
+    repo.commit("case files", {
+        "scripts/selftest_cases.py": "X = 1\n",
+        "scripts/lib/tool.py": "import sibling\n", "scripts/lib/sibling.py": "Y = 1\n", "scripts/lib/other.py": "Z = 1\n",
+        "scripts/selftests/lib/tool/test_w.py": "import selftest_cases\nsubject = selftest_cases.subject(__file__)\n",
+        "tests/J.cs": "class J { string c = TestRepo.Scripts(\"selftests/lib/tool/test_w.py\"); }\n"})
+    expect("code_readers: a case file under a selftests/ tree reads its subject and everything the subject imports, and "
+           "the collector it imports from scripts/; a module of the subject's directory nobody imports is not read",
+           sorted(p for p, r in code_readers(root, tracked(root), tc2.tooling_under) if r.startswith("tests/J.cs")),
+           ["scripts/lib/sibling.py", "scripts/lib/tool.py", "scripts/selftest_cases.py",
+            "scripts/selftests/lib/tool/test_w.py"])
     if sys.platform.startswith("linux"):
         py = [sys.executable, "-c"]
         out: list[str] = []
