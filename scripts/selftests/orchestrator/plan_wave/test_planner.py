@@ -2854,7 +2854,7 @@ def case_152_a_census_only_row_s_landed_remover_besid(expect):
 
 def case_153_the_ratchet_work_py_names_is_the_drift_t(expect):
     global got, gp, head, lead, name, text, want
-    _ratchet_cs = (fixtures.HERE.parents[1] / "tests" / "WiseOwl.Cobol.Tests.Unit" / "ArchitectureEdgesDriftTests.cs").read_text(encoding="utf-8")
+    _ratchet_cs = (fixtures.HERE.parents[1] / "tests" / "WiseOwl.Cobol.Tests.RepoDrift" / "ArchitectureEdgesDriftTests.cs").read_text(encoding="utf-8")
     expect.equal("the ratchet work.py names is the drift test's: the switch its RatchetCommand sets, and that constant",
           bool(re.search(r'RatchetCommand =\s*"WISEOWL_COBOL_ARCH_EDGES_RATCHET=1 ', _ratchet_cs))
           and work.EDGES_RATCHET.startswith("WISEOWL_COBOL_ARCH_EDGES_RATCHET=1 ")

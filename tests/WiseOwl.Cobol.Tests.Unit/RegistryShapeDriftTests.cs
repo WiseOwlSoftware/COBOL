@@ -52,26 +52,6 @@ public sealed class RegistryShapeDriftTests
     }
 
     [Theory]
-    [InlineData("inventory")]
-    [InlineData("inventory-1985")]
-    public void EveryInventoryFile_IsOneRule_NamedByItsRuleId(string directory)
-    {
-        string root = TestRepo.VersionMatrix(directory);
-        if (!Directory.Exists(root)) return;   // an edition's store starts with no directory at all (inventory_store.py)
-        var bad = new List<string>();
-        foreach (string dir in Directory.EnumerateDirectories(root)) bad.Add($"{Path.GetFileName(dir)}/: a directory in the store");
-        foreach (string file in Directory.EnumerateFiles(root))
-        {
-            string stem = Path.GetFileNameWithoutExtension(file);
-            if (Path.GetExtension(file) != ".json") { bad.Add($"{Path.GetFileName(file)}: not a <rule-id>.json file"); continue; }
-            using var doc = JsonDocument.Parse(File.ReadAllText(file));
-            if (doc.RootElement.ValueKind != JsonValueKind.Object || !doc.RootElement.TryGetProperty("rule-id", out var id) || id.GetString() != stem)
-                bad.Add($"{stem}.json: not one rule object whose rule-id is the file's name");
-        }
-        Assert.True(bad.Count == 0, $"{directory}/ is one file per rule: " + string.Join("; ", bad));
-    }
-
-    [Theory]
     [InlineData("diagnostics")]
     [InlineData("options")]
     public void EverySuiteSidecar_IsOneObject_AndNoTwoNamesDifferOnlyByCase(string directory)

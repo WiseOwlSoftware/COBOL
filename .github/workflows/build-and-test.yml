@@ -586,7 +586,7 @@ jobs:
           python3 .claude/skills/workstream/check_practices.py
 
   # ── ⛔ THE TEST MATRIX IS WEIGHTED SHARDS (kb/Work PB4329, step 6 of PB4323; DESIGN-test-build-ci.md §1.4). Every shard job
-  # builds the solution and runs EVERY test assembly (Unit, Characterization, Conformance; and on Linux INV-1-strong) with
+  # builds the solution and runs EVERY test assembly (Unit, RepoDrift, Characterization, Conformance; and on Linux INV-1-strong) with
   # WISEOWL_COBOL_SHARD=k/N, and the test framework of each host (tests/_shared/GateLegs.cs, GateShard) runs the cases of
   # the test classes the weights file (tests/_shared/test-weights.json, scripts/shard_weights.py generate) deals to shard k:
   # every class the file names, longest first, to the lightest shard so far, then a class it does not name at the file's
@@ -729,8 +729,16 @@ jobs:
       - name: Unit, this shard
         if: contains(fromJSON(needs.changes.outputs.linux_targets), 'Unit')
         env:
+          WISEOWL_COBOL_GATE_SUITE: ${{ github.workspace }}/TestResults/handed/generated-linux/conformance-suite
           WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/Unit.observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --configuration ${{ needs.changes.outputs.linux_configuration }} --logger "trx;LogFileName=Unit.trx" --results-directory TestResults/${{ runner.os }}-shard
+      # The repository drift tests (kb/Work PB5230): the tests that bind the documents, records, scripts, CI files and test
+      # sources to each other and to the compiler, split out of Unit so each assembly's target keys on its own inputs.
+      - name: RepoDrift, this shard
+        if: ${{ !cancelled() && contains(fromJSON(needs.changes.outputs.linux_targets), 'RepoDrift') }}
+        env:
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/RepoDrift.observations.log
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj --no-build --configuration ${{ needs.changes.outputs.linux_configuration }} --logger "trx;LogFileName=RepoDrift.trx" --results-directory TestResults/${{ runner.os }}-shard
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
       # WISEOWL_COBOL_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
       - name: Characterization snapshots (behavior-neutrality gate), this shard
@@ -902,8 +910,16 @@ jobs:
       - name: Unit, this shard
         if: contains(fromJSON(needs.changes.outputs.windows_targets), 'Unit')
         env:
+          WISEOWL_COBOL_GATE_SUITE: ${{ github.workspace }}/TestResults/handed/generated-windows/conformance-suite
           WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/Unit.observations.log
         run: dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --configuration ${{ needs.changes.outputs.windows_configuration }} --logger "trx;LogFileName=Unit.trx" --results-directory TestResults/${{ runner.os }}-shard
+      # The repository drift tests (kb/Work PB5230): the tests that bind the documents, records, scripts, CI files and test
+      # sources to each other and to the compiler, split out of Unit so each assembly's target keys on its own inputs.
+      - name: RepoDrift, this shard
+        if: ${{ !cancelled() && contains(fromJSON(needs.changes.outputs.windows_targets), 'RepoDrift') }}
+        env:
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/RepoDrift.observations.log
+        run: dotnet test tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj --no-build --configuration ${{ needs.changes.outputs.windows_configuration }} --logger "trx;LogFileName=RepoDrift.trx" --results-directory TestResults/${{ runner.os }}-shard
       - name: Characterization snapshots (behavior-neutrality gate), this shard
         if: ${{ !cancelled() && contains(fromJSON(needs.changes.outputs.windows_targets), 'Characterization') }}
         env:

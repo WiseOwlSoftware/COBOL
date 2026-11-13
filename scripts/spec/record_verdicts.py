@@ -141,7 +141,7 @@ def withdrawal_errors(records: list[tuple[pathlib.Path, int, dict]], catalog: di
 # place — so the two lines below fail loudly instead. The run itself is SCRUBBED (kb/Work PB1718): a gate leg
 # handshake or a VSTest*/RunSettingsFilePath variable left in the operator's shell would narrow it further.
 GATE_FILTER = "FullyQualifiedName~SpecTraceabilityInventory"
-GATE_PROJECT = "tests/WiseOwl.Cobol.Tests.Unit"
+GATE_PROJECT = "tests/WiseOwl.Cobol.Tests.RepoDrift"   # SpecTraceabilityInventoryDriftTests (kb/Work PB5230)
 GATE = (f'python scripts/filter_population.py --filter "{GATE_FILTER}" --filtered {GATE_PROJECT} --allow-build\n'
         f'    python scripts/test_population.py scrubbed dotnet test {GATE_PROJECT} --filter "{GATE_FILTER}"')
 

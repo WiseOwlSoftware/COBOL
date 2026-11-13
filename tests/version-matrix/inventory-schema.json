@@ -1243,6 +1243,11 @@
         "syntax": "conformance-test:<Class>.<Method>",
         "test-dir": "tests/WiseOwl.Cobol.Tests.Conformance",
         "spec-derived": true
+      },
+      "repo-drift": {
+        "syntax": "repo-drift:<Class>.<Method>   a repository drift test (kb/Work PB5230: the tests that left the Unit assembly)",
+        "test-dir": "tests/WiseOwl.Cobol.Tests.RepoDrift",
+        "spec-derived": true
       }
     }
   },

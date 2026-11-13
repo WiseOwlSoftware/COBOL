@@ -69,18 +69,42 @@ it is the PROGRAM of a target the assembly depends on, read at that dependency's
 the variable the gate hands the output in (`GeneratedTarget.env`) and the mark its host records when it was handed none
 and generated its own (`GeneratedTarget.own_mark`, which the gate turns RED). There the read is reached through the
 generator and belongs to its target; anywhere else running or reading the program reads every input of the generator,
-none in the assembly's key, and is a finding (review R1-2). A dependent assembly with no such site is a finding. Its residue, named: a path computed at run time from a non-literal, and what a process the
-test starts reads; the dynamic proof (the Linux shards' file watch, per target) is the remaining work kb/Work PB5218 states.
+none in the assembly's key, and is a finding (review R1-2). A dependent assembly with no such site is a finding. In a target declared narrowly (no `@population-inputs`), a read the audit
+cannot resolve, a bare repository root that no STATEMENT judgment covers, is a finding too, and a judgment nothing matches is
+stale (kb/Work PB5230 review R1-1; `reads_in`, `_root_use`, `findings_of`). A read is judged at its RESOLVED path (its
+`.` and `..` segments resolved, `_resolved`); one that climbs out of the repository is a finding by name. A read that
+names no tracked path is DROPPED only when it is provably no input: a build output (a `bin` or `obj` segment) or a path
+git ignores (`git check-ignore --no-index`: a cache, a scratch or a generated location); anything else names no file the
+key could cover, a typo, a stale path or a file not yet made, and in a narrow target is a finding (review R2-1).
+
+THE ONE-HOME RULE, EXTENDED (review R2-2). A test source reaches the repository only through TestRepo, the one locator
+(kb/Work PB3814's `TestRepoDriftTests`, whose `Anchors` are the base-directory anchors a hand-rolled locator starts from),
+and scratch space only through ScratchDirectory (`ScratchDirectoryDriftTests`). In a narrowly declared target the audit
+refuses every statement that reaches the file system another way (`bypasses_in`): one of those ANCHORS (read from the
+rule's own list, `root_anchors`, so an anchor added there is refused here too), `Environment.CurrentDirectory`, an
+assembly's location, an environment variable read on a line that forms a path, a string literal handed to a System.IO
+call as its path, or a rooted literal handed to `Path.Combine`/`Join`; unless the statement carries a hand judgment with
+its reason.
+
+⛔ THIS AUDIT IS THE EARLY WARNING, NOT THE NET. It reads source text, so it sees a path a source SPELLS and nothing
+else. The SOUND net is the dynamic proof (kb/Work PB5235: a CI shard fails when a test opens a tracked path outside its
+target's declared inputs); only it sees a path computed in a CHILD PROCESS (a script or a compiled program a test runs,
+whose reads no source of the test spells), in NATIVE code, through REFLECTION, or any value formed at run time (a path
+read from a file, built in a loop, passed through a helper the audit does not follow), and `repo-drift`'s bare roots,
+which this audit counts but does not refuse.
 """
 from __future__ import annotations
 
 import argparse
 import ast
+import bisect
 import datetime as dt
 import fnmatch
+import functools
 import hashlib
 import json
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -175,6 +199,12 @@ class Target:
     #: Reads the audit cannot resolve by itself, each judged by hand with its reason: `<source file>|<read>` -> why.
     judged: tuple[tuple[str, str], ...] = ()
     KIND: ClassVar[str] = ""
+
+    @property
+    def broad(self) -> bool:
+        """Whether its inputs are every population input (`@population-inputs`): such a target covers a read it cannot
+        resolve; a narrowly declared one cannot (`check`)."""
+        return "@population-inputs" in self.inputs
 
     def matches(self, path: str, cls: inert_lane.Classification = inert_lane.CLASSIFICATION) -> bool:
         """Whether the tracked `path` is an input of this target."""
@@ -369,6 +399,8 @@ def load_targets(path: Path = TARGETS_FILE) -> Graph:
     data = json.loads(path.read_text(encoding="utf-8"))
     build = tuple(data["build"]["inputs"])
     facets = tuple(data["facets"])
+    #: Judgments of the shared test sources (tests/_shared, part of `@build`): every TEST target using the file shares them.
+    shared_judged = data["build"].get("judged") or {}
     targets: dict[str, Target] = {}
     for name, t in data["targets"].items():
         inputs: list[str] = []
@@ -376,7 +408,8 @@ def load_targets(path: Path = TARGETS_FILE) -> Graph:
             inputs += list(build) if p == "@build" else [p]
         common = dict(name=name, inputs=tuple(inputs), exclude=tuple(t.get("exclude") or ()),
                       facets=tuple(t.get("facets") or facets), depends=tuple(t.get("depends") or ()),
-                      judged=tuple((k, v) for k, v in (t.get("judged") or {}).items()))
+                      judged=tuple((k, v) for k, v in {**(shared_judged if t.get("kind") == TestTarget.KIND else {}),
+                                                         **(t.get("judged") or {})}.items()))
         kind = t.get("kind")
         try:
             if kind == TestTarget.KIND:
@@ -1043,9 +1076,29 @@ TESTREPO_BASES = {
     "At": "", "Root": "", "Src": "src", "SrcBin": None, "Tests": "tests", "Docs": "docs", "Scripts": "scripts",
     "Specs": "specs", "VersionMatrix": "tests/version-matrix", "ConstructsDir": "tests/version-matrix/constructs",
     "ConstructRows": "tests/version-matrix/constructs", "Nist": "tests/nist", "Suite": "conformance-suite",
-    "SuiteCase": "conformance-suite", "SuiteFile": "conformance-suite", "Configuration": None, "TargetFramework": None,
+    "Configuration": None, "TargetFramework": None,
 }
+#: The helpers that find a conformance-suite test by its id, and the two trees they list to find it (TestRepo.cs
+#: `s_suiteCases`): an id names no path, so the trees are the read.
+SUITE_CASE_HELPERS = {"SuiteCase": ("conformance-suite/cases/", "conformance-suite/wiseowl/cases/"),
+                      "SuiteFile": ("conformance-suite/cases/", "conformance-suite/wiseowl/cases/")}
 TESTREPO_CALL = re.compile(r"\bTestRepo\.(\w+)")
+#: The helper that DECLARES the directory a computed path lies in (tests/_shared/TestRepo.cs `Within`): its first
+#: argument, a literal directory, is the read.
+WITHIN = "Within"
+#: What precedes a `TestRepo.Root` that reads nothing: the root made relative (`Path.GetRelativePath(TestRepo.Root, f)`
+#: computes a string), or a documentation reference (`<see cref="TestRepo.Root"/>`, `nameof(TestRepo.Root)`).
+NOT_A_READ = re.compile(r"(?:Path\.GetRelativePath\(\s*|cref=\"|nameof\(\s*)$")
+#: A declared sweep of the tracked tree (tests/_shared/TrackedTree.cs `TreeScope`): its `Under` prefixes.
+TREE_SCOPE = re.compile(r"\bTreeScope\s+\w+\s*=\s*new(?:\s+TreeScope)?\(\s*Under:\s*\[([^\]]*)\]")
+#: The literal head of an interpolated string, up to its first hole: `$"tests/differential/{name}"`.
+INTERPOLATED_HEAD = re.compile(r'(?:\$@?|@\$)"([^"{}\\]*)\{')
+#: A member that IS the repository root under another name (`static string HostRoot => TestRepo.Root;`): each use of it
+#: is judged as a use of `TestRepo.Root` (kb/Work PB5230 R1-5), so an alias cannot hide a read.
+ROOT_ALIAS = re.compile(r"\bstatic\s+string\s+(\w+)\s*(?:=>|\{\s*get;\s*\}\s*=)\s*TestRepo\.Root\s*;")
+#: The top-level type a source declares first: an alias's declaring type.
+FIRST_TYPE = re.compile(r"^(?:(?:internal|public|static|sealed|partial|abstract|file|readonly)\s+)*"
+                        r"(?:class|record|struct)\s+(\w+)", re.MULTILINE)
 STRING = re.compile(r'"((?:[^"\\\n]|\\.)*)"')
 #: A TOP-LEVEL type declaration (no indentation): what another source must name to use a tests/_shared file. Nested types
 #: (`Row`, `Edition`) are reached through their outer type, and their common names would link every file to every other.
@@ -1064,12 +1117,13 @@ def _top_dirs(repo: Path) -> list[str]:
 
 
 def _args(text: str, start: int) -> str | None:
-    """The argument text of a call whose `(` is at `start`, to its matching `)`; None when `start` is no `(`."""
-    if start >= len(text) or text[start] != "(":
+    """The text between the `(` (or `[`) at `start` and its matching close; None when `start` is neither."""
+    if start >= len(text) or text[start] not in "([":
         return None
+    opener, closer = text[start], ")" if text[start] == "(" else "]"
     depth = 0
     for i in range(start, len(text)):
-        depth += {"(": 1, ")": -1}.get(text[i], 0)
+        depth += {opener: 1, closer: -1}.get(text[i], 0)
         if depth == 0:
             return text[start + 1:i]
     return None
@@ -1091,6 +1145,14 @@ def _split_top(args: str) -> list[str]:
     return parts
 
 
+def _spread(parts: list[str]) -> list[str]:
+    """Call arguments with a lone collection expression spread into its elements: `At(["src", "X", .. rest])` names
+    the same path as `At("src", "X", rest)`; a spread element (`.. rest`) is computed, so the literals stop there."""
+    if len(parts) == 1 and parts[0].startswith("[") and parts[0].endswith("]"):
+        return [x for x in _split_top(parts[0][1:-1]) if x]
+    return parts
+
+
 def _leading_literals(args: list[str]) -> tuple[int, list[str]]:
     """How many leading arguments are plain string literals, and their text split on `/`: a path's segments known before
     run time."""
@@ -1098,16 +1160,304 @@ def _leading_literals(args: list[str]) -> tuple[int, list[str]]:
     for a in args:
         m = re.fullmatch(r'"([^"{}\\]*)"', a)
         if m is None:
+            # An interpolated string (`$"tests/differential/{name}"`) spells the directories before its first hole and
+            # nothing after: its complete leading segments count, and the path stops there (kb/Work PB5230 R1-1).
+            if (i := INTERPOLATED_HEAD.match(a)) is not None:
+                segs += [s for s in i.group(1).rpartition("/")[0].split("/") if s]
             break
         n += 1
         segs += [s for s in m.group(1).split("/") if s]
     return n, segs
 
 
-def reads_in(text: str, top_dirs: list[str]) -> list[tuple[int, str]]:
+def _line_at(text: str, i: int) -> str:
+    """The source line holding offset `i`."""
+    end = text.find("\n", i)
+    return text[text.rfind("\n", 0, i) + 1:end if end >= 0 else len(text)]
+
+
+#: Where a C# string literal starts: its `$` and `@` prefix (`$`, `@`, `$@`, `@$`, `$$…`) and its opening quote.
+STRING_OPEN = re.compile(r'(\$*)(@?)(\$*)"')
+#: A C# character literal (`'"'`, `'\''`, `'"'`): its quote is no string's.
+CHAR_LITERAL = re.compile(r"'(?:\\.[^'\n]*|[^'\\\n])'")
+
+
+@dataclass(frozen=True)
+class _StringFrame:
+    """An open C# string literal: interpolated (`$`, and for a raw literal the count of `$`, which is the count of braces
+    that open and close its holes), verbatim (`@`: `""` is a quote, no backslash escape, over lines), or raw (`quotes`,
+    three or more: closed by the same run, over lines, no escape)."""
+    dollars: int
+    verbatim: bool
+    quotes: int = 1
+
+
+@dataclass
+class _HoleFrame:
+    """An open interpolation hole (`{…}`): code, closed by `braces` closing braces outside any brace it opened."""
+    braces: int
+    depth: int = 0
+
+
+@functools.lru_cache(maxsize=64)
+def _lex(text: str) -> tuple[tuple[int, ...], tuple[str, ...]]:
+    """The C# source `text` partitioned by what each character is: "code", "comment" (`//…`, `/*…*/`), "string" (a
+    literal's text: regular, verbatim, interpolated, raw, character) or "hole" (the code of an interpolated string's
+    `{…}`, a raw literal's `{{…}}` as many braces as dollars), as the sorted starts of the runs and the kind of each.
+
+    ONE lexer of the whole file, so a literal is followed wherever it goes: a verbatim literal over lines, a verbatim
+    literal ending in an escaped quote (`@"x\"\"\"`, which a three-quote pattern took for a raw literal and so hid every line
+    of code up to the next one: kb/Work PB5230 review round 3), a block comment, a string in a hole. An unterminated
+    regular literal ends at its line's end, as the C# compiler recovers."""
+    starts: list[int] = [0]
+    kinds: list[str] = ["code"]
+    stack: list[_StringFrame | _HoleFrame] = []
+
+    def mark(at: int, kind: str) -> None:
+        if kinds[-1] == kind:
+            return
+        if starts[-1] == at:
+            kinds[-1] = kind
+            if len(kinds) > 1 and kinds[-2] == kind:
+                starts.pop()
+                kinds.pop()
+        else:
+            starts.append(at)
+            kinds.append(kind)
+
+    def code_kind() -> str:
+        return "hole" if stack else "code"
+
+    i, n = 0, len(text)
+    while i < n:
+        top = stack[-1] if stack else None
+        c = text[i]
+        if isinstance(top, _StringFrame):
+            if top.quotes >= 3:
+                if text.startswith('"' * top.quotes, i):
+                    stack.pop()
+                    i += top.quotes
+                    mark(i, code_kind())
+                    continue
+                if top.dollars and c == "{":
+                    run = len(text[i:]) - len(text[i:].lstrip("{"))
+                    if run >= top.dollars:
+                        stack.append(_HoleFrame(top.dollars))
+                        mark(i + run - top.dollars, "hole")
+                    i += run
+                    continue
+                i += 1
+                continue
+            if c == "\\" and not top.verbatim:
+                i += 2
+                continue
+            if c == '"':
+                if top.verbatim and text[i + 1:i + 2] == '"':
+                    i += 2
+                    continue
+                stack.pop()
+                i += 1
+                mark(i, code_kind())
+                continue
+            if c == "\n" and not top.verbatim:
+                stack.pop()
+                mark(i, code_kind())
+                continue
+            if top.dollars and c in "{}":
+                if text[i + 1:i + 2] == c:
+                    i += 2
+                    continue
+                if c == "{":
+                    stack.append(_HoleFrame(1))
+                    mark(i, "hole")
+            i += 1
+            continue
+        # Code: the top level, or an interpolation hole.
+        if c == "/" and text[i + 1:i + 2] == "/":
+            mark(i, "comment")
+            end = text.find("\n", i)
+            i = n if end < 0 else end
+            mark(i, code_kind())
+            continue
+        if c == "/" and text[i + 1:i + 2] == "*":
+            mark(i, "comment")
+            end = text.find("*/", i + 2)
+            i = n if end < 0 else end + 2
+            mark(i, code_kind())
+            continue
+        if c == "'" and (m := CHAR_LITERAL.match(text, i)) is not None:
+            mark(i, "string")
+            i = m.end()
+            mark(i, code_kind())
+            continue
+        if c in '$@"' and (m := STRING_OPEN.match(text, i)) is not None:
+            dollars, verbatim = len(m.group(1)) + len(m.group(3)), bool(m.group(2))
+            q = m.end() - 1
+            quotes = len(text[q:]) - len(text[q:].lstrip('"'))
+            mark(i, "string")
+            if quotes >= 3 and not verbatim:
+                stack.append(_StringFrame(dollars, False, quotes))
+                i = q + quotes
+            else:
+                stack.append(_StringFrame(dollars, verbatim))
+                i = q + 1
+            continue
+        if isinstance(top, _HoleFrame):
+            if c == "{":
+                top.depth += 1
+            elif c == "}":
+                if top.depth:
+                    top.depth -= 1
+                elif text.startswith("}" * top.braces, i):
+                    stack.pop()
+                    i += top.braces
+                    mark(i, "string")
+                    continue
+        i += 1
+    return tuple(starts), tuple(kinds)
+
+
+def _context(text: str, pos: int) -> str:
+    """What offset `pos` of the C# source `text` is: "code", "comment", "string" (a literal's text) or "hole" (an
+    interpolated string's `{…}`), read from the one lexer of the whole file (`_lex`)."""
+    starts, kinds = _lex(text)
+    return kinds[bisect.bisect_right(starts, pos) - 1]
+
+
+def _root_use(text: str, start: int, end: int) -> list[str]:
+    """The reads one use of the repository root (`TestRepo.Root`, or an alias of it) at `text[start:end]` spells: none
+    when it is TEXT, else a path, a directory (ending in `/`) or "" (a bare root, unresolved).
+
+    It is TEXT exactly when: it lies in a comment or in a string literal's text; it is made relative
+    (`Path.GetRelativePath(TestRepo.Root, …)`, a string computed from paths) or named (`cref`, `nameof`); or it is an
+    interpolated string's hole whose neighbours in that string are neither a path separator nor the string's own quotes
+    (`$"… '{TestRepo.Root}'; …"`). A hole the string continues with a separator (`$"{TestRepo.Root}/tests/x.out"`) is a
+    read of the literal path that follows it, up to the next hole; a hole preceded by a separator, a hole that is the
+    whole string (`$"{TestRepo.Root}"`, which flows wherever it is passed) and a hole with a format are bare roots.
+    `Path.Combine(TestRepo.Root, "a", …)` and `Path.Combine([TestRepo.Root, "a", …])` read their literal segments; any
+    other use is a bare root (kb/Work PB5230 review R1-2: a form the audit cannot classify is a read, never text)."""
+    where = _context(text, start)
+    if where in ("comment", "string") or ROOT_ALIAS.search(_line_at(text, start)):
+        return []   # text, or an alias's declaration: each USE of the alias is judged where it is (`root_aliases`)
+    before = text[max(0, start - 60):start]
+    if NOT_A_READ.search(before):
+        return []
+    if where == "hole" and text[start - 1:start] == "{":
+        if text[end:end + 1] != "}":
+            return [""]
+        nxt, prv = text[end + 1:end + 2], text[start - 2:start - 1]
+        if nxt in ("/", "\\"):
+            tail = re.match(r'[^"{]*', text[end + 1:]).group(0)
+            closed = text[end + 1 + len(tail):end + 2 + len(tail)] == '"'
+            segs = [s for s in re.split(r"[/\\]+", tail) if s]
+            if not closed and not tail.endswith(("/", "\\")):
+                segs = segs[:-1]
+            if not segs:
+                return [""]
+            return ["/".join(segs) if closed else "/".join(segs) + "/"]
+        if prv in ("/", "\\") or (prv == '"' and nxt == '"'):
+            return [""]
+        return []
+    call = re.search(r"Path\.Combine\(\s*(\[\s*)?$", before)
+    if call is not None:
+        open_at = text.rindex("[" if call.group(1) else "(", 0, start)
+        parts = [x for x in _split_top(_args(text, open_at) or "")[1:] if x]
+        n, segs = _leading_literals(parts)
+        path = "/".join(segs)
+        return [path if n == len(parts) and n > 0 else (path + "/" if path else "")]
+    return [""]
+
+
+def root_aliases(sources: dict[str, str]) -> list[str]:
+    """The uses of every root alias the sources declare (ROOT_ALIAS), as patterns: `Type.Member` anywhere, and the bare
+    member in its declaring file (`(?<!\\.)Member`, applied to that file only by `reads_in`'s caller)."""
+    out = []
+    for text in sources.values():
+        owner = FIRST_TYPE.search(text)
+        for m in ROOT_ALIAS.finditer(text):
+            out.append(rf"\b{re.escape(owner.group(1))}\.{re.escape(m.group(1))}\b" if owner else rf"\b{m.group(1)}\b")
+    return out
+
+
+#: THE ONE-HOME RULE of the repository's locator (kb/Work PB3814): its `Anchors` list names where a hand-rolled locator
+#: starts from, and `bypasses_in` refuses each of them (`root_anchors`), so the rule's list is the one list.
+ONE_HOME = "tests/WiseOwl.Cobol.Tests.RepoDrift/TestRepoDriftTests.cs"
+
+
+def root_anchors(repo: Path = REPO) -> tuple[str, ...]:
+    """The one-home rule's base-directory anchors (`TestRepoDriftTests.Anchors`), read from its source. A rule that no
+    longer declares the list is a failure naming it, never an empty list that would refuse nothing."""
+    m = re.search(r"\bAnchors\s*=\s*\[(.*?)\];", (repo / ONE_HOME).read_text(encoding="utf-8"), re.S)
+    anchors = tuple(re.findall(r'"([^"]*)"', m.group(1))) if m else ()
+    if not anchors:
+        raise GraphError(f"{ONE_HOME}: no `Anchors = [...]` list: the one-home rule moved; repoint buildgraph.ONE_HOME")
+    return anchors
+
+
+#: ⛔ THE FILE-SYSTEM BYPASSES beyond the one-home rule's anchors (kb/Work PB5230 review R2-2): each reaches the file
+#: system around TestRepo and ScratchDirectory, so the audit cannot see what it reads. Each is (kind, pattern over a line).
+BYPASSES = (
+    ("an assembly's location", re.compile(r"\bAssembly\w*(?:\(\))?\.(?:Location|CodeBase)\b|\.Assembly\.(?:Location|CodeBase)\b")),
+    ("the working directory", re.compile(r"\bEnvironment\.CurrentDirectory\b")),
+)
+#: A System.IO call that OPENS or RESOLVES a path given as its first argument: a relative literal there resolves against
+#: the working directory, a rooted one is a fixed machine path. The type is named bare or as `System.IO.` (the round-2
+#: review planted `System.IO.Path.Combine(...)`), never as another object's member (`x.File.Method(`, a member named File).
+IO_TYPE = r"(?:(?<![\w.])|(?<=\bSystem\.IO\.))"
+FS_CALL = re.compile(rf"{IO_TYPE}(?:File|Directory)\.\w+\(|{IO_TYPE}Path\.GetFullPath\(|"
+                     r"\bnew\s+(?:System\.IO\.)?(?:FileInfo|DirectoryInfo|FileStream|StreamReader|StreamWriter)\(")
+#: A call that only JOINS path segments: a relative literal there is a fragment some other base completes (a TestRepo
+#: helper's argument), so only a ROOTED literal first argument bypasses TestRepo.
+JOIN_CALL = re.compile(rf"{IO_TYPE}Path\.(?:Combine|Join)\(")
+#: A rooted path literal: a drive letter, a POSIX root or a UNC prefix.
+ROOTED = re.compile(r'@?"(?:[A-Za-z]:[\\/]|/|\\\\)')
+#: Any System.IO path call, for "an environment variable forming a path".
+PATH_CALL = re.compile(FS_CALL.pattern + "|" + JOIN_CALL.pattern)
+#: An environment variable read.
+ENV_READ = re.compile(r"\bEnvironment\.GetEnvironmentVariable\(")
+#: The `_context` kinds that RUN: top-level code and an interpolation hole's code.
+RUNS = ("code", "hole")
+
+
+def bypasses_in(text: str, anchors: tuple[str, ...]) -> list[tuple[int, str]]:
+    """Every statement (line) of `text` that reaches the file system around TestRepo and ScratchDirectory (R2-2): one of
+    the one-home rule's `anchors` (`root_anchors`), an assembly's location, the working directory, an environment variable
+    read on a line that forms a
+    path (a System.IO path call), or a string LITERAL as the first argument of a System.IO path call (a rooted literal is
+    a fixed machine path; a relative one resolves against the working directory). Only code counts, an interpolation
+    hole's included (it runs): comments and the text of other literals do not (`_context`)."""
+    out: list[tuple[int, str]] = []
+    offset = 0
+    rule = ("a base-directory anchor of the one-home rule", re.compile("|".join(rf"(?<!\w){re.escape(a)}" for a in anchors)))
+    for n, line in enumerate(text.split("\n"), 1):
+        hits: list[str] = []
+        for kind, pattern in (rule, *BYPASSES):
+            if any(_context(text, offset + m.start()) in RUNS for m in pattern.finditer(line)):
+                hits.append(kind)
+        if PATH_CALL.search(line) and any(_context(text, offset + m.start()) in RUNS for m in ENV_READ.finditer(line)):
+            hits.append("an environment variable forming a path")
+        for pattern, literal in ((FS_CALL, re.compile(r'@?"(?!")')), (JOIN_CALL, ROOTED)):
+            for m in pattern.finditer(line):
+                if _context(text, offset + m.start()) in RUNS and literal.match(line[m.end():].lstrip()):
+                    hits.append("a literal path handed to System.IO")
+        if hits:
+            out.append((n, ", ".join(dict.fromkeys(hits))))
+        offset += len(line) + 1
+    return out
+
+
+def own_root_aliases(text: str) -> list[str]:
+    """The bare uses, inside the file that declares it, of a root alias (`HostRoot` beside `static string HostRoot =>
+    TestRepo.Root;`)."""
+    return [rf"(?<![\w.]){re.escape(m.group(1))}\b" for m in ROOT_ALIAS.finditer(text)]
+
+
+def reads_in(text: str, top_dirs: list[str], aliases: list[str] | tuple[str, ...] = ()) -> list[tuple[int, str]]:
     """Every repository read `text` (a C# source) spells, with its line: a path when every segment is a literal, else the
-    directory its literal segments reach, ending in `/` ("" is the whole repository)."""
+    directory its literal segments reach, ending in `/` ("" is the whole repository: a bare root, unresolved). `aliases`
+    are the patterns of the root's other names (`root_aliases`); this file's own are added."""
     found: list[tuple[int, str]] = []
+    aliases = [*aliases, *own_root_aliases(text)]
 
     def line_of(i: int) -> int:
         return text.count("\n", 0, i) + 1
@@ -1122,36 +1472,73 @@ def reads_in(text: str, top_dirs: list[str]) -> list[tuple[int, str]]:
         found.append((line_of(m.start()), "/".join(x for x in [base, *segs, m.group(3)] if x)))
     for m in TESTREPO_CALL.finditer(text):
         helper = m.group(1)
+        before = text[max(0, m.start() - 60):m.start()]
+        if helper == WITHIN:
+            # `TestRepo.Within("src/", rel)`: a computed path DECLARED to lie in a literal directory, and held there at
+            # run time (TestRepo.Within throws otherwise), so the directory is the read.
+            parts = [x for x in _split_top(_args(text, m.end()) or "") if x]
+            n, segs = _leading_literals(parts[:1])
+            found.append((line_of(m.start()), "/".join(segs) + "/" if n and segs else ""))
+            continue
+        if helper in SUITE_CASE_HELPERS:
+            found += [(line_of(m.start()), tree) for tree in SUITE_CASE_HELPERS[helper]]
+            continue
         base = TESTREPO_BASES.get(helper, None) if helper in TESTREPO_BASES else None
         if base is None or m.start() in listed:
             continue
+        if helper == "Root":
+            found += [(line_of(m.start()), r) for r in _root_use(text, m.start(), m.end())]
+            continue
         segs: list[str] = []
         complete = False
-        if helper == "Root":
-            call = re.search(r"Path\.Combine\(\s*$", text[max(0, m.start() - 40):m.start()])
-            if call is not None:
-                open_at = text.rindex("(", 0, m.start())
-                whole = _args(text, open_at)
-                parts = [x for x in _split_top(whole or "")[1:] if x]
-                n, segs = _leading_literals(parts)
-                complete = n == len(parts) and n > 0
-        else:
-            args = _args(text, m.end())
-            if args is not None:
-                parts = [x for x in _split_top(args) if x]
-                n, segs = _leading_literals(parts)
-                complete = n == len(parts) and n > 0
+        args = _args(text, m.end())
+        if args is not None:
+            parts = _spread([x for x in _split_top(args) if x])
+            n, segs = _leading_literals(parts)
+            complete = n == len(parts) and n > 0
         path = "/".join(x for x in [base, *segs] if x)
         found.append((line_of(m.start()), path if complete else (path + "/" if path else "")))
+    for alias in aliases:
+        # A use of a root alias is a use of the root (ROOT_ALIAS); its own declaration is not.
+        for m in re.finditer(alias, text):
+            if ROOT_ALIAS.search(_line_at(text, m.start())) is None:
+                found += [(line_of(m.start()), r) for r in _root_use(text, m.start(), m.end())]
     roots = "|".join(re.escape(d) for d in top_dirs)
     lit = re.compile(rf"^(?:{roots})/[^\s{{}}<>|]*$") if roots else None
     for m in STRING.finditer(text):
         s = m.group(1)
+        interpolated = text[max(0, m.start() - 2):m.start()].endswith("$") or text[max(0, m.start() - 2):m.start()] == "$@"
+        if interpolated and "{" in s:
+            # An interpolated string's literal head, up to its first hole, is the directory it reads within (R1-1).
+            head = s.split("{", 1)[0]
+            if lit is not None and lit.match(head):
+                found.append((line_of(m.start()), head if head.endswith("/") else head.rpartition("/")[0] + "/"))
+            continue
         if lit is None or not lit.match(s):
             continue
         cut = re.split(r"[*?]", s, maxsplit=1)[0]
         found.append((line_of(m.start()), s if cut == s else (cut if cut.endswith("/") else cut.rsplit("/", 1)[0] + "/")))
-    return found
+    for m in TREE_SCOPE.finditer(text):
+        # A sweep of the tracked tree reads every path its scope's `Under` prefixes hold (TreeScope.Holds compares
+        # ordinally, so "tests" holds tests/ and any sibling spelled "tests…"): a prefix ending in `/` is that directory;
+        # any other is the directory that holds its last segment, and a prefix at the top ("tests", "") is the whole tree,
+        # a bare root reference (kb/Work PB5230 review R1-3).
+        for prefix in re.findall(r'"([^"]*)"', m.group(1)):
+            found.append((line_of(m.start()), prefix if prefix.endswith("/")
+                          else (prefix.rpartition("/")[0] + "/" if "/" in prefix else "")))
+    return [(line, _resolved(read)) for line, read in found]
+
+
+def _resolved(read: str) -> str:
+    """A read with its `.` and `..` segments resolved (review R2-1: `TestRepo.Src("..", "tests", "d")` reads `tests/d`, which
+    is judged there, not dropped as a path no file has). A read that climbs above the repository keeps a leading `../`
+    (refused by name in `scan`); one that resolves to the repository itself is a bare root ("")."""
+    if not read or not any(s in (".", "..") for s in read.rstrip("/").split("/")):
+        return read
+    resolved = posixpath.normpath(read)
+    if resolved == ".":
+        return ""
+    return resolved + "/" if read.endswith("/") and not resolved.endswith("/") else resolved
 
 
 def assembly_sources(repo: Path, target: TestTarget) -> list[Path]:
@@ -1177,46 +1564,95 @@ def assembly_sources(repo: Path, target: TestTarget) -> list[Path]:
 @dataclass(frozen=True)
 class Scan:
     """THE BUILD TARGETS AUDIT for one target, from ONE pass over its sources. `undeclared`: each repository read they
-    spell that the inputs do not cover, as `<file>:<line>: <read>`. `roots`: the bare repository-root references
-    (`TestRepo.Root`, `At()` with no literal segment): a working directory, a path to strip from a message, or a
-    whole-tree read (`TrackedTree`'s `git ls-files`), which no static reading can tell apart. The roots are counted in
-    the audit's verdict, never judged: the dynamic proof is where they are judged (kb/Work PB5218). `through`: each read
-    that is the program of a target this one depends on (`<file>:<line>: <read>`), the run a host makes only when no gate
-    handed it the dependency's output; it belongs to that target. `handed`: each dependency's environment variable the
-    sources spell (`GeneratedTarget.env`)."""
+    spell that the inputs do not cover, as `<file>:<line>: <read>`. `roots`: the bare repository-root references no
+    statement judgment covers (`TestRepo.Root` or an alias of it used in a form `_root_use` cannot resolve, `At()` with no
+    literal segment, a top-level TreeScope prefix), as `<file>:<line>: <statement>`: a finding in a narrowly declared
+    target (`findings_of`), counted in a broad one (kb/Work PB5230 review R1-1). `through`: each read that is the program
+    of a target this one depends on (`<file>:<line>: <read>`), the run a host makes only when no gate handed it the
+    dependency's output; it belongs to that target. `handed`: each dependency's environment variable the sources spell
+    (`GeneratedTarget.env`). `used`: the hand judgments (`judged` keys) a read or root of these sources matched; a judgment
+    no target uses is stale."""
     undeclared: tuple[str, ...]
     roots: tuple[str, ...]
     through: tuple[str, ...] = ()
     handed: tuple[str, ...] = ()
+    used: frozenset[str] = frozenset()
+    #: Each statement that reaches the file system around TestRepo and ScratchDirectory (`bypasses_in`), unjudged.
+    bypasses: tuple[str, ...] = ()
+    #: Each read that names no tracked path and is neither a build output nor ignored (`<file>:<line>: <read>`).
+    unknown: tuple[str, ...] = ()
+
+
+def _build_output(read: str) -> bool:
+    """A path inside a project's build output: a `bin` or `obj` segment (TestRepo.SrcBin's, a test host's own)."""
+    return bool({"bin", "obj"} & set(read.strip("/").split("/")))
+
+
+def _ignored(repo: Path, reads: list[str]) -> set[str]:
+    """The reads git ignores (`git check-ignore --no-index`: the rules alone, whether the path exists or not): a cache, a
+    scratch or a generated location the repository declares untracked (TestResults/, .cache/, docs/DIAGNOSTICS.md)."""
+    if not reads:
+        return set()
+    # NUL-separated bytes both ways: text mode would write CRLF on Windows and git would read a `\r` into each path.
+    out = subprocess.run(["git", "check-ignore", "--no-index", "--stdin", "-z"], cwd=repo,
+                         input="\0".join(reads).encode("utf-8") + b"\0", capture_output=True).stdout
+    return {p for p in out.decode("utf-8", "surrogateescape").split("\0") if p}
 
 
 def scan(repo: Path, target: TestTarget, top_dirs: list[str], tracked: tuple[set[str], set[str]],
          cls: inert_lane.Classification = inert_lane.CLASSIFICATION,
-         dependencies: tuple[GeneratedTarget, ...] = ()) -> Scan:
+         dependencies: tuple[GeneratedTarget, ...] = (), *, anchors: tuple[str, ...]) -> Scan:
     """Read `target`'s sources once and return every half of its audit. The tree's top directories and tracked paths
     are the caller's, computed once for every target (kb/Work PB5218 review R1-1: per-file recomputation cost ~60 s).
     `dependencies`: the generated targets it depends on, whose PROGRAM a source may name (a read reached through the
-    dependency) and whose ENVIRONMENT VARIABLE its sources must spell."""
+    dependency) and whose ENVIRONMENT VARIABLE its sources must spell. `anchors`: the one-home rule's base-directory
+    anchors (`root_anchors`, read once by the caller)."""
     judged = {k for k, _ in target.judged}
     programs = {d.program: d for d in dependencies}
+    used: set[str] = set()
     bad: set[str] = set()
     roots: set[str] = set()
     through: set[str] = set()
     handed: set[str] = set()
-    for src in assembly_sources(repo, target):
-        rel = src.relative_to(repo).as_posix()
-        text = src.read_text(encoding="utf-8", errors="replace")
+    bypass: set[str] = set()
+    untracked: list[tuple[str, int, str]] = []
+    sources = {src.relative_to(repo).as_posix(): src.read_text(encoding="utf-8", errors="replace")
+               for src in assembly_sources(repo, target)}
+    aliases = root_aliases(sources)
+    for rel, text in sources.items():
+        lines = text.split("\n")
         # THE ONE HAND-OFF SITE of a dependency (kb/Work PB5231 R1-2): the source that names its variable AND the mark it
         # records when it had to generate its own (`GeneratedTarget.own_mark`, which the gate turns RED).
         site = {d.name for d in dependencies if f'"{d.env}"' in text and f'"{d.own_mark}"' in text}
         handed |= {d.env for d in dependencies if d.name in site}
-        for line, read in reads_in(text, top_dirs):
+        for line, read in reads_in(text, top_dirs, aliases):
             if read == "":
-                roots.add(f"{rel}:{line}")
+                # A bare root is judged by hand only STATEMENT by statement: `<file>|<its line, trimmed>`, so a new root
+                # in the same file is never covered by an old judgment (kb/Work PB5230 review R1-1).
+                key = f"{rel}|{lines[line - 1].strip()}"
+                if key in judged:
+                    used.add(key)
+                else:
+                    roots.add(f"{rel}:{line}: {lines[line - 1].strip()}")
                 continue
-            read = _normalized(read, tracked)
-            if read is None or f"{rel}|{read}" in judged:
-                continue   # names no tracked path (build output, a cache, a scratch name), or judged by hand
+            if read == ".." or read.startswith("../"):
+                bad.add(f"{rel}:{line}: {read} (climbs out of the repository: no target can declare it)")
+                continue
+            if f"{rel}|{read}" in judged:
+                used.add(f"{rel}|{read}")
+                continue   # judged by hand
+            known = _normalized(read, tracked)
+            if known is None:
+                # ⛔ A read that names no tracked path is DROPPED only when it is provably not an input: a build output (a
+                # `bin` or `obj` segment) or a path git ignores (`ignored`, one `git check-ignore` for the whole scan).
+                # Anything else, a typo, a stale path or a file that does not exist yet, is reported (review R2-1).
+                if not _build_output(read):
+                    untracked.append((rel, line, read))
+                continue
+            read = known
+            if f"{rel}|{read}" in judged:
+                used.add(f"{rel}|{read}")
+                continue   # judged by hand
             if read in programs and programs[read].name in site:
                 through.add(f"{rel}:{line}: {read}")
             elif read in programs:
@@ -1226,7 +1662,17 @@ def scan(repo: Path, target: TestTarget, top_dirs: list[str], tracked: tuple[set
                         f"this reads every input of {programs[read].name}, and none is in this target's key)")
             elif not target.covers(read, cls):
                 bad.add(f"{rel}:{line}: {read}")
-    return Scan(tuple(sorted(bad)), tuple(sorted(roots)), tuple(sorted(through)), tuple(sorted(handed)))
+        # The file system reached around TestRepo and ScratchDirectory (review R2-2), judged statement by statement.
+        for line, kind in bypasses_in(text, anchors):
+            key = f"{rel}|{lines[line - 1].strip()}"
+            if key in judged:
+                used.add(key)
+            else:
+                bypass.add(f"{rel}:{line}: {lines[line - 1].strip()}  ({kind})")
+    ignored = _ignored(repo, [r for _, _, r in untracked])
+    unknown = tuple(sorted(f"{rel}:{line}: {read}" for rel, line, read in untracked if read not in ignored))
+    return Scan(tuple(sorted(bad)), tuple(sorted(roots)), tuple(sorted(through)), tuple(sorted(handed)), frozenset(used),
+                tuple(sorted(bypass)), unknown)
 
 
 def _tracked(repo: Path) -> tuple[set[str], set[str]]:
@@ -1255,33 +1701,59 @@ def _normalized(read: str, tracked: tuple[set[str], set[str]]) -> str | None:
 
 def check(repo: Path = REPO) -> int:
     graph = load_targets(repo / "scripts" / "build_targets.json")
-    top, tracked = _top_dirs(repo), _tracked(repo)
-    scans = {name: scan(repo, t, top, tracked, dependencies=tuple(graph.targets[d] for d in t.depends))
+    top, tracked, anchors = _top_dirs(repo), _tracked(repo), root_anchors(repo)
+    scans = {name: scan(repo, t, top, tracked, dependencies=tuple(graph.targets[d] for d in t.depends), anchors=anchors)
              for name, t in graph.tests().items()}
     unhanded = [f"{name}: no source of its assembly names both {graph.targets[d].env}, the variable the gate hands "
                 f"{d}'s output in, and {graph.targets[d].own_mark!r}, what its host records when it generated its own: "
                 "its hosts could run a suite its key does not name"
                 for name, t in graph.tests().items() for d in t.depends if graph.targets[d].env not in scans[name].handed]
     statics = [f for t in graph.generated().values() for f in static_check(repo, t, tracked[0])]
-    for name, sc in scans.items():
-        for b in sc.undeclared:
-            print(f"  {name}: {b}")
-    for u in unhanded + statics:
-        print(f"  {u}")
-    n = sum(len(sc.undeclared) for sc in scans.values()) + len(unhanded) + len(statics)
-    residue = ", ".join(f"{name} {len(sc.roots)}" for name, sc in scans.items())
+    findings = findings_of(graph.tests(), scans) + unhanded + statics
+    for f in findings:
+        print(f"  {f}")
+    residue = ", ".join(f"{name} {len(sc.roots)}" for name, sc in scans.items() if graph.targets[name].broad)
     through = ", ".join(f"{name} {len(sc.through)}" for name, sc in scans.items() if sc.through)
-    if n:
-        print(f"=== BUILD TARGETS: RED — {n} finding(s): a repository read outside its target's declared inputs "
-              "(scripts/build_targets.json: declare it with its reader, or remove the read), a dependency's output "
-              "its assembly does not take from the gate, or a generated target's import or probe outside its inputs ===")
+    if findings:
+        print(f"=== BUILD TARGETS: RED — {len(findings)} finding(s): a repository read outside its target's declared "
+              "inputs (scripts/build_targets.json: declare it with its reader, or remove the read), an unresolved read "
+              "in a narrowly declared target, a file-system bypass of TestRepo or ScratchDirectory there, a read naming no "
+              "tracked path that is neither a build output nor ignored, a climb out of the repository, a stale judgment, "
+              "a dependency's output its assembly does not take from "
+              "the gate, or a generated target's import or probe outside its inputs ===")
         return 1
     print(f"=== BUILD TARGETS: GREEN — {len(graph.targets)} target(s), {len(graph.generated())} generated, in the order "
           f"{' -> '.join(graph.order)}; every repository read the test sources spell lies in their declared inputs"
           + (f" or is a dependency's program ({through})" if through else "")
-          + f"; each generated target's import closure and probes lie in its inputs"
-          + f" (bare root references, judged only by the dynamic proof: {residue}) ===")
+          + "; every narrowly declared target resolves every read and reaches the file system only through TestRepo "
+          "and ScratchDirectory or a judged statement, and names no untracked path that is not a build output or "
+          "ignored; each generated target's import closure and probes "
+          f"lie in its inputs (bare root references of the targets declaring every population input, judged by the "
+          f"dynamic proof: {residue or 'none'}) ===")
     return 0
+
+
+def findings_of(targets: Mapping[str, Target], scans: Mapping[str, Scan]) -> list[str]:
+    """THE AUDIT'S FINDINGS over every test target's scan, each once: a read outside its target's inputs; in a target
+    declared narrowly, an unresolved root; a hand judgment no target's sources match (stale)."""
+    findings: list[str] = []
+    for name, sc in scans.items():
+        findings += [f"{name}: {b}" for b in sc.undeclared]
+        # ⛔ A target declared narrowly (no `@population-inputs`) cannot cover a read it cannot resolve: an unresolved
+        # root there is a finding naming its file and line, never a count (owner 2026-11-10: "If it cannot be resolved,
+        # there is a problem/bug"; kb/Work PB5230 review R1-1).
+        if not targets[name].broad:
+            findings += [f"{name}: {r}  (an unresolved repository-root read: spell its path, declare its directory with "
+                         "TestRepo.Within, or judge the statement by hand with its reason)" for r in sc.roots]
+            findings += [f"{name}: {b}: the file system reached around TestRepo and ScratchDirectory (review R2-2): use "
+                         "them, or judge the statement by hand with its reason" for b in sc.bypasses]
+            findings += [f"{name}: {u} names no tracked path, and is neither a build output nor ignored: a typo, a stale "
+                         "path or a file that does not exist yet (review R2-1); correct it, or judge it with its reason"
+                         for u in sc.unknown]
+    used = set().union(*(sc.used for sc in scans.values())) if scans else set()
+    findings += [f"stale judgment {k!r} (scripts/build_targets.json): no read or root of any target matches it; remove "
+                 "it, or correct it" for n, t in targets.items() if n in scans for k, _ in t.judged if k not in used]
+    return list(dict.fromkeys(findings))
 
 
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1388,6 +1860,9 @@ def transport_arms(root: Path, arm) -> None:
         and remote_store_commit(ci.path, "origin") == later,
         f"{sorted(both.records)} stale={stale.returncode} {again} {second} {later} {pruned.commit} {said}")
 
+#: The one-home rule's anchors as the self-test plants them (`root_anchors` reads the real list).
+ANCHORS = ("AppContext.BaseDirectory", "AppDomain.CurrentDomain.BaseDirectory", "Directory.GetCurrentDirectory(")
+
 
 def self_test() -> int:
     from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: PLC0415
@@ -1470,7 +1945,7 @@ def self_test() -> int:
                         "tests/C/T.cs": planted}
         audit.commit("planted", tracked_data)
         def undeclared_now(t: TestTarget = conf, deps: tuple[GeneratedTarget, ...] = ()) -> Scan:
-            return scan(tdir, t, top, _tracked(tdir), dependencies=deps)
+            return scan(tdir, t, top, _tracked(tdir), dependencies=deps, anchors=ANCHORS)
 
         clean = undeclared_now().undeclared
         audit.commit("undeclared", {"tests/C/U.cs": undeclared_read})
@@ -1501,11 +1976,11 @@ def self_test() -> int:
         arm("the real targets file loads: unit, conformance, characterization and the generated conformance-suite, which "
             "conformance depends on and which comes first; @build expanded; the inventory is the generator's input and "
             "not conformance's",
-            sorted(real_graph.tests()) == ["characterization", "conformance", "unit"]
+            sorted(real_graph.tests()) == ["characterization", "conformance", "repo-drift", "unit"]
             and list(real_graph.generated()) == ["conformance-suite"] and rt["conformance"].depends == ("conformance-suite",)
             and real_graph.order.index("conformance-suite") < real_graph.order.index("conformance")
             and "src/" in rt["conformance"].inputs and "@build" not in rt["conformance"].inputs
-            and rt["unit"].inputs == ("@population-inputs",)
+            and "src/" in rt["unit"].inputs and not rt["unit"].broad and rt["repo-drift"].broad
             and rt["conformance-suite"].matches("tests/version-matrix/inventory/r.json")
             and not rt["conformance"].matches("tests/version-matrix/inventory/r.json")
             and not rt["conformance"].matches("conformance-suite/harness/generate.py")
@@ -1696,6 +2171,148 @@ def self_test() -> int:
             one_site.undeclared == () and len(one_site.through) == 1 and one_site.handed == ("WISEOWL_COBOL_GATE_SUITE",)
             and any(u.startswith("tests/D/GeneratorCheck.cs:1: conformance-suite/harness/generate.py (the program of "
                                  "suite") for u in two_sites.undeclared), f"{one_site} | {two_sites}")
+        # The audit's reading of a C# source (kb/Work PB5230): a root as text is no read; a collection expression, a
+        # declared Within directory and a suite case's trees are read; a whole-tree scope is a bare root reference.
+        spelled = reads_in(
+            'var a = Path.GetRelativePath(TestRepo.Root, f); var b = $"at {TestRepo.Root}";\n'
+            'var c = TestRepo.At(["docs", "x.json"]); var d = Path.Combine([TestRepo.Root, "src", .. rest]);\n'
+            'var e = TestRepo.Within("src/A/", rel); var g = TestRepo.SuiteCase(id);\n'
+            'static readonly TreeScope All = new(Under: [""], Kinds: [".cs"]);\n'
+            'var h = TestRepo.At(rel);\n', ["src", "docs", "tests", "conformance-suite"])
+        arm("the audit reads a source as written: a root made relative or interpolated is no read; At([..]) and "
+            "Path.Combine([Root, ..]) are read through their literals; Within reads its declared directory; SuiteCase "
+            "its two trees; a whole-tree scope and a computed At are bare root references",
+            spelled == [(2, "docs/x.json"), (2, "src/"), (3, "src/A/"), (3, "conformance-suite/cases/"),
+                        (3, "conformance-suite/wiseowl/cases/"), (5, ""), (3, "src/A/"), (4, "")], str(spelled))
+
+        # Review round 1 (kb/Work PB5230): what the reviewer planted, each a read the audit now SEES.
+        tops = ["src", "docs", "tests", "conformance-suite"]
+        interp = reads_in(
+            'var a = File.ReadAllText($"{TestRepo.Root}/tests/d/x.out");\n'
+            'var b = $"carries the root \'{TestRepo.Root}\'; pass a relative path";\n'
+            'var c = File.ReadAllText($"{TestRepo.Root}");\n'
+            'var d = new[] {TestRepo.Root};\n'
+            '// a comment naming TestRepo.Root\n'
+            'var e = "TestRepo.Root inside a literal";\n'
+            'var f = File.ReadAllText(TestRepo.At($"tests/d/{name}"));\n'
+            'var g = Path.Combine(TestRepo.Root, $"tests/d/{name}");\n', tops)
+        arm("R1-1/R1-2: an interpolated hole followed by a separator reads the literal path after it; one followed by "
+            "text is text; a whole-string hole and a hole outside a string are bare roots; a comment or a literal's text "
+            "is nothing; an interpolated argument reads its literal head's directory",
+            interp == [(1, "tests/d/x.out"), (3, ""), (4, ""), (7, "tests/d/"), (8, "tests/d/"), (7, "tests/d/"),
+                       (8, "tests/d/")], str(interp))
+        scopes = reads_in('static readonly TreeScope A = new(Under: ["tests"], Kinds: [".out"]);\n'
+                          'static readonly TreeScope B = new(Under: ["src/A", "docs/"]);\n', tops)
+        arm("R1-3: every Under prefix of a TreeScope is a read: a directory prefix that directory, a partial prefix the "
+            "directory holding it, a top-level one (`tests`) the whole tree",
+            # (the literal "src/A" is also read as a path by the literal rule; the scope rule adds its directory)
+            sorted(scopes) == sorted([(1, ""), (2, "src/A"), (2, "src/"), (2, "docs/"), (2, "docs/")]), str(scopes))
+        alias_decl = 'internal static class Holder\n{\n    public static string HostRoot => TestRepo.Root;\n' \
+                     '    static void M() => Use(HostRoot);\n}\n'
+        aliases = root_aliases({"Holder.cs": alias_decl})
+        used_alias = reads_in('var x = File.ReadAllText(Path.Combine(Holder.HostRoot, "tests", "d", f));\n', tops, aliases)
+        arm("R1-5: a member that IS the root is followed to every use: `Holder.HostRoot` in Path.Combine reads its "
+            "literal segments; the bare alias in its own file is a bare root, its declaration is not",
+            used_alias == [(1, "tests/d/")] and reads_in(alias_decl, tops) == [(4, "")], f"{used_alias} {aliases}")
+
+        # The verdict: a bare root in a NARROW target is a finding; in a broad one it is counted; a judgment covers its
+        # statement only, and a judgment nothing matches is stale.
+        narrow = replace(test("n", "tests/N/", ("src/",), ()),
+                         judged=(("tests/N/A.cs|var j = TestRepo.At(judged);", "planted"),
+                                 ("tests/N/A.cs|var gone = TestRepo.At(x);", "planted")))
+        broad = test("b", "tests/B/", ("@population-inputs",), ())
+        vrepo = ScratchRepo.init(root / "verdict")
+        vrepo.commit("planted", {"src/S.cs": "class S {}\n",
+                                 "tests/N/A.cs": "var j = TestRepo.At(judged);\nvar k = TestRepo.At(other);\n",
+                                 "tests/B/B.cs": "var k = TestRepo.At(other);\n"})
+        vtop, vtracked = _top_dirs(vrepo.path), _tracked(vrepo.path)
+        vt = {"n": narrow, "b": broad}
+        vf = findings_of(vt, {k: scan(vrepo.path, t, vtop, vtracked, anchors=ANCHORS) for k, t in vt.items()})
+        arm("R1-1: a bare root in a narrowly declared target is a finding naming file and line; its judged statement is "
+            "not; in a broad target it is only counted; a judgment no source matches is a stale finding",
+            len(vf) == 2 and any("tests/N/A.cs:2: var k = TestRepo.At(other);" in f for f in vf)
+            and any("stale judgment" in f and "gone" in f for f in vf) and not any("tests/B/" in f for f in vf), str(vf))
+
+        # Review round 2 (kb/Work PB5230): a `..` is resolved before the read is judged, a climb out of the repository is
+        # refused, a read naming no tracked path is reported unless it is a build output or ignored, and a statement that
+        # reaches the file system around TestRepo and ScratchDirectory is refused unless judged.
+        dots = reads_in('var a = TestRepo.Src("..", "tests", "d", "x.out");\nvar b = TestRepo.At("src", ".", "S.cs");\n'
+                        'var c = TestRepo.At("..", "outside.txt");\n', tops)
+        arm("R2-1: a read's `.` and `..` segments are resolved before it is judged: Src(\"..\", \"tests\", ..) reads tests/, "
+            "At(\"src\", \".\", ..) reads src/, and a read above the repository keeps its leading ../",
+            dots == [(1, "tests/d/x.out"), (2, "src/S.cs"), (3, "../outside.txt")], str(dots))
+        planted = ['var a = File.ReadAllText(TestRepo.Src("..", "tests", "D", "x.out"));',
+                   'var b = TestRepo.At("..", "outside.txt");',
+                   'var c = TestRepo.Src("Missing.cs");',
+                   'var d = TestRepo.Src("bin", "Debug", "S.dll");',
+                   'var e = TestRepo.Src("cache", "k.json");',
+                   'var f = AppContext.BaseDirectory;',
+                   'var g = File.ReadAllText("relative.txt");',
+                   'var h = Path.Combine("/etc", "passwd");',
+                   'var i = Path.Combine(dir, "a"); // AppContext.BaseDirectory, in a comment',
+                   'var j = Path.Combine(Environment.GetEnvironmentVariable("X")!, "kb");',
+                   'var k = typeof(S).Assembly.Location;',
+                   'var l = Environment.CurrentDirectory;',
+                   'var m = """AppContext.BaseDirectory, in a raw literal""";',
+                   'var n = Directory.GetCurrentDirectory();',
+                   'var o = System.IO.Path.Combine(System.Environment.GetEnvironmentVariable("X")!, "kb");',
+                   'var p = System.IO.File.ReadAllText("relative.txt"); var q = u.File.StartsWith("x");']
+        rrepo = ScratchRepo.init(root / "round2")
+        rrepo.commit("planted", {".gitignore": "cache/\n", "src/S.cs": "class S {}\n", "tests/D/x.out": "x\n",
+                                 "tests/R/A.cs": "\n".join(planted) + "\n"})
+        r2 = {"n": replace(test("n", "tests/R/", ("src/",), ()),
+                           judged=(("tests/R/A.cs|var k = typeof(S).Assembly.Location;", "planted"),)),
+              "b": test("b", "tests/R/", ("@population-inputs",), ())}
+        rtop, rtracked = _top_dirs(rrepo.path), _tracked(rrepo.path)
+        rf = findings_of(r2, {k: scan(rrepo.path, t, rtop, rtracked, anchors=ANCHORS) for k, t in r2.items()})
+        want = {1: "tests/D/x.out", 2: "climbs out of the repository", 3: "src/Missing.cs names no tracked path",
+                6: "one-home rule", 7: "a literal path handed to System.IO", 8: "a literal path handed to System.IO",
+                10: "an environment variable forming a path", 12: "the working directory", 14: "one-home rule",
+                15: "an environment variable forming a path", 16: "a literal path handed to System.IO"}
+        got = {int(f.split("tests/R/A.cs:")[1].split(":")[0]): f for f in rf if f.startswith("n: tests/R/A.cs:")}
+        arm("R2-1/R2-2: in a narrow target a read through `..` is judged at its resolved path (tests/D/x.out, undeclared), "
+            "a climb out of the repository and a read naming no tracked path are findings, a build output and an ignored "
+            "path are dropped; each statement reaching the file system around TestRepo (an anchor of the one-home rule, "
+            "the working directory, a literal or rooted path handed to System.IO, an environment variable forming a "
+            "path) is a finding with its line, a judged one, a comment and a raw literal's text are not; a broad target "
+            "is refused only the climb out, which no declaration can cover",
+            sorted(got) == sorted(want) and all(want[n] in got[n] for n in want) and len(got) == len(want)
+            and [f for f in rf if f.startswith("b: ")] == ["b: tests/R/A.cs:2: ../outside.txt (climbs out of the "
+                                                           "repository: no target can declare it)"], "\n".join(rf))
+        home = ScratchRepo.init(root / "onehome")
+        home.commit("planted", {ONE_HOME: 'class T { static readonly string[] Anchors =\n    ["A.Base", "B.Cwd("];\n}\n'})
+        bare = ScratchRepo.init(root / "nohome")
+        bare.commit("planted", {ONE_HOME: "class T { }\n"})
+        arm("R2-2: the anchors are read from the one-home rule's own list (TestRepoDriftTests.Anchors); a rule with no "
+            "list is a failure naming it, never an empty list that refuses nothing",
+            root_anchors(home.path) == ("A.Base", "B.Cwd(") and "repoint buildgraph.ONE_HOME" in refused(
+                lambda: root_anchors(bare.path)), str(root_anchors(home.path)))
+
+        # Review round 3 (kb/Work PB5230): a verbatim literal ending in an escaped quote (`@"x"""`) holds three quotes;
+        # the three-quote pattern took two such literals for one raw literal and hid every line of code between them.
+        q = '"'
+        verb = (f"static readonly Regex A = new(@{q}x{q * 3});\n"
+                f"var a = File.ReadAllText(Path.Combine(System.AppContext.BaseDirectory, {q}../../x.out{q}));\n"
+                "var b = File.ReadAllText(Path.Combine(TestRepo.Root, Name()));\n"
+                f"static readonly Regex D = new(@{q}y{q * 3});\n")
+        vb, vr = bypasses_in(verb, ANCHORS), reads_in(verb, tops)
+        arm("R3-1: code between two verbatim literals ending in an escaped quote is code: its bypass and its bare root "
+            "are found", [n for n, _ in vb] == [2] and vr == [(3, "")], f"{vb} {vr}")
+        forms = {  # source -> the context of each `X.Y` in it, in order
+            f"var m = {q * 3}\nX.Y\n{q * 3};\nX.Y;\n": ["string", "code"],
+            f"var m = $${q * 3}\n{{x}} {{{{X.Y}}}} X.Y\n{q * 3};\nX.Y;\n": ["hole", "string", "code"],
+            f"var m = @{q}a\nX.Y{q};\nX.Y;\n": ["string", "code"],
+            f"var s = $@{q}{q}{q} {{X.Y}}\nX.Y{q}; X.Y;\n": ["hole", "string", "code"],
+            f"var c = x == '{q}' ? 1 : 2; X.Y;\nvar e = '\\'' + X.Y;\n": ["code", "code"],
+            "/* X.Y\n X.Y */ X.Y; // X.Y\n": ["comment", "comment", "code", "comment"],
+            f"var s = ${q}a {{F({q}{{{{X.Y}}}}{q}, X.Y)}} b{q}; X.Y;\n": ["string", "hole", "code"],
+            f"var s = {q}{q}; var t = {q}a\\{q}X.Y{q}; X.Y;\n": ["string", "code"],
+        }
+        got_forms = {src: [_context(src, m.start()) for m in re.finditer(r"X\.Y", src)] for src in forms}
+        arm("R3-1: the one lexer follows every literal form: a raw literal and its `{{…}}` holes, a verbatim literal over "
+            "lines and its `\"\"`, an interpolated hole holding a string, a character literal's quote, a block comment, a "
+            "regular literal's escaped quote", got_forms == forms,
+            "\n".join(f"{s!r}: {g}" for s, g in got_forms.items() if g != forms[s]))
     finally:
         remove_tree(root)
     bad = [n for n, ok, _ in results if not ok]

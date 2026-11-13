@@ -2,7 +2,8 @@
 # build-local.sh — THE GATE, as one command (kb/Work PB1708, PB3022, PB4328; docs/rearchitecture/DESIGN-test-build-ci.md
 # §3.14.1–§3.14.6, §3.17.3; the bash twin of build-local.ps1). It hands the gate to scripts/gate.py, which holds this
 # worktree's gate lock, decides the change's lane, runs the audits beside everything after them, takes a gate slot,
-# builds the solution and runs the WHOLE Unit, Conformance and Characterization populations, three hosts at once (the
+# builds the solution and runs the WHOLE population of every test target (scripts/build_targets.json) not up to date at
+# its key, one host each at once (the
 # classes red at the previous gate first, then longest first by the committed weights), checks each population by name
 # and prints `=== BUILD-LOCAL GATE: … ===`.
 # ⛔ THE GATE OUTLIVES THIS COMMAND (kb/Work PB3536; DESIGN-test-build-ci.md §3.14.12): the driver starts the gate

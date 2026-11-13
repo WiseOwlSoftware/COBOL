@@ -334,7 +334,7 @@ internal sealed class TestWeights
     /// name, at the default weight, in ordinal order, the same way. Returns the 1-based shard of every present class.
     /// It is a function of the file, the count and the present classes alone, and every shard of one CI run sees the
     /// same three, so the shards partition the population. Dealing every assembly's named classes in one pass balances
-    /// the shards over the three assemblies a shard job runs.</summary>
+    /// the shards over every assembly a shard job runs.</summary>
     public Dictionary<string, int> Deal(int count, string assemblyKey, IEnumerable<string> present)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);
