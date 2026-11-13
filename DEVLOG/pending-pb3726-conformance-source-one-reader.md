@@ -54,3 +54,15 @@ because `under` calls it, and `changed`/`tracked` live with the classifier. Ever
 `line_endings.py`, `self_tests.py`, `land_lane.py` (and the messages that name where an entry is declared); `script_layering.py` declares the
 new line and split. Oracle: `classify` over the 20 landings before this branch's base gives the same lane, flags and reason with the old and the new module
 (20 of 20, `lane_oracle.txt`), the classification's four categories are equal as data, `inert_lane.py check` is `[]` on both, and the case files pass.
+
+### PB3726 step PB5432: gate.py's self-test became case files, FakeHost its own module
+
+`gate.py`'s 1,390-line `self_test`, `audit_shape_arms`, `FakeHost` and the `--self-test` flag are gone from the script (it lost 1,430 lines). The 123
+expectations are 31 cases in `scripts/selftests/gate/` (`test_verdicts.py`, `test_regate_and_audits.py`, `test_lanes.py`, `test_driver.py`,
+`test_runs_and_locks.py` (one case of 67 expectations: its arms share the locks and runs of one world and a few closures over it, so they
+were not cut apart), `test_await.py`, `test_tree_audits.py`), with `fixtures.world()` (the scratch directory, the `gate(name, **fake)` runner and
+`said`) and the planted ONE SHAPE audit. `FakeHost`, shared with `arch/perf_baseline.py`'s self-test, is the ordinary module
+`scripts/gate_fake_host.py`; `perf_baseline.py` imports it. `self_test_arms.DECLARED['scripts/gate.py']` names 24 cases instead of 85 labels (each label
+resolved to the case that holds it), `NET_KNOWN` names `test_verdicts.py`, and `scripts/gate.py` is out of `REMAINING`. Oracle: the multiset of
+labels before (the `arm(...)` calls of the old function, read by `ast`) and after (the `expect(...)` calls of the case files) is equal, 123 and 123
+(`gate_labels.txt`); every case file passes; `self_tests.py --self-test`, `perf_baseline.py --self-test`, the layout rule and `self_test_arms.py --self-test` are GREEN.

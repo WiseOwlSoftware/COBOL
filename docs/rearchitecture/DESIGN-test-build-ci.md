@@ -928,7 +928,7 @@ of a `--list-tests` output (`parse_listing`); `filter_population.py` imports it.
 **The drift tests that prove it fails** (`GateLegDriftTests`, one per assembly, each arm one method named for its number,
 for the test assemblies' half; the scripts' half is their own self-tests', kb/Work PB4395):
 (2) the orderer runs the named classes first, then longest first, and its output is a permutation of its input (a planted
-non-permutation throws); (3) `gate.py --self-test` and `test_population.py --self-test` declare every arm (a dropped case,
+non-permutation throws); (3) the case files of `scripts/selftests/gate/` and `test_population.py --self-test` declare every arm (a dropped case,
 a duplicated case, a skipped case, a foreign definition, a red audit that stops the hosts, a second gate in the same worktree
 refused, one shape for every gate): `scripts/self_test_arms.py`'s `DECLARED`, the one register of the arms each pipeline
 self-test must declare (kb/Work PB4395 moved it out of the compiler's test assembly); (4) every test project under `tests/` links `GateLegs.cs` and names `GateTestFramework`;
@@ -1186,7 +1186,7 @@ time; an edited import re-runs only its importer; a planted 60-s self-test under
 record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification, the tracer and the import key (an
 unrelated new file changes nothing; a shadowing module, a module or package answering an imported name and a removed module
 each re-run);
-`gate.py --self-test` proves every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `scripts/self_test_arms.py`
+the case files of `scripts/selftests/gate/` prove every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `scripts/self_test_arms.py`
 holds the arms by name, and `self_tests.py --self-test` forbids `--reuse` in CI and the Linux tool (kb/Work PB4395).
 
 **4. One scratch-repository fixture (kb/Work PB3584).** A self-test that needs a git repository builds and drives it through

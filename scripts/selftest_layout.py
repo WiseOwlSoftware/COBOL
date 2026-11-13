@@ -86,7 +86,6 @@ REMAINING: tuple[str, ...] = (
     "scripts/fuzz_batch.py",
     "scripts/fuzz_claude.py",
     "scripts/fuzz_ollama.py",
-    "scripts/gate.py",
     "scripts/gate_growth.py",
     "scripts/gate_slot.py",
     "scripts/git_batch.py",

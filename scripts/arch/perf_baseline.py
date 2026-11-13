@@ -66,6 +66,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 import gate  # noqa: E402  (scripts/gate.py: RECORD_SCHEMA, the record gate_rows reads)
+import gate_fake_host  # noqa: E402  (the planted machine the gate's own cases run over)
 
 ROOT =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BENCH = os.path.join(ROOT, "tests", "WiseOwl.Cobol.Benchmarks")
@@ -844,7 +845,7 @@ def self_test() -> int:
     # The gate rows read the record scripts/gate.py WRITES (kb/Work PB4328): the gate's own self-test host runs a
     # planted GREEN gate, and gate_rows reads its verdict.json, so a field the writer renames or drops is red here.
     with tempfile.TemporaryDirectory() as tmp:
-        planted = gate.Gate(gate.FakeHost(Path(tmp), Path(tmp) / "gate.lock"), Path(tmp) / "runs",
+        planted = gate.Gate(gate_fake_host.FakeHost(Path(tmp), Path(tmp) / "gate.lock"), Path(tmp) / "runs",
                             say=lambda _line: None).run()
         run = next(d for d in (Path(tmp) / "runs").iterdir() if d.is_dir())
         try:

@@ -1239,7 +1239,7 @@ NET_STANDALONE = re.compile(r"^test_[^/]*\.(py|ps1)$")
 #: runner's own and the conformance harness's generator.
 NET_KNOWN = ("scripts/orchestrator/test_alloc.py", "scripts/orchestrator/test_orchestrate_core.ps1",
              "scripts/orchestrator/landing_check.py", "scripts/hooks/test_forbidden_commands.py",
-             "scripts/guard-population.sh", "scripts/gate.py", "scripts/self_tests.py",
+             "scripts/guard-population.sh", "scripts/selftests/gate/test_verdicts.py", "scripts/self_tests.py",
              "conformance-suite/harness/generate.py")
 
 
