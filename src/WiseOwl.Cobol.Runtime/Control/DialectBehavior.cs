@@ -238,6 +238,16 @@ public enum DialectBehavior
     /// editions are QUOTED. The consumer is <c>EvaluateBinder.Bind</c>, which hoists the analysis of each such pair to the
     /// beginning of the statement when this behaviour is inactive.</summary>
     EvaluateObjectsInWhenPhraseOrder = 18,
+    /// <summary>§2014:14.9.26.3 GR24 — "If the file connector referenced by file-name-1 is locked by a previously-executed CLOSE
+    /// statement with the LOCK phrase, the execution of the OPEN statement is unsuccessful" with I-O status '38'; the 2002 text
+    /// (§2002:14.8.26.3 GR24) words it the same, so from 2002 a CLOSE WITH LOCK locks the FILE CONNECTOR and another SELECT of the
+    /// same physical file opens it. §1985:IX.1.3.4 gives '38' when "an OPEN statement is attempted on a file previously closed with
+    /// lock", and the 1985 conventions say "The terms file referenced by file-name and file mean the physical file regardless of the
+    /// file-name used in the COBOL program" (§1985:II.2), so at <c>--std 85</c> the PHYSICAL FILE is locked and every OPEN of it
+    /// through any file-name answers '38' (kb/Work PB5210; VCR row 7.70). Both editions are QUOTED. COBOL-2023 removed the phrase
+    /// (§2023:E.2, COBOL0902), so the 2023 edition never reaches the rule. The consumers are <c>FileRegistry.CloseWithLock</c> and
+    /// <c>FileRegistry.ClosedWithLock</c>.</summary>
+    CloseWithLockLocksFileConnector = 19,
 }
 
 /// <summary>
@@ -345,6 +355,10 @@ public static class DialectBehaviors
             "an EVALUATE selection object is evaluated only when its WHEN phrase is analyzed, and not after a false pair of "
             + "that phrase, only from COBOL-2002; COBOL-85 operates as if every selection subject and object were evaluated "
             + "before any comparison"),
+        new(DialectBehavior.CloseWithLockLocksFileConnector, "close-with-lock-locks-file-connector", 2002,
+            "7.70", "§2014:14.9.26.3 GR24", "§1985:II.2",
+            "a CLOSE WITH LOCK locks the file connector, so another file-name of the same physical file opens it, only from "
+            + "COBOL-2002; COBOL-85 locks the physical file and every OPEN of it through any file-name answers 38"),
     ];
 
     static DialectBehaviors()

@@ -19,6 +19,8 @@ namespace WiseOwl.Cobol.Runtime.IO;
 public sealed class FileRegistry
 {
     private readonly Dictionary<string, FileConnector> _files = new(CobolNames.Comparer);
+    /// <summary>The file connectors a CLOSE WITH LOCK has locked, from COBOL-2002 (<see cref="CloseWithLock"/>); at COBOL-85 the lock
+    /// is the physical file's (<see cref="PhysicalFileTable.State.ClosedWithLock"/>).</summary>
     private readonly HashSet<string> _locked = new(CobolNames.Comparer);
     private int _instSeq;   // the per-object instance-file connector-key sequence (M2-OO-1i; reset for determinism)
     // The GC finalizer thread (~CobolObject) can request a per-object CLOSE at any moment, but the registry is a
@@ -523,12 +525,35 @@ public sealed class FileRegistry
     /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38). Only a
     /// SUCCESSFUL close locks: §2023:14.9.6.4 GR1 makes a not-open CLOSE ('42') unsuccessful, and an unsuccessful
     /// CLOSE performs none of its closing actions — the old unconditional add poisoned every later OPEN of a
-    /// file whose CLOSE WITH LOCK had failed (kb/Work PB140).</summary>
+    /// file whose CLOSE WITH LOCK had failed (kb/Work PB140).
+    /// <para>⛔ WHAT IS LOCKED IS A FUNCTION OF THE EDITION (<see cref="DialectBehavior.CloseWithLockLocksFileConnector"/>,
+    /// kb/Work PB5210). From COBOL-2002 it is the FILE CONNECTOR: §2014:14.9.26.3 GR24 <i>"If the file connector referenced by
+    /// file-name-1 is locked by a previously-executed CLOSE statement with the LOCK phrase, the execution of the OPEN statement
+    /// is unsuccessful"</i>, so another SELECT of the same physical file still opens it. At COBOL-85 it is the PHYSICAL FILE:
+    /// §1985:IX.1.3.4 gives 38 when <i>"an OPEN statement is attempted on a file previously closed with lock"</i>, and §1985:II.2
+    /// makes that term <i>"mean the physical file regardless of the file-name used in the COBOL program"</i>, so every OPEN of
+    /// the file through any file-name answers 38 for the rest of the run unit. That lock is kept on the physical file's own
+    /// state, the one the OPEN arbitrates against (<see cref="ClosedWithLock"/>), never on a path or a name.</para></summary>
     public void CloseWithLock(string name)
     {
+        var c = Require(name);
         Close(name);
-        if (Require(name).Status[0] == '0') _locked.Add(name);
+        if (c.Status[0] != '0') return;
+        if (DialectBehaviors.IsActive(DialectBehavior.CloseWithLockLocksFileConnector, c.Edition)) _locked.Add(name);
+        else
+            // A successful CLOSE closed an open connector, and every OPEN associates its connector with the physical file
+            // before it opens it (SharedOpenAttempt), so a closed connector with no physical file is a runtime defect.
+            (c.Physical ?? throw new InvalidOperationException($"CLOSE WITH LOCK of '{name}': the connector has no physical file"))
+                .ClosedWithLock = true;
     }
+
+    /// <summary>Whether a CLOSE WITH LOCK prevents this OPEN of the connector <paramref name="name"/> (<paramref name="c"/>) on
+    /// the physical file <paramref name="file"/> (<see cref="CloseWithLock"/>): from COBOL-2002 the connector is locked
+    /// (§2014:14.9.26.3 GR24), at COBOL-85 the physical file (§1985:IX.1.3.4, §1985:II.2).</summary>
+    private bool ClosedWithLock(string name, FileConnector c, PhysicalFileTable.State file) =>
+        DialectBehaviors.IsActive(DialectBehavior.CloseWithLockLocksFileConnector, c.Edition)
+            ? _locked.Contains(name)
+            : file.ClosedWithLock;
 
     /// <summary>CLOSE … REEL/UNIT — Table 14's <c>CLOSE UNIT</c> row (§2023:14.9.6.3 SR2 makes REEL and UNIT
     /// equivalent). On the Non-unit medium WiseOwl COBOL supports that cell is symbol e alone: the file REMAINS
@@ -1938,15 +1963,16 @@ public sealed class FileRegistry
     private RetryAttempt SharedOpenAttempt(string name, FileOpenMode mode, FileSharing? sharingOverride, LinagePage? page)
     {
         var c = Require(name);   // an unregistered name is a COMPILER defect and LOUD (kb/Work PB140)
-        if (_locked.Contains(name)) { c.SetStatus(FileStatusCode.FileLocked); return RetryAttempt.InRunUnit(FileStatusCode.FileLocked); }  // ≤2014 CLOSE WITH LOCK
+        // ⛔ THE STATE OF THE PHYSICAL FILE THE PATH NAMES AT THIS INSTANT (kb/Work PB3576): a file removed or renamed away outside
+        // the run unit and another made at the path is another file, with none of the first one's Table 19 entries or locks.
+        var st = _physical.For(c.HostPath, HostFile.IdentityAt(c.HostPath));
+        // ≤2014 CLOSE WITH LOCK: the file connector is locked from 2002, the physical file at 85 (kb/Work PB5210).
+        if (ClosedWithLock(name, c, st)) { c.SetStatus(FileStatusCode.FileLocked); return RetryAttempt.InRunUnit(FileStatusCode.FileLocked); }
         // §2023:9.1.15 / §2023:14.9.27.4 GR23: the OPEN's SHARING phrase overrides the file control entry's SHARING
         // clause; with neither, the implementor default, which is a function of THIS open's mode (see
         // ImplementorDefaultSharing) and so is one of the three modes Table 19 prints.
         var posture = ShareOf(name);
         FileSharing sharing = sharingOverride ?? posture.Sharing ?? ImplementorDefaultSharing(mode, c.Edition);
-        // ⛔ THE STATE OF THE PHYSICAL FILE THE PATH NAMES AT THIS INSTANT (kb/Work PB3576): a file removed or renamed away outside
-        // the run unit and another made at the path is another file, with none of the first one's Table 19 entries or locks.
-        var st = _physical.For(c.HostPath, HostFile.IdentityAt(c.HostPath));
         // ⛔ THE ARBITRATION BELONGS TO THE FILE SHARING FACILITY, a COBOL-2002 module (kb/Work PB670): a COBOL-85 program
         // is compiled for a processor on which neither Table 19 nor its '61' exists (ISO §2023:A.4.1: the facility's rules and
         // I-O status values are optional with it), and the sharing mode its connectors hold is the implementor's own,
