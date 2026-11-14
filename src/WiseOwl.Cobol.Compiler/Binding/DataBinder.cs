@@ -1978,8 +1978,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>⛔ THE ONE REFUSAL OF A SECOND UNQUALIFIABLE DECLARATION (ISO §2023:8.4.2.1; kb/Work PB3216): "In order to use a
     /// resource, a statement shall contain a reference that uniquely identifies that resource", and an alphabet-name, a
-    /// class-name, a locale-name, an ordering-name, a dynamic-length-structure-name, a mnemonic-name or a switch's
-    /// condition-name has no qualifier to tell two declarations apart. The first declaration stands (every registry
+    /// class-name, a locale-name, an ordering-name, a dynamic-length-structure-name, a mnemonic-name, a switch's
+    /// condition-name, a cd-name or a report-name (kb/Work PB5307) has no qualifier to tell two declarations apart. The first declaration stands (every registry
     /// keeps it); the second is reported here, once per declaration, under one descriptor. Asked by
     /// <see cref="DeclareUserWord"/> for every kind in <see cref="UserWordKinds.DeclaredUnqualifiable"/> and, for a
     /// switch's condition-names (whose type is shared with the qualifiable level-88 entries), by

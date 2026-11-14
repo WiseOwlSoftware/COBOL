@@ -3372,14 +3372,14 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL4250 — a SECOND declaration, in one source element, of a name that cannot be qualified (kb/Work
     /// PB3216): an alphabet-name, a class-name, a locale-name, an ordering-name, a dynamic-length-structure-name, a
-    /// mnemonic-name or a switch's condition-name. §2023:8.4.2.1: "In order to use a resource, a statement shall contain a
+    /// mnemonic-name, a switch's condition-name, a cd-name or a report-name (kb/Work PB5307). §2023:8.4.2.1: "In order to use a resource, a statement shall contain a
     /// reference that uniquely identifies that resource" — and none of these has a qualifier to identify one of two.
     /// Decided at the ONE declaration funnel (<c>DataBinder.DeclareUserWord</c>, <c>UserWordKinds.DeclaredUnqualifiable</c>),
     /// so every declaring clause, and the next one added, is covered. The first declaration stands.</summary>
     public static readonly DiagnosticDescriptor SpecialNameDeclaredTwice = new(
         "COBOL4250", "special-name-declared-twice", EditionSeverity.Error,
         "A name that cannot be qualified — an alphabet-name, class-name, locale-name, ordering-name, "
-        + "dynamic-length-structure-name, mnemonic-name or a switch's condition-name — is declared a second time in one "
+        + "dynamic-length-structure-name, mnemonic-name, a switch's condition-name, a cd-name or a report-name — is declared a second time in one "
         + "source element. ISO §2023:8.4.2.1: \"In order to use a resource, a statement shall contain a reference that "
         + "uniquely identifies that resource\"; no qualifier can tell the two declarations apart. Rename one of them.",
         "ISO §2023:8.4.2.1");
