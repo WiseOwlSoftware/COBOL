@@ -59,9 +59,13 @@ internal static class ReportGroupResolution
     /// inherited from containers: candidates from more than one source element are narrowed to the NEAREST one
     /// before ambiguity is asked (§2023:8.4.6.2.1 rule 3 — <see cref="ReportScope.NearestInScope"/>). Null for the
     /// data-division site, whose reports are all the unit's own.</param>
+    /// <param name="preferred">The report whose name the hint's example qualifier should use when it is one of the
+    /// candidates, else the first candidate's. The SUM clause's UPON operand passes the control footing's own report: below
+    /// COBOL-2002 data-name-1 must be a detail "described in the same report as the control footing report group"
+    /// (§1985:XIII.3.19.3 SR2), so the qualifier that resolves the ambiguity is that report's (kb/Work PB5524).</param>
     public static Match Resolve(EditionContext edition, IReadOnlyList<ReportModel> reports,
         string head, string? qualifier, string where, out ReportModel? report, out ReportGroupModel? group,
-        DataBinder? scope = null)
+        DataBinder? scope = null, ReportModel? preferred = null)
     {
         report = null;
         group = null;
@@ -83,9 +87,10 @@ internal static class ReportGroupResolution
         // so the fix (which qualifier to write) is in the message.
         string owners = string.Join(", ", new[] { report.Name }
             .Concat(extra.Select(e => e.Report.Name)).Select(n => $"'{n}'"));
+        string example = preferred is not null && found.Any(f => ReferenceEquals(f.Report, preferred)) ? preferred.Name : report.Name;
         edition.Error(DiagnosticCatalog.ReportGroupReferenceAmbiguous, $"{where}: report group '{head}' is "
             + $"described in more than one report description entry ({owners}) — qualify the reference "
-            + $"(e.g. '{head} OF {report.Name}'), since uniqueness shall be established through qualification "
+            + $"(e.g. '{head} OF {example}'), since uniqueness shall be established through qualification "
             + "(ISO §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1)");
         return Match.Ambiguous;
     }
