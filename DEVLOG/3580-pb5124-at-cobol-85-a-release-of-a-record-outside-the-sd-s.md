@@ -1,4 +1,4 @@
-## PB5124: at COBOL-85 a RELEASE of a record outside the SD's RECORD IS VARYING range is unsuccessful
+## Entry 3580 — 2026-11-13 19:31 PST — PB5124: at COBOL-85 a RELEASE of a record outside the SD's RECORD IS VARYING range is unsuccessful
 
 **The defect.** At `--std 85`, a RELEASE whose DEPENDING ON item named a size outside integer-2..integer-3 of the SD's
 RECORD IS VARYING clause still released the record, and the sort returned it. The note's repro, an SD of 3 to 8
@@ -38,3 +38,4 @@ against the old runtime can no longer bind to it. That breaks binary compatibili
 to 28 (`scripts/abi_pin.py bump --runtime-major`), as PB4772 did when it added the `slots` parameter. The documented
 facts file is regenerated to list the new parameter. The first gate (`000001-20261114T030007Z`) was RED on exactly
 those two pins, `RuntimeAbiPinDriftTests` and `DocumentedFactsDriftTests`; every other case ran green.
+
