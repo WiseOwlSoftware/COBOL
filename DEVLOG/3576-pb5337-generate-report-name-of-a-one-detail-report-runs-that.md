@@ -1,4 +1,4 @@
-## PB5337: GENERATE report-name of a one-detail report runs that detail's USE BEFORE REPORTING procedure
+## Entry 3576 — 2026-11-13 19:08 PST — PB5337: GENERATE report-name of a one-detail report runs that detail's USE BEFORE REPORTING procedure
 
 kb/Work PB5337 (wave 20262020, group F). §1985:XIII.3.20.4 GR11 processes a GENERATE report-name of a report with exactly one detail "as though a GENERATE data-name statement were being executed": a) the subtotalling, b) the detail's USE BEFORE REPORTING procedure, d) nothing more. PB5249 had given the summary form its subtotalling; the procedure still never ran.
 
@@ -11,3 +11,4 @@ kb/Work PB5337 (wave 20262020, group F). §1985:XIII.3.20.4 GR11 processes a GEN
 **Goldens.** `14.9.49-USE/pb5337_generate_report_name_runs_detail_use` (all four editions: the procedure sees the subtotal, its SUPPRESS does not carry over, LINE-COUNTER stays 0), `.../pb5337_generate_report_name_several_details` (2002 on: no detail's procedure runs) and `13.18.54-SUM/pb5337_generate_report_name_sums_detail_entry` (2002 on: the processed detail's entry adds into a footing's SUM counter, which the summary form used to skip as well).
 
 **Rows.** None re-verdicted: the 2023 rows stay CONFORMS and the inventory has no 1985 rows yet (PB5094).
+
