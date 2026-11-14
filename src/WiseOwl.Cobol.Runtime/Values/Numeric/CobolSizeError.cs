@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// "the values of the affected resultant identifiers" undefined and transfers control "to the end of the arithmetic
 /// statement" (§1985:VI.6.4.2 GR3), so at 85 such a statement takes the first disposition with no condition checked —
 /// its catch takes every raise and the resultant keeps its content (<c>ArithmeticEmitter.EmitArith</c>,
-/// <c>EditionInfo.UnphrasedSizeErrorEndsOnlyTheStatement</c>). The raise itself does not depend on the edition.</para>
+/// <c>DialectBehavior.UnphrasedSizeErrorIsFatal</c>). The raise itself does not depend on the edition.</para>
 /// <para><paramref name="ecName"/> is the precise Table 13 level-3 EC-SIZE-* name (§2023:14.6.13.1.6): a zero divisor is
 /// EC-SIZE-ZERO-DIVIDE; an exponentiation-rule violation EC-SIZE-EXPONENTIATION; the PROHIBITED-inexact
 /// EC-SIZE-TRUNCATION; a range overflow EC-SIZE-OVERFLOW ("arithmetic overflow in calculation"). ⛔ It is REQUIRED —

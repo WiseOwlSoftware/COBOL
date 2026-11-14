@@ -248,6 +248,16 @@ public enum DialectBehavior
     /// (§2023:E.2, COBOL0902), so the 2023 edition never reaches the rule. The consumers are <c>FileRegistry.CloseWithLock</c> and
     /// <c>FileRegistry.ClosedWithLock</c>.</summary>
     CloseWithLockLocksFileConnector = 19,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.7.5 — a size error condition in a statement with no ON SIZE ERROR phrase is a fatal
+    /// exception condition, "and processing proceeds as specified in 14.6.13.1.3, Fatal exception conditions"; the 2002 text
+    /// (§2002:14.6.4) words it the same. §1985:VI.6.4.2 GR3 says instead that without the phrase "the values of the affected
+    /// resultant identifiers are undefined", the others are stored, and "control is transferred to the end of the arithmetic
+    /// statement"; the change record §1985:B.2.2 item 45 adds "the program will continue", a zero divisor and an exponentiation
+    /// violation included (GR1, GR2). So at <c>--std 85</c> an unphrased arithmetic statement keeps the resultant it cannot form
+    /// and the run unit goes on (kb/Work PB5484; VCR row 7.71). Both editions are QUOTED. The consumer is
+    /// <c>ArithmeticEmitter.EmitArith</c>, which gives such a statement the two-phase shape with every raise caught when this
+    /// behaviour is inactive.</summary>
+    UnphrasedSizeErrorIsFatal = 20,
 }
 
 /// <summary>
@@ -359,6 +369,11 @@ public static class DialectBehaviors
             "7.70", "§2014:14.9.26.3 GR24", "§1985:II.2",
             "a CLOSE WITH LOCK locks the file connector, so another file-name of the same physical file opens it, only from "
             + "COBOL-2002; COBOL-85 locks the physical file and every OPEN of it through any file-name answers 38"),
+        new(DialectBehavior.UnphrasedSizeErrorIsFatal, "unphrased-size-error-is-fatal", 2002,
+            "7.71", "14.7.5", "§1985:VI.6.4.2 GR3",
+            "a size error condition in an arithmetic statement with no ON SIZE ERROR phrase is a fatal exception condition "
+            + "only from COBOL-2002; COBOL-85 leaves the affected resultant undefined (unchanged here), stores the others, "
+            + "and the program continues"),
     ];
 
     static DialectBehaviors()

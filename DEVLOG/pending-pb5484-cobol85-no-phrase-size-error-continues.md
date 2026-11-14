@@ -8,7 +8,7 @@ occurred, and "control is transferred to the end of the arithmetic statement". Â
 continue". GR1 and GR2 make the exponentiation violation and the zero divisor size error conditions like any other. The kernels
 raise `CobolSizeError` whether or not checking is on (PB1605), and at 85 nothing caught the raise.
 
-**The fix.** I added one edition fact, `EditionInfo.UnphrasedSizeErrorEndsOnlyTheStatement` (Year < 2002). When
+**The fix.** I added one dialect behaviour, `DialectBehavior.UnphrasedSizeErrorIsFatal` (changed in 2002; VCR row 7.71; the branch review moved it from an `EditionInfo` property into the registry). When
 `ArithmeticEmitter.EmitArith` emits a COBOL-85 arithmetic statement with no phrase, it uses the two-phase shape that a statement
 with the phrase uses, with two settings. No condition is checked (`SizeChecks.None`), so every render and landing stays the
 unchecked one and an overflowing resultant still keeps its low-order digits. Every raise is caught. A resultant whose value
