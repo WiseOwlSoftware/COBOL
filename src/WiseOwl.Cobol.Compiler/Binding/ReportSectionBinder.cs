@@ -351,6 +351,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 return Screen85CodeLiteral(figChars, lit.GetText(), where)
                     ? new ReportCodeModel { Literal = figChars, Written = lit.GetText() } : null;
             }
+            if (lit.nonNumericLiteral()?.predefinedNull() is { } predefinedNull)
+            {
+                // NULL is an identifier, not a literal (§2023:8.4.3.10.3 SR1): the ONE refusal, not the literal-shape verdict.
+                using var nullAt = Edition.At(predefinedNull);
+                PredefinedNullRule.Report(Edition, $"{where}, whose literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1),");
+                return null;
+            }
             if (_d.SpecialNames.OperandLiteralClass(lit) != LiteralClass.Alphanumeric)
             {
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {lit.GetText()}, which is not an "
@@ -396,7 +403,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>The characters a figurative constant written as the CODE clause's literal-1 stands for, or null after a
     /// refusal: <c>ALL literal-1</c> is literal-1 itself, "the length of the string is the length of the literal"
     /// (§1985:IV.4.2.2.2.3 GRL2.3; §2023:8.3.3.6.4 GR3c — folded by the ONE Format 6 reader), and ZERO, SPACE, QUOTE, HIGH-VALUE and
-    /// LOW-VALUE are the ONE character <see cref="WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar"/> names for the kind under this program's
+    /// LOW-VALUE are the ONE character <see cref="ConcatFolder.FigurativeChar"/> names for the alphanumeric class under this program's
     /// collating sequence (§2023:8.3.3.6.4 GR3b, "when not associated with another data item"). An <c>ALL</c> literal-1 that is not
     /// alphanumeric (a national or boolean one) is no alphanumeric literal (§2023:13.18.12.3 SR1), and a symbolic-character
     /// figurative constant (Format 7) names a character of SPECIAL-NAMES this clause does not read.</summary>
@@ -409,8 +416,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + "alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1)");
             return null;
         }
-        if (WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(fig.GetText(), includeNull: false).Kind is { } kind)
-            return WiseOwl.Cobol.CodeGen.FigurativeConstants.FillChar(kind, _d.State.Configuration.Collating).ToString();
+        if (ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, _d.LiteralEnv) is { } fill) return fill.ToString();
         Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, a symbolic-character figurative "
             + "constant, which this clause does not read: literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1)");
         return null;
