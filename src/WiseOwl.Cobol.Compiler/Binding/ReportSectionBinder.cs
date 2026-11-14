@@ -404,9 +404,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// refusal: <c>ALL literal-1</c> is literal-1 itself, "the length of the string is the length of the literal"
     /// (§1985:IV.4.2.2.2.3 GRL2.3; §2023:8.3.3.6.4 GR3c — folded by the ONE Format 6 reader), and ZERO, SPACE, QUOTE, HIGH-VALUE and
     /// LOW-VALUE are the ONE character <see cref="ConcatFolder.FigurativeChar"/> names for the alphanumeric class under this program's
-    /// collating sequence (§2023:8.3.3.6.4 GR3b, "when not associated with another data item"). An <c>ALL</c> literal-1 that is not
-    /// alphanumeric (a national or boolean one) is no alphanumeric literal (§2023:13.18.12.3 SR1), and a symbolic-character
-    /// figurative constant (Format 7) names a character of SPECIAL-NAMES this clause does not read.</summary>
+    /// collating sequence (§2023:8.3.3.6.4 GR3b: "When a figurative constant is other than ALL literal-1, the length of the string is
+    /// one character"). <c>ALL symbolic-character-1</c> (Format 7) is the one character SPECIAL-NAMES binds the name to. An
+    /// <c>ALL</c> literal-1 that is not alphanumeric (a national or boolean one) is no alphanumeric literal (§2023:13.18.12.3 SR1).</summary>
     private string? CodeFigurativeCharacters(Core.FigurativeConstantContext fig, string where)
     {
         if (ConcatFolder.FoldAllLiteral(fig, _d.LiteralEnv, Edition) is { } folded)
@@ -417,8 +417,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             return null;
         }
         if (ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, _d.LiteralEnv) is { } fill) return fill.ToString();
-        Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, a symbolic-character figurative "
-            + "constant, which this clause does not read: literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1)");
+        if (fig.ALL() is not null && fig.cobolWord()?.GetText() is { } word && _d.LiteralEnv.IsSymbolicCharacter(word)
+            && _d.LiteralEnv.SymbolicValue(fig, word) is { } symbolic) return symbolic;
+        Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, which is no alphanumeric literal "
+            + "(ISO §2023:13.18.12.3 SR1)");
         return null;
     }
 
@@ -4315,25 +4317,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         string where = $"RD '{model.Name}': the UPON operand '{det}'";
         using var uponAt = Edition.At(det.Ctx);   // the operand as written (kb/Work PB5090)
         // ⛔ §1985:XIII.3.19.3 SR2 — "Data-name-1 must be the name of a detail report group described in the same report as
-        // the control footing report group in which the SUM clause appears": below 2002 the operand resolves against the
-        // SUM's own report ALONE (an unqualified name two reports share is then not ambiguous, and a detail of ANOTHER
-        // report is refused by name). COBOL-2002's SR7 lets the report-name qualifier name any report (kb/Work PB1294),
-        // so it resolves across the unit.
-        bool ownReportOnly = Edition.DialectLevel < 2002;
-        if (ReportGroupResolution.Resolve(Edition, ownReportOnly ? [model] : _scope.Declared, det.Name, det.Qualifier, where,
+        // the control footing report group in which the SUM clause appears": SR2 restricts what the name may DENOTE; it does
+        // not make a nonunique name unique, so the name resolves across the unit at every edition ("For each nonunique
+        // user-defined name that is explicitly referenced, uniqueness must be established through a sequence of qualifiers
+        // which precludes any ambiguity of reference", §1985:IV.4.3.8.1 SRL2.1) and below 2002 a detail of ANOTHER report is
+        // then refused by name. COBOL-2002's SR7 lets the report-name qualifier name any report (kb/Work PB1294).
+        if (ReportGroupResolution.Resolve(Edition, _scope.Declared, det.Name, det.Qualifier, where,
                 out var owner, out var group) == ReportGroupResolution.Match.None)
         {
-            if (ownReportOnly && _scope.Declared.FirstOrDefault(r => !ReferenceEquals(r, model)
-                    && (det.Qualifier is null || CobolNames.Same(r.Name, det.Qualifier))
-                    && r.Groups.Any(g => g.Kind is ReportGroupKindModel.Detail && g.Name is not null
-                        && CobolNames.Same(g.Name, det.Name))) is { } other)
-            {
-                Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} names a detail report group of report "
-                    + $"'{other.Name}', another report than the control footing's '{model.Name}': data-name-1 must be the name of "
-                    + "a detail report group described in the same report as the control footing report group in which the "
-                    + "SUM clause appears (ISO §1985:XIII.3.19.3 SR2)");
-                return;
-            }
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} does not name a report group. Data-name-2 shall be "
                 + "the name of a detail (ISO §2023:13.18.54.3 SR7).");
             return;
@@ -4344,6 +4335,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + $"{ReportGroupTypeWords(group.Kind)}; data-name-2 shall be the name of a DETAIL (ISO "
                 + "§2023:13.18.54.3 SR7) — only a detail is the operand of a GENERATE statement (§2023:14.9.16.3 SR1), "
                 + "which is the event §2023:13.18.54.4 GR7 c) 2) accumulates on.");
+            return;
+        }
+        if (Edition.DialectLevel < 2002 && !ReferenceEquals(owner, model))
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} names a detail report group of report "
+                + $"'{owner?.Name}', another report than the control footing's '{model.Name}': data-name-1 must be the name of "
+                + "a detail report group described in the same report as the control footing report group in which the "
+                + "SUM clause appears (ISO §1985:XIII.3.19.3 SR2)");
             return;
         }
         // A detail of ANOTHER report (SR7's report-name qualifier): GR7 c) 2) accumulates on a GENERATE of that detail,
