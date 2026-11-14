@@ -264,7 +264,7 @@ public enum DialectBehavior
     /// "Identifiers, literals, or arithmetic expressions appearing within a selection object must be valid operands for comparison to the
     /// corresponding operand in the set of selection subjects", and §1985:VI.6.13.4 GR1 says each literal "is assigned the value and class
     /// of the specified literal", so at <c>--std 85</c> <c>EVALUATE 5 WHEN 5</c> is legal; a relation condition's "at least one reference to a
-    /// variable" (§1985:VI.6.3.1.1) is not an EVALUATE rule, and GnuCOBOL 3.2 -std=cobol85 accepts it (kb/Work PB5481; VCR row 7.73).
+    /// variable" (§1985:VI.6.3.1.1) is not an EVALUATE rule, and GnuCOBOL 3.2 -std=cobol85 accepts it (kb/Work PB5481; VCR row 7.75).
     /// Both editions are QUOTED. The consumer is <c>EvaluateOperandCombinations.IsPermitted</c>.</summary>
     EvaluateRefusesLiteralSubjectLiteralObject = 21,
 }
@@ -384,7 +384,7 @@ public static class DialectBehaviors
             + "only from COBOL-2002; COBOL-85 leaves the affected resultant undefined (unchanged here), stores the others, "
             + "and the program continues"),
         new(DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject, "evaluate-refuses-literal-subject-literal-object", 2002,
-            "7.73", "14.9.13.3 SR10", "§1985:VI.6.13.3 SR6 a",
+            "7.75", "14.9.13.3 SR10", "§1985:VI.6.13.3 SR6 a",
             "an EVALUATE selection object that is a literal against a selection subject that is a literal is a syntax violation "
             + "(COBOL1634) only from COBOL-2002, whose combination table leaves that cell blank; COBOL-85 has no table and "
             + "selects by the value and class of the two literals"),
