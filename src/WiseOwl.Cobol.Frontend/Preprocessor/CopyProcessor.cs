@@ -420,8 +420,10 @@ public sealed class CopyProcessor(
     /// it is a debugging line ("the resultant text is on a debugging line", §2002:7.1.3.3 GR11; "When a text word specified
     /// in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is
     /// specified on a debugging line", §1985:XII.2.4 GR9), and otherwise it is what pseudo-text-2 wrote, unless
-    /// <paramref name="takesReplacedIndicator"/> — COBOL-85's REPLACE, whose introduced lines take "the same character as
-    /// the line on which the text being replaced begins" (§1985:XII.3.4 GR11) — makes it a source line too. The text keeps
+    /// <paramref name="takesReplacedIndicator"/> makes it a source line too: COBOL-85's REPLACE, whose introduced lines take
+    /// "the same character as the line on which the text being replaced begins" (§1985:XII.3.4 GR11), and an operand that
+    /// is not pseudo-text at every edition — only debugging lines "within pseudo-text-2" stay debugging lines
+    /// (§1985:XII.2.4 GR9, §2002:7.1.2.3 GR13), so identifier-2 written over a debugging line does not (kb/Work PB5471). The text keeps
     /// the origins <paramref name="to"/> was written at (kb/Work PB5313), which lay out the words a replacement places.</summary>
     private static MappedText IntroducedText(MappedText to, bool onDebuggingLine, bool takesReplacedIndicator)
     {
@@ -561,8 +563,13 @@ public sealed class CopyProcessor(
                     sb.AppendSlice(mapped, copiedUpTo, matchStart - copiedUpTo);
                     int lineStart = matchStart == 0 ? 0 : text.LastIndexOf('\n', matchStart - 1) + 1;
                     bool onDebuggingLine = lineStart == 0 ? firstLineIsDebugging : StartsWithCarrier(text, lineStart);
+                    // Only pseudo-text-2 keeps the debugging lines written inside it (§1985:XII.2.4 GR9, §2002:7.1.2.3 GR13:
+                    // "only those text-words that are specified on debugging lines where the debugging line is within
+                    // pseudo-text-2 appear on debugging lines"): an identifier-2 the COPY statement writes over a
+                    // debugging line takes the replaced line's indicator on every line it introduces (§1985:XII.2.4 GR11;
+                    // kb/Work PB5471).
                     var introducedText = IntroducedText(to, onDebuggingLine,
-                        takesReplacedIndicator: fixedForm && !rule.KeepsPseudoTextDebuggingLines);
+                        takesReplacedIndicator: !toIsPseudoText || (fixedForm && !rule.KeepsPseudoTextDebuggingLines));
                     string introduced = introducedText.Text;
                     // A replacement that BEGINS on a debugging line of its own (pseudo-text-2 written with its D indicator, kept by
                     // COPY) starts a line: the carrier makes every text word after it on the resultant line debugging text, so
