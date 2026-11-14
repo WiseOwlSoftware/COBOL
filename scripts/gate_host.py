@@ -26,6 +26,7 @@ import lane_classification  # noqa: E402  — THE classification of a change no 
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT, this_platform  # noqa: E402
 import buildgraph  # noqa: E402  — THE targets, their keys and the one store of their passes (kb/Work PB5207, PB5218)
 from gate_slot import GateSlots, Slot  # noqa: E402
+import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 import process_job  # noqa: E402  — THE one held process tree: an audit's or a test host's whole tree, stopped as one (kb/Work PB5098)
 from test_population import GATED_ASSEMBLIES, list_population, scrubbed_env  # noqa: E402
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
