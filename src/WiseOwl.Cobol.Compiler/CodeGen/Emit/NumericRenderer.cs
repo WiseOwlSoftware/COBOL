@@ -401,7 +401,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         var b = IntegerValuedLiteral(n.Base) ?? n.Base.Accept(this);
         var e = IntegerValuedLiteral(n.Exp) ?? n.Exp.Accept(this);
         _outermost = outer;
-        return Power(b, e, IntegerLiteralValue(n.Exp));
+        return Power(b, e, IntegerLiteralValue(n.Exp), n.NegativeBaseRealRoots);
     }
 
     /// <summary>A numeric LITERAL whose algebraic VALUE is an integer the native carrier can hold, as a scale-0
@@ -1505,7 +1505,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// a no-phrase store must truncate; kb/Work PB653 removed the nested arm's working scale). The previous
     /// scale-0 <c>(long)</c> truncation lost every fractional power result and turned the double artifact in
     /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25).</summary>
-    private NumX Power(NumX b, NumX e, Int128? literalExponent)
+    private NumX Power(NumX b, NumX e, Int128? literalExponent, bool negativeBaseRealRoots)
     {
         NumX exactBase = b, exactExponent = e;   // before the lowering below drops an exact operand's float-item mark (PB4923)
         // An exact exponent (NumX.Wide, NumX.Exact) has no power form: it enters on the SDIDI (kb/Work PB1900).
@@ -1565,7 +1565,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // does, and that is a run-time fact (CobolExact.TryBinary64). The lowering above would have dropped the mark, so the operands
         // enter as they were and CobolExact.PowReal forms the result in its kind.
         if (exactBase.Exact || exactExponent.Exact)
-            return new NumX(RuntimeApi.ExactPowReal(ExactOperand(DeU(exactBase)), ExactOperand(DeU(exactExponent)), RangeChecks), 0, Exact: true);
+            return new NumX(RuntimeApi.ExactPowReal(ExactOperand(DeU(exactBase)), ExactOperand(DeU(exactExponent)), RangeChecks,
+                negativeBaseRealRoots), 0, Exact: true);
         // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
         // the FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
         // A receiver-less exponentiation keeps the binary64 result for the same reason the float-intrinsic family
@@ -1589,10 +1590,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // The decision now carries `Quantize` and this arm reads it (feedback_two_arm_dispatch, sixth sighting).
         var landing = _rcv.FloatLanding(_outermost);
         // Under size-error checking the binary64 power is range-checked like every other checked native operation
-        // (§2023:14.7.5 case 5 — kb/Work PB1581); unchecked it stays the bare approximation.
+        // (§2023:14.7.5 case 5 — kb/Work PB1581); unchecked it stays the bare approximation. ⛔ AT COBOL-85 THE EXPONENT ENTERS EXACT
+        // (kb/Work PB5186): §1985:VI.6.2.3 GR5c refuses a negative base only when no real number is the result, which the exponent's
+        // exact value decides and its binary64 cannot (0.2 is not 1/5), so the runtime's COBOL-85 overload takes the exact operand.
+        string exponent = negativeBaseRealRoots ? ExactOperand(e) : Real(e);
         string pow = RangeChecks is { } powTaken
-            ? RuntimeApi.Intrinsic("PowNativeRealChecked", $"{Real(b)}, {Real(e)}, {powTaken}")
-            : RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}");
+            ? RuntimeApi.Intrinsic("PowNativeRealChecked", $"{Real(b)}, {exponent}, {powTaken}")
+            : RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {exponent}");
         // The binary64 power is an APPROXIMATION the engine produced (§2023:8.8.1.3) unless an operand is itself a float
         // ITEM's content, which then owns the result (kb/Work PB1641 — see CombineCore's lane note).
         if (b.Real || e.Real || !landing.Quantize)
