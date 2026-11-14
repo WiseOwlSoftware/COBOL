@@ -118,7 +118,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (or.succeedingXorExpression().Length > 0) { why = "an OR"; return false; }
         if (xor.logicalAndExpression() is not { } and) return true;
         if (xor.succeedingAndExpression().Length > 0) { why = "an XOR"; return false; }
-        if (and.succeedingCondition().Any(s => s.abbreviatedRelation() is not null))
+        if (and.succeedingCondition().Any(s => s.abbreviatedRelation() is not null || s.negatedAbbreviatedRelation() is not null))
         {
             why = "an abbreviated combined relation (Format 2's AND phrase writes data-name-2 out in full)";
             return false;
