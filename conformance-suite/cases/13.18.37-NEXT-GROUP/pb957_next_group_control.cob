@@ -3,7 +3,7 @@
       *> rules: [GR-13.18.37.4-1, GR-13.18.37.4-2, GR-13.18.37.4-3,
       *>    GR-13.18.37.4-4, GR-13.18.37.4-6, GR-14.9.16.4-4,
       *>    FMT-13.18.37.2]
-      *> accept: [85, 2002, 2014, 2023]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -42,7 +42,7 @@
       *>  TERMINATE: GR4 a) — no effect at all: LC is 11 again. CF-N "N12" (below the most major level, no
       *>   effect); CF-J "J13". (Had the save location stood, CF-N's fit test 16 + 1 > 16 would have
       *>   advanced the page first.)
-      *>  AT COBOL-85 (kb/Work PB5245; the expected output is pb957_next_group_control.85.out): §1985:XIII.3.10.8
+      *>  AT COBOL-85 (kb/Work PB5245; the twin pb957_next_group_control_85, PB5242): §1985:XIII.3.10.8
       *>   GR3 has no such rule — the control footings TERMINATE produces (§1985:XIII.4.7.4 GR1) are body groups,
       *>   and after a page advance the saved integer goes into LINE-COUNTER. So the saved 10 stands: CF-N's fit
       *>   test 16 + 1 > 16 fails, the page advances (PC 4, "PH 4"), LC becomes 10, "N11", then CF-J "J12".

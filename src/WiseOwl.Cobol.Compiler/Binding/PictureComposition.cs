@@ -249,8 +249,10 @@ internal static class PictureComposition
 
         // SR12 b) "Each of the symbols from the set 'CR', 'DB', 'E', 'S', 'V' '.' may appear only once in
         // character-string-1." (SR13 puts the comma in the period's place under DECIMAL-POINT IS COMMA.)
+        // The currency symbol is never one of them: at COBOL-85 it may be the letter E, which is no picture symbol of
+        // that edition (§1985:VI.4.5.4 GR11; kb/Work PB5173), so it is skipped wherever its letter is a symbol of the set.
         foreach (string once in new[] { "CR", "DB", "E", "S", "V", decimalSep.ToString() })
-            if (Count(once) is var k and > 1)
+            if (once != cs.ToString() && Count(once) is var k and > 1)
                 return Fail(DiagnosticCatalog.PictureComposition,
                     $"the symbol '{once}' appears {k} times — each of the symbols 'CR', 'DB', 'E', 'S', 'V', "
                     + $"'{decimalSep}' may appear only once in character-string-1 (ISO §2023:13.18.40.3 SR12 b"
@@ -387,7 +389,8 @@ internal static class PictureComposition
         // character-string describes no digit position and no character position, so it defines no category at
         // all (§2023:13.18.40.4 GR5-GR13).
         bool anyContent = false;
-        foreach (var s in syms) if (s.Kind is 'A' or 'N' or 'X' or 'Z' or '1' or '9' or '*') { anyContent = true; break; }
+        foreach (var s in syms)
+            if (s.Kind != cs && s.Kind is 'A' or 'N' or 'X' or 'Z' or '1' or '9' or '*') { anyContent = true; break; }
         if (!anyContent)
         {
             foreach (char c in Doubled(char1, cs))
@@ -626,6 +629,15 @@ internal static class PictureComposition
                 continue;
             }
             live[i] = true;
+            // The currency symbol is asked BEFORE the picture letters: at COBOL-85 it may be E or N, which are picture
+            // symbols only from COBOL-2002 (§1985:VI.4.5.4 GR11; kb/Work PB5173). No edition admits a currency symbol
+            // that is one of its own picture symbols, so the order changes nothing else.
+            if (c == cs)
+            {
+                if (isFloating(i)) roleA[i] = left ? PicRole.FloatCurrencyLeft : PicRole.FloatCurrencyRight;
+                else { roleA[i] = PicRole.CurrencyLeading; roleB[i] = PicRole.CurrencyTrailing; ambiguous.Add(i); }
+                continue;
+            }
             switch (c)
             {
                 case 'B' or '0' or '/': roleA[i] = PicRole.SimpleInsertion; break;
@@ -646,11 +658,6 @@ internal static class PictureComposition
                     {
                         if (isFloating(i)) { roleA[i] = left ? PicRole.FloatSignLeft : PicRole.FloatSignRight; break; }
                         roleA[i] = PicRole.SignLeading; roleB[i] = PicRole.SignTrailing; ambiguous.Add(i); break;
-                    }
-                    if (c == cs)
-                    {
-                        if (isFloating(i)) { roleA[i] = left ? PicRole.FloatCurrencyLeft : PicRole.FloatCurrencyRight; break; }
-                        roleA[i] = PicRole.CurrencyLeading; roleB[i] = PicRole.CurrencyTrailing; ambiguous.Add(i); break;
                     }
                     live[i] = false; break;   // unreachable: the SR2 whitelist admitted nothing else
             }

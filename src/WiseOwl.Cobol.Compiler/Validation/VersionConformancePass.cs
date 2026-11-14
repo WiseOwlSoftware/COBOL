@@ -209,8 +209,11 @@ internal sealed class VersionConformancePass
     /// file-format SORT and the output procedure of every MERGE (a SORT/MERGE with only USING/GIVING files contributes
     /// none), and four arms ask whether a statement lies in it:
     /// <list type="bullet">
-    ///   <item>a file-format SORT — "shall not appear … in an input or output procedure" (§2023:14.9.40.3 SR3), at EVERY
-    ///     edition ("SORT already disallowed it", Annex E.2 item 20) — COBOL2700, an error always;</item>
+    ///   <item>a file-format SORT — "shall not appear … in an input or output procedure" (§2023:14.9.40.3 SR3), from
+    ///     COBOL-2023 only — COBOL2700, an error. The earlier editions place a SORT "anywhere in the procedure division
+    ///     except" the declarative portion (§2014:14.9.36.2 SR1, §2002:14.8.36.2 SR1, §1985:XI.4.4.3 SR1) and forbid only
+    ///     that the procedure's range "cause the execution of" one (§1985:XI.4.4.4 GR7): a run-time rule with the MERGE
+    ///     arm's dynamic net below, so a SORT written on a path that never runs is legal there (kb/Work PB5274);</item>
     ///   <item>a MERGE — "in an output procedure of another MERGE statement, or an input or output procedure of a file
     ///     format SORT statement" (§2023:14.9.24.3 SR1). VCR 27 (Annex E.2 item 20): the 2014 standard allowed it with
     ///     conflicting rules, so at COBOL-2023 it is a REMOVAL — COBOL1572, an Error under strict and a Warning under
@@ -256,16 +259,16 @@ internal sealed class VersionConformancePass
         void Flag(BoundStatement s, int paraPc)
         {
             using var _ = _sink.At(s.At);   // each diagnostic below is at its statement (kb/Work PB812, PB1925)
-            if (s is BoundSort so && InProcedure(paraPc))
-            {
-                _sink.Report(new EditionDiagnostic(DiagnosticCatalog.SortMergePlacement.Code, EditionSeverity.Error,
-                    "sort-merge-placement",
-                    $"a file SORT of '{so.File.CobolName}' shall not appear in an input or output procedure of a SORT or "
-                    + "MERGE statement (ISO §2023:14.9.40.3 SR3)",
-                    $"SORT '{so.File.CobolName}'", "ISO §2023:14.9.40.3 SR3"));
-            }
             if (_edition.Year >= 2023)
             {
+                if (s is BoundSort so && InProcedure(paraPc))
+                {
+                    _sink.Report(new EditionDiagnostic(DiagnosticCatalog.SortMergePlacement.Code, EditionSeverity.Error,
+                        "sort-merge-placement",
+                        $"a file SORT of '{so.File.CobolName}' shall not appear in an input or output procedure of a SORT "
+                        + "or MERGE statement (ISO §2023:14.9.40.3 SR3)",
+                        $"SORT '{so.File.CobolName}'", "ISO §2023:14.9.40.3 SR3"));
+                }
                 if (s is BoundMerge m && InProcedure(paraPc))
                 {
                     _sink.Report(new EditionDiagnostic(DiagnosticCatalog.MergeInSortMergeProc.Code, mergeSeverity,
@@ -1406,6 +1409,14 @@ internal sealed class VersionConformancePass
         public override object? VisitValueClause(CobolParserCore.ValueClauseContext ctx)
         {
             if (ctx.valueClauseTablePhrase().Length > 0) _p.Check(Constructs.ValueTableFormat2002, "the Format 2 (table) VALUE clause");
+            // A report entry's VALUE clause is `VALUE IS literal-1` at COBOL-85 (§1985:XIII.3.22.2); ISO/IEC 1989:2002
+            // 13.16.61.1 Format 4 adds the VALUES spelling (kb/Work PB5242, report-value-forms-2002). Its more-than-one
+            // literal form needs a repeating entry (COBOL2012), each of which is already a 2002 form.
+            if (ctx.VALUES() is { } values && InReportGroupEntry(ctx))
+            {
+                using var _ = Sink.At(values.Symbol);
+                _p.Check(Constructs.ReportValueForms2002, "the VALUES spelling of the VALUE clause (report group description)");
+            }
             // ISO/IEC 1989:2002 Annex F.2 item 145: the data-item and table formats of the VALUE clause "may be specified
             // in data descriptions in the linkage section and in the file section and for items described with the
             // EXTERNAL clause" (value-clause-linkage-file-external-2002; kb/Work PB4305). A condition-name entry's
@@ -1753,6 +1764,108 @@ internal sealed class VersionConformancePass
                 : null;
             if (form is not null)
                 _p.Check(Constructs.ReportMultiLine2002, form + " (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>A LINE operand of NEXT PAGE with no integer (kb/Work PB5242): §1985:XIII.3.15.2 prints
+        /// <c>LINE NUMBER IS {integer-1 [ON NEXT PAGE] | PLUS integer-2}</c>, so every COBOL-85 line is established by an
+        /// integer (§1985:XIII.3.15.4 GR1); ISO/IEC 1989:2002 13.16.33.1 Format 1 adds the third alternative
+        /// <c>ON NEXT PAGE</c>. Fires once per written operand; report-section-exclusive rule.</summary>
+        public override object? VisitReportLineOperand(CobolParserCore.ReportLineOperandContext ctx)
+        {
+            if (ctx.NEXT() is not null && ctx.integerOperand() is null)
+                _p.Check(Constructs.ReportLineNextPage2002, "a LINE operand of NEXT PAGE with no integer (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The WITH RESET phrase of NEXT GROUP NEXT PAGE (kb/Work PB5242): §1985:XIII.3.16.2 prints
+        /// <c>NEXT GROUP IS {integer-1 | PLUS integer-2 | NEXT PAGE}</c>, and ISO/IEC 1989:2002 Annex F.2 item 115 lists
+        /// "WITH RESET phrase added to NEXT PAGE". Fires once per written clause.</summary>
+        public override object? VisitReportNextGroupClause(CobolParserCore.ReportNextGroupClauseContext ctx)
+        {
+            if (ctx.RESET() is { } reset)
+            {
+                using var _ = Sink.At(reset.Symbol);
+                _p.Check(Constructs.ReportNextPageReset2002, "the WITH RESET phrase of NEXT GROUP NEXT PAGE (report group description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The 2002 forms of the SUM clause (kb/Work PB5242). §1985:XIII.3.19.2 prints
+        /// <c>{SUM {identifier-1}... [UPON {data-name-1}...]}... [RESET ON {data-name-2 | FINAL}]</c>: no OF, no ROUNDED,
+        /// and an addend that is an identifier (§1985:XIII.3.19.3 SR1: "Identifier-1 must reference a numeric data item";
+        /// a numeric function is not one, §1985:IV.4.3.8.3.3 SR4 confining it to an arithmetic expression). ISO/IEC
+        /// 1989:2002 13.16.52.1 adds the three, and Annex F.2 item 115 lists "SUM clause has many changes". The ROUNDED
+        /// phrase closes the whole clause, so it is asked here; OF and the addends are each group's
+        /// (<see cref="VisitReportSumGroup"/>).</summary>
+        public override object? VisitReportSumClause(CobolParserCore.ReportSumClauseContext ctx)
+        {
+            if (ctx.roundedPhrase() is { } rounded)
+            {
+                using var _ = Sink.At(rounded);
+                _p.Check(Constructs.ReportSumForms2002, "the ROUNDED phrase of the SUM clause (report group description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The word OF after SUM, and an addend that is not an identifier (an arithmetic expression, a literal, a
+        /// figurative constant or a function), in one SUM group (kb/Work PB5242; <see cref="VisitReportSumClause"/>
+        /// carries the rule). Fires at most once per written group, naming the first 2002 form it holds.</summary>
+        public override object? VisitReportSumGroup(CobolParserCore.ReportSumGroupContext ctx)
+        {
+            string? form = ctx.OF() is not null ? "the word OF after SUM"
+                : ctx.reportValueOperand().Any(o => SoleOperand.DataRef(o.arithmeticExpression()) is null)
+                    ? "a SUM addend that is not an identifier (an arithmetic expression, literal or function)"
+                : null;
+            if (form is not null)
+                _p.Check(Constructs.ReportSumForms2002, form + " (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The word IS of the RD CODE clause (kb/Work PB5242): §1985:XIII.3.6.2 prints <c>CODE literal-1</c>;
+        /// ISO/IEC 1989:2002 13.16.12.1 prints <c>CODE IS {literal-1 | identifier-1}</c>. The identifier operand is its
+        /// own syntax rule's refusal at COBOL-85 (COBOL2713, ReportSectionBinder.BindCodeClause).</summary>
+        public override object? VisitReportCodeClause(CobolParserCore.ReportCodeClauseContext ctx)
+        {
+            if (ctx.IS() is { } word)
+            {
+                using var _ = Sink.At(word.Symbol);
+                _p.Check(Constructs.ReportCodeIs2002, "the word IS of the CODE clause (report description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The page width and the omitted page limit of the RD PAGE clause (kb/Work PB5242). §1985:XIII.3.8.2
+        /// prints <c>PAGE [LIMIT IS | LIMITS ARE] integer-1 [LINE | LINES]</c> and its phrases: integer-1 is required and
+        /// there is no width; ISO/IEC 1989:2002 13.16.37.1 adds <c>integer-2 {COLS | COLUMNS}</c>, and its SR2 lets either
+        /// integer stand alone. Only PAGE is underlined in the 1985 bracket (the PDF page rendered), so <c>PAGE IS 20</c> and
+        /// <c>PAGE LIMIT 20</c> are COBOL-85 and are not asked (kb/Work PB3751's reading). The phrases are
+        /// <see cref="VisitReportPageSubclause"/>'s.</summary>
+        public override object? VisitReportPageClause(CobolParserCore.ReportPageClauseContext ctx)
+        {
+            if (ctx.reportPageWidth() is { } width)
+            {
+                using var _ = Sink.At(width);
+                _p.Check(Constructs.ReportPageForms2002, (ctx.integerOperand() is null
+                    ? "the PAGE clause without its page limit" : "the page width (COLS or COLUMNS) of the PAGE clause")
+                    + " (report description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The 2002 forms of a PAGE clause phrase (kb/Work PB5242): §1985:XIII.3.8.2 prints
+        /// <c>[HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]</c>, with no LAST
+        /// CONTROL HEADING phrase, no DE or CH abbreviation and no IS before the integer; ISO/IEC 1989:2002 13.16.37.1 adds
+        /// the three, its SR1 "FIRST DE is synonymous with FIRST DETAIL, LAST CH is synonymous with LAST CONTROL HEADING".
+        /// Fires at most once per written phrase, naming the first 2002 form it holds.</summary>
+        public override object? VisitReportPageSubclause(CobolParserCore.ReportPageSubclauseContext ctx)
+        {
+            string? form = (ctx.CONTROL() ?? ctx.CH()) is not null ? "the LAST CONTROL HEADING phrase"
+                : ctx.DE() is not null ? "the DE abbreviation of DETAIL"
+                : ctx.IS() is not null ? "the word IS before a phrase's integer"
+                : null;
+            if (form is not null)
+                _p.Check(Constructs.ReportPageForms2002, form + " of the PAGE clause (report description)");
             return base.VisitChildren(ctx);
         }
 

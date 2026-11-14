@@ -15,7 +15,7 @@
       *> descriptions of the lines in the report, but are included in the logical record size."
       *> 13.18.12.3 SR1: "Literal-1 shall be an alphanumeric literal."
       *>
-      *> DERIVATION. CODE IS "A1" puts A1 at positions 1-2 of every record, and the line description does NOT
+      *> DERIVATION. CODE "A1" puts A1 at positions 1-2 of every record, and the line description does NOT
       *> count it: COLUMN 1 is the first character AFTER the code, so "HELLO" occupies record positions 3-7,
       *> position 8 (line column 6) is blank, and the digit of COLUMN 7 stands at record position 9. Two GENERATEs
       *> with WS-N 1 then 2 give the two records A1HELLO 1 and A1HELLO 2. The report has no PAGE clause
@@ -46,7 +46,7 @@
        01  WS-I    PIC 99    VALUE 0.
        01  WS-LINE PIC X(12) VALUE SPACES.
        REPORT SECTION.
-       RD  R-A CODE IS "A1".
+       RD  R-A CODE "A1".
        01  DE-A TYPE DE LINE PLUS 1.
            02  COLUMN 1 PIC X(5) VALUE "HELLO".
            02  COLUMN 7 PIC 9 SOURCE WS-N.

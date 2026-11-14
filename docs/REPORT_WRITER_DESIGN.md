@@ -28,7 +28,14 @@ NEXT GROUP operand (`VisitReportRelativeSign`; COLUMN's relative form is gated w
 operand that is not a bare identifier, or its ROUNDED phrase (`VisitReportSourceClause`). Matrix rows
 `report-present-when-2002` / `report-varying-2002` / `report-multi-column-2002` / `report-multi-source-2002` /
 `report-multi-line-2002` / `report-filler-2002` / `report-plus-symbol-2002` / `report-source-expression-2002` /
-`report-source-rounded-2002`.
+`report-source-rounded-2002`; and (kb/Work PB5242, VCR row 7.45 (f)) the word IS of the CODE clause
+(`VisitReportCodeClause`), the PAGE clause's width, omitted limit, LAST CONTROL HEADING, DE/CH abbreviations and IS before
+a phrase's integer (`VisitReportPageClause`, `VisitReportPageSubclause`), NEXT GROUP NEXT PAGE WITH RESET
+(`VisitReportNextGroupClause`), a LINE operand of NEXT PAGE with no integer (`VisitReportLineOperand`), SUM OF, the SUM
+clause's ROUNDED and a non-identifier addend (`VisitReportSumClause`, `VisitReportSumGroup`) and a report entry's VALUES
+spelling (`VisitValueClause`): rows `report-code-is-2002` / `report-page-forms-2002` / `report-next-page-reset-2002` /
+`report-line-next-page-2002` / `report-sum-forms-2002` / `report-value-forms-2002`. Because each is refused at COBOL-85,
+the 1985 page regions (`GroupLimits`) never meet OR PAGE or LAST CONTROL HEADING there and need no 1985 arm of their own.
 
 ## 1. Architecture (ONE mechanism — compose-at-presentation)
 
