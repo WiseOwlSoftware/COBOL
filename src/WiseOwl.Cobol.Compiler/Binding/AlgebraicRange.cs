@@ -208,6 +208,11 @@ internal static class AlgebraicRanges
     /// expression.</summary>
     internal static Usage? CounterRegisterUsage(Bound.BoundExpr e) => DescribeCounter(e)?.Pic.Usage;
 
+    /// <summary>The register's implicit data description itself, for a rule that asks the size or sign of "the data item"
+    /// a register is — SEND's one-character identifier-2 of a LINAGE-COUNTER whose size is the page size's (§1985:VII.1.3.7;
+    /// kb/Work PB5384). <c>null</c> for any other expression.</summary>
+    internal static PicInfo? CounterRegisterDescription(Bound.BoundExpr e) => DescribeCounter(e)?.Pic;
+
     /// <summary>A register's implicit data description (<paramref name="Pic"/>) and the extremes it permits.</summary>
     private readonly record struct CounterDescription(PicInfo Pic, AlgebraicRange Range);
 
