@@ -3273,18 +3273,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // the table" (§1985:IV.4.3.8.4.4 GR3; §2023:15.3: "the effect is as if each table element associated with that
         // subscript position were specified", each one the identifier with its modifier). It is admitted below through
         // the one reference-modification tail. A modifier BEFORE the subscripts is not this shape.
+        // A qualifier written AFTER the subscripts (`TE (ALL) OF TT`) is ExpressionFormationPass's COBOL2776 at every edition
+        // (§2023:8.4.2.3.2 Format 1: the subscripts follow the whole qualified name); like every other reader of a reference
+        // the ALL bind flattens it into the qualifier list, so that one diagnostic is the whole report — handing the argument to
+        // the ordinary bind instead drew a second, COBOL2363, claiming the ALL itself was misplaced (kb/Work PB5485, PB5509).
         var quals = new List<string>();
         Core.SubscriptPartContext? sp = null;
         foreach (var suffix in dref.dataReferenceSuffix())
         {
             if (suffix.refModPart() is not null) { if (sp is null) return false; continue; }
-            if (sp is not null) return false;                    // anything else after the subscript group — not the shape
-            if (suffix.subscriptPart() is { } direct) { sp = direct; continue; }
+            if (suffix.subscriptPart() is { } direct) { if (sp is not null) return false; sp = direct; continue; }
             if (suffix.qualification() is not { } q || q.cobolWord() is not { } qw) return false;
             quals.Add(qw.GetText());
             if (q.subscriptPart().Length > 1) return false;
             if (q.subscriptPart() is [{ } trailing])
             {
+                if (sp is not null) return false;                // a second subscript group — not the shape
                 if (q.refModPart() is [{ } first, ..] && first.Start.TokenIndex < trailing.Start.TokenIndex) return false;
                 sp = trailing;
             }

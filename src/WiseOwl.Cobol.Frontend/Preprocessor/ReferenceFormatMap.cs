@@ -103,7 +103,7 @@ public sealed class ReferenceFormatMap
 
     /// <summary>Where the text at 0-based physical <paramref name="column"/> of 1-based physical <paramref name="line"/>
     /// stands with respect to COBOL-85's areas (kb/Work PB3147): it BEGINS its fixed-form line, in area A or in area B,
-    /// or it follows other text of the line; <see cref="AreaPlacement.None"/> when the line was read in free form (which
+    /// or it follows other text of the line, in area A or in area B; <see cref="AreaPlacement.None"/> when the line was read in free form (which
     /// has no areas, §2023:6.4.1) or is not a line of this text. The column is the one a source map names
     /// (<see cref="Common.LineOrigin.Locate"/>), so a token's location answers the question directly.</summary>
     public AreaPlacement PlacementAt(int line, int column)
@@ -111,7 +111,9 @@ public sealed class ReferenceFormatMap
         if (line < 1 || line > _textStarts.Length || !At(line).Fixed) return AreaPlacement.None;
         return _textStarts[line - 1] is { } start && start.Column == column
             ? start.InAreaA ? AreaPlacement.BeginsLineInAreaA : AreaPlacement.BeginsLineInAreaB
-            : AreaPlacement.WithinLine;
+            : FixedFormLine.IsAreaAOffset(ProgramTextOffsetAt(line, column))
+                ? AreaPlacement.WithinLineInAreaA
+                : AreaPlacement.WithinLineInAreaB;
     }
 
     /// <summary>The 0-based offset into the program-text area (position 8 is offset 0) of the character at 0-based physical

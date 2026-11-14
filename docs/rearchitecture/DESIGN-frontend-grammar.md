@@ -1346,13 +1346,13 @@ reference formats, and the only place source comments are recognized. Its model:
   VCR Table 7 row 7.35). ANSI X3.23-1985 split the program-text area into area A (positions 8–11) and area B (12 to
   margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§2023:6.3.1, §2023:6.3.5), so
   the two rules — an area-A item (a division, section or paragraph header, a level indicator, level-number 01 or 77,
-  DECLARATIVES, END DECLARATIVES, an end marker) begins its line in area A (`fixed-form-area-a-item-outside-area-a-2002`,
-  COBOL3734), and any other text that begins a line, a level-number other than 01 or 77 excepted, begins in area B
+  DECLARATIVES, END DECLARATIVES, an end marker) STARTS in area A (`fixed-form-area-a-item-outside-area-a-2002`,
+  COBOL3734; §1985:IV.7.3.3 "starts in area A of any line", so `X. Y.` with Y in position 11 is legal and Y in position 12 is not: kb/Work PB5497), and any other text that begins a line, a level-number other than 01 or 77 excepted, begins in area B
   (`fixed-form-text-in-area-a-2002`, COBOL3735) — are asked at `--std 85` only. Neither half can be asked alone: which
   token heads an item is the grammar's, where a token begins is the reference format's. So `FixedFormLine` is the ONE
   definition of the area (`AreaAWidth`, `ProgramTextStart`, `BeginsInAreaA`; the comment-entry reader uses it too),
   `ReferenceFormatMap` keeps, per fixed-form physical line, the physical column where its program text begins and its
-  area (`PlacementAt`: begins its line in area A, in area B, follows other text, or no area — free form), `FixedFormAreas`
+  area (`PlacementAt`: begins its line in area A, in area B, follows other text in area A, follows other text in area B, or no area — free form), `FixedFormAreas`
   composes the converged pass's `SourceLineMap` with every text's map so a TOKEN is placed where the user wrote it
   (through COPY, REPLACE and tabs alike; `Frontend.Areas` → `EditionContext.Areas`), and `Validation/AreaPlacementPass`
   (pre-bind, beside `LevelNumberPass`, so its diagnostics join the edition gates' instead of pre-empting them as a
