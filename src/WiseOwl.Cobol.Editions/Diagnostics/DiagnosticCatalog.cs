@@ -9459,17 +9459,18 @@ public static class DiagnosticCatalog
     /// the editions that forbid it (kb/Work PB5077). §1985:IX.4.5.3 SR1: "The storage area associated with identifier-1 and the
     /// record area associated with file-name-1 must not be the same storage area." (READ, RETURN), §1985:IX.4.6.3 SR1: "Record-name-1
     /// and identifier-1 must not reference the same storage area." (WRITE, REWRITE, RELEASE); COBOL-2002 words both as syntax rules
-    /// too (§2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1, §2002:14.8.30.2 SR2, §2002:14.8.33.2 SR1, §2002:14.8.47.2 SR4). The 2023
-    /// standard replaces them with its overlapping-operand rules (§2023:14.6.10), so a program that shares the storage is
-    /// accepted there with an undefined result.</summary>
+    /// too (§2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1, §2002:14.8.30.2 SR2, §2002:14.8.33.2 SR1, §2002:14.8.47.2 SR4). The 2014
+    /// standard drops all five (§2014:E.3 items 21, 24, 25, 26 and 38; kb/Work PB5270) for its overlapping-operand rules, which
+    /// 2023 keeps (§2023:14.6.10), so a program that shares the storage is accepted from 2014 with an undefined result.</summary>
     public static readonly DiagnosticDescriptor IoPhraseOperandIsRecordArea = new(
         "COBOL6827", "io-phrase-operand-is-record-area", EditionSeverity.Error,
         "§1985:IX.4.5.3 SR1: \"The storage area associated with identifier-1 and the record area associated with file-name-1 must "
         + "not be the same storage area.\" (READ INTO and RETURN INTO; §1985:XI.4.3.3 SR1). §1985:IX.4.6.3 SR1: \"Record-name-1 and "
         + "identifier-1 must not reference the same storage area.\" (WRITE FROM, REWRITE FROM and RELEASE FROM; §1985:XI.4.2.3 SR3). "
         + "The operand names the file's record area: a record description of the file (all of them redefine the one area), "
-        + "or an item that begins the area and is as long as it. COBOL-2002 keeps both rules (§2002:14.8.29.2 SR2); COBOL-2023 "
-        + "drops them for the overlapping-operand rules of §2023:14.6.10.",
+        + "or an item that begins the area and is as long as it. COBOL-2002 keeps both rules (§2002:14.8.29.2 SR2); COBOL-2014 "
+        + "drops them (§2014:E.3: \"Identifier-1 may now reference the same storage area as record-name-1\"), leaving an "
+        + "overlap to the overlapping-operand rules that COBOL-2023 keeps (§2023:14.6.10).",
         "ISO §1985:VII.4.4.3 SR1; §1985:VIII.4.5.3 SR1; §1985:IX.4.5.3 SR1; §1985:VII.4.5.3 SR1; §1985:VIII.4.6.3 SR1; "
         + "§1985:IX.4.6.3 SR1; §1985:VII.4.7.3 SR1; §1985:VIII.4.9.3 SR1; §1985:IX.4.9.3 SR1; §1985:XI.4.2.3 SR3; §1985:XI.4.3.3 SR1; "
         + "§2002:14.8.29.2 SR2; §2002:14.8.30.2 SR2; §2002:14.8.32.2 SR1; §2002:14.8.33.2 SR1; §2002:14.8.47.2 SR4");
@@ -9642,6 +9643,19 @@ public static class DiagnosticCatalog
         + "explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric "
         + "function.\"",
         "§1985:VI.6.3.1.2");
+
+    /// <summary>COBOL6979 — an index data item referenced explicitly in an operand position its edition's list of
+    /// contexts does not name (kb/Work PB5188). §1985:VI.5.14.3 SR5: "An index data item can be referenced explicitly
+    /// only in a SEARCH or SET statement, a relation condition, the USING phrase of a Procedure Division header, or the
+    /// USING phrase of a CALL statement." COBOL-2002 adds "an intrinsic function argument" and an inline method
+    /// invocation argument (§2002:13.16.58.2 SR9, §2023:13.18.60.3 SR10), so at COBOL-85 a function argument is the
+    /// position refused.</summary>
+    public static readonly DiagnosticDescriptor IndexDataItemContext = new(
+        "COBOL6979", "index-data-item-context", EditionSeverity.Error,
+        "§1985:VI.5.14.3 SR5: \"An index data item can be referenced explicitly only in a SEARCH or SET statement, a "
+        + "relation condition, the USING phrase of a Procedure Division header, or the USING phrase of a CALL "
+        + "statement.\" An intrinsic function argument is none of them at COBOL-85 (§2002:13.16.58.2 SR9 adds it).",
+        "ISO §1985:VI.5.14.3 SR5");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

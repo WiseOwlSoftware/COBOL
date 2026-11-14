@@ -256,7 +256,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// GR1's implicit MOVE, so it is the ONE §2023:14.9.25.3 validity chain every other MOVE asker uses
     /// (<see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem)"/>: SR2, SR6-SR9 and Table 16), asked
     /// of the entry's printable item. An entry with no COLUMN clause has no printable item (<paramref name="printable"/>
-    /// null), hence no receiving operand and nothing to ask.</item>
+    /// null), hence no receiving operand and nothing to ask — except §2023:14.9.25.3 SR1's sending half, a class rule
+    /// about identifier-1 alone (<see cref="MoveTable16.SenderClassRefusal"/>), asked of every identifier-1.</item>
     /// </list></summary>
     private bool ScreenSourceIdentifier(ReportModel r, FieldReferenceSource rs, BoundOperand operand, DataItem? printable)
     {
@@ -266,6 +267,15 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: identifier-1 references the "
                 + $"variable-length group '{item.CobolName ?? item.ClrName}', which a SOURCE clause shall not name "
                 + "(ISO §2023:13.18.53.3 SR8)");
+            return true;
+        }
+        // §2023:14.9.25.3 SR1's sending half is part of "a MOVE statement is valid": an index, message-tag, object or
+        // pointer identifier-1 is refused, printable entry or not — no edition's list of the contexts an index data item
+        // may be referenced in names a SOURCE clause (§2023:13.18.60.3 SR10; §1985:VI.5.14.3 SR5; kb/Work PB5188).
+        if (MoveTable16.SenderClassRefusal(operand) is { } classRefusal)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of §2023:13.18.53.4 GR1 "
+                + $"from identifier-1 is invalid — {classRefusal} (ISO §2023:13.18.53.3 SR2)");
             return true;
         }
         if (printable is null || MoveTable16.Validity(operand, Table16Operand.Of(printable), printable) is not { } refusal)

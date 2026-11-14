@@ -216,6 +216,11 @@ public static class PictureAnalyzer
         {
             char c = expanded[i];
             if (char1Declared.Contains(c)) continue;   // a declared PICTURE EDITING character-1 (ISO §2023:13.18.40.3 SR8) — not an invalid symbol
+            // The program's currency symbol (ISO §2023:12.3.7 GR13), asked BEFORE the picture letters: no edition's
+            // exclusion list admits a letter that is a picture symbol of that edition, but E and N are symbols only from
+            // COBOL-2002, so at COBOL-85 `CURRENCY SIGN IS "E"` makes E the currency symbol (§1985:VI.4.5.4 GR11; kb/Work
+            // PB5173) and the float and national arms below must not see it.
+            if (c == cs) continue;
             switch (c)
             {
                 // '$' is a currency picture symbol iff it is a member of the unit's CURRENCY SIGN SET —
@@ -235,7 +240,6 @@ public static class PictureAnalyzer
                 case '1': has1 = true; break;
                 case 'E': hasE = true; break;
                 default:
-                    if (c == cs) break;   // the program's currency symbol (ISO §2023:12.3.7 GR13)
                     invalid ??= c;        // 'C'/'D' not opening CR/DB land here too — no legal lone use
                     break;
             }

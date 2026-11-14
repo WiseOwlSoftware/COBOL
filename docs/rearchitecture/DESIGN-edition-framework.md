@@ -314,7 +314,7 @@ unconditionally through `EditionContext.Removed`) and implementor latitude (`--s
 
 ## 4. Migration notes (keep the battery green throughout)
 
-The battery: greenfield conformance + unit + characterization + the FULL NIST legacy guard (current
+The battery: greenfield conformance + unit + repo-drift + characterization + the FULL NIST legacy guard (current
 counts live in the STATUS banners), plus
 the edition-specific suites (`VersionMatrixTests`, `ConstructRegistryDriftTests`,
 `ReservedWordsDriftTests`, `EditionGateDiagnosticTests`, `ReservedWordPosition*`,
