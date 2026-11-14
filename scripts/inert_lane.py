@@ -135,6 +135,7 @@ import tempfile
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+import csharp_lexer  # THE one lexer of a C# source, shared with buildgraph.py (kb/Work PB5230 review R2-1)
 import selftest_layout  # this directory's: where a case file's subject is (kb/Work PB5428)
 from standard_streams import ensure_utf8
 
@@ -157,7 +158,7 @@ def under(path: str, entry: str) -> bool:
 #: compiler tests to (`markdown_readers`).
 MARKDOWN_ENTRY = "**/*.md"
 #: ⛔ THE LANES, cheapest first (module docstring): `inert` runs the audits; `tooling` the audits with the script
-#: self-tests; `full` (the code lane) the build and the three whole populations beside the audits.
+#: self-tests; `full` (the code lane) the build and the gated whole populations beside the audits.
 LANES = ("inert", "tooling", "full")
 #: The lanes whose gate runs no compiler test, so its record keeps no test result: no compiler test reads the change.
 TEST_FREE_LANES = frozenset({"inert", "tooling"})
@@ -186,7 +187,7 @@ class Lane:
 
     @property
     def builds(self) -> bool:
-        """The code lane: a build and the three whole populations."""
+        """The code lane: a build and the gated whole populations."""
         return self.name == "full"
 
 
@@ -220,9 +221,9 @@ class Classification:
 
     def is_population_input(self, path: str) -> bool:
         """Whether a compiler test or the build MAY read `path`: it is neither inert nor a tooling-lane path. THE ONE
-        DEFINITION of the code lane's paths (`classify`) and of the inputs of the Unit, Conformance and Characterization
-        populations (scripts/gate.py `Host.population_key`, kb/Work PB5205): a gate's population passes stand for another
-        tree exactly when every such path, and the toolchain, are the same."""
+        DEFINITION of the code lane's paths (`classify`) and of `@population-inputs`, the declared inputs of the
+        repo-drift target (scripts/build_targets.json; kb/Work PB5218, PB5230): its pass stands for another tree exactly
+        when every such path, and the toolchain, are the same."""
         return not self.is_inert(path) and not self.in_tooling_lane(path)
 
     def is_watched(self, path: str) -> bool:
@@ -362,11 +363,12 @@ CLASSIFICATION = Classification(inert={
     "specs/ANSI_COBOL_1985.md": "RecordClauseRuleDriftTests (the Since column's 1985 side, kb/Work PB5196)",  # spec_pdf: names-the-file
     # Every held edition's rule catalog (inventory-schema.json editions.of `catalog`): a pattern, so an edition that gains
     # a catalog is a READ path the day it lands (kb/Work PB4994's older-edition drift tests first read the 1985 one).
-    "docs/rearchitecture/spec-rule-catalog*.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests "
-                                                   "(TraceabilityInventory.RowsOf and inventory_view.py --edition read "
-                                                   "every held edition's catalog)",
-    "docs/rearchitecture/architecture-edges.json": "ArchitectureEdgesDriftTests",
-    "docs/rearchitecture/evidence/arch-census/": "ArchCensusDriftTests (CensusRecord)",
+    "docs/rearchitecture/spec-rule-catalog*.json": "RepoDrift's CatalogCoverageDriftTests and traceability-inventory drift "
+                                                   "tests (TraceabilityInventory.RowsOf and inventory_view.py --edition "
+                                                   "read every held edition's catalog), Unit's EcRaiseSiteDriftTests, "
+                                                   "and SuiteManifest's conformance-suite/harness/generate.py",
+    "docs/rearchitecture/architecture-edges.json": "RepoDrift's ArchitectureEdgesDriftTests and BackendContractDriftTests",
+    "docs/rearchitecture/evidence/arch-census/": "RepoDrift's ArchCensusDriftTests (CensusRecord)",
 }, tooling_under=("scripts/", ".github/", "tools/", ".claude/", ".gitattributes", "toolchain.env"),
    tooling_suffixes=(".py", ".ps1", ".sh"),
    # ⛔ TOOLING_READS: what the script self-tests read outside the scripts (module docstring), measured from the PASS store's
@@ -398,6 +400,7 @@ CLASSIFICATION = Classification(inert={
        "tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj": "scripts/linux-gate.sh",
+       "tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Unit/CarrierLandingFormTests.cs": "scripts/spec/audit_annex_a1.py",
        "tests/_shared/TestRepo.cs": "scripts/spec/drift_rules.py",
        "tests/_shared/SpecClauseText.cs": "scripts/spec/spec_headings.py",
@@ -416,19 +419,26 @@ CLASSIFICATION = Classification(inert={
    code_reads={
        ".gitattributes": "every compiler test: the checkout's bytes (line endings) of every file it reads",
        "toolchain.env": "every compiler test and the build: the SDK they run on (the toolchain manifest, kb/Work PB4007)",
-       "scripts/spec/": "the spec extractors and audits a compiler test runs or reads (SpecTraceabilityInventoryDriftTests, "
-                      "AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, "
-                      "TrackedTreeScopeDriftTests, CatalogCoverageDriftTests, TestRepoDriftTests)",
-       "scripts/arch/": "ArchCensusDriftTests (census.py), ArchReviewFleetDriftTests (the R2 review workflow scripts)",
+       "scripts/spec/": "the spec extractors and audits a test runs or reads: RepoDrift's SpecTraceabilityInventoryDriftTests, "
+                      "AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, TrackedTreeScopeDriftTests, "
+                      "CatalogCoverageDriftTests and TestRepoDriftTests, and the modules SuiteManifest's generate.py "
+                      "imports (Unit, Conformance)",
+       "scripts/arch/": "RepoDrift's ArchCensusDriftTests (census.py) and ArchReviewFleetDriftTests (the R2 review workflow "
+                      "scripts)",
        "scripts/gen-reserved-words.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-cobol-words.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-constructs.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-diagnostics-doc.ps1": "a generator whose output a compiler drift test checks",
-       "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and VaultReferenceGeneratorDriftTests",
-       "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and GrammarDiagramGeneratorDriftTests",
+       "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and RepoDrift's "
+                                          "VaultReferenceGeneratorDriftTests",
+       "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and RepoDrift's "
+                                           "GrammarDiagramGeneratorDriftTests",
        "scripts/guard*.sh": "CorpusManifestTests, which LISTS scripts/ for every guard*.sh: a pattern, so a guard script "
                             "added later is the code lane too",
        "scripts/test_population.py": "every gate leg: it plans the population the compiler tests run",
+       "scripts/build_targets.json": "scripts/test_population.py (GATED_ASSEMBLIES, the gated assemblies' one statement) "
+                                     "and RepoDrift's GateLegDriftTests (the gated projects and the weights' assemblies, "
+                                     "kb/Work PB5230)",
        "scripts/filter_population.py": "its self-test reads the built test assemblies",
        # The modules the scripts above IMPORT (`code_readers`' import closure, kb/Work PB4395 review R2-1).
        "scripts/standard_streams.py": "imported at startup by every script a compiler test runs: conformance-suite/"
@@ -461,7 +471,8 @@ CLASSIFICATION = Classification(inert={
        ".claude/skills/workstream/templates/wf_r2_review.js": "scripts/arch/test_wf_r2_review.mjs, the workflow's dry "
                                                                "run ArchReviewFleetDriftTests runs",
        "tools/rr/rr.war": "scripts/gen-grammar-diagrams.ps1 (the build's Exec and GrammarDiagramGeneratorDriftTests)",
-       ".github/": "CiArtifactDriftTests, ReadyToRunRuntimeDriftTests (every workflow and the results actions)",
+       ".github/": "RepoDrift's CiArtifactDriftTests and ReadyToRunRuntimeDriftTests (every workflow and the results "
+                   "actions)",
    })
 
 
@@ -807,136 +818,8 @@ TESTS_MAY_NAME_MARKDOWN = {
     "DIAGNOSTICS.md": "the gitignored rendered view DiagnosticRegistryDriftTests WRITES when WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1 "
                       "(scripts/gen-diagnostics-doc.ps1); no test reads it",
 }
-STRING_START_RE = re.compile(r'[$@]*"{1,}')
 DOCS_WALK_RE = re.compile(r"\bTestRepo\s*\.\s*Docs\s*\(\s*\)")
 TREE_SCOPE_RE = re.compile(r"\bnew\s+TreeScope\s*\(|\bTreeScope\s+\w+\s*=\s*new\s*\(")
-
-
-def _blank(piece: str, fill: str) -> str:
-    """`piece` with every character but a newline replaced by `fill`, so an offset and a line keep their meaning."""
-    return re.sub(r"[^\n]", fill, piece)
-
-
-def csharp_parts(text: str) -> tuple[str, list[str]]:
-    """A C# source split into its CODE (every comment, preprocessor line and character literal blanked to spaces and every
-    string literal to underscores, so an offset and a line mean what they meant) and the VALUES of its string literals. A
-    string is regular, verbatim (`@"…"`), interpolated (`$"…"`, `$@"…"`) or raw (a run of three or more quotes, with any
-    number of leading `$`). An interpolated string's value is its text outside the holes; its holes are lexed as code in
-    their own right: their string literals are values too (they precede their string's own) and their code stays in the
-    CODE. A character literal's escape (an escaped quote, backslash or `\\u` sequence) is skipped before its closing quote
-    is sought."""
-    literals: list[str] = []
-    code, _ = _lex(text, 0, literals, 0)
-    return code, literals
-
-
-def _lex(text: str, i: int, literals: list[str], hole_close: int) -> tuple[str, int]:
-    """The CODE of `text` from `i`, appending the string values to `literals`: to the end of `text` (`hole_close` 0) or, inside
-    an interpolation hole, to the run of `hole_close` closing braces that ends it at bracket depth 0 (returned unconsumed).
-    A `:` at depth 0 in a hole starts its format string, which is text."""
-    code: list[str] = []
-    n = len(text)
-    depth = 0
-    while i < n:
-        ch = text[i]
-        pair = text[i:i + 2]
-        if hole_close and depth == 0 and text.startswith("}" * hole_close, i):
-            break
-        if hole_close and depth == 0 and ch == ":":
-            j = text.find("}" * hole_close, i)
-            j = n if j < 0 else j
-            code.append(_blank(text[i:j], " "))
-            i = j
-        elif pair == "//":
-            j = text.find("\n", i)
-            j = n if j < 0 else j
-            code.append(" " * (j - i))
-            i = j
-        elif pair == "/*":
-            j = text.find("*/", i + 2)
-            j = n if j < 0 else j + 2
-            code.append(_blank(text[i:j], " "))
-            i = j
-        elif ch == "#" and not text[text.rfind("\n", 0, i) + 1:i].strip():  # a preprocessor line may hold an apostrophe
-            j = text.find("\n", i)
-            j = n if j < 0 else j
-            code.append(" " * (j - i))
-            i = j
-        elif ch == "'":
-            j = i + 3 if text[i + 1:i + 2] == chr(92) else i + 1  # past the backslash and the escaped character
-            j = text.find("'", j)
-            j = n if j < 0 else j + 1
-            code.append(_blank(text[i:j], " "))
-            i = j
-        elif (m := STRING_START_RE.match(text, i)) is not None:
-            piece, i = _lex_string(text, i, m, literals)
-            code.append(piece)
-        else:
-            depth += ch in "([{"
-            depth -= ch in ")]}"
-            code.append(ch)
-            i += 1
-    return "".join(code), i
-
-
-def _lex_string(text: str, i: int, start: re.Match[str], literals: list[str]) -> tuple[str, int]:
-    """The string literal opening at `i` (`start` matched its opening): its CODE (underscores, but for the code of its
-    interpolation holes), appending its value to `literals`; and the offset after it."""
-    n = len(text)
-    prefix = start.group(0).rstrip('"')
-    quotes = len(start.group(0)) - len(prefix)
-    dollars = prefix.count("$")
-    verbatim = "@" in prefix
-    raw = quotes >= 3 and not verbatim
-    if quotes == 2 and not verbatim:  # the empty string
-        literals.append("")
-        return _blank(text[i:start.end()], "_"), start.end()
-    k = start.end() if (quotes == 1 or raw) else i + len(prefix) + 1
-    close_run = '"' * quotes
-    value: list[str] = []
-    code: list[str] = []
-    seg = i  # the start of the text not yet turned into CODE
-    while k < n:
-        c = text[k]
-        if raw and text.startswith(close_run, k):
-            break
-        if not raw and c == '"':
-            if verbatim and text[k + 1:k + 2] == '"':
-                value.append('"')
-                k += 2
-                continue
-            break
-        if dollars and c == "{":
-            run = len(text[k:]) - len(text[k:].lstrip("{"))
-            if not raw and text[k + 1:k + 2] == "{":  # `{{` is a brace of the text
-                value.append("{")
-                k += 2
-                continue
-            if raw and run < dollars:  # fewer braces than the string's dollars are text
-                value.append("{" * run)
-                k += run
-                continue
-            value.append("{" * (run - dollars if raw else 0))
-            hole_at = k + run
-            hole, end = _lex(text, hole_at, literals, dollars)
-            code.append(_blank(text[seg:hole_at], "_") + hole)
-            seg = end
-            k = min(end + dollars, n)
-            continue
-        if dollars and c == "}" and not raw and text[k + 1:k + 2] == "}":  # `}}` is a brace of the text
-            value.append("}")
-            k += 2
-            continue
-        if not raw and not verbatim and c == chr(92):
-            value.append(text[k + 1:k + 2])
-            k += 2
-            continue
-        value.append(c)
-        k += 1
-    j = n if k >= n else (k + quotes if raw else k + 1)
-    literals.append("".join(value))
-    code.append(_blank(text[seg:j], "_"))
-    return "".join(code), j
 
 
 def _balanced(code: str, open_at: int) -> str:
@@ -963,7 +846,7 @@ def markdown_readers(root: Path, paths: list[str], names_allowed: dict[str, str]
         if not (rel.startswith("tests/") and rel.endswith(".cs")):
             continue
         try:
-            code, literals = csharp_parts((root / rel).read_text(encoding="utf-8"))
+            code, literals = csharp_lexer.parts((root / rel).read_text(encoding="utf-8"))
         except OSError:
             continue
         for lit in literals:
@@ -1338,32 +1221,7 @@ def self_test() -> int:
                                               "scripts/orchestrator/steer.ps1")],
            ["full", "full", "full", "full", "full", "full", "tooling", "tooling"])
     # THE PIN THAT NO COMPILER TEST OPENS A MARKDOWN FILE (kb/Work PB4453), on planted test sources.
-    quote = chr(34)
-    lexed_code, lexed = csharp_parts(
-        'string a = "x.md"; // "y.md"\n/* "z.md" */ var c = \'' + quote + '\'; var v = @"a""b.md"; var r = """raw.md"""; var e = "";')
-    expect("the lexer: comments and character literals hold no literal, a regular, a verbatim and a raw string do, and no "
-           "literal's text stays in the code",
-           (lexed, "md" in lexed_code), (["x.md", 'a"b.md', "raw.md", ""], False))
-    # The two forms the first lexer misread, each hiding a Markdown path from the pin (review R1-1): an escaped quote or
-    # backslash character literal (the closing quote was sought from the escaped character), and an interpolation hole that
-    # holds a string literal (the hole ended at that literal's first quote); plus the raw interpolated string and a
-    # preprocessor line holding an apostrophe.
-    bs = chr(92)
-    esc_code, esc = csharp_parts("char q = '" + bs + "'';  char b = '" + bs + bs + "'; char u = '" + bs + "u0041';\n"
-                                 'string a = "README.md"; char r = \'x\'; string w = "after";')
-    expect("the lexer: an escaped quote, backslash and unicode character literal each end at their own closing quote, so "
-           "the string after them is still a literal",
-           (esc, "README" in esc_code), (["README.md", "after"], False))
-    hole_code, hole = csharp_parts('var a = $"x{File.ReadAllText(TestRepo.At("README.md"))}y{b}" + "t"; var c = $"{{" + "e.md";')
-    expect("the lexer: an interpolation hole's string literal is a value and its code stays code; the text outside the holes "
-           "is the string's own value; a doubled brace is text",
-           (hole, "TestRepo.At" in hole_code, "README" in hole_code), (["README.md", "xy", "t", "{", "e.md"], True, False))
-    raw_code, raw = csharp_parts('var a = $$"""\n  {{{TestRepo.At("a.md")}}} {{Docs()}} {x}\n  """; var b = "z.md";\n'
-                                 "#region Don't\nvar c = 1;")
-    expect("the lexer: a raw interpolated string's holes (two dollars, two braces) are lexed and a lone brace is text; a "
-           "preprocessor line's apostrophe opens no character literal",
-           (raw, "Docs()" in raw_code, "TestRepo.At" in raw_code, "var c = 1;" in raw_code),
-           (["a.md", "\n  {}  {x}\n  ", "z.md"], True, True, True))
+    # The lexer's own arms are scripts/selftests/csharp_lexer/test_lexer.py (the one lexer, scripts/csharp_lexer.py).
     with tempfile.TemporaryDirectory() as td:
         planted = {
             "tests/T1.cs": 'class T1 { string a = File.ReadAllText(TestRepo.At("README.md")); }\n',

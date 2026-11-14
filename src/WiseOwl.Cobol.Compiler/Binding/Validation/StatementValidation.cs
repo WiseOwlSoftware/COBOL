@@ -978,7 +978,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckInspectCharactersReplacement(BoundOperand rep)
     {
         var size = rep is BoundStringLiteral literal ? literal.Value.Length
-            : InspectSizeRulesCoverDataItems && rep is BoundFieldOperand ? IntrinsicBinder.KnownWidth(rep)
+            : InspectSizeRulesCoverDataItems && rep is BoundFieldOperand or BoundComputedOperand ? IntrinsicBinder.KnownWidth(rep)
             : null;
         if (size is null or 1) return true;
         data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT REPLACING CHARACTERS BY {InspectOperandImage(rep, size.Value, "literal-3", "identifier-5")} "
@@ -1035,10 +1035,11 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>The size of an INSPECT operand for the size rules: its literal size (<see cref="InspectLiteralSize"/>), or —
     /// where <see cref="InspectSizeRulesCoverDataItems"/> — a data item's static size (the ONE reader of an operand's
-    /// compile-time width, <see cref="IntrinsicBinder.KnownWidth"/>); null when it is a run-time quantity.</summary>
+    /// compile-time width, <see cref="IntrinsicBinder.KnownWidth"/>: a reference modification with no length over an item of static
+    /// size, and a function-identifier whose definition fixes its length, included; kb/Work PB5425); null when it is a run-time quantity.</summary>
     private int? InspectOperandSize((BoundOperand Op, bool Figurative) operand) =>
         InspectLiteralSize(operand)
-        ?? (InspectSizeRulesCoverDataItems && operand.Op is BoundFieldOperand ? IntrinsicBinder.KnownWidth(operand.Op) : null);
+        ?? (InspectSizeRulesCoverDataItems && operand.Op is BoundFieldOperand or BoundComputedOperand ? IntrinsicBinder.KnownWidth(operand.Op) : null);
 
     /// <summary>The statically known size of an INSPECT literal operand, for SR6 / SR9: a figurative constant is ONE
     /// character (ISO §2023:14.9.22.3 SR3: "If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an
@@ -1058,6 +1059,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             BoundStringLiteral literal => $"{literalSlot} '{literal.Value}' ({size} character{(size == 1 ? "" : "s")})",
             BoundFieldOperand field => $"{identifierSlot} (the data item '{field.Place.Item.CobolName}', {size} character{(size == 1 ? "" : "s")})",
+            BoundComputedOperand { Expr: BoundIntrinsicCall call } => $"{identifierSlot} (FUNCTION {call.Sig.Name}, {size} character{(size == 1 ? "" : "s")})",
             _ => $"{literalSlot} (a figurative constant, an implicit one-character item by SR3)",
         };
 
@@ -1203,12 +1205,14 @@ internal sealed class StatementValidation(DataBinder data)
         string why = badReceiver
             ? $"identifier-1 '{ReceiverFace(receiver)}' is {ItemCategory.Face(receiver.Item)}"
             : $"the record '{badRecord!.CobolName ?? "FILLER"}' is {ItemCategory.Face(badRecord)}";
+        // The rule as the edition being compiled numbers and words it (kb/Work PB5352): a general rule of the file's I-O module at
+        // COBOL-85, the 2023 syntax rule from 2002.
+        int level = data.Edition.DialectLevel;
         data.Edition.Error(DiagnosticCatalog.IntoPhraseReceiverNotAdmissible,
-            $"{rules.Statement} '{ReceiverFace(receiver)}': {rules.AdmissibilityCite} admits the phrase on two "
-            + $"grounds and neither holds — a) {rules.AdmissibilityArmA}, but {EntryFace(file, rules, count)}; or b) identifier-1 and "
-            + "ALL record-names associated with file-name-1 \"describe an alphanumeric group item or an "
-            + $"elementary item of category alphanumeric or category national\", but {why}. Write the statement "
-            + "without the INTO phrase and MOVE from the record-name you mean.");
+            $"{rules.Statement} '{ReceiverFace(receiver)}': {rules.Admissibility.At(level, file.Organization)} admits the phrase on two "
+            + $"grounds and neither holds — a) {rules.AdmissibilityArmA.At(level, file.Organization)}, but {EntryFace(file, rules, count)}; "
+            + $"or b) identifier-1 and ALL record-names associated with file-name-1 {rules.AdmissibilityArmB.At(level, file.Organization)}, "
+            + $"but {why}. Write the statement without the INTO phrase and MOVE from the record-name you mean.");
         return false;
     }
 
@@ -1531,7 +1535,8 @@ internal sealed class StatementValidation(DataBinder data)
     /// Asked by <c>MoveBinder.BindFromPhrase</c> (WRITE, REWRITE, RELEASE: the sender) and by <see cref="CheckIntoReceiver"/>
     /// (READ, RETURN: the receiver), the two funnels every FROM and INTO phrase passes through, so the next phrase of
     /// the family inherits it. The decision is <see cref="StorageSharing.IsRecordAreaOf"/>; the edition scope is
-    /// <see cref="RecordAreaRule.InForce"/> (COBOL-2023 replaced the rule with its overlapping-operand rules, §2023:14.6.10).
+    /// <see cref="RecordAreaRule.InForce"/> (COBOL-2014 dropped the rule, §2014:E.3, for the overlapping-operand rules
+    /// COBOL-2023 keeps, §2023:14.6.10).
     /// Returns true when the operand is acceptable; false after reporting.</summary>
     public bool CheckPhraseOperandIsNotRecordArea(FileModel file, Place operand, RecordAreaVerb verb, string statement)
     {

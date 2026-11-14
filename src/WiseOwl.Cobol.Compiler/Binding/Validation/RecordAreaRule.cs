@@ -11,15 +11,18 @@ namespace WiseOwl.Cobol.Binding.Validation;
 /// §1985:XI.4.3.3 SR1; §2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1); WRITE, REWRITE and RELEASE: "Record-name-1 and identifier-1 must
 /// not reference the same storage area" (§1985:IX.4.9.3 SR1, §1985:IX.4.6.3 SR1, §1985:XI.4.2.3 SR3; §2002:14.8.47.2 SR4,
 /// §2002:14.8.33.2 SR1, §2002:14.8.30.2 SR2). The 1985 text repeats the READ, WRITE and REWRITE rules in each I-O module
-/// (sequential VII, relative VIII, indexed IX), so the citation depends on the file's organization. COBOL-2023 prints no such
-/// rule: its overlapping-operand rules (§2023:14.6.10, §2023:14.9.30.4 NOTE 1) leave the result undefined and the program legal,
-/// so the rule ends at <c>Year &lt; 2023</c>. The decision it guards is <see cref="StorageSharing.IsRecordAreaOf"/>, asked by
+/// (sequential VII, relative VIII, indexed IX), so the citation depends on the file's organization. ISO/IEC 1989:2014 drops all
+/// five rules: its Annex E lists each phrase among the substantive changes not affecting existing programs (§2014:E.3 items 21,
+/// 24, 25, 26 and 38: "Identifier-1 may now reference the same storage area as record-name-1"), and its READ INTO rule refers an
+/// overlap to the overlapping-operand rules, the model COBOL-2023 keeps (§2023:14.6.10, §2023:14.9.30.4 NOTE 1: the result is
+/// undefined and the program legal), so the rule ends at <c>Year &lt; 2014</c> (kb/Work PB5270). The decision it guards is
+/// <see cref="StorageSharing.IsRecordAreaOf"/>, asked by
 /// <c>StatementValidation.CheckPhraseOperandIsNotRecordArea</c> from the one MOVE binder that binds all five phrases.
 /// </summary>
 internal static class RecordAreaRule
 {
-    /// <summary>Whether the edition carries the rule: every edition before COBOL-2023.</summary>
-    public static bool InForce(int editionYear) => editionYear < 2023;
+    /// <summary>Whether the edition carries the rule: COBOL-85 and COBOL-2002 (§2014:E.3 drops it).</summary>
+    public static bool InForce(int editionYear) => editionYear < 2014;
 
     /// <summary>The syntax rule that forbids the operand for <paramref name="verb"/> on a file of <paramref name="organization"/>
     /// at <paramref name="editionYear"/>, with the sentence it prints — the 1985 wording uses "must", the 2002 one "shall".</summary>

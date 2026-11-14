@@ -720,7 +720,7 @@ public sealed class EditionReadDriftTests
             return $"{type}.{member}";
         }
 
-        private static string Repo(string rel) => Path.Combine([TestRepo.Root, .. rel.Split('/')]);
+        private static string Repo(string rel) => TestRepo.Within("src/WiseOwl.Cobol.Frontend/", rel);
 
         private static string Rel(string path) => Path.GetRelativePath(TestRepo.Root, path).Replace('\\', '/');
 
