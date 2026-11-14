@@ -147,6 +147,7 @@ internal sealed class VersionConformancePass
                 WalkStatement(stmt);
         GateSortMergeProcedures(prog);
         if (_edition.Year < 2002) GateReleaseReturnRange(prog);
+        if (_edition.Year < 2002) GateBeforeReportingPerformRange(prog);
     }
 
     /// <summary>⛔ §1985:XI.4.2.3 SR2 AND §1985:XI.4.3.3 SR3 — A RELEASE STATEMENT IS WITHIN THE RANGE OF AN INPUT PROCEDURE OF A SORT NAMING
@@ -201,6 +202,61 @@ internal sealed class VersionConformancePass
                         + $"statement for '{file.CobolName}' (§1985:XI.4.3.3 SR3: \"A RETURN statement may only be used within the range of an output "
                         + "procedure associated with a SORT or MERGE statement for file-name-1.\")",
                 verb, release ? "§1985:XI.4.2.3 SR2" : "§1985:XI.4.3.3 SR3"));
+        }
+    }
+
+    /// <summary>⛔ §1985:XIII.4.9.3 SR3, SECOND SENTENCE — "A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE,
+    /// INITIATE, or TERMINATE statements in its range." (kb/Work PB5254; COBOL7234, COBOL-85 only: §2002:14.8.45.2 and later keep the first
+    /// sentence, which <c>ReportWriterBinder.RejectInBeforeReporting</c> asks lexically, and replace this one by the run-time EC-FLOW-REPORT of
+    /// §2023:14.9.49.4 GR10, kb/Work PB326). The range (§1985:VI.6.21.4 GR11) is the static range <see cref="ProcedureReach.Closure{TOrigin}"/> models — the performed
+    /// paragraphs and every procedure they transfer to and return from — read once per PERFORM, so a statement is reported at the
+    /// PERFORM that reaches it. A report statement written in a USE BEFORE REPORTING paragraph itself is the first sentence's and is not
+    /// asked here; a GO TO is not followed (where it leads after leaving the range is a run-time fact, as
+    /// <see cref="GateSortMergeProcedures"/> reasons).</summary>
+    private void GateBeforeReportingPerformRange(BoundProgram prog)
+    {
+        if (prog.Declaratives is not { Count: > 0 } declaratives) return;
+        var beforeReporting = declaratives.Where(d => d.ReportGroup is not null).ToList();
+        if (beforeReporting.Count == 0) return;
+
+        static BoundStatement? FirstReportStatement(IEnumerable<BoundStatement> statements)
+        {
+            foreach (var s in statements)
+            {
+                if (s is BoundGenerate or BoundInitiate or BoundTerminate) return s;
+                if (FirstReportStatement(s.StatementChildren()) is { } nested) return nested;
+            }
+            return null;
+        }
+        var performs = new List<BoundOutOfLinePerform>();
+        void Collect(BoundStatement s)
+        {
+            if (s is BoundOutOfLinePerform p) performs.Add(p);
+            foreach (var c in s.StatementChildren()) Collect(c);
+        }
+        foreach (var d in beforeReporting)
+        {
+            performs.Clear();
+            foreach (int pc in d.Range.SpannedPcs())
+                foreach (var stmt in prog.Paragraphs[pc].Statements) Collect(stmt);
+            foreach (var perform in performs)
+            {
+                var range = ProcedureReach.Closure(prog.Paragraphs, [(perform.Range, 0)]);
+                foreach (int pc in range.Keys.Order())
+                {
+                    if (beforeReporting.Any(b => b.Contains(pc))) continue;   // the first sentence's, reported where it is written
+                    if (FirstReportStatement(prog.Paragraphs[pc].Statements) is not { } reported) continue;
+                    using var _ = _sink.At(perform.At);
+                    string verb = reported switch { BoundGenerate => "GENERATE", BoundInitiate => "INITIATE", _ => "TERMINATE" };
+                    _sink.Report(new EditionDiagnostic(DiagnosticCatalog.BeforeReportingPerformRange.Code, EditionSeverity.Error,
+                        DiagnosticCatalog.BeforeReportingPerformRange.Id,
+                        $"a PERFORM in USE BEFORE REPORTING declarative section '{d.SectionName}' has a {verb} statement in its range "
+                        + $"(paragraph '{prog.Paragraphs[pc].CobolName}'; §1985:XIII.4.9.3 SR3: \"A PERFORM statement in a USE BEFORE REPORTING "
+                        + "procedure must not have GENERATE, INITIATE, or TERMINATE statements in its range.\")",
+                        "PERFORM", "§1985:XIII.4.9.3 SR3"));
+                    break;   // one report per PERFORM
+                }
+            }
         }
     }
 
