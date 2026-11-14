@@ -130,6 +130,18 @@ public sealed class CopyNameUserWordTests
         else Assert.Contains(errors, e => e.Contains(Conflict));
     }
 
+    /// <summary>A COPY statement between two separate programs lies in no source program (§1985:IV.4.2.2.1.1 "within a given source
+    /// program"): its text-name conflicts with neither neighbour's paragraph-name (review R2-1).</summary>
+    [Fact]
+    public void ACopyBetweenSeparatePrograms_BelongsToNoProgram()
+    {
+        const string Prog = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {0}.\n       PROCEDURE DIVISION.\n       {1}.\n"
+            + "           DISPLAY \"{0}\".\n           STOP RUN.\n       END PROGRAM {0}.\n";
+        string source = string.Format(Prog, "PROGA", "CPYB") + string.Format(Prog, "PROGB", "B-PARA") + "       COPY CPYB.\n";
+        var (_, errors, _) = EditionHarness.CompileFull(source, 85, copybooks: new Dictionary<string, string> { ["CPYB.cpy"] = string.Format(Prog, "PROGC", "C-PARA") });
+        Assert.DoesNotContain(errors, e => e.Contains(Conflict));
+    }
+
     /// <summary>A name written as a literal is no user-defined word (and below 2002 is refused as a literal form: a different
     /// diagnostic): no conflict is reported for it.</summary>
     [Fact]

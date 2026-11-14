@@ -15,8 +15,8 @@ internal readonly record struct CopyWord(string Word, UserWordKind Kind, int Lin
 /// in, and a contained program's are its own. The preprocessor resolves the statement and gives each name with the physical line
 /// of the statement (<see cref="CopyNameUse"/>); this places the statement in the resultant text, where the lines it leaves behind
 /// keep its origin, and in the program unit whose text contains it: the innermost unit whose first and last tokens bracket the statement,
-/// so a statement written after a contained program's END PROGRAM belongs to the container (a statement outside every unit belongs to
-/// the first). Each unit's list is what its binder declares through
+/// so a statement written after a contained program's END PROGRAM belongs to the container, and one outside every unit (between two
+/// separate programs) belongs to no source program and contributes no word. Each unit's list is what its binder declares through
 /// <c>DataBinder.DeclareUserWord</c> before any other word, so the refusal of a word in two sets lands at the other declaration.
 /// Empty from COBOL-2002, where the names are system-names (<see cref="Editions.EditionInfo.CopyNamesAreUserDefinedWords"/>).</summary>
 internal sealed class CopyNameCensus
@@ -38,7 +38,7 @@ internal sealed class CopyNameCensus
         {
             int line = edition.LineMap?.ResultantLineOf(use.At) is > 0 and var found ? found : use.At.Line;
             var owner = spans.LastOrDefault(s => s.Lines.First <= line && line <= s.Lines.Last);
-            if (owner.Unit is null) owner = spans[0];
+            if (owner.Unit is null) continue; // between programs or outside the group: no source program contains it
             var kind = use.IsLibraryName ? UserWordKind.LibraryName : UserWordKind.TextName;
             if (!byUnit.TryGetValue(owner.Unit, out var words)) byUnit[owner.Unit] = words = [];
             words.Add(new CopyWord(use.Name, kind, line));
