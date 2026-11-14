@@ -1205,12 +1205,14 @@ internal sealed class StatementValidation(DataBinder data)
         string why = badReceiver
             ? $"identifier-1 '{ReceiverFace(receiver)}' is {ItemCategory.Face(receiver.Item)}"
             : $"the record '{badRecord!.CobolName ?? "FILLER"}' is {ItemCategory.Face(badRecord)}";
+        // The rule as the edition being compiled numbers and words it (kb/Work PB5352): a general rule of the file's I-O module at
+        // COBOL-85, the 2023 syntax rule from 2002.
+        int level = data.Edition.DialectLevel;
         data.Edition.Error(DiagnosticCatalog.IntoPhraseReceiverNotAdmissible,
-            $"{rules.Statement} '{ReceiverFace(receiver)}': {rules.AdmissibilityCite} admits the phrase on two "
-            + $"grounds and neither holds — a) {rules.AdmissibilityArmA}, but {EntryFace(file, rules, count)}; or b) identifier-1 and "
-            + "ALL record-names associated with file-name-1 \"describe an alphanumeric group item or an "
-            + $"elementary item of category alphanumeric or category national\", but {why}. Write the statement "
-            + "without the INTO phrase and MOVE from the record-name you mean.");
+            $"{rules.Statement} '{ReceiverFace(receiver)}': {rules.Admissibility.At(level, file.Organization)} admits the phrase on two "
+            + $"grounds and neither holds — a) {rules.AdmissibilityArmA.At(level, file.Organization)}, but {EntryFace(file, rules, count)}; "
+            + $"or b) identifier-1 and ALL record-names associated with file-name-1 {rules.AdmissibilityArmB.At(level, file.Organization)}, "
+            + $"but {why}. Write the statement without the INTO phrase and MOVE from the record-name you mean.");
         return false;
     }
 
