@@ -999,12 +999,16 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
                 string[] parts = loc.Split('#', 2);
                 string file = Path.Combine(root, parts[0].Replace('/', Path.DirectorySeparatorChar));
+                // A DOCUMENT's location, its file included, is docchecks/inventory.py's to resolve: the conformance
+                // statement is a rendered view whose file a fresh checkout lacks (kb/Work PB5430), and its sources are
+                // Markdown no compiler test opens (kb/Work PB4453).
+                if (!ResolvedHere(file)) continue;
                 if (!File.Exists(file))
                 {
                     bad.Add($"{r.RuleId}: code-location '{loc}' — no such file");
                     continue;
                 }
-                if (parts.Length == 1 || !ResolvedHere(file)) continue;
+                if (parts.Length == 1) continue;
 
                 if (!SymbolResolves(file, parts[1]))
                     bad.Add($"{r.RuleId}: code-location '{loc}' — '{parts[1]}' is no longer in that file's code");
@@ -1041,9 +1045,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
             foreach ((string path, string symbol) in spellings)
             {
                 string file = Path.Combine(root, path.Replace('/', Path.DirectorySeparatorChar));
+                if (!ResolvedHere(file))
+                    continue;   // a document's location is docchecks/inventory.py's (see UnresolvedCodeLocations)
                 if (!File.Exists(file))
                     bad.Add($"{r.RuleId}: notes cite '{path}#{symbol}' — no such file");
-                else if (ResolvedHere(file) && !SymbolResolves(file, symbol))
+                else if (!SymbolResolves(file, symbol))
                     bad.Add($"{r.RuleId}: notes cite '{path}#{symbol}' — '{symbol}' is no longer in that file's code "
                             + "(rewrite the sentence, or retire the witness so the history sits behind a retired-witness mark)");
             }
@@ -1806,6 +1812,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
             [Base("X-6") with { CodeLocation = "src/WiseOwl.Cobol.Compiler/NoSuchFile.cs" }], s, root));
         Assert.Single(UnresolvedCodeLocations(
             [Base("X-7") with { CodeLocation = "scripts/spec/inventory_view.py#NoSuchSymbolAnywhere" }], s, root));
+        // A document's location is the Python audit's, even when its file is not in the tree (a rendered view).
+        Assert.Empty(UnresolvedCodeLocations(
+            [Base("X-7b") with { CodeLocation = "docs/NoSuchRenderedView.md#DOC-A.1-1" }], s, root));
 
         // Test refs: an unknown form, a golden that does not exist, and an xUnit method that does not exist.
         Assert.Single(UnresolvedTestRefs([Base("X-8") with { TestRef = "vibes:it-looked-right" }], s, root));
