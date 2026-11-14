@@ -492,6 +492,7 @@
       "WiseOwl.Cobol.Binding.Procedure.ControlFlowBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.Procedure.OoBinder",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::LiteralPosition": [
