@@ -51,6 +51,11 @@ using WiseOwl.Cobol.Runtime;
 internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolver refs, StatementValidation validation,
                                               ConditionBinder conditions)
 {
+    /// <summary>The edition that first states the two subscript sentences of Format 2 (§2002:14.8.34.2 SR6 and SR7): the
+    /// index-name subscript "shall not be followed by a '+' or a '–'" and a condition-name "shall be subscripted by the first
+    /// index-name"; §1985:VI.6.22.3 SR4 has neither (kb/Work PB5193).</summary>
+    private const int FirstEditionWithSubscriptSentences = 2002;
+
     /// <summary>Screen one <c>SEARCH ALL</c> against ISO §2023:14.9.37.3 SR7–SR13. Pure in the check-catalog sense:
     /// every verdict is reported to the ONE sink and the caller's bind is unaffected (a Format-2 violation is the
     /// SOURCE's error and §2023:4.2.2 ¶2 puts its indication at compile time — the statement still binds, so one
@@ -118,7 +123,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (or.succeedingXorExpression().Length > 0) { why = "an OR"; return false; }
         if (xor.logicalAndExpression() is not { } and) return true;
         if (xor.succeedingAndExpression().Length > 0) { why = "an XOR"; return false; }
-        if (and.succeedingCondition().Any(s => s.abbreviatedRelation() is not null))
+        if (and.succeedingCondition().Any(s => s.abbreviatedRelation() is not null || s.negatedAbbreviatedRelation() is not null))
         {
             why = "an abbreviated combined relation (Format 2's AND phrase writes data-name-2 out in full)";
             return false;
@@ -324,7 +329,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         }
         referenced[pos] = true;
 
-        return CheckKeySubscript(dref, cond.Parent, table, firstIndex, "SR9") && ok;
+        // §1985:VI.6.22.3 SR4 puts no subscript rule on a condition-name (only on data-name-1 / data-name-2); the
+        // requirement that it be subscripted by the first index-name is §2002:14.8.34.2 SR7 and §2023:14.9.37.3 SR9.
+        return (data.Edition.DialectLevel < FirstEditionWithSubscriptSentences || CheckKeySubscript(dref, cond.Parent, table, firstIndex, "SR9")) && ok;
     }
 
     /// <summary>SR10 (with SR12's identifier arm and SR13) — identifier-3 / identifier-4, the identifiers inside
@@ -418,6 +425,17 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         return -1;
     }
 
+    /// <summary>The citation of the subscript rule in force at the edition being compiled (kb/Work PB5193; the mismatch
+    /// kb/Work PB5352 closed for the file rules): the 2023 text's SR8 (a key) and SR9 (a condition-name) are SR6 and SR7
+    /// of §2002:14.8.34.2 and of §2014:14.9.34.2, and §1985:VI.6.22.3 SR4 states the key rule alone.</summary>
+    private string SubscriptRuleCite(string rule2023) => data.Edition.DialectLevel switch
+    {
+        >= 2023 => $"ISO §2023:14.9.37.3 {rule2023}",
+        >= 2014 => $"ISO §2014:14.9.34.2 {(rule2023 == "SR8" ? "SR6" : "SR7")}",
+        >= 2002 => $"ISO §2002:14.8.34.2 {(rule2023 == "SR8" ? "SR6" : "SR7")}",
+        _ => "ISO §1985:VI.6.22.3 SR4",
+    };
+
     /// <summary>SR8's and SR9's shared subscript requirement, asked of the subscript AS WRITTEN: the position that
     /// selects identifier-1's occurrence shall be the first index-name associated with identifier-1, and "the
     /// index-name subscript shall not be followed by a '+' or a '–'".</summary>
@@ -430,7 +448,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (toks.Count == 0)
             return Key(table, $"'{DataBinder.WrittenText(dref)}' is not subscripted by '{firstIndex}': it \"shall be "
                 + "subscripted by the first index-name associated with identifier-1 along with any subscripts "
-                + $"required to uniquely identify the data item\" (ISO §2023:14.9.37.3 {rule})");
+                + $"required to uniquely identify the data item\" ({SubscriptRuleCite(rule)})");
         // The index-name may be written QUALIFIED (§2023:8.4.2.2.2 Format 3; §2023:8.4.2.2.3 SR6), and must be when another
         // table declares the same spelling (SR1) — so the qualifiers are consumed here and the reference is judged
         // by the DECLARATION it resolves to, never by its spelling alone (kb/Work PB919).
@@ -449,15 +467,19 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 && !ReferenceEquals(ix.Decl, table.Indexes[0])))
             return Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where "
                 + $"the first index-name associated with '{table.CobolName}' — '{firstIndex}' — is required "
-                + $"(ISO §2023:14.9.37.3 {rule})");
+                + $"({SubscriptRuleCite(rule)})");
         if (toks.Count == next) return true;
         toks = [toks[0], .. toks.Skip(next)];
-        return toks[1].Type is Core.PLUS or Core.MINUS
-                             or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT
+        bool relative = toks[1].Type is Core.PLUS or Core.MINUS or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT;
+        // §1985:VI.6.22.3 SR4 asks only that the key be "subscripted by the first index-name ... along with other
+        // subscripts as required": K (IX + 1) is, and the "shall not be followed by a '+' or a '–'" sentence arrives
+        // with §2002:14.8.34.2 SR6 (kb/Work PB5193).
+        if (relative && data.Edition.DialectLevel < FirstEditionWithSubscriptSentences) return true;
+        return relative
             ? Key(table, $"'{DataBinder.WrittenText(dref)}' writes '{Written(toks)}': \"the index-name subscript shall not be "
-                + $"followed by a '+' or a '–'\" (ISO §2023:14.9.37.3 {rule})")
+                + $"followed by a '+' or a '–'\" ({SubscriptRuleCite(rule)})")
             : Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where the "
-                + $"first index-name '{firstIndex}' alone is required (ISO §2023:14.9.37.3 {rule})");
+                + $"first index-name '{firstIndex}' alone is required ({SubscriptRuleCite(rule)})");
     }
 
     /// <summary>ISO §2023:3.178 asked of a <c>nonNumericLiteral</c>: a figurative constant is never zero-length
