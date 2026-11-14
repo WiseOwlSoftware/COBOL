@@ -207,7 +207,7 @@ switchOffClause
 // PICMODE exploit: PICTURE triggers PIC token + pushes PICMODE, which captures
 // "SYMBOL" as PIC_STRING. Parser sees: WITH PIC PIC_STRING literal.
 // Semantic validation ensures PIC_STRING == "SYMBOL".
-// No IS: the phrase prints none (§2023:12.3.7.2), and PICMODE lexes an IS as the IS token, which this rule does not
+// No IS: the SPECIAL-NAMES phrase prints none (§2023:12.3.7.2), and PICMODE lexes an IS as the IS token, which this rule does not
 // take, so `WITH PICTURE IS SYMBOL` is refused (kb/Work PB5213).
 // ⛔ WITH IS AN OPTIONAL WORD (kb/Work PB695): folio 290 prints `[ WITH PICTURE SYMBOL literal-8 ]` with rules
 // under PICTURE and SYMBOL only — `CURRENCY SIGN IS "$" PICTURE SYMBOL "#"` is conforming and was rejected.

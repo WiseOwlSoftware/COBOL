@@ -330,7 +330,7 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     // asks of the common case (no text is materialized for it).
     // ⛔ THE IS AFTER PIC / PICTURE IS A WORD OF THE SOURCE, AND IT IS WRITTEN AT MOST ONCE (kb/Work PB5213). The PICTURE
     // clause's format is `{PICTURE | PIC} IS character-string-1` (§2023:13.18.40.2; §1985:VI.5.9.2): IS is an optional word
-    // the format prints ONCE, so the word after it is the character-string. The CURRENCY SIGN clause's PICTURE SYMBOL
+    // the format prints ONCE, so the word after it is the character-string. The SPECIAL-NAMES CURRENCY SIGN clause's PICTURE SYMBOL
     // phrase prints no IS at all (§2023:12.3.7.2). PIC_IS used to `skip` every IS it met, so `PIC IS IS IS X(4)` compiled
     // as `PIC X(4)` and `WITH PICTURE IS SYMBOL "#"` as `WITH PICTURE SYMBOL "#"`: the lexer decided a syntax question
     // and erased the evidence. Now the FIRST IS of the region is the IS keyword token, which the parser takes where a
