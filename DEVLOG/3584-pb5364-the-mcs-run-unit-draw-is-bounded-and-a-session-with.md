@@ -1,4 +1,4 @@
-## PB5364: the MCS run unit draw is bounded, and a session with no liveness byte answers 92; PB5147: every CM102M run records the volume's flush time
+## Entry 3584 — 2026-11-13 20:36 PST — PB5364: the MCS run unit draw is bounded, and a session with no liveness byte answers 92; PB5147: every CM102M run records the volume's flush time
 
 **PB5364 (landed).** `McsStore.DrawRunUnit` drew a random 60-bit run unit id and redrew it for as long as the non-waiting hold
 of its liveness byte answered `Held`, taking `Held` to mean a 2^-60 collision. The lock-file host (macOS and the other Unixes)
@@ -26,3 +26,4 @@ Self-review: architecture (one rule: no liveness byte means 92, at the one entry
 reasoning is written at the constant; `Unavailable` now refuses through the same check rather than relying on the mutex),
 performance (the draw is at most four non-waiting holds, once per session), and duplication (the bounded-draw shape matches
 `KeyedStore.Draw`'s; no second copy of the 92 rule).
+
