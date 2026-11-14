@@ -22,6 +22,8 @@ THE MECHANISM.
     end, or this process dying) kills whatever is still in it. Nested jobs are supported (Windows 8+), so a tree inside
     gate_slot's own job works.
   * POSIX: the root leads a new session (`start_new_session`); `kill` is `killpg(SIGKILL)` and `alive` probes the group.
+  * Both: `kill` returns only once EVERY member is gone, so the caller may then delete the files the tree held
+    (kb/Work PB5500; `ProcessJob.kill`); a member that outlives the bound fails it loudly, naming the pid.
 Callers give the child FILES, never pipes, for its output: a pipe an orphan still holds blocks its reader, a file never
 does."""
 from __future__ import annotations
