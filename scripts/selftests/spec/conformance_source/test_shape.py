@@ -30,12 +30,12 @@ REGULAR = (
     "## 8. Derivations\n\n| Rule | Arm |\n|---|---|\n| DRV-1985-GR-1-1 | a |\n| DRV-GR-1-1 | a |\n")
 
 
-def findings(text):
+def _findings(text):
     return cs.check(cs.parse(text))
 
 
 def case_00_a_regular_document_is_green_and_renders_to_itself(expect):
-    expect.equal("the planted regular document", findings(REGULAR), [])
+    expect.equal("the planted regular document", _findings(REGULAR), [])
     expect.equal("it renders byte for byte to itself", cs.render(cs.parse(REGULAR)), REGULAR)
     conf = cs.parse(REGULAR)
     expect.equal("sections 3 and 3.1's determinations by key", sorted(conf.determinations()), ["D-B10", "D-B2", "D-UND"])
@@ -53,40 +53,40 @@ def case_00_a_regular_document_is_green_and_renders_to_itself(expect):
                  ["DOC-A.1-9", "DOC-A.1-10", "DOC-A.1-92", "DOC-A.1-92b", "DRV-1985-GR-1", "DRV-GR-1"])
 
 
-def _one(expect, label, text, needle):
-    got = findings(text)
-    expect(label, len(got) == 1 and needle in got[0], str(got))
+def _one(label, text, needle):
+    got = _findings(text)
+    return label, len(got) == 1 and needle in got[0], str(got)
 
 
 def case_01_each_way_out_of_shape_is_one_finding(expect):
-    _one(expect, "an entry with no key", REGULAR.replace("- **D-B10 the tenth.**", "- **The tenth.**"), "an entry with no key")
-    _one(expect, "a key used twice", REGULAR.replace("- **D-UND — a case.**", "- **D-B2 — a case.**"), "the key `D-B2` is already")
-    _one(expect, "determinations out of natural key order",
-         REGULAR.replace("- **D-B2 — the second.**", "- **D-B20 — the second.**"), "out of natural key order from `D-B20`")
-    _one(expect, "table rows out of natural key order",
-         REGULAR.replace("| DOC-A.1-9 | e |\n| DOC-A.1-56 | e |", "| DOC-A.1-56 | e |\n| DOC-A.1-9 | e |"), "out of natural key order")
-    _one(expect, "text after a table's rows outside a body and the epilogue",
-         REGULAR.replace("| DRV-GR-1-1 | a |\n", "| DRV-GR-1-1 | a |\n\nA stray paragraph.\n"), "text after the section's entries")
-    _one(expect, "text after the determinations, outside an entry",
+    expect(*_one("an entry with no key", REGULAR.replace("- **D-B10 the tenth.**", "- **The tenth.**"), "an entry with no key"))
+    expect(*_one("a key used twice", REGULAR.replace("- **D-UND — a case.**", "- **D-B2 — a case.**"), "the key `D-B2` is already"))
+    expect(*_one("determinations out of natural key order",
+         REGULAR.replace("- **D-B2 — the second.**", "- **D-B20 — the second.**"), "out of natural key order from `D-B20`"))
+    expect(*_one("table rows out of natural key order",
+         REGULAR.replace("| DOC-A.1-9 | e |\n| DOC-A.1-56 | e |", "| DOC-A.1-56 | e |\n| DOC-A.1-9 | e |"), "out of natural key order"))
+    expect(*_one("text after a table's rows outside a body and the epilogue",
+         REGULAR.replace("| DRV-GR-1-1 | a |\n", "| DRV-GR-1-1 | a |\n\nA stray paragraph.\n"), "text after the section's entries"))
+    expect(*_one("text after the determinations, outside an entry",
          REGULAR.replace("- **D-B10 the tenth.** The ten.\n", "- **D-B10 the tenth.** The ten.\n\nA stray paragraph.\n"),
-         "text after the section's entries")
-    _one(expect, "a row body naming no row", REGULAR.replace("#### DOC-A.1-56\n", "#### DOC-A.1-57\n"), "the body of no row")
-    _one(expect, "an unlisted heading", REGULAR.replace("### 3.7.1 A third-level number", "### A heading with no number"),
-         "a heading the reader does not list")
-    _one(expect, "a heading out of number order", REGULAR.replace("### 3.7.1 A third-level", "### 3.0 A third-level"),
-         "3.0 follows §3")
-    _one(expect, "a `####` heading in a determination section",
-         REGULAR.replace("- **D-UND — a case.** text\n", "- **D-UND — a case.** text\n\n#### D-X\n"), "holds no `#### <key>` heading")
-    _one(expect, "an epilogue marker in a prose section",
+         "text after the section's entries"))
+    expect(*_one("a row body naming no row", REGULAR.replace("#### DOC-A.1-56\n", "#### DOC-A.1-57\n"), "the body of no row"))
+    expect(*_one("an unlisted heading", REGULAR.replace("### 3.7.1 A third-level number", "### A heading with no number"),
+         "a heading the reader does not list"))
+    expect(*_one("a heading out of number order", REGULAR.replace("### 3.7.1 A third-level", "### 3.0 A third-level"),
+         "3.0 follows §3"))
+    expect(*_one("a `####` heading in a determination section",
+         REGULAR.replace("- **D-UND — a case.** text\n", "- **D-UND — a case.** text\n\n#### D-X\n"), "holds no `#### <key>` heading"))
+    expect(*_one("an epilogue marker in a prose section",
          REGULAR.replace("### 3.3 A prose section\n\n", "### 3.3 A prose section\n\n" + cs.EPILOGUE_MARKER + "\n\n"),
-         "a prose section has no entries")
-    _one(expect, "a blocks section that lost its entries",
-         REGULAR.replace("#### MCS\n\n", "").replace("#### SCREEN\n\n", ""), "a blocks section with no entry")
-    gone = findings(REGULAR.replace("## 5. Annex A.4", "## 5x Annex A.4"))
+         "a prose section has no entries"))
+    expect(*_one("a blocks section that lost its entries",
+         REGULAR.replace("#### MCS\n\n", "").replace("#### SCREEN\n\n", ""), "a blocks section with no entry"))
+    gone = _findings(REGULAR.replace("## 5. Annex A.4", "## 5x Annex A.4"))
     expect("a section with entries whose heading is gone: the heading unlisted, and the section lost",
            len(gone) == 2 and "does not list" in gone[0] and "lost §5" in gone[1], str(gone))
-    _one(expect, "a layout that is not the renderer's (two blank lines)", REGULAR.replace("prose\n\n## 2.", "prose\n\n\n## 2."),
-         "the layout is not the renderer's")
+    expect(*_one("a layout that is not the renderer's (two blank lines)", REGULAR.replace("prose\n\n## 2.", "prose\n\n\n## 2."),
+         "the layout is not the renderer's"))
 
 
 def case_02_the_live_document_is_regular(expect):
