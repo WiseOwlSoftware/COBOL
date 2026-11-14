@@ -205,8 +205,7 @@ public sealed class Frontend
             var (normalized, referenceFormats) = Normalize(raw, sourcePath, referenceFormatGates, formatOps, pins);
             var (processed, directives, encounters, formats, programText, copyNames) =
                 Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps, pins);
-            if (programText is not { } pin)
-                return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames);
+            if (programText is not { } pin) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames);
             pins = pins.With(pin);
         }
     }

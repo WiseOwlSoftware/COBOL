@@ -12,7 +12,7 @@
       *> the entries, exactly as the same paragraphs written in the program
       *> do (accepted at 85, removed from 2002 - kb/Work R61).
 000100 IDENTIFICATION DIVISION.
-000200 PROGRAM-ID. PB1494CE.
+000200 PROGRAM-ID. PB1494CEP.
 000300     COPY PB1494CE.
 000400 PROCEDURE DIVISION.
        PB4305-LEAD.

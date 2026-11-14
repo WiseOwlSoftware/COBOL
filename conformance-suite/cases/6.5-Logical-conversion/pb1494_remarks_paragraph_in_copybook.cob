@@ -13,7 +13,7 @@
       *> paragraph named REMARKS, copied from a library, is an ordinary
       *> paragraph (6.5 5): its program text is copied, not discarded).
 000100 IDENTIFICATION DIVISION.
-000200 PROGRAM-ID. PB1494RM.
+000200 PROGRAM-ID. PB1494RMP.
 000300 PROCEDURE DIVISION.
 000400 MAIN-PARA.
 000500     PERFORM REMARKS.
