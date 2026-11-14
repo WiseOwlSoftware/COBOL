@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.8.4-2",
  "rule-digest": "6e27f9e4fda8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand",
  "test-ref": "conformance:cases/VIII.4.8@1985-USE-STATEMENT/1985-GR-VIII_4_8_4-2",
+ "notes": "§1985:VIII.4.8.4 GR2 \"Within a declarative procedure, there must be no reference to any nondeclarative procedures\"; a violating program is not conforming and §1985:I.1.6 leaves its result undefined (\"The results of violating the formats or rules of Standard COBOL are undefined unless otherwise specified in this standard\"), so WiseOwl's documented answer (docs/CONFORMANCE.md D-DECLREF) is warning COBOL2375. Every procedure-name operand funnels through ProcedureTableBuilder#ResolveProcedureOperand into StatementValidation#CheckDeclarativesBoundary, which warns on any reference from a declarative section to a nondeclarative procedure except RESUME; at --std 85 RESUME is refused outright (COBOL0876), so the 2023 exception cannot be reached. Probes at 85 (relative (dynamic access: random READ INVALID KEY, then READ NEXT -> 46 and the USE) file, USE after a failed OPEN/READ): PERFORM, PERFORM THRU (both ends), GO TO, GO TO DEPENDING (each operand), ALTER (both operands) each draw COBOL2375 and run as written; RESUME in a declarative is refused (COBOL0876); the witness exercises the legal form (only declarative references, USE runs, control returns after the READ). The warning text quotes the 2023 SR3 with its RESUME exception even at --std 85.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

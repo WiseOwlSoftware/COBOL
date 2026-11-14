@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.3.3.3-2",
  "rule-digest": "0ef6110610be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#CheckSegmentation; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#SegmentationFlowRestriction",
  "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_3-2",
+ "notes": "§1985:XVI.3.3.3 lets a MERGE in a non-independent segment name an output procedure \"Totally within non-independent segments\" (SR1) or \"Wholly contained in a single independent segment\" (SR2), and SR2's second sentence opens the rule for a MERGE in an independent segment. SortBinder.CheckSegmentation passes the OUTPUT PROCEDURE's range (procedure-name-1 THRU procedure-name-2) to Segmentation.CheckProcedures, in force only where the segment-number is an available construct (COBOL-85); RangeAllowed admits all-fixed ranges or one independent segment, which must be the statement's own when it is independent, and refuses with COBOL6877. Probes at --std 85 (classes b,c,e,f): MERGE in segment 10 with output in 20, in 49 THRU 30, in 70, in 70 THRU 70 compile and run (four merged records, IN OUT-B when THRU reaches it); 70 THRU 80, 30 THRU 70, 49 THRU 50 and segment 0 with 70 THRU 30 refused COBOL6877; at --std 2023 the segment-numbers are refused COBOL0902; an absent USING file ends the run with status 35. The witness refuses a MERGE in 60 naming 70; which procedures count is docs/CONFORMANCE.md's determination (those named, not their PERFORM closure).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

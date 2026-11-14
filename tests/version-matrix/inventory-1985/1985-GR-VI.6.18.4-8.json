@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.18.4-8",
  "rule-digest": "cb7d0aa7d312",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#RunCycle; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhrases",
  "test-ref": "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/1985-GR-VI_6_18_4-8",
+ "notes": "§1985:VI.6.18.4 GR8 restricts each operand to the portion before the 'first occurrence of literal-2 within the content of the data item referenced by identifier-1' (b, measured from the leftmost position, not found = as if absent) and after it (c, not found = never eligible), both fixed before the first cycle. CobolInspect#Region computes the region once per operand before RunCycle's cycles and RunCycle requires a whole match inside it; at --std 85 InspectBinder#BindPhrases sets BeforeFromLeftmost (DialectBehavior.InspectBeforeFromFirstEligiblePosition starts at 2023), so BEFORE is searched from position 0 even with AFTER. Probes at 85: AYAAXAA ALL A AFTER X BEFORE Y (either order) 00 (2023: 02); AAABA ALL AA BEFORE AB 01; AFTER a delimiter found only at the last position 00; REPLACING ALL/FIRST/LEADING with BEFORE/AFTER on AXAXA XXAXA/AXQXA/AXQXA; ODO group at N=4 counts only its current length; ref-mod W5(2:4) and W5(5:1); signed S9(5) de-signed; numeric-edited; figurative SPACES/QUOTE delimiters; a second BEFORE refused COBOL2269. The witness covers T1-T9 and R1-R4.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

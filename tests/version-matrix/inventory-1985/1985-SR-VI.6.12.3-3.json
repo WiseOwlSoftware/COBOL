@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.12.3-3",
  "rule-digest": "7d7972400137",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitEnterStatement; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#EnterEndsSentence",
  "test-ref": "conformance:cases/VI.6.12@1985-ENTER-STATEMENT/1985-SR-VI_6_12_3-3",
+ "notes": "§1985:VI.6.12.3 SR3: 'The sentence ENTER COBOL must follow the last other-language statement in order to indicate to the compiler where a return to COBOL source language takes place.' The compiler has no other-language mode: StatementBinder#BindEnter binds ENTER <language> as a BoundNop at 85 (VersionConformancePass#VisitEnterStatement gates it only from 2002) and the text after it is read as COBOL, so an in-line ENTER FORTRAN. with no closing ENTER COBOL compiles and the 'other-language' text runs as COBOL; under WiseOwl's choice not to provide ENTER (§1985:I.1.5.2.5.5) it must be refused. Probes at 85: e5 (ENTER FORTRAN. DISPLAY \"INLINE-OTHER\". STOP RUN.) prints BEFORE INLINE-OTHER rc=0; e2 (FORTRAN text then ENTER COBOL.) refused only by COBOL0001 on the FORTRAN syntax; ENTER COBOL followed by a statement in its sentence refused COBOL6973 (StatementPosition#EnterEndsSentence); at 2002 COBOL0902. The witness (ENTER FORTRAN SUBRTN. ENTER COBOL. skipped by GO TO) passes but speaks of no other-language statement. kb/Work PB5308 holds the defect (code read: coderead-85/out-read4/rd-03.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
