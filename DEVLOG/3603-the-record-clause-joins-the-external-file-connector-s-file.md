@@ -1,4 +1,4 @@
-## The RECORD clause joins the external file connector's file description agreement rules; PADDING CHARACTER refuses a table element
+## Entry 3603 — 2026-11-14 06:50 PST — The RECORD clause joins the external file connector's file description agreement rules; PADDING CHARACTER refuses a table element
 
 Wave 20262029, group H (kb/Work PB5387, PB5499).
 
@@ -7,3 +7,4 @@ Wave 20262029, group H (kb/Work PB5387, PB5499).
 **PB5499.** The lead said PADDING accepts table elements. Re-probe: a subscripted operand was refused already (COBOL2024); an unsubscripted table element (`PADDING CHARACTER IS PT`, PT PIC X OCCURS 3) compiled and ran. The clause names a qualified data-name only (§1985:VII.2.7.3 SR2) and a table element reference must be subscripted (§1985:IV.4.3.8.2.3 SR4; §2002:8.4.1.2.2 SR5), so no reading exists; `ScreenPaddingDataName` refuses it (COBOL6848). Golden pb5499-padding-table-element.
 
 Not changed: the 2002 and later texts' own external-FD rule (§2023:13.4.5.4 GR2 d) is not asked here; the table asks COBOL-85 only, as before.
+
