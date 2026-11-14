@@ -31,6 +31,9 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     private LoopFires? _loop;
     private PhraseFlags? _phrases;
     private IReadOnlyDictionary<DebugFire, string> _stored = new Dictionary<DebugFire, string>();
+    /// <summary>The statement locals each frozen reference of the statement now being emitted was identified into, by the place the statement holds
+    /// (reference identity): what <see cref="IdentifiedAtStore"/> identifies a receiver into again at its store.</summary>
+    private IReadOnlyDictionary<Place, IReadOnlyList<string>> _identified = new Dictionary<Place, IReadOnlyList<string>>();
     private int _line;
     /// <summary>The after-statement fires of the statements now being emitted, innermost first: what a nested transfer of control must run first.</summary>
     private readonly Stack<(IReadOnlyList<DebugFire> Fires, int Line, PhraseFlags Flags)> _owedAfter = new();
@@ -73,6 +76,7 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     public bool Emit(BoundDebugTriggered n, Func<BoundStatement, bool> emitInner)
     {
         var (savedIo, savedAction, savedLoop, savedPhrases, savedLine, savedStored) = (_beforeIo, _afterAction, _loop, _phrases, _line, _stored);
+        var savedIdentified = _identified;
         _line = n.SourceLine;
         var fires = IdentifiedOnce(n.Fires);
         var phraseIndices = fires.Where(f => f.Phrases is not null).SelectMany(f => f.Phrases!).Distinct().Order().ToList();
@@ -116,6 +120,7 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
         {
             if (owes) _owedAfter.Pop();
             (_beforeIo, _afterAction, _loop, _phrases, _line, _stored) = (savedIo, savedAction, savedLoop, savedPhrases, savedLine, savedStored);
+            _identified = savedIdentified;
         }
     }
 
@@ -147,12 +152,37 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     /// before anything of the statement runs (<see cref="PlaceIdentification.Freeze(Place, Func{string, string})"/>, the mechanism INSPECT, STRING, UNSTRING and
     /// RECEIVE identify their operands by; kb/Work PB5294, PB5279). Not frozen: a loop phase (each evaluation of a VARYING, AFTER or UNTIL phrase is the
     /// statement that references the item, so its own subscripts are read then), a fire guarded by a phrase (the phrase may never be evaluated, and
-    /// identifying its operands first could raise an exception the statement would not), and a fire with no data place (file-name, cd-name, counter register).</summary>
+    /// identifying its operands first could raise an exception the statement would not), and a fire with no data place (file-name, cd-name, counter register).
+    /// <para>⛔ A RECEIVER ITS STATEMENT IDENTIFIES AT ITS STORE IS IDENTIFIED AGAIN THERE, INTO THE SAME LOCALS (kb/Work PB5385). The statement-start rule
+    /// holds "unless otherwise specified by the rules for a statement" (§1985:IV.4.3.8), and MOVE ("Any length evaluation or subscripting associated with
+    /// identifier-2 is evaluated immediately before the data is moved to the respective data item", §1985:VI.6.19.4 GR2), the arithmetic statements with
+    /// several results (§1985:VI.6.4.6 GR2), DIVIDE's REMAINDER (§1985:VI.6.11.4 GR4) and SET (§1985:VI.6.23.4 GR3d) specify otherwise: <c>MOVE 3 TO SUB TE
+    /// (SUB)</c> stores TE (3), and its section must say so. Those verbs' emitters render each receiver's store through
+    /// <see cref="IdentifiedAtStore"/>, which assigns the locals frozen here where the store evaluates the subscript, so the store and the section share one
+    /// identification; a path that never reached the store (a size error raised by the initial evaluation) keeps the statement-start one.</para></summary>
     private IReadOnlyList<DebugFire> IdentifiedOnce(IReadOnlyList<DebugFire> fires)
     {
+        var identified = new Dictionary<Place, IReadOnlyList<string>>(ReferenceEqualityComparer.Instance);
+        _identified = identified;
         if (!fires.Any(Identifiable)) return fires;
         var hoist = PlaceIdentification.Hoister(ctx);
-        return [.. fires.Select(f => Identifiable(f) ? f with { Referenced = PlaceIdentification.Freeze(f.Referenced!, hoist) } : f)];
+        // One freeze per reference the statement holds: every fire through it describes the one identification.
+        var frozen = new Dictionary<Place, Place>(ReferenceEqualityComparer.Instance);
+        return [.. fires.Select(f => Identifiable(f) ? f with { Referenced = Frozen(f.Referenced!) } : f)];
+
+        Place Frozen(Place referenced)
+        {
+            if (frozen.TryGetValue(referenced, out var place)) return place;
+            var locals = new List<string>();
+            place = PlaceIdentification.Freeze(referenced, fragment =>
+            {
+                string local = hoist(fragment);
+                locals.Add(local);
+                return local;
+            });
+            identified[referenced] = locals;
+            return frozen[referenced] = place;
+        }
 
         static bool Identifiable(DebugFire f) =>
             f is { Referenced: not null, Phrases: null, Contents: DebugContents.Referenced }
@@ -160,6 +190,13 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
             && f.Target.Kind is DebugTargetKind.DataName or DebugTargetKind.AllReferences
             && f.When is not (DebugWhen.LoopInit or DebugWhen.LoopAugment or DebugWhen.LoopTest);
     }
+
+    /// <summary>The place a verb whose rules identify <paramref name="receiver"/> immediately before its store renders that store through: when a debugging
+    /// section of the statement now being emitted describes the receiver, the receiver with each subscript assigned into the locals the section reads
+    /// (<see cref="PlaceIdentification.IdentifyInto"/>; <see cref="IdentifiedOnce"/>), else <paramref name="receiver"/> itself. It emits nothing, so a
+    /// verb asks it wherever it renders the store.</summary>
+    public Place IdentifiedAtStore(Place receiver) =>
+        _identified.TryGetValue(receiver, out var locals) && locals.Count > 0 ? PlaceIdentification.IdentifyInto(receiver, locals) : receiver;
 
     /// <summary>The flag that records whether the statement now being emitted stored into <paramref name="receiver"/>'s item, when a fire of the item alone
     /// waits on it (<see cref="DebugFire.WhenStored"/>), else null. An arithmetic statement with an ON SIZE ERROR path clears it where the receiver's store was
