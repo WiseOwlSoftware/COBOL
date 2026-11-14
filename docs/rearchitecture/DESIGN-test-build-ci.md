@@ -1978,7 +1978,23 @@ one-file-per-entry DEVLOG stand.
    Then the branch is pushed and this host's passes are published to origin's `refs/cobol-build-store/passes`
    (`buildgraph.publish`, §3.14.14; a failure is exit 16, STORE NOT PUBLISHED, and nothing is opened). Finally
    `gh pr create` (title = the branch's one-line subject, body = the forensic message) and `gh pr merge --auto`, so
-   the pull request joins the queue. No lease, no local whole population, no waiting for CI. That the pull request then
+   the pull request joins the queue. No lease, no local whole population, no waiting for CI.
+   **FIX FIRST (kb/Work PB5483; the owner, 2026-11-13: "we should immediately get the issue fix in the build rather than
+   waiting for all preceeding jobs to encounter the same problem").** `enqueue.py land <branch> --fix-first "<cause>"`
+   lands a root fix main is waiting on at the FRONT of the queue. The cause is required and names the red (a kb/Work note
+   the worktree carries and/or a failed run id, `fix_first_cause`); an unstated one is exit 2 before the land lock, and
+   every guard above is unchanged. In place of `gh pr merge --auto`, `jump_to_front` reads the pull request's merge-queue
+   entry, dequeues one already queued (an enqueue of a queued pull request does not move it; one already first at the
+   pushed head is left), and calls GraphQL `enqueuePullRequest(jump: true, expectedHeadOid: <the pushed head>)`, so a
+   moved head is GitHub's refusal. A refused jump (most likely a fresh head whose `pull_request` check has not passed) is
+   queued at the back with `--auto` like any landing, exit 17 ENQUEUED, NOT JUMPED, and the same command run again
+   jumps it. Each attempt is recorded in the landing record's `fix_first` list (`landing_measure.py`: its cause, notes,
+   runs and whether it jumped), and `summary` counts the jumps and the landings that hit the named runs first. **No
+   landing is held while a fix-first entry is queued:** a landing queued after the jump joins behind it, and its merge
+   group is built on every entry ahead, the fix included, so a hold would only add the fix's CI wall to each of them. A
+   jump costs GitHub rebuilding the groups already building behind the new front (up to `max_entries_to_build`, 5),
+   whose partial runs `cancel_superseded.py` cancels; that is the price of not letting each of them meet the red.
+   That the pull request then
    ENTERS the queue is the landing lane's QUEUE WATCH (DESIGN-orchestrator-loop.md 4.9 step 4, kb/Work PB3527): on every tick
    it reads the queue's entries and the head's check-runs (`queue_facts.py`), waits while any runs (PB4052), and past a
    10-minute grace after their work ended re-runs a stuck check, then closes, reopens and re-queues the pull request, then
@@ -1989,6 +2005,14 @@ one-file-per-entry DEVLOG stand.
    order. A red bounces only the pull request that caused it (GitHub re-tests the rest). **The landing lane classifies the red
    before anyone is blamed** (§0 item 6; `land_lane.classify_red`, kb/Work PB4271, PB4331); INFRA and RUNNER are re-queued
    once, and the rest go to a finisher, whose fixed branch is reviewed again at its new tip (step 2) and enqueued again.
+   **One re-run per CAUSE, not per landing (kb/Work PB5483).** Re-queuing once per landing re-ran one flake once on every
+   pull request it hit (PR #1607 met kb/Work PB5478's flake twice in one night). A red's record carries its red test
+   cases, and a cause's key is a red case (`landing_measure.red_cause`: the failing test is the same on every pull request).
+   An INFRA or RUNNER red whose red case was already re-queued once, on any pull request, while no merged fix-first landing
+   names one of that cause's failed runs (`landing_measure.requeued_unfixed`, read through `WatchEffects.held_causes`), is
+   HELD: never re-queued, recorded `hold-for-fix`, its watch ended BOUNCED with HELD on its line, and the operator alerted
+   to land the root fix with `--fix-first` naming the runs (naming them is what ends the hold). `summary` counts re-queues
+   and holds per cause. An INFRA red has no red case and so no key: it is re-queued once per landing as before.
    **What the queue stacks (kb/Work PB3107, PB3123; owner 2026-10-13: "Due to our local testing, we should rarely see
    failures").** A merge group is built ON TOP of every group queued ahead of it, so the tree a group tests is one no branch
    ever checked. THE RULE for every check a landing or a merge group runs: **a check's verdict on a pull request may not depend

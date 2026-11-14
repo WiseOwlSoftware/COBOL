@@ -793,7 +793,17 @@ def _iso(t: str) -> dt.datetime | None:
 # UNCLASSIFIED end the watch BOUNCED, the enqueue unit's finisher, the class on the line; so does the second red of a
 # landing the lane already re-queued (a red twice in a row is never re-queued again: the lane stops there). There is no
 # flake retry inside `dotnet test`: a flake is a kb/Work defect fixed at its root, and this record holds its rate.
+# ONE RE-RUN PER CAUSE, NOT PER LANDING (kb/Work PB5483; the owner, 2026-11-13: "we rerun things far too many times, often
+# in CI, rather than chase down and fix the ultimate issue"). A cause's key is a red test case (the failing test is the
+# same on every pull request it hits: landing_measure.red_cause). A PIPELINE_CLASSES red whose red case was ALREADY
+# re-queued once, on any pull request, while no fix-first landing that names one of that cause's failed runs has merged
+# (`landing_measure.requeued_unfixed`, read from the record by `WatchEffects.held_causes`), is HELD: not re-queued, the
+# act `hold-for-fix` recorded with its cases, the watch ended BOUNCED with HELD on its line, and the operator alerted to
+# land the root fix with `enqueue.py land <branch> --fix-first "<note> run <id>"`. PR #1607 met the main-carried flake of
+# kb/Work PB5478 twice in one night (runs 43550577247 and 43553292493) and every queued landing could meet it too. An
+# INFRA red has no red case and so no key: it is re-queued once per landing as before.
 REQUEUE_BOUNCE = "requeue-bounce"   # the WatchStep act that re-queues a bounce of a PIPELINE_CLASSES class, once
+HOLD_BOUNCE = "hold-for-fix"        # the WatchStep act that holds one whose cause was re-queued before (landing_measure.HOLD_FOR_FIX)
 CLASSIFY = "classify"               # the WatchStep act that asks for a bounce's class before the watch decides
 NAMED = 3                           # how many red cases a class's reason names
 
@@ -894,10 +904,13 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
     return dataclasses.replace(facts, record=measured.name, listed=listed, passed=passed)
 
 
-def bounce_step(w: dict[str, Any], pr: Any, cls: str, why: str) -> WatchStep:
-    """THE WATCH'S DECISION ON A CLASSIFIED BOUNCE (pure): re-queue a PIPELINE_CLASSES red once per landing, else end the
-    watch BOUNCED for the enqueue unit's finisher. The removal GitHub reported is the bounce's identity: the same one
-    read again after the lane re-queued it means the re-queue did not hold."""
+def bounce_step(w: dict[str, Any], pr: Any, cls: str, why: str, cases: frozenset[str] = frozenset(),
+                held: frozenset[str] = frozenset()) -> WatchStep:
+    """THE WATCH'S DECISION ON A CLASSIFIED BOUNCE (pure): re-queue a PIPELINE_CLASSES red once per landing and once per
+    CAUSE, else end the watch BOUNCED for the enqueue unit's finisher. The removal GitHub reported is the bounce's
+    identity: the same one read again after the lane re-queued it means the re-queue did not hold. `cases`: the red's
+    test cases; `held`: the cases already re-queued with no fix landed (`landing_measure.requeued_unfixed`): a red that
+    meets one is HELD for its fix (kb/Work PB5483), never re-run again."""
     import landing_measure as lm  # noqa: PLC0415
     prior = [r for r in w.get("reds") or [] if isinstance(r, dict)]
     text = f"pull request #{pr.number} is BOUNCED ({pr.bounced}) — {cls}: {why}"
@@ -905,6 +918,10 @@ def bounce_step(w: dict[str, Any], pr: Any, cls: str, why: str) -> WatchStep:
         return WatchStep(LEFT, f"{text}; the lane re-queued this bounce and it did not take: the enqueue unit's finisher",
                          red=cls)
     requeued = any(r.get("act") == REQUEUE_BOUNCE for r in prior)
+    if cls in lm.PIPELINE_CLASSES and not requeued and (again := sorted(cases & held)):
+        return WatchStep(LEFT, f"{text}; HELD for the root fix of its cause ({', '.join(again[:NAMED])}): already re-queued "
+                               "once with no fix landed, so never re-run again (kb/Work PB5483); the operator is alerted",
+                         HOLD_BOUNCE, red=cls)
     if cls in lm.PIPELINE_CLASSES and not requeued:
         return WatchStep(WATCHING, f"{text}; re-queued once by the landing lane, no agent woken", REQUEUE_BOUNCE, red=cls)
     return WatchStep(LEFT, f"{text}{'; the second red of a landing the lane already re-queued' if requeued else ''}: the "
@@ -1004,14 +1021,16 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
 class WatchEffects:
     """What a stalled read or a bounce does, and its record (the self-test plants recorders): rerun(repo, run) and
     requeue(repo, pr, head) answer (ok, detail); alert(subject, body, ref); measure(pr, branch, read, cause, act, ok);
-    red_facts(attempt, pr) reads a bounce's facts (`red_facts`); measure_red(pr, branch, run, class, why, act, ok)
-    records its class (landing_measure.record_red)."""
+    red_facts(attempt, pr) reads a bounce's facts (`red_facts`); measure_red(pr, branch, run, class, why, act, ok, cases)
+    records its class and red cases (landing_measure.record_red); held_causes() reads the red cases already re-queued
+    with no fix landed (landing_measure.requeued_unfixed, kb/Work PB5483)."""
     rerun: Callable[[str, int], tuple[bool, str]]
     requeue: Callable[[str, int, str], tuple[bool, str]]
     alert: Callable[[str, str, str], None]
     measure: Callable[[int, str, int, str, str, bool], None]
     red_facts: Callable[[dict[str, Any], Any], RedFacts]
-    measure_red: Callable[[int, str, int, str, str, str, bool], None]
+    measure_red: Callable[[int, str, int, str, str, str, bool, tuple[str, ...]], None]
+    held_causes: Callable[[], frozenset[str]]
 
 
 def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
@@ -1025,16 +1044,20 @@ def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
         except (OSError, ValueError) as exc:   # the record is the instrument's, never the watch's stop; it is said
             say(f"land lane: PR #{pr}: the stall was NOT recorded in {landing_measure.FILE} ({exc})")
 
-    def measure_red(pr: int, branch: str, run: int, cls: str, why: str, act: str, ok: bool) -> None:
+    def measure_red(pr: int, branch: str, run: int, cls: str, why: str, act: str, ok: bool,
+                    cases: tuple[str, ...]) -> None:
         try:
-            landing_measure.record_red(cdir / landing_measure.FILE, pr, branch, run, cls, why, act, ok)
+            landing_measure.record_red(cdir / landing_measure.FILE, pr, branch, run, cls, why, act, ok, cases=cases)
         except (OSError, ValueError) as exc:   # the record is the instrument's, never the watch's stop; it is said
             say(f"land lane: PR #{pr}: the red's class was NOT recorded in {landing_measure.FILE} ({exc})")
     return WatchEffects(
         rerun=lambda repo, run: enqueue.rerun_check(repo, run, gh=ruleset.real_gh),
         requeue=lambda repo, pr, head: enqueue.requeue(repo, pr, head, gh=ruleset.real_gh, state=enqueue.queue_state),
         alert=lambda subject, body, ref: notify_operator(cdir, subject, body, ref, say, kind="question"),
-        measure=measure, red_facts=red_facts, measure_red=measure_red)
+        measure=measure, red_facts=red_facts, measure_red=measure_red,
+        # Unreadable, the record holds nothing back: the per-landing rule still stops a second red (the instrument's
+        # failure is never the watch's stop); a record that cannot be read is said by its own readers.
+        held_causes=lambda: landing_measure.requeued_unfixed(landing_measure.read_all(cdir / landing_measure.FILE)))
 
 
 def watch_text(att: dict[str, Any]) -> str:
@@ -1126,10 +1149,17 @@ def classify_bounce(att: dict[str, Any], w: dict[str, Any], pr: Any, branch: str
     RUNNER red is re-queued once (`effects.requeue`, enqueue.requeue: a refused or failed re-queue ends the watch
     BOUNCED, the finisher's, never silence), every other ends it BOUNCED with its class. Each red is recorded on the
     watch (`reds`, which `bounce_step` reads to re-queue a landing once) and in landing_measure.py's record."""
+    import landing_measure as lm  # noqa: PLC0415  (the record's vocabulary of acts)
     facts = effects.red_facts(att, pr)
     cls, why = classify_red(facts)
-    step = bounce_step(w, pr, cls, why)
-    act = "requeue" if step.act == REQUEUE_BOUNCE else "finisher"   # landing_measure.RED_ACTS
+    step = bounce_step(w, pr, cls, why, facts.failed, effects.held_causes() if cls in lm.PIPELINE_CLASSES else frozenset())
+    act = {REQUEUE_BOUNCE: "requeue", HOLD_BOUNCE: lm.HOLD_FOR_FIX}.get(step.act, "finisher")   # landing_measure.RED_ACTS
+    if step.act == HOLD_BOUNCE:
+        effects.alert(f"Landing held for a root fix: PR #{pr.number} ({branch}) met a cause already re-run once",
+                      f"{step.why}. Re-running it again would only meet it again. Land the root fix FIRST: `python "
+                      "scripts/orchestrator/enqueue.py land <the fix's branch> --fix-first \"<kb/Work note> run "
+                      f"{facts.run}\"` (naming the failed runs ends the hold), then land {branch} again "
+                      f"(`land_lane.py rearm {branch} --why ...`).", att["log"])
     ok, detail = True, ""
     if step.act == REQUEUE_BOUNCE:
         ok, detail = effects.requeue(pr.repo, pr.number, pr.head)
@@ -1139,9 +1169,9 @@ def classify_bounce(att: dict[str, Any], w: dict[str, Any], pr: Any, branch: str
     at = now.isoformat(timespec="seconds")
     w.update(state=step.state, why=step.why, pr=pr.number, at=at,
              reds=[*(w.get("reds") or []), {"run": facts.run, "class": cls, "why": why[:240],
-                                             "act": REQUEUE_BOUNCE if act == "requeue" else act, "ok": ok,
+                                             "act": {"requeue": REQUEUE_BOUNCE}.get(act, act), "ok": ok,
                                              "removed": pr.removed, "at": at}])
-    effects.measure_red(pr.number, branch, facts.run, cls, why, act, ok)
+    effects.measure_red(pr.number, branch, facts.run, cls, why, act, ok, tuple(sorted(facts.failed)))
     say(f"land lane: {branch}: queue watch: {step.why}" + (f" — requeue done: {detail}" if step.act else ""))
     update(att, {"watch": w})
 
@@ -1537,6 +1567,7 @@ def self_test() -> int:
                 self.now: dt.datetime | None = None
                 self.effects: list[tuple] = []
                 self.reds: dict[str, RedFacts] = {}        # each bounced branch's planted facts (red_facts)
+                self.held: frozenset[str] = frozenset()    # the red cases already re-queued, unfixed (held_causes)
 
             def survey(self, repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list, list[str], dict | None]:
                 return self.rows, [r["name"] for r in self.rows if r["state"] == "WAITING TO LAND"], self.prs
@@ -1548,7 +1579,8 @@ def self_test() -> int:
                                     alert=lambda subject, body, ref: rec(("alert", subject, body)),
                                     measure=lambda pr, b, read, cause, act, ok: rec(("measure", pr, b, read, cause, act)),
                                     red_facts=lambda att, pr: self.reds.get(att["branch"], RedFacts(unobserved="planted")),
-                                    measure_red=lambda pr, b, run, cls, why, act, ok: rec(("red", pr, b, run, cls, act, ok)))
+                                    measure_red=lambda pr, b, run, cls, why, act, ok, cases: rec(("red", pr, b, run, cls, act, ok)),
+                                    held_causes=lambda: self.held)
 
             def start(self, argv: list[str], log: pathlib.Path) -> int:
                 self.started.append(json.loads(pathlib.Path(argv[-1]).read_text(encoding="utf-8"))["branch"])
@@ -2314,7 +2346,8 @@ def self_test() -> int:
             alert=lambda subject, body, ref: recorded.append(("alert", subject)),
             measure=lambda number, b, read, cause, act, ok: recorded.append(("measure", number, read, act, ok)),
             red_facts=lambda att, pr_: RedFacts(unobserved="not asked: no bounce here"),
-            measure_red=lambda number, b, run, cls, why, act, ok: recorded.append(("red", number, cls)))
+            measure_red=lambda number, b, run, cls, why, act, ok, cases: recorded.append(("red", number, cls)),
+            held_causes=lambda: frozenset())
         try:
             launched = f16.tick(c16)
             hung = None
@@ -2506,6 +2539,42 @@ def self_test() -> int:
                and ("red", n18["w18merge"], "w18merge", 7002, lm.MERGE, "finisher", True) in reds18
                and ("red", n18["w18fails"], "w18fails", 7001, lm.INFRA, "requeue", False) in reds18,
                f"{first} {later} {failed_watch} {work_after_requeue} {f18.effects}")
+
+        # ONE RE-RUN PER CAUSE (kb/Work PB5483): a RUNNER red whose red case another landing already re-queued, with no
+        # fix landed, is HELD (never re-queued), recorded as hold-for-fix and the operator alerted; the same red with no
+        # such history is re-queued; an INFRA red (no red case, no key) is re-queued once per landing as before.
+        flaky = dataclasses.replace(rec_, run=7101, failed=frozenset({"A.Pass"}))
+        pr19 = queue_facts.PullRequest(990, "u", "k1", False, "", "BLOCKED", "FAILED_CHECKS at 2026-11-13T02:00:00Z",
+                                       (green_gate,), "o/r")
+        pure_hold = bounce_step({}, pr19, lm.RUNNER, "w", flaky.failed, frozenset({"A.Pass"}))
+        pure_fresh = bounce_step({}, pr19, lm.RUNNER, "w", flaky.failed, frozenset())
+        pure_infra = bounce_step({}, pr19, lm.INFRA, "w", frozenset(), frozenset({"A.Pass"}))
+        c19 = fresh("held")
+        f19 = Fake([row("w19", "WAITING TO LAND", "k0")])
+        f19.tick(c19)
+        finish(c19, "w19", 0, "ENQUEUED", end_head="k1")
+        f19.live.clear()
+        collect(c19, ["w19"], say=lambda s: None)
+        f19.rows = [row("w19", "BOUNCED", "k1")]
+        f19.reds = {"w19": flaky}
+        f19.held = frozenset({"A.Pass"})
+        f19.prs = {"w19": queue_facts.PullRequest(990, "u", "k1", False, "", "BLOCKED",
+                                                  "FAILED_CHECKS at 2026-11-13T02:00:00Z", (green_gate,), "o/r")}
+        f19.now = t("19:00")
+        f19.tick(c19)
+        w19 = next(a for a in attempts(c19) if a["branch"] == "w19").get("watch") or {}
+        rcls = rec_ if lm.RUNNER == classify_red(flaky)[0] else None
+        expect("queue watch: a RUNNER red whose red case was already re-queued once (on any landing) with no fix landed "
+               "is HELD: never re-queued, recorded hold-for-fix, the watch BOUNCED with HELD on its line and the operator "
+               "alerted to land the root fix with --fix-first; with no such history it is re-queued, and an INFRA red "
+               "(no red case) is re-queued once per landing as before (kb/Work PB5483)",
+               pure_hold.state == LEFT and pure_hold.act == HOLD_BOUNCE and "HELD" in pure_hold.why
+               and pure_fresh.act == REQUEUE_BOUNCE and pure_infra.act == REQUEUE_BOUNCE and rcls is not None
+               and w19.get("state") == LEFT and "HELD" in w19.get("why", "")
+               and not [e for e in f19.effects if e[0] == "requeue"]
+               and ("red", 990, "w19", 7101, lm.RUNNER, lm.HOLD_FOR_FIX, True) in f19.effects
+               and any(e[0] == "alert" and "--fix-first" in e[2] for e in f19.effects),
+               f"{pure_hold} {pure_fresh} {pure_infra} {w19} {f19.effects}")
 
         # 17. THE CONFLICT BRIEF (kb/Work PB3640): main and the branch both edit scripts/x.py since their merge base;
         #     main also adds a file the branch never touches. The brief names the conflicted file, main's commit on it
