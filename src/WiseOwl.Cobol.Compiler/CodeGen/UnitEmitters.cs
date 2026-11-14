@@ -70,7 +70,7 @@ internal sealed class UnitEmitters
         AlterSwitch = new AlterSwitchEmitter(Ctx, dispatchState);
         AcceptDisplay = new AcceptDisplayEmitter(Ctx, Num, Move);
         Evaluate = new EvaluateEmitter(Ctx, Cond);
-        Initialize = new InitializeEmitter(Ctx, Move);
+        Initialize = new InitializeEmitter(Ctx, Move, Debug);
         Corresponding = new CorrespondingEmitter(Ctx, Num, Move, Arith, Ec);
         Inspect = new InspectEmitter(Ctx, Num, Arith);
         Strings = new StringEmitter(Ctx, Num, Arith, Ec, Move, Brackets);

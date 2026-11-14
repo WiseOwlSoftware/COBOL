@@ -198,6 +198,17 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
     public Place IdentifiedAtStore(Place receiver) =>
         _identified.TryGetValue(receiver, out var locals) && locals.Count > 0 ? PlaceIdentification.IdentifyInto(receiver, locals) : receiver;
 
+    /// <summary>Emits the identification of <paramref name="written"/> again, into the locals a debugging section of the statement now being emitted
+    /// reads, where an implicit statement of its own begins — the INITIALIZE of one identifier-1 (§2023:14.9.20.4 GR3: "the same as if a separate
+    /// INITIALIZE statement had been written for each identifier-1 in the same order"), whose elementary stores are places of the expansion and never
+    /// the written reference <see cref="IdentifiedAtStore"/> keys on (kb/Work PB5385). Emits nothing when no section describes it.</summary>
+    public void IdentifyAgain(Place written)
+    {
+        if (!_identified.TryGetValue(written, out var locals) || locals.Count == 0) return;
+        foreach (var statement in PlaceIdentification.IdentifyAgain(written, locals))
+            ctx.Writer.Line(statement + "   // identifier-1 identified where its implicit statement begins (kb/Work PB5385)");
+    }
+
     /// <summary>The flag that records whether the statement now being emitted stored into <paramref name="receiver"/>'s item, when a fire of the item alone
     /// waits on it (<see cref="DebugFire.WhenStored"/>), else null. An arithmetic statement with an ON SIZE ERROR path clears it where the receiver's store was
     /// skipped (<see cref="ArithmeticEmitter"/>), so §1985:XV.3.2.4 GR6's "causes the content … to be changed" is asked of the path the statement took.</summary>

@@ -50,6 +50,16 @@
       *> I an ALL REFERENCES section runs for a statement that names
       *>   the item (GR5) although the zero divisor stored nothing: SUB
       *>   still holds 2, so the reference is A-E (2).
+      *> J INITIALIZE: "all operations are performed as if a series of
+      *>   MOVE statements had been written, each of which has an
+      *>   elementary item as its receiving field" (§1985:VI.6.17.4
+      *>   GR2), each identifier-1 "in the order (left to right) of the
+      *>   appearance of identifier-1" (GR6): INITIALIZE SUB NT (SUB)
+      *>   sets SUB to 3 first and so stores NT (3): [+0003] [3].
+      *>   Fails if the section describes NT (1).
+      *> K the other order, with a second category: SUB is still 1
+      *>   when XE (SUB) is initialized, then SUB becomes 2:
+      *>   [+0001] [QQ].
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5385.
        ENVIRONMENT DIVISION.
@@ -123,4 +133,11 @@
            DIVIDE 7 BY 0 GIVING SUB REMAINDER A-E (SUB)
                ON SIZE ERROR DISPLAY "I SIZE ERROR".
            DISPLAY "I " A-TAB " " SUB.
+           MOVE ZERO TO T. MOVE 1 TO SUB.
+           INITIALIZE SUB NT (SUB) REPLACING NUMERIC DATA BY 3.
+           DISPLAY "J " T " " SUB.
+           MOVE ALL "." TO X. MOVE 1 TO SUB.
+           INITIALIZE XE (SUB) SUB REPLACING NUMERIC DATA BY 2
+               ALPHANUMERIC DATA BY "QQ".
+           DISPLAY "K " X " " SUB.
            STOP RUN.

@@ -20,9 +20,16 @@ never reached the store keeps the statement-start identification.
 item alone still ran after `DIVIDE 50 BY 2 GIVING Q REMAINDER NT (SUB) ON SIZE ERROR ...`: the skipped remainder arm never cleared
 its "stored" flag. `EmitDivideRemainder` now clears it there (§1985:XV.3.2.4 GR6c).
 
+**INITIALIZE (review R1-1).** INITIALIZE is a series of MOVE statements (§1985:VI.6.17.4 GR2), one implicit INITIALIZE per
+identifier-1 in order (§2023:14.9.20.4 GR3), but its stores target the places of its expansion, never the written reference the
+freeze keyed on: `INITIALIZE SUB NT (SUB) REPLACING NUMERIC DATA BY 3` stored NT (3) and reported `D1 [+0001] [0]`.
+`InitializeEmitter.Emit` now identifies identifier-1 again into the same locals where its implicit statement begins
+(`DebugTriggerEmitter.IdentifyAgain`, `PlaceIdentification.IdentifyAgain`): `D1 [+0003] [3]`. Golden legs J and K; the other
+implicit-move phrases (MOVE and ADD CORRESPONDING) store only into subordinates that cannot hold their group's subscript.
+
 **Witnesses.** The golden `pb5385-debug-receiver-identified-at-store` (expected values derived from the cited rules: legs for MOVE
-in both orders, ADD, COMPUTE, DIVIDE REMAINDER, SET, the skipped remainder, READ INTO and the READ that reaches AT END, and an ALL
-REFERENCES section after a zero divisor) and its refusal `pb5385-debug-receiver-at-store-removed-2002` (COBOL0902 from 2002 on). The
+in both orders, ADD, COMPUTE, DIVIDE REMAINDER, SET, the skipped remainder, READ INTO and the READ that reaches AT END, an ALL
+REFERENCES section after a zero divisor, and INITIALIZE in both orders) and its refusal `pb5385-debug-receiver-at-store-removed-2002` (COBOL0902 from 2002 on). The
 1985 rows 1985-GR-XV.3.2.4-14 and -24 are re-verdicted PARTIAL -> CONFORMS (GAP 249 -> 247 in the 1985 store).
 docs/CONTROL_FLOW_DESIGN.md D20 states the rule.
 
