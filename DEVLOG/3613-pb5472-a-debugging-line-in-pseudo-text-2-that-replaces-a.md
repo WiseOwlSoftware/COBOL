@@ -1,4 +1,4 @@
-## PB5472: a debugging line in pseudo-text-2 that replaces a word mid-line no longer hides the library text before it
+## Entry 3613 — 2026-11-14 10:33 PST — PB5472: a debugging line in pseudo-text-2 that replaces a word mid-line no longer hides the library text before it
 
 At --std 85 with WITH DEBUGGING MODE, `COPY LQ19 REPLACING ==XX== BY ==` followed by a `D` line holding `QQ==` into the library line `DISPLAY "[" XX "]".` was refused COBOL7061, though the program is correct with and without the debugging line (§1985:VI.7.3, §1985:XII.2.4 GR7). The same text written by hand compiled.
 
@@ -9,3 +9,4 @@ Fix: a replacement that begins with a carrier after non-blank text of its line s
 Goldens: `pb5472-copy-debugging-line-replaces-mid-line` (accept 85, `[Q]`), and the refusal `pb5472-copy-debugging-line-replacement-needed` (the debugging line holds the MOVE operand, COBOL7061 stays). Rows: `1985-GR-XII.2.4-7` PARTIAL to CONFORMS (GAP 178 to 177). Self-review: the origin the replacement carries is unchanged (PB5313's area); no allocation on a hot path (one blank test, only when a carrier leads the replacement).
 
 Review round 1: the layout rule is now in DESIGN-cc-in-copy.md section 3.7, and the comment at CopyProcessor.ApplyReplacements quotes section 1985:VI.7.3 as "considered as comment lines" (checked with cite.py).
+
