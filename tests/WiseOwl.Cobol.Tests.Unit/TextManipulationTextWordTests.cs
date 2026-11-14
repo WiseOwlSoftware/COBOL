@@ -35,6 +35,12 @@ public sealed class TextManipulationTextWordTests : IDisposable
         return (text, bag);
     }
 
+    /// <summary>Source text as text manipulation reads it: after the §2023:6.5 logical conversion, which removes every comment
+    /// "before the application of replacing and conditional compilation actions" (here in free form, where the floating comment
+    /// indicator is the one comment). The text-word scanner reads no comment of its own (kb/Work PB5470).</summary>
+    private static string LogicallyConverted(string freeFormText)
+        => ReferenceFormatProcessor.NormalizeToFreeFormMapped(freeFormText, null, "t.cob", InitialReferenceFormat.Free).Text;
+
     private static string Codes(DiagnosticBag bag) => string.Join(",", bag.Diagnostics.Select(d => d.Code));
 
     private static void Clean(DiagnosticBag bag) => Assert.False(bag.HasErrors, string.Join("\n", bag.Diagnostics));
@@ -79,10 +85,11 @@ public sealed class TextManipulationTextWordTests : IDisposable
     [Fact] // §2023:7.2.3.4 9) c) 6.: a comment is a space — whatever its text, including a programmer's "*> DEBUG: …".
     public void Comment_ReadingLikeTheDebugCarrier_IsASpace()
     {
-        var (text, bag) = Run("REPLACE ==DISPLAY KK== BY ==DISPLAY W1==.\n    DISPLAY\n*> DEBUG: note to self\n    KK.\n");
+        var (text, bag) = Run(LogicallyConverted("REPLACE ==DISPLAY KK== BY ==DISPLAY W1==.\n    DISPLAY\n*> DEBUG: note to self\n    KK.\n"));
         Clean(bag);
         Assert.Contains("DISPLAY W1", text);
-        Assert.DoesNotContain("KK", text.Replace("*> DEBUG: note to self", ""));
+        Assert.DoesNotContain("KK", text);
+        Assert.DoesNotContain("note to self", text);
     }
 
     [Fact] // The fixed-form debugging line keeps its COBOL-85 matching rule through the noncharacter carrier.
@@ -316,7 +323,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
     public void LegalCopyPlacements_StayClean()
     {
         Copybook("bk1.cpy", "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
-        var (text, bag) = Run("77 COPY bk1.\n01 LIT PIC X(9) VALUE \"COPY bk2.\". *> COPY bk2.\n");
+        var (text, bag) = Run(LogicallyConverted("77 COPY bk1.\n01 LIT PIC X(9) VALUE \"COPY bk2.\". *> COPY bk2.\n"));
         Clean(bag);
         Assert.Contains("AA-X", text);
         Assert.Contains("VALUE \"COPY bk2.\"", text);

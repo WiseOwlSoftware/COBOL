@@ -395,6 +395,9 @@ public sealed class Frontend
         var resolved = CommentEntryResolver.Resolve(new MappedText(text, mapped.Lines), cobolWordsMap, referenceFormatGates);
         text = resolved.Text.Text;
         var lineOrigins = resolved.Text.Lines;
+        // ⛔ COBOL-85 HAS NO FLOATING COMMENT INDICATOR (kb/Work PB5470): its fixed-form conversion left `*>` in the text as an
+        // ordinary text-word for COPY and REPLACE to read, so what survives to here is refused once, as the 2002 introduction.
+        SurvivingFloatingComments.Report(resolved.Text, referenceFormatGates);
 
         // >>LEAP-SECOND (ISO §2023:7.3.17): the ON/OFF toggles the binder folds at each compilation unit's first line — the
         // §2023:15.3 date/time consumers' fact (kb/Work PB65 — it used to be consumed and discarded; kb/Work PB1378 — it is
