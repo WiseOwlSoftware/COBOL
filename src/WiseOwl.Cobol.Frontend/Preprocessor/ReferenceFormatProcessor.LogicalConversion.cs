@@ -107,7 +107,7 @@ public static partial class ReferenceFormatProcessor
                     // free form (kb/Work PB1494, PB1758) — and only the comment-entry is discarded. The entry's end is
                     // implied by the next Area-A word (COBOL-85), so the logical conversion writes the paragraph's
                     // terminating period explicitly: `AUTHOR. .` is the paragraph `AUTHOR DOT DOT` with no content.
-                    _builder.Emit(CommentEntryHeader(area), site);
+                    _builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: true), site);
                     return;
                 case CommentEntryText.Body:
                     _builder.Discard(site);
@@ -201,7 +201,14 @@ public static partial class ReferenceFormatProcessor
         /// its commentary.</summary>
         private CommentEntryText CommentEntryOf(LineKind kind, FixedFormLine line, string area, int lineNumber)
         {
-            if (kind == LineKind.Continuation) return _inCommentEntry ? BodyOfParagraph() : CommentEntryText.None;
+            if (kind == LineKind.Continuation)
+            {
+                if (!_inCommentEntry) return CommentEntryText.None;
+                // A candidate's body is decided later, by CommentEntryResolver, which reports this where the candidate proves
+                // to be a comment-entry (a continuation line of program text is legal): only a certain one is reported here.
+                if (!_carryingCommentEntry) gates?.OnCommentEntryContinued(file, lineNumber);
+                return BodyOfParagraph();
+            }
             if (kind is not (LineKind.Source or LineKind.NotAnIndicator)) return CommentEntryText.None;
             // The latest logical line awaits a floating-indicator continuation (§2023:6.5 8)): this line is its continuation
             // line, whatever it spells, and neither opens nor ends a comment-entry.
@@ -212,7 +219,7 @@ public static partial class ReferenceFormatProcessor
             // DivisionCursor rule.
             // A blank or comment line is a new logical line of nothing (§2023:6.5 2)): a continuation line after it still joins
             // the latest logical line, so that line is not complete and the cursor must not read it yet (kb/Work PB4241).
-            if (LogicalLineBuilder.TryFirstText(area, out _)) _builder.ReadInto(_division);
+            if (_builder.TryFirstText(area, out _)) _builder.ReadInto(_division);
             string? firstAreaAWord = FirstAreaAWord(line, area);
             // A comment-entry paragraph exists only in an IDENTIFICATION DIVISION: certain there, a paragraph of the program
             // elsewhere, and a candidate when the division is not known — unless an earlier run of the text stages proved
@@ -302,7 +309,7 @@ public static partial class ReferenceFormatProcessor
             {
                 var site = new TextSite(line.Number, Index: 0, line.Columns);
                 // A comment line (§2023:6.5 2)) is neither a header nor words of a division, as in fixed form.
-                var entry = LogicalLineBuilder.TryFirstText(line.Text, out int first) ? BeginsCommentEntry(line.Text, first, line.Number) : CommentEntryText.None;
+                var entry = _builder.TryFirstText(line.Text, out int first) ? BeginsCommentEntry(line.Text, first, line.Number) : CommentEntryText.None;
                 // The 255-position gate is asked of EVERY physical line, here and once: this conversion runs before conditional
                 // compilation, so a line of an omitted branch is gated as any other (§2023:6.1 3) a)), a carried candidate's too, and
                 // CommentEntryResolver, which converts the candidate later, never asks it again (kb/Work PB4281, review findings
@@ -312,7 +319,7 @@ public static partial class ReferenceFormatProcessor
                 {
                     // The division is not known (DivisionCursor) for a candidate: the line is CARRIED for CommentEntryResolver
                     // to decide on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
-                    if (entry == CommentEntryText.Header) _builder.Emit(CommentEntryHeader(line.Text), site);
+                    if (entry == CommentEntryText.Header) _builder.Emit(CommentEntryHeader(line.Text, site, file, gates, periodRequired: false), site);
                     else _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, inclusion, line), site);
                     continue;
                 }
@@ -363,9 +370,31 @@ public static partial class ReferenceFormatProcessor
 
     /// <summary>The logical-conversion text of a comment-entry paragraph's header line, in either reference format: the
     /// paragraph word at its own position, its period, and the explicit terminating period that stands for the discarded
-    /// comment-entry. <paramref name="programText"/> begins with the word, after any spaces.</summary>
-    private static string CommentEntryHeader(string programText)
-        => programText[..WordEnd(programText, FirstNonSpace(programText))] + ". .";
+    /// comment-entry. <paramref name="programText"/> begins with the word, after any spaces.
+    /// <para>A paragraph header is "A reserved word, followed by the separator period" (§1985:III), and the Identification
+    /// Division's format prints the period of each comment-entry paragraph, which "has the status of a required word"
+    /// (§1985:IV.2.1.6): when <paramref name="periodRequired"/> (fixed form, COBOL-85's own reference format) and no separator
+    /// period follows the word, COBOL7166 is reported at the word (kb/Work PB5168) and the header is written as if it had
+    /// one, so the parse recovers without a cascade. Free form is the extension of docs/CONFORMANCE.md D-CE1, whose period
+    /// is optional.</para></summary>
+    private static string CommentEntryHeader(string programText, TextSite site, string file, ReferenceFormatDiagnostics? gates,
+        bool periodRequired)
+    {
+        int wordStart = FirstNonSpace(programText);
+        int wordEnd = WordEnd(programText, wordStart);
+        if (periodRequired && !SeparatorPeriodFollows(programText, wordEnd))
+            gates?.OnCommentEntryHeaderWithoutPeriod(file, site.Line, site.Col(wordStart), programText[wordStart..wordEnd]);
+        return programText[..wordEnd] + ". .";
+    }
+
+    /// <summary>Whether the first non-space character at or after <paramref name="from"/> is a separator period: a period
+    /// followed by a space or the end of the line (§1985:IV.2.1.6).</summary>
+    private static bool SeparatorPeriodFollows(string text, int from)
+    {
+        int at = from;
+        while (at < text.Length && text[at] == ' ') at++;
+        return at < text.Length && text[at] == '.' && (at + 1 == text.Length || text[at + 1] == ' ');
+    }
 
     /// <summary>The end (exclusive) of the word that begins at <paramref name="start"/>: the run of characters up to a
     /// space or a period. How a comment-entry paragraph's header word is read, in both reference formats.</summary>

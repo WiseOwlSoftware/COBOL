@@ -251,12 +251,32 @@ public sealed class ReferenceFormatLogicalConversionTests
     public void FloatingIndicator_SplitAcrossTheJoin_IsDiagnosed(string src, bool diagnosed)
         => Assert.Equal(diagnosed, Codes(Convert(src).Bag).Contains("COBOL2496"));
 
-    [Theory] // The 2002 introduction gate (floating-comment-indicator-2002) — fixed form only, once per compilation.
-    [InlineData("000100     MOVE A TO X. *> c\n000200     MOVE A TO X. *> d\n", 85, 1, InitialReferenceFormat.Fixed)]
-    [InlineData("000100     MOVE A TO X. *> c\n", 2002, 0, InitialReferenceFormat.Fixed)]
-    [InlineData("000100* a fixed comment line is COBOL-85\n000200     MOVE A TO X.\n", 85, 0, InitialReferenceFormat.Fixed)]
-    // free form selected by --source-format (a >>SOURCE line would be gated itself); kb/Work PB1362
-    [InlineData("MOVE A TO X. *> c\n", 85, 0, InitialReferenceFormat.Free)]
-    public void FloatingComment_IntroductionGate_FixedFormOnly(string src, int std, int expected, InitialReferenceFormat initial)
-        => Assert.Equal(expected, Codes(Convert(src, std, initial).Bag).Count(c => c == "COBOL0900"));
+    [Theory] // The 2002 introduction (floating-comment-indicator-2002) is a fixed-form edition fact (kb/Work PB5470): the conversion
+    // removes the comment from 2002 on, and below it leaves `*>` in the text as the text-word COBOL-85 has (§1985:III).
+    [InlineData("000100     MOVE A TO X. *> c\n", 85, InitialReferenceFormat.Fixed, "MOVE A TO X. *> c")]
+    [InlineData("000100     MOVE A TO X. *> c\n", 2002, InitialReferenceFormat.Fixed, "MOVE A TO X.")]
+    // free form selected by --source-format has no comment but the floating one, so it reads it at every edition (PB1362)
+    [InlineData("MOVE A TO X. *> c\n", 85, InitialReferenceFormat.Free, "MOVE A TO X.")]
+    public void FloatingComment_IsACommentOfFixedFormFromTheEditionThatIntroducedIt(string src, int std, InitialReferenceFormat initial,
+        string expectedLine)
+    {
+        var (m, bag) = Convert(src, std, initial);
+        Assert.Equal(expectedLine, m.Text.Split('\n')[0].Trim());
+        Assert.DoesNotContain("COBOL0900", Codes(bag));   // the conversion itself gates nothing: SurvivingFloatingComments does
+    }
+
+    [Theory] // The 2002 introduction gate (floating-comment-indicator-2002), asked of the finished text: once per compilation, only
+    // of a `*>` that survives to it, and never below an edition that has no fixed-form comment other than a comment line.
+    [InlineData("000100     MOVE A TO X. *> c\n000200     MOVE A TO X. *> d\n", 85, 1)]
+    [InlineData("000100     MOVE A TO X. *> c\n", 2002, 0)]
+    [InlineData("000100* a fixed comment line is COBOL-85\n000200     MOVE A TO X.\n", 85, 0)]
+    [InlineData("000100     DISPLAY \"A *> B\".\n", 85, 0)]   // a literal's content is no text-word
+    public void SurvivingFloatingComment_IsTheOneIntroductionGate(string src, int std, int expected)
+    {
+        var bag = new DiagnosticBag();
+        var gates = new ReferenceFormatDiagnostics(std, false, bag);
+        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(src, gates, "t.cob", InitialReferenceFormat.Fixed);
+        SurvivingFloatingComments.Report(m, gates);
+        Assert.Equal(expected, Codes(bag).Count(c => c == "COBOL0900"));
+    }
 }

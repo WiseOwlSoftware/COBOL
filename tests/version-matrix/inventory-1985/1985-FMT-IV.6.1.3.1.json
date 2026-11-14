@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-FMT-IV.6.1.3.1",
  "rule-digest": "558b98d1e0e7",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.CommentEntryRuns.cs#ConvertCommentEntryCandidate; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph",
- "test-ref": "conformance:cases/IV.6.1.3@1985-Structure/1985-FMT-IV_6_1_3_1",
- "notes": "The format prints each optional paragraph header with its separator period, which IV.2.1.6 makes a required word, and the glossary defines a paragraph header as the reserved word followed by the separator period. At --std 85 in fixed form 'AUTHOR AUDIT READER.' and a bare 'INSTALLATION' line compile and run, so the missing required word is not diagnosed. Order, repetition and the PROGRAM-ID rules held under the refuter's probes. docs/CONFORMANCE.md D-CE1's optional period covers free form only, so it does not license this. kb/Work PB5168 holds the defect (code read: held-85/set2/decisions.json).",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#CommentEntryHeader",
+ "test-ref": "conformance:cases/IV.6.1.3@1985-Structure/1985-FMT-IV_6_1_3_1; conformance:cases/VI.3.2.1@1985-Structure/pb5168-comment-entry-header-without-period; unit:LogicalLineBuilderTests.FixedFormCommentEntryHeader_NeedsItsSeparatorPeriod",
+ "notes": "§1985:IV.6.1.3.1 prints each optional Identification Division paragraph header with its period, '[ AUTHOR. [ comment-entry ] ... ]', and §1985:IV.2.1.6 gives the separator period 'the status of a required word'. Paragraph order, repetition, the AS phrase, the ID DIVISION abbreviation, an unknown paragraph and a missing period after PROGRAM-ID or the division header were already refused; the period of a comment-entry paragraph header was written by the logical conversion whatever the source held, and is now asked of the source in fixed form (kb/Work PB5168, COBOL7166); free form keeps D-CE1's optional period.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
