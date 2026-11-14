@@ -329,7 +329,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>Capture the RD's CODE clause (ISO §2023:13.18.12.2 — <c>CODE IS {literal-1 | identifier-1}</c>; kb/Work
     /// PB1129). literal-1 is screened here (SR1 — "Literal-1 shall be an alphanumeric literal": a numeric, national or
-    /// boolean literal and a figurative constant are not one) and decoded through the ONE literal readers
+    /// boolean literal are not one; a figurative constant is the string it stands for, <see cref="CodeFigurativeCharacters"/>) and decoded through the ONE literal readers
     /// (<see cref="SpecialNamesBinder.OperandLiteralClass"/> / <see cref="SpecialNamesBinder.LiteralCharsOf"/> — a §2023:8.8.3.3 concatenation folds, a
     /// hexadecimal format decodes). identifier-1 is kept as the WRITTEN reference, exactly as the SOURCE clause's
     /// identifier operand is (<see cref="FieldReferenceSource"/>): its base item is screened post-build with SR2's shape
@@ -343,6 +343,21 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         string where = $"RD '{model.Name}': the CODE clause";
         if (cc.literal() is { } lit)
         {
+            // A figurative constant stands wherever a format says literal (§1985:IV.4.2.2.2.3; §2023:8.3.3.6.3 SR1), and
+            // neither CODE rule bars it: it is the alphanumeric string §2023:8.3.3.6.4 GR1, GR3b and GR3c give it (kb/Work PB5475).
+            if (lit.nonNumericLiteral()?.figurativeConstant() is { } fig)
+            {
+                if (CodeFigurativeCharacters(fig, where) is not { } figChars) return null;
+                return Screen85CodeLiteral(figChars, lit.GetText(), where)
+                    ? new ReportCodeModel { Literal = figChars, Written = lit.GetText() } : null;
+            }
+            if (lit.nonNumericLiteral()?.predefinedNull() is { } predefinedNull)
+            {
+                // NULL is an identifier, not a literal (§2023:8.4.3.10.3 SR1): the ONE refusal, not the literal-shape verdict.
+                using var nullAt = Edition.At(predefinedNull);
+                PredefinedNullRule.Report(Edition, $"{where}, whose literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1),");
+                return null;
+            }
             if (_d.SpecialNames.OperandLiteralClass(lit) != LiteralClass.Alphanumeric)
             {
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {lit.GetText()}, which is not an "
@@ -383,6 +398,30 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // The WHOLE written reference rides on the model — a subscript and a reference modification are part of an
         // identifier (§2023:8.4.3.1.2) and bind in the procedure phase, exactly as the SOURCE clause's identifier-1 does.
         return new ReportCodeModel { Reference = dref, Written = DataBinder.WrittenText(dref) };
+    }
+
+    /// <summary>The characters a figurative constant written as the CODE clause's literal-1 stands for, or null after a
+    /// refusal: <c>ALL literal-1</c> is literal-1 itself, "the length of the string is the length of the literal"
+    /// (§1985:IV.4.2.2.2.3 GRL2.3; §2023:8.3.3.6.4 GR3c — folded by the ONE Format 6 reader), and ZERO, SPACE, QUOTE, HIGH-VALUE and
+    /// LOW-VALUE are the ONE character <see cref="ConcatFolder.FigurativeChar"/> names for the alphanumeric class under this program's
+    /// collating sequence (§2023:8.3.3.6.4 GR3b: "When a figurative constant is other than ALL literal-1, the length of the string is
+    /// one character"). <c>ALL symbolic-character-1</c> (Format 7) is the one character SPECIAL-NAMES binds the name to. An
+    /// <c>ALL</c> literal-1 that is not alphanumeric (a national or boolean one) is no alphanumeric literal (§2023:13.18.12.3 SR1).</summary>
+    private string? CodeFigurativeCharacters(Core.FigurativeConstantContext fig, string where)
+    {
+        if (ConcatFolder.FoldAllLiteral(fig, _d.LiteralEnv, Edition) is { } folded)
+        {
+            if (folded.Category == PicCategory.Alphanumeric) return folded.Value;
+            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, whose literal-1 is not an "
+                + "alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1)");
+            return null;
+        }
+        if (ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, _d.LiteralEnv) is { } fill) return fill.ToString();
+        if (fig.ALL() is not null && fig.cobolWord()?.GetText() is { } word && _d.LiteralEnv.IsSymbolicCharacter(word)
+            && _d.LiteralEnv.SymbolicValue(fig, word) is { } symbolic) return symbolic;
+        Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, which is no alphanumeric literal "
+            + "(ISO §2023:13.18.12.3 SR1)");
+        return null;
     }
 
     /// <summary>⛔ §1985:XIII.3.20.3 SR5 over one SOURCE operand (kb/Work PB5079): "In control footing, page heading, page
@@ -4271,11 +4310,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// of a detail. It may be qualified only by a report-name") through the ONE report-group funnel, which owns
     /// the §2023:8.4.2.2.3 SR1 ambiguity rule as well (kb/Work PB365). The TYPE test is SR7's own sentence: a
     /// control footing or a report heading is not a detail, and §2023:13.18.54.4 GR7 c) 2) can only fire for a detail,
-    /// because only a detail is GENERATE-able (§2023:14.9.16.3 SR1).</summary>
+    /// because only a detail is GENERATE-able (§2023:14.9.16.3 SR1). Below 2002 the detail must be of the SUM's own report
+    /// (§1985:XIII.3.19.3 SR2), asked first.</summary>
     private void ResolveUponDetail(ReportDetailRef det, ReportModel model)
     {
         string where = $"RD '{model.Name}': the UPON operand '{det}'";
         using var uponAt = Edition.At(det.Ctx);   // the operand as written (kb/Work PB5090)
+        // ⛔ §1985:XIII.3.19.3 SR2 — "Data-name-1 must be the name of a detail report group described in the same report as
+        // the control footing report group in which the SUM clause appears": SR2 restricts what the name may DENOTE; it does
+        // not make a nonunique name unique, so the name resolves across the unit at every edition ("For each nonunique
+        // user-defined name that is explicitly referenced, uniqueness must be established through a sequence of qualifiers
+        // which precludes any ambiguity of reference", §1985:IV.4.3.8.1 SRL2.1) and below 2002 a detail of ANOTHER report is
+        // then refused by name. COBOL-2002's SR7 lets the report-name qualifier name any report (kb/Work PB1294).
         if (ReportGroupResolution.Resolve(Edition, _scope.Declared, det.Name, det.Qualifier, where,
                 out var owner, out var group) == ReportGroupResolution.Match.None)
         {
@@ -4289,6 +4335,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + $"{ReportGroupTypeWords(group.Kind)}; data-name-2 shall be the name of a DETAIL (ISO "
                 + "§2023:13.18.54.3 SR7) — only a detail is the operand of a GENERATE statement (§2023:14.9.16.3 SR1), "
                 + "which is the event §2023:13.18.54.4 GR7 c) 2) accumulates on.");
+            return;
+        }
+        if (Edition.DialectLevel < 2002 && !ReferenceEquals(owner, model))
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} names a detail report group of report "
+                + $"'{owner?.Name}', another report than the control footing's '{model.Name}': data-name-1 must be the name of "
+                + "a detail report group described in the same report as the control footing report group in which the "
+                + "SUM clause appears (ISO §1985:XIII.3.19.3 SR2)");
             return;
         }
         // A detail of ANOTHER report (SR7's report-name qualifier): GR7 c) 2) accumulates on a GENERATE of that detail,
