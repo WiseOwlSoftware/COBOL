@@ -21,6 +21,14 @@
   3/6/7 a landing check · 8 the queue not ACTIVE · 9 GitHub refused · 11 unreviewed. ⓜ 2026-10-10 under the trains: 233 of 567 lander minutes (41 %) were local whole-population gates, 94 more
   the former direct-push landing holding main while CI ran the same population, 10 landers for 6 trains, the first commit on main 6 h
   49 min into the day (kb/Work PB3015).
+- **A root fix lands FIRST (kb/Work PB5483).** When main or the pipeline carries a red and a branch removes it, land it
+  at the FRONT of the merge queue so the pull requests queued before it do not each meet the red:
+  `python scripts/orchestrator/enqueue.py land <branch> --fix-first "PB<note> run <failed run id>"`. The cause is
+  required and names the red (a kb/Work note the worktree carries and/or a failed run id); every other guard is the
+  same. Exit 17 (ENQUEUED, NOT JUMPED) means GitHub refused the jump and the pull request waits at the back; run the
+  same command again once its pull-request check has passed. The lane re-queues one cause (a red test case) once and
+  holds its next red (`hold-for-fix`); the hold ends when a fix-first landing naming its runs merges, when the note it
+  names lands on main, or by `python scripts/orchestrator/land_lane.py release-hold "<case>" --reason "<the fix>"`.
 - **Who runs it.** While the orchestrator loop runs (`python scripts/orchestrator/coord.py loop-state` prints `LOOP
   STATE: running`), its LANDING LANE (`scripts/orchestrator/land_lane.py`, ticked by the supervisor beside every
   unit, kb/Work PB3103) runs it for every branch `python scripts/prune_worktrees.py --brief` lists WAITING TO LAND,

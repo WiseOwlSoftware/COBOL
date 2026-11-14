@@ -44,6 +44,10 @@
       "vcrRow": "7.66"
     },
     {
+      "id": "close-with-lock-locks-file-connector",
+      "vcrRow": "7.70"
+    },
+    {
       "id": "compile-time-arithmetic-mode",
       "vcrRow": "12"
     },
