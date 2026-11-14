@@ -328,6 +328,26 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     // a space or a period, so the cut never reaches them. A closed literal is never cut: it ends on its quotation
     // symbol, so a match that ends on a space or a period is an open one, and that one-character test is all the action
     // asks of the common case (no text is materialized for it).
+    // ⛔ THE IS AFTER PIC / PICTURE IS A WORD OF THE SOURCE, AND IT IS WRITTEN AT MOST ONCE (kb/Work PB5213). The PICTURE
+    // clause's format is `{PICTURE | PIC} IS character-string-1` (§2023:13.18.40.2; §1985:VI.5.9.2): IS is an optional word
+    // the format prints ONCE, so the word after it is the character-string. The CURRENCY SIGN clause's PICTURE SYMBOL
+    // phrase prints no IS at all (§2023:12.3.7.2). PIC_IS used to `skip` every IS it met, so `PIC IS IS IS X(4)` compiled
+    // as `PIC X(4)` and `WITH PICTURE IS SYMBOL "#"` as `WITH PICTURE SYMBOL "#"`: the lexer decided a syntax question
+    // and erased the evidence. Now the FIRST IS of the region is the IS keyword token, which the parser takes where a
+    // format prints it (`pictureClause`) and refuses where none does (`currencySignClause`); a SECOND is the
+    // character-string PIC_STRING would have lexed (the two rules tie on `IS` and PIC_IS is listed first, so this
+    // action gives it that rule's type and ends the mode as that rule does), which the PICTURE rules refuse, as they
+    // refuse any string with no valid symbol. An action, not a predicate: a lexer predicate keeps its DFA edges out of
+    // the cache (LexerDfaCacheDriftTests).
+    private bool _pictureIsWritten;
+
+    private void OnPictureIs()
+    {
+        if (!_pictureIsWritten) { _pictureIsWritten = true; Type = IS; return; }
+        Type = PIC_STRING;
+        PopMode();
+    }
+
     private void OnDelimitedLiteral()
     {
         int last = InputStream.LA(-1);   // the match's last character
@@ -348,7 +368,7 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
         // PIC / PICTURE opens PICMODE (the picture character-string is lexed as ONE token) — here, not as a lexer command
         // of the PIC rule, because whether this token IS the PIC keyword is the directive's answer (UNDEFINE "PICTURE"
         // makes a data-name of it; EQUATE "PIC" WITH "PX" makes PX the keyword).
-        if (token.Type == PIC) PushMode(PICMODE);
+        if (token.Type == PIC) { PushMode(PICMODE); _pictureIsWritten = false; }
         // DEBUG_LINE is a marker, not a word: like a comment it must not become the "previous token" of the next one.
         if (token.Type != WS && token.Type != DEBUG_LINE && token.Type != DEBUG_LINE_IN_REGION
             && token.Type != Antlr4.Runtime.TokenConstants.EOF)
@@ -914,7 +934,7 @@ PF          : 'PF' ;
 PH          : 'PH' ;
 // PIC/PICTURE → PICMODE captures the PIC string as one token. The mode is pushed by NextToken, AFTER the >>COBOL-WORDS
 // retype (kb/Work PB1372): a rule command could not tell the keyword from a data-name the directive made of it, nor a
-// synonym the directive made the keyword. Handles: PIC X(120), PIC IS S9(18), PICTURE $$$,$$9.99CR, etc.
+// synonym the directive made the keyword. Handles: PIC X(120), PIC IS S9(18) (IS its own token), PICTURE $$$,$$9.99CR, etc.
 PIC         : ('PIC' | 'PICTURE') ;
 POINTER     : 'POINTER' ;
 PLUSWORD    : 'PLUS' ;       // the reserved WORD PLUS (LINE/NEXT GROUP relative); distinct from PLUS ('+')
@@ -1335,7 +1355,7 @@ ANY_CHAR    : . ;
 // ==========================================
 // PICMODE — captures PIC/PICTURE string as one token
 // ==========================================
-// After PIC/PICTURE, optionally skip IS, then capture the entire
+// After PIC/PICTURE, the one optional IS (an IS token, OnPictureIs), then capture the entire
 // PIC string (e.g., X(120), S9(18), $$$,$$9.99CR) as one token.
 //
 // Key insight: PIC strings never contain spaces. A period within
@@ -1344,7 +1364,7 @@ ANY_CHAR    : . ;
 
 mode PICMODE;
 
-PIC_IS      : 'IS' -> skip ;              // optional IS keyword
+PIC_IS      : 'IS' { OnPictureIs(); } ;  // the IS keyword, once: a second IS is the character-string (OnPictureIs)
 PIC_WS      : [ \n]+ -> skip ;       // skip whitespace
 // A comment line between PIC and its character-string (kb/Work PB1493). Source comments are removed by the
 // reference-format stage (ISO §2023:6.5 2) / 3)) before the lexer runs, but the fixed-form DEBUGGING-line carrier
