@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.19.3-2",
  "rule-digest": "30b1bd42882a",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#UponDetailRef; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveUponDetail; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve",
  "test-ref": "conformance:cases/XIII.3.19@1985-SUM-CLAUSE/1985-SR-XIII_3_19_3-2",
+ "notes": "§1985:XIII.3.19.3 SR2: 'Data-name-1 must be the name of a detail report group described in the same report as the control footing report group in which the SUM clause appears. Data-name-1 may be qualified by a report-name.' UponDetailRef screens the shape (no subscript or ref-mod, at most one qualifier) and ResolveUponDetail, called from ResolveReports, resolves the name through ReportGroupResolution.Resolve and refuses a non-group or a non-detail with COBOL2046 (the witness: UPON CFG). Probes at --std 85 (classes b, c, d): UPON DET, DET OF RPT, DET IN RPT and DET DET1B compile and total; UPON CFG, NOSUCH, DET OF RPT-FILE, DET(1), DET1B OF RPT2 and an empty UPON are refused. DEFECT: ResolveUponDetail accepts a detail of ANOTHER report and records it as a cross-report trigger (det.Owner = owner) at every edition: the 2023 relaxation (SR-13.18.54.3-7 dropped 'in the same report') is applied at 85, where SR2 forbids it. kb/Work PB5474 holds the defect (code read: coderead-85/out-read4/rd-01.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

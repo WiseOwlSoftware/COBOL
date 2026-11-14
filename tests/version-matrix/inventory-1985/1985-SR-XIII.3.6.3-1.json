@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.6.3-1",
  "rule-digest": "fdaaa3106eb1",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Screen85CodeLiteral; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClauseRule",
  "test-ref": "conformance:cases/XIII.3.6@1985-CODE-CLAUSE/1985-SR-XIII_3_6_3-1",
+ "notes": "§1985:XIII.3.6.3 SR1: 'Literal-1 must be a two-character nonnumeric literal.' BindCodeClause refuses a literal whose class is not alphanumeric and, at 85, an identifier operand (the 2002 form); Screen85CodeLiteral refuses at DialectLevel < 2002 a literal whose characters are not two (COBOL2713, the witness: CODE \"A\"). Probes at --std 85 (classes b, c, d): CODE \"AB\" and CODE \"A\"\"\" compile and write AB / A\" in the first two positions of each line (§1985:XIII.3.6.4 GR1); \"ABC\", \"\" (also COBOL0900), 12, N\"AB\", WS-C, a bare CODE, CODE twice (COBOL2423), and the 2002 forms CODE IS, X\"4142\" and \"A\" & \"B\" (COBOL0900) are refused. DEFECT: every figurative constant is refused as 'not an alphanumeric literal', but §1985:IV.4.2.2.2.3 says 'A figurative constant may be used whenever 'literal' appears in a format with the following exceptions' and excepts only a numeric-restricted literal, and its rule (3) gives ALL literal unassociated 'the length of the literal', so CODE ALL \"AB\" is a two-character nonnumeric value the 1985 text admits (and, read as associated with GR1's two positions, CODE SPACE too). kb/Work PB5475 holds the defect (code read: coderead-85/out-read4/rd-01.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
