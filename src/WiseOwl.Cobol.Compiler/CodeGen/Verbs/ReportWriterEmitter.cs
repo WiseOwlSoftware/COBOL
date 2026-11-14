@@ -1013,8 +1013,8 @@ internal sealed class ReportWriterEmitter(
     }
 
     /// <summary>GENERATE: detail reporting names the detail group and prints it; summary reporting (the report-name form,
-    /// §2023:14.9.16.4 GR2) prints no detail, and names only the detail it subtotals for (<see cref="BoundGenerate.SummaryDetail"/>,
-    /// kb/Work PB5249).</summary>
+    /// §2023:14.9.16.4 GR2) prints no detail, and names only the detail it subtotals for and processes unprinted
+    /// (<see cref="BoundGenerate.SummaryDetail"/>, kb/Work PB5249, PB5337).</summary>
     public void EmitGenerate(BoundGenerate s)
     {
         if (s.Detail is { } det && det.Name is null)

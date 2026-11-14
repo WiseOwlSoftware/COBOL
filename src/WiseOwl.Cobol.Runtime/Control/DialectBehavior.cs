@@ -110,8 +110,9 @@ public enum DialectBehavior
     /// alone: an index "greater than the highest permissible occurrence number for identifier-1" ends the search at once, and
     /// an index "not greater" starts the serial search by "evaluating the conditions in the order that they are written";
     /// §1985:VI.6.23.4 GR2 lets a PERFORM or SEARCH leave an index "outside the range of its associated table", which is how a
-    /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan and is incremented to occurrence 1
-    /// (kb/Work PB5121; VCR row 7.56). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
+    /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan (kb/Work PB5121; VCR row 7.56), and
+    /// the incremented index is judged against both bounds (§1985:VI.6.22.4 GR2 b), "outside the permissible range of occurrence
+    /// values"): an index of 0 advances to occurrence 1, one below 0 ends the search after its first pass (kb/Work PB5302). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
     /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
     SearchIndexBelowTableUnsuccessful = 6,
 

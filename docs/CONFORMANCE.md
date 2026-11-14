@@ -1406,12 +1406,16 @@ of an unsupported facility.
   detail; §2023:14.9.16.4 GR2 says "the same processing as for a GENERATE data-name statement for the same report, except that no detail
   is printed" and names no detail. **Pinned choice, every edition:** a report with exactly ONE named detail group subtotals for it
   (`BoundGenerate.SummaryDetail`, `CobolReport.GenerateSummary`); a report with several details names none, so only the UPON-less terms
-  add. (e) *Table 1 (PB5243)*: at `--std 85` an elementary format 3 entry's clauses must be the cells of one row of §1985:XIII.3.9.3 SR11
+  add. The same reading runs that one detail's USE BEFORE REPORTING procedure, after the subtotalling and with no presentation after it
+  (§1985:XIII.3.20.4 GR11 b) and d); at every edition, since §2023:14.9.49.4 GR9 performs the procedure "on each occasion that the named
+  report group is processed" and GR2's summary reporting is the detail's processing without its printing; GnuCOBOL runs it too, though
+  before the subtotal), and a report with several details runs none; the processed detail's entries are added into the SUM counters naming
+  them, §2023:13.18.54.4 GR7 a) (kb/Work PB5337; `CobolReport.BeginGroup`'s `print: false`). (e) *Table 1 (PB5243)*: at `--std 85` an elementary format 3 entry's clauses must be the cells of one row of §1985:XIII.3.9.3 SR11
   Table 1 (`ReportEntryClauseTable`): SOURCE with JUSTIFIED, BLANK WHEN ZERO or GROUP INDICATE and no COLUMN clause is legal there (the entry
   prints nothing), and VALUE with BLANK WHEN ZERO and SUM with JUSTIFIED are refused; at every edition SOURCE, SUM and VALUE are the
   alternatives of one brace (§1985:XIII.3.9.2, §2023:13.15.2) and an entry writing two is refused COBOL2247. Witnesses:
   `conformance:cases/13.18.54-SUM/pb5248_sum_size_error_presentation`, `.../13.18.37-NEXT-GROUP/pb5245_terminate_saved_next_group` (each `.85.out` and `.out`),
-  `.../13.18.28-GROUP-INDICATE/pb5246_group_indicate_suppressed_generate` and `.../XIII.3.13@1985-GROUP-INDICATE-CLAUSE/pb5246_group_indicate_suppressed_generate_85`, `.../13.18.54-SUM/pb5249_generate_report_name_sum_upon`,
+  `.../13.18.28-GROUP-INDICATE/pb5246_group_indicate_suppressed_generate` and `.../XIII.3.13@1985-GROUP-INDICATE-CLAUSE/pb5246_group_indicate_suppressed_generate_85`, `.../13.18.54-SUM/pb5249_generate_report_name_sum_upon`, `.../14.9.49-USE/pb5337_generate_report_name_runs_detail_use` and `.../pb5337_generate_report_name_several_details`, `.../13.18.54-SUM/pb5337_generate_report_name_sums_detail_entry`,
   `.../XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/pb5243_table1_permitted_rows` and the three `pb5243-*` refusals.
 - **Normal completion of a declarative — "a fatal exception occurs within the scope of the declarative" (§2023:14.6.13.1.2 1),
   spec silent on three points)**: the rule makes a declarative that falls off its end "not complete normally" when a
@@ -3216,7 +3220,14 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   area, so it is sent at its own image and the positions past it are spaces. The predicate is
   `FileModel.TransfersPastRecord`, asked by the one image helper `SequentialIoEmitter.SentRecordImage` for the
   sequential and the keyed WRITE and REWRITE emitters; the runtime's `FileConnector.Stored` cuts the image to the
-  transferred length or pads it, unchanged.
+  transferred length or pads it, unchanged. **The area is read WHOLE** (`SequentialIoEmitter.RecordAreaSendImage`,
+  kb/Work PB5217): when the widest record holds an OCCURS DEPENDING ON table, that table's DEPENDING item sizes that
+  record (§2023:13.18.43.4 GR13 c)), never the area or another record, so a shorter record-name-1 is followed by the
+  area's positions up to the transferred length, and an OCCURS DEPENDING record-name-1 below its maximum transfers
+  past its own end too (its current size is the fixed portion and the occurrences at the time of execution), its
+  tail again the area's (witness `conformance:cases/14.9.51-WRITE/pb5217_write_beside_odo_record`). The keyed READ,
+  DELETE and START read their key out of the same whole-area image, so a key past the ODO record's current extent is
+  the key the area holds.
   **Survey (CLAUDE.md rule 1).** GnuCOBOL 3.2 writes from the file's record area, but `cob_write` clamps the
   DEPENDING ON length to record-name-1's size, and a RECORD CONTAINS file with a shorter 01 becomes variable-length
   (`libcob/fileio.c` `cob_write`, `cobc/tree.c` `finalize_file`; measured with a 3.2.0 build: the variable records
