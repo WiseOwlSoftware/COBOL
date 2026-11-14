@@ -562,8 +562,8 @@ public sealed class CopyProcessor(
                         takesReplacedIndicator: fixedForm && !rule.KeepsPseudoTextDebuggingLines);
                     // A replacement that BEGINS on a debugging line of its own (pseudo-text-2 written with its D indicator, kept by
                     // COPY) starts a line: the carrier makes every text word after it on the resultant line debugging text, so
-                    // library text ahead of the match on the same line would be hidden with it and the program "with the
-                    // debugging lines taken as comment lines" (§1985:VI.7.3) would lose words that are not on one (kb/Work PB5472).
+                    // library text ahead of the match on the same line would be hidden with it and the program with the debugging lines
+                    // "considered as comment lines" (§1985:VI.7.3) would lose words that are not on one (kb/Work PB5472).
                     if (StartsWithCarrier(introduced, 0) && !CobolSpace.IsBlank(text.AsSpan(lineStart, matchStart - lineStart)))
                         sb.NewLine(mapped.PointAt(matchStart));
                     // The replacement is written here, so it stands at the position of the text it replaced (kb/Work PB1801).

@@ -7,3 +7,5 @@ Re-probe: reproduced (exit 65). The note blamed the origin `OriginWriter.Append`
 Fix: a replacement that begins with a carrier after non-blank text of its line starts a resultant line (`CopyProcessor.ApplyReplacements`). The carrier is dropped wherever the replaced line decides, so this is the only place it can land mid-line. LEADING and TRAILING cannot reach it at 85.
 
 Goldens: `pb5472-copy-debugging-line-replaces-mid-line` (accept 85, `[Q]`), and the refusal `pb5472-copy-debugging-line-replacement-needed` (the debugging line holds the MOVE operand, COBOL7061 stays). Rows: `1985-GR-XII.2.4-7` PARTIAL to CONFORMS (GAP 178 to 177). Self-review: the origin the replacement carries is unchanged (PB5313's area); no allocation on a hot path (one blank test, only when a carrier leads the replacement).
+
+Review round 1: the layout rule is now in DESIGN-cc-in-copy.md section 3.7, and the comment at CopyProcessor.ApplyReplacements quotes section 1985:VI.7.3 as "considered as comment lines" (checked with cite.py).
