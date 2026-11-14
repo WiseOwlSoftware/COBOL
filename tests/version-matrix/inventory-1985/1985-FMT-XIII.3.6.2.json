@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.3.6.2",
  "rule-digest": "8a8d7a91c0f7",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportCodeClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
- "test-ref": "conformance:cases/XIII.3.6@1985-CODE-CLAUSE/1985-FMT-XIII_3_6_2",
- "notes": "§1985:XIII.3.6.2 prints the clause as `CODE literal-1` (rendered PDF p596 confirms: no IS, no identifier alternative), so at --std 85 the compiler must accept CODE followed by one literal and refuse every other shape. The grammar reportCodeClause is the 2023 `CODE IS? (literal | dataReference)` and nothing gates the 2023-only parts at 85: BindCodeClause screens literal-1's class (COBOL2713) and BindReportDescriptionClauses the at-most-once (COBOL2423), at every edition, and VersionConformancePass has no CODE arm. The witness (CODE \"AB\") passes and the literal arm is correct. Probes at --std 85: (b) CODE \"AB\" runs, file starts ABHELLO; CODE IS \"AB\" exit 0 (should refuse); CODE WS-C (an identifier) exit 0 (should refuse); CODE 12 COBOL2713; CODE \"AB\" CODE \"CD\" COBOL2423; CODE with no operand COBOL0001; (d) CODE SPACES and CODE ALL \"A\" COBOL2713 (a figurative is not a nonnumeric literal, correct); (a) (e) (f) do not reach a one-literal RD clause. (c) is where it fails: the two 2023 additions compile at 85. kb/Work PB5242 holds the defect (code read: coderead-85/out-pipe/slice-50.json).",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportCodeClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportCodeClause; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#Entries",
+ "test-ref": "conformance:cases/XIII.3.6@1985-CODE-CLAUSE/1985-FMT-XIII_3_6_2; conformance:cases/13.18.12-CODE/pb5242-code-is-85",
+ "notes": "kb/Work PB5242 landed. §1985:XIII.3.6.2 prints the clause as `CODE literal-1`. The literal arm binds in ReportSectionBinder.BindCodeClause (a two-character nonnumeric literal, §1985:XIII.3.6.3 SR1; anything else COBOL2713, the identifier operand included). The word IS (2002 13.16.12.1 `CODE IS`) is construct report-code-is-2002 (VisitReportCodeClause). Witnesses: 1985-FMT-XIII_3_6_2 and pb5242-code-is-85 (CODE IS \"AB\" refused at 85). Each 2002 form is refused at --std 85 with COBOL0900 by a construct row of the version matrix (tests/version-matrix/constructs/report-*-2002.json, introducedIn 2002), checked on recognition in VersionConformancePass's parse arm, and accepted from COBOL-2002 (ISO/IEC 1989:2002 Annex F.2 item 115).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -138,6 +138,14 @@ internal enum OperandContext
 /// repository's most reproducible defect shape — into a question that cannot be asked.</summary>
 internal static class OperandContextRules
 {
+    /// <summary>⛔ SR10's ANSWER AT AN EDITION (kb/Work PB5188) — the one question an operand position asks about an index
+    /// data item. The table's <c>IndexDataItemAdmitted</c> column is §2023:13.18.60.3 SR10's list, which is
+    /// §2002:13.16.58.2 SR9's; the COBOL-85 list, §1985:VI.5.14.3 SR5 ("a SEARCH or SET statement, a relation condition,
+    /// the USING phrase of a Procedure Division header, or the USING phrase of a CALL statement"), lacks "an intrinsic
+    /// function argument", so below 2002 that row answers no. Every other row of the column is on both lists.</summary>
+    internal static bool IndexDataItemAdmittedAt(this OperandContext c, int year) =>
+        c.Rules().IndexDataItemAdmitted && (year >= 2002 || c != OperandContext.FunctionArgument);
+
     internal static (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted, bool BooleanOperandAdmitted) Rules(
         this OperandContext c) => c switch
     {
@@ -671,7 +679,17 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // programs; the rule enumerates contexts, so the context has to answer — and where it answers no (a
         // subscript, PERFORM VARYING: kb/Work PB215) the operand falls through to §2023:8.8.1.1's class screen.
         bool indexItem = p.DenotedItem is not null && p.Item.Pic is { Usage: Usage.Index };
-        if (indexItem && rules.IndexDataItemAdmitted) return new BoundNumRef(p);
+        if (indexItem && context.IndexDataItemAdmittedAt(ctx.Edition.DialectLevel)) return new BoundNumRef(p);
+        // A position with no class screen of its own (an intrinsic argument) that the edition's SR10 list does not name:
+        // at COBOL-85 a function argument (kb/Work PB5188). The §2023:8.8.1.1 positions fall through to their class screen.
+        if (indexItem && !rules.NumericClassScreen)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.IndexDataItemContext, $"the index data item '{p.Item.CobolName ?? p.Item.ClrName}' "
+                + "is an intrinsic function argument: an index data item can be referenced explicitly only in a SEARCH or "
+                + "SET statement, a relation condition, the USING phrase of a Procedure Division header, or the USING "
+                + "phrase of a CALL statement (ISO §1985:VI.5.14.3 SR5)");
+            return BoundExprError.Refused(ctx.Edition, "an index data item as an intrinsic function argument (ISO §1985:VI.5.14.3 SR5)");
+        }
         if (rules.NumericClassScreen && !ClassScreenAdmits(new BoundFieldOperand(p), context))
         {
             string what = NonNumericOperandKind(p);
