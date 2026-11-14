@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -50,6 +51,15 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // once, before any arm binds (GR3 e). SR6 b)'s one-boolean-character boolean subject is condition-1 only
         // for a TRUE/FALSE pairing (a per-WHEN reclassification), so its truth value binds on first demand.
         foreach (var slot in slots) { _ = slot.Value; if (slot.IsCondition1ByForm) _ = slot.Truth; }
+        // ⛔ WHEN AN OBJECT IS EVALUATED IS AN EDITION'S RULE (kb/Work PB5183; DialectBehavior.EvaluateObjectsInWhenPhraseOrder).
+        // From 2002 an object is evaluated when its phrase is analyzed and "no more pairs in that WHEN phrase are evaluated"
+        // after a false one (§2023:14.9.13.4 GR4), which the emitted if / else-if chain and its && realize. §1985:VI.6.13.4 GR1
+        // instead "operates as if each selection subject and selection object were evaluated" before GR2 compares them, so at
+        // 85 a pair whose object references a function (the one object evaluation a program can observe: RANDOM's next number)
+        // is analyzed at the beginning of the statement, its truth value held in the intermediate a condition subject takes
+        // (SendingValueTemp.MaterializeTruth), in source order. Every other object reads values nothing in the statement
+        // changes, so its place in the chain is the same evaluation.
+        bool everyObjectFirst = !DialectBehaviors.IsActive(DialectBehavior.EvaluateObjectsInWhenPhraseOrder, ctx.Edition.Edition.Year);
         var whens = new List<BoundEvaluateWhen>();
 
         foreach (var clause in ev.evaluateWhenClause())
@@ -78,7 +88,10 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 // indication, so each is bound standalone by its own Table 15 row and contributes no term.
                 int paired = System.Math.Min(objects.Length, subjects.Length);
                 for (int i = 0; i < paired; i++)
-                    terms.Add(BindSelectionObject(slots[i], objects[i]));
+                {
+                    var term = BindSelectionObject(slots[i], objects[i]);
+                    terms.Add(everyObjectFirst && ReferencesAFunction(objects[i]) ? host.SendingValue.MaterializeTruth(term, "evaluate") : term);
+                }
                 for (int i = paired; i < objects.Length; i++)
                     BindSurplusObject(objects[i]);
                 phraseMatches.Add(terms.Count == 1 ? terms[0] : new BoundLogical("&&", terms));
@@ -93,6 +106,11 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         var other = ev.evaluateWhenOther() is { } o ? host.BindBlocks([o.statementBlock()]) : null;
         return new BoundEvaluate(whens, other);
     }
+
+    /// <summary>Whether a selection object references a function anywhere in its operands (subscripts and reference modifiers
+    /// included): the evaluation whose time a program can observe (kb/Work PB5183).</summary>
+    private static bool ReferencesAFunction(Core.EvaluateWhenItemContext item) =>
+        Antlr4.Runtime.Tree.Trees.FindAllRuleNodes(item, Core.RULE_functionCall).Count > 0;
 
     /// <summary>One subject↔object pair → a boolean term (§2023:14.9.13 GR4–7):
     /// ANY → always true; a TRUE/FALSE subject pairs with a CONDITION object (TRUE → the condition, FALSE → its

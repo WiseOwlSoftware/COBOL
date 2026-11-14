@@ -44,7 +44,13 @@ internal readonly record struct InvocationArg(
     /// <summary>The INVOKE statement's <c>invokeArgument</c> reading (§2023:14.9.23.2). A KEYWORD-LESS expression
     /// (kb/Work PB1135) has no BY phrase to say it is BY CONTENT, so — like the inline form's bare argument —
     /// it is marked <c>Expression</c>: §2023:14.9.23.3 SR9 cannot make it BY REFERENCE and §2023:14.9.23.4 GR6 a) 2 implies
-    /// BY CONTENT. Written with a phrase, the phrase says so and <c>Expression</c> stays false.</summary>
+    /// BY CONTENT. Written with a phrase, the phrase says so and <c>Expression</c> stays false.
+    /// <para>⛔ EACH ARGUMENT IS READ ALONE: AN INVOKE BY PHRASE IS NOT TRANSITIVE (kb/Work PB5465, re-verdicted not a defect).
+    /// The printed §2023:14.9.23.2 figure puts the ellipsis outside the BY REFERENCE / BY CONTENT / BY VALUE brace with no
+    /// inner one, so each repetition is <c>[BY phrase] operand</c>, and an argument written without a phrase takes its
+    /// mode from its formal (§2023:14.9.23.3 SR14, §2023:14.9.23.4 GR6): in <c>USING BY CONTENT G N</c>, N goes BY
+    /// REFERENCE to a BY REFERENCE formal. CALL's carry-over, §2023:14.9.4.4 GR5, is a Format 1 rule with no INVOKE twin
+    /// (CallBinder.CarriedModeAfter), so never thread a carried mode through this reader.</para></summary>
     public static InvocationArg OfInvokeArgument(Core.InvokeArgumentContext a)
     {
         bool keywordLess = a.VALUE() is null && a.REFERENCE() is null && a.CONTENT() is null;

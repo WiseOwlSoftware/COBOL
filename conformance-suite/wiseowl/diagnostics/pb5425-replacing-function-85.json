@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0846: INSPECT REPLACING: literal-1 'AB' (2 characters) and identifier-5 (FUNCTION UPPER-CASE, 4 characters)"}

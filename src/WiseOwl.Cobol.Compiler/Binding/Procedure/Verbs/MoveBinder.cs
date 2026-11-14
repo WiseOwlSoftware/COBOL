@@ -42,33 +42,34 @@ using Core = CobolParserCore;
 /// (feedback_model_the_rule_shape_not_one_case).</para>
 /// </summary>
 /// <param name="Statement">How the statement names itself in a diagnostic — <c>RELEASE … FROM</c>.</param>
-/// <param name="MoveRuleCite">The clause making the phrase an implicit MOVE, plus the clause subjecting
-/// identifier-1/literal-1 to the MOVE statement's own syntax rules.</param>
+/// <param name="MoveRule">The clause making the phrase an implicit MOVE, plus the clause subjecting
+/// identifier-1/literal-1 to the MOVE statement's own syntax rules; at COBOL-85 the general rule of the verb's I-O module that
+/// makes the FROM phrase a MOVE followed by the verb (kb/Work PB5352).</param>
 /// <param name="FunctionCategories">The result categories a function-identifier in this position may have, or
 /// <see langword="null"/> where the verb states no such rule.</param>
 /// <param name="FunctionRuleCite">The quoted rule behind <paramref name="FunctionCategories"/>.</param>
 /// <param name="ZeroLengthLiteralRuleCite">The quoted rule forbidding a zero-length literal-1, or
 /// <see langword="null"/> where the verb states none.</param>
 /// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
-/// at the editions before COBOL-2023 (kb/Work PB5077).</param>
+/// at the editions before COBOL-2014 (kb/Work PB5077, PB5270).</param>
 internal sealed record FromPhraseRules(
     string Statement,
-    string MoveRuleCite,
+    EditionCite MoveRule,
     PicCategory[]? FunctionCategories,
     string? FunctionRuleCite,
     string? ZeroLengthLiteralRuleCite,
     RecordAreaVerb AreaVerb)
 {
-    /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's FROM phrase carries — built once
-    /// per verb, beside the three static rows, rather than once per bound statement. It is the same object the
-    /// two INTO phrases keep on <c>IntoPhraseRules.Read</c> / <c>.Return</c>, their own twin of this row; a phrase is a
-    /// property of the VERB, not of an occurrence of it, so all five are singletons.</summary>
-    public ImplicitMovePhrase Phrase { get; } = new(Statement, MoveRuleCite);
+    /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's FROM phrase carries at <paramref name="dialectLevel"/>
+    /// for a file of <paramref name="organization"/>, citing the MOVE rule as the edition numbers it (kb/Work PB5352) — the twin of
+    /// <c>IntoPhraseRules.PhraseAt</c>.</summary>
+    public ImplicitMovePhrase PhraseAt(int dialectLevel, FileOrganization organization) =>
+        new(Statement, MoveRule.At(dialectLevel, organization));
 
     /// <summary>RELEASE (ISO §2023:14.9.32) — the only FROM phrase carrying the zero-length-literal rule.</summary>
     public static readonly FromPhraseRules Release = new(
         "RELEASE FROM",
-        "ISO §2023:14.9.32.4 GR4 a); §2023:14.9.32.3 SR3",
+        new("ISO §2023:14.9.32.4 GR4 a); §2023:14.9.32.3 SR3", "§1985:XI.4.2.4 GR3"),
         [PicCategory.Alphanumeric, PicCategory.National],
         "ISO §2023:14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
         + "national function.\"",
@@ -80,7 +81,7 @@ internal sealed record FromPhraseRules(
     /// which is what is enforced. The FILE-phrase arm (SR10) is unreachable: Annex A.4.13 item 2 is declined.</summary>
     public static readonly FromPhraseRules Write = new(
         "WRITE FROM",
-        "ISO §2023:14.9.51.4 GR5 a); §2023:14.9.51.3 SR6",
+        new("ISO §2023:14.9.51.4 GR5 a); §2023:14.9.51.3 SR6", "§1985:VII.4.7.4 GR3", "§1985:VIII.4.9.4 GR3", "§1985:IX.4.9.4 GR3"),
         [PicCategory.Alphanumeric, PicCategory.National],
         "ISO §2023:14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
         + "national function.\"",
@@ -91,7 +92,7 @@ internal sealed record FromPhraseRules(
     /// and it is the applicable rule because the FILE phrase (SR8's condition) is declined, A.4.13 item 2.</summary>
     public static readonly FromPhraseRules Rewrite = new(
         "REWRITE FROM",
-        "ISO §2023:14.9.35.4 GR7 a); §2023:14.9.35.3 SR6",
+        new("ISO §2023:14.9.35.4 GR7 a); §2023:14.9.35.3 SR6", "§1985:VII.4.5.4 GR4", "§1985:VIII.4.6.4 GR5", "§1985:IX.4.6.4 GR5"),
         [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
         "ISO §2023:14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
         + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
@@ -423,7 +424,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             ctx.Edition.Error(DiagnosticCatalog.FromPhraseZeroLengthLiteral,
                 $"{rules.Statement}: {zlCite}");
 
-        return BindMoveOf(source, [record], rules.Phrase);
+        return BindMoveOf(source, [record], rules.PhraseAt(ctx.Edition.DialectLevel, file.Organization));
     }
 
     /// <summary>
@@ -462,7 +463,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         return BindMoveOf(
             file.Varying is { } v ? new BoundCurrentRecord(area, file, depending, v.VaryingClause)
                                   : new BoundFieldOperand(area),
-            [receiver], rules.Phrase);
+            [receiver], rules.PhraseAt(ctx.Edition.DialectLevel, file.Organization));
     }
 
     /// <summary>

@@ -516,7 +516,7 @@ def wsl_leg(stage_mnt: str, repeat: int) -> int:
 
 def gate_rows(run_dirs: list[str]) -> tuple[dict, list[dict]]:
     """The whole-population gate time, from the gate's own verdict.json (scripts/gate.py, its record schema). The gate
-    has one shape (kb/Work PB4328): a GREEN gate of the full lane ran every case of the three populations, so its rows are
+    has one shape (kb/Work PB4328): a GREEN gate of the full lane ran every case of every population it ran, so its rows are
     keyed by the part alone, and every run given pools its sample into the one row. Refused, each with the reason: a
     record of another schema (its fields mean something else), a gate that is not GREEN (a RED one stopped early), one
     that REUSED a recorded verdict and one of the inert lane (neither ran a test)."""

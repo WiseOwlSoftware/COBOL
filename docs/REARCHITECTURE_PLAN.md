@@ -63,10 +63,13 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   he approved on account 1 only Mythos for orchestrator loop units and for workers on Mythos-grade jobs. Any other Mythos
   or Fable dispatch, and every one on account 2, needs the owner's explicit approval for that dispatch.
 - **▶ GATE POLICY (owner 2026-10-31, owner decision 1 of PB4323; kb/Work PB4328): THE POPULATION IS THE SELECTION.**
-  Every gate of a change a test can read runs the WHOLE Windows Unit, Conformance and Characterization populations
+  Every gate of a change a test can read runs on Windows the WHOLE population of every test target (`scripts/build_targets.json`)
   (`scripts/gate.py`, one shape since 2026-10-11, kb/Work PB3015 Q1a, PB3022), the classes red at its previous run or
   in the bouncing merge-group run first, then longest first by the committed weights; batched gating (PB2515), the order
-  plan, its tiers and PB4269's whole-tier rule, the impact map and the implementer scope are gone with PB4328. Measured
+  plan, its tiers and PB4269's whole-tier rule, the impact map and the implementer scope are gone with PB4328. Each
+  population is a TARGET keyed by its declared inputs (`scripts/build_targets.json`; kb/Work PB5207, PB5218), and one up to
+  date at its key runs nothing; since kb/Work PB5230 the repository drift tests are their own assembly and target
+  (`repo-drift`), so Unit keys on the compiler, its own data and the generated suite's output digest only (it depends on `conformance-suite`, kb/Work PB5231). Measured
   before the deletion (2026-11-01, quiet box, cache off): one gate's populations 247 s, three gates together 503 s each;
   xunit's default thread count and the cap of 3 (kb/Work PB2514, `gate_slot.py`'s coded `DEFAULT_SLOTS`) were kept on
   those numbers. CI's merge group is the first run of the merged tree, Linux and Release; PB4271 classifies every
@@ -1379,8 +1382,8 @@ the single origin of every numeric argument. Measure the WHOLE population after 
 · Then the gate — the guard line FIRST, because vstest answers an unmatched filter with a passing run of zero
   tests, so the `dotnet test` exit code alone is never evidence the drift test ran (PB751; this is the same pair
   `record_verdicts.py` now PRINTS at the end of a batch):
-  `python scripts/filter_population.py --filter "FullyQualifiedName~SpecTraceabilityInventory" --filtered tests/WiseOwl.Cobol.Tests.Unit --allow-build`
-  then `python scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"`
+  `python scripts/filter_population.py --filter "FullyQualifiedName~SpecTraceabilityInventory" --filtered tests/WiseOwl.Cobol.Tests.RepoDrift --allow-build`
+  then `python scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.RepoDrift --filter "FullyQualifiedName~SpecTraceabilityInventory"`
   (scrubbed: no gate leg handshake or VSTest*/RunSettingsFilePath variable narrows it — kb/Work PB1718).
 
 
@@ -1936,7 +1939,7 @@ result. Run the long legs ONE AT A TIME.
   implementer's commit, a re-gate and a landing (at Normal priority). ORDER, DON'T SKIP (owner, 2026-09-28): its
   driver `scripts/gate.py` holds the worktree's gate lock, runs the audits (beside the build and the legs, outside
   the slot, kb/Work PB2524, PB4326), takes a gate slot (`scripts/gate_slot.py`, at most N gates at once), builds the SOLUTION and runs the
-  WHOLE Unit, Conformance and Characterization populations, three hosts at once (the classes red at its previous run
+  WHOLE population of every test target (`scripts/build_targets.json`) not up to date at its key, one host each at once (the classes red at its previous run
   first, then longest first by the committed weights; kb/Work PB4328), then checks each assembly's population by name
   against `--list-tests`; GREEN only when every host is green and every population exact. No gate filters:
   the PB36 lesson (a filter chosen from where the goldens sat missed the tests the change broke) and PB1683's (a

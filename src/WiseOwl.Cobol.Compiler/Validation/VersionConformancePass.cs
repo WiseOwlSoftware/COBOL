@@ -1113,6 +1113,21 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>An empty argument list after a function name (kb/Work PB5163): §1985:IV.4.3.8.3.2 writes the parentheses
+        /// only around a braced <c>{ argument-1 } ...</c>, and §1985:IV.2.1.4 says "one of the options contained within the
+        /// braces must be either explicitly specified or implicitly selected"; ISO/IEC 1989:2002 8.4.2.2.1 brackets the
+        /// argument inside them (its 8.4.2.2.2 SR4 NOTE writes <c>FUNCTION RANDOM ()</c>). Recognition-based, so a function
+        /// the bind refuses is gated too; the keyword-omitted forms need a REPOSITORY entry, itself a 2002 introduction.</summary>
+        public override object? VisitFunctionCall(CobolParserCore.FunctionCallContext ctx)
+        {
+            if (ctx.FNARG_LPAREN() is { } open && ctx.functionArgList() is null)
+            {
+                using var _ = Sink.At(open.Symbol);
+                _p.Check(Constructs.FunctionEmptyArgumentList2002, "an empty function argument list '( )'");
+            }
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>Whether an UNSTRING sending operand, whichever alternative it is, is written with a reference
         /// modifier. A <c>refModPart</c> of a function call or an inline invocation is always the result's reference
         /// modifier (an argument list is a <c>subscriptPart</c>; <c>IntrinsicBinder.FinishIntrinsic</c>).</summary>

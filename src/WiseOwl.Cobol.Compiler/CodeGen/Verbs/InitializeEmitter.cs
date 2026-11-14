@@ -10,7 +10,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 
 /// <summary>The INITIALIZE verb emitter (P7 Step 9c — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>, extracted from the CSharpEmitter partial of the same name).</summary>
-internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
+internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move, DebugTriggerEmitter debug)
 {
     private DataEmitter? _data;
 
@@ -25,6 +25,10 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
     /// dimension (GR5b2 — every occurrence), nested outermost-first. Actions are already in GR3/GR8 order.</summary>
     public void Emit(BoundInitialize ini)
     {
+        // Each identifier-1 is its own implicit INITIALIZE statement (GR3), identified where that statement begins — after the
+        // identifier-1s before it stored — so a debugging section that describes it reads that identification, not the written
+        // statement's start (§1985:XV.3.2.4 GR14, GR24c; kb/Work PB5385).
+        if (ini.Written is { } written) debug.IdentifyAgain(written);
         foreach (var action in ini.Actions) EmitAction(action);
     }
 

@@ -20,7 +20,7 @@ public sealed class ImplicitSecondDriftTests
     {
         var offenders = TrackedTree.Files(CollationSources)
             .Where(rel => Path.GetFileName(rel) != "CollationTable.cs")
-            .Where(rel => File.ReadAllText(TestRepo.At(rel.Split('/'))).Contains("0x8000", StringComparison.OrdinalIgnoreCase))
+            .Where(rel => File.ReadAllText(TestRepo.Within("src/WiseOwl.Cobol.Runtime/Collation/", rel)).Contains("0x8000", StringComparison.OrdinalIgnoreCase))
             .ToList();
         Assert.True(offenders.Count == 0,
             "the implicit-second floor (0x8000) belongs to CollationTable.ImplicitSecondFlag / IsImplicitSecond; "

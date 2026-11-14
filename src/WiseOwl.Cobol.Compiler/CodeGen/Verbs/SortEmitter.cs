@@ -728,7 +728,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             : seqIo.SentRecordImage(rl.File, rl.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1 and PB322 F)
         string? slots = carriesSlots ? PlaceRenderer.GroupLeaves(rl.Record) : null;
         // §2023:13.18.43.4 GR14 b) / GR19 b): a size outside the record range is EC-SORT-MERGE-RELEASE and the RELEASE
-        // is unsuccessful — the runtime's test, before the release (kb/Work PB1036).
+        // is unsuccessful — the runtime's test, before the release (kb/Work PB1036); at COBOL-85 it is unsuccessful with
+        // no checking to raise anything (§1985:VII.3.8.4 GR10, BoundRelease.RangeFailsStatement; kb/Work PB5124).
         var (min, max) = RecordRange(rl.Varying, rl.RecordWidth);
         // §2023:14.9.32.4 GR3 — the released record is also available as a record of the other files of a SAME RECORD AREA
         // clause (kb/Work PB1195): held in a local so the statement and the store after it see the SAME record.
@@ -740,7 +741,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // The runtime slices the area to it AFTER the range test — an emitted reference modification would
             // raise EC-BOUND-REF-MOD for a value past the area, a condition no RELEASE rule names.
             length = $"(int){PlaceRenderer.CountRead(dep)}";
-            call = RuntimeApi.SortReleaseStatement(sd, image, min, max, length, slots: slots);
+            call = RuntimeApi.SortReleaseStatement(sd, image, min, max, length, slots: slots,
+                rangeFailsStatement: rl.RangeFailsStatement);
         }
         else
         {
@@ -749,7 +751,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // variable-length group (D-FRA (v); kb/Work PB1053; the DEPENDING arm above sends a record cut to another
             // length, which no table describes). The STATEMENT entry: §2023:14.9.32.4 GR1's phase test.
             length = "-1";
-            call = RuntimeApi.SortReleaseStatement(sd, image, min, max, extents: OperandText.RecordSendExtents(rl.Record), slots: slots);
+            call = RuntimeApi.SortReleaseStatement(sd, image, min, max, extents: OperandText.RecordSendExtents(rl.Record), slots: slots,
+                rangeFailsStatement: rl.RangeFailsStatement);
         }
         if (released is null) { w.Line($"{call};"); return; }
         // The statement's own success (it returns whether the record reached the sort file) gates the store.

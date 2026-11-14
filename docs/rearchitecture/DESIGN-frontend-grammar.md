@@ -34,7 +34,7 @@ consumes).
 2. **Spec-first** — every gate, token, and severity cites ISO/IEC 1989:2023 (`specs/ISO_COBOL_2023.md`). The
    canonical construct/edition metadata is `tests/version-matrix/constructs/` +
    `tests/version-matrix/reserved-words.json`; the frontend must consume that single source, never a copy.
-3. **Battery green throughout** — the FULL battery (greenfield conformance + unit + characterization + the
+3. **Battery green throughout** — the FULL battery (greenfield conformance + unit + repo-drift + characterization + the
    NIST legacy guard; current counts live in the plan's STATUS banner) stays
    green at *every* step. The migration in §5 is a sequence of individually-green commits; no big-bang except
    the sanctioned G8 namespace rename, which this design brings forward where it is free.

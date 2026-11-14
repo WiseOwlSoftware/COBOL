@@ -492,7 +492,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             _controlStoreReports++;
         // X3.23-1985 USE FOR DEBUGGING syntax rule 11 (kb/Work PB4858) — asked HERE, of every statement, because this is the one funnel and
         // BoundReferences reads the statement's OWN references (a nested statement is asked at its own position).
-        if (!_inDebuggingSection && Ctx.Table.HasDebugRegisters && ReferencesDebugItem(core))
+        if (!_inDebuggingSection && Ctx.Table.HasDebugRegisters && ReferencesDebugItem(core, marks.PreOps))
             data.Edition.Error(DiagnosticCatalog.DebugItemOutsideDebuggingSection,
                 "the statement references the DEBUG-ITEM special register or one of its members outside a debugging section; "
                 + "X3.23-1985 USE FOR DEBUGGING syntax rule 11 restricts references to DEBUG-ITEM to references from within a debugging section");
@@ -570,9 +570,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     }
 
     /// <summary>Whether <paramref name="statement"/> itself references the DEBUG-ITEM register or a member, whole, reference-modified or as a
-    /// subscript or window position (<see cref="BoundReferences"/>: a place or a position that reads the register's item).</summary>
-    private bool ReferencesDebugItem(BoundStatement statement) =>
-        BoundReferences.Of(statement).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item));
+    /// subscript or window position (<see cref="BoundReferences"/>: a place or a position that reads the register's item).
+    /// ⛔ ITS OPERAND-EVALUATION PRE-OPS ARE ITS OWN REFERENCES (kb/Work PB5297): a subscript or reference-modifier position that is not a
+    /// storage item's (DEBUG-SUB-1 has none: the register is the runtime's) is evaluated into a temporary by a pre-op still pending on
+    /// <c>PendingPreOps</c> from <paramref name="preOpMark"/>, and the node reads only the temporary, so the walk asks those pre-ops too.
+    /// A nested statement drained its own before this one is asked.</summary>
+    private bool ReferencesDebugItem(BoundStatement statement, int preOpMark)
+    {
+        if (BoundReferences.Of(statement).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
+        foreach (var preOp in data.Procedure.PendingPreOps.Since(preOpMark))
+            if (BoundReferences.Of(preOp).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
+        return false;
+    }
 
     /// <summary>Whether the paragraph now binding is in a debugging section (X3.23-1985 USE FOR DEBUGGING general rule 1).</summary>
     private bool _inDebuggingSection;

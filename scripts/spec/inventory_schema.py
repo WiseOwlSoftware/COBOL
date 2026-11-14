@@ -424,6 +424,16 @@ def relocated(location: str, moved: Mapping[str, str]) -> str | None:
     return f"{new}{hash_}{member}" if new else None
 
 
+def respelled_ref(ref: str, respelled: Mapping[str, str]) -> str | None:
+    """`ref` as a move re-spelled it: its own entry in `respelled`, or, for an xUnit test, its class's
+    (`<form>:<Class>.`, `Schema.class_ref_for_path`) with the method kept; None when no move re-spelled it."""
+    if ref in respelled:
+        return respelled[ref]
+    head, dot, method = ref.rpartition(".")
+    now = respelled.get(head + dot) if dot else None
+    return now + method if now else None
+
+
 def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema",
                    respelled: Mapping[str, str] | None = None,
                    moved: Mapping[str, str] | None = None) -> list[WitnessLoss]:
@@ -453,7 +463,7 @@ def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schem
         kept = set(schema.split(after.get(field, "") or "", sep))
         resited = resites(field, before.get("verdict", ""), after.get("verdict", ""))
         out += [WitnessLoss(before.get("rule-id", ""), field, ref, ref in retired, resited,
-                            (field == "test-ref" and respelled.get(ref) in kept)
+                            (field == "test-ref" and respelled_ref(ref, respelled) in kept)
                             or (field == "code-location" and relocated(ref, moved) in kept))
                 for ref in schema.split(before.get(field, "") or "", sep) if ref not in kept]
     return out
@@ -695,7 +705,7 @@ class DerivedSelector:
     """One `derived-verdicts` entry — a verdict that follows MECHANICALLY from one owner determination.
 
     ⛔ THE PREDICATE IS DATA AND BOTH ENGINES READ IT. This class and
-    `tests/WiseOwl.Cobol.Tests.Unit/DerivedVerdictDriftTests.Select` are the two evaluators; neither carries a copy of
+    `tests/WiseOwl.Cobol.Tests.RepoDrift/DerivedVerdictDriftTests.Select` are the two evaluators; neither carries a copy of
     a selector. Until 2026-09-02 the schema's own $comment claimed that already — and it was false: no Python
     consumer of `derived-verdicts` existed, so the PB198 batch was produced by hand and the "two readers" that
     justify writing the predicate as data were one reader and an aspiration.
@@ -1451,6 +1461,22 @@ class Schema:
             if head and path.startswith(head) and path.endswith(tail) and len(path) > len(head) + len(tail):
                 return f"{scheme}:{path[len(head):len(path) - len(tail)]}"
         return None
+
+    def class_ref_for_path(self, path: str) -> str | None:
+        """For an xUnit form (`test-dir`): the prefix `<form>:<Class>.` every test-ref of the class the C# file `path`
+        holds begins with (a ref resolves `<Class>.cs` under the form's directory, so the file's stem is the class);
+        None when no xUnit form's directory holds `path`. A test file that moves between two test projects
+        (kb/Work PB5230: Unit to RepoDrift) re-spells every ref of its class through this."""
+        for scheme, form in self.test_ref_forms.items():
+            root = (form.get("test-dir") or "").rstrip("/")
+            if root and path.startswith(root + "/") and path.endswith(".cs"):
+                return f"{scheme}:{path.rpartition('/')[2][:-3]}."
+        return None
+
+    @property
+    def test_dirs(self) -> list[str]:
+        """The directories the xUnit test-ref forms name (`test-dir`): a git pathspec for their classes' files."""
+        return sorted({form["test-dir"] for form in self.test_ref_forms.values() if form.get("test-dir")})
 
     @property
     def ref_roots(self) -> list[str]:
