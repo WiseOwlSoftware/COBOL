@@ -1,4 +1,4 @@
-## PB5524 and PB5523: an ambiguous UPON detail stops the bind, and CODE ALL refuses a national symbolic character
+## Entry 3622 — 2026-11-14 13:24 PST — PB5524 and PB5523: an ambiguous UPON detail stops the bind, and CODE ALL refuses a national symbolic character
 
 **PB5524.** Re-probe: two reports sharing detail `DET`, RPT declared first, `UPON DET` in RPT2's control footing, gave COBOL1920 and then a cascading COBOL2046 at 85, and the hint suggested `DET OF RPT`, the other report whose detail SR2 refuses. `ResolveUponDetail` now returns at `Match.Ambiguous` (the diagnostic is already reported) and `ReportGroupResolution.Resolve` takes a `preferred` report so the example qualifier names the control footing's own report. The note said SR2 forbids a qualifier at 85; the text allows "a report-name" qualifier, so the hint was wrong only in which report it named. Golden `pb5524_upon_ambiguous_detail_other_report_first` (refused at all four editions, hint `'DET OF RPT2'`). GENERATE and USE BEFORE REPORTING also continue with the first candidate of an ambiguous match; reported as a lead.
 
@@ -7,3 +7,4 @@
 Rows re-verdicted: none (both notes claimed none). Notes flipped to landed.
 
 Review round 1: the diagnostics golden only checks that some error contains the hint, so `ReportWriterConformanceTests.SumUponNonuniqueDetail_IsOneRefusal_NotACascade` now pins exactly one diagnostic (COBOL1920, no cascading COBOL2046); it fails at 85 with the early return removed.
+
