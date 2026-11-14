@@ -101,5 +101,9 @@ internal sealed class LiteralEnvironment
     /// <summary>The ONE character a bound symbolic-character stands for (§2023:12.3.7.4 GR11 b/c), or null when
     /// <paramref name="word"/> names none that is bound. A resolution: <paramref name="site"/>'s source element
     /// records the word as used as a symbolic-character (§2023:8.3.2.2; kb/Work PB3153).</summary>
-    public string? SymbolicValue(Antlr4.Runtime.RuleContext site, string word) => _data?.SpecialNames.SymbolicOf(site, word)?.Value;
+    public string? SymbolicValue(Antlr4.Runtime.RuleContext site, string word) => SymbolicOf(site, word)?.Value;
+
+    /// <summary><see cref="SymbolicValue"/> with the symbolic-character's category: <c>National</c> is true for one declared
+    /// <c>SYMBOLIC CHARACTERS FOR NATIONAL</c> (§2023:8.3.3.6.4 GR1), a national figurative rather than an alphanumeric one.</summary>
+    public (string Value, bool National)? SymbolicOf(Antlr4.Runtime.RuleContext site, string word) => _data?.SpecialNames.SymbolicOf(site, word);
 }
