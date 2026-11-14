@@ -36,3 +36,5 @@ same citations and kinds), and an A.3 range key is stored as an ASCII file name.
 write back (A.4.8 and A.4.11 with unescaped grammar pipes, DOC-A.1-31 and DOC-A.1-95 with a stray `||`) were repaired
 and `check` now refuses both shapes. Left for the next link: the pointer sweep, the conformance arm and PB4053 (commit 3)
 and the published statement (PB5431).
+
+Gate: run 000005-20261114T161341Z at bcbef55d93, `=== BUILD-LOCAL GATE: GREEN — Conformance up to date (24,899 cases) · Unit up to date (40,743 cases) · RepoDrift 177/177 ran · Characterization up to date (37 cases) ===`; reds on the way (standard_streams rule 2, EVIDENCE SUPERSESSION on the view path, RepoDrift document code-locations) each fixed at its root with a planted case. LINUX GATE: not part of the per-change gate (PB4327).
