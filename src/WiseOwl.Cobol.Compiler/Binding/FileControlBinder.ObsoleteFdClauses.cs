@@ -63,7 +63,10 @@ public sealed partial class FileControlBinder
     /// value (an alphanumeric <c>"1"</c> is not the numeric <c>1</c>, nor the national <c>N"1"</c>), and a nonnumeric value is
     /// hexadecimal, so no character of it can collide with the separators <see cref="FileDescriptionIdentity.ValueOfValue"/> joins
     /// the entries with. A figurative constant is its kind (<c>SPACE</c> and <c>SPACES</c> are one: "The singular and plural forms of figurative constants are equivalent", §1985:IV.4.2.2.2.3); its
-    /// length comes from context, so it is not equated with any written literal.</summary>
+    /// length comes from context, so it is not equated with any written literal. In COBOL-85, the only edition with VALUE OF, an
+    /// alphanumeric literal is delimited by quotation marks: <c>'A'</c> and <c>X"41"</c> are COBOL-2002 formats the literal's own
+    /// edition gate refuses (LiteralScreen.GateFormat; kb/Work PB5160, PB1545), so the delimiter-blind key states the rule for the
+    /// value, and the numeric and figurative arms are where two COBOL-85 spellings agree.</summary>
     private string ValueOfLiteralValue(Core.LiteralContext lit)
     {
         if (lit.numericLiteral() is { } num)

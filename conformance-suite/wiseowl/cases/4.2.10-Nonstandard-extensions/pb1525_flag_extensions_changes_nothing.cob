@@ -23,5 +23,5 @@
        PROCEDURE DIVISION.
        PB4305-LEAD.
            ADD B TO A.
-           DISPLAY A ' ' B ' ' C.
+           DISPLAY A " " B " " C.
            STOP RUN.

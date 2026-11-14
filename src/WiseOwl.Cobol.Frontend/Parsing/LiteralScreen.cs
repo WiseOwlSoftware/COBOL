@@ -262,10 +262,15 @@ public static class LiteralScreen
     /// <item>the ZERO-LENGTH literal — §2023:8.3.3.1, "If the opening and closing delimiters are contiguous, the length of
     /// the literal is zero, and it is known as a zero-length literal", in every one of its spellings
     /// (<see cref="CobolLiteral.IsZeroLength"/>), a COBOL-2014 introduction (<see cref="Constructs.ZeroLengthLiteral2014"/>;
-    /// VCR row 7.30, kb/Work PB895).</item>
+    /// VCR row 7.30, kb/Work PB895);</item>
+    /// <item>the APOSTROPHE as the quotation symbol — §2023:8.3.5 SR5, "Either an apostrophe or a quotation mark may be used
+    /// as the quotation symbol character in opening and closing delimiters", in every prefixed and unprefixed format
+    /// (<see cref="CobolLiteral.IsApostropheDelimited"/>), a COBOL-2002 introduction: §2002:F.2 item 3, "Apostrophe as
+    /// quotation symbol", where §1985:IV.4.2.2.2.1 delimits a nonnumeric literal "at the beginning and at the end by the
+    /// separator quotation mark" (<see cref="Constructs.ApostropheQuotationSymbol2002"/>; VCR row 7.72, kb/Work PB5160).</item>
     /// </list>
-    /// The hexadecimal and zero-length edges are DERIVED, the repository holding no 2002 or 2014 text; the derivation is the
-    /// VCR row's.</summary>
+    /// The hexadecimal and zero-length edges are DERIVED, the derivation being the VCR row's; the national, boolean and
+    /// apostrophe edges are QUOTED from the texts they cite.</summary>
     private static void GateFormat(string raw, EditionInfo edition, IDiagnosticSink sink)
     {
         switch (CobolLiteral.ClassOf(raw))
@@ -284,5 +289,8 @@ public static class LiteralScreen
         if (CobolLiteral.IsZeroLength(raw))
             ConstructRegistry.Check(edition, sink, Constructs.ZeroLengthLiteral2014,
                 $"the zero-length literal {raw}");
+        if (CobolLiteral.IsApostropheDelimited(raw))
+            ConstructRegistry.Check(edition, sink, Constructs.ApostropheQuotationSymbol2002,
+                $"the apostrophe-delimited literal {CobolLiteral.Abbreviated(raw)}");
     }
 }

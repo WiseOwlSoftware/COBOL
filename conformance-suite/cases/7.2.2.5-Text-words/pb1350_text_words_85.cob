@@ -26,10 +26,13 @@
       *>     formats of alphanumeric and national literals ... each
       *>     lowercase letter is equivalent to its corresponding
       *>     uppercase letter"                             -> OK 8)
-      *>   7.2.4.4 8) c) 4. a. "The two representations of the
-      *>     quotation symbol match"; 4. b. "two contiguous occurrences
+      *>   7.2.4.4 8) c) 4. b. "two contiguous occurrences
       *>     of the character used as the quotation symbol ... are
       *>     treated as a single occurrence"                -> OK 8)
+      *>     (4. a., "The two representations of the quotation symbol
+      *>     match", needs the apostrophe, a COBOL-2002 quotation
+      *>     symbol: its leg is in 8.3.5-Separators/
+      *>     pb5160_apostrophe_quotation_symbol, kb/Work PB5160.)
       *>   7.2.3.4 6) "... ending with the separator period,
       *>     inclusive"                                    -> OK 6)
       *> EXPECTED OUTPUT, DERIVED (why each leg can fail):
@@ -47,8 +50,6 @@
       *>   [ABC]    character; "ABC" does NOT (case is significant in
       *>            literal content) -> a case-folding compare prints
       *>            [xyz] twice.
-      *>   [RR]     'QQ' matches =="QQ"== (the two quotation symbols
-      *>            match) -> a raw compare leaves [QQ].
       *>   [ZZZ]    COPY ... REPLACING ==VALUE "AAA".== ...: the period
       *>            inside pseudo-text is an operand text-word, not the
       *>            statement's end; the library's VALUE "AAA". is
@@ -56,8 +57,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1350TW85.
        REPLACE ==5== BY ==2== ==ZZ9== BY ==999== ==ZZ== BY ==99==
-               =="Q"== BY =="Z"== =="abc"== BY =="xyz"==
-               =="QQ"== BY =="RR"==.
+               =="Q"== BY =="Z"== =="abc"== BY =="xyz"==.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 TBL   PIC X(6) VALUE "ABCDEF".
@@ -75,6 +75,5 @@
            DISPLAY "[" LIT1 "]"
            DISPLAY "[" "abc" "]"
            DISPLAY "[" "ABC" "]"
-           DISPLAY "[" 'QQ' "]"
            DISPLAY "[" CB-V "]"
            STOP RUN.

@@ -20,10 +20,10 @@
        01  W3 PIC X(4) VALUE "WXYZ".
        PROCEDURE DIVISION.
        P1.
-           INSPECT W1 REPLACING ALL 'AB' BY W3 (3:).
+           INSPECT W1 REPLACING ALL "AB" BY W3 (3:).
            DISPLAY W1 "|".
            INSPECT W1 REPLACING CHARACTERS BY W3 (4:).
            DISPLAY W1 "|".
-           INSPECT W1 CONVERTING 'ZA' TO FUNCTION UPPER-CASE (W2).
+           INSPECT W1 CONVERTING "ZA" TO FUNCTION UPPER-CASE (W2).
            DISPLAY W1 "|".
            STOP RUN.
