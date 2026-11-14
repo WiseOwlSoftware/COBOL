@@ -275,7 +275,8 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, Nu
         {
             DebugContents.Register => OperandText.CounterRegisterStorageImage(new BoundComputedOperand(fire.Target.Register!), num),   // rule 24 c: the register has no place
             DebugContents.Spaces => "\"\"",   // rule 23 d: the register is space-filled, and nothing is moved into it
-            DebugContents.FileRecord => places.RecordArea(fire.Target.File!) is { } area ? OperandText.RecordAreaImage(area) : "\"\"",   // rule 23 c
+            // rule 23 c: "the entire record read" - the WHOLE area, never cut to its widest record's OCCURS DEPENDING extent (kb/Work PB5217)
+            DebugContents.FileRecord => places.RecordArea(fire.Target.File!) is { } area ? OperandText.RecordAreaImage(area, use: OperandText.AreaUse.Whole) : "\"\"",
             _ when fire.Target.Kind is DebugTargetKind.CdName => OperandText.RecordAreaImage(fire.Referenced!),
             _ => DataItemImage(fire.Referenced!),
         };
