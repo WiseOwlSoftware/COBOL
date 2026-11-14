@@ -5620,6 +5620,17 @@ public static class DiagnosticCatalog
         + "positive spelling was accepted silently (kb/Work PB531).",
         "ISO §2023:13.18.40.3 SR6");
 
+    /// <summary>COBOL7078 — at COBOL-85, a parenthesized repetition factor follows a symbol the 1985 list does not name (kb/Work
+    /// PB5118): S, V, the decimal point, CR or DB.</summary>
+    public static readonly DiagnosticDescriptor PictureRepetitionSymbol85 = new(
+        "COBOL7078", "picture-repetition-symbol-1985", EditionSeverity.Error,
+        "§1985:VI.5.9.4 GR7: \"An unsigned nonzero integer which is enclosed in parentheses following the symbols 'A', ',', "
+        + "'X', '9', 'P', 'Z', '*', 'B', '/', '0', '+', '-', or the currency symbol indicates the number of consecutive "
+        + "occurrences of the symbol.\" At COBOL-85 no other symbol takes a repetition factor, so `PIC 9(3)V(1)9`, "
+        + "`PIC S(1)9` and `PIC 9CR(1)` are not COBOL-85 character-strings; COBOL-2002 gives the factor to whatever symbol "
+        + "precedes the left parenthesis (§2002:13.16.38.2 SR7).",
+        "ISO §1985:VI.5.9.4 GR7");
+
     /// <summary>COBOL2148 — the repeat-expanded character-string describes more character positions than
     /// WiseOwl COBOL's implementor-defined maximum for one elementary item.</summary>
     public static readonly DiagnosticDescriptor PictureItemTooLarge = new(
@@ -9530,8 +9541,9 @@ public static class DiagnosticCatalog
         + "a lower level control than the associated control (§1985:XIII.3.19.3 SR4).",
         "ISO §2023:13.18.54.3 SR8; ISO §1985:XIII.3.19.3 SR4");
 
-    /// <summary>COBOL6825 — a SOURCE clause of a control footing, page heading, page footing or report footing report group
-    /// references a control data item or storage that shares it, at a dialect that forbids it (kb/Work PB5079). §1985:XIII.3.20.3
+    /// <summary>COBOL6825 — a SOURCE clause of a control footing, page heading, page footing or report footing report group, or
+    /// a statement of the USE BEFORE REPORTING procedure for one, references a control data item or storage that shares it, at a
+    /// dialect that forbids it (kb/Work PB5079, PB5424). §1985:XIII.3.20.3
     /// SR5: "In control footing, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE
     /// statements must not reference any of the following: a. Group data items containing a control data item. b. Data items
     /// subordinate to a control data item. c. A redefinition or renaming of any part of a control data item. In page heading
@@ -9540,9 +9552,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportSourceControlData = new(
         "COBOL6825", "report-source-control-data", EditionSeverity.Error,
         "§1985:XIII.3.20.3 SR5: in control footing, page heading, page footing and report footing report groups a SOURCE clause "
-        + "must not reference a group item containing a control data item, an item subordinate to one, or a redefinition or "
-        + "renaming of any part of one; in page heading and page footing report groups it must not reference a control "
-        + "data-name at all. (COBOL-2002 and later have no such restriction.)",
+        + "or an associated USE statement must not reference a group item containing a control data item, an item subordinate "
+        + "to one, or a redefinition or renaming of any part of one; in page heading and page footing report groups neither may "
+        + "reference a control data-name at all. (COBOL-2002 and later have no such restriction.)",
         "ISO §1985:XIII.3.20.3 SR5");
 
     /// <summary>COBOL6847 — two file control entries of one compilation group describe the same EXTERNAL file connector and

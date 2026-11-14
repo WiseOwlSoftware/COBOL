@@ -1364,7 +1364,7 @@ class Schema:
 
     def state_for(self, row: dict[str, Any]) -> str:
         """A row is OK only when its verdict resolves, its required evidence is present, AND a SPEC-DERIVED test
-        covers it — or, for a rule with no observable obligation, an owner-signed DERIVATION stands in its place
+        covers it — or, for a rule with no observable obligation, a signed DERIVATION (owner or deciding session, kb/Work PB5373) stands in its place
         (§1.1, kb/Work PB386, 2026-09-03; see `derivation_stands` for why it is consulted LAST).
 
         This is the definition of DONE from `DESIGN-spec-conformance-review.md` §1, evaluated rather than
@@ -1431,7 +1431,7 @@ class Schema:
         return self.has_spec_derived_test(row) or (row.get("verdict") or "") not in self.resolving
 
     def derivation_stands(self, row: dict[str, Any]) -> bool:
-        """Does this row carry an owner-signed DERIVATION that stands in place of §1(c)'s test?
+        """Does this row carry a signed DERIVATION that stands in place of §1(c)'s test?
 
         ⛔ IT IS CONSULTED HERE AND ONLY HERE — after the verdict, after `requires`, after a kind's anchor and
         observability costs, and exactly where a spec-derived `test-ref` would have been. That ORDER is the

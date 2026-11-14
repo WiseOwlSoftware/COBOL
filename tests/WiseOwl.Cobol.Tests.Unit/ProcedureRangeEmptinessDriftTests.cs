@@ -58,10 +58,10 @@ public sealed class ProcedureRangeEmptinessDriftTests
     public void AParagraphAndANonEmptySectionAreNeverEmpty()
     {
         Assert.False(PcRange.At(3).IsEmpty);
-        Assert.True(PcRange.At(3).IsParagraph);      // ALTER's procedure-name-1 shape
         Assert.False(PcRange.Of(3, 7).IsEmpty);
-        Assert.False(PcRange.Of(3, 7).IsParagraph);  // a SECTION name is not a paragraph
-        Assert.False(PcRange.EmptyAt(3).IsParagraph);
+        // Whether a NAME is a paragraph's is not a fact of its range: a section of one paragraph is PcRange.At(n) as a
+        // paragraph is, so ALTER asks ResolvedProcedure.IsSection (kb/Work PB5195) and PcRange carries no IsParagraph.
+        Assert.Null(typeof(PcRange).GetProperty("IsParagraph"));
     }
 
     // ── §2023:14.9.28.4 GR4/GR5b composition ──────────────────────────────────────────────────────────────────────
@@ -215,7 +215,8 @@ public sealed class ProcedureRangeEmptinessDriftTests
     public void NothingDecodesEmptinessFromTheNumbers()
     {
         // An ordering or equality comparison between a `.Start` and an `.End` is the shape that answered the
-        // wrong question. PcRange.IsEmpty / PcRange.IsParagraph are the only sanctioned answers.
+        // wrong question. PcRange.IsEmpty is the sanctioned answer to emptiness, and ResolvedProcedure.IsSection to
+        // whether a name is a paragraph's (kb/Work PB5195).
         var handDecode = new Regex(@"\.Start\s*(<=|<|>=|>|==|!=)\s*[A-Za-z_][A-Za-z0-9_]*\.End"
             + @"|\.End\s*(<=|<|>=|>|==|!=)\s*[A-Za-z_][A-Za-z0-9_]*\.Start");
 
@@ -241,7 +242,8 @@ public sealed class ProcedureRangeEmptinessDriftTests
         Assert.True(hits.Count == 0,
             "A procedure range's emptiness (or paragraph-ness) is being decoded from Start/End arithmetic. "
             + "`End < Start` is ALSO true of a legal inverted THRU range (ISO §2023:14.9.28.4 GR6), so the test is "
-            + "ambiguous — use PcRange.IsEmpty / PcRange.IsParagraph (kb/Work PB440):\n  "
+            + "ambiguous — use PcRange.IsEmpty, or ResolvedProcedure.IsSection for paragraph-ness (kb/Work PB440, "
+            + "PB5195):\n  "
             + string.Join("\n  ", hits));
     }
 

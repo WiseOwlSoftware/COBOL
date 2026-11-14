@@ -26,13 +26,12 @@ using Core = CobolParserCore;
 /// </list></summary>
 public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
 {
-    /// <summary>The closed formats whose figure was read and does NOT print every element once: SPECIAL-NAMES
-    /// and I-O-CONTROL repeat most of their elements; SOURCE-COMPUTER holds a single element. (The
-    /// configuration section and the identification division list paragraphs, each bracketed once, and are rows —
-    /// kb/Work PB1508.)</summary>
+    /// <summary>The closed formats whose figure was read and does NOT print every element once: I-O-CONTROL
+    /// repeats most of its elements; SOURCE-COMPUTER holds a single element. (The configuration section and the
+    /// identification division list paragraphs, each bracketed once, and are rows — kb/Work PB1508; SPECIAL-NAMES
+    /// prints four once-only clauses and, at 85, a fixed sequence, and is a row — kb/Work PB5171.)</summary>
     private static readonly IReadOnlySet<Type> ReviewedExemptions = new HashSet<Type>
     {
-        typeof(Core.SpecialNameEntryContext),
         typeof(Core.IoControlClauseContext),
         typeof(Core.SourceComputerParagraphContext),
     };
@@ -74,14 +73,19 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
             Assert.NotEmpty(alternatives);
             foreach (var figure in row.Figures())
             {
-                var dead = figure.Repeatable.Where(t => !alternatives.Contains(t)).Select(t => t.Name).ToList();
-                Assert.True(dead.Count == 0, $"{list.Name}'s {figure.Format} Repeatable set names "
+                var dead = figure.Repeatable.Concat(figure.NotInFigure).Where(t => !alternatives.Contains(t))
+                    .Select(t => t.Name).ToList();
+                Assert.True(dead.Count == 0, $"{list.Name}'s {figure.Format} Repeatable or NotInFigure set names "
                     + $"{string.Join(", ", dead)}, which the grammar no longer offers there");
+                var both = figure.Repeatable.Intersect(figure.NotInFigure).Select(t => t.Name).ToList();
+                Assert.True(both.Count == 0, $"{list.Name}'s {figure.Format} classifies {string.Join(", ", both)} both as a "
+                    + "repeatable element of the figure and as no element of it");
             }
         }
     }
 
-    /// <summary>⛔ A FIXED SEQUENCE RANKS EXACTLY THE LIST'S ONCE-ONLY ALTERNATIVES (kb/Work PB1508; ISO §2023:5.2.1). A row
+    /// <summary>⛔ A FIXED SEQUENCE RANKS EXACTLY THE FIGURE'S ELEMENTS (kb/Work PB1508, PB5171; ISO §2023:5.2.1): every
+    /// alternative of the list outside <see cref="ClauseList.NotInFigure"/>, once-only and repeatable alike. A row
     /// whose figure binds the order (<see cref="ClauseList.Sequence"/>) is read by <c>ClosedFormatPass</c> as a rank per
     /// element; an alternative the sequence does not name would be written anywhere unchecked, and one it names that
     /// the grammar no longer offers is a dead rank. Both are read from the GENERATED parser, so a clause added to the
@@ -96,15 +100,15 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
             + "(and the identification division's COBOL-85 figure) must carry a Sequence");
         foreach (var (list, row) in ordered)
         {
-            var onceOnly = AlternativesOf(list).Where(t => !row.Repeatable.Contains(t)).ToHashSet();
+            var elements = AlternativesOf(list).Where(t => !row.NotInFigure.Contains(t)).ToHashSet();
             var ranked = row.Sequence!.ToHashSet();
             Assert.True(ranked.Count == row.Sequence!.Count, $"{list.Name}'s {row.Format} Sequence names an element twice");
-            var unranked = onceOnly.Except(ranked).Select(t => t.Name).ToList();
+            var unranked = elements.Except(ranked).Select(t => t.Name).ToList();
             Assert.True(unranked.Count == 0, $"{list.Name}'s {row.Format} Sequence does not rank {string.Join(", ", unranked)}: read "
                 + "the printed figure (scripts/render-spec-page.py) and place it where the figure prints it");
-            var dead = ranked.Except(onceOnly).Select(t => t.Name).ToList();
-            Assert.True(dead.Count == 0, $"{list.Name}'s {row.Format} Sequence ranks {string.Join(", ", dead)}, which is not a "
-                + "once-only alternative of the list");
+            var dead = ranked.Except(elements).Select(t => t.Name).ToList();
+            Assert.True(dead.Count == 0, $"{list.Name}'s {row.Format} Sequence ranks {string.Join(", ", dead)}, which is not an "
+                + "element of the figure among the list's alternatives");
         }
     }
 
@@ -142,7 +146,7 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
                 typeof(Core.SecurityParagraphContext),
             ],
             cobol85.Sequence!);
-        Assert.Contains(typeof(Core.OptionsParagraphContext), cobol85.Repeatable);
+        Assert.Contains(typeof(Core.OptionsParagraphContext), cobol85.NotInFigure);
         foreach (int year in new[] { 2002, 2014, 2023 })
         {
             var figure = row.At(year);
@@ -167,7 +171,7 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
                 typeof(Core.SegmentLimitClauseContext),
             ],
             cobol85.Sequence!);
-        Assert.Contains(typeof(Core.CharacterClassificationClauseContext), cobol85.Repeatable);
+        Assert.Contains(typeof(Core.CharacterClassificationClauseContext), cobol85.NotInFigure);
         Assert.False(cobol85.ChoiceIndicators);   // three separate brackets: COBOL2423, not the choice-indicator reader
         foreach (int year in new[] { 2002, 2014, 2023 })
         {
@@ -177,6 +181,45 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
             Assert.True(figure.ChoiceIndicators);   // 5.2.6.4: a repeat is the one choice-indicator reader's COBOL2104
             Assert.DoesNotContain(typeof(Core.ProgramCollatingSequenceClauseContext), figure.Repeatable);
             Assert.DoesNotContain(typeof(Core.CharacterClassificationClauseContext), figure.Repeatable);
+            Assert.DoesNotContain(typeof(Core.CharacterClassificationClauseContext), figure.NotInFigure);
+        }
+    }
+
+    /// <summary>⛔ THE SPECIAL-NAMES PARAGRAPH IS SCREENED AGAINST ITS EDITION'S FIGURE (kb/Work PB5171). Below 2002 the
+    /// COBOL-85 figure (§1985:VI.4.5.2) ranks every clause in its printed sequence (§1985:IV.2.1), the switch entries,
+    /// ALPHABET, SYMBOLIC CHARACTERS and CLASS repeatable and CURRENCY SIGN and DECIMAL-POINT once; from 2002 the ISO
+    /// §2023:12.3.7.2 figure counts CRT STATUS, CURSOR, DECIMAL-POINT and ORDER TABLE once and leaves the order to kb/Work
+    /// PB1578. Pinned through <see cref="ClauseList.At"/>, the method <c>ClosedFormatPass</c> asks.</summary>
+    [Fact]
+    public void TheSpecialNamesRow_ScreensTheCobol85FigureBelow2002()
+    {
+        Assert.True(ClauseCardinalities.ByClauseContext.TryGetValue(typeof(Core.SpecialNameEntryContext), out var row));
+        var cobol85 = row!.At(1985);
+        Assert.Equal("ANSI X3.23-1985", cobol85.Format);
+        Assert.Equal(
+            [
+                typeof(Core.ImplementorSwitchEntryContext), typeof(Core.AlphabetClauseContext),
+                typeof(Core.SymbolicCharactersClauseContext), typeof(Core.ClassDefinitionClauseContext),
+                typeof(Core.CurrencySignClauseContext), typeof(Core.DecimalPointClauseContext),
+            ],
+            cobol85.Sequence!);
+        Assert.False(cobol85.Repeats(typeof(Core.CurrencySignClauseContext)));
+        Assert.False(cobol85.Repeats(typeof(Core.DecimalPointClauseContext)));
+        Assert.True(cobol85.Repeats(typeof(Core.ClassDefinitionClauseContext)));
+        foreach (int year in new[] { 2002, 2014, 2023 })
+        {
+            var figure = row.At(year);
+            Assert.Same(row, figure);
+            Assert.Null(figure.Sequence);   // kb/Work PB1578 decides the order from 2002
+            var onceOnly = AlternativesOf(typeof(Core.SpecialNameEntryContext))
+                .Where(t => !figure.Repeatable.Contains(t) && !figure.NotInFigure.Contains(t)).ToHashSet();
+            Assert.Equal(
+                new HashSet<Type>
+                {
+                    typeof(Core.CrtStatusClauseContext), typeof(Core.CursorClauseContext),
+                    typeof(Core.DecimalPointClauseContext), typeof(Core.OrderTableClauseContext),
+                },
+                onceOnly);
         }
     }
 

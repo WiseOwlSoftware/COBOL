@@ -42,16 +42,18 @@
       *>    to a one-character item displays `A`.
       *>  . The ALPHABET and switch entries are declarations; the program's output does not depend on
       *>    them, which is the point - an optional word omitted changes nothing at all.
+      *>  . The clauses stand in the 1985:VI.4.5.2 sequence, which binds at 85 (1985:IV.2.1;
+      *>    kb/Work PB5171).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB695SN85.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SPECIAL-NAMES.
-           DECIMAL-POINT COMMA
-           CURRENCY "@"
-           SYMBOLIC SC-ORD66 66
+           SWITCH-1 MNEM-ONE
            ALPHABET AL-NATV NATIVE
-           SWITCH-1 MNEM-ONE.
+           SYMBOLIC SC-ORD66 66
+           CURRENCY "@"
+           DECIMAL-POINT COMMA.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 N   PIC 9(3)V99 VALUE 123,45.

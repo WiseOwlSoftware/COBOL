@@ -1149,6 +1149,27 @@
    "names": "the set of file connectors for which this processor does not support record locking is empty: every organization (sequential, the LINE SEQUENTIAL extension among them, relative and indexed) sets and honours record locks through PhysicalFileTable.LockRecord and PhysicalFileTable.HolderOf, answering '51' to another connector in the same run unit and in a different one, and every host carries the cross-run-unit half (HostRegionLocks.HostOfThisProcess: HandleRegionLocks on Windows and Linux, SidecarRegionLocks on every other host)",
    "signature": "owner: 2026-10-23",
    "refuter": "—"
+  },
+  {
+   "key": "DRV-1985-GR-XIV.2.2.4-7",
+   "arm": "undefined-in-rule",
+   "names": "\"lacking an INITIAL clause, the results are undefined\"",
+   "signature": "claude: 2026-11-12",
+   "refuter": "—"
+  },
+  {
+   "key": "DRV-1985-GR-XIV.2.2.4-29",
+   "arm": "undefined-in-rule",
+   "names": "\"lacking an INITIAL clause, the results are undefined\"",
+   "signature": "claude: 2026-11-12",
+   "refuter": "—"
+  },
+  {
+   "key": "DRV-1985-GR-XIV.3.6.4-5",
+   "arm": "undefined-in-rule",
+   "names": "\"referenced by identifier-1 is undefined\"",
+   "signature": "claude: 2026-11-12",
+   "refuter": "—"
   }
  ],
  "declinedCodes": {

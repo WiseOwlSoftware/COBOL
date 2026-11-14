@@ -2142,24 +2142,29 @@ joined the table the same way, which is the table doing its job: a tenth format 
   ellipsis permits its element at most once (§2023:5.2.6.2, §2023:5.2.7), and the grammar writes only the order licence
   (`clause*`). `Frontend/Cst/ClauseCardinality.cs` (`ClauseCardinalities.ByClauseContext`) keys the clause lists whose
   figures were read for ellipses — the §2023:13.16.2 data description entry, the §2023:13.15.2 report group description entry,
-  the §2023:13.4.5.2 file description entry, the §2023:13.4.6.2 SD entry and the §2023:12.4.5.1 file control entry — and names the
-  alternatives that DO repeat (the file control entry's ALTERNATE RECORD KEY and collating-sequence clauses, an
-  error production, the declined validation clauses); `ClosedFormatPass.VisitChildren` counts every clause list's
+  the §2023:13.4.5.2 file description entry, the §2023:13.4.6.2 SD entry, the §2023:12.4.5.1 file control entry and the
+  §2023:12.3.7.2 SPECIAL-NAMES paragraph — and classifies each grammar alternative of the list as once-only, as an element
+  that DOES repeat (`ClauseList.Repeatable`: the file control entry's ALTERNATE RECORD KEY and collating-sequence
+  clauses, the declined validation clauses, the SPECIAL-NAMES clauses with an ellipsis) or as no element of the figure
+  at all (`ClauseList.NotInFigure`: an error production, another edition's clause or paragraph, which that edition's
+  gate refuses; kb/Work PB5171); `ClosedFormatPass.VisitChildren` counts every clause list's
   elements against it and reports COBOL2423 through the one `UnrepeatedElements` reader the RD entry already uses (a row whose figure sits in choice indicators, `ClauseList.ChoiceIndicators`, reports COBOL2104 through `ChoiceIndicators.AtMostOnce` instead: one rule, one code).
   `ClauseCardinalityDriftTests` makes the table total: every closed format is a row or a reviewed exemption
-  (SPECIAL-NAMES and I-O-CONTROL repeat their elements, SOURCE-COMPUTER holds one), so a new
+  (I-O-CONTROL repeats its elements, SOURCE-COMPUTER holds one), so a new
   closed format cannot arrive without its figure being read for ellipses.
 - **And the ORDER half (kb/Work PB1508).** §2023:5.2.1: the elements of a general format "shall be written in the
   compilation group in the sequence given in the general format, unless otherwise specified by the rules of that
   format". Every row DECIDES its order through `ClauseList.Sequence`: null where a syntax rule frees it (§2023:13.16.3 SR4,
-  §2023:13.15.3 SR2, §2023:13.4.5.3 SR2, §2023:12.4.5.2 SR1), else the once-only elements in printed sequence — the §2023:11.9.2 OPTIONS
+  §2023:13.15.3 SR2, §2023:13.4.5.3 SR2, §2023:12.4.5.2 SR1) or where the order is an open analysis (the 2002+ SPECIAL-NAMES
+  paragraph, kb/Work PB1578), else every element of the figure in printed sequence, a repeatable one ranked like a
+  once-only one (kb/Work PB5171) — the §2023:11.9.2 OPTIONS
   paragraph's seven clauses (its rule was an order-free `optionsClause+` folded last-wins, so a reordered or repeated
   clause compiled clean), the §2023:12.3.2 CONFIGURATION SECTION's four paragraphs and the §2023:11.2.1 identification
   division's OPTIONS paragraph (a second one was never read). `ClosedFormatPass` reports an element written after one
   the figure prints later as COBOL2987, at the misplaced element; a repeat stays COBOL2423, whose message no
   longer grants an order licence to a fixed-sequence list. The grammar keeps the order-free superset (a named
   diagnostic, never a raw COBOL0307 at the second clause), and `ClauseCardinalityDriftTests` requires a sequence to rank
-  exactly its list's once-only alternatives, so a clause added to such a list cannot arrive unranked. A list an
+  exactly its list's alternatives outside `NotInFigure`, so a clause added to such a list cannot arrive unranked. A list an
   EARLIER edition printed differently carries that figure as well (`ClauseList.Earlier`, kb/Work PB2532), and the pass
   screens the figure of the targeted edition (`ClauseList.At`): below 2002 the identification division is the COBOL-85
   figure, which ranks AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED and SECURITY once each in that sequence
@@ -2179,6 +2184,13 @@ joined the table the same way, which is the table doing its job: a tenth format 
   the 1985 clauses at 2002+ are the removal and introduction gates', so each figure leaves them uncounted. The OPTIONS
   paragraph's independent `[.]` is its own grammar alternative: `OPTIONS DOT (optionsClause+ DOT | DOT)?` is §2023:11.9.2's
   bracket plus §2023:11.9.3 SR1 (a period is required once a clause is written), so `OPTIONS. .` is accepted.
+  **The SPECIAL-NAMES paragraph is a row too (kb/Work PB5171).** From 2002 the §2023:12.3.7.2 figure (rendered, PDF
+  p320) prints CRT STATUS, CURSOR, DECIMAL-POINT and ORDER TABLE without an ellipsis, each once, and every other clause
+  with one; §2002:12.2.6.1 and §2014:12.3.6.1 put the ellipses on the same clauses; the ORDER is left free pending kb/Work
+  PB1578. Below 2002 the COBOL-85 figure (§1985:VI.4.5.2) ranks the implementor-name entries, ALPHABET, SYMBOLIC
+  CHARACTERS, CLASS, CURRENCY SIGN and DECIMAL-POINT in that sequence (§1985:IV.2.1), the first four repeatable and the
+  last two once each; the 2002 clauses are no element of it. A second CURRENCY SIGN at 85 or DECIMAL-POINT at any
+  edition is COBOL2423, a clause written after one the 1985 figure prints later COBOL2987.
 - **Its second error production — a KNOWN phrase in the WRONG position.** `misplacedSpecialNamesForPhrase`
   (kb/Work PB977) parses a SPECIAL-NAMES `FOR {ALPHANUMERIC | NATIONAL}` phrase written AFTER the definition of an
   ALPHABET, CLASS or SYMBOLIC CHARACTERS clause — a position §2023:12.3.7.2 never prints and no dialect owns — so

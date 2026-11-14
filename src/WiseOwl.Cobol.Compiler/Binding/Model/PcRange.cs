@@ -92,10 +92,6 @@ public readonly record struct PcRange
         new(Start, last.End, isEmpty: IsEmpty && last.IsEmpty && Start == last.End + 1,
             Math.Min(SpanLow, last.SpanLow), Math.Max(SpanHigh, last.SpanHigh));
 
-    /// <summary>This range is exactly one paragraph — what ALTER's procedure-name-1 requires (a paragraph
-    /// containing a single GO TO), so a section name (a multi-pc range) and an empty section are both excluded.</summary>
-    public bool IsParagraph => !IsEmpty && Start == End;
-
     /// <summary>⛔ DOES A PARAGRAPH LIE LEXICALLY WITHIN THIS PROCEDURE? — the question a SYNTAX rule asks of a range
     /// ("shall not appear in an input or output procedure", §2023:14.9.40.3 SR3), asked of the TEXT: every paragraph from
     /// the first named procedure to the last, in whichever physical order the two stand. Never <c>Start &lt;= pc &lt;=
