@@ -87,6 +87,13 @@ def case_01_each_way_out_of_shape_is_one_finding(expect):
            len(gone) == 2 and "does not list" in gone[0] and "lost §5" in gone[1], str(gone))
     expect(*_one("a layout that is not the renderer's (two blank lines)", REGULAR.replace("prose\n\n## 2.", "prose\n\n\n## 2."),
          "the layout is not the renderer's"))
+    expect(*_one("a row with a stray trailing pipe (one cell more than the columns)",
+         REGULAR.replace("| DOC-A.1-9 | e |", "| DOC-A.1-9 | e ||"), "has 3 cells and the table 2 columns"))
+    expect(*_one("a row with an unescaped pipe inside a cell", REGULAR.replace("| ext-a | x |".replace("ext-a", "`ext-a`"),
+         "| `ext-a` | (A|B) |"), "has 3 cells and the table 2 columns"))
+    expect.equal("an escaped pipe keeps the row at its width", _findings(REGULAR.replace("| `ext-a` | x |", "| `ext-a` | (A\\|B) |")), [])
+    expect(*_one("a row spelled with two spaces before a separator", REGULAR.replace("| A.4.2 | m |", "| A.4.2  | m |"),
+         "is not spelled `| cell | cell |`"))
 
 
 def case_02_the_live_document_is_regular(expect):

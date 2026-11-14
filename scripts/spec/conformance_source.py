@@ -324,6 +324,11 @@ def _cell(row: list[str], i: int) -> str:
     return row[i] if len(row) > i else ""
 
 
+def row_line(row: list[str]) -> str:
+    """A table row's one spelling from its cells: `| a | b |`, a pipe inside a cell escaped (`cells` inverted)."""
+    return "| " + " | ".join(c.replace("|", "\\|") for c in row) + " |"
+
+
 def _fenced(lines: list[str]) -> list[bool]:
     """For each line, whether it lies inside a fenced code block (its fence lines included): a `#` or `|` there is text."""
     out, inside = [], False
@@ -432,6 +437,13 @@ def _classify(number: str, kind: str, lines: list[str], first: int) -> Shape:
         if body_keys != sorted(body_keys, key=natural_key):
             findings.append(f"{where}: the row bodies are out of natural key order")
         findings += [f"{where}: two bodies of the row `{k}`" for k in sorted({k for k in body_keys if body_keys.count(k) > 1})]
+        width = len(cells(head[0])) if head else 0
+        findings += [f"{where} line {e.line}: the row `{e.key}` has {len(cells(e.text))} cells and the table {width} columns "
+                     f"(a stray `|`, or an unescaped one inside a cell: write it `\\|`)"
+                     for e in entries if len(cells(e.text)) != width]
+        findings += [f"{where} line {e.line}: the row `{e.key}` is not spelled `| cell | cell |` (one space each side of "
+                     f"every separator), the one spelling a row renders back to" for e in entries
+                     if len(cells(e.text)) == width and e.text != row_line(cells(e.text))]
     return Shape(kind, preamble, "\n".join(head), entries, bodies, epilogue, findings)
 
 
