@@ -2387,8 +2387,8 @@ conjunct reads `DataItem.ExternalItemIdentity` (a model member, so the emitter n
 every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The PADDING CHARACTER clause
 is captured (`FileModel.Padding`, `FileControlBinder.CapturePadding`) for its syntax rules and its segment; it changes no I-O. **The file DESCRIPTION
 entries** (kb/Work PB5300): `FileDescriptionIdentity.Rules` is the same table for the FD, one row per 1985 clause that states its own
-agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 GR5, CODE-SET §1985:VII.3.4.4 GR3, LINAGE §1985:VII.3.8.4 GR2, VALUE OF
-§1985:VII.3.9.4 GR2): the binder captures what each entry writes (`FileModel.FdClauses`, LINAGE read from `FileModel.Linage`), and
+agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 GR5, CODE-SET §1985:VII.3.4.4 GR3, LINAGE §1985:VII.3.7.4 GR11, RECORD §1985:VII.3.8.4 GR2 (kb/Work PB5387), VALUE OF
+§1985:VII.3.9.4 GR2): the binder captures what each entry writes (`FileModel.FdClauses`, LINAGE read from `FileModel.Linage` and RECORD from `FileModel.RecordClause`), and
 `ExternalFileConnectorRules.CheckFileDescriptions` compares, at COBOL-85 only (the later texts state none of these rules for their descendants of the
 clauses), each entry that writes a clause with the first entry that writes it (COBOL6847, at the clause). The identity is compile-time only; the
 run time's fingerprint stays the file control entry's. An omitted clause is no clause ("all LABEL RECORDS clauses in the run unit"), so it agrees

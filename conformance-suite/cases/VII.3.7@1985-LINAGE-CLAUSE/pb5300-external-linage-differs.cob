@@ -1,12 +1,13 @@
       *>--- conformance-case
       *> id: pb5300-external-linage-differs
-      *> rules: [1985-GR-VII.3.8.4-2]
+      *> rules: [1985-GR-VII.3.7.4-11]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5300. §1985:VII.3.8.4 GR2: the file description entries
-      *> associated with an external file connector "must specify the same
-      *> values for integer-1 or integer-2 and integer-3". LINAGE 5 against
+      *> kb/Work PB5300. §1985:VII.3.7.4 GR11b: the file description entries
+      *> associated with an external file connector must have "The same
+      *> corresponding values for integer-1, integer-2, integer-3, and
+      *> integer-4, if specified". LINAGE 5 against
       *> LINAGE 6: refused (COBOL6847).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. MP5300X3.
