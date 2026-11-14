@@ -93,8 +93,15 @@ public sealed partial class FileControlBinder
     private void ScreenPaddingDataName(PaddingCharacterSpec pad)
     {
         if (pad.Item is not { } item) return;
-        string? fault =
-            !ItemCategory.IsAlphanumeric(item) ? $"is {ItemCategory.Face(item)}, not of the category alphanumeric"
+        // A table element is not nameable here (kb/Work PB5499): "Data-name-1 may be qualified" is the clause's only reference form
+        // (§1985:VII.2.7.3 SR2), no subscript is written (CapturePadding refuses one, ScreenClauseOperandShape), and a table element
+        // reference "must be subscripted" (§1985:IV.4.3.8.2.3 SR4; §2002:8.4.1.2.2 SR5): an item under an OCCURS clause has no reading.
+        bool table = RecordLayout.IsSubjectToOccurs(item);
+        string? fault = table
+            ? "is subject to an OCCURS clause, so every reference to it is a table element reference that shall be subscripted, "
+              + "yet the clause's data-name-1 may be qualified and takes no subscript "
+              + (Edition.DialectLevel < 2002 ? "(ISO §1985:IV.4.3.8.2.3 SR4 and §1985:VII.2.7.3 SR2)" : "(ISO §2002:8.4.1.2.2 SR5)")
+            : !ItemCategory.IsAlphanumeric(item) ? $"is {ItemCategory.Face(item)}, not of the category alphanumeric"
             : item.ByteWidth != 1 || DataItem.HasOdoOnOrBeneath(item)
                 ? $"is {item.ByteWidth} character positions long, not a one-character data item"
             : item.Section is { } s and not (EntrySection.WorkingStorage or EntrySection.LocalStorage or EntrySection.Linkage)
@@ -104,7 +111,7 @@ public sealed partial class FileControlBinder
         using var _ = Edition.At(pad.At);
         Edition.Error(DiagnosticCatalog.PaddingCharacterOperand, $"PADDING CHARACTER IS "
             + $"{DataBinder.WrittenQualified(pad.DataName!, pad.Qualifiers)}: data-name-1 {fault} "
-            + (Edition.DialectLevel < 2002
+            + (table ? "" : Edition.DialectLevel < 2002
                 ? "(ISO §1985:VII.2.7.3 SR3: \"Data-name-1 must be defined in the Data Division as a one-character data item of "
                   + "the category alphanumeric and must not be defined in the Communication Section, the File Section, or the "
                   + "Report Section.\")"
