@@ -1,0 +1,3 @@
+**2026-11-13, lead filed by the notes batch 20261113d.** UNVERIFIED LEAD: re-probe before fixing.
+
+Next step recorded by the wave 20262022 group E implementer (wave journal wf_979d09fa-90c; report `E:/COBOL-coord/scratch/reports/w20262022e-PB5364-report.md`), verbatim: "PB5147 next step: mine ~20 merge-group Conformance.trx for CM102M duration plus the new StdOut 'durable flush on the run volume' line (miner E:\COBOL-coord\scratch\op-20261113b\w20262022e\cm102m_durations.py); a high median on slow Windows runs makes the per-SEND device flush (McsStore.Transmit, design §6 Devices step 2) the product question."
