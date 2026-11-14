@@ -18,7 +18,7 @@ by hand and bumped the major, so two such branches always conflicted, and the re
 has its OWN hash, which no branch measured, and its own major (a finisher's merge, 2026-10-24: "main's 17 shipped
 AnnuityDec(CobolRounding, CobolDec, long), so the merged surface is an incompatible change against main's 17: major 18").
 So an author runs `bump` or `repin`, which edits the three places a number lives and has the test WRITE the measurement
-(`WISEOWL_COBOL_WRITE_ABI_PIN=1`, as `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1` writes the diagnostics doc).
+(`WISEOWL_COBOL_WRITE_ABI_PIN=1`, as `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC` has its test write the diagnostics render).
 
 ⛔ NO MERGE DRIVER (owner, kb/Work PB5110: "No custom merge drivers are required"). Two branches that both changed the pin
 conflict in plain git, here and in the merge queue alike, and the finisher regenerates: take main's pin, re-apply this branch's

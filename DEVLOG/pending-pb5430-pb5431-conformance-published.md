@@ -30,3 +30,17 @@ Self-review: one renderer (the pack runs `conformance_doc.py`, the view's own ge
 group): the CLI packs as `cobol`, not the `WiseOwl.COBOL` tool package CLAUDE.md names (no `PackageId`/`PackAsTool`).
 
 Gate: run 000002-20261114T164614Z at db6e01c2a9, `=== BUILD-LOCAL GATE: GREEN — Conformance 24,966/24,966 ran · Unit 40,766/40,766 ran · RepoDrift 177/177 ran · Characterization 37/37 ran (skipped 0) ===`. LINUX GATE: not part of the per-change gate (PB4327).
+
+Branch review round 1 (two blocking findings), answered at the root. R1-1: the C# inventory drift test now skips a
+document's location before its `File.Exists` (the conformance statement is a rendered view a fresh checkout lacks), but
+`docchecks/inventory.py` judged only anchored document locations, so a BARE one (`DOC-A.1-75`'s `docs/FILES_DESIGN.md`)
+was checked by nothing. The audit now judges every document location, a bare one for its file; probe: with
+`docs/FILES_DESIGN.md` moved aside, `doc_audits.py --check` printed `DOC-A.1-75: code-location 'docs/FILES_DESIGN.md' — no
+such file` and RED, and two self-test arms pin it. R1-2: rule (e) held every in-tree file view to a stamp only
+`render_all` wrote, so running a generator directly (`drift_rules.py --out docs/DRIFT_RULES.md`, `gen-diagnostics-doc.ps1`)
+left an unstamped view the gate called a hand edit. The stamp now has one writer, `rendered_views.write_view`: the Python
+generators' `--out` reaches it through `write_rendered` (stamped at a view's path, the body alone elsewhere, so the
+package's copy stays plain), the diagnostics test writes its raw render to the file `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC`
+names and the script places it with `rendered_views.py diagnostics --write`, and `render_all` fails a generator that exits
+0 without a stamped view. Probe: the three generators run directly, then `rendered_views.py --check`: `rendered views OK —
+7 views … none edited after its render`; the self-test grew four arms (20/20).

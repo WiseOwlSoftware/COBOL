@@ -362,7 +362,7 @@ def code_readers(root: Path, paths: list[str], trees: tuple[str, ...]) -> list[t
 #: change needs to read an markdown note"). The Markdown names a compiler test may spell, each with why: the ISO text is a
 #: READ entry (`Classification.read`, derived, not listed here), and this is the rest.
 TESTS_MAY_NAME_MARKDOWN = {
-    "DIAGNOSTICS.md": "the gitignored rendered view DiagnosticRegistryDriftTests WRITES when WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1 "
+    "DIAGNOSTICS.md": "the gitignored rendered view whose raw render DiagnosticRegistryDriftTests writes to WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC "
                       "(scripts/gen-diagnostics-doc.ps1); no test reads it",
 }
 

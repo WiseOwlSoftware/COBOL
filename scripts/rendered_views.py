@@ -35,7 +35,9 @@ of every tracked `kb/` note, and a test that did would make the vault a test inp
       produce a view (a drift test deleted its `<summary>`, an inventory row lost a field, the plan cannot be read);
   (e) NOT EDITED — an in-tree FILE view carries a first-line STAMP (what renders it, from what, the digest of its body,
       the remedy), and a file at its path with no stamp or with a body that is not the stamp's is a hand edit a
-      gitignored file would otherwise swallow; a render refuses to overwrite it (kb/Work PB5430). A view merely STALE
+      gitignored file would otherwise swallow; a render refuses to overwrite it (kb/Work PB5430). The stamp is written
+      by ONE writer, `write_view` (a generator's `--out` reaches it through `write_rendered`, the diagnostics script
+      through `--write`), so a generator run directly stamps its view as `render_all` does. A view merely STALE
       (its sources moved on, its body untouched) is no finding: nothing is lost, and the next render replaces it.
 A view rendered by a C# test (it reads the compiled catalogue) names that test instead, and the test is its (d).
 
@@ -235,11 +237,37 @@ def edited_problems(views, root: pathlib.Path = ROOT) -> list[str]:
     return [p for v in views if (p := edited(v, root)) is not None]
 
 
+def write_view(v: View, body: str, root: pathlib.Path = ROOT) -> str | None:
+    """⛔ THE ONE WRITER of an in-tree FILE view (wave 20262031 review R1-2): the stamp and the body, written together, so a
+    view is stamped however its generator was run (by `render_all`, or directly as its own docstring documents). Refuses,
+    returning the reason and writing nothing, when the file there is a hand edit (rule (e)): a render would lose it."""
+    refused = edited(v, root)
+    if refused is not None:
+        return refused
+    path = root / v.out
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(stamp_line(v, body) + "\n" + body, encoding="utf-8", newline="\n")
+    return None
+
+
+def write_rendered(path: pathlib.Path, body: str, root: pathlib.Path = ROOT, views=VIEWS) -> str | None:
+    """A generator's `--out <path>`: through `write_view` when ``path`` is a stamped view's output in ``root``, else the
+    body as it is (the package's copy of the conformance statement under `obj/`, a scratch render). Returns `write_view`'s
+    refusal, or None."""
+    target = path.resolve()
+    v = next((v for v in views if v.stamped and (root / v.out).resolve() == target), None)
+    if v is not None:
+        return write_view(v, body, root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body, encoding="utf-8", newline="\n")
+    return None
+
+
 def render_all(views, root: pathlib.Path = ROOT) -> int:
     rc = 0
     for v in views:
         refused = edited(v, root)
-        if refused is not None:   # a render over an edited view would lose the edit: refuse it, loudly
+        if refused is not None:   # refused before the generator runs: a heavy one builds for minutes before it would refuse
             print(f"⛔ {refused}", flush=True)
             rc = rc or 1
             continue
@@ -247,10 +275,10 @@ def render_all(views, root: pathlib.Path = ROOT) -> int:
         print(f"· {v.name}: {' '.join(cmd[1:] if cmd[0] == sys.executable else cmd)}", flush=True)
         r = subprocess.run(cmd, cwd=root)
         rc = rc or r.returncode
-        if r.returncode == 0 and v.stamped:
-            path = root / v.out
-            body = path.read_text(encoding="utf-8")
-            path.write_text(stamp_line(v, body) + "\n" + body, encoding="utf-8", newline="\n")
+        if r.returncode == 0 and v.stamped and (not (root / v.out).is_file() or edited(v, root) is not None):
+            print(f"⛔ {v.name}: {v.generator} exited 0 but left no stamped {v.out}: a generator writes its view through "
+                  f"rendered_views.write_rendered (or `rendered_views.py --write {v.name} <file>`), never on its own", flush=True)
+            rc = rc or 1
     return rc
 
 
@@ -318,9 +346,12 @@ def self_test() -> int:
 
         # Rule (e) and the stamp (kb/Work PB5430): a render stamps the view, an untouched (or stale) view is GREEN, an
         # edited or unstamped one is named, and a render over it is refused and leaves it as it was.
-        writer = "import sys; open(sys.argv[1], 'w', encoding='utf-8', newline='\\n').write(sys.argv[2])"
-        view = View("v", "docs/V.md", (sys.executable, "-c", writer, "{out}", "rendered body\n"), None, sources="src/")
-        stale = View("v", "docs/V.md", (sys.executable, "-c", writer, "{out}", "a later body\n"), None, sources="src/")
+        # The planted generator writes as a real one does, through write_view (it builds the planted row itself).
+        writer = (f"import sys, pathlib; sys.path.insert(0, {str(pathlib.Path(__file__).resolve().parent)!r}); "
+                  "import rendered_views as r; "
+                  "sys.exit(1 if r.write_view(r.View('v', 'docs/V.md', ('gen.py',), None, sources='src/'), sys.argv[1], pathlib.Path.cwd()) else 0)")
+        view = View("v", "docs/V.md", (sys.executable, "-c", writer, "rendered body\n"), None, sources="src/")
+        stale = View("v", "docs/V.md", (sys.executable, "-c", writer, "a later body\n"), None, sources="src/")
         path = root / "docs" / "V.md"
         check("a render writes the stamp as the view's first line",
               render_all((view,), root) == 0 and STAMP.match(path.read_text(encoding="utf-8").split("\n")[0]) is not None,
@@ -340,6 +371,28 @@ def self_test() -> int:
         path.unlink()
         check("an absent view is never a finding", edited_problems((view,), root) == [])
 
+        # A generator run DIRECTLY (`drift_rules.py --out docs/DRIFT_RULES.md`, as its docstring says) stamps its view too:
+        # write_rendered at a view's path is write_view (review R1-2); at any other path it writes the body as it is.
+        check("a direct render at a view's path is stamped and is no finding",
+              write_rendered(root / "docs" / "V.md", "direct body\n", root, (view,)) is None
+              and path.read_text(encoding="utf-8").startswith("<!-- GENERATED by ") and edited_problems((view,), root) == [],
+              path.read_text(encoding="utf-8")[:200])
+        elsewhere = root / "obj" / "V.md"
+        check("a render to any other path is the body alone (the package's copy)",
+              write_rendered(elsewhere, "plain body\n", root, (view,)) is None
+              and elsewhere.read_text(encoding="utf-8") == "plain body\n")
+        path.write_text("hand written\n", encoding="utf-8", newline="\n")
+        check("a direct render over a hand edit is refused and keeps it",
+              write_rendered(path, "direct body\n", root, (view,)) is not None
+              and path.read_text(encoding="utf-8") == "hand written\n")
+        path.unlink()
+        rogue = View("v", "docs/V.md", (sys.executable, "-c",
+                                        "import sys; open('docs/V.md', 'w', encoding='utf-8').write('unstamped\\n')"),
+                     None, sources="src/")
+        check("a generator that writes its view on its own fails the render (it would be RED at rule (e))",
+              render_all((rogue,), root) == 1)
+        path.unlink()
+
     names = [v.name for v in VIEWS]
     check("view names are unique", len(set(names)) == len(names), str(names))
     check("every view is checked by its generator or names the test that is", all(v.check or v.checked_by for v in VIEWS))
@@ -358,10 +411,21 @@ def main(argv: list[str]) -> int:
                     help="exit non-zero when a view is tracked, not gitignored, or no longer renders")
     ap.add_argument("--list", action="store_true", help="print each view: name, output, generator")
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--write", metavar="FILE", type=pathlib.Path,
+                    help="place FILE, a generator's raw render, as the ONE named view, stamped (a generator that cannot "
+                         "import write_rendered: gen-diagnostics-doc.ps1)")
     a = ap.parse_args(argv)
 
     if a.self_test:
         return self_test()
+    if a.write is not None:
+        if len(a.names) != 1 or not select(a.names)[0].stamped:
+            sys.exit("--write names exactly one in-tree file view")
+        refused = write_view(select(a.names)[0], a.write.read_text(encoding="utf-8"))
+        if refused is not None:
+            print(f"⛔ {refused}")
+            return 1
+        return 0
     views = select(a.names)
     if a.list:
         for v in views:

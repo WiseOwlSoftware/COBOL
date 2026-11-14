@@ -3,8 +3,11 @@
 A row's `code-location` may be `docs/CONFORMANCE.md#DOC-A.1-19` (the §7 determination its evidence is) and its `notes` may
 spell `path#Symbol` for a document too (346 such anchors today, every one into docs/CONFORMANCE.md). The Unit test
 SpecTraceabilityInventoryDriftTests resolved every anchor by reading the file, which made CONFORMANCE.md a compiler-test
-input; the C# test now resolves an anchor into any file but a document, and this module resolves the ones into a document by
-the rule it used: the file exists, and the symbol is a whole identifier in its text (no identifier character on either side).
+input; the C# test now resolves a location into any file but a document, and this module resolves every location into a
+document, a bare one (`docs/FILES_DESIGN.md`) included, by the rule it used: the file exists, and the symbol, when there is
+one, is a whole identifier in its text (no identifier character on either side). The C# test skips a document's location
+before its File.Exists (the conformance statement is a rendered view a fresh checkout lacks: kb/Work PB5430), so a bare
+document location is judged here or by nothing (wave 20262031 review R1-1).
 """
 from __future__ import annotations
 
@@ -30,27 +33,26 @@ def whole_word(symbol: str, text: str) -> bool:
 
 def anchor_findings(rows: list[dict], texts: dict[str, str], code_location_sep: str, prose_of,
                     document_kinds: tuple[str, ...] = (".md",)) -> list[str]:
-    """Every anchor into a file the compiler test does not resolve (a code-location `X.md#Symbol`, or one spelled in a row's
-    prose) that names a missing file or a symbol that is no longer a whole identifier in it. `texts` is each such file's text
+    """Every location in a file the compiler test does not resolve (a code-location `X.md#Symbol` or a bare `X.md`, or an
+    anchor spelled in a row's prose) that names a missing file or a symbol that is no longer a whole identifier in it. `texts` is each such file's text
     by path; `document_kinds` are the extensions this audit resolves and the Unit test does not (`tests/doc-facts/inventory-anchor-kinds.json`)."""
     out: list[str] = []
     checked = 0
 
-    def judge(rule_id: str, where: str, path: str, symbol: str) -> None:
+    def judge(rule_id: str, where: str, path: str, symbol: str | None) -> None:
         nonlocal checked
         if not path.lower().endswith(document_kinds):
             return
         checked += 1
         if path not in texts:
-            out.append(f"{rule_id}: {where} '{path}#{symbol}' — no such file")
-        elif not whole_word(symbol, texts[path]):
+            out.append(f"{rule_id}: {where} '{path if symbol is None else f'{path}#{symbol}'}' — no such file")
+        elif symbol is not None and not whole_word(symbol, texts[path]):
             out.append(f"{rule_id}: {where} '{path}#{symbol}' — '{symbol}' is no longer in that file")
 
     for r in rows:
         for loc in common.split_locations(r.get("code-location") or "", code_location_sep):
             path, hash_, symbol = loc.partition("#")
-            if hash_:
-                judge(r["rule-id"], "code-location", path, symbol)
+            judge(r["rule-id"], "code-location", path, symbol if hash_ else None)
         for m in NOTES_LOCATION.finditer(prose_of(r.get("notes") or "")):
             judge(r["rule-id"], "notes cite", m.group(1), m.group(2).rstrip(".-"))
     if checked < 100:
@@ -80,7 +82,7 @@ def _document_text(root: Path, rel: str) -> str:
 
 
 def _paths(row: dict, sep: str, resolved: tuple[str, ...]) -> set[str]:
-    found = {loc.partition("#")[0] for loc in common.split_locations(row.get("code-location") or "", sep) if "#" in loc}
+    found = {loc.partition("#")[0] for loc in common.split_locations(row.get("code-location") or "", sep)}
     found |= {m.group(1) for m in NOTES_LOCATION.finditer(schema.prose_of(row.get("notes") or ""))}
     return {p for p in found if p.lower().endswith(resolved)}
 
@@ -101,6 +103,11 @@ def self_test() -> list[str]:
         ("a symbol that is only a prefix of an identifier is not whole", len(anchor_findings(
             rows + [{"rule-id": "X", "code-location": f"{DOC}#DOC-A.1-100"}], {**texts, DOC: texts[DOC].replace("DOC-A.1-100 ", "DOC-A.1-100x ")}, "; ", ident)), 2),
         ("a file that is not there is a finding", len(anchor_findings(rows + [noted], texts, "; ", ident)), 1),
+        ("a bare document location whose file is gone is a finding (review R1-1)",
+         anchor_findings(rows + [{"rule-id": "B", "code-location": "src/a.cs; docs/gone.md"}], texts, "; ", ident),
+         ["B: code-location 'docs/gone.md' — no such file"]),
+        ("a bare document location whose file is there is not",
+         anchor_findings(rows + [{"rule-id": "B", "code-location": DOC}], texts, "; ", ident), []),
         ("a source file's anchor is the compiler test's, not judged here", anchor_findings(rows + [{"rule-id": "Y", "code-location": "src/q.cs#Nope"}],
                                                                                            texts, "; ", ident), []),
         ("too few anchors measure nothing", len(anchor_findings(rows[:3], texts, "; ", ident)), 1),

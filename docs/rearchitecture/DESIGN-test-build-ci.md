@@ -2190,7 +2190,11 @@ demand and not committed.
   declares itself generated without a row. Every in-tree FILE view carries a stamp as its first line (`stamp_line`: the
   generator, its sources, the body's sha256 and the remedy), and rule (e) is RED on a file at a view's path with no stamp or
   an edited body, and a render refuses to overwrite one, so a hand edit to a gitignored view is never lost silently
-  (kb/Work PB5430). A view that is only STALE (sources changed, body untouched) is not RED: the next render replaces it,
+  (kb/Work PB5430). The stamp has ONE writer, `write_view`: a generator's `--out` reaches it through `write_rendered`
+  (stamped at a view's path, the body alone anywhere else, such as the package's copy under `obj/`), and
+  `gen-diagnostics-doc.ps1`, whose render a C# test makes, hands its raw file to `rendered_views.py diagnostics --write`; so
+  a generator run directly stamps its view exactly as `rendered_views.py` does, and `render_all` fails a generator that
+  exits 0 without leaving a stamped view. A view that is only STALE (sources changed, body untouched) is not RED: the next render replaces it,
   and "absent" is never stale; a reader that needs a view refuses with the render command when it is absent, never reads an empty one as "no
   diagnostics". NOT views, and tracked on purpose: generated SOURCE the build compiles (`*.g.cs`, `*.Table.cs`: a clone must
   build with no pre-step; each has its own drift test), DATA extracted from the licensed standard, and the gating status

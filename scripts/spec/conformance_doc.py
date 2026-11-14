@@ -20,6 +20,7 @@ import sys
 sys.path.append(str(pathlib.Path(__file__).resolve().parent))      # scripts/spec, for conformance_source
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 import conformance_source  # noqa: E402
+from rendered_views import write_rendered  # noqa: E402
 from standard_streams import ensure_utf8  # noqa: E402
 
 
@@ -43,8 +44,10 @@ def main(argv: list[str]) -> int:
             print(f"  ✗ {finding}", file=sys.stderr)
         print(f"⛔ {conformance_source.SOURCE_REL} does not render: nothing written to {a.out}", file=sys.stderr)
         return 1
-    a.out.parent.mkdir(parents=True, exist_ok=True)
-    a.out.write_text(text, encoding="utf-8", newline="\n")
+    refused = write_rendered(a.out, text, a.root)   # stamped at the view's path, the body alone elsewhere (the package's copy)
+    if refused is not None:
+        print(f"⛔ {refused}", file=sys.stderr)
+        return 1
     print(f"rendered {a.out} from {conformance_source.SOURCE_REL} ({text.count(chr(10)):,} lines)")
     return 0
 

@@ -15,8 +15,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// descriptor, and (c) <c>docs/DIAGNOSTICS.md</c> is a RENDERED VIEW of the catalogue
 /// (kb/Work PB3026, <c>scripts/rendered_views.py</c>): gitignored and never committed, because two pull requests that each
 /// add a diagnostic would both rewrite it. This test is that view's render check: the catalogue must render one row per
-/// descriptor. Render it: <c>pwsh scripts/gen-diagnostics-doc.ps1</c> (or run this test with
-/// <c>WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1</c>).
+/// descriptor. Render it: <c>pwsh scripts/gen-diagnostics-doc.ps1</c> (which runs this test with
+/// <c>WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=&lt;raw file&gt;</c> and places that file as the stamped view).
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class DiagnosticRegistryDriftTests
@@ -132,9 +132,11 @@ public sealed class DiagnosticRegistryDriftTests
     {
         string rendered = RenderMarkdown();
 
-        if (Environment.GetEnvironmentVariable("WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC") == "1")
+        // The raw render, to the file the render script names: the script places it as the view, stamped, through the one
+        // writer of a view (`rendered_views.py --write diagnostics`), so this test never writes docs/DIAGNOSTICS.md itself.
+        if (Environment.GetEnvironmentVariable("WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC") is { Length: > 0 } rawRender)
         {
-            File.WriteAllText(TestRepo.Docs("DIAGNOSTICS.md"), rendered);
+            File.WriteAllText(rawRender, rendered);
             return;
         }
 
@@ -152,8 +154,7 @@ public sealed class DiagnosticRegistryDriftTests
         var sb = new StringBuilder();
         sb.Append("# WiseOwl COBOL diagnostics\n\n");
         sb.Append("> **Rendered view** of `src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs` — gitignored, never committed or edited.\n");
-        sb.Append("> Render: `pwsh scripts/gen-diagnostics-doc.ps1` (or run `DiagnosticRegistryDriftTests` with\n");
-        sb.Append("> `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1`).\n\n");
+        sb.Append("> Render: `pwsh scripts/gen-diagnostics-doc.ps1` (or `python scripts/rendered_views.py diagnostics`).\n\n");
         sb.Append("This catalogue is the first-class registry that replaced bare `COBOLnnnn` string literals\n");
         sb.Append("(rearch PHASE 02, P2.10). A **Code** may repeat across rows — the emitted number is byte-stable, the\n");
         sb.Append("stable **Id** is the identity. The `recognized-not-implemented` suppress key groups every\n");
