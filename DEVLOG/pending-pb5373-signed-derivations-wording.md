@@ -28,3 +28,6 @@ in `docs/conformance/README.md`, `docs/DOC_INDEX.md`, the design doc, the deriva
 
 Addendum: `kb/Work/PB5373/2026-11-14-signed-wording-and-the-ten-blocked-rows.md`. No row recorded, no inventory change,
 no diagnostic code used (COBOL7216-COBOL7218 returned).
+
+**Gate** (`TestResults/build-local/000001-20261114T201545Z`, head `d35cb47001`): `=== BUILD-LOCAL GATE: GREEN — Conformance
+25,009/25,009 ran · Unit 40,767/40,767 ran · RepoDrift 177/177 ran · Characterization 37/37 ran (skipped 0) ... ===`.
