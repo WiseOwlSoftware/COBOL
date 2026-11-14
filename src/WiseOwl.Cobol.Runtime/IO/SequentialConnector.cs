@@ -2097,7 +2097,9 @@ public sealed partial class SequentialConnector : FileConnector
     /// what makes the overwrite in place exact.</summary>
     private string RewriteRecordSequential(string image, int len, RecordExtents? extents, bool national)
     {
-        if (len != LastReadLength) return Status = FileStatusCode.RecordSizeViolation;   // '44' GR16
+        // The bytes of the record being replaced are the PHYSICAL record's (CurrentRecord), not LastReadLength, which a READ of a record
+        // longer than the RECORD VARYING maximum caps at the maximum (the delivered length, kb/Work PB5480).
+        if (len != CurrentRecord.Length) return Status = FileStatusCode.RecordSizeViolation;   // '44' GR16
         if (_lastReadBlockStart < 0 || _reader is not { BaseStream: { CanSeek: true, CanWrite: true } stream })
             return NotRewritableInPlace();
         string record = FitRecord(image, len, national);

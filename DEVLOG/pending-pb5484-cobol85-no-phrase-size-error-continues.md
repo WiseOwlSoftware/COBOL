@@ -48,3 +48,8 @@ conflict and a duplicate key both true the status is `04`.
 **Goldens and rows.** `pb5480_relative_read_record_length_conflict` (1985, VIII.4.5), `pb5480_indexed_read_record_length_conflict`
 (1985, IX.4.5) and the WiseOwl determination case `pb5480_depending_on_after_truncated_read_85`. Rows 1985-GR-VIII.4.5.4-16 and
 1985-GR-IX.4.5.4-18 PARTIAL to CONFORMS (1985 GAP 229 to 227).
+
+PB5480 review round 1 (R1-1): the READ's cap of `LastReadLength` at the RECORD VARYING maximum (the delivered length the DEPENDING ON item reports) was also
+the length `SequentialConnector.RewriteRecordSequential` compared under §2023:14.9.35.4 GR16, so a REWRITE after a truncated READ answered `00` and half-replaced
+the 20-byte record. The REWRITE now compares `CurrentRecord.Length`, the physical record's; golden `pb5480_rewrite_after_truncated_read_85` (READ 04, REWRITE 44,
+record unchanged). R1-2 removed the unused `using WiseOwl.Cobol.Editions` from `ArithmeticEmitter.cs`.
