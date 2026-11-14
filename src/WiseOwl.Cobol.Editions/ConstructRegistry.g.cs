@@ -21,6 +21,7 @@ public static partial class ConstructRegistry
         new("alter-removed-2002", "the ALTER statement", 85, 2002, null, "COBOL0810", "ISO §2023:14.9.17 (no altered GO TO); obsolete ’85 element (§1985:VI.6.7.2, REMOVED) deleted by ISO 2002"),
         new("alternate-key-suppress-when-2023", "the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause", 2023, null, null, "COBOL0900", "ISO §2023:12.4.5.6.2 / §2023:12.4.5.6.4 GR6 (Annex E.3.3 item 42); 2023 introduction"),
         new("any-length-clause-2002", "ANY LENGTH clause", 2002, null, null, "COBOL0900", "ISO §2023:13.18.2"),
+        new("apostrophe-quotation-symbol-2002", "the apostrophe-delimited literal", 2002, null, null, "COBOL0900", "ISO §2023:8.3.5 SR5; a COBOL-2002 introduction (§2002:F.2 item 3; §1985:IV.4.2.2.2.1)"),
         new("apply-commit-clause-2023", "APPLY COMMIT clause (commit and rollback)", 2023, null, null, "COBOL0900", "ISO §2023:12.4.6.3 (APPLY COMMIT clause; §2023:E.3.2 item 2)"),
         new("arithmetic-intermediate-precision-2023", "compile-time arithmetic / intermediate-result mode", 2002, null, null, "COBOL0900", "ISO §2023:7.3.6.3 GR2; Annex E.2 items 6 and 21 (compile-time arithmetic implementor-defined from 2023; standard arithmetic before); VCR row 12"),
         new("arithmetic-standard-2002", "ARITHMETIC IS STANDARD", 2002, 2023, 2014, "COBOL0807", "ISO §2023:8.8.1 / Annex E.2 item 21 (2023 defines NATIVE, STANDARD-BINARY, STANDARD-DECIMAL; STANDARD was 2002-2014, removed 2023 - use STANDARD-DECIMAL)"),

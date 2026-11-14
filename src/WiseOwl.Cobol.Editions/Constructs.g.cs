@@ -19,6 +19,7 @@ public static class Constructs
     public const string AlterRemoved2002 = "alter-removed-2002";
     public const string AlternateKeySuppressWhen2023 = "alternate-key-suppress-when-2023";
     public const string AnyLengthClause2002 = "any-length-clause-2002";
+    public const string ApostropheQuotationSymbol2002 = "apostrophe-quotation-symbol-2002";
     public const string ApplyCommitClause2023 = "apply-commit-clause-2023";
     public const string ArithmeticIntermediatePrecision2023 = "arithmetic-intermediate-precision-2023";
     public const string ArithmeticStandard2002 = "arithmetic-standard-2002";
