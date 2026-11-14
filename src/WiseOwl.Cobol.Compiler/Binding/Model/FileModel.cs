@@ -1080,11 +1080,14 @@ public sealed class FileModel
     /// (2) The file is not LINE SEQUENTIAL, whose transfer is defined outright: a WRITE drops trailing spaces
     /// (§2023:14.9.51.4 GR21) or fills with spaces (GR22), and a REWRITE appends spaces (§2023:14.9.35.4 GR17 c)).
     /// (3) record-name-1 has a character window (<see cref="IsOutOfLineRecord"/> records do not overlay the area,
-    /// D-FRA), and (4) is narrower than the area, whose widest such record <see cref="AreaRecord"/> is.</para></summary>
+    /// D-FRA), and (4) can be narrower than the area, whose widest such record <see cref="AreaRecord"/> is: it is a
+    /// narrower description, or it holds an OCCURS DEPENDING table, whose current size is that of its occurrences at the time
+    /// of execution (§2023:13.18.43.4 GR13 c)) and so is the area's width only when the table is at its maximum (kb/Work
+    /// PB5217: an ODO record of a fixed-length file sent at one occurrence wrote spaces where the area held the rest).</para></summary>
     public bool TransfersPastRecord(DataItem record) =>
         Organization != FileOrganization.LineSequential && !IsOutOfLineRecord(record)
-        && AreaRecord is { } area && !ReferenceEquals(area, record)
-        && Model.RecordLayout.PhysicalWidth(area) > Model.RecordLayout.PhysicalWidth(record)
+        && AreaRecord is { } area
+        && (Model.RecordLayout.PhysicalWidth(area) > Model.RecordLayout.PhysicalWidth(record) || HasVaryingTableBeneath(record))
         && (Varying?.DependingName is not null || !RecordSizeVaries);
 
     /// <summary>True for either sequential shape (the only organizations this slice can OPEN/READ/WRITE).</summary>
