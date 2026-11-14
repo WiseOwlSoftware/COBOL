@@ -18,6 +18,10 @@
       *> on a file previously closed with lock"), and a READ through it
       *> then finds the file not open, 47 (§1985:VII.1.3.5 item f).
       *> Each organization is exercised: sequential, relative, indexed.
+      *> S2 has a USE procedure, which each unsuccessful OPEN through it
+      *> executes (§1985:VII.4.3.4 GR26 b, "Any applicable USE AFTER
+      *> EXCEPTION procedure is executed"), as does the READ that finds
+      *> it not open; R2 and I2 have none, and execution continues.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5210P.
        ENVIRONMENT DIVISION.
@@ -58,6 +62,13 @@
        01  RK1 PIC 9(4).
        01  RK2 PIC 9(4).
        PROCEDURE DIVISION.
+       DECLARATIVES.
+       S2-ERR SECTION.
+           USE AFTER STANDARD EXCEPTION PROCEDURE ON S2.
+       S2-ERR-P.
+           DISPLAY "USE S2 " ST.
+       END DECLARATIVES.
+       MAIN SECTION.
        P-SEQ.
            OPEN OUTPUT S1.
            MOVE "SSSS" TO S1-REC.

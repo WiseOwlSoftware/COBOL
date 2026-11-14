@@ -23,7 +23,8 @@ associates one first.
 
 **Goldens.** `IX.1.3@1985-LANGUAGE-CONCEPTS/pb5210_close_lock_locks_physical_file_85` (85): for each organization, after
 CLOSE WITH LOCK, OPEN of the same file-name and OPEN INPUT, OUTPUT, EXTEND (sequential) and I-O through a second SELECT all
-answer 38, and a READ through it answers 47 (§1985:VII.1.3.5 item f). `14.8.26@2002-OPEN-STATEMENT/pb5210_close_lock_locks_file_connector`
+answer 38, and a READ through it answers 47 (§1985:VII.1.3.5 item f). The sequential second SELECT has a USE procedure,
+which each of those refusals runs (§1985:VII.4.3.4 GR26 b); the relative and indexed ones have none and run on. `14.8.26@2002-OPEN-STATEMENT/pb5210_close_lock_locks_file_connector`
 (2002): only the locked connector answers 38, and the second SELECT opens the file and reads its record. No diagnostic
 codes were used.
 
