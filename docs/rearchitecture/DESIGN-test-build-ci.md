@@ -1987,8 +1987,12 @@ one-file-per-entry DEVLOG stand.
    entry, dequeues one already queued (an enqueue of a queued pull request does not move it; one already first at the
    pushed head is left), and calls GraphQL `enqueuePullRequest(jump: true, expectedHeadOid: <the pushed head>)`, so a
    moved head is GitHub's refusal. A refused jump (most likely a fresh head whose `pull_request` check has not passed) is
-   queued at the back with `--auto` like any landing, exit 17 ENQUEUED, NOT JUMPED, and the same command run again
-   jumps it. Each attempt is recorded in the landing record's `fix_first` list (`landing_measure.py`: its cause, notes,
+   queued at the back with `--auto` like any landing, exit 17 ENQUEUED, NOT JUMPED (exit 9 when that `--auto` is refused
+   too: the pull request is open and not queued), and the same command run again jumps it. ⚠ A pull request that was
+   ALREADY queued and is dequeued for the jump, then refused it, goes back at the BACK and loses the place it held (review
+   R1-3): the landing is not lost, but a fix-first re-run on a queued pull request whose new head's check is still pending
+   can delay it, so run it once that check has passed. The landing lane reads exit 17 as a DONE landing (it is queued),
+   follows it in the queue watch, and alerts the operator once that it did not jump (`land_lane.watch_holds`). Each attempt is recorded in the landing record's `fix_first` list (`landing_measure.py`: its cause, notes,
    runs and whether it jumped), and `summary` counts the jumps and the landings that hit the named runs first. **No
    landing is held while a fix-first entry is queued:** a landing queued after the jump joins behind it, and its merge
    group is built on every entry ahead, the fix included, so a hold would only add the fix's CI wall to each of them. A
@@ -2010,9 +2014,20 @@ one-file-per-entry DEVLOG stand.
    cases, and a cause's key is a red case (`landing_measure.red_cause`: the failing test is the same on every pull request).
    An INFRA or RUNNER red whose red case was already re-queued once, on any pull request, while no merged fix-first landing
    names one of that cause's failed runs (`landing_measure.requeued_unfixed`, read through `WatchEffects.held_causes`), is
-   HELD: never re-queued, recorded `hold-for-fix`, its watch ended BOUNCED with HELD on its line, and the operator alerted
-   to land the root fix with `--fix-first` naming the runs (naming them is what ends the hold). `summary` counts re-queues
-   and holds per cause. An INFRA red has no red case and so no key: it is re-queued once per landing as before.
+   HELD: never re-queued, recorded `hold-for-fix`, its watch ended BOUNCED with HELD on its line, and the operator
+   alerted. `summary` counts re-queues and holds per cause, by the ONE key the hold uses (`landing_measure.red_causes`:
+   each red test case; review R1-5). An INFRA red has no red case and so no key: it is re-queued once per landing as before.
+   **No hold outlives its cause's fix (review R1-1, R1-2).** The open causes are read IN TIME ORDER
+   (`landing_measure.open_causes`): a release covers only the reds before it, so a red of the same test after the fix is
+   a new cause (one re-queue, then a hold). A hold is released by whichever fact comes first: (a) a merged fix-first
+   landing that names a failed run of the cause (at its merge time); (b) the kb/Work note the hold names reading
+   `status: landed` or `retired` on origin/main (`land_lane.open_causes_now`, recorded in `<coord>/hold-releases.jsonl`),
+   which is why the lane names the open note whose text names the failing test when it first holds (`cause_note`), and
+   its alert asks the operator to file one when none does; (c) the operator, `land_lane.py release-hold <case> --reason
+   "<the fix>"`, recorded, refused for a cause that is not open. Most fixes land the ordinary way, through the fix lane and
+   with no fix-first, and (b) and (c) are what release them. A hold older than `landing_measure.HOLD_ALARM_H` (12) hours
+   is alerted again once per window (`land_lane.hold_alarms`), so a hold whose fix the lane cannot see is never left
+   unseen.
    **What the queue stacks (kb/Work PB3107, PB3123; owner 2026-10-13: "Due to our local testing, we should rarely see
    failures").** A merge group is built ON TOP of every group queued ahead of it, so the tree a group tests is one no branch
    ever checked. THE RULE for every check a landing or a merge group runs: **a check's verdict on a pull request may not depend

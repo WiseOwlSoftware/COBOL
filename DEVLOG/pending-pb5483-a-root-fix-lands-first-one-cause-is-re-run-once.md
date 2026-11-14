@@ -21,3 +21,10 @@ is alerted to land the root fix. `landing_measure.py summary` counts re-queues a
 Evidence: `enqueue.py --self-test`, `landing_measure.py --self-test` (13 arms) and `land_lane.py --self-test` PASS. With
 `jump` removed from the mutation, three enqueue arms FAIL. No real pull request was queued with `jump`: the first real use
 must confirm GitHub accepts the mutation and what it answers for a pull request whose check is still pending.
+
+The branch review (round 1) found that a hold had only one way out: a fix landed with `--fix-first` naming the cause's runs.
+Most fixes land the ordinary way, so a fixed cause would stay held forever, and once any run was named a test could never
+be held again. Fixed: the open causes are read in time order, so a release covers only earlier reds. A hold names the
+open kb/Work note that mentions the failing test, and is released when that note lands on main, when a fix-first landing
+names the runs, or by `land_lane.py release-hold`. A hold older than 12 hours is alerted again. The per-cause figures
+and the hold now share one key (each red test case). The lane treats exit 17 as a queued landing and alerts once.

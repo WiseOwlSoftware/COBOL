@@ -26,8 +26,9 @@
   `python scripts/orchestrator/enqueue.py land <branch> --fix-first "PB<note> run <failed run id>"`. The cause is
   required and names the red (a kb/Work note the worktree carries and/or a failed run id); every other guard is the
   same. Exit 17 (ENQUEUED, NOT JUMPED) means GitHub refused the jump and the pull request waits at the back; run the
-  same command again once its pull-request check has passed. Naming the failed runs also ends the landing lane's hold on
-  that cause: the lane re-queues one cause once, and holds its next red (`hold-for-fix`) until such a fix merges.
+  same command again once its pull-request check has passed. The lane re-queues one cause (a red test case) once and
+  holds its next red (`hold-for-fix`); the hold ends when a fix-first landing naming its runs merges, when the note it
+  names lands on main, or by `python scripts/orchestrator/land_lane.py release-hold "<case>" --reason "<the fix>"`.
 - **Who runs it.** While the orchestrator loop runs (`python scripts/orchestrator/coord.py loop-state` prints `LOOP
   STATE: running`), its LANDING LANE (`scripts/orchestrator/land_lane.py`, ticked by the supervisor beside every
   unit, kb/Work PB3103) runs it for every branch `python scripts/prune_worktrees.py --brief` lists WAITING TO LAND,

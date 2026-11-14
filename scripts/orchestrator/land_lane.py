@@ -141,7 +141,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
 from enqueue import (EXIT_CONFLICT, EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY,
-                     EXIT_PREDECESSOR_QUEUED, EXIT_QUEUE_NOT_ACTIVE, EXIT_STORE_UNPUBLISHED, PR_LIST_FIELDS,
+                     EXIT_NOT_JUMPED, EXIT_PREDECESSOR_QUEUED, EXIT_QUEUE_NOT_ACTIVE, EXIT_STORE_UNPUBLISHED, PR_LIST_FIELDS,
                      QUEUED_LINE, land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
@@ -261,7 +261,9 @@ def classify(a: dict[str, Any]) -> str:
     if a.get("outcome") == "DIED":
         return ONCE
     rc = a.get("rc")
-    if rc == 0:
+    # Exit 17 (kb/Work PB5483 review R1-4): a fix-first jump GitHub refused. The pull request IS queued (at the back, with
+    # auto-merge), so the landing is DONE and watched like any; `watch_holds` alerts the operator once that it did not jump.
+    if rc in (0, EXIT_NOT_JUMPED):
         return DONE
     if rc in WAITS:
         return FREE
@@ -795,9 +797,9 @@ def _iso(t: str) -> dt.datetime | None:
 # flake retry inside `dotnet test`: a flake is a kb/Work defect fixed at its root, and this record holds its rate.
 # ONE RE-RUN PER CAUSE, NOT PER LANDING (kb/Work PB5483; the owner, 2026-11-13: "we rerun things far too many times, often
 # in CI, rather than chase down and fix the ultimate issue"). A cause's key is a red test case (the failing test is the
-# same on every pull request it hits: landing_measure.red_cause). A PIPELINE_CLASSES red whose red case was ALREADY
+# same on every pull request it hits: landing_measure.red_causes). A PIPELINE_CLASSES red whose red case was ALREADY
 # re-queued once, on any pull request, while no fix-first landing that names one of that cause's failed runs has merged
-# (`landing_measure.requeued_unfixed`, read from the record by `WatchEffects.held_causes`), is HELD: not re-queued, the
+# (`landing_measure.requeued_unfixed`, read from the record by `WatchEffects.open_causes`, released as `watch_holds` and `open_causes_now` say), is HELD: not re-queued, the
 # act `hold-for-fix` recorded with its cases, the watch ended BOUNCED with HELD on its line, and the operator alerted to
 # land the root fix with `enqueue.py land <branch> --fix-first "<note> run <id>"`. PR #1607 met the main-carried flake of
 # kb/Work PB5478 twice in one night (runs 43550577247 and 43553292493) and every queued landing could meet it too. An
@@ -1022,18 +1024,119 @@ class WatchEffects:
     """What a stalled read or a bounce does, and its record (the self-test plants recorders): rerun(repo, run) and
     requeue(repo, pr, head) answer (ok, detail); alert(subject, body, ref); measure(pr, branch, read, cause, act, ok);
     red_facts(attempt, pr) reads a bounce's facts (`red_facts`); measure_red(pr, branch, run, class, why, act, ok, cases)
-    records its class and red cases (landing_measure.record_red); held_causes() reads the red cases already re-queued
-    with no fix landed (landing_measure.requeued_unfixed, kb/Work PB5483)."""
+    records its class, red cases and the cause's note (landing_measure.record_red); open_causes() reads the causes
+    already re-queued or held with no fix landed, after releasing each whose note is landed (`open_causes_now`, kb/Work
+    PB5483); cause_note(cases) names the open kb/Work note on origin/main that a hold of those cases names (`cause_note`)."""
     rerun: Callable[[str, int], tuple[bool, str]]
     requeue: Callable[[str, int, str], tuple[bool, str]]
     alert: Callable[[str, str, str], None]
     measure: Callable[[int, str, int, str, str, bool], None]
     red_facts: Callable[[dict[str, Any], Any], RedFacts]
-    measure_red: Callable[[int, str, int, str, str, str, bool, tuple[str, ...]], None]
-    held_causes: Callable[[], frozenset[str]]
+    measure_red: Callable[[int, str, int, str, str, str, bool, tuple[str, ...], str], None]
+    open_causes: Callable[[], dict[str, dict]]
+    cause_note: Callable[[tuple[str, ...]], str]
 
 
-def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
+# ── THE RELEASES OF A HOLD (kb/Work PB5483 review R1-1): no hold outlives its cause's fix ──────────────────────────────
+# A hold is released by (a) a merged fix-first landing naming a failed run of the cause (read from the landing records),
+# (b) the kb/Work note the hold names reading `status: landed` (or retired) on origin/main, which the lane checks on every
+# read of the open causes and records as a release, or (c) the operator: `land_lane.py release-hold <case> --reason ...`.
+# So a hold NAMES a note: when the lane first holds a cause it finds the open note on origin/main whose text names the
+# failing test (`cause_note`); with none, its alert asks the operator to file one. And a hold older than
+# landing_measure.HOLD_ALARM_H hours is alerted again, every HOLD_ALARM_H (`hold_alarms`), so none sits unseen.
+TERMINAL_NOTE = re.compile(r"^status:\s*(landed|retired)\s*$", re.M)
+HOLD_ALARMS = "hold-alarms.json"     # {case: the last alarm's time}: the age alarm's own memory, in the lane directory
+
+
+def note_landed(repo: pathlib.Path, note: str) -> bool:
+    """Whether kb/Work/<note>.md reads `status: landed` or `retired` on origin/main (False when it cannot be read)."""
+    shown = subprocess.run(["git", "show", f"{MAIN}:kb/Work/{note}.md"], cwd=repo, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace")
+    return shown.returncode == 0 and bool(TERMINAL_NOTE.search(shown.stdout.split("\n---", 1)[0]))
+
+
+def cause_note(repo: pathlib.Path, cases: tuple[str, ...]) -> str:
+    """The OPEN kb/Work note on origin/main whose text names one of the failing tests (by its method name), the newest
+    (highest id) when several do; "" when none does (the hold alert then asks for one)."""
+    found: set[str] = set()
+    for case in cases:
+        name = case.split("(", 1)[0].rsplit(".", 1)[-1]
+        if len(name) < 6:
+            continue
+        hits = subprocess.run(["git", "grep", "-l", "-F", name, MAIN, "--", "kb/Work"], cwd=repo, capture_output=True,
+                              text=True, encoding="utf-8", errors="replace")
+        for line in hits.stdout.splitlines():
+            m = re.search(r"kb/Work/((?:PB|R|A)\d+)(?:\.md|/)", line)
+            if m and not note_landed(repo, m.group(1)):
+                found.add(m.group(1))
+    return max(found, key=lambda n: (n.rstrip("0123456789"), int(re.sub(r"\D", "", n)))) if found else ""
+
+
+def open_causes_now(cdir: pathlib.Path, landed: Callable[[str], bool], say: Say) -> dict[str, dict]:
+    """The open causes (landing_measure.open_causes) after release (b): a cause whose hold names a note `landed(note)`
+    reads landed is released, the release recorded with its reason, and is no longer open."""
+    import landing_measure as lm  # noqa: PLC0415
+    recs, rel_path = lm.read_all(cdir / lm.FILE), cdir / lm.RELEASES
+    causes = lm.open_causes(recs, lm.read_all(rel_path))
+    for case, c in list(causes.items()):
+        if done := next((n for n in c["notes"] if landed(n)), ""):
+            lm.record_release(rel_path, case, lm.NOTE_LANDED, f"{done} reads landed on origin/main")
+            say(f"land lane: the hold on {case} is released: its note {done} is landed")
+            del causes[case]
+    return causes
+
+
+def hold_alarms(causes: dict[str, dict], last: dict[str, str], now: dt.datetime, hours: int) -> list[str]:
+    """The held causes to alert again (pure): held longer than `hours`, and not alerted in the last `hours`."""
+    def older(at: str | None) -> bool:
+        return at is None or (now - dt.datetime.fromisoformat(at.replace("Z", "+00:00"))).total_seconds() >= hours * 3600
+    return sorted(case for case, c in causes.items() if c.get("held_at") and older(c["held_at"]) and older(last.get(case)))
+
+
+def watch_holds(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], effects: WatchEffects, say: Say,
+                now: dt.datetime | None = None) -> None:
+    """Every tick (kb/Work PB5483): the age alarm on each hold (`hold_alarms`), and the one alert that a fix-first landing
+    (exit 17, DONE) was NOT jumped (review R1-4)."""
+    import landing_measure as lm  # noqa: PLC0415
+    now = now or now_utc()
+    for branch, atts in branches.items():
+        a = atts[-1] if atts else {}
+        if finished(a) and a.get("rc") == EXIT_NOT_JUMPED and not a.get("jump_alerted"):
+            effects.alert(f"Fix first NOT jumped: {branch}",
+                          f"`enqueue.py land {branch} --fix-first` was refused the jump to the front of the merge queue "
+                          "(its log names why); the pull request is queued at the BACK. Run the same command again once "
+                          "its pull-request check has passed: it dequeues and jumps (kb/Work PB5483).", str(a.get("log")))
+            update(a, {"jump_alerted": now.isoformat(timespec="seconds")})
+    causes = effects.open_causes()
+    path = lane_dir(cdir) / HOLD_ALARMS
+    last = coord.read_json(path, {}) or {}
+    due = hold_alarms(causes, last, now, lm.HOLD_ALARM_H)
+    for case in due:
+        c = causes[case]
+        effects.alert(f"A hold older than {lm.HOLD_ALARM_H} h: {case}",
+                      f"The landing lane has held {case} since {c['held_at']} (kb/Work PB5483): no fix has released it. "
+                      + (f"Its note {', '.join(c['notes'])} is not landed on origin/main. " if c["notes"] else
+                         "It names no kb/Work note: file one for the failing test. ")
+                      + f"If its fix is on main, `python scripts/orchestrator/land_lane.py release-hold \"{case}\" "
+                        "--reason \"<the fix>\"`.", str(path))
+        last[case] = now.isoformat(timespec="seconds")
+    if due:
+        coord.write_json(path, last)
+
+
+def release_hold(cdir: pathlib.Path, case: str, reason: str, say: Say = print) -> int:
+    """The operator's release (c): refused (exit 2) for a cause that is not open, so a typo releases nothing."""
+    import landing_measure as lm  # noqa: PLC0415
+    causes = lm.open_causes(lm.read_all(cdir / lm.FILE), lm.read_all(cdir / lm.RELEASES))
+    if case not in causes:
+        say(f"land lane: {case!r} is not held or re-queued-and-open; open causes: {', '.join(sorted(causes)) or 'none'}")
+        return 2
+    lm.record_release(cdir / lm.RELEASES, case, lm.OPERATOR, reason)
+    say(f"land lane: the hold on {case} is released ({reason})")
+    return 0
+
+
+def real_effects(cdir: pathlib.Path, say: Say, repo: pathlib.Path = coord.REPO) -> WatchEffects:
     import enqueue  # noqa: PLC0415  (the only file that queues a pull request: landing_rules.py)
     import landing_measure  # noqa: PLC0415
     import ruleset  # noqa: PLC0415
@@ -1045,9 +1148,10 @@ def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
             say(f"land lane: PR #{pr}: the stall was NOT recorded in {landing_measure.FILE} ({exc})")
 
     def measure_red(pr: int, branch: str, run: int, cls: str, why: str, act: str, ok: bool,
-                    cases: tuple[str, ...]) -> None:
+                    cases: tuple[str, ...], cause: str) -> None:
         try:
-            landing_measure.record_red(cdir / landing_measure.FILE, pr, branch, run, cls, why, act, ok, cases=cases)
+            landing_measure.record_red(cdir / landing_measure.FILE, pr, branch, run, cls, why, act, ok, cases=cases,
+                                       cause=cause)
         except (OSError, ValueError) as exc:   # the record is the instrument's, never the watch's stop; it is said
             say(f"land lane: PR #{pr}: the red's class was NOT recorded in {landing_measure.FILE} ({exc})")
     return WatchEffects(
@@ -1055,9 +1159,8 @@ def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
         requeue=lambda repo, pr, head: enqueue.requeue(repo, pr, head, gh=ruleset.real_gh, state=enqueue.queue_state),
         alert=lambda subject, body, ref: notify_operator(cdir, subject, body, ref, say, kind="question"),
         measure=measure, red_facts=red_facts, measure_red=measure_red,
-        # Unreadable, the record holds nothing back: the per-landing rule still stops a second red (the instrument's
-        # failure is never the watch's stop); a record that cannot be read is said by its own readers.
-        held_causes=lambda: landing_measure.requeued_unfixed(landing_measure.read_all(cdir / landing_measure.FILE)))
+        open_causes=lambda: open_causes_now(cdir, lambda note: note_landed(repo, note), say),
+        cause_note=lambda cases: cause_note(repo, cases))
 
 
 def watch_text(att: dict[str, Any]) -> str:
@@ -1152,14 +1255,19 @@ def classify_bounce(att: dict[str, Any], w: dict[str, Any], pr: Any, branch: str
     import landing_measure as lm  # noqa: PLC0415  (the record's vocabulary of acts)
     facts = effects.red_facts(att, pr)
     cls, why = classify_red(facts)
-    step = bounce_step(w, pr, cls, why, facts.failed, effects.held_causes() if cls in lm.PIPELINE_CLASSES else frozenset())
+    held = frozenset(effects.open_causes()) if cls in lm.PIPELINE_CLASSES and facts.failed else frozenset()
+    step = bounce_step(w, pr, cls, why, facts.failed, held)
     act = {REQUEUE_BOUNCE: "requeue", HOLD_BOUNCE: lm.HOLD_FOR_FIX}.get(step.act, "finisher")   # landing_measure.RED_ACTS
-    if step.act == HOLD_BOUNCE:
+    note = ""
+    if step.act == HOLD_BOUNCE:   # a hold NAMES its cause's note, so that note's landing releases it (review R1-1)
+        note = effects.cause_note(tuple(sorted(facts.failed & held)))
         effects.alert(f"Landing held for a root fix: PR #{pr.number} ({branch}) met a cause already re-run once",
-                      f"{step.why}. Re-running it again would only meet it again. Land the root fix FIRST: `python "
-                      "scripts/orchestrator/enqueue.py land <the fix's branch> --fix-first \"<kb/Work note> run "
-                      f"{facts.run}\"` (naming the failed runs ends the hold), then land {branch} again "
-                      f"(`land_lane.py rearm {branch} --why ...`).", att["log"])
+                      f"{step.why}. Re-running it again would only meet it again. "
+                      + (f"Its note is {note}: the hold ends when {note} lands on main, " if note else
+                         "No open kb/Work note names the failing test: FILE ONE, ")
+                      + "or when a root fix lands with `python scripts/orchestrator/enqueue.py land <the fix's branch> "
+                      f"--fix-first \"<kb/Work note> run {facts.run}\"`, or by `land_lane.py release-hold <case> --reason "
+                      f"...`. Then land {branch} again (`land_lane.py rearm {branch} --why ...`).", att["log"])
     ok, detail = True, ""
     if step.act == REQUEUE_BOUNCE:
         ok, detail = effects.requeue(pr.repo, pr.number, pr.head)
@@ -1171,7 +1279,7 @@ def classify_bounce(att: dict[str, Any], w: dict[str, Any], pr: Any, branch: str
              reds=[*(w.get("reds") or []), {"run": facts.run, "class": cls, "why": why[:240],
                                              "act": {"requeue": REQUEUE_BOUNCE}.get(act, act), "ok": ok,
                                              "removed": pr.removed, "at": at}])
-    effects.measure_red(pr.number, branch, facts.run, cls, why, act, ok, tuple(sorted(facts.failed)))
+    effects.measure_red(pr.number, branch, facts.run, cls, why, act, ok, tuple(sorted(facts.failed)), note)
     say(f"land lane: {branch}: queue watch: {step.why}" + (f" — requeue done: {detail}" if step.act else ""))
     update(att, {"watch": w})
 
@@ -1305,7 +1413,9 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
         branches = by_branch(atts)
         why = stop_reason(cdir)
         # THE QUEUE WATCH (kb/Work PB3527), on the facts this survey read: under a stop it reads, and acts on nothing.
-        watch_queue(cdir, branches, rows, prs, effects or real_effects(cdir, say), why, say, now)
+        effects = effects or real_effects(cdir, say, repo)
+        watch_queue(cdir, branches, rows, prs, effects, why, say, now)
+        watch_holds(cdir, branches, effects, say, now)   # the hold's age alarm and a refused jump's alert (kb/Work PB5483)
         if why:
             say(f"land lane: {why}: no landing starts (a running one finishes)")
             return 0
@@ -1567,7 +1677,7 @@ def self_test() -> int:
                 self.now: dt.datetime | None = None
                 self.effects: list[tuple] = []
                 self.reds: dict[str, RedFacts] = {}        # each bounced branch's planted facts (red_facts)
-                self.held: frozenset[str] = frozenset()    # the red cases already re-queued, unfixed (held_causes)
+                self.held: dict[str, dict] = {}            # the open causes (open_causes)
 
             def survey(self, repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list, list[str], dict | None]:
                 return self.rows, [r["name"] for r in self.rows if r["state"] == "WAITING TO LAND"], self.prs
@@ -1579,8 +1689,8 @@ def self_test() -> int:
                                     alert=lambda subject, body, ref: rec(("alert", subject, body)),
                                     measure=lambda pr, b, read, cause, act, ok: rec(("measure", pr, b, read, cause, act)),
                                     red_facts=lambda att, pr: self.reds.get(att["branch"], RedFacts(unobserved="planted")),
-                                    measure_red=lambda pr, b, run, cls, why, act, ok, cases: rec(("red", pr, b, run, cls, act, ok)),
-                                    held_causes=lambda: self.held)
+                                    measure_red=lambda pr, b, run, cls, why, act, ok, cases, cause: rec(("red", pr, b, run, cls, act, ok)),
+                                    open_causes=lambda: self.held, cause_note=lambda cases: "PB5478")
 
             def start(self, argv: list[str], log: pathlib.Path) -> int:
                 self.started.append(json.loads(pathlib.Path(argv[-1]).read_text(encoding="utf-8"))["branch"])
@@ -2346,8 +2456,8 @@ def self_test() -> int:
             alert=lambda subject, body, ref: recorded.append(("alert", subject)),
             measure=lambda number, b, read, cause, act, ok: recorded.append(("measure", number, read, act, ok)),
             red_facts=lambda att, pr_: RedFacts(unobserved="not asked: no bounce here"),
-            measure_red=lambda number, b, run, cls, why, act, ok, cases: recorded.append(("red", number, cls)),
-            held_causes=lambda: frozenset())
+            measure_red=lambda number, b, run, cls, why, act, ok, cases, cause: recorded.append(("red", number, cls)),
+            open_causes=lambda: {}, cause_note=lambda cases: "")
         try:
             launched = f16.tick(c16)
             hung = None
@@ -2557,7 +2667,7 @@ def self_test() -> int:
         collect(c19, ["w19"], say=lambda s: None)
         f19.rows = [row("w19", "BOUNCED", "k1")]
         f19.reds = {"w19": flaky}
-        f19.held = frozenset({"A.Pass"})
+        f19.held = {"A.Pass": {"held_at": None, "notes": [], "requeued": 1}}
         f19.prs = {"w19": queue_facts.PullRequest(990, "u", "k1", False, "", "BLOCKED",
                                                   "FAILED_CHECKS at 2026-11-13T02:00:00Z", (green_gate,), "o/r")}
         f19.now = t("19:00")
@@ -2575,6 +2685,40 @@ def self_test() -> int:
                and ("red", 990, "w19", 7101, lm.RUNNER, lm.HOLD_FOR_FIX, True) in f19.effects
                and any(e[0] == "alert" and "--fix-first" in e[2] for e in f19.effects),
                f"{pure_hold} {pure_fresh} {pure_infra} {w19} {f19.effects}")
+        hold_alert = next((e for e in f19.effects if e[0] == "alert" and "held" in e[1].lower()), ("", "", ""))
+        # THE RELEASES (review R1-1): the PB5478 case. Its fix lands the ordinary way (no fix-first); the note the hold
+        # names reads landed on origin/main, so the next read of the open causes releases it, recorded; the operator's
+        # release refuses a cause that is not open; a hold older than HOLD_ALARM_H is alerted again, once per window.
+        c20 = fresh("releases")
+        lm.record_red(c20 / lm.FILE, 1607, "b1607", 43550577247, lm.RUNNER, "flake", "requeue", True,
+                      "2026-11-13T01:00:00Z", cases=("A.Pass",))
+        lm.record_red(c20 / lm.FILE, 1607, "b1607", 43553292493, lm.RUNNER, "flake", lm.HOLD_FOR_FIX, True,
+                      "2026-11-13T02:00:00Z", cases=("A.Pass",), cause="PB5478")
+        lm.record_red(c20 / lm.FILE, 1610, "b1610", 43560000001, lm.RUNNER, "other", "requeue", True,
+                      "2026-11-13T02:30:00Z", cases=("B.Other",))
+        lm.record(c20 / lm.FILE, {"pr": 1611, "branch": "fix-pb5478", "merged": "2026-11-13T03:00:00Z"})   # an ordinary fix
+        quiet: list[str] = []
+        still = open_causes_now(c20, lambda note: False, quiet.append)
+        released = open_causes_now(c20, lambda note: note == "PB5478", quiet.append)
+        rels = lm.read_all(c20 / lm.RELEASES)
+        typo = release_hold(c20, "A.Pas", "typo", quiet.append)
+        by_hand = release_hold(c20, "B.Other", "fixed by #1612", quiet.append)
+        after_hand = lm.open_causes(lm.read_all(c20 / lm.FILE), lm.read_all(c20 / lm.RELEASES))
+        noon = dt.datetime(2026, 11, 13, 14, 0, tzinfo=dt.timezone.utc)
+        aged = {"A.Pass": {"held_at": "2026-11-13T01:00:00Z"}, "C.Young": {"held_at": "2026-11-13T13:00:00Z"},
+                "D.Requeued": {"held_at": None}}
+        alarms = (hold_alarms(aged, {}, noon, lm.HOLD_ALARM_H), hold_alarms(aged, {"A.Pass": "2026-11-13T13:00:00Z"},
+                                                                             noon, lm.HOLD_ALARM_H))
+        expect("hold releases (kb/Work PB5483 review R1-1, R1-4): a hold names its note (PB5478) and its alert says so; a "
+               "fix landed the ordinary way releases it once that note reads landed on origin/main, the release recorded; "
+               "the operator's release-hold releases an open cause and refuses one that is not; a hold older than "
+               "HOLD_ALARM_H is alerted again, once per window; exit 17 (a refused jump, the pull request queued at the "
+               "back) is a DONE landing, watched, never STOPPED",
+               "PB5478" in hold_alert[2] and set(still) == {"A.Pass", "B.Other"} and set(released) == {"B.Other"}
+               and [(r["case"], r["by"]) for r in rels] == [("A.Pass", lm.NOTE_LANDED)]
+               and typo == 2 and by_hand == 0 and after_hand == {}
+               and alarms == (["A.Pass"], []) and classify({"rc": EXIT_NOT_JUMPED}) == DONE,
+               f"{hold_alert} {still} {released} {rels} {typo} {by_hand} {after_hand} {alarms}")
 
         # 17. THE CONFLICT BRIEF (kb/Work PB3640): main and the branch both edit scripts/x.py since their merge base;
         #     main also adds a file the branch never touches. The brief names the conflicted file, main's commit on it
@@ -2749,6 +2893,10 @@ def main(argv: list[str] | None = None) -> int:
     rr.add_argument("branch")
     rr.add_argument("--why", required=True, help="what resolved the stop (the finisher's or reviewer's finding)")
     sub.add_parser("clear-halt", help="the operator: the merge queue is ACTIVE again; the lane may start landings")
+    rh = sub.add_parser("release-hold", help="the operator: release the hold on a cause (a red test case) whose fix is on "
+                                             "main (kb/Work PB5483), recorded with the reason")
+    rh.add_argument("case")
+    rh.add_argument("--reason", required=True, help="what fixed it (the pull request, the note)")
     cb = sub.add_parser("conflict-brief", help="the brief a CONFLICT finisher starts from (kb/Work PB3640): the "
                                                "conflicted files, main's commits on them, their notes and reports")
     cb.add_argument("branch")
@@ -2782,6 +2930,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"land lane: halt cleared ({halt.read_text(encoding='utf-8').strip()}); the next tick starts landings")
         halt.unlink()
         return 0
+    if a.verb == "release-hold":
+        return release_hold(cdir, a.case, a.reason)
     if a.verb == "conflict-brief":
         return show_conflict_brief(cdir, a.branch)
     if a.verb == "run":
