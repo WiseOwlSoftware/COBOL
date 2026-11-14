@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XII.2.3-1",
  "rule-digest": "950a3b4dcd6c",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindCopybook; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#LibraryPlaces; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#LocateInLibrary; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
  "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-1",
+ "notes": "§1985:XII.2.3 SR1: 'If more than one COBOL library is available during compilation, text-name-1 must be qualified by library-name-1 identifying the COBOL library in which the text associated with text-name-1 resides. Within one COBOL library, each text-name must be unique.' The second sentence holds: CopyProcessor#LocateInLibrary takes the first file of the name and suffix list, so a text-name names one text in a library (DOC-A.1-40). The first is not implemented at any edition: CopyProcessor#FindCopybook resolves an unqualified COPY against the default library (LibraryPlaces) even when a named library (a subdirectory of a place, which OF/IN reaches) is available, and nothing at --std 85 counts libraries or refuses the unqualified form. Probes at 85 (cwd holding MSGTXT.cpy and LIBB/MSGTXT.cpy): COPY MSGTXT. COPY MSGTXT OF LIBB. COPY MSGTXT IN LIBB. compiles and prints DEFAULT TEXT / LIBB TEXT / LIBB TEXT, rc 0; an unqualified COPY of a text only LIBC holds is CBL3620 (no fallback); literal forms refused COBOL0900. The witness has one library and passes. kb/Work PB5473 holds the defect (code read: coderead-85/out-read4/rd-03.json).",
  "next": {
   "kind": "CHANGED",
   "to": [

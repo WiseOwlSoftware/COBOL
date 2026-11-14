@@ -112,6 +112,7 @@ public static class Constructs
     public const string Free2002 = "free-2002";
     public const string FromLiteral2002 = "from-literal-2002";
     public const string FunctionDefinition2002 = "function-definition-2002";
+    public const string FunctionEmptyArgumentList2002 = "function-empty-argument-list-2002";
     public const string FunctionPrototype2002 = "function-prototype-2002";
     public const string GobackBare2002 = "goback-bare-2002";
     public const string GobackReturning2002 = "goback-returning-2002";

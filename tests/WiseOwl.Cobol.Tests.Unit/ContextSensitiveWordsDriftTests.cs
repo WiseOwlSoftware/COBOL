@@ -97,7 +97,7 @@ public sealed class ContextSensitiveWordsDriftTests
     [Fact]
     public void Introduced_IsDerivedFromThe2002ListAndAnnexE33()
     {
-        var list2002 = LoadWordList("context-sensitive-words-2002.json");
+        var list2002 = LoadWordList(TestRepo.VersionMatrix("context-sensitive-words-2002.json"));
         var item13 = SpecItem13Words();
         Assert.True(list2002.Count >= 50 && item13.Count >= 10, $"2002 list={list2002.Count}, E.3.3 item 13={item13.Count}");
         var table = ContextSensitiveWords.Entries.ToDictionary(e => e.Word, StringComparer.Ordinal);
@@ -125,9 +125,8 @@ public sealed class ContextSensitiveWordsDriftTests
                           StringComparer.Ordinal);
     }
 
-    private static HashSet<string> LoadWordList(string file)
+    private static HashSet<string> LoadWordList(string path)
     {
-        string path = TestRepo.VersionMatrix(file);
         Assert.True(File.Exists(path), $"word list missing: {path}");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         return doc.RootElement.GetProperty("words").EnumerateArray().Select(e => e.GetString()!).ToHashSet(StringComparer.Ordinal);

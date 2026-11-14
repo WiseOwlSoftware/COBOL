@@ -13,7 +13,7 @@ regardless of the file-name used in the COBOL program". The 2002 and 2014 texts 
 previously-executed CLOSE statement with the LOCK phrase, the execution of the OPEN statement is unsuccessful". So the
 name-keyed lock was right from 2002 and wrong at 85. COBOL-2023 removed the phrase (COBOL0902).
 
-**The fix.** A new behaviour member, `DialectBehavior.CloseWithLockLocksFileConnector` (changed in 2002, VCR Table 7 row 7.68,
+**The fix.** A new behaviour member, `DialectBehavior.CloseWithLockLocksFileConnector` (changed in 2002, VCR Table 7 row 7.70,
 `compiler-facts.json`, PublicAPI). `CloseWithLock` reads it after a successful close: from 2002 it records the connector's
 name as before; at 85 it marks the connector's physical-file state, `PhysicalFileTable.State.ClosedWithLock`. The OPEN asks
 one predicate, `FileRegistry.ClosedWithLock`, of the physical-file state it resolves anyway, which `SharedOpenAttempt` now
@@ -47,5 +47,8 @@ again"). R1-2: 1985-GR-IX.4.2.4-2 and 1985-GR-IX.4.4.4-5 still said that another
 `record_verdicts` batch rewrote both notes for the physical-file lock (CONFORMS kept; 1985 GAP 275 to 275), added the
 physical-file sites and the 85 witness to IX.4.4.4-5, and added the new golden to 1985-GR-VII.4.2.4-3 and 1985-GR-VII.1.3.5-L2.3.
 A sweep of every inventory's notes for a connector-keyed lock found no other row. While merging main, this branch's behaviour
-member moved to value 18 and VCR row 7.68, because main's PB5186 had taken 17 and 7.67.
+member moved to value 19 and VCR row 7.70, because main had taken 17 and 7.67 (PB5186), 18 and 7.69 (PB5183) and 7.68 (PB5270).
+The same merge met main's 1985 read 4 verdicts on two relative-file rows: 1985-GR-VIII.4.2.4-2, recorded DIVERGES with this defect,
+is re-verdicted CONFORMS by a `record_verdicts` batch that keeps main's probes and witnesses (1985 GAP 231 to 230), and
+1985-GR-VIII.1.3.4-L2.4 keeps main's CONFORMS with the physical-file lock's sites, witness and sentence added.
 

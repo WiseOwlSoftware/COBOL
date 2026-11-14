@@ -241,7 +241,9 @@ internal static class OperandText
     /// <paramref name="transfer"/> asks for the one-way current-extent image of a variable-length group holding a message tag, the SEND's (kb/Work PB4744).
     /// <paramref name="use"/> is how much of an OCCURS DEPENDING group the operation uses (<see cref="AreaUse"/>).</para></summary>
     public static string RecordAreaImage(Place record, bool transfer = false, AreaUse use = AreaUse.Sending) =>
-        record is OdoGroupPlace o && use.UsesWholeTable(o)
+        // A use's whole table is a CHARACTER-WINDOW record's: an out-of-line variable-length group has no window, so its image
+        // is its current composition whatever the use (D-FRA, the arm below; kb/Work PB5217).
+        record is OdoGroupPlace o && use.UsesWholeTable(o) && !IsVarGroupRecord(record)
             ? RecordAreaImage(o.Inner, transfer, use)
         : IsVarGroupRecord(record)
             ? PlaceRenderer.VarGroupCurrentImage(record, "record-area image of", transfer)
@@ -274,12 +276,15 @@ internal static class OperandText
     /// THIS, never <see cref="RecordAreaImage"/>, and the READ / RETURN landing
     /// (<c>SequentialIoEmitter.EmitOutOfLineInto</c>) is its exact inverse. A record with no structured member answers
     /// <see cref="RecordAreaImage"/> and renders as before (<see cref="FileModel.CarriesStructure"/> is the gate). The
-    /// READ INTO sender (<see cref="CurrentRecordImage"/>) is a procedural operation and keeps the contiguous view.</summary>
-    public static string RecordSendImage(Place record) =>
-        !FileModel.CarriesStructure(record.Item) ? RecordAreaImage(record)
+    /// READ INTO sender (<see cref="CurrentRecordImage"/>) is a procedural operation and keeps the contiguous view.
+    /// <para><paramref name="use"/> is how much of an OCCURS DEPENDING record the image spans (<see cref="AreaUse"/>): a
+    /// record-name-1 sends the part its DEPENDING item specifies; the record AREA, which a statement sends for the bytes past a
+    /// shorter record-name-1 or reads a key out of, is <see cref="AreaUse.Whole"/> (kb/Work PB5217).</para></summary>
+    public static string RecordSendImage(Place record, AreaUse use = AreaUse.Sending) =>
+        !FileModel.CarriesStructure(record.Item) ? RecordAreaImage(record, use: use)
         : IsVarGroupRecord(record)
-            ? $"{PlaceRenderer.VarGroupCurrentExtents(record)}.MediumImage({RecordAreaImage(record)})"
-            : RuntimeApi.DynStructureFrame(FileModel.StructureOf(record.Item)!.Code, RecordAreaImage(record));
+            ? $"{PlaceRenderer.VarGroupCurrentExtents(record)}.MediumImage({RecordAreaImage(record, use: use)})"
+            : RuntimeApi.DynStructureFrame(FileModel.StructureOf(record.Item)!.Code, RecordAreaImage(record, use: use));
 
     /// <summary>The extent table that travels beside <see cref="RecordSendImage"/> — <see cref="RecordAreaExtents"/>,
     /// widened to describe the MEDIUM image where a DYNAMIC LENGTH STRUCTURE lays a member out (kb/Work PB1094). A

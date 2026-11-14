@@ -59,8 +59,8 @@ public sealed class OperandWalkCoverageTests
 
     private static readonly string[] GrammarFiles =
     [
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "CobolParserCore.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolExpressions.g4"),
+        "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4",
     ];
 
     /// <summary>rule-name → its alternatives, each as the list of RULE references it makes (lowercase-initial
@@ -70,7 +70,7 @@ public sealed class OperandWalkCoverageTests
         var rules = new Dictionary<string, List<List<string>>>(StringComparer.Ordinal);
         foreach (string rel in GrammarFiles)
         {
-            string path = Path.Combine(TestRepo.Root, rel);
+            string path = TestRepo.Within("src/WiseOwl.Cobol.Frontend/Grammar/", rel);
             if (!File.Exists(path)) continue;
             string g4 = File.ReadAllText(path);
             // Strip comments so a rule name mentioned in prose is never read as a reference.

@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.3.6.3-3",
  "rule-digest": "2ab3b4017781",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ScreenSendAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#IsIntegerItem",
- "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-SR-XIV_3_6_3-3",
- "notes": "§1985:XIV.3.6.3 SR3: \"Identifier-3 must reference an integer data item.\" CommunicationBinder#ScreenSendAdvancing refuses (COBOL6171) an operand IsIntegerItem rejects; probes at --std 85 accept and run PIC 9, S9(3) holding -1, 9(18) holding 0 and all nines, BINARY, PACKED-DECIMAL, COMP, 9PP, a subscripted and a qualified item and LINAGE-COUNTER, and refuse P9, 9V9, X, ZZ9, a group, a USAGE INDEX item, an index-name, a symbolic-character and FUNCTION INTEGER (an integer function \"may be used only in an arithmetic expression\", §1985:IV.4.3.8.3.3 SR4) (classes b, d, f). One shape under-rejects: a reference-modified integer item (N18 (1:2), N2 (2:1)) is accepted, though reference modification of a numeric item yields a data item of class and category alphanumeric (§1985:IV.4.3.8.4.4 GR5), because IsIntegerItem reads the base item's PicInfo through the RefModPlace. No kb/Work note holds it (PB5289 landed the 9PP, index and symbolic-character arms). kb/Work PB5384 holds the defect (code read: coderead-85/out-reread2/rr-07.json).",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ScreenSendAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#IsIntegerItem; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand",
+ "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-SR-XIV_3_6_3-3; conformance:cases/XIV.3.6@1985-SEND-STATEMENT/pb5384-send-advancing-refmod; conformance:cases/XIV.3.6@1985-SEND-STATEMENT/pb5384_send_linage_counter_85; conformance:cases/XIV.3.6@1985-SEND-STATEMENT/pb5289-send-advancing-index-item",
+ "notes": "§1985:XIV.3.6.3 SR3: \"Identifier-3 must reference an integer data item.\" CommunicationBinder#ScreenSendAdvancing refuses (COBOL6171, quoting the 1985 rule at --std 85) an operand IsIntegerItem rejects: a data item asks the one integer classifier IntrinsicResultType#IsIntegerOperand, which refuses a reference-modified item (class and category alphanumeric, §1985:IV.4.3.8.4.4 GR5), an index data item and a non-integer PICTURE; a counter register passes through its implicit description; an index-name, a function and a symbolic-character are refused (kb/Work PB5384, PB5289). Probes at --std 85 on this tree: N2 (2:1) refused COBOL6171; LINAGE-COUNTER of a LINAGE IS 60 file accepted and ran; MSG (PIC X) refused.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

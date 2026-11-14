@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.9.3-3",
  "rule-digest": "907bbf4a44d4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#LevelNumberRules",
  "test-ref": "conformance:cases/XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/1985-SR-XIII_3_9_3-3",
+ "notes": "§1985:XIII.3.9.3 SR3: \"In format 2 the level-number may be any integer from 02 to 48 inclusive. In format 3 the level-number may be any integer from 02 to 49 inclusive.\", with level 01 being format 1, which has no PICTURE, COLUMN, SOURCE, SUM or VALUE. LevelNumberPass (LevelNumberRules' ReportGroup arm, COBOL1746) refuses any report entry level outside 1..49 at every edition; at Edition.DialectLevel < 2002 the binder calls ReportSectionBinder.ScreenReportEntryFormats, which refuses (COBOL2247) a level 01 entry writing any format 3 clause and a level 49 entry that is format 2 (no PICTURE and none of the format 3 clauses). Probes (class b,c,d): at --std 85, 50 elementary refused COBOL1746 (the witness); 49 group with a 50 child refused COBOL1746 and COBOL2247 (02 to 48); an elementary 01 DETAIL with LINE, COLUMN, PIC, VALUE refused COBOL2247, and with SOURCE likewise; 77 refused COBOL1746; 48 group with 49 elementary and 02 group with 03 elementary compile and print. At --std 2023 the elementary 01 group compiles and prints ELEM1 (the loosening the change record names) while 50 is still refused.",
  "next": {
   "kind": "CHANGED",
   "to": [

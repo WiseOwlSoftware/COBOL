@@ -1607,9 +1607,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     internal static int? KnownWidth(BoundOperand op) => op switch
     {
         BoundStringLiteral sl => sl.Value.Length,
-        // §2023:8.4.3.3 — a ref-mod view with a LITERAL length has that static width; a computed or
-        // omitted-length form is genuinely runtime.
-        BoundFieldOperand { Place: RefModPlace rm } => rm.StaticLength(innerLength: null),
+        // §2023:8.4.3.3 — a ref-mod view with a LITERAL length has that static width, and so has one whose length is omitted
+        // over an identifier-1 of static length with a literal leftmost position (the positions from the leftmost to the end,
+        // §2023:8.4.3.3.4 GR5 c; kb/Work PB5425); a computed position is genuinely runtime.
+        BoundFieldOperand { Place: RefModPlace rm } => rm.StaticLength(rm.StaticInnerPositions),
+        // A function-identifier whose definition fixes its returned value's length (IntrinsicSig.Length; kb/Work PB5425).
+        BoundComputedOperand { Expr: BoundIntrinsicCall call } => ResultWidth(call),
         BoundFieldOperand { Place.Item: { IsAnyLength: true } or { IsDynamicLength: true } } => null,
         // A group's width is static exactly when nothing beneath it varies at run time — the §2023:15.50.4 r7
         // dynamic guards plus an ODO subordinate's varying current length (§2023:8.5.1.8 GR7/GR8).
@@ -1620,6 +1623,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundPredefinedNull => null,             // §2023:8.4.3.10.1 — an address of class pointer: no character width
         _ => null,   // computed results / error operands — genuinely runtime
     };
+
+    /// <summary>The static character positions of a function call's returned value, or of its reference-modified part: the catalog's
+    /// <see cref="IntrinsicResultLength"/> (a fixed count, or argument-1's own static width), then a modifier's literal length, or
+    /// with the length omitted the positions from a literal leftmost position to the end; null for a length only the run time knows.</summary>
+    private static int? ResultWidth(BoundIntrinsicCall call)
+    {
+        int? whole = call.Sig.Length switch
+        {
+            { Positions: { } n } => n,
+            { OfArgument1: true } when call.Args is [{ } argument1, ..] => KnownWidth(argument1),
+            _ => null,
+        };
+        if (call.RefMod is not { } rm) return whole;
+        if (rm.Length is { } length) return length is PositionConstant { Value: >= 0 and <= int.MaxValue } n ? (int)n.Value : null;
+        return whole is { } size && rm.Start is PositionConstant { Value: >= 1 and <= int.MaxValue } left ? size - (int)left.Value + 1 : null;
+    }
 
     /// <summary>DISPLAY-OF / NATIONAL-OF argument rules — DISPLAY-OF (§2023:15.26.3): argument-1 shall be of class
     /// national (r1); argument-2 shall be of class alphabetic or alphanumeric and one character position in
@@ -3248,16 +3267,28 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         // Collect OF/IN qualifiers and the ONE trailing subscript group — which the grammar hangs off the LAST
         // qualification when qualifiers are present (qualification : (OF|IN) cobolWord (subscriptPart|refModPart)*).
+        // A reference modifier written AFTER the subscript group is part of the shape (kb/Work PB5209): the identifier
+        // format prints `[ ( {subscript} ... ) ] [ reference-modifier ]` (§1985:IV.4.3.8.5.2), and "If an ALL subscript
+        // is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of
+        // the table" (§1985:IV.4.3.8.4.4 GR3; §2023:15.3: "the effect is as if each table element associated with that
+        // subscript position were specified", each one the identifier with its modifier). It is admitted below through
+        // the one reference-modification tail. A modifier BEFORE the subscripts is not this shape.
         var quals = new List<string>();
         Core.SubscriptPartContext? sp = null;
         foreach (var suffix in dref.dataReferenceSuffix())
         {
-            if (sp is not null) return false;                    // anything after the subscript group — not the shape
+            if (suffix.refModPart() is not null) { if (sp is null) return false; continue; }
+            if (sp is not null) return false;                    // anything else after the subscript group — not the shape
             if (suffix.subscriptPart() is { } direct) { sp = direct; continue; }
-            if (suffix.qualification() is not { } q || q.cobolWord() is not { } qw) return false;   // ref-mod tail
+            if (suffix.qualification() is not { } q || q.cobolWord() is not { } qw) return false;
             quals.Add(qw.GetText());
-            if (q.refModPart().Length > 0 || q.subscriptPart().Length > 1) return false;
-            if (q.subscriptPart() is [{ } trailing]) sp = trailing;
+            if (q.subscriptPart().Length > 1) return false;
+            if (q.subscriptPart() is [{ } trailing])
+            {
+                if (q.refModPart() is [{ } first, ..] && first.Start.TokenIndex < trailing.Start.TokenIndex) return false;
+                sp = trailing;
+            }
+            else if (q.refModPart().Length > 0) return false;
         }
         if (sp is null) return false;
 
@@ -3346,6 +3377,26 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) occurrence of '{name}'"));
             return true;
+        }
+        // The reference modifier written after the subscripts (kb/Work PB5209), through THE ONE reference-modification tail every
+        // identifier takes (ReferenceResolver.ResolveImplCore's): the §2023:8.4.3.3.3 SR3 count, the SR1 admission of the
+        // element's description and its literal range screens, and the GR5 view. The view is the ELEMENT's, so the backend's one
+        // enumeration applies it to each occurrence.
+        var written = ReferenceResolver.ReadWritten(dref);
+        if (written.IsReferenceModified)
+        {
+            if (!ctx.Refs.RefMods.ScreenRefModCount(dref, written, name)
+                || ctx.Refs.RefMods.ReadScreenedRefMod(dref, written, element.Item, out _) is not { } spec)
+            {
+                args.Add(BoundOperandError.Refused(ctx.Edition, $"reference modification of table(ALL) argument '{name}'"));
+                return true;
+            }
+            if (ctx.Refs.RefMods.RefModView(element.Item, element, spec) is not { } view)
+            {
+                args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"reference modification of table(ALL) argument '{name}'"));
+                return true;
+            }
+            element = view;
         }
         // ⛔ AN ALL ARGUMENT IS AN ARGUMENT OF THE LIST LIKE ANY OTHER (kb/Work PB4162): §2023:15.3 makes it "as if each table element ...
         // were specified", each evaluated at its place in the argument list (§2023:8.4.3.2.4 GR2), so the window records it and a later

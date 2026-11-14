@@ -142,9 +142,13 @@ public sealed record BoundMerge(
 /// releases at the length the RECORD VARYING DEPENDING ON item holds (§2023:13.18.43 GR13); a fixed SD at its ONE record
 /// size, the largest record description's (§2023:13.18.43.4 GR5 a) — a shorter record description sends the record area's
 /// image, kb/Work PB322 F). A short USING-file record is filled by §2023:14.9.40.4 GR7, the USING transfer's own rule
-/// (kb/Work PB1140), and a short RETURNed record for a GIVING file by GR16.</summary>
+/// (kb/Work PB1140), and a short RETURNed record for a GIVING file by GR16. <paramref name="RangeFailsStatement"/> is
+/// the compile edition's answer for a record outside the SD's record range with checking off: COBOL-85 makes the
+/// statement unsuccessful (§1985:VII.3.8.4 GR10, the Amendment 2 paragraph; kb/Work PB5124), COBOL-2002 on leave the
+/// result undefined and release it (docs/CONFORMANCE.md §3 D-SMA (c)).</summary>
 public sealed record BoundRelease(
-    FileModel File, Place Record, int RecordWidth, BoundMove? FromMove, SortVaryingInfo? Varying) : BoundStatement, IBoundSortVarying;
+    FileModel File, Place Record, int RecordWidth, BoundMove? FromMove, SortVaryingInfo? Varying,
+    bool RangeFailsStatement) : BoundStatement, IBoundSortVarying;
 
 /// <summary><c>RETURN file-name-1 RECORD [INTO x] AT END … [NOT AT END …]</c> (ISO §2023:14.9.34): make the next record
 /// (in key order) available in the SD record area (GR3); INTO ≡ RETURN then MOVE record-area → x (GR5, skipped at

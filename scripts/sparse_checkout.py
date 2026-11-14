@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """sparse_checkout.py — ⛔ A CI JOB THAT CHECKS OUT ONLY SOME PATHS LISTS EVERY REPOSITORY FILE ITS SCRIPTS REACH
-(kb/Work PB3787, PB3810, PB4395).
+(kb/Work PB3787, PB3810, PB4395, PB5230).
 
     python scripts/sparse_checkout.py --check       # every sparse job of every workflow; exit 1 naming each file left out
     python scripts/sparse_checkout.py --self-test   # each arm on a planted workflow, then the real workflows
@@ -20,11 +20,19 @@ repository file, and the files of a local action (`uses: ./…`) it calls; from 
 repository module it imports anywhere in its text (an `import`, a `from … import` or a submodule the latter names, at
 module level, in a class body, in a function body or under an `if`: a lazy import runs on the job's path when its
 function does, and an over-approximated closure is loud where an under-approximated one is silent, kb/Work PB3810); from
-a shell script, a PowerShell script or an action, the same token scan of its non-comment text. Python resolves a bare
+a shell script, a PowerShell script or an action, the same token scan of its non-comment text. From a Python file too,
+each repository file it READS by a literal path: the receiver of a `.read_text(`, `.read_bytes(` or `.open(` call, or the
+first argument of `open(`, whose string constants, or a `/` chain of them (`REPO / "scripts" / "build_targets.json"`),
+name an existing file from the repository root or from the reading file's directory (kb/Work PB5230's bounce:
+`test_population.py` came to read `scripts/build_targets.json` at import, the `ci-gate` job's list did not hold it, and
+merge-group run 43552030404 failed every population check with `FileNotFoundError`). A read anywhere in the file counts,
+the same over-approximation as a lazy import, except inside the script's own `self_test` function, which no sparse job
+runs; a file read is data, so nothing it names is followed. Python resolves a bare
 module name through `sys.path`, which the scripts extend themselves (`sys.path.insert(0, str(HERE))`), so the audit
 searches the entry script's directory, the importing file's directory and each directory above it. It does not run
-Python: a module named by `importlib` or a path string in a Python file is not seen (the two limits of a static read; a
-`subprocess` call of another script is the sibling of the second).
+Python: a module named by `importlib`, a path a Python file computes (a variable, an f-string, a glob) and a path string it
+hands to anything but a read are not seen (the limits of a static read; a `subprocess` call of another script is the
+sibling of the last).
 
 THE LIST is read as `git sparse-checkout` reads it in non-cone mode (gitignore patterns: a name covers the file or
 directory and everything beneath it; `*`, `**` and `?` glob; a leading `/` anchors), so a job that does not set
@@ -40,6 +48,7 @@ a compiler change that only a build could check; it is the pipeline's, and runs 
 """
 from __future__ import annotations
 
+import ast
 import posixpath
 import re
 import subprocess
@@ -142,21 +151,25 @@ def reach(job: SparseJob, read: Reader) -> list[Reached]:
     reached: list[Reached] = []
     seen: set[str] = set()
     origin = f"{job.file} job `{job.id}`"
-    work: deque[tuple[str, str, str]] = deque((p, origin, posixpath.dirname(p)) for p in _token_files(job.steps, read))
+    # Each item: a path, the file that led to it, the entry script's directory, and whether it is DATA (a file a Python
+    # script reads, which is never run, so nothing it names is followed).
+    work: deque[tuple[str, str, str, bool]] = deque(
+        (p, origin, posixpath.dirname(p), False) for p in _token_files(job.steps, read))
     while work:
-        path, via, entry = work.popleft()
+        path, via, entry, data = work.popleft()
         if path in seen:
             continue
         seen.add(path)
         reached.append(Reached(path, via))
+        if data:
+            continue
         text = read(path) or ""
         if path.endswith(".py"):
-            following: Iterable[str] = imported_files(path, text, entry, read)
-        elif path.endswith((".sh", ".ps1", ".yml", ".yaml")):
-            following = _token_files(text, read)
-        else:
-            following = ()
-        work.extend((n, path, entry) for n in following)
+            work.extend((n, path, entry, False) for n in imported_files(path, text, entry, read))
+            work.extend((n, path, entry, True) for n in read_files(path, text, read))
+            continue
+        following: Iterable[str] = _token_files(text, read) if path.endswith((".sh", ".ps1", ".yml", ".yaml")) else ()
+        work.extend((n, path, entry, False) for n in following)
     return reached
 
 
@@ -237,6 +250,76 @@ def imported_files(path: str, text: str, entry_dir: str, read: Reader) -> Iterat
     roots = list(dict.fromkeys(roots))
     for level, module, names in _imports(text):
         yield from _resolve(roots if level == 0 else [_up(here, level - 1)], module, names, read)
+
+
+#: The calls that read the path their receiver names: `Path.read_text`, `Path.read_bytes`, `Path.open`.
+READ_METHODS = frozenset({"read_text", "read_bytes", "open"})
+#: A function whose name begins so (a leading `_` set aside) is a script's `--self-test`, which the self-test runner runs
+#: on a whole tree and no sparse job does: its reads (the real workflows, planted inputs) are not the job's.
+SELF_TEST = "self_test"
+
+
+def read_files(path: str, text: str, read: Reader) -> Iterator[str]:
+    """The repository files the Python file at `path` reads by a literal path: in the receiver of a `READ_METHODS` call or
+    the first argument of `open(`, each string constant and each `/` chain of string constants (its non-literal head,
+    `REPO` or `HERE`, set aside), resolved from the repository root or from the file's directory; never inside a
+    `SELF_TEST` function. A file that does not parse reads nothing here (its imports are still followed)."""
+    try:
+        tree = ast.parse(text, filename=path)
+    except SyntaxError:
+        return
+    here = posixpath.dirname(path)
+    seen: set[str] = set()
+    skipped: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.lstrip("_").startswith(SELF_TEST):
+            skipped.update(id(n) for n in ast.walk(node))
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or id(node) in skipped:
+            continue
+        roots: list[ast.AST] = []
+        if isinstance(node.func, ast.Attribute) and node.func.attr in READ_METHODS:
+            roots.append(node.func.value)
+        if isinstance(node.func, ast.Name) and node.func.id == "open" and node.args:
+            roots.append(node.args[0])
+        for root in roots:
+            for literal in _path_literals(root):
+                name = literal.strip().replace("\\", "/")
+                if not name or name.startswith("/") or ".." in name or not ("/" in name or "." in name):
+                    continue
+                for rel in dict.fromkeys((name, _join(here, name))):
+                    if read(rel) is not None:
+                        if rel not in seen:
+                            seen.add(rel)
+                            yield rel
+                        break
+
+
+def _path_literals(root: ast.AST) -> Iterator[str]:
+    """The path texts beneath `root`: each outermost `/` chain of string constants joined, and each string constant
+    outside a chain."""
+    chained: set[int] = set()
+    for node in ast.walk(root):
+        if id(node) in chained or not isinstance(node, ast.BinOp) or not isinstance(node.op, ast.Div):
+            continue
+        parts: list[str] = []
+        cur: ast.AST = node
+        while isinstance(cur, ast.BinOp) and isinstance(cur.op, ast.Div):
+            chained.add(id(cur))
+            if not (isinstance(cur.right, ast.Constant) and isinstance(cur.right.value, str)):
+                parts = []
+                break
+            parts.append(cur.right.value)
+            chained.add(id(cur.right))
+            cur = cur.left
+        if parts and isinstance(cur, ast.Constant) and isinstance(cur.value, str):
+            parts.append(cur.value)
+            chained.add(id(cur))
+        if parts:
+            yield "/".join(reversed(parts))
+    for node in ast.walk(root):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in chained:
+            yield node.value
 
 
 def _up(d: str, levels: int) -> str:
@@ -423,6 +506,24 @@ def self_test(repo: Path = REPO) -> int:
         len(found) == 1 and "`coord.py` (reached from tools/run.py)" in found[0]
         and not problems(_one_job("j", ["tools", "coord.py"], run), read), found)
 
+    read = _planted(("tools/run.py", 'import json\nfrom pathlib import Path\nREPO = Path(__file__).parents[1]\n'
+                                     'T = json.loads((REPO / "data" / "t.json").read_text())\n'
+                                     'U = (Path("tools") / "u.sh").read_bytes()\nwith open("tools/v.cfg") as f:\n'
+                                     '    pass\nNAMED = "data/named-only.json"\n'
+                                     'W = Path(__file__).with_name("w.json").read_text()\n'
+                                     'def self_test():\n    return (REPO / "data" / "st.json").read_text()\n'),
+                    ("data/t.json", "{}"), ("tools/u.sh", "source data/never.sh\n"), ("data/never.sh", ""),
+                    ("tools/v.cfg", ""), ("data/named-only.json", "{}"), ("tools/w.json", "{}"), ("data/st.json", "{}"))
+    got = [r.path for r in reach(_one_job("j", ["tools"], run)[0], read)]
+    found = problems(_one_job("j", ["tools"], run), read)
+    arm("a data file a script reads by a literal path (a `/` chain into read_text or read_bytes, open's argument, a "
+        "sibling by name) is reached, while a path only named, a read in its self_test and what a read file names are "
+        "not, and the one left out of the list is flagged with the script that reads it until it is listed "
+        "(kb/Work PB5230)",
+        sorted(got) == ["data/t.json", "tools/run.py", "tools/u.sh", "tools/v.cfg", "tools/w.json"] and len(found) == 1
+        and "`data/t.json` (reached from tools/run.py)" in found[0]
+        and not problems(_one_job("j", ["tools", "data/t.json"], run), read), (got, found))
+
     planted = [j.id for j in jobs("w.yml", "on:\n  push:\n    branches: [main]\n  merge_group:\njobs:\n  only:\n"
                                            "    runs-on: ubuntu-26.04\n    steps:\n      - run: true\n")]
     arm("the job reader sees the keys beneath `jobs:` and not the triggers (planted)", planted == ["only"], planted)
@@ -513,6 +614,21 @@ def self_test(repo: Path = REPO) -> int:
         "is flagged once, naming the job, the file and the orchestrator script that imports it",
         job_text.count(entry) == 2 and len(found) == 1 and "job `supersede`" in found[0]
         and "`scripts/standard_streams.py`" in found[0] and "scripts/orchestrator/" in found[0],
+        f"{job_text.count(entry)} list entries; {found}")
+
+    # The bounce of kb/Work PB5230 (merge-group run 43552030404): the ci-gate job's two lists without
+    # scripts/build_targets.json are flagged once, naming the job, the file and test_population.py, which reads it at import.
+    entry = "\n            scripts/build_targets.json\n"
+    start = wf.find("\n  ci-gate:")
+    following = re.search(r"\n  [A-Za-z0-9_-]+:\n", wf[start + 1:]) if start >= 0 else None
+    end = start + 1 + following.start() if following else len(wf)
+    job_text = wf[start:end] if start >= 0 else ""
+    without = wf[:start] + job_text.replace(entry, "\n") + wf[end:] if job_text else wf
+    found = problems(sparse_jobs([*(j for j in real if j.file in planted_files), *jobs(wf_path, without)]), read)
+    arm("THE REAL TREE, planted: build-and-test.yml without scripts/build_targets.json in the ci-gate job's two lists is "
+        "flagged once, naming the job, the file and scripts/test_population.py, which reads it",
+        job_text.count(entry) == 2 and len(found) == 1 and "job `ci-gate`" in found[0]
+        and "`scripts/build_targets.json` (reached from scripts/test_population.py)" in found[0],
         f"{job_text.count(entry)} list entries; {found}")
 
     for name, passed, detail in results:

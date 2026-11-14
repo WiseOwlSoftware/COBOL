@@ -110,8 +110,9 @@ public enum DialectBehavior
     /// alone: an index "greater than the highest permissible occurrence number for identifier-1" ends the search at once, and
     /// an index "not greater" starts the serial search by "evaluating the conditions in the order that they are written";
     /// §1985:VI.6.23.4 GR2 lets a PERFORM or SEARCH leave an index "outside the range of its associated table", which is how a
-    /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan and is incremented to occurrence 1
-    /// (kb/Work PB5121; VCR row 7.56). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
+    /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan (kb/Work PB5121; VCR row 7.56), and
+    /// the incremented index is judged against both bounds (§1985:VI.6.22.4 GR2 b), "outside the permissible range of occurrence
+    /// values"): an index of 0 advances to occurrence 1, one below 0 ends the search after its first pass (kb/Work PB5302). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
     /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
     SearchIndexBelowTableUnsuccessful = 6,
 
@@ -228,16 +229,25 @@ public enum DialectBehavior
     /// <c>BoundPower.NegativeBaseRealRoots</c> for <c>NumericRenderer.Power</c> and so for
     /// <c>CobolIntrinsics.PowNativeReal(double, CobolExact)</c> and <c>CobolExact.PowReal</c>.</summary>
     NegativeBaseRequiresIntegerExponent = 17,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.13.4 GR4 c) — "If the result of the analysis is false for any pair in a WHEN phrase,
+    /// no more pairs in that WHEN phrase are evaluated"; the 2002 text words it the same (§2002:14.8.12.3 GR4c), and the
+    /// selection objects of a WHEN phrase are evaluated only when the phrase is analyzed. §1985:VI.6.13.4 GR1 says instead
+    /// that the statement "operates as if each selection subject and selection object were evaluated" and assigned a value
+    /// before any comparison (GR2), so at <c>--std 85</c> an object a WHEN phrase never reaches is evaluated too, which is
+    /// observable when it references a function (X3.23a-1989 RANDOM's next number; kb/Work PB5183; VCR row 7.69). Both
+    /// editions are QUOTED. The consumer is <c>EvaluateBinder.Bind</c>, which hoists the analysis of each such pair to the
+    /// beginning of the statement when this behaviour is inactive.</summary>
+    EvaluateObjectsInWhenPhraseOrder = 18,
     /// <summary>§2014:14.9.26.3 GR24 — "If the file connector referenced by file-name-1 is locked by a previously-executed CLOSE
     /// statement with the LOCK phrase, the execution of the OPEN statement is unsuccessful" with I-O status '38'; the 2002 text
     /// (§2002:14.8.26.3 GR24) words it the same, so from 2002 a CLOSE WITH LOCK locks the FILE CONNECTOR and another SELECT of the
     /// same physical file opens it. §1985:IX.1.3.4 gives '38' when "an OPEN statement is attempted on a file previously closed with
     /// lock", and the 1985 conventions say "The terms file referenced by file-name and file mean the physical file regardless of the
     /// file-name used in the COBOL program" (§1985:II.2), so at <c>--std 85</c> the PHYSICAL FILE is locked and every OPEN of it
-    /// through any file-name answers '38' (kb/Work PB5210; VCR row 7.68). Both editions are QUOTED. COBOL-2023 removed the phrase
+    /// through any file-name answers '38' (kb/Work PB5210; VCR row 7.70). Both editions are QUOTED. COBOL-2023 removed the phrase
     /// (§2023:E.2, COBOL0902), so the 2023 edition never reaches the rule. The consumers are <c>FileRegistry.CloseWithLock</c> and
     /// <c>FileRegistry.ClosedWithLock</c>.</summary>
-    CloseWithLockLocksFileConnector = 18,
+    CloseWithLockLocksFileConnector = 19,
 }
 
 /// <summary>
@@ -340,8 +350,13 @@ public static class DialectBehaviors
             "7.67", "8.8.1.2 GR6c", "§1985:VI.6.2.3 GR5c",
             "a negative base raised to a non-integer exponent raises EC-SIZE-EXPONENTIATION only from COBOL-2002; "
             + "COBOL-85 raises the size error only when no real number is the result, so (-32) ** 0.2 is -2"),
+        new(DialectBehavior.EvaluateObjectsInWhenPhraseOrder, "evaluate-objects-in-when-phrase-order", 2002,
+            "7.69", "14.9.13.4 GR4 c)", "§1985:VI.6.13.4 GR1",
+            "an EVALUATE selection object is evaluated only when its WHEN phrase is analyzed, and not after a false pair of "
+            + "that phrase, only from COBOL-2002; COBOL-85 operates as if every selection subject and object were evaluated "
+            + "before any comparison"),
         new(DialectBehavior.CloseWithLockLocksFileConnector, "close-with-lock-locks-file-connector", 2002,
-            "7.68", "§2014:14.9.26.3 GR24", "§1985:II.2",
+            "7.70", "§2014:14.9.26.3 GR24", "§1985:II.2",
             "a CLOSE WITH LOCK locks the file connector, so another file-name of the same physical file opens it, only from "
             + "COBOL-2002; COBOL-85 locks the physical file and every OPEN of it through any file-name answers 38"),
     ];

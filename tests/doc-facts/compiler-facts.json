@@ -45,7 +45,7 @@
     },
     {
       "id": "close-with-lock-locks-file-connector",
-      "vcrRow": "7.68"
+      "vcrRow": "7.70"
     },
     {
       "id": "compile-time-arithmetic-mode",
@@ -54,6 +54,10 @@
     {
       "id": "control-footing-page-groups-see-prior-values",
       "vcrRow": "7.54"
+    },
+    {
+      "id": "evaluate-objects-in-when-phrase-order",
+      "vcrRow": "7.69"
     },
     {
       "id": "file-sharing-facility",
@@ -1183,6 +1187,10 @@
         },
         {
           "name": "slots",
+          "optional": true
+        },
+        {
+          "name": "rangeFailsStatement",
           "optional": true
         }
       ]

@@ -216,11 +216,12 @@ public sealed class IoExceptionPhraseRequirementTests
     [InlineData("WRITE SREC FROM SREC.")]
     [InlineData("REWRITE SREC FROM SREC.")]
     [InlineData("READ SF INTO SREC AT END DISPLAY \"E\".")]
-    public void OperandIsTheRecordItself_IsRefusedBefore2023(string statement)
+    public void OperandIsTheRecordItself_IsRefusedBefore2014(string statement)
     {
         AssertRefused(Check(85, Records(statement, OneRecord)), "COBOL6827");
         AssertRefused(Check(2002, Records(statement, OneRecord)), "COBOL6827");
-        AssertAccepted(Check(2023, Records(statement, OneRecord)));   // §2023:14.6.10 replaces the rule
+        AssertAccepted(Check(2014, Records(statement, OneRecord)));   // §2014:E.3 drops the rule (kb/Work PB5270)
+        AssertAccepted(Check(2023, Records(statement, OneRecord)));   // §2023:14.6.10 governs the overlap
     }
 
     [Theory]

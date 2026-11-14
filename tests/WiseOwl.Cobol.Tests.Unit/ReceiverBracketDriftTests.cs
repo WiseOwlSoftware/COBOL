@@ -120,12 +120,13 @@ public sealed class ReceiverBracketDriftTests
         {
             string line = lines[i].Trim();
             // GuardedStore names the receiver and its ROUNDED mode (kb/Work PB3990); ReceiverStore, the bracket funnel it
-            // wraps, names the receiver (the one caller outside GuardedStore is the materialized single receiver).
+            // wraps, names the receiver (the one caller outside GuardedStore is the materialized single receiver). The store
+            // closure takes the receiver as its store identifies it (`at`, DebugTriggerEmitter.IdentifiedAtStore, kb/Work PB5385).
             if (line.StartsWith("//") || line.StartsWith("///")) continue;
             if (line.Contains("private void GuardedStore(") || line.Contains("private void ReceiverStore(")) continue;
-            if (line.Contains("GuardedStore(") && !Regex.IsMatch(line, @"GuardedStore\((ise|true|inSizeError), [A-Za-z.]+, [A-Za-z.]+, \(\) =>"))
+            if (line.Contains("GuardedStore(") && !Regex.IsMatch(line, @"GuardedStore\((ise|true|inSizeError), [A-Za-z.]+, [A-Za-z.]+, at =>"))
                 bare.Add($"ArithmeticEmitter.cs:{i + 1}: {line}");
-            if (line.Contains("ReceiverStore(") && !Regex.IsMatch(line, @"ReceiverStore\((ise|inSizeError), [A-Za-z.]+, (\(\) =>|emitOne\))"))
+            if (line.Contains("ReceiverStore(") && !Regex.IsMatch(line, @"ReceiverStore\((ise|inSizeError), [A-Za-z.]+, (at =>|emitOne\))"))
                 bare.Add($"ArithmeticEmitter.cs:{i + 1}: {line}");
         }
         Assert.True(bare.Count == 0,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XII.2.4-10",
  "rule-digest": "51ddcaa9923c",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped; src/WiseOwl.Cobol.Frontend/Common/SourceLineMap.cs#OriginWriter; src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#Run",
  "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-GR-XII_2_4-10",
+ "notes": "§1985:XII.2.4 GR10: \"text words after replacement are placed in the source program according to the rules for reference format\", and \"additional spaces may be introduced only between text words where there already exists a space\". CopyProcessor#ApplyReplacements splices pseudo-text-2 verbatim into the logical text (no space is added or removed: witness 1985-GR-XII_2_4-10 joins a word continued inside pseudo-text-2, and a replacement that runs past margin R is neither cut nor split, probe p10a), but OriginWriter#Append gives EVERY line of the replacement the source position of the replaced library word, and AreaPlacementPass#Run judges COBOL-85 areas through that position. So a replacement word is placed by the column of the text it replaced, not by the reference-format line structure of pseudo-text-2: a paragraph header that pseudo-text-2 puts in area A of its own introduced line is refused COBOL3734 at --std 85 (p9v, p9iii; 2002 compiles and prints IN Q). Same mechanism as kb/Work PB5313 (filed for REPLACE, 1985-GR-XII.3.4-10); COPY REPLACING shares ApplyReplacements. Probes (work-rd-06/p): a) p10a long replacement past column 72, p6b library margins and a continued word; b) p9iii/p9v refused; c) none applies (no 2002 phrase in GR10; LEADING/TRAILING refused COBOL0900, p3e); d) p10b subscripted replacement; e,f) not reached by a text-manipulation rule. kb/Work PB5313 holds the defect (code read: coderead-85/out-read4/rd-06.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
