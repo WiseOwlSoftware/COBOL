@@ -1405,7 +1405,12 @@ reference formats, and the only place source comments are recognized. Its model:
   once per file (the file is an argument of each report, never state of the instance). It holds the edition gates —
   `floating-comment-indicator-2002` and `floating-literal-continuation-2002` (COBOL0900, once per compilation, asked
   in FIXED form only: free form is itself a 2002 introduction reached below 2002 only through the `--source-format
-  free|auto` selection, and its comment and its literal continuation are the floating ones), `debugging-line-removed-2014`,
+  free|auto` selection, and its comment and its literal continuation are the floating ones; **the comment indicator's
+  gate is asked of the FINISHED text, not of the conversion** (kb/Work PB5470): COBOL-85 has no floating comment, `*>` is
+  an ordinary text-word there (§1985:III), so the fixed-form conversion below 2002 leaves it in the text
+  (`ReferenceFormatDiagnostics.FixedFormReadsFloatingComments`, the one edition predicate), COPY and REPLACE read it in
+  library text and pseudo-text, and `SurvivingFloatingComments`, run in `Frontend.Preprocess` after the comment-entry
+  resolver, refuses one that survives: COBOL0900 and, after a character, COBOL2495), `debugging-line-removed-2014`,
   `floating-debugging-indicator-2002`, `col7-continuation-obsolete-2023` and `fixed-form-word-continuation-removed-2023` — and the syntax-rule diagnostics
   above, plus SR2 (a `*>` not preceded by a separator space — COBOL2495; the text after it is still the comment) and
   SR3 (a continuation line completing a `*>` or `>>` begun at the end of the line it continues — COBOL2496).
