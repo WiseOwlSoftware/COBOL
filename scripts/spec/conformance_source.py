@@ -1,10 +1,11 @@
-"""conformance_source.py — the ONE reader of docs/CONFORMANCE.md (kb/Work PB5395; DESIGN-orchestrator-loop.md §16.8, step A).
+"""conformance_source.py — the ONE reader of the conformance statement (kb/Work PB5395, PB5429, PB5430;
+DESIGN-orchestrator-loop.md §16.8).
 
 Every script that needs a register, a section, a row or a determination of the conformance statement reads it HERE, and no
-other module opens the document or keeps a parser of its tables: `load(root)` reads the file once into a `Conformance`, and
-`parse(text)` builds the same from a text (a self-test's fabricated body). The storage is one Markdown file today and
-`Conformance` is what the rest of §16.8's steps keep stable while it is cut into one file per entry, so a reader written
-against this module does not change when the storage does.
+other module opens the document's storage or keeps a parser of its tables: `load(root)` renders the sources under
+`docs/conformance/` (one directory per section, one file per entry: `read_sources`) once into a `Conformance`, and
+`parse(text)` builds the same from a text (a self-test's fabricated body). `docs/CONFORMANCE.md` is that render, a
+gitignored VIEW (`conformance_doc.py`, `rendered_views.py`) that nothing reads back.
 
 THE READER KNOWS THE DOCUMENT'S SECTIONS BY NUMBER (`## 7. …`, `### 3.2 …`), never by their title: a title is prose and is
 reworded, and a number is the key every citation of the document already uses. A section runs from its heading to the next
