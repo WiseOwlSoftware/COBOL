@@ -871,7 +871,10 @@ public abstract class FileConnector
     {
         CurrentRecord = record;
         CurrentRecordExtents = extents;
-        LastReadLength = record.Length;
+        // A record longer than the RECORD IS VARYING maximum is delivered truncated on the right to it (§1985:VIII.4.5.4 GR16,
+        // §1985:IX.4.5.4 GR18, §1985:VII.4.4.4 GR13), so "the number of character positions in the record just read" that the
+        // DEPENDING ON item indicates (§1985:VII.3.8.4 GR11) is the delivered record's, never above the maximum (kb/Work PB5480).
+        LastReadLength = IsVarying && record.Length > VaryMax ? VaryMax : record.Length;
     }
 
     /// <summary>The EXTENT TABLE the current record was sent with (determination D-FRA (v); kb/Work PB1053) —
@@ -891,6 +894,20 @@ public abstract class FileConnector
 
     /// <summary>GR14/GR15's "maximum size specified by the record description entries".</summary>
     protected int MaxRecordSize => RecordMax > RecordWidth ? RecordMax : RecordWidth;
+
+    /// <summary>⛔ THE ONE TEST OF A READ'S RECORD LENGTH CONFLICT, FOR EVERY ORGANIZATION (kb/Work PB5480): true when the
+    /// <paramref name="length"/> of the record just read lies outside the minimum and maximum record size of THIS connector's
+    /// description — the RECORD IS VARYING bounds (<see cref="VaryMin"/>, <see cref="VaryMax"/>), else the record area's width
+    /// and the largest the description's records reach (<see cref="MaxRecordSize"/>). §1985:VIII.4.5.4 GR16 and §1985:IX.4.5.4 GR18:
+    /// "the READ statement is successful and an I-O status is set indicating a record length conflict has occurred", which
+    /// §1985:IX.1.3.4 GRL2.1 and §1985:VIII.1.3.4 GRL2.1 give as '04'; the same condition is §2023:14.9.30.4 GR14 and GR15
+    /// (<see cref="FileStatusCode.RecordLengthShortLong"/>). The size is the reading connector's own — the fixed file attribute
+    /// §1985:II.2.1 names, "the minimum and maximum logical record size" — and docs/CONFORMANCE.md DOC-A.1-129 holds that the
+    /// relative and indexed OPEN validates it against the physical file's meta; the READ asks it too because a ZERO-BYTE
+    /// file has no meta to validate against (<see cref="StoreFormat.Empty"/>), so a record another connector writes
+    /// later can be outside it.</summary>
+    protected bool RecordLengthConflicts(int length) =>
+        IsVarying ? length < VaryMin || length > VaryMax : length < RecordWidth || length > MaxRecordSize;
 
     // ── Record-lock identity (ISO §2023:9.1.16 — record locking applies to EVERY organization; the READ/REWRITE/
     //    WRITE/DELETE lock rules §2023:14.9.30 GR7–GR12 / §2023:14.9.35 GR11–GR12 / §2023:14.9.51 GR10–GR11 / §2023:14.9.10 GR6–GR7
