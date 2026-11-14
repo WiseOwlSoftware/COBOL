@@ -8,6 +8,6 @@ kb/Work PB5337 (wave 20262020, group F). §1985:XIII.3.20.4 GR11 processes a GEN
 
 **Edition.** The note proposed a dialect behavior. The 2023 text gives the same answer (§2023:14.9.16.4 GR2's summary reporting is the GENERATE data-name processing without the printing; §2023:14.9.49.4 GR9 runs the procedure on each occasion the group is processed), the 1985 inventory record says "Same processing", and GnuCOBOL runs the procedure too. So every edition behaves this way, and the choice is recorded in docs/CONFORMANCE.md beside PB5249's.
 
-**Goldens.** `14.9.49-USE/pb5337_generate_report_name_runs_detail_use` (all four editions: the procedure sees the subtotal, its SUPPRESS does not carry over, LINE-COUNTER stays 0) and `.../pb5337_generate_report_name_several_details` (2002 on: no detail's procedure runs).
+**Goldens.** `14.9.49-USE/pb5337_generate_report_name_runs_detail_use` (all four editions: the procedure sees the subtotal, its SUPPRESS does not carry over, LINE-COUNTER stays 0), `.../pb5337_generate_report_name_several_details` (2002 on: no detail's procedure runs) and `13.18.54-SUM/pb5337_generate_report_name_sums_detail_entry` (2002 on: the processed detail's entry adds into a footing's SUM counter, which the summary form used to skip as well).
 
 **Rows.** None re-verdicted: the 2023 rows stay CONFORMS and the inventory has no 1985 rows yet (PB5094).

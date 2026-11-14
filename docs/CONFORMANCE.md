@@ -1408,12 +1408,13 @@ of an unsupported facility.
   add. The same reading runs that one detail's USE BEFORE REPORTING procedure, after the subtotalling and with no presentation after it
   (§1985:XIII.3.20.4 GR11 b) and d); at every edition, since §2023:14.9.49.4 GR9 performs the procedure "on each occasion that the named
   report group is processed" and GR2's summary reporting is the detail's processing without its printing; GnuCOBOL runs it too, though
-  before the subtotal), and a report with several details runs none (kb/Work PB5337; `CobolReport.BeginGroup`'s `print: false`). (e) *Table 1 (PB5243)*: at `--std 85` an elementary format 3 entry's clauses must be the cells of one row of §1985:XIII.3.9.3 SR11
+  before the subtotal), and a report with several details runs none; the processed detail's entries are added into the SUM counters naming
+  them, §2023:13.18.54.4 GR7 a) (kb/Work PB5337; `CobolReport.BeginGroup`'s `print: false`). (e) *Table 1 (PB5243)*: at `--std 85` an elementary format 3 entry's clauses must be the cells of one row of §1985:XIII.3.9.3 SR11
   Table 1 (`ReportEntryClauseTable`): SOURCE with JUSTIFIED, BLANK WHEN ZERO or GROUP INDICATE and no COLUMN clause is legal there (the entry
   prints nothing), and VALUE with BLANK WHEN ZERO and SUM with JUSTIFIED are refused; at every edition SOURCE, SUM and VALUE are the
   alternatives of one brace (§1985:XIII.3.9.2, §2023:13.15.2) and an entry writing two is refused COBOL2247. Witnesses:
   `conformance:cases/13.18.54-SUM/pb5248_sum_size_error_presentation`, `.../13.18.37-NEXT-GROUP/pb5245_terminate_saved_next_group` (each `.85.out` and `.out`),
-  `.../13.18.28-GROUP-INDICATE/pb5246_group_indicate_suppressed_generate` and `.../XIII.3.13@1985-GROUP-INDICATE-CLAUSE/pb5246_group_indicate_suppressed_generate_85`, `.../13.18.54-SUM/pb5249_generate_report_name_sum_upon`, `.../14.9.49-USE/pb5337_generate_report_name_runs_detail_use` and `.../pb5337_generate_report_name_several_details`,
+  `.../13.18.28-GROUP-INDICATE/pb5246_group_indicate_suppressed_generate` and `.../XIII.3.13@1985-GROUP-INDICATE-CLAUSE/pb5246_group_indicate_suppressed_generate_85`, `.../13.18.54-SUM/pb5249_generate_report_name_sum_upon`, `.../14.9.49-USE/pb5337_generate_report_name_runs_detail_use` and `.../pb5337_generate_report_name_several_details`, `.../13.18.54-SUM/pb5337_generate_report_name_sums_detail_entry`,
   `.../XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/pb5243_table1_permitted_rows` and the three `pb5243-*` refusals.
 - **Normal completion of a declarative — "a fatal exception occurs within the scope of the declarative" (§2023:14.6.13.1.2 1),
   spec silent on three points)**: the rule makes a declarative that falls off its end "not complete normally" when a
