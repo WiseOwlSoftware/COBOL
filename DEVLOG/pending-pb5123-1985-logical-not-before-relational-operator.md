@@ -13,3 +13,5 @@
 **Left open.** At 2002 alone, `[ NOT ] simple-relational-operator` (§2002:8.8.4.2.4.1, GR2 b) makes `AND NOT IS > C` legal with the NOT part of the operator; it is refused there with COBOL0902 (COBOL0001 before), reported as a lead.
 
 **Self-review.** Architecture: one grammar node, one predicate (GRL2.1), one gate, one binder arm reusing `BindAbbreviatedRelation`. Code: the carried operator is the stated one (T8, T13 discriminate); sibling consumers of `succeedingCondition` swept (`SearchAllFormat2Rules`, the FILE STATUS flag walker and `BindPartialOperandsStandalone` recurse into the child `abbreviatedRelation`). Performance: the predicate reads two token types, only at a NOT. Duplication: none added.
+
+**Found on the way.** The first gate was RED at the EDITION GATES audit: `edition_gates.named_rules` read only `GR<n>`, so the construct's `§1985:VI.6.3.3 GRL2.2` named every rule of the clause (KEPT ones too) and proved nothing, and `GR2` named the second rule of every list of a block. It now matches the designator in `citation.rule_designator`'s spelling (kind, list, ordinal), with a planted self-test leg; the audit is GREEN over all 333 gates.
