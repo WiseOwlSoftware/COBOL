@@ -194,11 +194,13 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // container's GLOBAL one resolves the unqualified register instead of drawing COBOL0864; two
         // visible LINAGE files — own plus inherited — still require qualification (§2023:8.4.3.14 SR3).
         var linageFiles = data.State.VisibleFiles.Values.Where(f => f.Linage is not null).Distinct().ToList();
-        // ⛔ The 1985 count is the program's OWN (§1985:IV.4.3.8.1 SRL2.8): LINAGE-COUNTER is qualified only "if more than one
-        // file description entry containing a LINAGE clause has been specified in the source program", and a program's
-        // reference is "to the object which that program describes" (§1985:X.1.3.8). So below 2002 the entries this program
-        // specifies decide, and a container's GLOBAL LINAGE file is a second candidate only for a program with none of its own.
-        if (!data.Edition.Edition.Has(2002))
+        // ⛔ Before 2014 the count is the source element's OWN entries: §1985:IV.4.3.8.1 SRL2.8 and §2002:8.4.1.1.2 SR6 qualify
+        // LINAGE-COUNTER only "if more than one file description entry containing a LINAGE clause has been specified in the
+        // source" program/element (§2002:4, definition 4.172: a source element excludes its contained source units), and a program's
+        // reference is "to the object which that program describes" (§1985:X.1.3.8). The visible-set count ("may be referenced
+        // within the source element", §2014:8.4.1.1.2 SR8 / §2023:8.4.2.2.3 SR8) begins in 2014, so below it a container's
+        // GLOBAL LINAGE file is a second candidate only for a program with none of its own.
+        if (!data.Edition.Edition.Has(2014))
         {
             var own = data.State.Files.FilesByName.Values.Where(f => f.Linage is not null).Distinct().ToList();
             if (own.Count > 0) linageFiles = own;

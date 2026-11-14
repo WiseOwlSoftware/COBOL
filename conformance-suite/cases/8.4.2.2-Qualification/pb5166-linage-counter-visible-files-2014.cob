@@ -1,15 +1,15 @@
       *>--- conformance-case
-      *> id: pb5166-linage-counter-visible-files-2002
+      *> id: pb5166-linage-counter-visible-files-2014
       *> rules: [SR-8.4.2.2.3-8]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5166, §2023:8.4.2.2.3 SR8: the register may be
+      *> kb/Work PB5166, §2014:8.4.1.1.2 SR8 (§2023:8.4.2.2.3 SR8): the register may be
       *> referenced "within the source element in which the reference to
       *> LINAGE-COUNTER occurs", so the container's GLOBAL LINAGE file
       *> (PFILE1, visible in the contained program) and the contained
       *> program's own PFILE2 make two, and the unqualified reference is
-      *> refused from 2002. At 85 the same text is legal
+      *> refused from 2014. At 85 and 2002 the same text is legal (§2002:8.4.1.1.2 SR6)
       *> (pb5166-linage-counter-own-entries-1985).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5166C.

@@ -14,8 +14,8 @@
       *> reference is legal at 85 and is PFILE2's register: after OPEN
       *> OUTPUT it holds 1, displayed as the PIC 9(n) register "01".
       *> Fails if the resolver counts the container's GLOBAL file too
-      *> (COBOL5997 at 85). From 2002 the visible count applies and the
-      *> program is refused (the diagnostic file beside this case).
+      *> (COBOL5997 at 85). From 2014 the visible count applies and the
+      *> program is refused (pb5166-linage-counter-visible-files-2014).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5166A.
        ENVIRONMENT DIVISION.
