@@ -9644,15 +9644,18 @@ public static class DiagnosticCatalog
         + "(COBOL-2002 and later let an index-name be qualified, so two tables may each declare one spelling.)",
         "ISO §1985:VI.5.8.3 SR14");
 
-    /// <summary>COBOL6973 — an X3.23-1985 ENTER statement that another statement follows in its sentence (kb/Work PB5178).
-    /// Emitted by PlacementRules.RefusedOutOfSequence (the EnterEndsSentence row) where the statement exists (COBOL-85; from
-    /// 2002 it is COBOL0902, removed).</summary>
-    public static readonly DiagnosticDescriptor EnterNotEndOfSentence = new(
-        "COBOL6973", "enter-not-end-of-sentence", EditionSeverity.Error,
-        "An X3.23-1985 ENTER statement is followed by another statement before the separator period. §1985:VI.6.12.2 prints "
-        + "\"ENTER language-name-1 [ routine-name-1 ] .\", and §1985:IV.2.1.6: \"The separator period, when used in the "
-        + "formats, has the status of a required word.\" End the sentence after the ENTER statement.",
-        "X3.23-1985 ENTER statement general format (§1985:VI.6.12.2; §1985:IV.2.1.6)");
+    /// <summary>COBOL7240 - the X3.23-1985 ENTER statement, which this implementation does not provide (kb/Work PB5308).
+    /// §1985:I.1.5.2.5.5 leaves it to the implementor; ISO 2023 has no ENTER, so GnuCOBOL decides and it refuses the statement
+    /// (CLAUDE.md rule 1; docs/conformance/3.7.1). Emitted by <c>StatementBinder.BindEnter</c> at COBOL-85, where the statement
+    /// parses (from 2002 it is COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor EnterStatementNotProvided = new(
+        "COBOL7240", "enter-statement-not-provided", EditionSeverity.Error,
+        "This implementation does not provide the ENTER statement. §1985:I.1.5.2.5.5: \"An implementation of Standard COBOL "
+        + "may include the ENTER statement or not, at the option of the implementor.\" §1985:VI.6.12.3 SR1 makes "
+        + "\"Language-name-1\" a language \"specified by the implementor\", and this implementation specifies none, so no "
+        + "other-language routine is ever entered and no other-language text is compiled in-line. Call the routine with the "
+        + "CALL statement.",
+        "X3.23-1985 ENTER statement (§1985:I.1.5.2.5.5; §1985:VI.6.12.3 SR1)");
 
     /// <summary>COBOL6916 — at COBOL-85, the ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER or class-name-1 class condition over
     /// an item described as numeric (kb/Work PB5122). The 1985 arm of COBOL6000's rule: 1985 bars a numeric item only, a numeric

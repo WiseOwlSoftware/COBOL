@@ -73,10 +73,12 @@ internal static class VersionMatrixCatalogue
         }
     }
 
-    /// <summary>Every (removed construct × edition ≥ removedIn) cell.</summary>
+    /// <summary>Every (removed construct × edition ≥ removedIn) cell. A DECLINED row is not among them: the implementation
+    /// does not provide it (the ENTER statement, kb/Work PB5308), so there is no pre-removal meaning for
+    /// <c>--permissive</c> to preserve.</summary>
     internal static IEnumerable<object[]> RemovedMatrix()
     {
-        foreach (var c in Active.Where(c => c.RemovedIn is not null))
+        foreach (var c in Active.Where(c => c.RemovedIn is not null && c.Declined is null))
         {
             foreach (int v in EditionHarness.Editions.Where(v => v >= c.RemovedIn))
             {
