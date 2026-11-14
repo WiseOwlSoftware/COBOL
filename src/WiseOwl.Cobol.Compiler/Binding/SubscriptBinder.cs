@@ -909,6 +909,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             return new PositionLocal(counter.Local, AsLong: true);
         DataItem? item = qualifiers.Count == 0 ? refs.Names.ResolveUnqualified(name) : refs.Names.ResolveQualified(name, qualifiers);
         if (item is null) return null;
+        // ⛔ A NO-THROUGH level-66 ALIAS IS READ AS THE ITEM IT RENAMES (kb/Work PB5477). §1985:VI.5.11.4 GR2 and
+        // §2023:13.18.45.4 GR1: "all of the data attributes of data-name-2" become data-name-1's and its storage is data-name-2's,
+        // so `66 RN RENAMES GA` (GA PIC 9) is a numeric integer item and a legal subscript. The alias owns no field: naming it
+        // as a member of its record (GR.RN) was C# that does not compile. A THROUGH span has no field either; PositionRead
+        // returns null for it and the segment reroutes to the D18 route, which reads it through its place.
+        if (item.Renames is { IsAlias: true, From: { } renamed }) item = renamed;
         if (!IntrinsicArgumentRules.IsArithmeticOperandClass(item)) (pending ??= []).Add(new PendingScreen(item, name));
         scaled = item.Pic?.Scale > 0;
         return PositionRead(item, position);
@@ -1037,6 +1043,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// and the overload form; <c>CodeGen.PositionRenderer</c> renders it through <c>RuntimeApi</c>.</para></summary>
     private PositionItemRead? PositionRead(DataItem item, SegmentPosition position)
     {
+        // A level-66 entry owns no field to name (a THROUGH span, or an alias the caller did not resolve): its place is composed
+        // by the one item-to-place builder, which the D18 route reads (kb/Work PB5477, PB1380).
+        if (item.Renames is not null) return null;
         bool numeric = item.Pic is { Category: PicCategory.Numeric };
         // ⛔ THE BET ON OVERLOAD RESOLUTION IS ONLY GOOD FOR THE CARRIERS THAT HAVE AN OVERLOAD (kb/Work PB201).
         if (!HasPositionOverload(item, numeric)) return null;
