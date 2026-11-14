@@ -1832,9 +1832,11 @@ internal sealed class StatementValidation(DataBinder data)
         }
         // The X3.23-1985 multiple file reel rules (kb/Work PB5086): the MULTIPLE FILE TAPE clause is the program's statement
         // that a file shares a reel (§1985:VII.2.11.3 GR1), which OPEN's SR2 and GR20 d then read.
+        // SR2 (no EXTEND on a multiple file reel) is the Sequential I-O OPEN's; a report file's OPEN is the Report Writer's, whose SR1 admits
+        // OUTPUT or EXTEND and does not restate it (§1985:XIII.4.5.3 SR1), so only GR20 d (restated by the Report Writer) reaches it (kb/Work PB5479).
         if (file.MultipleFileReels.Count > 0)
         {
-            if (mode is BoundOpenMode.Extend)
+            if (mode is BoundOpenMode.Extend && !file.IsReportFile)
             {
                 data.Edition.Error(DiagnosticCatalog.OpenExtendMultipleFileReel,
                     $"OPEN EXTEND '{file.CobolName}' — the file is named in a MULTIPLE FILE TAPE clause, so it resides on a "
