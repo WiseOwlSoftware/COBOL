@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <see cref="EmitContext"/>): SET … TO / UP-DOWN BY / pointer F4 senders / OCCURS-DYNAMIC capacity /
 /// condition-names TO TRUE, plus the ONE SET-target store/augment pair PERFORM VARYING and SEARCH ride.</summary>
 internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, ArithmeticEmitter arith, PtrEmitter ptr, MoveEmitter move,
-    ReceiverBracketEmitter brackets)
+    ReceiverBracketEmitter brackets, DebugTriggerEmitter debug)
 {
     /// <summary>The DATA DIVISION emitter of THIS unit, built once on first use — the SET lane reaches it for
     /// exactly one thing: <see cref="DataEmitter.ValueImageOf"/>, the ONE §2023:13.18.63 VALUE recipe §2023:14.9.39.4 GR6
@@ -46,10 +46,16 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         var w = ctx.Writer;
         string guard = LandAmount(s.Value, SetAmountRule.IndexTo, "SET index-name TO", out string tmp, "set");
         // GR2: each receiver is identified as it is changed, so an object-property receiver's accessors go around ITS store
-        // (kb/Work PB2078).
+        // (kb/Work PB2078), and a debugging section that describes it reads the identification its store made (§1985:VI.6.23.4 GR3d: "Any
+        // subscripting associated with identifier-1 is evaluated immediately before the value of the respective data item is changed";
+        // kb/Work PB5385).
         using (w.Block($"if ({guard})"))
-            foreach (var t in s.Targets) brackets.Receive(t, () => StoreSetTarget(t, new NumX(tmp, 0)));
+            foreach (var t in s.Targets) brackets.Receive(t, () => StoreSetTarget(IdentifiedAtStore(t), new NumX(tmp, 0)));
     }
+
+    /// <summary>The receiver <paramref name="t"/> as its store identifies it (<see cref="DebugTriggerEmitter.IdentifiedAtStore"/>); an index-name is no data item.</summary>
+    private BoundSetTarget IdentifiedAtStore(BoundSetTarget t) =>
+        t is SetPlaceTarget sp ? sp with { Place = debug.IdentifiedAtStore(sp.Place) } : t;
 
     /// <summary>⛔ THE ONE SET-FAMILY AMOUNT LANDING at the emitter — the two-lane render that keeps an amount's
     /// FRACTION and its FULL MAGNITUDE alive all the way into <see cref="CobolIndex"/>, where §2023:14.9.39.4's
