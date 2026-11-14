@@ -1,4 +1,4 @@
-## PB5484, PB5480: a COBOL-85 arithmetic statement with no ON SIZE ERROR phrase ends only itself; a zero divisor or a zero base no longer ends the run unit; a relative or indexed READ outside the reader record size answers 04
+## Entry 3590 — 2026-11-14 03:24 PST — PB5484, PB5480: a COBOL-85 arithmetic statement with no ON SIZE ERROR phrase ends only itself; a zero divisor or a zero base no longer ends the run unit; a relative or indexed READ outside the reader record size answers 04
 
 **The defect.** At `--std 85`, `COMPUTE R = Z ** 0` (Z = 0) and `COMPUTE R = 5 / Z` ended the run unit with
 `abnormal run-unit termination: EC-SIZE-EXPONENTIATION (fatal)` / `EC-SIZE-ZERO-DIVIDE (fatal)`, exit 1, re-probed on this
@@ -53,3 +53,4 @@ PB5480 review round 1 (R1-1): the READ's cap of `LastReadLength` at the RECORD V
 the length `SequentialConnector.RewriteRecordSequential` compared under §2023:14.9.35.4 GR16, so a REWRITE after a truncated READ answered `00` and half-replaced
 the 20-byte record. The REWRITE now compares `CurrentRecord.Length`, the physical record's; golden `pb5480_rewrite_after_truncated_read_85` (READ 04, REWRITE 44,
 record unchanged). R1-2 removed the unused `using WiseOwl.Cobol.Editions` from `ArithmeticEmitter.cs`.
+
