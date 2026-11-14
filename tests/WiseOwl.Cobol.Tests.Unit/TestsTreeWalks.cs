@@ -18,8 +18,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <remarks>
 /// The root is FOLLOWED, not pattern-matched: a root held in a local, a field, a property, an assignment, a helper
 /// method's call (its parameters bound to what that call passes, a <c>params</c> parameter to the arguments it holds), a
-/// lambda parameter, a <c>foreach</c> variable, a method parameter (through the calls in the same file) or a theory row resolves to the <c>TestRepo</c> expression it was built from, evaluated as the path it names (a
-/// <see cref="Rel"/>: the segments below the repository root). A root that resolves to nothing the file can see is
+/// lambda parameter, a <c>foreach</c> variable, a method parameter (through the calls in the same file), a constructor
+/// parameter (through the <c>new</c> expressions of its class in the same file) or a theory row resolves to the
+/// <c>TestRepo</c> expression it was built from, evaluated as the path it names (a <see cref="Rel"/>: the segments below the
+/// repository root), or to a directory under the host's temp directory (<c>ScratchDirectory.Create</c>,
+/// <c>Path.GetTempPath</c>: <see cref="Outside"/>), which holds no build output. A root that resolves to nothing the file can see is
 /// <see cref="Verdict.Unresolved"/>, which the drift test counts and bounds, so the guard cannot lose its reach unseen.
 /// A directory is a hazard only when a test host's build output can lie under it: the repository root, <c>tests/</c>, a
 /// directory under <c>tests/</c> holding a project, or that project's <c>bin/</c> or <c>obj/</c> and anything below; a
@@ -34,6 +37,10 @@ internal static class TestsTreeWalks
 
     /// <summary>A path below the repository root, one segment per element; a segment the file cannot evaluate is null.</summary>
     private sealed record Rel(IReadOnlyList<string?> Segments);
+
+    /// <summary>A directory under the host's temp directory, outside the repository (kb/Work PB5478): what
+    /// <c>ScratchDirectory.Create</c> and <c>Path.GetTempPath</c> return, and any path built below one.</summary>
+    private sealed record Outside;
 
     /// <summary>A string the file spells (null when it is built at run time).</summary>
     private sealed record Lit(string? Text);
@@ -122,7 +129,7 @@ internal static class TestsTreeWalks
 
     private static Verdict Judge(IReadOnlyList<object> values, IReadOnlySet<string> projectDirectories)
     {
-        bool resolved = false;
+        bool resolved = values.OfType<Outside>().Any(); // a temp directory holds no build output
         foreach (Rel rel in values.OfType<Rel>())
         {
             // What stands after an unexpandable spread may be nothing, so the path is judged by the segments before it.
@@ -154,6 +161,7 @@ internal static class TestsTreeWalks
         private readonly Dictionary<string, List<ParameterSyntax>> _parameters = new(StringComparer.Ordinal);
         private readonly Dictionary<string, List<InvocationExpressionSyntax>> _calls = new(StringComparer.Ordinal);
         private readonly Dictionary<string, List<Callable>> _callables = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<ObjectCreationExpressionSyntax>> _creations = new(StringComparer.Ordinal); // by the class's simple name
 
         // The parameters of the helper being evaluated at one call, bound to what that call passes (null outside a helper).
         private Dictionary<string, IReadOnlyList<object>>? _bound;
@@ -168,6 +176,7 @@ internal static class TestsTreeWalks
                     case ParameterSyntax p: Index(_parameters, p.Identifier.ValueText, p); break;
                     case InvocationExpressionSyntax { Expression: IdentifierNameSyntax i } c: Index(_calls, i.Identifier.ValueText, c); break;
                     case InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax m } c: Index(_calls, m.Name.Identifier.ValueText, c); break;
+                    case ObjectCreationExpressionSyntax { Type: var t } o when SimpleName(t) is { } created: Index(_creations, created, o); break;
                     case MethodDeclarationSyntax m:
                         Index(_callables, m.Identifier.ValueText, new Callable(m.ParameterList, m.ExpressionBody?.Expression, m.Body));
                         break;
@@ -205,6 +214,14 @@ internal static class TestsTreeWalks
 
         /// <summary>The expressions a name is initialized or assigned from, in this source.</summary>
         public IEnumerable<SyntaxNode> Declarations(string name) => _declarations.TryGetValue(name, out List<SyntaxNode>? l) ? l : [];
+
+        /// <summary>The simple name of a created type (<c>Holder</c> for <c>Outer.Holder</c>), null for any other shape.</summary>
+        private static string? SimpleName(TypeSyntax t) => t switch
+        {
+            IdentifierNameSyntax i => i.Identifier.ValueText,
+            QualifiedNameSyntax q => q.Right.Identifier.ValueText,
+            _ => null,
+        };
 
         private static string? NameOf(ExpressionSyntax e) => e switch
         {
@@ -273,8 +290,12 @@ internal static class TestsTreeWalks
                             return Eval(args[0].Expression, depth);
                         case "GetDirectoryName" when args.Count == 1:
                             return Eval(args[0].Expression, depth).Select(v => v is Rel r ? Parent(r) : v).ToList();
+                        case "GetTempPath" when args.Count == 0:
+                            return [new Outside()];
                     }
                     return [];
+                case MemberAccessExpressionSyntax { Expression: var scratch, Name.Identifier.ValueText: "Create" } when IsNamed(scratch, "ScratchDirectory"):
+                    return [new Outside()]; // a fresh directory under the host's temp directory (tests/_shared/ScratchDirectory.cs)
                 case MemberAccessExpressionSyntax { Expression: var dir, Name.Identifier.ValueText: "GetParent" } when args.Count == 1 && IsNamed(dir, "Directory"):
                     return Eval(args[0].Expression, depth).Select(v => v is Rel r ? Parent(r) : v).ToList();
                 case MemberAccessExpressionSyntax { Expression: var text, Name.Identifier.ValueText: "Split" }:
@@ -432,6 +453,17 @@ internal static class TestsTreeWalks
             if (p.Parent is not ParameterListSyntax list) return [];
             int index = list.Parameters.IndexOf(p);
             SyntaxNode? owner = list.Parent;
+            if (owner is ConstructorDeclarationSyntax ctor)
+            {
+                // A constructor parameter takes what each `new <its class>(...)` of this source passes at its position or name.
+                var passed = new List<object>();
+                foreach (ObjectCreationExpressionSyntax creation in _creations.GetValueOrDefault(ctor.Identifier.ValueText) ?? [])
+                    if (creation.ArgumentList?.Arguments is { } a
+                        && (a.FirstOrDefault(x => x.NameColon?.Name.Identifier.ValueText == p.Identifier.ValueText)
+                            ?? (index < a.Count && a[index].NameColon is null ? a[index] : null)) is { } arg)
+                        passed.AddRange(Eval(arg.Expression, depth));
+                return passed;
+            }
             string? method = owner switch
             {
                 MethodDeclarationSyntax m => m.Identifier.ValueText,

@@ -211,6 +211,11 @@ public sealed class TrackedTreeScopeDriftTests
             // review R2-2: the test host's build output, or anything below it
             Wrap("", walk + "TestRepo.Tests(\"WiseOwl.Cobol.Tests.Unit\", \"bin\")" + all + ";"),
             Wrap("", walk + "TestRepo.Tests(\"WiseOwl.Cobol.Tests.Unit\", \"obj\", \"Debug\")" + all + ";"),
+            // kb/Work PB5478: a constructor parameter, bound through a `new` of its class (by position or by name)
+            "class Holder { readonly string _d; public Holder(string d) { _d = d; } void Scan() { " + walk + "_d" + all + "; } }"
+                + " class PlantedDriftTests { void M() { using var h = new Holder(TestRepo.Tests()); } }",
+            "class Holder { readonly string _d; public Holder(int n, string d) { _d = d; } void Scan() { " + walk + "_d" + all + "; } }"
+                + " class PlantedDriftTests { void M() { var h = new Holder(d: TestRepo.Root, n: 1); } }",
         ];
         foreach (string source in hazards)
             Assert.Single(TestsTreeWalks.Find("Planted.cs", source, projects));
@@ -232,6 +237,15 @@ public sealed class TrackedTreeScopeDriftTests
             Wrap("static string Repo(string rel) => Path.Combine([TestRepo.Root, .. rel.Split('/')]);", walk + "Repo(\"src/x/Grammar\")" + all + ";"),
             Wrap("", walk + "WiseOwl.Cobol.Tests.Shared.TestRepo.Nist()" + all + ";"),
         ];
+        // kb/Work PB5478: a directory under the host's temp directory holds no build output: SAFE (resolved), not unresolved.
+        string[] outside =
+        [
+            "class Holder { readonly string _d; public Holder(string d) { _d = d; } void Scan() { " + walk + "_d" + all + "; } }"
+                + " class PlantedDriftTests { void M() { string t = ScratchDirectory.Create(\"x-\"); using var h = new Holder(t); } }",
+            Wrap("", walk + "Path.Combine(Path.GetTempPath(), \"x\")" + all + ";"),
+        ];
+        foreach (string source in outside)
+            Assert.Equal(TestsTreeWalks.Verdict.Safe, Assert.Single(TestsTreeWalks.Scan(source, projects)).Verdict);
         foreach (string source in clean)
             Assert.Empty(TestsTreeWalks.Find("Planted.cs", source, projects));
 

@@ -225,8 +225,9 @@ public sealed class GrammarDiagramGeneratorDriftTests
         private int _skipped, _overflows, _probeCount;
         private HolderReport? _report;
 
-        /// <summary>A probe planted by <see cref="ProveAsync"/>: proved once it is held AND a scan that listed it has ended, so
-        /// every file that existed before the probe was planted has been met by then.</summary>
+        /// <summary>A probe planted by <see cref="ProveAsync"/>: proved once it is held AND a scan that listed it has ended. When
+        /// no scan was already part-way through its listing as the probe was written, that scan listed every file written
+        /// before the probe too.</summary>
         private sealed class Probe
         {
             public readonly TaskCompletionSource Proved = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -279,8 +280,9 @@ public sealed class GrammarDiagramGeneratorDriftTests
 
         /// <summary>
         /// Plants a fresh file under the directory and completes when the holder has taken it and a scan that listed it has
-        /// ended, so the caller knows the hold is live, and that every file written before the call has been met, before it
-        /// goes on. It waits for that fact, not for a time: the file is created after the watch is in place, so its report,
+        /// ended, so the caller knows the hold is live before it goes on; when nothing woke a scan while the caller wrote its
+        /// files (<see cref="Holder_HoldsEveryFile_WhenItsWatcherOverflows"/> stalls every wake), every file written before
+        /// the call has been met as well. It waits for that fact, not for a time: the file is created after the watch is in place, so its report,
         /// or the overflow that dropped it, is certain to wake a scan. Every way the probe can fail to be taken ends the wait
         /// with an exception naming the cause (kb/Work PB5463 review R1-1): a watcher error (<see cref="Fail"/>), a probe
         /// gone or unopenable when it is taken, a scan or a take that threw, or the holder stopped first.

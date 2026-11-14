@@ -16,3 +16,8 @@ overflow only wakes the scan; an overflow is counted, not failed, and every othe
 red ("being used by another process"). The note's suggested bigger buffer was not used, because it only raises the load at
 which the overflow happens. Sibling: `DirectoryNameWatch` asserts report order, which enumeration cannot replace. It is
 listed in `kb/Work/PB5478/2026-11-13-sibling-sweep.md`.
+
+The holder's recursive listing is the first that the walk guard (`TestsTreeWalks`, PB3814) reaches through a constructor.
+The guard now follows a constructor parameter through the `new` expressions of its class, and it reads a
+`ScratchDirectory.Create` or `Path.GetTempPath` root as a directory outside the repository, which is safe. Its unresolved
+roots stay at RunDirectoryState's two, and new planted cases cover both shapes.
