@@ -1387,7 +1387,7 @@ test, MinValue-safe), where it used to count digits (`> 38`) and refused every 3
 `SdidiOperandLiftDriftTests` pins that no emit site spells the exact lift outside `DecOperandExact`, and that
 `DecOperandExact` has only the two round-to-odd consumers; `CobolDecWideLiftTests` pins the lift per mode.
 **The unsigned-wide arm is the same rule on both ends (kb/Work PB2966).** The native Widen funnel `DeU` (loud above
-2^127 − 1, CONFORMANCE.md §4.2.16) belongs to the native `Int128` lanes only. `CombineCore` and `Power` decide the SDIDI / Dec
+2^127 − 1, CONFORMANCE.md DOC-A.1-123) belongs to the native `Int128` lanes only. `CombineCore` and `Power` decide the SDIDI / Dec
 lane FIRST and hand it the unsigned-wide operand as it is, so `DecOperand` rounds it (`CobolDec.FromUnsigned`) like every
 other operand, and a unary minus lifts it under a standard mode; the funnel runs only on the paths that remain native.
 The result lands the same way: an unsigned 16-byte BinaryCapacity receiver's container is [0, 2^128) (DOC-A.1-208),

@@ -390,7 +390,7 @@ def witness_shape_error(field: str, ref: str, schema: "Schema") -> str | None:
             return f"code-location '{ref}' is not '<repo-relative-path>[#Symbol]'"
         # ⛔ A LISTED FILE'S FRAGMENT IS AN ANCHOR OR IT IS A FAILURE — and a BARE citation of one is the
         # weakest form of the same defect, resolving on File.Exists alone. Five live rows carried
-        # `docs/CONFORMANCE.md#7`, which the battery gate's word search satisfies against the digit 7
+        # `docs/CONFORMANCE.md#7`, which the battery gate's word search satisfies against the digit 7  (citation-audit: example)
         # anywhere in a 790-line document, and three more cited the bare path.
         file, _, fragment = ref.partition("#")
         if (rx := schema.anchored_files.get(file)) is not None and not rx.match(fragment):

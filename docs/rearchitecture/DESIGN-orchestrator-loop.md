@@ -2273,7 +2273,7 @@ person or an agent to edit or trust the view:
   (docs/CONFORMANCE.md)`) would be a dead link, so every link moves to `docs/conformance/` (README.md lines 10, 145, 191
   and 224; the seven `docs/manual/` pages, `rg -l CONFORMANCE.md README.md docs/manual`), whose `README.md` (static,
   hand-written: what the directory is, how to render the whole, one line per section) GitHub shows as the directory's
-  page. A text CITATION (`docs/CONFORMANCE.md §3 D-SWK`, `CONFORMANCE.md#DRV-14.9.22-GR13`) names the conformance
+  page. A text CITATION (`docs/CONFORMANCE.md §3 D-SWK`, `CONFORMANCE.md#DRV-GR-14.9.5.4-11`) names the conformance
   statement by section and anchor and does not move (below), in the manual as everywhere.
 - **The 62 product strings keep naming `docs/CONFORMANCE.md`**, and what they name is decided: the PUBLISHED conformance
   statement, the user documentation §2023:4.2.16 requires "by specification in at least one form of documentation", which is the rendered view in every checkout and is
@@ -2293,11 +2293,11 @@ the reader on GitHub by `docs/conformance/README.md` and the published statement
 the decision above; history by `git log --follow` across the migration commit, which names each entry's origin.
 
 **Citations do not move, and are checked.** About 4,200 mentions name the document by section and anchor
-(`docs/CONFORMANCE.md §3 D-SWK`, `docs/CONFORMANCE.md#DRV-14.9.22-GR13`, `#DOC-A.1-n`). The renderer fixes the section
+(`docs/CONFORMANCE.md §3 D-SWK`, `docs/CONFORMANCE.md#DRV-GR-14.9.5.4-11`, `#DOC-A.1-n`). The renderer fixes the section
 numbers and makes every key an anchor, so each still names exactly one place. A sweep of them would touch 2,327 files
 and meet every branch in flight; it is not made. Step B2 adds an arm to the CITATIONS audit (`audit_code_citations.py`,
 the one citation population and its one exemption, `citation.EXAMPLE_MARKER`): every `CONFORMANCE.md §N` and
-`CONFORMANCE.md#ANCHOR` in the files it reads resolves to a section or a key of `conformance_source.load`. Its scope is
+`CONFORMANCE.md#ANCHOR` in the files it reads resolves to a section or a key of `conformance_source.load`. Its scope is <!-- citation-audit: example -->
 the audit's, so the inventory records and the case tables under `tests/version-matrix/` and `tests/doc-facts/` (whose
 `derivation` and `code-location` anchors the inventory audit, `docchecks/inventory.py`, resolves, and whose planted bad
 anchors such as `derivation-parity-cases.json`'s `#DRV-GR-14.9.5.4-77` are that audit's cases) are not its population.

@@ -716,7 +716,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// that space — or with no fragment at all.
     /// </summary>
     /// <remarks>
-    /// ⛔ This is the check that turns <c>docs/CONFORMANCE.md#7</c> red. The resolver below satisfies a
+    /// ⛔ This is the check that turns <c>docs/CONFORMANCE.md#7</c> red. The resolver below satisfies a (citation-audit: example)
     /// <c>#Symbol</c> by a word search over the file body: exact for a C# identifier, worthless for a number —
     /// <c>#7</c> matches the digit 7 anywhere in a 790-line document, and five live rows were <c>state: OK</c> on
     /// that basis. A BARE citation of an anchored file is the same defect one step weaker, resolving on
@@ -976,7 +976,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     private static string WholeWord(string name) => $@"(?<![A-Za-z0-9_]){Regex.Escape(name)}(?![A-Za-z0-9_])";
 
     /// <summary>The file kinds that are DOCUMENTS (<c>tests/doc-facts/inventory-anchor-kinds.json</c>): an anchor into one
-    /// (<c>docs/CONFORMANCE.md#DOC-A.1-n</c>, today) is resolved by <c>scripts/docchecks/inventory.py</c>, because no compiler
+    /// (<c>docs/CONFORMANCE.md#DOC-A.1-n</c>, today) is resolved by <c>scripts/docchecks/inventory.py</c>, because no compiler (citation-audit: example)
     /// test opens a Markdown file (kb/Work PB4453). An anchor into any other file is resolved here.</summary>
     private static readonly Lazy<string[]> DocumentKinds = new(() =>
         [.. DocFacts.Load("inventory-anchor-kinds.json").GetProperty("documentKinds").EnumerateArray().Select(e => e.GetString()!)]);
@@ -1935,13 +1935,13 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
         // ⛔ `#7`: the fragment five live rows carried, which the resolver satisfies against the digit 7 anywhere
         // in the file. And the bare path, which is the same defect resolving on File.Exists alone.
-        Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = "docs/CONFORMANCE.md#7" }], s));
+        Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = "docs/CONFORMANCE.md#7" }], s));  // citation-audit: example
         Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = Anchor[..Anchor.IndexOf('#')] }], s));
         // The controls: every anchor space the document really has stays legal — §7's item rows, §1's §2023:4.2.16
         // summary, §5's Annex A.4 rows — and a file that is not anchored is not policed.
         Assert.Empty(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = Anchor }], s));
         Assert.Empty(BadAnchorFragments(
-            [Base("X-14") with { CodeLocation = "docs/CONFORMANCE.md#4.2.16" }], s));
+            [Base("X-14") with { CodeLocation = "docs/CONFORMANCE.md#4.2.16" }], s));  // citation-audit: example
         Assert.Empty(BadAnchorFragments(
             [Base("X-15") with { CodeLocation = "docs/CONFORMANCE.md#A.4.9" }], s));
         Assert.Empty(BadAnchorFragments([Base("X-16") with { CodeLocation = Src }], s));
@@ -2115,7 +2115,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // ⚙ …and the register is looked up by the COMPUTED key, never by the claimed string — so citing another
         // row's determination is caught as a wrong ANCHOR and cannot smuggle in that row's arm.
         Assert.Equal(["not-computed-anchor"], Codes(DerivationRefusals(
-            Derived("GR-14.9.5.4-11") with { Derivation = "docs/CONFORMANCE.md#DRV-GR-14.9.5.4-14" }, ds)));
+            Derived("GR-14.9.5.4-11") with { Derivation = "docs/CONFORMANCE.md#DRV-GR-14.9.5.4-14" }, ds)));  // citation-audit: example
         Assert.Equal(["bad-signature"], Codes(DerivationRefusals(Derived("GR-14.9.5.4-18"), ds)));
         // ✔ …and EVERY signature the schema lists is accepted (kb/Work PB1636: one dated owner decision each), so
         // a check that compared against one literal would fail here on the later batch's rows.
