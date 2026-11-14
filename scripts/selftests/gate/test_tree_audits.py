@@ -9,7 +9,7 @@ from standard_streams import ensure_utf8
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
 REPO = gate_mod.REPO
-ci_audits_not_in_gate = gate_mod.ci_audits_not_in_gate
+from gate_audits import ci_audits_not_in_gate
 
 
 def case_00_one_shape_kb_work_pb3022_audit_names(expect):

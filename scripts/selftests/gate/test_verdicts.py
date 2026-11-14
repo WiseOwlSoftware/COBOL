@@ -13,12 +13,9 @@ import selftest_cases
 from standard_streams import ensure_utf8
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
-FIRST_CLASSES = gate_mod.FIRST_CLASSES
-RECORD_SCHEMA = gate_mod.RECORD_SCHEMA
-RUNS_LOCK = gate_mod.RUNS_LOCK
-RUN_DIR = gate_mod.RUN_DIR
-VERDICT = gate_mod.VERDICT
-VERDICT_FILE = gate_mod.VERDICT_FILE
+from gate_host import FIRST_CLASSES
+from gate_runs import RECORD_SCHEMA, RUNS_LOCK, RUN_DIR, VERDICT_FILE
+from gate_verdict import VERDICT
 
 
 def case_00_whole_planted_population_green_every_assembly_exact(expect):

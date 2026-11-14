@@ -10,6 +10,8 @@ import selftest_cases
 from standard_streams import ensure_utf8
 
 import fixtures
+import gate_host
+import gate_runs
 from detached import spawn_detached
 from enqueue import EXIT_GATE_BUSY
 from enqueue import EXIT_LAND_BUSY
@@ -193,9 +195,8 @@ def case_013_exit_12_once_the_gate_lock_is_free_retried_at_th(expect):
 def case_014_wait_free_for_exit_12_reads_the_gate_driver_s_ow(expect):
     global gate, lock_wt
     lock_wt = ScratchRepo.init(root / "wt-lock").path
-    import gate  # noqa: PLC0415
 
-    held = ExclusiveLock.try_take(gate.Host(lock_wt).lock_path(), "gate (pid 356316)")
+    held = ExclusiveLock.try_take(gate_host.Host(lock_wt).lock_path(), "gate (pid 356316)")
     try:
         while_held = wait_free(EXIT_GATE_BUSY, str(lock_wt))
     finally:
@@ -213,14 +214,14 @@ def case_015_exit_12_for_a_gate_that_is_still_running_the_lan(expect):
     f3c = Fake([row("w2c", "WAITING TO LAND", "o1")])
     f3c.wait = wait_free
     gate_wt = ScratchRepo.init(root / "wt-w2c").path
-    owed_run = gate_wt / gate.RUN_ROOT / "000005-20261024T225004Z"
+    owed_run = gate_wt / gate_runs.RUN_ROOT / "000005-20261024T225004Z"
     owed_run.mkdir(parents=True)
     # The implementer's gate holds the worktree's gate lock until it has written its verdict. Its gate.pid names THIS
     # process, which stays alive afterwards: a process id says nothing about the gate (review R1-1: Windows reuses a
     # dead gate's), so the lane relaunches the moment the lock is free, whatever that pid file still names.
-    gate.write_pid(owed_run, os.getpid())
-    gate_held = ExclusiveLock.try_take(gate.Host(gate_wt).lock_path(),
-                                       f"gate {gate_wt} (pid 356318, since T{gate.RUN_LABEL}{owed_run})")
+    gate_runs.write_pid(owed_run, os.getpid())
+    gate_held = ExclusiveLock.try_take(gate_host.Host(gate_wt).lock_path(),
+                                       f"gate {gate_wt} (pid 356318, since T{gate_runs.RUN_LABEL}{owed_run})")
     try:
         f3c.tick(c3c)
         finish(c3c, "w2c", EXIT_GATE_BUSY, "GATE BUSY — the gate run 000005-20261024T225004Z of this worktree is "

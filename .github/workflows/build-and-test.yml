@@ -397,7 +397,7 @@ jobs:
   # `--self-test`s through scripts/self_tests.py (and scripts/self_test_arms.py holds their arms, kb/Work PB4395),
   # proving each check can still fail.
   # ONE STEP PER AUDIT, each `if: !cancelled()`, so one red never hides the others' verdicts.
-  # ⛔ This is the SAME list, in the same order, as the gate driver's (`scripts/gate.py` AUDITS) and battery
+  # ⛔ This is the SAME list, in the same order, as the gate driver's (`scripts/gate_audits.py` AUDITS) and battery
   # phase -1; the
   # work-register and fleet-practices checks are added because a `kb/` or brief edit is a docs-only push, and
   # nothing else validates it there. ──
@@ -542,7 +542,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 scripts/inert_lane.py check
       # Every repository read a test source spells lies in its target's declared inputs (kb/Work PB5218), the static
-      # half of what a target's key covers; an audit of the local gate (gate.py AUDITS) since stage 1, and of the merge
+      # half of what a target's key covers; an audit of the local gate (gate_audits.py AUDITS) since stage 1, and of the merge
       # group since kb/Work PB5235, whose plan trusts those keys.
       - name: Build targets — every read a test source spells lies in its target's declared inputs (buildgraph.py check)
         if: ${{ !cancelled() }}
@@ -566,7 +566,7 @@ jobs:
       # EVERY script self-test, DISCOVERED (kb/Work PB2563): each test_*.py / test_*.ps1 and each script handling
       # --self-test under scripts/ — the hook self-tests, cite.py, ledger_plan.py, landing_check.py and the orchestrator's,
       # which until PB2563 were named here one by one while eleven of them ran nowhere. The same runner is an audit of the
-      # local gate (gate.py AUDITS) and a leg of linux-gate.sh. A Windows-only self-test is reported NOT RUN here
+      # local gate (gate_audits.py AUDITS) and a leg of linux-gate.sh. A Windows-only self-test is reported NOT RUN here
       # with its reason and runs in windows-self-tests; one that reads the built assemblies runs in linux-built-self-tests.
       - name: Script self-tests — every self-test under scripts/ and conformance-suite/harness/, discovered (self_tests.py)
         if: ${{ !cancelled() }}
@@ -575,7 +575,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/work.py check
       # The conformance suite's generator, refusals only (DESIGN-conformance-suite.md §9; kb/Work PB3174): an audit of
-      # the local gate too (gate.py AUDITS), so a refused test is red there first.
+      # the local gate too (gate_audits.py AUDITS), so a refused test is red there first.
       - name: Conformance suite — every test header, rule, control and output well-formed (generate.py --check)
         if: ${{ !cancelled() }}
         run: python3 conformance-suite/harness/generate.py --check

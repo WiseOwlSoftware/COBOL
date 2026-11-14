@@ -861,7 +861,7 @@ def main() -> int:
     group.add_argument("--fix-writers", action="store_true")
     group.add_argument("--self-test", action="store_true")
     ap.add_argument("--base", help="with --check and --tree: read only what TREE changes against this commit (the gate)")
-    ap.add_argument("--tree", help="with --check and --base: the change's measured tree (gate.py Host.measured_tree)")
+    ap.add_argument("--tree", help="with --check and --base: the change's measured tree (gate_host.py Host.measured_tree)")
     ap.add_argument("--root", type=Path, default=REPO, help=argparse.SUPPRESS)
     args = ap.parse_args()
     if (args.base is None) != (args.tree is None) or (args.base is not None and not args.check):

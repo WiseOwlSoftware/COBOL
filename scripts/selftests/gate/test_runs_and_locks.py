@@ -25,48 +25,17 @@ from standard_streams import ensure_utf8
 from scratch_repo import ScratchRepo, remove_tree
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
-BRANCH = gate_mod.BRANCH
-BUSY = gate_mod.BUSY
-BUSY_READING = gate_mod.BUSY_READING
-CI_BOUNCE_RESULTS = gate_mod.CI_BOUNCE_RESULTS
-ENVIRONMENT = gate_mod.ENVIRONMENT
-EXIT_BUSY = gate_mod.EXIT_BUSY
-GATE_CONFIGURATION = gate_mod.GATE_CONFIGURATION
-GREEN_READING = gate_mod.GREEN_READING
+import gate_runs
+from gate_verdict import (BRANCH, BUSY, BUSY_READING, ENVIRONMENT, EXIT_BUSY, GREEN_READING, NOT_RUN, NOT_RUN_CAUSES,
+                          RED_READING, Reading, UNCLASSIFIED, VERDICT, not_run, read_verdict, _NOT_RUN_TAG)
+from gate_host import CI_BOUNCE_RESULTS, GATE_CONFIGURATION, Host, ONLY_CASES
 Gate = gate_mod.Gate
-Host = gate_mod.Host
-LANDABLE_SCHEMA = gate_mod.LANDABLE_SCHEMA
-LANDING_FIELDS = gate_mod.LANDING_FIELDS
-NOT_RUN = gate_mod.NOT_RUN
-NOT_RUN_CAUSES = gate_mod.NOT_RUN_CAUSES
-ONLY_CASES = gate_mod.ONLY_CASES
-ORIGINAL_VERDICT_FILE = gate_mod.ORIGINAL_VERDICT_FILE
+from gate_runs import (LANDABLE_SCHEMA, LANDING_FIELDS, ORIGINAL_VERDICT_FILE, RECORD_SCHEMA, RUN_DIR, RUN_LABEL,
+                       SCHEMA_NOTES, SCHEMA_WHOLE, VERDICT_FILE, live_gate, measuring_runs, predates_landing,
+                       read_pid, read_record, record_schema, run_dirs, run_order, run_started, write_pid)
 Outcome = gate_mod.Outcome
-RECORD_SCHEMA = gate_mod.RECORD_SCHEMA
-RED_READING = gate_mod.RED_READING
 REPO = gate_mod.REPO
-RUN_DIR = gate_mod.RUN_DIR
-RUN_LABEL = gate_mod.RUN_LABEL
-Reading = gate_mod.Reading
 Rederived = gate_mod.Rederived
-SCHEMA_NOTES = gate_mod.SCHEMA_NOTES
-SCHEMA_WHOLE = gate_mod.SCHEMA_WHOLE
-UNCLASSIFIED = gate_mod.UNCLASSIFIED
-VERDICT = gate_mod.VERDICT
-VERDICT_FILE = gate_mod.VERDICT_FILE
-_NOT_RUN_TAG = gate_mod._NOT_RUN_TAG
-live_gate = gate_mod.live_gate
-measuring_runs = gate_mod.measuring_runs
-not_run = gate_mod.not_run
-predates_landing = gate_mod.predates_landing
-read_pid = gate_mod.read_pid
-read_record = gate_mod.read_record
-read_verdict = gate_mod.read_verdict
-record_schema = gate_mod.record_schema
-run_dirs = gate_mod.run_dirs
-run_order = gate_mod.run_order
-run_started = gate_mod.run_started
-write_pid = gate_mod.write_pid
 
 
 def case_00_second_gate_same_worktree_refused_at_once(expect):
@@ -851,13 +820,13 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
         and "below 3" in (predates_landing({**lrec, "schema": 2}) or "")
         and predates_landing({**lrec, "schema": 3}) is None and record_schema({"schema": True}) == 0
         and record_schema({}) == 0, f"{lrec.get('schema')} {predates_landing(old_rec)}")
-    globals_before = (gate_mod.RECORD_SCHEMA, dict(SCHEMA_NOTES))
+    globals_before = (gate_runs.RECORD_SCHEMA, dict(SCHEMA_NOTES))
     try:
-        gate_mod.RECORD_SCHEMA = globals_before[0] + 1
-        SCHEMA_NOTES[gate_mod.RECORD_SCHEMA] = "PB9999"
+        gate_runs.RECORD_SCHEMA = globals_before[0] + 1
+        SCHEMA_NOTES[gate_runs.RECORD_SCHEMA] = "PB9999"
         bumped = predates_landing(old_rec) or ""
     finally:
-        gate_mod.RECORD_SCHEMA = globals_before[0]
+        gate_runs.RECORD_SCHEMA = globals_before[0]
         SCHEMA_NOTES.clear()
         SCHEMA_NOTES.update(globals_before[1])
     expect("the 'predates kb/Work <note>' sentence is derived from SCHEMA_NOTES: every schema from the oldest landable "

@@ -14,7 +14,7 @@ from scratch_repo import isolate, scratch_dir
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
 Gate = gate_mod.Gate
 Outcome = gate_mod.Outcome
-audit_shape = gate_mod.audit_shape
+from gate_audits import audit_shape
 
 
 def world():

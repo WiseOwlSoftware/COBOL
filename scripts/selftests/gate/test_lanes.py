@@ -12,18 +12,12 @@ import selftest_cases
 from standard_streams import ensure_utf8
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
-AUDITS = gate_mod.AUDITS
-GREEN_READING = gate_mod.GREEN_READING
+from gate_audits import AUDITS, TOOLING_ONLY
+from gate_verdict import GREEN_READING, NOT_RUN_CAUSES, VERDICT, read_verdict
 Gate = gate_mod.Gate
-Host = gate_mod.Host
-HostRun = gate_mod.HostRun
-NOT_RUN_CAUSES = gate_mod.NOT_RUN_CAUSES
+from gate_host import Host, HostRun
 Outcome = gate_mod.Outcome
-TOOLING_ONLY = gate_mod.TOOLING_ONLY
-VERDICT = gate_mod.VERDICT
-VERDICT_FILE = gate_mod.VERDICT_FILE
-read_verdict = gate_mod.read_verdict
-run_dirs = gate_mod.run_dirs
+from gate_runs import VERDICT_FILE, run_dirs
 
 
 def case_00_script_self_tests_audits_tooling_only_post(expect):

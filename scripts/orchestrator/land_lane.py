@@ -590,13 +590,13 @@ def row_dicts(rows: list, prs: dict | None) -> list[dict[str, Any]]:
 
 def gate_lock_free(worktree: str) -> tuple[bool, str]:
     """Whether no gate runs in the worktree now (exit 12's wait): the worktree's gate lock (the gate driver's own:
-    gate.Host.lock_path) is free, taken and released at once (an OS lock, freed when its holder dies, so a
-    lock that reads held is a live gate). That lock is also `gate.live_gate`'s reader, the one the landing
+    gate_host.Host.lock_path) is free, taken and released at once (an OS lock, freed when its holder dies, so a
+    lock that reads held is a live gate). That lock is also `gate_runs.live_gate`'s reader, the one the landing
     answers exit 12 by (kb/Work PB3662: a gate holds it until its verdict file is written); a gate process id is
     never read (Windows reuses them). A hand run of linux-gate.sh holds no lock and gates nothing a landing reads
     (kb/Work PB4327), so it is not waited on."""
-    import gate  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
-    return lock_free(lambda: gate.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
+    import gate_host  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
+    return lock_free(lambda: gate_host.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
 
 
 def land_lock_free(worktree: str) -> tuple[bool, str]:
@@ -858,14 +858,15 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
     raises: what cannot be read is said (`unobserved`, `no_record`) and classifies UNCLASSIFIED, the finisher's, as every
     bounce was before."""
     import enqueue  # noqa: PLC0415  (the one reader of a gate record that covers a head)
-    import gate  # noqa: PLC0415  (scripts/: the record, the run root, where a bounce's results land)
+    import gate_host  # noqa: PLC0415  (scripts/: the record, the run root, where a bounce's results land)
+    import gate_runs  # noqa: PLC0415
     import lane_classification  # noqa: PLC0415  (scripts/: the lanes whose record keeps no test result)
     import queue_facts  # noqa: PLC0415
     import test_population as tp  # noqa: PLC0415  (scripts/: THE trx reader)
     wt = pathlib.Path(str(att.get("worktree") or ""))
     if not att.get("worktree") or not wt.is_dir():
         return RedFacts(unobserved=f"the branch's worktree {att.get('worktree') or '(none recorded)'} is gone")
-    dest = wt / gate.CI_BOUNCE_RESULTS
+    dest = wt / gate_host.CI_BOUNCE_RESULTS
     got = (fetch or queue_facts.fetch_bounce_results)(str(att["branch"]), dest)
     src = queue_facts.bounce_source(dest)
     # The results are the newest failed run's only when the fetch says it holds them now: a download that failed, an
@@ -884,10 +885,10 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
         return dataclasses.replace(facts, no_record=f"the gate records of {wt} could not be read ({e})")
     if not proof.ok or proof.run is None:
         return dataclasses.replace(facts, no_record=proof.text)
-    rec = gate.read_record(proof.run) or {}
+    rec = gate_runs.read_record(proof.run) or {}
     # THE RUNS THAT HOLD THE EVIDENCE (kb/Work PB5099): the run that measured the head and, for a composed verdict, the
-    # earlier runs of the same code state whose passes it counts (`gate.measuring_runs`, the one resolution).
-    measuring = gate.measuring_runs(proof.run)
+    # earlier runs of the same code state whose passes it counts (`gate_runs.measuring_runs`, the one resolution).
+    measuring = gate_runs.measuring_runs(proof.run)
     measured = measuring[0] if measuring else proof.run
     if rec.get("lane") in lane_classification.TEST_FREE_LANES:
         return dataclasses.replace(facts, record=measured.name, test_free=str(rec["lane"]))

@@ -1,5 +1,5 @@
 """gate_fake_host.py — A PLANTED MACHINE FOR THE GATE (kb/Work PB5432; docs/rearchitecture/DESIGN-orchestrator-loop.md section 16.2):
-a `gate.Host` whose populations are small and whose test hosts write the trx and the log the real ones write, each case
+a `gate_host.Host` whose populations are small and whose test hosts write the trx and the log the real ones write, each case
 planting one defect into them. An ordinary module, no case and no expectation: the gate's case files
 (`scripts/selftests/gate/`) and `scripts/arch/perf_baseline.py`'s self-test both plant `gate.Gate` over it."""
 
@@ -12,7 +12,7 @@ import lane_classification  # noqa: E402  — THE classification of a change no 
 import threading
 import time
 
-from gate import FIRST_CLASSES, Host, ONLY_CASES
+from gate_host import FIRST_CLASSES, Host, ONLY_CASES
 
 
 class FakeHost(Host):

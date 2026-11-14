@@ -17,33 +17,12 @@ import selftest_cases
 from standard_streams import ensure_utf8
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
-AWAIT_PENDING = gate_mod.AWAIT_PENDING
-AWAIT_PENDING_EXIT = gate_mod.AWAIT_PENDING_EXIT
-BUSY = gate_mod.BUSY
-DIED = gate_mod.DIED
-EXIT_BUSY = gate_mod.EXIT_BUSY
-Host = gate_mod.Host
-NOT_RUN_CAUSES = gate_mod.NOT_RUN_CAUSES
+from gate_runs import (AWAIT_PENDING, AWAIT_PENDING_EXIT, DIED, RUN_LABEL, RUN_ROOT, STARTING, VERDICT_FILE,
+                       gate_phase, gate_running, launch_and_follow, lock_of_run, lock_running, read_pid, read_spawn,
+                       resolve_run, watch, write_pid, write_spawn, _record_exit)
+from gate_verdict import BUSY, EXIT_BUSY, NOT_RUN_CAUSES, VERDICT, not_run, read_verdict
+from gate_host import Host
 REPO = gate_mod.REPO
-RUN_LABEL = gate_mod.RUN_LABEL
-RUN_ROOT = gate_mod.RUN_ROOT
-STARTING = gate_mod.STARTING
-VERDICT = gate_mod.VERDICT
-VERDICT_FILE = gate_mod.VERDICT_FILE
-_record_exit = gate_mod._record_exit
-gate_phase = gate_mod.gate_phase
-gate_running = gate_mod.gate_running
-launch_and_follow = gate_mod.launch_and_follow
-lock_of_run = gate_mod.lock_of_run
-lock_running = gate_mod.lock_running
-not_run = gate_mod.not_run
-read_pid = gate_mod.read_pid
-read_spawn = gate_mod.read_spawn
-read_verdict = gate_mod.read_verdict
-resolve_run = gate_mod.resolve_run
-watch = gate_mod.watch
-write_pid = gate_mod.write_pid
-write_spawn = gate_mod.write_spawn
 
 
 def case_00_await_reads_verdict_file_line_exit_code(expect):

@@ -47,11 +47,14 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 #: tier of any line it is on; modules of one tier never import each other. Section 16.10 of the design draws these lines.
 LINES: tuple[tuple[tuple[str, ...], ...], ...] = (
     # scripts/: the gate
-    (("gate_verdict",), ("gate_runs",), ("gate_host",), ("gate",)),
+    # (the audits' list first: the verdict's `audit_reasons` and the host both read it; the run store reads the host's lock)
+    (("gate_audits",), ("gate_verdict", "gate_host"), ("gate_runs",), ("gate",)),
     # scripts/: the lanes' classification, the static reads and the watch built on it, the CLI last (kb/Work PB5398)
     (("lane_classification",), ("source_reads", "inert_watch"), ("inert_lane",)),
     # the gate decides the change's lane through the classification (`lane_classification.CLASSIFICATION.classify`)
-    (("lane_classification",), ("gate",)),
+    (("lane_classification",), ("gate_host",), ("gate",)),
+    # the real host measures a tree without the paths that are never work (`coord.NEVER_WORK`, kb/Work PB5433)
+    (("coord",), ("gate_host",)),
     # scripts/orchestrator/: the branch survey, its CLI last
     (("coord",), ("reports",), ("branch_classify",), ("review_coverage",), ("branch_lifecycle",), ("branch_survey",),
      ("prune_worktrees",)),
@@ -70,9 +73,10 @@ LINES: tuple[tuple[tuple[str, ...], ...], ...] = (
 
 #: Every declared module: its repo-relative file, and the kb/Work step that creates it (None: it exists already).
 NODES: dict[str, tuple[str, str | None]] = {
-    "gate_verdict": ("scripts/gate_verdict.py", "PB3733"),
-    "gate_runs": ("scripts/gate_runs.py", "PB3733"),
-    "gate_host": ("scripts/gate_host.py", "PB3733"),
+    "gate_audits": ("scripts/gate_audits.py", "PB5433"),
+    "gate_verdict": ("scripts/gate_verdict.py", "PB5433"),
+    "gate_runs": ("scripts/gate_runs.py", "PB5433"),
+    "gate_host": ("scripts/gate_host.py", "PB5433"),
     "gate": ("scripts/gate.py", None),
     "lane_classification": ("scripts/lane_classification.py", "PB5398"),
     "source_reads": ("scripts/source_reads.py", "PB5398"),
@@ -110,7 +114,7 @@ NODES: dict[str, tuple[str, str | None]] = {
 SPLITS: dict[str, tuple[str, tuple[str, ...]]] = {
     "plan_wave": ("PB3728", ("reports", "inflight", "clusters", "groups", "dispatch_ledger")),
     "prune_worktrees":("PB3731", ("branch_classify", "review_coverage", "branch_lifecycle", "branch_survey")),
-    "gate": ("PB3733", ("gate_verdict", "gate_runs", "gate_host")),
+    "gate": ("PB5433", ("gate_audits", "gate_verdict", "gate_runs", "gate_host")),
     "inert_lane": ("PB5398", ("lane_classification", "source_reads", "inert_watch")),
     "enqueue": ("PB3735", ("landing_verdict", "land_checks", "land_tree", "land_evidence", "land_queue")),
     "land_lane": ("PB3737", ("lane_state", "conflict_brief", "lane_decide", "lane_watch", "lane_status")),

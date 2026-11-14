@@ -19,7 +19,7 @@ as any `test_*.py` does (rule b), with `PYTHONPATH` = `scripts/` prepended in `R
 named five, CI's audits job named those five plus `landing_check.py`, linux-gate.sh named three, and eleven of the
 fourteen orchestrator self-tests (the loop's unit choice, the allocator's lock, the wave planner, …) ran in no gate and
 no CI job at all, so a regression in any of them passed everything. A list goes stale the day a self-test is added.
-This runner FINDS them, and the local gate (scripts/gate.py AUDITS, only for a change that touches tooling,
+This runner FINDS them, and the local gate (scripts/gate_audits.py AUDITS, only for a change that touches tooling,
 kb/Work PB4326, and beside its build and legs, never inside the gate slot), the Linux gate
 (scripts/linux-gate.sh leg `selftests`) and CI (the `audits` job on Linux and `windows-self-tests` on Windows) all run
 THIS entry point, so no gate can run a self-test CI does not, or the reverse (the CI invariant, kb/Work PB1957).
@@ -1312,14 +1312,14 @@ def entry_point_arms(check: Callable[[str, object, object], None]) -> None:
     (kb/Work PB2914, PB3022); and none of them runs a discovered self-test itself (a hand list again, kb/Work PB2563)."""
     from ci_workflow import jobs  # noqa: PLC0415 — this directory's: the one reader of a CI workflow's shape
     scripts = REPO / "scripts"
-    driver = scripts / "gate.py"
-    audits = _module_literal(driver, "AUDITS")
+    gate_audits = scripts / "gate_audits.py"
+    audits = _module_literal(gate_audits, "AUDITS")
     linux = (scripts / "linux-gate.sh").read_text(encoding="utf-8")
     workflow = (REPO / ".github" / "workflows" / "build-and-test.yml").read_text(encoding="utf-8")
     check("arm: the gate's audits run this runner, its post-build half `--built`, the runner only for a change that "
           "touches tooling, and with --reuse",
-          (("SELF-TESTS", ["scripts/self_tests.py"]) in audits, _module_literal(driver, "BUILT_SELF_TESTS"),
-           _module_literal(driver, "TOOLING_ONLY"), _module_literal(driver, "SELF_TESTS_REUSE")),
+          (("SELF-TESTS", ["scripts/self_tests.py"]) in audits, _module_literal(gate_audits, "BUILT_SELF_TESTS"),
+           _module_literal(gate_audits, "TOOLING_ONLY"), _module_literal(gate_audits, "SELF_TESTS_REUSE")),
           (True, ["scripts/self_tests.py", "--built"], ("SELF-TESTS",), "--reuse"))
     # linux-gate.sh runs its legs in parallel (kb/Work PB2879) in the AUDIT clone, outside the inert watch of its test
     # legs (kb/Work PB2878): each runner call may redirect to its leg's result file and run in the background.
@@ -1349,7 +1349,7 @@ def entry_point_arms(check: Callable[[str, object, object], None]) -> None:
           hand_named({"w": "# scripts/x.py --self-test\npython scripts/x.py --check\npwsh scripts/o/test_y.ps1\n"
                            "python scripts/x.py --self-test\npython scripts/self_tests.py\n"}, planted),
           ["w: scripts/o/test_y.ps1 in `pwsh scripts/o/test_y.ps1`", "w: scripts/x.py in `python scripts/x.py --self-test`"])
-    sources = {"scripts/gate.py AUDITS": "\n".join(" ".join(cmd) for _, cmd in audits),
+    sources = {"scripts/gate_audits.py AUDITS": "\n".join(" ".join(cmd) for _, cmd in audits),
                "scripts/linux-gate.sh": linux, ".github/workflows/build-and-test.yml": workflow}
     sources |= {f"scripts/{n}": (scripts / n).read_text(encoding="utf-8")
                 for n in ("build-local.ps1", "build-local.sh", "battery.sh")}

@@ -40,7 +40,7 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      A merge git REFUSED, with no file in conflict, is no conflict (kb/Work PB3673: a refusal used to end `CONFLICT in
      …` and cost a finisher for a merge with nothing to resolve): git_merge.merge says so (`Merged.incomplete`, abi_pin's
      Failure) and the cause's class is the gate's
-     one classification (gate.NOT_RUN_CAUSES, the `merge-*` rows). An ENVIRONMENT cause (`merge-blocked`: a
+     one classification (gate_verdict.NOT_RUN_CAUSES, the `merge-*` rows). An ENVIRONMENT cause (`merge-blocked`: a
      build output locked by another process, a full disk, no SDK, git's refusal of the merge commit) is exit 2 with NO
      report line, the verdict `MERGE NOT COMPLETED`: the lane retries it once and a second at this head is the
      operator's. A BRANCH cause (`merge-failed`: the merged tree's pin or build or measuring test) blocks like a red,
@@ -54,8 +54,8 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      the whole population on the exact merge, both operating systems) is the gate for the merge, and the landing lane
      classifies every red it bounces (land_lane.py, kb/Work PB4271). FIRST THE GATE LOCK (kb/Work PB4204): before the
      record is read, and again before every later write of the worktree (each catch-up merge and the stamp of step 4), a
-     gate of the worktree that runs now (`gate_busy`: the worktree's gate lock is held, `gate.live_gate`, an OS lock
-     freed when its holder dies, so never a reused process id; or a run is STARTING, `gate.gate_phase`: spawned moments
+     gate of the worktree that runs now (`gate_busy`: the worktree's gate lock is held, `gate_runs.live_gate`, an OS lock
+     freed when its holder dies, so never a reused process id; or a run is STARTING, `gate_runs.gate_phase`: spawned moments
      ago by the launcher, its child alive, the lock not yet taken, for START_WINDOW_S at most, kb/Work PB3707) ends the
      landing exit 12, GATE BUSY, with no report line and nothing written: the landing lane waits for that lock
      (`land_lane.wait_free`) and lands the head again, and a gate that ends GREEN then is the record it reads. Whatever
@@ -66,7 +66,7 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      main's, a clean merge of main or register-only (DEVLOG and kb/Work notes): `prune_worktrees.unreviewed_since`, the
      review's coverage rule). None is exit 14, UNTESTED, before anything is merged: the report gains `BLOCKED: enqueue —
      no local gate is recorded …` and a finisher gates the tip (or, when the newest GREEN record was written by a gate
-     OLDER than this lander, `gate.predates_landing`, merges main into the branch first, since gating with the branch's
+     OLDER than this lander, `gate_runs.predates_landing`, merges main into the branch first, since gating with the branch's
      own older driver writes the same record: kb/Work PB3660). The lanes MANDATORY-PRACTICES I10 does not review
      (UNREVIEWED_LANES: they write no fix-lane report) are held to the same record: each gates its own tip before it
      lands (its notes and goldens take the gate's inert or code lane by their paths), and with none it is exit 14 too.
@@ -829,23 +829,24 @@ class Tested(NamedTuple):
     ok: bool
     text: str
     gated: str = ""   # the head the covering run measured; "" = the tip itself (a planted record in the self-test)
-    stale: bool = False  # the newest GREEN run was written by a gate older than this lander (`gate.predates_landing`, kb/Work PB3660)
+    stale: bool = False  # the newest GREEN run was written by a gate older than this lander (`gate_runs.predates_landing`, kb/Work PB3660)
     run: pathlib.Path | None = None   # the covering run's directory (the landing lane reads its cases, kb/Work PB4271)
 
 
 def gate_busy(wt: pathlib.Path) -> str:
     """THE GATE LOCK, THE ONE QUESTION A LANDING ASKS BEFORE IT WRITES A WORKTREE (kb/Work PB4204, PB4331; module doc,
     step 3): "" when no gate of the worktree runs, else what runs, for the GATE BUSY line. A gate runs while it holds the
-    worktree's gate lock (`gate.live_gate`, PB3662: an OS lock freed when its holder dies, never a process id), and a gate
-    is coming when one of its runs has no verdict file and is STARTING (`gate.gate_phase`, PB3707: spawned moments ago,
+    worktree's gate lock (`gate_runs.live_gate`, PB3662: an OS lock freed when its holder dies, never a process id), and a gate
+    is coming when one of its runs has no verdict file and is STARTING (`gate_runs.gate_phase`, PB3707: spawned moments ago,
     its child alive, the lock not yet taken). The answer never depends on which records exist: an older GREEN record that
     covers the tip does not make a running gate's worktree free to write."""
-    import gate  # noqa: PLC0415  (scripts/: the gate driver owns its lock and its runs' phases)
-    live = gate.live_gate(gate.Host(wt).lock_path())
+    import gate_host  # noqa: PLC0415  (scripts/: the gate's host owns the lock's path, its run store the runs' phases)
+    import gate_runs  # noqa: PLC0415
+    live = gate_runs.live_gate(gate_host.Host(wt).lock_path())
     if live is not None:
         return f"{live.what} of this worktree is running"
-    starting = [run for run in gate.run_dirs(wt / gate.RUN_ROOT)
-                if gate.read_record(run) is None and gate.gate_phase(run, None) == gate.STARTING]
+    starting = [run for run in gate_runs.run_dirs(wt / gate_runs.RUN_ROOT)
+                if gate_runs.read_record(run) is None and gate_runs.gate_phase(run, None) == gate_runs.STARTING]
     return f"the gate run {starting[-1].name} of this worktree is starting" if starting else ""
 
 
@@ -861,23 +862,24 @@ def tested_locally(wt: pathlib.Path, head: str, base: str) -> Tested:
     the same head. A run with no verdict file is no record (`gate_busy`, asked first, has told a gate still running or
     starting from one that died). There is no Linux half to require (kb/Work PB4327): CI's merge group runs the whole
     Linux population, and every `audits` run the Linux self-tests."""
-    import gate  # noqa: PLC0415  (scripts/: the gate driver owns its record and its verdict's vocabulary)
+    import gate_verdict  # noqa: PLC0415  (scripts/: the gate's run store owns the record, its verdict module the vocabulary)
+    import gate_runs  # noqa: PLC0415
     import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and the report reader back)
-    root = wt / gate.RUN_ROOT
-    runs = gate.run_dirs(root)[::-1]
+    root = wt / gate_runs.RUN_ROOT
+    runs = gate_runs.run_dirs(root)[::-1]
     if not runs:
         return Tested(False, f"{root} holds no gate run: nobody gated this worktree (`pwsh scripts/build-local.ps1`)")
     why: list[str] = []
     newest_green_is_old: bool | None = None   # decided by the newest run that READ GREEN: the only one a remedy is about
     for run in runs:
-        rec = gate.read_record(run)
+        rec = gate_runs.read_record(run)
         if rec is None:
             why.append(f"{run.name}: no verdict file (its gate died without one)")
             continue
         tree, head_tree = rec.get("tree"), rec.get("head_tree")
         gated = rec.get("head")
-        reads_green = gate.read_verdict(str(rec.get("verdict", ""))) == gate.GREEN_READING
-        old = gate.predates_landing(rec) if reads_green else None
+        reads_green = gate_verdict.read_verdict(str(rec.get("verdict", ""))) == gate_verdict.GREEN_READING
+        old = gate_runs.predates_landing(rec) if reads_green else None
         if reads_green and newest_green_is_old is None:
             newest_green_is_old = old is not None
         if not reads_green or (old is None and rec.get("exit_code") != 0):
@@ -919,7 +921,7 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     `tested(worktree, head, base)` is the evidence a landing reads instead of a gate (`tested_locally`).
     `merge(worktree, branch, base)` brings main in (`merge_main`, steps 2 and 4): what it answers (a conflict, or a clean
     merge that could not be completed) decides the exit, so the self-test plants each."""
-    import gate  # noqa: PLC0415  (scripts/: the gate driver's one NOT RUN classification)
+    import gate_verdict  # noqa: PLC0415  (scripts/: the gate's one NOT RUN classification)
 
     land_lock: list[gate_slot.ExclusiveLock] = []   # the worktree's land lock once taken; every outcome releases it
 
@@ -938,12 +940,12 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
 
     def incomplete(failure: abi_pin.Failure, when: str) -> int:
         """A clean merge of main that could not be completed (kb/Work PB3673): never a CONFLICT, which a finisher resolves
-        in files that are not there. The class is the one classification of a cause (gate.NOT_RUN_CAUSES, read
+        in files that are not there. The class is the one classification of a cause (gate_verdict.NOT_RUN_CAUSES, read
         here, never re-derived). ENVIRONMENT (a build output another process holds, a full disk, git's refusal): exit 2,
         no report line, the lane retries it once and a second at this head is the operator's. BRANCH (the merged tree's own
         ABI pin, build or measuring test): it blocks like a red gate, exit 5, a finisher's."""
-        cause = gate.NOT_RUN_CAUSES[failure.cause]
-        if cause.carried == gate.ENVIRONMENT:
+        cause = gate_verdict.NOT_RUN_CAUSES[failure.cause]
+        if cause.carried == gate_verdict.ENVIRONMENT:
             return end(2, f"MERGE NOT COMPLETED ({when}) — bringing origin/main in was clean, but it could not be completed "
                           f"for a cause outside the merged tree ([{cause.tag}]: no finisher fixes it): "
                           f"{one_line(failure.why, 300)}")
@@ -1132,6 +1134,9 @@ def _stamp(wt: pathlib.Path, branch: str) -> int:
 # ── self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
     import gate  # noqa: PLC0415  (scripts/: the gate driver's one verdict reader and its Readings)
+    import gate_verdict  # noqa: PLC0415
+    import gate_host  # noqa: PLC0415
+    import gate_runs  # noqa: PLC0415
     from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     failures: list[str] = []
 
@@ -1596,7 +1601,7 @@ def self_test() -> int:
 
         # kb/Work PB3673: a merge that could not be completed is no conflict. The merge is planted (git_merge has its own
         # arms for the git side): a refusal the host made (an ENVIRONMENT cause) and one the merged tree made (a BRANCH
-        # cause), each by the class gate.NOT_RUN_CAUSES gives its tag.
+        # cause), each by the class gate_verdict.NOT_RUN_CAUSES gives its tag.
         host_blocked = abi_pin.Failure(abi_pin.MERGE_BLOCKED, "the measuring run exited 1:" + chr(10)
                                        + "error MSB3027: Could not copy SourceGen.dll. The file is locked by: csharp-ls (1)")
         tree_failed = abi_pin.Failure(abi_pin.MERGE_FAILED, "the measuring run exited 1:" + chr(10)
@@ -1624,8 +1629,8 @@ def self_test() -> int:
                f"{rc_tree} {notes} {lines[-1:]}")
         expect("land: the class of a merge that could not be completed is the gate's ONE classification: every tag "
                "abi_pin can answer with is a NOT_RUN_CAUSES row, the host's an ENVIRONMENT one and the tree's a BRANCH one",
-               gate.NOT_RUN_CAUSES[abi_pin.MERGE_BLOCKED].carried == gate.ENVIRONMENT
-               and gate.NOT_RUN_CAUSES[abi_pin.MERGE_FAILED].carried == gate.BRANCH)
+               gate_verdict.NOT_RUN_CAUSES[abi_pin.MERGE_BLOCKED].carried == gate_verdict.ENVIRONMENT
+               and gate_verdict.NOT_RUN_CAUSES[abi_pin.MERGE_FAILED].carried == gate_verdict.BRANCH)
         calls: list[int] = []
 
         def late_environment(w: pathlib.Path, b: str, base: str) -> git_merge.Merged:   # the catch-up merge (step 4) is the second
@@ -1691,7 +1696,7 @@ def self_test() -> int:
             d = results_dir / f"{n:06d}-20261029T000000Z"
             d.mkdir(parents=True, exist_ok=True)
             head_now = fix.git("rev-parse", "HEAD")
-            record_ = {"schema": gate.RECORD_SCHEMA, "verdict": "GREEN",
+            record_ = {"schema": gate_runs.RECORD_SCHEMA, "verdict": "GREEN",
                        "line": "=== planted ===", "exit_code": 0, "head": head_now,
                        "tree": "T", "head_tree": "T", "lane": "full"}
             record_.update(rec)
@@ -1786,12 +1791,12 @@ def self_test() -> int:
         owed = results_dir / "000002-20261029T000000Z"
         gate_run(1)                                       # an OLDER GREEN record that covers the tip ...
         owed.mkdir(parents=True)
-        gate.write_pid(owed, os.getpid())                 # ... and a newer run: this very process, alive, no verdict yet
+        gate_runs.write_pid(owed, os.getpid())                 # ... and a newer run: this very process, alive, no verdict yet
         died = seen()                                     # ... but no gate lock is held: a gate that died
         died_busy = gate_busy(lw)
         notes[:] = []
-        gate_lock = gate.Host(lw).lock_path()
-        with gate_slot.ExclusiveLock.try_take(gate_lock, f"gate {lw} (pid 4243, since T{gate.RUN_LABEL}{owed})"):
+        gate_lock = gate_host.Host(lw).lock_path()
+        with gate_slot.ExclusiveLock.try_take(gate_lock, f"gate {lw} (pid 4243, since T{gate_runs.RUN_LABEL}{owed})"):
             running_now = gate_busy(lw)
             stamped = []
             rc_owed = run_land(tested=tested_locally, stamped=stamped)
@@ -1814,14 +1819,14 @@ def self_test() -> int:
         shutil.rmtree(results_dir)
         young = results_dir / f"000001-{dt.datetime.now(dt.timezone.utc):%Y%m%dT%H%M%SZ}"
         young.mkdir(parents=True)
-        gate.write_spawn(young, os.getpid())              # the child the launcher spawned: alive
+        gate_runs.write_spawn(young, os.getpid())              # the child the launcher spawned: alive
         starting_now = gate_busy(lw)
         notes[:] = []
         rc_starting = run_land(tested=tested_locally, stamped=[])
         starting_notes = list(notes)
         child = subprocess.Popen([sys.executable, "-c", "pass"])
         child.wait()
-        gate.write_spawn(young, child.pid)                # ... and the child that died before its lock
+        gate_runs.write_spawn(young, child.pid)                # ... and the child that died before its lock
         gone_early = gate_busy(lw)
         gone_seen = seen()
         expect("land: a gate run that is STARTING (spawned moments ago, its child alive, the gate lock not yet taken) is "

@@ -17,15 +17,10 @@ from gate_fake_host import FakeHost
 from standard_streams import ensure_utf8
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
-CI_BOUNCE_RESULTS = gate_mod.CI_BOUNCE_RESULTS
-FIRST_CLASSES = gate_mod.FIRST_CLASSES
+from gate_host import CI_BOUNCE_RESULTS, FIRST_CLASSES, ONLY_CASES, host_env
 Gate = gate_mod.Gate
-ONLY_CASES = gate_mod.ONLY_CASES
-VERDICT = gate_mod.VERDICT
-VERDICT_FILE = gate_mod.VERDICT_FILE
-host_env = gate_mod.host_env
-read_verdict = gate_mod.read_verdict
-run_dirs = gate_mod.run_dirs
+from gate_verdict import VERDICT, read_verdict
+from gate_runs import VERDICT_FILE, run_dirs
 
 
 def case_00_re_gate_hands_every_host_classes_red(expect):

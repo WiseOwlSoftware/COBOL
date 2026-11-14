@@ -41,14 +41,20 @@ def _wiring(root: Path) -> list[str]:
             f"path is seen by no one (PB2878): {jid}: {line}" for jid, line in steps
             if f"{cls} watch -- dotnet test" not in line]
     linux_gate, driver, runner = text("scripts/linux-gate.sh"), text("scripts/gate.py"), text("scripts/self_tests.py")
+    host, audit_list = text("scripts/gate_host.py"), text("scripts/gate_audits.py")
     need('inert_lane.py" classify' not in linux_gate, "the Linux gate classifies again (it classifies nothing, PB4327)")
     need("scripts/inert_lane.py watch" in linux_gate, "the Linux gate's test legs no longer run under the watch")
     need('export PYTHONPYCACHEPREFIX="$gate/$leg.pycache"' in linux_gate,
          "the Linux gate's test legs no longer run with a fresh bytecode cache, so its watch misses a script served from "
          "an earlier __pycache__ that CI's watch sees (PB4395 review R2-1)")
-    for want in ("import lane_classification", "lane_classification.CLASSIFICATION.classify(", "return self._inert(out, run, lane)",
-                 "return self._tooling(out, run, lane)", 'TOOLING_ONLY = ("SELF-TESTS",)',
-                 "if tooling or name not in TOOLING_ONLY", "self.host.audits(_no_slot, lines.append, tooling, change)",
+    for module, source, wants in (
+            ("scripts/gate_host.py", host, ("import lane_classification", "lane_classification.CLASSIFICATION.classify(",
+                                            "if tooling or name not in TOOLING_ONLY")),
+            ("scripts/gate_audits.py", audit_list, ('TOOLING_ONLY = ("SELF-TESTS",)',))):
+        for want in wants:
+            need(want in source, f"{module} no longer says `{want}`")
+    for want in ("return self._inert(out, run, lane)",
+                 "return self._tooling(out, run, lane)", "self.host.audits(_no_slot, lines.append, tooling, change)",
                  'self._beside(out, "audits", lambda: self._audits(out, lane.tooling))',
                  'if out.tooling:\n            self._beside(out, "post_build_self_tests"'):
         need(want in driver, f"scripts/gate.py no longer says `{want}`")

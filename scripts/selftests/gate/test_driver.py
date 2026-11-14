@@ -17,17 +17,11 @@ from standard_streams import ensure_utf8
 from scratch_repo import scratch_dir
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
-CHANGE_SCOPED = gate_mod.CHANGE_SCOPED
+from gate_audits import CHANGE_SCOPED, SELF_TESTS_REUSE
 Gate = gate_mod.Gate
-Host = gate_mod.Host
-KEEP_RUNS = gate_mod.KEEP_RUNS
-SELF_TESTS_REUSE = gate_mod.SELF_TESTS_REUSE
-VERDICT = gate_mod.VERDICT
-VERDICT_FILE = gate_mod.VERDICT_FILE
-_no_slot = gate_mod._no_slot
-not_run = gate_mod.not_run
-read_verdict = gate_mod.read_verdict
-run_dirs = gate_mod.run_dirs
+from gate_host import Host, _no_slot
+from gate_runs import KEEP_RUNS, VERDICT_FILE, run_dirs
+from gate_verdict import VERDICT, not_run, read_verdict
 
 
 def case_00_shared_gate_settings_turn_malformed_while_gate(expect):
