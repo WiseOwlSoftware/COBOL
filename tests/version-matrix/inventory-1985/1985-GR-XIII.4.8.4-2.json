@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.8.4-2",
  "rule-digest": "6e27f9e4fda8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary",
  "test-ref": "conformance:cases/XIII.4.8@1985-USE-AFTER-STANDARD-EXCEPTION-PROCEDURE-STATEMENT/1985-GR-XIII_4_8_4-2",
+ "notes": "§1985:XIII.4.8.4 GR2: \"Within a declarative procedure, there must be no reference to any nondeclarative procedures.\" Every statement's procedure-name operand passes ProcedureTableBuilder.ResolveProcedureOperand, which calls StatementValidation.CheckDeclarativesBoundary at every edition: a reference written in a declarative section to a nondeclarative procedure gets WARNING COBOL2375 and the program compiles, the severity being implementor latitude under §1985:I.1.6 (\"The results of violating the formats or rules of Standard COBOL are undefined\"), recorded as docs/CONFORMANCE.md D-DECLREF; RESUME, the 2023 exemption, is refused at 85 (COBOL0876), so no reference escapes the check. Probes at --std 85 from a Report Writer file's USE AFTER STANDARD ERROR/EXCEPTION ON file-name and ON EXTEND procedure (OPEN EXTEND of a missing file, status 35, then the statement after the failed OPEN runs): (b) PERFORM P-2, PERFORM section MAIN-1, PERFORM P-2 THRU P-3, PERFORM UNTIL, GO TO, GO TO ... DEPENDING, ALTER ... TO PROCEED TO P-2, SORT INPUT/OUTPUT PROCEDURE each draw COBOL2375 on every nondeclarative operand (the SORT also COBOL2700, a range straddling the boundary also COBOL2186); (c) RESUME P-2 is refused COBOL0876 at 85; (e) ON EXTEND warns alike; a,d,f do not reach a procedure-name reference. The witness, which PERFORMs and GOes TO only declarative paragraphs, compiles with no warning and prints its .out. Message wording only: at --std 85 the COBOL2375 text quotes §2023:14.9.49.3 SR3 with its RESUME exception rather than the 1985 rule.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

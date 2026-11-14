@@ -3205,7 +3205,14 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   area, so it is sent at its own image and the positions past it are spaces. The predicate is
   `FileModel.TransfersPastRecord`, asked by the one image helper `SequentialIoEmitter.SentRecordImage` for the
   sequential and the keyed WRITE and REWRITE emitters; the runtime's `FileConnector.Stored` cuts the image to the
-  transferred length or pads it, unchanged.
+  transferred length or pads it, unchanged. **The area is read WHOLE** (`SequentialIoEmitter.RecordAreaSendImage`,
+  kb/Work PB5217): when the widest record holds an OCCURS DEPENDING ON table, that table's DEPENDING item sizes that
+  record (§2023:13.18.43.4 GR13 c)), never the area or another record, so a shorter record-name-1 is followed by the
+  area's positions up to the transferred length, and an OCCURS DEPENDING record-name-1 below its maximum transfers
+  past its own end too (its current size is the fixed portion and the occurrences at the time of execution), its
+  tail again the area's (witness `conformance:cases/14.9.51-WRITE/pb5217_write_beside_odo_record`). The keyed READ,
+  DELETE and START read their key out of the same whole-area image, so a key past the ODO record's current extent is
+  the key the area holds.
   **Survey (CLAUDE.md rule 1).** GnuCOBOL 3.2 writes from the file's record area, but `cob_write` clamps the
   DEPENDING ON length to record-name-1's size, and a RECORD CONTAINS file with a shorter 01 becomes variable-length
   (`libcob/fileio.c` `cob_write`, `cobc/tree.c` `finalize_file`; measured with a 3.2.0 build: the variable records

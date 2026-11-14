@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-2",
  "rule-digest": "949c55d617a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveDebugProcedure",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-1",
+ "notes": "§1985:XV.3.2.3 SR2: \"Except in the USE FOR DEBUGGING statement itself, there must be no reference to any non-declarative procedure within the debugging section.\" With WITH DEBUGGING MODE, DeclCollectSection compiles the debugging section as a declarative section (MarkDebugging), so every statement operand in it passes ResolveProcedureOperand -> CheckDeclarativesBoundary and a nondeclarative target draws WARNING COBOL2375 (severity latitude under §1985:I.1.6, docs/CONFORMANCE.md D-DECLREF); the USE FOR DEBUGGING operands themselves resolve through ResolveDebugProcedure in FinalizeDebug, outside that funnel, which is the rule's exception; without DEBUGGING MODE the section is skipped as comment lines and there is no reference. Probes at --std 85: (b) PERFORM P, PERFORM section, PERFORM P THRU Q, GO TO, GO TO DEPENDING (both operands), ALTER (the altered and the PROCEED TO names) to nondeclarative procedures each warn COBOL2375, under ON procedure-name, ON ALL PROCEDURES, ON file-name and ON ALL REFERENCES OF identifier; GO TO the debugging section's own paragraph is silent; GO TO another USE procedure's paragraph is error COBOL2376 and PERFORM of it is silent (SR4); no DEBUGGING MODE: silent; (c) RESUME refused COBOL0876; (e) ON F1 after a failed OPEN INPUT (status 35) runs the debugging section after the USE procedure and then the next statement. The witness names MAIN-PARA only in the USE FOR DEBUGGING statement, compiles with no warning and prints its .out.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

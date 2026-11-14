@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.8.3-9",
  "rule-digest": "5bdb02b3205e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
  "test-ref": "conformance:cases/XIII.3.8@1985-PAGE-CLAUSE/1985-SR-XIII_3_8_3-9",
+ "notes": "§1985:XIII.3.8.3 SR9: 'All report groups must be described such that they can be presented on one page. The report writer control system (RWCS) never splits a multi-line report group across page boundaries.' ScreenReportGroupLines asks it at compile time: at DialectLevel < 2002 a CH, detail or CF of relative lines whose MinimumLastLine from FIRST DETAIL passes its GroupLimits lower limit (LAST DETAIL, FOOTING for a CF) is COBOL2199; groups with absolute lines and the heading/footing groups are bounded by the SR6 c)/d) and region checks in the same member at every edition; from 2002 the body-group arm is off (run-time EC-REPORT-PAGE-LIMIT). At run time PresentBody's page-fit test calls AdvancePage before a group that does not fit. Probes (classes b, c, e): at --std 85 the witness (11 lines in PAGE LIMIT 10), 7 lines in FIRST DETAIL 3 LAST DETAIL 8, an 8-line CF past FOOTING 9, a 5-line CH past LAST DETAIL 6, LINE 4 plus 7 relative lines, LINE 9 ON NEXT PAGE plus 2, and a 4-line page heading past FIRST DETAIL 5 are refused; exact fits (10 in 10, 6 in 3-8, a 7-line CF to FOOTING 9, PLUS 5 / PLUS 6 spacing) compile; four 3-line details in 10 lines print 3+3+3 then a page advance, never split; --std 2002 and 2023 accept the witness.",
  "next": {
   "kind": "CHANGED",
   "to": [
