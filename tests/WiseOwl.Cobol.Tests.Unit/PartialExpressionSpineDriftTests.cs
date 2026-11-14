@@ -85,7 +85,7 @@ public sealed class PartialExpressionSpineDriftTests
     }
 
     /// <summary>Every connective of every leading tier takes a SUCCEEDING operand, and a succeeding condition is an
-    /// abbreviated relation or an ordinary (NOT-)condition — nothing else. A connective that took a leading-tier
+    /// abbreviated relation, the logical NOT of one (§1985:VI.6.3.3 GRL2.2) or an ordinary (NOT-)condition — nothing else. A connective that took a leading-tier
     /// operand again would reject `A = B OR &lt; C` at that tier (the PB1390 shape).</summary>
     [Fact]
     public void EveryConnective_TakesASucceedingOperand()
@@ -96,8 +96,10 @@ public sealed class PartialExpressionSpineDriftTests
             RuleBody("CobolExpressions.g4", "logicalXorExpression"));
         Assert.Equal("unaryLogicalExpression ( AND succeedingCondition )*",
             RuleBody("CobolExpressions.g4", "logicalAndExpression"));
-        Assert.Equal("abbreviatedRelation | unaryLogicalExpression",
+        Assert.Equal("abbreviatedRelation | {logicalNotBeforeRelationalOperator()}? negatedAbbreviatedRelation | unaryLogicalExpression",
             RuleBody("CobolExpressions.g4", "succeedingCondition"));
+        // §1985:VI.6.3.3 GRL2.2's logical NOT wraps the SAME abbreviated relation, never a second spelling of it (kb/Work PB5123).
+        Assert.Equal("NOT abbreviatedRelation", RuleBody("CobolExpressions.g4", "negatedAbbreviatedRelation"));
     }
 
     /// <summary>SR5's three shapes, each named in <c>partialComparison</c>, and each the SAME shape

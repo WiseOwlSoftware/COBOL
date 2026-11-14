@@ -9,6 +9,8 @@ namespace WiseOwl.Cobol.Editions;
 /// <see cref="ConstructRegistry.Check"/> call site so an unregistered id is a COMPILE error.</summary>
 public static class Constructs
 {
+    public const string AbbreviatedNotIsSimpleOperatorRemoved2014 = "abbreviated-not-is-simple-operator-removed-2014";
+    public const string AbbreviatedNotLogicalRemoved2002 = "abbreviated-not-logical-removed-2002";
     public const string AcceptFourDigitYear2002 = "accept-four-digit-year-2002";
     public const string AddressIdentifier2002 = "address-identifier-2002";
     public const string AlignedClause2002 = "aligned-clause-2002";
