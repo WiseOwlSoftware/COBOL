@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
+using WiseOwl.Cobol.Runtime;
+
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>The Selection-SUBJECT operand kinds — Table 15's COLUMNS, in the printed left-to-right order.</summary>
@@ -64,11 +66,19 @@ public static class EvaluateOperandCombinations
         ".      .      .      .      Y      Y",      // TRUE or FALSE
         "Y      Y      Y      Y      Y      Y");     // ANY
 
-    /// <summary>True when Table 15 marks this subject/object pairing permissible ('Y'); false for a blank cell,
-    /// which §2023:14.9.13.3 SR10 makes a SYNTAX RULE violation — a compile-time diagnostic, never a run-time fault.
-    /// </summary>
-    public static bool IsPermitted(EvaluateSubjectOperand subject, EvaluateObjectOperand obj) =>
-        Permitted[(int)obj, (int)subject];
+    /// <summary>True when the edition <paramref name="editionYear"/> permits this subject/object pairing. From 2002 that is
+    /// Table 15's 'Y' (§2002:14.8.12.2 SR9 prints the same table); a blank cell is a SYNTAX RULE violation, a compile-time
+    /// diagnostic, never a run-time fault. ⛔ Below 2002 the table does not exist: §1985:VI.6.13.3 SR6 a asks only that a
+    /// selection object be "a valid operand for comparison to the corresponding operand in the set of selection subjects",
+    /// and §1985:VI.6.13.4 GR1 gives a literal subject and a literal object "the value and class of the specified literal",
+    /// so the literal subject x literal object cell Table 15 leaves blank is permitted at <c>--std 85</c> (implementor
+    /// latitude settled by GnuCOBOL 3.2 -std=cobol85, docs/CONFORMANCE.md; kb/Work PB5481;
+    /// <c>DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject</c>). Every other blank cell stays blank: the 1985
+    /// pairings are the ones Table 15 prints for the operand kinds 1985 has.</summary>
+    public static bool IsPermitted(EvaluateSubjectOperand subject, EvaluateObjectOperand obj, int editionYear) =>
+        Permitted[(int)obj, (int)subject]
+        || (subject == EvaluateSubjectOperand.Literal && obj == EvaluateObjectOperand.Literal
+            && !DialectBehaviors.IsActive(DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject, editionYear));
 
     /// <summary>Table 15's ROW named as its COLUMN — the same operand kind on the other axis — or null for the
     /// three rows the table prints with no column of their own (range-expression, partial-expression, ANY are

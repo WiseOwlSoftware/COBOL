@@ -308,7 +308,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     private bool ScreenPairing(in EvaluatePairing pair, Core.EvaluateWhenItemContext item)
     {
         if (pair.Subject is not { } s || pair.Object is not { } o) return true;
-        if (EvaluateOperandCombinations.IsPermitted(s, o)) return true;
+        if (EvaluateOperandCombinations.IsPermitted(s, o, ctx.Edition.Edition.Year)) return true;
         ctx.Edition.Error(DiagnosticCatalog.EvaluateOperandCombinationInvalid,
             $"the selection subject is {EvaluateOperandCombinations.Label(s)} and the selection object "
             + $"'{DataBinder.WrittenText(item)}' is {EvaluateOperandCombinations.Label(o)}; ISO §2023:14.9.13.3 SR10 Table 15 "
