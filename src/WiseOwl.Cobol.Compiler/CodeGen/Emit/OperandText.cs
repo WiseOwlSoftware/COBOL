@@ -241,7 +241,9 @@ internal static class OperandText
     /// <paramref name="transfer"/> asks for the one-way current-extent image of a variable-length group holding a message tag, the SEND's (kb/Work PB4744).
     /// <paramref name="use"/> is how much of an OCCURS DEPENDING group the operation uses (<see cref="AreaUse"/>).</para></summary>
     public static string RecordAreaImage(Place record, bool transfer = false, AreaUse use = AreaUse.Sending) =>
-        record is OdoGroupPlace o && use.UsesWholeTable(o)
+        // A use's whole table is a CHARACTER-WINDOW record's: an out-of-line variable-length group has no window, so its image
+        // is its current composition whatever the use (D-FRA, the arm below; kb/Work PB5217).
+        record is OdoGroupPlace o && use.UsesWholeTable(o) && !IsVarGroupRecord(record)
             ? RecordAreaImage(o.Inner, transfer, use)
         : IsVarGroupRecord(record)
             ? PlaceRenderer.VarGroupCurrentImage(record, "record-area image of", transfer)
