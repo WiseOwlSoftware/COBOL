@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen.Emit;
 
@@ -68,7 +69,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// arithmetic expression can raise one; a plain item, a literal and a function value cannot, so their relations render
     /// as they always did. From 2002 the condition is a fatal exception condition (§2023:14.7.5) and nothing is wrapped.</summary>
     private string SizeErrorGuarded(string rendered, params BoundOperand[] operands) =>
-        EditionInfo.Of(ctx.Data.DialectLevel).UnphrasedSizeErrorEndsOnlyTheStatement
+        !DialectBehaviors.IsActive(DialectBehavior.UnphrasedSizeErrorIsFatal, ctx.Data.DialectLevel)
         && operands.Any(o => o is BoundComputedOperand { Expr: BoundBinary or BoundPower or BoundNegate })
             ? RuntimeApi.SizeErrorFalse(rendered)
             : rendered;

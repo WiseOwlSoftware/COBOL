@@ -252,8 +252,24 @@ the text it writes, decided by the line the match begins on (`firstLineIsDebuggi
 At COBOL-85 (`ReplacedTextIsLaidOutInFixedForm`) the resultant text is laid out in fixed-form lines, so a literal a replacement places on a
 debugging line that the program-text area cannot hold from the margin of the area it begins in (65 positions in area A, 61 in area B; a
 pseudo-text-2 literal keeps the area it was written in, literal-2 takes the replaced word's, §1985:XII.2.4 GR9) would be continued on a
-debugging line: COBOL7039 (§1985:XII.2.4 GR9, §1985:XII.3.4 GR11). The 2002 rules drop that error. A COPY statement written on a debugging
+debugging line: COBOL7039 (§1985:XII.2.4 GR9, §1985:XII.3.4 GR11). The area a pseudo-text-2 literal was written in is measured in
+positions of the fixed-form line with every tab expanded (`ReferenceFormatMap.ProgramTextOffsetAt`, which inverts the line-entry stage's
+`ColumnMap`; the formats of every text read travel into `ApplyReplaceStatements` / `ApplyReplacements` and the `StatementCursor`), never
+in the file's physical column, where a tab counts one (kb/Work PB5503). The 2002 rules drop that error. A COPY statement written on a debugging
 line writes its whole library text behind the carrier (`ExpandCopiesOneLevel`: `LineIsDebugging`, `AppendAsDebuggingLines`; §1985:XII.2.4 GR9).
+
+### COPY names as user-defined words (kb/Work PB5482)
+
+Below COBOL-2002 a COPY statement's text-name and library-name are user-defined words, each of a disjoint set of its own: "All
+user-defined words, except segment-numbers and level-numbers, can belong to one and only one of these disjoint sets"
+(§1985:IV.4.2.2.1.1); 2002 made them system-names (§2002:F.2 item 135), `EditionInfo.CopyNamesAreUserDefinedWords`. `CopyProcessor`
+alone resolves the statement, so `ResolveOneCopy` records each name written as a COBOL word (`CopyNameUse`, `CopyProcessor.CopyNames`;
+a literal form is no word), `Frontend.CopyNames` carries them to `EditionContext.CopyNames`, and `CopyNameCensus` (built by
+`BinderDriver.Bind`) assigns each to the program unit it stands in (the unit whose first token is the last at or before the statement's
+resultant line, so a contained program's names are its own, §1985:IV.4.2.2.1.1 "excluding any contained program"). Each unit's binder
+announces them FIRST through `DataBinder.DeclareUserWord` (`DeclareCopyWords`, kinds `TextName` and `LibraryName`), so the one
+word-type funnel `CheckOneTypePerWord` refuses a data-name, index-name, paragraph-name, program-name, or the other COPY name spelled like
+one (COBOL2692) at the second declaration.
 
 ## §4 Wiring (greenfield only)
 

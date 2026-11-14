@@ -278,6 +278,9 @@
     "WiseOwl.Cobol.Binding.DataBinder::CopyDescriptionToTemp": [
       "WiseOwl.Cobol.Binding.CompilerTemps"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::CopyWords": [
+      "WiseOwl.Cobol.Binding.BinderDriver"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::DeclareDataEntryRuns": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],

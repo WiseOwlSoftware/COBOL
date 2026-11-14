@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// "the values of the affected resultant identifiers" undefined and transfers control "to the end of the arithmetic
 /// statement" (§1985:VI.6.4.2 GR3), so at 85 such a statement takes the first disposition with no condition checked —
 /// its catch takes every raise and the resultant keeps its content (<c>ArithmeticEmitter.EmitArith</c>,
-/// <c>EditionInfo.UnphrasedSizeErrorEndsOnlyTheStatement</c>). The raise itself does not depend on the edition.</para>
+/// <c>DialectBehavior.UnphrasedSizeErrorIsFatal</c>). The raise itself does not depend on the edition.</para>
 /// <para><paramref name="ecName"/> is the precise Table 13 level-3 EC-SIZE-* name (§2023:14.6.13.1.6): a zero divisor is
 /// EC-SIZE-ZERO-DIVIDE; an exponentiation-rule violation EC-SIZE-EXPONENTIATION; the PROHIBITED-inexact
 /// EC-SIZE-TRUNCATION; a range overflow EC-SIZE-OVERFLOW ("arithmetic overflow in calculation"). ⛔ It is REQUIRED —
@@ -47,8 +47,8 @@ public sealed class CobolSizeError(string detail, string ecName) : CobolFatalExc
     /// 1985 text gives the relation no value: DETERMINATION (docs/CONFORMANCE.md DOC-A.1-70) — a relation or sign condition
     /// whose operand expression cannot be evaluated is FALSE (a relation that cannot be established, as an IEEE NaN comparison is). Evaluates <paramref name="condition"/>; a size error, the
     /// <see cref="OverflowException"/> a checked intermediate raises included (the same pair the no-phrase statement's catch
-    /// takes, <c>ArithmeticEmitter.EmitArith</c>), answers false. Emitted only at an edition for which
-    /// <c>EditionInfo.UnphrasedSizeErrorEndsOnlyTheStatement</c> holds.</summary>
+    /// takes, <c>ArithmeticEmitter.EmitArith</c>), answers false. Emitted only at an edition at which
+    /// <c>DialectBehavior.UnphrasedSizeErrorIsFatal</c> is inactive.</summary>
     public static bool FalseWhenRaised(Func<bool> condition)
     {
         try { return condition(); }

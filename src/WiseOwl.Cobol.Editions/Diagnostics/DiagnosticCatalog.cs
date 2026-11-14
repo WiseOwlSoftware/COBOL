@@ -9455,6 +9455,17 @@ public static class DiagnosticCatalog
         "ISO §1985:VII.4.4.3 SR2; §1985:VIII.4.5.3 SR5; §1985:IX.4.5.3 SR7; §1985:VIII.4.9.3 SR3; §1985:IX.4.9.3 SR3; "
         + "§1985:VIII.4.6.3 SR4; §1985:IX.4.6.3 SR3; §1985:VIII.4.3.3 SR2; §1985:IX.4.3.3 SR2; §1985:VIII.4.7.3 SR3; §1985:IX.4.7.3 SR3");
 
+    /// <summary>COBOL7144 — a READ of a dynamic-access file that retrieves sequentially (writes AT END) at COBOL-85 without the NEXT
+    /// phrase (kb/Work PB5102): §1985:VIII.4.5.3 SR3 (relative) and §1985:IX.4.5.3 SR5 (indexed). COBOL-2002 and later imply NEXT
+    /// from AT END, NOT AT END or ADVANCING (§2023:14.9.30.3 SR9).</summary>
+    public static readonly DiagnosticDescriptor ReadDynamicNextRequired = new(
+        "COBOL7144", "read-dynamic-next-required", EditionSeverity.Error,
+        "§1985:IX.4.5.3 SR5: \"The NEXT phrase must be specified for files in dynamic access mode, when records are to be "
+        + "retrieved sequentially.\" §1985:VIII.4.5.3 SR3 words the relative file's rule the same. A READ of a dynamic-access file "
+        + "that writes the AT END phrase (format 1 of the 1985 READ, the sequential retrieval) omits NEXT. COBOL-2002 and later "
+        + "imply the NEXT phrase from AT END (§2023:14.9.30.3 SR9).",
+        "ISO §1985:VIII.4.5.3 SR3; §1985:IX.4.5.3 SR5");
+
     /// <summary>COBOL6827 — the FROM or INTO operand of a READ, RETURN, WRITE, REWRITE or RELEASE is the file's own record area, at
     /// the editions that forbid it (kb/Work PB5077). §1985:IX.4.5.3 SR1: "The storage area associated with identifier-1 and the
     /// record area associated with file-name-1 must not be the same storage area." (READ, RETURN), §1985:IX.4.6.3 SR1: "Record-name-1

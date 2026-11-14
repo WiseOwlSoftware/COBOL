@@ -4,7 +4,6 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.CodeGen.Emit;
-using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen;
@@ -717,7 +716,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // DOC-A.1-70), the next receiver is stored, and the statement after it runs. 2002 made the condition a fatal
         // exception condition (§2023:14.7.5), which is the shape below for every later edition.
         bool catchesEveryCondition = sizeErr is null && ecSize.Count == 0 && arithmeticStatement
-            && EditionInfo.Of(ctx.Data.DialectLevel).UnphrasedSizeErrorEndsOnlyTheStatement;
+            && !DialectBehaviors.IsActive(DialectBehavior.UnphrasedSizeErrorIsFatal, ctx.Data.DialectLevel);
         if (sizeErr is null && ecSize.Count == 0 && !catchesEveryCondition) { emitStores(false); return; }
 
         string flag = $"__sizeErr{ctx.Names.NextSizeErr()}";

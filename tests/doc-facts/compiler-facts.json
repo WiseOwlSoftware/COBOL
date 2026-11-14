@@ -118,6 +118,10 @@
     {
       "id": "terminate-discards-saved-next-group",
       "vcrRow": "7.59"
+    },
+    {
+      "id": "unphrased-size-error-is-fatal",
+      "vcrRow": "7.71"
     }
   ],
   "nonstandardExtensionIds": [
@@ -935,7 +939,8 @@
     "COBOL7039",
     "COBOL7060",
     "COBOL7061",
-    "COBOL7081"
+    "COBOL7081",
+    "COBOL7144"
   ],
   "cliOptions": [
     "--copy",

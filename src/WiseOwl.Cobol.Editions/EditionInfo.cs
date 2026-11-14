@@ -46,17 +46,12 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// line" (§2002:7.1.3.3 GR11) — and no continued-literal error remains.</summary>
     public bool ReplacedTextIsLaidOutInFixedForm => Year < 2002;
 
-    /// <summary>Whether a size error condition in an arithmetic statement with no ON SIZE ERROR phrase ends only that
-    /// statement (kb/Work PB5484): at COBOL-85 "the values of the affected resultant identifiers are undefined", the others
-    /// are stored as if no size error had occurred, and "control is transferred to the end of the arithmetic statement"
-    /// (§1985:VI.6.4.2 GR3), and the change record §1985:B.2.2 item 45 adds "the program will continue and the value of any
-    /// affected resultant identifier is undefined", a zero divisor and an exponentiation-rule violation included (§1985:VI.6.4.2 GR1, GR2).
-    /// From 2002 the condition is a fatal exception condition and "processing proceeds as specified in" the fatal
-    /// exception rules (§2023:14.7.5), which with checking off leave the disposition to the implementor.
-    /// <para>The same item 45 covers a size error in a CONDITION's arithmetic expression, which has no statement to end and no
-    /// resultant to leave undefined: the program continues and the relation or sign condition is false (kb/Work PB5501,
-    /// <c>CobolSizeError.FalseWhenRaised</c>).</para></summary>
-    public bool UnphrasedSizeErrorEndsOnlyTheStatement => Year < 2002;
+    /// <summary>Whether a COPY statement's text-name and library-name are USER-DEFINED WORDS (kb/Work PB5482): at COBOL-85 they
+    /// are, each in a disjoint set of its own, and "All user-defined words, except segment-numbers and level-numbers, can belong
+    /// to one and only one of these disjoint sets" (§1985:IV.4.2.2.1.1), so a data-name, an index-name or any other
+    /// user-defined word of the same source program shall not be spelled like one. From 2002 they are system-names, "instead of
+    /// user-defined words, and do not have to be different from user-defined words" (§2002:F.2, item 135).</summary>
+    public bool CopyNamesAreUserDefinedWords => Year < 2002;
 
     /// <summary>True when the targeted edition is at or after <paramref name="introducedIn"/> — the one
     /// predicate behind the grammar's <c>{isXXXX()}?</c> introduction gates and every version-varying bind

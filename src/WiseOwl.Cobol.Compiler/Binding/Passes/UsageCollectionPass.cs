@@ -151,6 +151,13 @@ internal static class UsageCollectionPass
         {
             P(n.Area);
             if (n.Into is { } into) P(into);
+            // ⛔ THE MCS'S CHARACTERS ARE STORED INTO AN ELEMENTARY RECEIVER AS THEY ARE (kb/Work PB5489): RECEIVE transfers the
+            // message "to the receiving character positions" (§1985:XIV.3.5.4 GR3) and the CD's area takes the image the MCS
+            // returns, none of it a numeric value, so `RECEIVE … INTO K-NUM` (or its reference-modified slice) over `PIC 9(4)
+            // VALUE 1234` with the message AB holds AB34, which no native numeric carrier does (it kept the digits: 0034).
+            // The item stores its character image, a character channel exactly as STRING's identifier-3 is.
+            Channel(n.Area);
+            Channel(n.Into);
             Op(n.Key);
             Op(n.Text);
             Op(n.IndicatorItem);
