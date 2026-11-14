@@ -1,0 +1,8 @@
+## Entry 3607 — 2026-11-14 09:02 PST — PB5166: at --std 85 an unqualified LINAGE-COUNTER counts the program's own LINAGE files
+
+A contained program with one LINAGE file of its own, under a container with a GLOBAL LINAGE file, drew COBOL5997 at --std 85: `CounterResolver.LinageFileOf` counted the 2023 visible set, which includes the container's GLOBAL file. §1985:IV.4.3.8.1 SRL2.8 asks for a qualifier only when more than one LINAGE file description entry is "specified in the source program", and §1985:X.1.3.8 makes a program's reference one to the object it describes. Re-probe on the build before the fix: COBOL5997 on the note's repro.
+
+Fix: inside `LinageFileOf`, below 2014 the program's own LINAGE files decide when it has any; with none, the visible set still answers (the container's GLOBAL register, PB123). From 2014 the §2014:8.4.1.1.2 SR8 / §2023:8.4.2.2.3 SR8 count applies (the 2002 rule, SR6, still counts entries specified in the source element). After the fix the repro displays `01` at 85 and 2002 and is still refused at 2014 and 2023.
+
+Goldens: `pb5166-linage-counter-own-entries-1985` (accept 85, output `01`), `pb5166-linage-counter-own-entries-2002` (accept 2002, same output) and `pb5166-linage-counter-visible-files-2014` (refused 2014+ with COBOL5997). The sibling readers of `VisibleFiles.Values` count no LINAGE files. No diagnostic code used. closes_rows stays empty (PB5094: no 1985 inventory rows yet). Gate: see the landing record.
+
