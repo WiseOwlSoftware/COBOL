@@ -1,4 +1,4 @@
-## The VALUE OF clause at COBOL-85: literal format gates move to the token, an index group is refused, literals agree by value (PB5416, PB5417, PB5362)
+## Entry 3599 — 2026-11-14 05:37 PST — The VALUE OF clause at COBOL-85: literal format gates move to the token, an index group is refused, literals agree by value (PB5416, PB5417, PB5362)
 
 Wave 20262029 group C, three notes on the obsolete FD clause VALUE OF, each re-probed on this worktree's build first.
 
@@ -11,3 +11,4 @@ Wave 20262029 group C, three notes on the obsolete FD clause VALUE OF, each re-p
 **Goldens.** `pb5416-value-of-national-literal`, `pb5416-value-of-boolean-literal`, `pb5416-condition-national-literal` (COBOL0900 at 85), `pb5417-value-of-index-group` (COBOL6849 at 85), `pb5362-external-value-of-same-value` (accepted at 85, output `READ ABCD` / `DONE`). **Rows.** 1985 store: `1985-FMT-VII.3.9.2` and `1985-SR-VII.3.9.3-1` PARTIAL → CONFORMS, `1985-GR-VII.3.9.4-2` NOT-IMPLEMENTED → CONFORMS (PB5300 had implemented it without recording the row), 1985 GAP 223 → 220; seven 1985 rows and four 2023 rows re-sited off the deleted version-pass arms. Docs: CONFORMANCE.md section 3.7 (the stale "vacuous" consistency sentence replaced), DESIGN-version-conformance-pipeline.md (LiteralScreen's format gates), DESIGN-frontend-grammar.md (the ALL literal-1 gate).
 
 **Gate.** The first gate (run 000001) was RED on one RepoDrift case, `BackendContractDriftTests.NoTextField_OnTheBackendInput_IsUnclassified`: the new `FdClauseValue.Written` carries text on the backend input, so it is classified as diagnostic text in the backend contract. The re-gate at f73609f9cb (run 000002-20261114T132637Z): `=== BUILD-LOCAL GATE: GREEN — Conformance up to date (24,836 cases) · Unit up to date (40,727 cases) · RepoDrift 177/177 ran · Characterization up to date (37 cases) ===`. Self-review found the decoded-separator break in the VALUE OF key and the stale "vacuous" consistency sentence in CONFORMANCE.md section 3.7; both are fixed here.
+
