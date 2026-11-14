@@ -2339,7 +2339,8 @@ public sealed record BoundInitiate(IReadOnlyList<ReportModel> Reports) : BoundSt
 /// <summary><c>GENERATE {detail | report-name}</c> (ISO §2023:14.9.16): detail reporting prints one instance of
 /// <paramref name="Detail"/> after control-break/page-fit processing (GR1); a null detail is SUMMARY reporting
 /// (GR2 — the report-name form, same processing with no detail printed). <paramref name="SummaryDetail"/> is the detail
-/// group a SUMMARY statement still subtotals for: §1985:XIII.3.20.4 GR11 processes "a GENERATE report-name statement" of a
+/// group a SUMMARY statement still subtotals for and processes without printing (its USE BEFORE REPORTING procedure runs,
+/// §1985:XIII.3.20.4 GR11 b), kb/Work PB5337): §1985:XIII.3.20.4 GR11 processes "a GENERATE report-name statement" of a
 /// report with exactly one detail group "as though a GENERATE data-name statement were being executed", its step a) being
 /// "any subtotalling that has been designated for the detail report group" (a SUM ... UPON that group), and §2023:14.9.16.4
 /// GR2 gives the report-name form "the same processing as for a GENERATE data-name statement for the same report, except

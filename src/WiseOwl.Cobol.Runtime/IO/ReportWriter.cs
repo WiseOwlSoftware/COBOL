@@ -849,8 +849,9 @@ public sealed class CobolReport(
     /// <summary>GENERATE report-name — SUMMARY reporting (§2023:14.9.16.4 GR2: "the same processing as for a GENERATE
     /// data-name statement for the same report, except that no detail is printed"). <paramref name="detailName"/> is the
     /// detail group the report has when it has exactly one (§1985:XIII.3.20.4 GR11, "as though a GENERATE data-name
-    /// statement were being executed"): its SUM ... UPON subtotalling is performed, its presentation is not (kb/Work
-    /// PB5249). Null for a report with no single named detail.</summary>
+    /// statement were being executed"): its SUM ... UPON subtotalling is performed (kb/Work PB5249) and the detail is
+    /// processed — its USE BEFORE REPORTING procedure runs (§1985:XIII.3.20.4 GR11 b), kb/Work PB5337) — but its
+    /// presentation is not. Null for a report with no single named detail.</summary>
     public void GenerateSummary(string? detailName, Func<int, bool>? beforeReporting = null) =>
         GenerateWith(detailName, printDetail: false, beforeReporting);
 
@@ -938,20 +939,30 @@ public sealed class CobolReport(
                 if (CobolNames.Same(triggerDetail, detailName))
                     target.Accumulate(sumId, apply);
 
-        // GR4d / GR5b: the specified detail — unless summary reporting (GR2).
-        if (printDetail && detailName is not null && _details.TryGetValue(detailName, out var detail))
+        if (detailName is null || !_details.TryGetValue(detailName, out var detail)) return;
+        if (!printDetail)
         {
-            bool presented = PresentBody(detail);
-            // §2023:13.18.28.4 GR1 — this GENERATE WAS the "first occasion that a GENERATE is issued for the current
-            // detail group" since the last event, whether or not the group printed: a SUPPRESS (§2023:14.9.45) or an
-            // all-absent PRESENT WHEN leaves the GENERATE issued all the same. Consumed only AFTER the
-            // presentation, because the page advance of this group's own page-fit test (§2023:13.18.35.4 GR4) is an
-            // event b) that precedes its lines and must re-arm the condition they read. §1985:XIII.3.13.4 GR1 keys it to the
-            // first PRESENTATION of the group, so at --std 85 a group that did not present leaves it owed (kb/Work PB5246;
-            // DialectBehavior.GroupIndicateConsumedByIssuedGenerate).
-            if (presented || DialectBehaviors.IsActive(DialectBehavior.GroupIndicateConsumedByIssuedGenerate, Edition))
-                detail.GroupIndicatePending = false;
+            // GR2 — summary reporting is "the same processing as for a GENERATE data-name statement for the same report,
+            // except that no detail is printed": the sole detail is PROCESSED (§2023:14.9.49.4 GR9 runs its USE BEFORE
+            // REPORTING procedure "on each occasion that the named report group is processed"; §1985:XIII.3.20.4 GR11 b)
+            // runs it, and GR11 d) ends the processing there), so it takes the one group prologue — its own sum
+            // additions, the declarative, its end-of-group reset — and no presentation. It leaves the GROUP INDICATE
+            // occasion owed: §1985:XIII.3.13.4 GR1 keys it to a presentation, and §2023:13.18.28.4 GR1 to the occasion
+            // "that a GENERATE is issued for the current detail group", which the report-name form is not (kb/Work PB5337).
+            BeginGroup(detail, out _, print: false);
+            return;
         }
+        // GR4d / GR5b: the specified detail.
+        bool presented = PresentBody(detail);
+        // §2023:13.18.28.4 GR1 — this GENERATE WAS the "first occasion that a GENERATE is issued for the current
+        // detail group" since the last event, whether or not the group printed: a SUPPRESS (§2023:14.9.45) or an
+        // all-absent PRESENT WHEN leaves the GENERATE issued all the same. Consumed only AFTER the
+        // presentation, because the page advance of this group's own page-fit test (§2023:13.18.35.4 GR4) is an
+        // event b) that precedes its lines and must re-arm the condition they read. §1985:XIII.3.13.4 GR1 keys it to the
+        // first PRESENTATION of the group, so at --std 85 a group that did not present leaves it owed (kb/Work PB5246;
+        // DialectBehavior.GroupIndicateConsumedByIssuedGenerate).
+        if (presented || DialectBehaviors.IsActive(DialectBehavior.GroupIndicateConsumedByIssuedGenerate, Edition))
+            detail.GroupIndicatePending = false;
     }
 
     /// <summary>⛔ THE ONE CONTROL-FOOTING SEQUENCE — a control break at <paramref name="breakLevel"/> (§2023:14.9.16.4
@@ -1388,8 +1399,12 @@ public sealed class CobolReport(
     /// </list>
     /// It used to return before the reset in the first case (and the page heading, page footing and report
     /// heading/footing paths never reset at all), so a control footing whose every line was absent left its
-    /// ended group's total standing, and a page footing's page total never restarted.</summary>
-    private bool BeginGroup(ReportGroup group, out int first, bool reprint = false)
+    /// ended group's total standing, and a page footing's page total never restarted.
+    /// <para><paramref name="print"/> false is the third case: the sole detail of a GENERATE report-name (summary
+    /// reporting, <see cref="GenerateSummary"/>) is PROCESSED but never printed (§2023:14.9.16.4 GR2; §1985:XIII.3.20.4
+    /// GR11 b) runs its USE procedure, GR11 d) stops there), so it takes this prologue and its end, never the
+    /// presentation (kb/Work PB5337).</para></summary>
+    private bool BeginGroup(ReportGroup group, out int first, bool reprint = false, bool print = true)
     {
         // ⛔ THE GROUP'S OWN SUM ADDITIONS PRECEDE ITS USE PROCEDURE. §1985:XIII.3.20.4 GR10 a)–c) orders a control
         // footing's processing: a) crossfoot, b) roll forward, c) "the USE procedure is executed"; §2023:14.9.49.4 GR9 b)
@@ -1415,7 +1430,7 @@ public sealed class CobolReport(
         // A data entry's contribution into ANOTHER group's counter follows the declarative (which may compute the entry's
         // SOURCE) and reads the presentation's ONE snapshot, taken after it (§2023:13.18.54.4 GR11).
         if (rolls) ApplyRolled(group, crossFoot: false);
-        if (first >= 0 && !suppressed) return true;
+        if (print && first >= 0 && !suppressed) return true;
         EndOfGroupSumReset(group);
         return false;
     }
