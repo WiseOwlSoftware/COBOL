@@ -58,6 +58,6 @@ public sealed class CommunicationSlice
     internal void Declare(CommunicationDescription description)
     {
         _declared.Add(description);
-        _byName[description.Name] = description;
+        _byName.TryAdd(description.Name, description);   // the first stands: the second is refused COBOL4250 at its declaration (kb/Work PB5307)
     }
 }

@@ -96,11 +96,14 @@ public static class UserWordKinds
     /// one in a source element leaves every reference to it ambiguous. <c>DataBinder.DeclareUserWord</c> refuses the
     /// second under <c>COBOL4250</c>; a switch's condition-names (the <c>ConditionName</c> type is also the
     /// level-88 entries', which qualification tells apart) ask the same check explicitly at their declaration. A new
-    /// SPECIAL-NAMES declaration kind joins this set and nothing else.</summary>
+    /// SPECIAL-NAMES declaration kind joins this set and nothing else. A cd-name joins it too (kb/Work PB5307): it has no qualifier
+    /// (§1985:IV.4.3.8.1 "Every user-defined name explicitly referenced in a COBOL source program must be uniquely referenced"),
+    /// and <c>CommunicationSlice.Declare</c> replaced the first CD of a name with the second, so every statement bound to the last.</summary>
     public static IReadOnlySet<UserWordKind> DeclaredUnqualifiable { get; } = new HashSet<UserWordKind>
     {
         UserWordKind.AlphabetName, UserWordKind.ClassName, UserWordKind.DynamicLengthStructureName,
         UserWordKind.LocaleName, UserWordKind.MnemonicName, UserWordKind.OrderingName,
+        UserWordKind.CdName,
     };
 
     /// <summary>⛔ THE ONE ANSWER to "may one word be used as BOTH of these types of user-defined word in a source
