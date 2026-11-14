@@ -131,12 +131,13 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
         }
     }
 
-    /// <summary>Count the elements <paramref name="container"/>'s clause children fill and diagnose each that is
+    /// <summary>Count the once-only elements <paramref name="container"/>'s clause children fill and diagnose each that is
     /// written more than once (ISO §2023:5.2.6.2, §2023:5.2.7), through the ONE <see cref="UnrepeatedElements"/> reader the
     /// RD entry already uses — or, for a figure whose clauses sit in choice indicators (§2023:5.2.6.4,
     /// <see cref="ClauseList.ChoiceIndicators"/>), through <see cref="ChoiceIndicators"/>. Reported at the SECOND occurrence — the one that makes the entry non-conforming. Where
     /// the list's figure fixes the order (<see cref="ClauseList.Sequence"/>), an element written after one the figure
-    /// prints LATER is refused too (§2023:5.2.1; kb/Work PB1508), at the element written out of place. The figure is the
+    /// prints LATER is refused too (§2023:5.2.1; kb/Work PB1508), at the element written out of place, a repeatable
+    /// element ranked like a once-only one (kb/Work PB5171). The figure is the
     /// one the targeted edition prints (<see cref="ClauseList.At"/>; kb/Work PB2532 — the COBOL-85 identification
     /// division's comment-entry paragraphs are counted and ranked at 85 only).</summary>
     private void ScreenClauseRepetition(ParserRuleContext container)
@@ -149,13 +150,18 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
                 || !ClauseCardinalities.ByClauseContext.TryGetValue(clause.GetType(), out var row)) continue;
             var list = row.At(_edition.DialectLevel);
             if (ClauseCardinalities.ElementOf(list, clause) is not { } element) continue;
-            seen ??= [];
-            var key = (list.Format, element);
-            seen[key] = seen.TryGetValue(key, out var prior)
-                ? (list, prior.Count + 1, prior.First, prior.Count == 1 ? clause : prior.Second)
-                : (list, 1, clause, clause);
+            if (!list.Repeats(element))
+            {
+                seen ??= [];
+                var key = (list.Format, element);
+                seen[key] = seen.TryGetValue(key, out var prior)
+                    ? (list, prior.Count + 1, prior.First, prior.Count == 1 ? clause : prior.Second)
+                    : (list, 1, clause, clause);
+            }
+            // A repeatable element is ranked too: the 1985 SPECIAL-NAMES figure orders its repeatable clauses (kb/Work PB5171).
             if (list.RankOf(element) is not { } rank) continue;
-            // An EQUAL rank is a repeat, which the count below reports; only a strictly lower rank is out of order.
+            // An EQUAL rank is a repeat — the count above reports a once-only one, the figure's ellipsis licenses a
+            // repeatable one; only a strictly lower rank is out of order.
             if (latest is { } last && rank < last.Rank) ReportOutOfOrder(container, list, clause, last.Clause);
             else latest = (rank, clause);
         }

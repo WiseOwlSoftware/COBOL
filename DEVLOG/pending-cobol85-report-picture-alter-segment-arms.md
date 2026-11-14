@@ -1,9 +1,9 @@
 ## COBOL-85 arms of the report binder, the PICTURE reader, ALTER and the segment rule
 
-Wave 20262019 group A continued the 1985 code-read notes on top of wave 20262013 group A's branch (merged, not
-replayed). Nine of its ten notes landed; PB5171 (the SPECIAL-NAMES clause sequence and once-only clauses) is left to a
-successor, because its row is a ClauseCardinalities row whose 2023 figure needs the order decision kb/Work PB1578 still
-holds open. Every note was re-probed on this branch's build before the fix, and every probe reproduced.
+Wave 20262019 group A continued the 1985 code-read notes on top of wave 20262013 group A's branch (which landed
+first). It fixed nine of its ten notes; wave 20262027 group A cherry-picked its eleven commits onto main (two textual
+conflicts resolved: a diagnostic-code list and a CONFORMANCE.md §3.8 row that both sides had extended) and fixed the
+tenth, PB5171. Every note was re-probed on its branch's build before the fix, and every probe reproduced.
 
 **PB5423, the CONTROL level a RESET ON or TYPE CF operand names.** `CONTROLS ARE FINAL WS-A OF G1 WS-B` with `RESET ON
 WS-A` and `TYPE CONTROL FOOTING WS-A` drew COBOL0899: `ReportSectionBinder.ControlLevelOf` compared the written
@@ -40,7 +40,22 @@ to the sections reached by fall-through and GO TO (ALTER destinations included),
 asked; nested PERFORM, SORT and MERGE ranges stay their own statements'. `docs/CONFORMANCE.md` §3.8's row is rewritten
 around §1985:VI.6.21.4 GR11 and §1985:I.1.6, and `docs/CONTROL_FLOW_DESIGN.md` D19 says why this rule follows GO TO.
 
-**Rows.** Fourteen 1985 rows re-verdicted CONFORMS through `record_verdicts --edition 1985` (1985 GAP 288 → 276); no 2023
+**PB5171, the SPECIAL-NAMES clause list.** At 85 a second CURRENCY SIGN clause compiled (both symbols then worked),
+DECIMAL-POINT IS COMMA could be written twice at every edition, and the clauses took any order. The paragraph is now a
+`ClauseCardinalities` row read by `ClosedFormatPass.ScreenClauseRepetition`, where the other configuration paragraphs
+already live. The 2002+ figure (§2023:12.3.7.2, rendered; §2002:12.2.6.1 and §2014:12.3.6.1 carry the same ellipses)
+counts CRT STATUS, CURSOR, DECIMAL-POINT and ORDER TABLE once and leaves the order to kb/Work PB1578. The COBOL-85
+figure (§1985:VI.4.5.2) ranks every clause in the printed sequence (§1985:IV.2.1), including the repeatable ones. That
+needed a structural change: a `ClauseList` used to rank only once-only elements, and its `Repeatable` set mixed
+"carries an ellipsis" with "is no element of this figure". The new `NotInFigure` set holds the second kind, a repeatable
+element is ranked like any other, and `ClauseCardinalityDriftTests` now requires a fixed sequence to rank every
+alternative outside `NotInFigure`. Every row was reclassified, `SpecialNameEntryContext` left the reviewed exemptions,
+and DESIGN-frontend-grammar.md describes the three classes. The codes are the existing COBOL2423 (repeat) and COBOL2987
+(order); goldens `pb5171-currency-sign-twice-85`, `pb5171-special-names-out-of-order-85` (85),
+`pb5171-decimal-point-twice` (every edition) and `pb5171-currency-sign-twice` (accepted from 2002). Row
+1985-FMT-VI.4.5.2 CONFORMS (its other two arms closed with PB5172 and PB5170).
+
+**Rows.** Fifteen 1985 rows re-verdicted CONFORMS through `record_verdicts --edition 1985` (1985 GAP 288 → 276 on the first branch; 217 → 216 for PB5171 on main); no 2023
 row changed. Goldens for each note, refusals with their own JSON. The self-review read the diff for one mechanism per
 job (the SR5 relation and the PICTURE fold each have one home), cited-rule fidelity (every § checked with `cite.py`),
 hot-path cost (the segment walk runs only on the failure path; the fold allocates once per PICTURE, as before) and
