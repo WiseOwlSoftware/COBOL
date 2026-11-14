@@ -2075,7 +2075,8 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 /// <paramref name="AlsoVaried"/> is null there.</para>
 /// <para><paramref name="IndexBelowTableIsUnsuccessful"/> is Format 1's start test (<c>DialectBehavior.SearchIndexBelowTableUnsuccessful</c>, VCR row 7.56): from
 /// COBOL-2002 an index at or below zero is unsuccessful at once (§2023:14.9.37.4 GR4); at COBOL-85 only an index above the table is
-/// (§1985:VI.6.22.4 GR2), and an index below it starts the scan (kb/Work PB5121).</para>
+/// (§1985:VI.6.22.4 GR2a), and an index below it starts the scan (kb/Work PB5121); at COBOL-85 the advance test then judges the
+/// incremented index against both bounds (§1985:VI.6.22.4 GR2b, kb/Work PB5302).</para>
 /// <para><paramref name="Table"/> is identifier-1 as the statement wrote it: the WHOLE table under the enclosing occurrence the
 /// statement names (<c>PlaceBuilder.WholeTable</c>), the operand SEARCH explicitly references (X3.23-1985 USE FOR DEBUGGING general
 /// rule 5; kb/Work PB4855). The scan reads <paramref name="IndexField"/>, never it.</para>
