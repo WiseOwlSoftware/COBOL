@@ -64,7 +64,7 @@ internal sealed class UnitEmitters
         Debug = new DebugTriggerEmitter(Ctx, Places, Num);   // the data-name, file-name and cd-name USE FOR DEBUGGING triggers (docs/CONTROL_FLOW_DESIGN.md D20)
         dispatchState.OwedBeforeTransfer = Debug.OwedBeforeTransferText;   // the RESUME landing runs the sections the abandoned statements owe (kb/Work PB4857)
         Brackets = new ReceiverBracketEmitter(Ctx);
-        Move = new MoveEmitter(Ctx, Num, Places, Brackets);
+        Move = new MoveEmitter(Ctx, Num, Places, Brackets, Debug);
         Ec = new EcEmitter(Ctx, ecState, dispatchState);
         Arith = new ArithmeticEmitter(Ctx, Num, ecState, Ec, Brackets, Debug);
         AlterSwitch = new AlterSwitchEmitter(Ctx, dispatchState);
@@ -75,7 +75,7 @@ internal sealed class UnitEmitters
         Inspect = new InspectEmitter(Ctx, Num, Arith);
         Strings = new StringEmitter(Ctx, Num, Arith, Ec, Move, Brackets);
         Ptr = new PtrEmitter(Ctx, Num, ecState, Ec);
-        Set = new SetEmitter(Ctx, Num, Arith, Ptr, Move, Brackets);
+        Set = new SetEmitter(Ctx, Num, Arith, Ptr, Move, Brackets, Debug);
         TableHold = new TableHoldEmitter(Ctx, Arith);   // the held form of a table(ALL) function argument (kb/Work PB4162)
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Places, Arith, Move);
         SeqIo = new SequentialIoEmitter(Ctx, Num, Places, dispatchState, ecState, KeyedIo, Arith, Ec, Move);

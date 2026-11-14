@@ -98,10 +98,10 @@ public sealed class ExactWideSettlementDriftTests
         // operation (Combine, outermost), DIVIDE ... GIVING (FinalQuotient) and DIVIDE ... REMAINDER (the carried arm, whose
         // quotient is the same FinalQuotient and whose back-multiply is the Combine below).
         Assert.Contains("num.Fold(operands, ReceiverContext.None with { Checks = TakenBy(ise) }, keepWide: true)", arithmetic);
-        Assert.Contains("num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, inSizeError), outermost: true)", arithmetic);
+        Assert.Contains("num.Combine(num.FieldNum(at), op, value, RcvFor(r, inSizeError), outermost: true)", arithmetic);
         Assert.Contains("num.Combine(ax, \"*\", bx, RcvFor(r, ise), outermost: true)", arithmetic);
         Assert.Contains("num.Combine(ax, rootOp, bx, RcvFor(r, ise), outermost: true)", arithmetic);
-        Assert.Contains("FinalQuotient(q, divisorX, RcvFor(r, ise))", arithmetic);
+        Assert.Contains("FinalQuotient(dividendX ?? num.FieldNum(at), divisorX, RcvFor(r, ise))", arithmetic);
         Assert.Contains("return CarriedSubsidiaryQuotient(d, Snapshot(dividendX), Snapshot(divisorX), ise, shape);", arithmetic);
         Assert.Contains("num.Settle(v, RcvFor(r, ise), outermost: true)", arithmetic);
         // The REMAINDER back-multiply is kept exact only as the operand of the Combine that settles the remainder.
