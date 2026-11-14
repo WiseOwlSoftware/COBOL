@@ -1,4 +1,4 @@
-## The PICTURE clause's IS is a token written once, and the apostrophe is a COBOL-2002 quotation symbol (PB5213, PB5160)
+## Entry 3605 — 2026-11-14 07:15 PST — The PICTURE clause's IS is a token written once, and the apostrophe is a COBOL-2002 quotation symbol (PB5213, PB5160)
 
 Wave 20262029 group G: two lexer-rooted under-rejections from the 1985 refuter pass and code read, both re-probed on
 this branch's build before the fix.
@@ -31,3 +31,4 @@ operand replaces before lexing is never screened: at 85 `DISPLAY 'QQ'` under `RE
 `DISPLAY X"5151"` under `REPLACE ==X"5151"== BY =="RR"==.` both print RR.
 
 No diagnostic codes claimed (COBOL7180-7182 returned). Gate: see the branch's gate record.
+
