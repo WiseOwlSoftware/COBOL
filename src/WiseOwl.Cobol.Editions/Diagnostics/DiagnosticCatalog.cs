@@ -9482,9 +9482,8 @@ public static class DiagnosticCatalog
     /// source omitted was never asked of the parser.</summary>
     public static readonly DiagnosticDescriptor CommentEntryHeaderWithoutPeriod = new(
         "COBOL7166", "comment-entry-header-without-period", EditionSeverity.Error,
-        "§1985:III: \"Paragraph Header. A reserved word, followed by the separator period, that indicates the beginning of a "
-        + "paragraph in the Identification and Environment Divisions.\" §1985:IV.2.1.6: \"The separator period, when used in the "
-        + "formats, has the status of a required word.\" The header of an AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED or "
+        "§1985:III defines a paragraph header as \"A reserved word, followed by the separator period\", and §1985:IV.2.1.6 "
+        + "says: \"The separator period, when used in the formats, has the status of a required word.\" The header of an AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED or "
         + "SECURITY paragraph has no period after its word. Write the period directly after the word, before the comment-entry.",
         "ISO §1985:III; §1985:IV.2.1.6");
 
