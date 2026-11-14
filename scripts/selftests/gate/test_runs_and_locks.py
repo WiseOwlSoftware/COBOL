@@ -359,7 +359,7 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
         "other assemblies up to date in the store, and the verdict is GREEN with Conformance EXACT",
         red1.verdict == "RED" and fix.verdict == "GREEN" and sorted(hf.envs) == ["Conformance"]
         and only_text == "N.Conf.A\n" and hf.envs["Conformance"].get(ONLY_CASES) is not None
-        and fix.populations["Conformance"].exact and sorted(fix.up_to_date) == ["Characterization", "Unit"]
+        and fix.populations["Conformance"].exact and sorted(fix.up_to_date) == ["Characterization", "RepoDrift", "Unit"]
         and fix.carried == {"Conformance": 5} and fix.recorded == ["Conformance"]
         and "Conformance 6/6" in fix.line and "5 carried from run(s)" in fix.line and "build" in hf.events,
         f"{fix.line} {sorted(hf.envs)} {only_text!r}")
@@ -464,7 +464,7 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     inert_retry, hrr = regate(d, trees=["tree-2"], keys={"tree-2": "tree-1"})
     expect("a RED run, then an inert-only commit, retries only the red case: the inert path costs no case",
         inert_retry.verdict == "GREEN" and sorted(hrr.envs) == ["Conformance"]
-        and inert_retry.carried == {"Conformance": 5} and sorted(inert_retry.up_to_date) == ["Characterization", "Unit"],
+        and inert_retry.carried == {"Conformance": 5} and sorted(inert_retry.up_to_date) == ["Characterization", "RepoDrift", "Unit"],
         inert_retry.line)
     same = {"tree-2": "tree-1"}   # tree-2 differs from tree-1 only in paths no target reads
     d = root / "target-hang"
@@ -474,11 +474,12 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     expect("an audit that turns RED after every test host has exited (a self-test that hung past the last host) stops no "
         "host: the run is RED for the audit alone, its populations are measured EXACT and each target's pass is "
         "recorded in the store at its key",
-        hang.verdict == "RED" and "SELF-TESTS HANG" in hang.line and len(hang.populations) == 3
+        hang.verdict == "RED" and "SELF-TESTS HANG" in hang.line and len(hang.populations) == len(GATED_ASSEMBLIES)
         and all(pp.exact for pp in hang.populations.values()) and hang_rec.get("tree_end") == "tree-1"
         and hang_rec.get("audit_reds") == ["SELF-TESTS HANG"] and sorted(hang.recorded) == sorted(GATED_ASSEMBLIES)
         and all(FakeHost(d, d / "gate.lock").store().up_to_date(t, hang.keys[a])
-                for a, t in (("Unit", "unit"), ("Conformance", "conformance"), ("Characterization", "characterization"))),
+                for a, t in (("Unit", "unit"), ("RepoDrift", "repo-drift"), ("Conformance", "conformance"),
+                             ("Characterization", "characterization"))),
         hang.line)
     tool_hang, hth = regate(d, trees=["tree-2"], keys=same, plant={"tooling"})
     expect("a run RED only for a hung self-test, then a tooling-only difference (every key equal): every target is up to "
@@ -508,16 +509,18 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     d = root / "target-unit-only"
     d.mkdir()
     regate(d)
-    unit_only, huo = regate(d, trees=["tree-2"], keys={"tree-2": {"Conformance": "tree-1", "Characterization": "tree-1"}})
+    unit_only, huo = regate(d, trees=["tree-2"], keys={"tree-2": {"Conformance": "tree-1", "Characterization": "tree-1",
+                                                            "RepoDrift": "tree-1"}})
     expect("equal conformance and characterization keys with a changed unit key (a records-only change) run Unit ONLY: "
         "one host, the others up to date, and Unit's new pass is recorded",
         unit_only.verdict == "GREEN" and sorted(huo.envs) == ["Unit"] and "build" in huo.events
-        and sorted(unit_only.up_to_date) == ["Characterization", "Conformance"] and unit_only.recorded == ["Unit"]
+        and sorted(unit_only.up_to_date) == ["Characterization", "Conformance", "RepoDrift"] and unit_only.recorded == ["Unit"]
         and "Conformance up to date" in unit_only.line and "Unit 4/4 ran" in unit_only.line, unit_only.line)
     d = root / "target-conformance-input"
     d.mkdir()
     regate(d)
-    conf_in, hci = regate(d, trees=["tree-2"], keys={"tree-2": {"Unit": "tree-1", "Characterization": "tree-1"}})
+    conf_in, hci = regate(d, trees=["tree-2"], keys={"tree-2": {"Unit": "tree-1", "Characterization": "tree-1",
+                                                          "RepoDrift": "tree-1"}})
     expect("a changed input of conformance (its key differs) runs Conformance, and only it",
         conf_in.verdict == "GREEN" and sorted(hci.envs) == ["Conformance"] and conf_in.recorded == ["Conformance"],
         conf_in.line)
@@ -572,13 +575,14 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     expect("at a target's key, an earlier RED run of this worktree leaves only its unpassed case to run (kb/Work PB5099); "
         "the targets that passed are up to date",
         carried_retry.verdict == "GREEN" and sorted(hcr.envs) == ["Conformance"]
-        and carried_retry.carried == {"Conformance": 5} and sorted(carried_retry.up_to_date) == ["Characterization", "Unit"]
+        and carried_retry.carried == {"Conformance": 5} and sorted(carried_retry.up_to_date) == ["Characterization", "RepoDrift", "Unit"]
         and carried_retry.recorded == ["Conformance"], carried_retry.line)
     keyrepo = ScratchRepo.init(root / "keyrepo")
     planted_tool, code_tool = "scripts/orchestrator/planted_tool.py", "scripts/standard_streams.py"
     files = {"src/A.cs": "class A {}\n", "docs/n.md": "# n\n", "kb/Work/X.md": "x\n", planted_tool: "x = 1\n",
              code_tool: "y = 1\n", "tests/version-matrix/inventory/r.json": "{}\n",
-             "tests/WiseOwl.Cobol.Tests.Unit/U.cs": "class U {}\n", "tests/characterization/positive/p.cob": "p\n"}
+             "tests/WiseOwl.Cobol.Tests.Unit/U.cs": "class U {}\n", "tests/characterization/positive/p.cob": "p\n",
+             ".github/workflows/ci.yml": "on: push\n"}
     keyhost = Host(keyrepo.path)
     kfacets = {"platform": "windows", "configuration": GATE_CONFIGURATION, "toolchain": "t1"}
     suite_out = {"conformance-suite": "d" * 64}   # the generated suite's output digest, as a gate's generation gives it
@@ -590,6 +594,7 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     ks = {"docs": keys_after({"docs/n.md": "# edited\n", "kb/Work/X.md": "y\n", planted_tool: "x = 2\n"}),
           "unit-test": keys_after({"tests/WiseOwl.Cobol.Tests.Unit/U.cs": "class U { int x; }\n"}),
           "char": keys_after({"tests/characterization/positive/p.cob": "q\n"}),
+          "workflow": keys_after({".github/workflows/ci.yml": "on: pull_request\n"}),
           "inventory": keys_after({"tests/version-matrix/inventory/r.json": '{"v": 2}\n'}),
           "suite-output": keys_after({}, outputs={"conformance-suite": "e" * 64}),
           "src": keys_after({"src/A.cs": "class A { int b; }\n"}),
@@ -598,26 +603,32 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
         unresolved = str(keyhost.target_keys(keyhost.head_tree() or "", kfacets))
     except buildgraph.Unresolved as e:
         unresolved = f"Unresolved: {e}"
-    expect("the real keys: a docs, kb or tooling-lane edit leaves every key; a Unit test source changes Unit's key only, a "
-        "characterization program Unit's and Characterization's only; an inventory edit Unit's only (Conformance takes "
-        "the generated suite's digest, kb/Work PB5231), and another suite digest Conformance's only; src/ and the "
-        "toolchain change every key; with no record of the suite in the store Conformance's key is UNRESOLVED",
-        len(k0) == 3 and ks["docs"] == k0
+    expect("the real keys: a docs, kb or tooling-lane edit leaves every key; a Unit test source changes Unit's and "
+        "RepoDrift's keys only (a drift test reads every test source), a characterization program Characterization's "
+        "and RepoDrift's and not Unit's, a workflow RepoDrift's only; an inventory edit RepoDrift's only (Unit and "
+        "Conformance take the generated suite's digest, kb/Work PB5231, PB5230), and another suite digest Unit's and "
+        "Conformance's only; src/ and the toolchain change every key; with no record of the suite in the store a "
+        "dependent's key is UNRESOLVED",
+        len(k0) == 4 and ks["docs"] == k0
         and ks["unit-test"]["Unit"] != k0["Unit"] and ks["unit-test"]["Conformance"] == k0["Conformance"]
-        and ks["unit-test"]["Characterization"] == k0["Characterization"]
+        and ks["unit-test"]["Characterization"] == k0["Characterization"] and ks["unit-test"]["RepoDrift"] != k0["RepoDrift"]
         and ks["char"]["Characterization"] != k0["Characterization"] and ks["char"]["Conformance"] == k0["Conformance"]
-        and ks["inventory"]["Unit"] != k0["Unit"] and ks["inventory"]["Conformance"] == k0["Conformance"]
-        and ks["inventory"]["Characterization"] == k0["Characterization"]
-        and ks["suite-output"]["Conformance"] != k0["Conformance"]
-        and ks["suite-output"]["Unit"] == k0["Unit"] and ks["suite-output"]["Characterization"] == k0["Characterization"]
+        and ks["char"]["Unit"] == k0["Unit"] and ks["char"]["RepoDrift"] != k0["RepoDrift"]
+        and ks["workflow"]["RepoDrift"] != k0["RepoDrift"]
+        and all(ks["workflow"][a] == k0[a] for a in ("Unit", "Conformance", "Characterization"))
+        and ks["inventory"]["RepoDrift"] != k0["RepoDrift"]
+        and all(ks["inventory"][a] == k0[a] for a in ("Unit", "Conformance", "Characterization"))
+        and ks["suite-output"]["Conformance"] != k0["Conformance"] and ks["suite-output"]["Unit"] != k0["Unit"]
+        and ks["suite-output"]["RepoDrift"] == k0["RepoDrift"]
+        and ks["suite-output"]["Characterization"] == k0["Characterization"]
         and all(ks["src"][a] != k0[a] and ks["toolchain"][a] != k0[a] for a in GATED_ASSEMBLIES)
-        and unresolved.startswith("Unresolved: conformance's key needs the output digest of conformance-suite"),
+        and unresolved.startswith("Unresolved: ") and "needs the output digest of conformance-suite" in unresolved,
         f"{ks} {unresolved}")
     grepo = ScratchRepo.init(root / "genrepo")
     grepo.commit("base", {".gitignore": "TestResults/\n__pycache__/\n", "gen/make.py": buildgraph.PLANTED_GENERATOR,
                           "inv/r1.json": '{"id": "r1", "verdict": "GAP"}\n', "src/A.cs": "class A {}\n",
                           "tests/C/T.cs": "class T {}\n", "tests/U/U.cs": "class U {}\n",
-                          "tests/H/H.cs": "class H {}\n"})
+                          "tests/H/H.cs": "class H {}\n", "tests/R/R.cs": "class R {}\n"})
     every = ("platform", "configuration", "toolchain")
     ggraph = buildgraph.Graph.of({
         "suite": buildgraph.GeneratedTarget(
@@ -629,6 +640,8 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
         "conformance": buildgraph.TestTarget(name="conformance", assembly="Conformance", project="tests/C/",
                                              inputs=("src/", "tests/C/"), exclude=("@inert",), facets=every,
                                              depends=("suite",)),
+        "repo-drift": buildgraph.TestTarget(name="repo-drift", assembly="RepoDrift", project="tests/R/",
+                                            inputs=("src/", "tests/R/"), exclude=("@inert",), facets=every),
         "characterization": buildgraph.TestTarget(name="characterization", assembly="Characterization",
                                                   project="tests/H/", inputs=("src/", "tests/H/"), exclude=("@inert",),
                                                   facets=every)}, every)
@@ -762,10 +775,12 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
         "stays RED, keeps the original beside it, stores nothing, and the next gate at its keys builds and lists but "
         "starts no test host, then records the passes",
         rd.record is not None and rd.level == "passes" and written.get("tree_end") == "tree-1"
-        and len(written.get("keys") or {}) == 3 and written.get("exit_code") == 1 and original.get("tree_end") is None
+        and len(written.get("keys") or {}) == len(GATED_ASSEMBLIES) and written.get("exit_code") == 1
+        and original.get("tree_end") is None
         and "undone at any time before this re-derivation" in written.get("rederived", {}).get("residue", "")
         and not rd.stored and after.verdict == "GREEN" and "build" in hpa.events and hpa.envs == {}
-        and sum(after.carried.values()) == 12 and sorted(after.recorded) == sorted(GATED_ASSEMBLIES),
+        and sum(after.carried.values()) == sum(map(len, FakeHost.POPULATION.values()))
+        and sorted(after.recorded) == sorted(GATED_ASSEMBLIES),
         f"{rd.refusals} {after.line} {hpa.events}")
     d = root / "rederive-green"
     d.mkdir()

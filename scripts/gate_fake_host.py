@@ -22,6 +22,7 @@ class FakeHost(Host):
     POPULATION = {
         "Conformance": ["N.Conf.A", "N.Conf.B", "N.Conf.C", "N.Conf.D", "N.Conf.E", "N.Conf.F"],
         "Unit": ["N.Unit.A", "N.Unit.B", "N.Unit.C", "N.Unit.D"],
+        "RepoDrift": ["N.Drift.A", "N.Drift.B", "N.Drift.C"],
         "Characterization": ["N.Char.A", "N.Char.B"],
     }
 

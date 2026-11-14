@@ -122,7 +122,7 @@ def case_07_red_post_build_self_test_one_reads(expect):
     expect("a red post-build self-test (one that reads the built assemblies, kb/Work PB2563) runs beside the hosts and "
         "makes the gate RED after them, its output printed whole",
         o.verdict == "RED" and o.exit_code == 1 and "POST-BUILD SELF-TESTS RED" in o.line
-        and len(o.runs) == 3 and not any(r.red for r in o.runs)
+        and len(o.runs) == len(GATED_ASSEMBLIES) and not any(r.red for r in o.runs)
         and said("PLANTED-POST-BUILD-RED"), o.line)
 
 

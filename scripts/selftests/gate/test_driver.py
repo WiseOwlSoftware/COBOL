@@ -105,7 +105,7 @@ def case_01_defect_work_beside_critical_path_named_red(expect):
     o, h = gate("post-build-crash", plant={"post-build-crash", "tooling"})
     expect("a defect in work beside the critical path is a named RED with its traceback, and the hosts still ran",
         o.verdict == "RED" and o.exit_code == 1 and "POST BUILD SELF TESTS FAILED (RuntimeError" in o.line
-        and len(o.runs) == 3 and said("planted: a defect in the post-build self-tests' runner"), o.line)
+        and len(o.runs) == len(GATED_ASSEMBLIES) and said("planted: a defect in the post-build self-tests' runner"), o.line)
 
 
 def case_02_one_shape_kb_work_pb3022_every_gate(expect):
