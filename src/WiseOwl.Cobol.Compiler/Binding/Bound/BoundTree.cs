@@ -364,8 +364,10 @@ public sealed record BoundBinary(BoundExpr Left, char Op, BoundExpr Right) : Bou
 /// <summary>Arithmetic negation.</summary>
 public sealed record BoundNegate(BoundExpr Operand) : BoundExpr;
 
-/// <summary>Exponentiation (<c>base ** exp</c>).</summary>
-public sealed record BoundPower(BoundExpr Base, BoundExpr Exp) : BoundExpr;
+/// <summary>Exponentiation (<c>base ** exp</c>). <see cref="NegativeBaseRealRoots"/>: the COBOL-85 rule for a negative base is in
+/// force, §1985:VI.6.2.3 GR5c's size error only when no real number is the result, rather than the integer-exponent rule of
+/// §2023:8.8.1.2 GR6c (kb/Work PB5186, <c>DialectBehavior.NegativeBaseRequiresIntegerExponent</c>).</summary>
+public sealed record BoundPower(BoundExpr Base, BoundExpr Exp, bool NegativeBaseRealRoots) : BoundExpr;
 
 /// <summary>An INDEXED BY index-name read as its 1-based occurrence number (the C# <c>long</c> index field,
 /// DESIGN §3.5). Valid in SET senders, SEARCH, relation conditions, and subscripts (ISO §2023:13.18.38).</summary>

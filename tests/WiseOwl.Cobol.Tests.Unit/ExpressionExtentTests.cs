@@ -70,5 +70,5 @@ public sealed class ExpressionExtentTests
 
     [Fact]
     public void APower_HasNoExactExtent() =>
-        Assert.Null(ExpressionExtent.Of(new BoundPower(Lit("2"), Lit("10"))));
+        Assert.Null(ExpressionExtent.Of(new BoundPower(Lit("2"), Lit("10"), NegativeBaseRealRoots: false)));
 }
