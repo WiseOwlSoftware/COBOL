@@ -499,6 +499,13 @@ class Resolved:
         return self.file, self.citation, self.kind
 
 
+def context_of(lines: list[str], at: int) -> str:
+    """The line before `lines[at]` that `resolve_line` reads as its context: the sentence a wrapped line continues. A table
+    row is its own unit, so the row above it is no context: a row that names a wrong citation does not excuse the next
+    row's (kb/Work PB5429: sorting a register moved a row under such a neighbour and its refused citation left the count)."""
+    return "" if at == 0 or lines[at].startswith("|") else lines[at - 1]
+
+
 def resolve_line(line: str, prev: str = "") -> list[tuple[citation.Citation, "cite_mod.Verdict"]]:
     """(citation, refusing verdict) for every edition-form citation on ONE line that `cite.resolve` refuses."""
     import audit_doc_citations  # noqa: PLC0415  (the quotation pairing's one reader; it imports this module's peers)
@@ -545,7 +552,7 @@ def resolve_scan(paths) -> list[Resolved]:
         for i, line in enumerate(lines, 1):
             if "§" not in line or citation.example(line):
                 continue
-            for c, v in resolve_line(line, lines[i - 2] if i >= 2 else ""):
+            for c, v in resolve_line(line, context_of(lines, i - 1)):
                 out.append(Resolved(rel, i, citation.render(c), v.kind, v.message, v.suggestion, c.edition))
     return out
 
@@ -691,6 +698,10 @@ def resolve_self_test() -> bool:
         stale = baseline_drift([a], read_baseline(probe))[1]
         refused = write_baseline([a, b, dataclasses.replace(b, file="docs/y.md")], probe) == 1
         shrinks = write_baseline([a], probe) == 0 and len(read_baseline(probe)) == 1
+    rows = ["| a | names a wrong citation: phantom |", "| b | §2023:14.9.8 GR1 |", "a phantom sentence", "wrapped here"]
+    context = [context_of(rows, i) for i in range(4)] == ["", "", "| b | §2023:14.9.8 GR1 |", "a phantom sentence"]
+    print(f"  {'ok  ' if context else 'FAIL'} a wrapped line reads the line above as its context, and a table row reads none")
+    ok &= context
     base = (quiet and moved and len(new) == 1 and [e["citation"] for e in stale] == [b.citation]
             and refused and shrinks)
     print(f"  {'ok  ' if base else 'FAIL'} the baseline allows its entries wherever their line moves, is RED on a new "

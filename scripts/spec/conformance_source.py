@@ -8,7 +8,13 @@ against this module does not change when the storage does.
 
 THE READER KNOWS THE DOCUMENT'S SECTIONS BY NUMBER (`## 7. …`, `### 3.2 …`), never by their title: a title is prose and is
 reworded, and a number is the key every citation of the document already uses. A section runs from its heading to the next
-heading of the same or a shallower level, so section 3 holds its subsections 3.1 to 3.10 and section 3.2 does not.
+heading of the same or a shallower level, so section 3 holds its subsections 3.1 to 3.11 and section 3.2 does not.
+
+THE DOCUMENT HAS ONE REGULAR SHAPE (step B1, kb/Work PB5429), the one the cut into one file per entry renders back: each
+section is of a kind (`KINDS`), its own text is a preamble, its keyed entries in natural key order, a table's row bodies
+under `#### <key>`, and an epilogue after `EPILOGUE_MARKER`; `render_section` is the one layout. `check` (`--check`, run
+by the DOC AUDITS in `docchecks/register.py`) refuses every departure from it, so the document stays in the shape the cut
+needs whoever edits it.
 
 NOTHING IN HERE MAY BE IMPORTED BY A MODULE THE COMPILER'S TESTS RUN. `inventory_schema.py` and `generate.py` are in a compiler
 test's import closure (kb/Work PB4992) and read the registers' EXTRACT (`tests/version-matrix/conformance-register.json`,
@@ -44,6 +50,66 @@ HEADING = re.compile(r"^(#{2,3}) ([0-9]+(?:\.[0-9]+)*)\.?(?=\s)", re.MULTILINE)
 _SEPARATOR = set("-: ")
 #: A numbered, bold-titled facility of section 4: `1. **Message control system …**`.
 _FACILITY = re.compile(r"^[0-9]+\.\s+\*\*(.+?)\*\*", re.MULTILINE)
+
+# ── the document's regular shape (step B1, kb/Work PB5429) ──────────────────────────────────────────────────────────
+#
+# Every section is one of four kinds, and its text after the heading is: a PREAMBLE (prose), then the section's ENTRIES,
+# then — for a table section — the BODIES of the rows that have extended prose, each under `#### <key>`, then an optional
+# EPILOGUE after the marker line. A prose section has no entries: its whole text is its preamble. A key is unique in the
+# whole document (every key is an anchor), and the entries of every kind but BLOCKS stand in natural key order.
+
+#: A section of prose alone (sections 1, 3.3 to 3.11 and 6): its text is its preamble.
+PROSE = "prose"
+#: A section of determinations: top-level bullets, each opening `- **<D-KEY>` (sections 3 and 3.1).
+BULLETS = "bullets"
+#: A section whose entries are the rows of one table, keyed by the first cell (sections 2, 3.2, 5, 7 and 8).
+TABLE = "table"
+#: A section whose entries are `#### <key>` blocks in the order written (§4, the facilities and their determinations).
+BLOCKS = "blocks"
+
+#: The kind of every section that has entries; every other numbered section is PROSE. A new section with entries is a row
+#: here, read by the shape check and the cut alike.
+KINDS = {"2": TABLE, "3": BULLETS, "3.1": BULLETS, "3.2": TABLE, "4": BLOCKS, "5": TABLE, "7": TABLE, "8": TABLE}
+
+#: The line that opens a section's epilogue: the text after it speaks for the whole section, not for one entry.
+EPILOGUE_MARKER = "<!-- conformance: epilogue -->"
+#: A determination's key: `D-` and upper-case words joined by hyphens or full stops (`D-SEQ`, `D-F2-85`, `D-IO-STATUS-04`).
+DETERMINATION_KEY = r"D-[A-Z0-9]+(?:[-.][A-Z0-9]+)*"
+#: A determination bullet's opening line, the key followed by a space or the bold's close.
+_BULLET = re.compile(r"^- \*\*(" + DETERMINATION_KEY + r")(?=[ *])")
+#: A keyed block's or a row body's heading: `#### <key>`, the key one word.
+_BLOCK = re.compile(r"^#### (\S+)$")
+#: Any Markdown heading line: the reader lists every one of them.
+_ANY_HEADING = re.compile(r"^(#{1,6}) (.*)$")
+#: A numbered section heading at its level: `## 7. …` (one number, a full stop), `### 3.2 …` or `### 3.7.1 …`.
+_NUMBERED = {2: re.compile(r"^## ([0-9]+)\. "), 3: re.compile(r"^### ([0-9]+(?:\.[0-9]+){1,2}) ")}
+
+
+def natural_key(key: str) -> tuple:
+    """The order the document's entries stand in: digit runs compared as numbers, so `DOC-A.1-9` precedes `DOC-A.1-10` and
+    `DOC-A.1-92` precedes `DOC-A.1-92b`; a digit run sorts before text at the same place (`DRV-1985-…` before `DRV-GR-…`)."""
+    return tuple((0, int(t), "") if t.isdigit() else (1, 0, t) for t in re.findall(r"[0-9]+|[^0-9]+", key))
+
+
+class Entry(NamedTuple):
+    """One keyed entry of a section: a determination bullet, a table row, a `#### <key>` block or a row's body."""
+
+    key: str
+    text: str   #: its lines as written, trailing blank lines dropped (a row: the row line; a block or body: after the heading)
+    line: int   #: the 1-based line of its first line (a block or body: of its heading)
+
+
+class Shape(NamedTuple):
+    """One section's text classified: what precedes the entries, the entries, the row bodies, the epilogue, and the
+    findings of every line that fits none of them."""
+
+    kind: str
+    preamble: str
+    table_head: str   #: a table section's header row and separator row, as written; "" for every other kind
+    entries: list[Entry]
+    bodies: list[Entry]
+    epilogue: str | None
+    findings: list[str]
 
 
 class Section7Row(NamedTuple):
@@ -118,6 +184,33 @@ class Conformance:
         """The text of section `number` after its heading line, "" when the document carries no such section."""
         found = self.find_section(number)
         return "" if found is None else found.body
+
+    def numbers(self) -> list[str]:
+        """Every numbered section of the document, in the order written."""
+        return [num for _, _, num in self._headings]
+
+    def own_section(self, number: str) -> Section:
+        """Section `number` WITHOUT its subsections: its heading and the text up to the next numbered heading of any level
+        (section 3's own text ends at section 3.1, where `section("3")` runs to section 4)."""
+        for i, (start, _, num) in enumerate(self._headings):
+            if num != number:
+                continue
+            end = self._headings[i + 1][0] if i + 1 < len(self._headings) else len(self.text)
+            eol = self.text.find("\n", start)
+            body_start = len(self.text) if eol < 0 else eol + 1
+            return Section(number, self.text[start:eol if eol >= 0 else len(self.text)],
+                           self.text[body_start:max(end, body_start)], self.text.count("\n", 0, start) + 1)
+        raise SystemExit(f"⛔ {PATH_REL} has no §{number}: the reader of the document cannot invent it")
+
+    def shape(self, number: str) -> Shape:
+        """Section `number`'s own text classified by its kind (`KINDS`): preamble, entries, row bodies, epilogue, and a
+        finding for every line that fits none of them (kb/Work PB5429)."""
+        section = self.own_section(number)
+        return _classify(number, KINDS.get(number, PROSE), section.body.split("\n"), section.line + 1)
+
+    def determinations(self) -> dict[str, Entry]:
+        """`{key -> entry}` for the determinations of sections 3 and 3.1, every one keyed `D-<KEY>` since step B1."""
+        return {e.key: e for number in ("3", "3.1") for e in self.shape(number).entries}
 
     # ── a table section's rows ──────────────────────────────────────────────────────────────────────────────────────
 
@@ -229,6 +322,205 @@ def _cell(row: list[str], i: int) -> str:
     return row[i] if len(row) > i else ""
 
 
+def _fenced(lines: list[str]) -> list[bool]:
+    """For each line, whether it lies inside a fenced code block (its fence lines included): a `#` or `|` there is text."""
+    out, inside = [], False
+    for line in lines:
+        fence = line.lstrip().startswith("```")
+        out.append(inside or fence)
+        if fence:
+            inside = not inside
+    return out
+
+
+def _trim(lines: list[str]) -> str:
+    return "\n".join(lines).strip("\n")
+
+
+def _classify(number: str, kind: str, lines: list[str], first: int) -> Shape:
+    """`lines` (the section's own text, line `first` its first) as a Shape of kind `kind`. The parse never stops at a
+    misfit: it records the finding and goes on, so `--check` names every line out of shape at once."""
+    where = f"{PATH_REL} §{number}"
+    findings: list[str] = []
+    fenced = _fenced(lines)
+    epilogue: str | None = None
+    markers = [i for i, line in enumerate(lines) if line == EPILOGUE_MARKER]
+    if markers:
+        epilogue = _trim(lines[markers[0] + 1:])
+        lines = lines[:markers[0]]
+        if kind == PROSE:
+            findings.append(f"{where} line {first + markers[0]}: a prose section has no entries, so no epilogue marker")
+        findings += [f"{where} line {first + i}: a second epilogue marker" for i in markers[1:]]
+    blocks = [i for i, line in enumerate(lines) if not fenced[i] and line.startswith("#### ")]
+    for i in blocks:
+        if _BLOCK.match(lines[i]) is None:
+            findings.append(f"{where} line {first + i}: `{lines[i]}` is no `#### <key>` heading (a key is one word)")
+    if kind == PROSE:
+        findings += [f"{where} line {first + i}: a prose section holds no `#### <key>` entry" for i in blocks]
+        return Shape(kind, _trim(lines), "", [], [], epilogue, findings)
+    entries: list[Entry] = []
+    bodies: list[Entry] = []
+    head: list[str] = []
+    if kind == BULLETS:
+        start = next((i for i, line in enumerate(lines) if line.startswith("- ")), len(lines))
+        findings += [f"{where} line {first + i}: a determination section holds no `#### <key>` heading" for i in blocks]
+        current: list[str] = []
+        at = 0
+
+        def close() -> None:
+            if current:
+                found = _BULLET.match(current[0])
+                if found is None:
+                    findings.append(f"{where} line {first + at}: an entry with no key (`- **D-<KEY> …**`): {current[0][:80]}")
+                else:
+                    entries.append(Entry(found.group(1), _trim(current), first + at))
+
+        for i in range(start, len(lines)):
+            line = lines[i]
+            if line.startswith("- "):
+                close()
+                current, at = [line], i
+            elif line == "" or line.startswith(" ") or fenced[i]:
+                current.append(line)
+            elif i in blocks:
+                continue   # reported above
+            elif i == 0 or lines[i - 1] == "" or lines[i - 1].startswith(("- ", " ")):
+                findings.append(f"{where} line {first + i}: text after the section's entries, outside an entry and the "
+                                f"epilogue: {line[:80]}")
+        close()
+        preamble = _trim(lines[:start])
+    else:
+        opening = "|" if kind == TABLE else "#### "
+        start = next((i for i, line in enumerate(lines) if not fenced[i] and line.startswith(opening)), len(lines))
+        preamble = _trim(lines[:start])
+        i = start
+        if kind == TABLE:
+            header_seen = False
+            while i < len(lines) and lines[i].startswith("|"):
+                row = cells(lines[i])
+                if header_seen and not (len(row) >= 1 and set(row[0]) <= _SEPARATOR):
+                    entries.append(Entry(row[0].strip("`") if row else "", lines[i], first + i))
+                elif not entries:
+                    head.append(lines[i])
+                header_seen = True
+                i += 1
+        heads = [j for j in blocks if j >= i]
+        for j in range(i, heads[0] if heads else len(lines)):
+            if lines[j].strip() and not lines[j - 1].strip():   # one finding a paragraph, at its first line
+                findings.append(f"{where} line {first + j}: text after the section's entries, outside a row body and the "
+                                f"epilogue: {lines[j][:80]}")
+        for n, j in enumerate(heads):
+            end = heads[n + 1] if n + 1 < len(heads) else len(lines)
+            found = _BLOCK.match(lines[j])
+            if found is not None:
+                (bodies if kind == TABLE else entries).append(Entry(found.group(1), _trim(lines[j + 1:end]), first + j))
+        findings += [f"{where} line {first + j}: a `#### ` heading before the section's entries" for j in blocks if j < i]
+    if not entries:
+        findings.append(f"{where}: a {kind} section with no entry (`KINDS` gives it entries)")
+    if kind != BLOCKS:
+        keys = [e.key for e in entries]
+        if keys != sorted(keys, key=natural_key):
+            out = next(e for e, k in zip(entries, sorted(keys, key=natural_key)) if e.key != k)
+            findings.append(f"{where} line {out.line}: entries out of natural key order from `{out.key}` "
+                            f"(the order the renderer writes, `natural_key`)")
+    if kind == TABLE:
+        rows = {e.key for e in entries}
+        findings += [f"{where} line {b.line}: `#### {b.key}` is the body of no row of the table" for b in bodies if b.key not in rows]
+        body_keys = [b.key for b in bodies]
+        if body_keys != sorted(body_keys, key=natural_key):
+            findings.append(f"{where}: the row bodies are out of natural key order")
+        findings += [f"{where}: two bodies of the row `{k}`" for k in sorted({k for k in body_keys if body_keys.count(k) > 1})]
+    return Shape(kind, preamble, "\n".join(head), entries, bodies, epilogue, findings)
+
+
+def render_section(heading: str, shape: Shape) -> str:
+    """One section as the renderer writes it: the heading, the preamble, the entries in the order the shape holds them (a
+    table under its header, a block under `#### <key>`), the row bodies under `#### <key>`, the marker and the epilogue,
+    every part separated from the next by one blank line. The layout is this function's alone: `check` holds the document
+    to it, and the cut renders the whole through it (DESIGN-orchestrator-loop.md section 16.8)."""
+    parts = [heading] + ([shape.preamble] if shape.preamble else [])
+    if shape.kind == TABLE:
+        parts.append("\n".join([shape.table_head] + [e.text for e in shape.entries]))
+        parts += [f"#### {b.key}\n\n{b.text}" for b in shape.bodies]
+    elif shape.kind == BLOCKS:
+        parts += [f"#### {e.key}\n\n{e.text}" for e in shape.entries]
+    else:
+        parts += [e.text for e in shape.entries]
+    if shape.epilogue is not None:
+        parts += [EPILOGUE_MARKER] + ([shape.epilogue] if shape.epilogue else [])
+    return "\n\n".join(parts)
+
+
+def render(conformance: Conformance, shapes: dict[str, Shape] | None = None) -> str:
+    """The whole document as the renderer writes it, from each section's shape (`shapes` replaces the parsed shape of the
+    sections it names): the text before the first section, then every section in the order written, then one newline."""
+    shapes = shapes or {}
+    first = conformance._headings[0][0] if conformance._headings else len(conformance.text)
+    out = [conformance.text[:first].strip("\n")]
+    for number in conformance.numbers():
+        own = conformance.own_section(number)
+        out.append(render_section(own.heading, shapes.get(number) or conformance.shape(number)))
+    return "\n\n".join(out) + "\n"
+
+
+def check(conformance: Conformance) -> list[str]:
+    """Every way the document departs from the regular shape the renderer writes (kb/Work PB5429): a heading the reader
+    does not list, an unkeyed entry, a key used twice, entries out of order, text after a section's entries outside its
+    row bodies and its epilogue. [] when it is regular."""
+    findings: list[str] = []
+    lines = conformance.lines
+    fenced = _fenced(lines)
+    titles = 0
+    parent = ""
+    seen: list[str] = []
+    for i, line in enumerate(lines):
+        found = _ANY_HEADING.match(line)
+        if found is None or fenced[i]:
+            continue
+        level = len(found.group(1))
+        if level == 1:
+            titles += 1
+            if titles > 1:
+                findings.append(f"{PATH_REL} line {i + 1}: a second title heading: {line[:80]}")
+            continue
+        if level == 4 and _BLOCK.match(line):
+            continue   # a keyed block or a row body: its section's shape places it
+        numbered = _NUMBERED.get(level)
+        m = None if numbered is None else numbered.match(line)
+        if m is None:
+            findings.append(f"{PATH_REL} line {i + 1}: a heading the reader does not list (`## <n>. `, `### <n>.<m> ` or "
+                            f"`#### <key>`): {line[:80]}")
+            continue
+        number = m.group(1)
+        if level == 2:
+            parent = number
+        elif number.split(".")[0] != parent:
+            findings.append(f"{PATH_REL} line {i + 1}: §{number} stands under §{parent}")
+        if number in seen:
+            findings.append(f"{PATH_REL} line {i + 1}: §{number} is numbered twice")
+        elif seen and natural_key(number) < natural_key(seen[-1]):
+            findings.append(f"{PATH_REL} line {i + 1}: §{number} follows §{seen[-1]}")
+        seen.append(number)
+    findings += [f"{PATH_REL} lost §{n}, a section with entries ({KINDS[n]})" for n in KINDS if n not in seen]
+    keys: dict[str, int] = {}
+    for number in dict.fromkeys(seen):
+        shape = conformance.shape(number)
+        findings += shape.findings
+        for entry in shape.entries:
+            if entry.key in keys:
+                findings.append(f"{PATH_REL} line {entry.line}: the key `{entry.key}` is already the entry at line {keys[entry.key]} "
+                                f"(a key is an anchor, unique in the document)")
+            else:
+                keys[entry.key] = entry.line
+    if not findings:   # the parts are regular; their layout must be the renderer's too, blank lines included
+        rendered = render(conformance).split("\n")
+        if rendered != lines:
+            at = next((i for i, (a, b) in enumerate(zip(rendered, lines)) if a != b), min(len(rendered), len(lines)))
+            findings.append(f"{PATH_REL} line {at + 1}: the layout is not the renderer's from here (one blank line "
+                            f"between parts, none at the end but the final newline): `render_section`")
+    return findings
+
+
 def parse(text: str) -> Conformance:
     """The conformance statement of a TEXT: a fabricated body of a self-test, or one a caller has read."""
     return Conformance(text)
@@ -237,3 +529,22 @@ def parse(text: str) -> Conformance:
 def load(root: pathlib.Path = REPO) -> Conformance:
     """The conformance statement of the repository at `root`, read once (UTF-8, universal newlines)."""
     return Conformance((root / PATH_REL).read_text(encoding="utf-8"))
+
+
+def main(argv: list[str]) -> int:
+    """`--check`: the document's shape (kb/Work PB5429), every finding printed, exit 1 on any."""
+    if argv != ["--check"]:
+        print("usage: conformance_source.py --check", file=sys.stderr)
+        return 2
+    findings = check(load())
+    for finding in findings:
+        print(f"  ✗ {finding}")
+    print(f"{PATH_REL} shape: {'RED, ' + str(len(findings)) + ' finding(s)' if findings else 'GREEN'}")
+    return 1 if findings else 0
+
+
+if __name__ == "__main__":
+    sys.path.append(str(REPO / "scripts"))
+    from standard_streams import ensure_utf8  # noqa: E402  (scripts/, a CLI's console)
+    ensure_utf8()
+    sys.exit(main(sys.argv[1:]))

@@ -70,16 +70,18 @@ def claims_support(disposition: str) -> bool:
 
 def build_extract(conformance: Conformance, derivation_heading: str) -> dict:
     """The register rows as data: §2, §5, §7 (the A.1 determinations) and §8 (the owner-signed derivations), and the
-    diagnostic codes §2 and §5 name."""
+    diagnostic codes §2 and §5 name. The rows stand in natural key order whatever order the document holds them in, so
+    the extract is order-stable (kb/Work PB5429): the document's own order is `conformance_source.check`'s to hold."""
     return {
         "comment": "GENERATED from docs/CONFORMANCE.md by `python scripts/doc_audits.py --write-register`; held fresh by "
                    "the DOC AUDITS gate audit. Do not edit: edit the register and regenerate (kb/Work PB4453). annexA1 "
                    f"carries each §7 row's key and the first {LEAD_LENGTH} characters of its determination, enough for "
                    "every schema determination-prefix; the prose behind it is not data and is not here.",
         "annexA1": [{"key": r.key, "lead": schema.plain(r.determination)[:LEAD_LENGTH]}
-                    for r in conformance.a1_rows()],
+                    for r in sorted(conformance.a1_rows(), key=lambda r: conformance_source.natural_key(r.key))],
         "derivations": [{"key": r.key, "arm": r.arm, "names": r.names, "signature": r.signature, "refuter": r.refuter}
-                        for r in conformance.derivation_rows(conformance_source.number_of(derivation_heading))],
+                        for r in sorted(conformance.derivation_rows(conformance_source.number_of(derivation_heading)),
+                                        key=lambda r: conformance_source.natural_key(r.key))],
         "declinedCodes": {"A3": codes_under(conformance, conformance_source.A3_SECTION),
                           "A4": codes_under(conformance, conformance_source.A4_SECTION)},
     }
@@ -265,7 +267,13 @@ def _profile(root: Path) -> list[str]:
     return profile_disagreements(conformance_source.load(root), json.loads(common.text(root, PROFILE_PATH)))
 
 
+def _shape(root: Path) -> list[str]:
+    return conformance_source.check(conformance_source.load(root))
+
+
 CHECKS = (
+    Check("CONFORMANCE SHAPE (every entry keyed and in order, every heading listed, no text outside an entry, a row body "
+          "or the epilogue; conformance_source.py --check)", _shape),
     Check("ANNEX A.3 REGISTER (§2 covers every item, cites resolved clauses, names emitted codes)", _a3),
     Check("README STATUS against §2/§5", _readme),
     Check("CONFORMANCE SUITE PROFILE against §2/§5", _profile),

@@ -238,6 +238,11 @@ def self_test() -> int:
          good + '\n' + DERIVATION_SELF_TEST_ROWS, None),
         ('…and a PROSE mention beside that §8 row is STILL caught',
          good + '\n' + DERIVATION_SELF_TEST_ROWS + '\nSee DOC-A.1-2 for the ACCEPT case.', 'appears 3×'),
+        # ⚙ A ROW'S BODY (kb/Work PB5429): the `#### <key>` heading of a row's extended prose is the row's own key.
+        ('a row BODY heading is a legitimate second occurrence of its row key',
+         good + '\n\n#### DOC-A.1-2\n\nThe rest of the determination.', None),
+        ('…and a PROSE mention inside that body is STILL caught',
+         good + '\n\n#### DOC-A.1-2\n\nSee DOC-A.1-2 for the ACCEPT case.', 'appears 3×'),
     ]
     rc = 0
     print('=== audit_annex_a1 --self-test ===')
@@ -441,6 +446,12 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
         for row in conformance.derivation_rows(conformance_source.number_of(deriv.heading)):
             if row.key.startswith('DRV-') and ITEM_KEY_RX.match(row.key[len('DRV-'):]):
                 keys[row.key[len('DRV-'):]] += 1
+    # ⚙ AND A ROW'S BODY (kb/Work PB5429): a row whose determination runs past one cell carries the rest under a
+    # `#### <key>` heading after the table, and that heading is the row's own key a second time — the same row, never a
+    # prose mention.
+    if conformance.find_section(conformance_source.A1_SECTION) is not None:
+        for body in conformance.shape(conformance_source.A1_SECTION).bodies:
+            keys[body.key] += 1
 
     seen_tokens = collections.Counter(TOKEN_RX.findall(text))
     for token, count in sorted(seen_tokens.items()):

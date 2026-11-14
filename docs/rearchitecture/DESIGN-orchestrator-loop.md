@@ -2191,6 +2191,26 @@ the extract is order-stable from here on and the cut cannot move it); the multis
 markers (the diff of the two multisets is in the report, so prose that moved
 is proven moved and none lost); the CITATIONS audit GREEN. The 50 new keys are new anchors; no citation names them yet.
 
+**Step B1 as built (LANDED, kb/Work PB5429; rule 5: what the survey above did not say).** The document had grown a section
+3.11 and tables inside 3.3 to 3.11, and sections 2 and 5 had no line after their tables. `conformance_source.KINDS` names
+the kind of every section that has entries: BULLETS (3, 3.1: `- **D-<KEY>`), TABLE (2, 3.2, 5, 7, 8: a row keyed by its
+first cell, backticks stripped, so 3.2's `` `usage-comp-1` `` is `usage-comp-1`) and BLOCKS (4); every other numbered
+section is PROSE, its whole text a preamble, a table in it included (3.3 to 3.11 stay one `index.md` each in step B2).
+Section 4's entries are spelled `#### <key>` blocks in the monolith, the one keyed form a prose entry can take (27 of them:
+`MCS`, `COMMIT-AND-ROLLBACK`, `VALIDATE`, `SCREEN`, `OO-OPTIONAL-ITEMS`, `LOCALE` and one per `⚖ DETERMINATION` block,
+the second determination that ran on inside `OPTIONS-INITIALIZE-NUMERIC`'s blockquote split out as
+`OPTIONS-INITIALIZE-HEX-LITERAL`); its two `⚠` paragraphs about the whole section (the WARNING band's witnesses, the three
+modules with no item) are its epilogue. Section 3.2's tail is the body of `set-program-pointer-to-entry` and an epilogue
+("What is not a row, and why"); section 7's is the body of `DOC-A.1-56`. **The layout is checked too**: `render_section`
+(heading, preamble, entries, bodies, marker, epilogue, one blank line between parts) is the one layout, `check` refuses a
+document that is not `render` of its own parse, and step B2's `conformance_doc.py` renders through it, so the
+byte-identical cut is a property `--check` already holds. The reader's §3 map is the method `determinations()`; `shape(n)`,
+`own_section(n)`, `natural_key` and `render` are the rest of the API B2 keeps. The extract writes `annexA1` and
+`derivations` in natural key order whatever the document holds (`docchecks/register.build_extract`). Two things outside
+the document moved with it: `audit_annex_a1.py` counts a row body's `#### DOC-A.1-<n>` heading as its row's own key, and
+the CITATIONS audit reads no context across table rows (`audit_code_citations.context_of`): sorting section 7 put a row
+under a neighbour that names a wrong citation, and that neighbour's prose had been excusing whichever row followed it.
+
 *Step B2 — the storage (PB5430).* The tree holds the document's sources under `docs/conformance/`, ONE mechanism for
 every section: a section is a directory named by its number, holding `index.md` (frontmatter `heading:`, and for a table
 section `columns:`; its body is the section's preamble prose), an optional `epilogue.md` (the text after the epilogue
