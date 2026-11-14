@@ -37,7 +37,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class V59ImagePredicateDriftTests
 {
-    private static string Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts));
+    private static string Read(params string[] parts) => File.ReadAllText(TestRepo.Src(parts));
 
     /// <summary>Count occurrences in CODE only. These predicates are discussed at length in comments (that is the
     /// point of the comments), so a raw text count is a false positive — the first cut of this test failed on its
@@ -72,7 +72,7 @@ public sealed class V59ImagePredicateDriftTests
     [Fact]
     public void CallEmitter_ReadAndWriteHalves_UseTheSamePredicate()
     {
-        string src = Read("src", "WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "CallEmitter.cs");
+        string src = Read("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "CallEmitter.cs");
         int capable = CodeOccurrences(src, "BoundaryImageCapable");
         int narrow = CodeOccurrences(src, "IsImageCapable");
         int character = CodeOccurrences(src, "IsCharacterImage");

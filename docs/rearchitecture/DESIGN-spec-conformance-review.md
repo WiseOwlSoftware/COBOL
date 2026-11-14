@@ -796,7 +796,7 @@ retirement, and the rows that predate the rule are a measured residue (kb/Work P
 | the Python loader | `scripts/spec/inventory_schema.py` | parsing that schema, deriving `state`, and the ATOMIC inventory write |
 | the writer | `scripts/spec/record_verdicts.py` | validating a batch's SHAPE and merging it all-or-nothing — witnesses by union (PB959) |
 | the witness-count gate | `scripts/spec/audit_witness_loss.py` | that no row LOSES a witness without a retirement or a re-site (PB959) |
-| the battery gate | `tests/WiseOwl.Cobol.Tests.Unit/SpecTraceabilityInventoryDriftTests.cs` | REFERENTIAL integrity, continuously |
+| the battery gate | `tests/WiseOwl.Cobol.Tests.RepoDrift/SpecTraceabilityInventoryDriftTests.cs` | REFERENTIAL integrity, continuously |
 | the register audit | `scripts/spec/audit_annex_a1.py`, a gate audit (ANNEX A.1 REGISTER) | that `docs/CONFORMANCE.md` §7 is internally sound and agrees with the inventory |
 
 - **`kinds` is orthogonal to `verdicts`, and that is the point.** `verdicts` says what a VERDICT costs; `kinds`

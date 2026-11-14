@@ -710,7 +710,8 @@ def self_test() -> int:
         ungated = wf.replace("        if: contains(fromJSON(needs.changes.outputs.windows_targets), 'Unit')\n", "", 1)
         found = planted("ungated", ungated)
         hand = f"          WISEOWL_COBOL_GATE_SUITE: {CI_LEGS['windows'].handed_root}/conformance-suite\n"
-        unhanded = wf.replace(hand, "", 1)
+        head, sep, tail = wf.rpartition(hand)  # the last one is the Conformance step's: Unit is handed the suite too
+        unhanded = head + tail if sep else wf
         found_h = planted("unhanded", unhanded)
         # merge group 43116013863: a PATTERN download of the one artifact extracts it flat into the path, not under
         # its name, so every host found no suite where it was handed one

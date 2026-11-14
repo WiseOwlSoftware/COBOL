@@ -1401,33 +1401,46 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
 /// places (kb/Work PB337).</para>
 /// </summary>
 /// <param name="Statement">The phrase as the programmer wrote it, for every diagnostic.</param>
-/// <param name="MoveRuleCite">The general rule that makes the phrase a MOVE — §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4
-/// GR5 b), which are the same sentence twice.</param>
+/// <param name="MoveRule">The general rule that makes the phrase a MOVE — §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4
+/// GR5 b), which are the same sentence twice; at COBOL-85 READ's GR8 b of its I-O module and RETURN's §1985:XI.4.3.4 GR6 b
+/// (kb/Work PB5352).</param>
 /// <param name="AdmitsRecordLessEntry">True when the verb's description entry may legally have no record
 /// description entry at all — an FD (§2023:13.4.5.3 SR3) but not an SD (§2023:13.4.6.3 SR2).</param>
-/// <param name="AdmissibilityCite">The verb's own admissibility rule — §2023:14.9.30.3 SR1 / §2023:14.9.34.3 SR2.</param>
-/// <param name="AdmissibilityArmA">That rule's arm a), quoted, because the two verbs word it differently and a
-/// diagnostic that paraphrases it sends the reader to the wrong sentence.</param>
+/// <param name="Admissibility">The verb's own admissibility rule — §2023:14.9.30.3 SR1 / §2023:14.9.34.3 SR2; at COBOL-85 a
+/// general rule, READ's GR7 of its I-O module and RETURN's §1985:XI.4.3.4 GR5 (kb/Work PB5352).</param>
+/// <param name="AdmissibilityArmA">That rule's arm a), quoted as the edition words it, because the two verbs word it differently
+/// and a diagnostic that paraphrases it sends the reader to the wrong sentence.</param>
+/// <param name="AdmissibilityArmB">Its arm b), what identifier-1 and every record-name shall describe, quoted as the edition
+/// words it.</param>
 /// <param name="StrongReceiverCite">The verb's strongly-typed-receiver rule — §2023:14.9.30.3 SR2 / §2023:14.9.34.3 SR3.</param>
 /// <param name="StrongReceiverCount">That rule's record-area count requirement, quoted.</param>
 /// <param name="EntryFace">How the description entry names itself in a message — "FD" / "SD".</param>
 /// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
-/// at the editions before COBOL-2023 (kb/Work PB5077).</param>
+/// at the editions before COBOL-2014 (kb/Work PB5077, PB5270).</param>
 public sealed record IntoPhraseRules(
     string Statement,
-    string MoveRuleCite,
+    EditionCite MoveRule,
     bool AdmitsRecordLessEntry,
-    string AdmissibilityCite,
-    string AdmissibilityArmA,
+    EditionCite Admissibility,
+    EditionCite AdmissibilityArmA,
+    EditionCite AdmissibilityArmB,
     string StrongReceiverCite,
     string StrongReceiverCount,
     string EntryFace,
     RecordAreaVerb AreaVerb)
 {
-    /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's INTO phrase carries — built once
-    /// per verb beside the two rows, exactly as <c>FromPhraseRules.Phrase</c> is. A phrase is a property of the
-    /// VERB, not of an occurrence of it, so both are singletons.</summary>
-    public ImplicitMovePhrase Phrase { get; } = new(Statement, MoveRuleCite);
+    /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's INTO phrase carries at
+    /// <paramref name="dialectLevel"/> for a file of <paramref name="organization"/>: the verb's phrase, citing the MOVE rule as the
+    /// edition numbers it (kb/Work PB5352), as <c>FromPhraseRules.PhraseAt</c> does.</summary>
+    public ImplicitMovePhrase PhraseAt(int dialectLevel, FileOrganization organization) =>
+        new(Statement, MoveRule.At(dialectLevel, organization));
+
+    /// <summary>Arm b) of the admissibility rule from COBOL-2002 (§2023:14.9.30.3 SR1 b, §2023:14.9.34.3 SR2 b).</summary>
+    private const string ArmB2023 =
+        "\"describe an alphanumeric group item or an elementary item of category alphanumeric or category national\"";
+
+    /// <summary>Arm b) in COBOL-85 (§1985:VII.4.4.4 GR7 b and its twins, §1985:XI.4.3.4 GR5 b).</summary>
+    private const string ArmB1985 = "\"describe a group item or an elementary alphanumeric item\"";
 
     /// <summary>The record-area COUNT this verb's admissibility arm a) and strong-receiver rule admit: 1, or
     /// 0 and 1 where the description entry may be record-less. Read by both rules, never re-derived.</summary>
@@ -1437,10 +1450,13 @@ public sealed record IntoPhraseRules(
     /// from the record area to the area specified by identifier-1 according to the rules for the MOVE statement
     /// without the CORRESPONDING phrase."</summary>
     public static readonly IntoPhraseRules Read = new(
-        "READ INTO", "ISO §2023:14.9.30.4 GR4 b)", AdmitsRecordLessEntry: true,
-        "ISO §2023:14.9.30.3 SR1",
-        "\"If no record description entry or only one record description is subordinate to the file description "
-        + "entry\"",
+        "READ INTO",
+        new("ISO §2023:14.9.30.4 GR4 b)", "§1985:VII.4.4.4 GR8b", "§1985:VIII.4.5.4 GR8b", "§1985:IX.4.5.4 GR8b"),
+        AdmitsRecordLessEntry: true,
+        new("ISO §2023:14.9.30.3 SR1", "§1985:VII.4.4.4 GR7", "§1985:VIII.4.5.4 GR7", "§1985:IX.4.5.4 GR7"),
+        new("\"If no record description entry or only one record description is subordinate to the file description "
+            + "entry\"", "\"If only one record description is subordinate to the file description entry\""),
+        new(ArmB2023, ArmB1985),
         "ISO §2023:14.9.30.3 SR2",
         "\"there shall be at most one record area subordinate to the FD for file-name-1\"",
         "FD", RecordAreaVerb.Read);
@@ -1448,9 +1464,12 @@ public sealed record IntoPhraseRules(
     /// <summary><c>RETURN … INTO</c>. ISO §2023:14.9.34.4 GR5 b) — the identical sentence, which is why the two
     /// phrases share one binder and one sender builder rather than one each.</summary>
     public static readonly IntoPhraseRules Return = new(
-        "RETURN INTO", "ISO §2023:14.9.34.4 GR5 b)", AdmitsRecordLessEntry: false,
-        "ISO §2023:14.9.34.3 SR2",
-        "\"If only one record description is subordinate to the sort-merge file description entry\"",
+        "RETURN INTO",
+        new("ISO §2023:14.9.34.4 GR5 b)", "§1985:XI.4.3.4 GR6b"),
+        AdmitsRecordLessEntry: false,
+        new("ISO §2023:14.9.34.3 SR2", "§1985:XI.4.3.4 GR5"),
+        new("\"If only one record description is subordinate to the sort-merge file description entry\""),
+        new(ArmB2023, ArmB1985),
         "ISO §2023:14.9.34.3 SR3",
         "\"there shall be exactly one record area subordinate to the SD for file-name-1\"",
         "SD", RecordAreaVerb.Return);

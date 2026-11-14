@@ -154,7 +154,7 @@ fi
 note "BUILD: ok"
 
 if [ "${SKIP_TESTS:-0}" != "1" ]; then
-    el "=== PHASE 1: Conformance ∥ Unit ∥ Characterization (independent --no-build assemblies) ==="
+    el "=== PHASE 1: Conformance ∥ Unit ∥ RepoDrift ∥ Characterization (independent --no-build assemblies) ==="
     # ⛔ SCRUBBED (kb/Work PB1718; DESIGN-test-build-ci §3.14.3): every run goes through `test_population.py
     # scrubbed`, which drops the gate's leg handshake (WISEOWL_COBOL_GATE_*) and the MSBuild properties that filter a run
     # from the environment (VSTest*, RunSettingsFilePath) — a stray one would make this whole-assembly run a PART.
@@ -166,11 +166,15 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
     "$PY" scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.Unit --no-build --verbosity quiet \
         --logger "trx;LogFileName=unit.trx" --results-directory "$OUT" > "$OUT/unit.log" 2>&1 &
     P_UNIT=$!
+    "$PY" scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.RepoDrift --no-build --verbosity quiet \
+        --logger "trx;LogFileName=repo-drift.trx" --results-directory "$OUT" > "$OUT/repo-drift.log" 2>&1 &
+    P_DRIFT=$!
     "$PY" scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.Characterization --no-build --verbosity quiet \
         --logger "trx;LogFileName=characterization.trx" --results-directory "$OUT" > "$OUT/characterization.log" 2>&1 &
     P_CHAR=$!
     wait $P_CONF; RC_CONF=$?
     wait $P_UNIT; RC_UNIT=$?
+    wait $P_DRIFT; RC_DRIFT=$?
     wait $P_CHAR; RC_CHAR=$?
     # ⛔ A `Passed!` LINE IS NOT A POPULATION (kb/Work PB1718; DESIGN-test-build-ci §3.14.4). This phase used to accept
     # any verdict line with exit 0, so a run that executed a THIRD of its assembly — a stray filter, a leg handshake
@@ -178,8 +182,9 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
     # definitions must equal that listing as a multiset: every discovered case ran exactly once. It is the ONE tool
     # CI's shard guard uses too (and the gate driver, DESIGN-test-build-ci.md §3.14.4); its `--self-test` fires every arm
     # (scripts/self_test_arms.py holds the arms it must declare; kb/Work PB4395).
-    for leg in conformance unit characterization; do
-        case "$leg" in conformance) asm=Conformance ;; unit) asm=Unit ;; characterization) asm=Characterization ;; esac
+    for leg in conformance unit repo-drift characterization; do
+        case "$leg" in conformance) asm=Conformance ;; unit) asm=Unit ;; repo-drift) asm=RepoDrift ;;
+            characterization) asm=Characterization ;; esac
         v=$(grep -E "^(Passed!|Failed!)" "$OUT/$leg.log" | tail -1)
         note "$(printf '%-16s %s' "$leg:" "${v:-NO VERDICT LINE — the leg produced no result, which is a FAILURE}")"
         [ -n "$v" ] || RC=1
@@ -190,12 +195,12 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
         note "$(printf '%-16s %s' "  population:" "${p:-NO POPULATION LINE — the check did not run, which is a FAILURE (see $OUT/$leg.population.log)}")"
         [ "$PRC" -eq 0 ] || RC=1
     done
-    [ "$RC_CONF" -eq 0 ] && [ "$RC_UNIT" -eq 0 ] && [ "$RC_CHAR" -eq 0 ] || RC=1
-    # The five slowest tests of the three legs (DESIGN-test-build-ci §3.14.5, kb/Work PB1716), so the next long
+    [ "$RC_CONF" -eq 0 ] && [ "$RC_UNIT" -eq 0 ] && [ "$RC_DRIFT" -eq 0 ] && [ "$RC_CHAR" -eq 0 ] || RC=1
+    # The five slowest tests of the four legs (DESIGN-test-build-ci §3.14.5, kb/Work PB1716), so the next long
     # pole is seen when it appears. A REPORT, never a wall-clock assertion: it never touches RC.
     note "slowest tests:"
     "$PY" scripts/profile-test-parallelism.py --slowest 5 \
-        "$OUT/conformance.trx" "$OUT/unit.trx" "$OUT/characterization.trx" 2>&1 | tee -a "$SUMMARY"
+        "$OUT/conformance.trx" "$OUT/unit.trx" "$OUT/repo-drift.trx" "$OUT/characterization.trx" 2>&1 | tee -a "$SUMMARY"
 fi
 
 if [ "${SKIP_GUARD:-0}" != "1" ]; then

@@ -15,7 +15,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// (the dispatch travels on <c>BoundMove.Kinds</c>, P7 Step 7) and <c>ConvertSource</c> — the ONE MOVE
 /// conversion path Report Writer's synthetic print items and INITIALIZE's implicit stores share.</summary>
 internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTable places,
-    ReceiverBracketEmitter brackets)
+    ReceiverBracketEmitter brackets, DebugTriggerEmitter debug)
 {
     /// <summary>Render one MOVE — a PURE per-store renderer since P7 Step 7: the dispatch travels on the node
     /// (<see cref="BoundMove.Stores"/>, classified once by <see cref="MoveClassifier"/> at construction — ISO
@@ -50,6 +50,10 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         // PlaceIdentification.SenderFirst. A move whose carrying statement identifies the receiver first keeps C#'s
         // order (INITIALIZE — ImplicitMovePhrase.ReceiverIdentifiedFirst), and so does an overlap prefill (EmitStore).
         bool senderFirst = m.ImplicitOf is not { ReceiverIdentifiedFirst: true };
+        // The store identifies the receiver, and a debugging section that describes it reads that identification (§1985:VI.6.19.4 GR2: "Any length
+        // evaluation or subscripting associated with identifier-2 is evaluated immediately before the data is moved to the respective data item";
+        // kb/Work PB5385). The classification asks the receiver as bound.
+        var identified = debug.IdentifiedAtStore(target);
         // ⛔ ISO §2023:14.9.25.4 GR1's ZERO-LENGTH-ITEM clause — "If identifier-1 is a zero-length item, it is as
         // if literal-1 were specified as a zero-length literal" — which lands in the GR2/GR3 substitution the
         // store above already carries for a written literal. Whether the sending ITEM is zero-length is a
@@ -78,13 +82,13 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
             // store, which is why the route could only ever serve the numeric receivers it was filtered to).
             var fig = MoveClassifier.ZeroLengthItemFigurative(zlSend);
             ctx.Writer.Line($"if ({len} == 0) {{");
-            EmitStore(target, fig, MoveClassifier.Kind(fig, target), MoveSenderOrigin.ZeroLengthItem, senderFirst);
+            EmitStore(identified, fig, MoveClassifier.Kind(fig, target), MoveSenderOrigin.ZeroLengthItem, senderFirst);
             ctx.Writer.Line("} else {");
-            EmitStore(target, source, kind, origin, senderFirst, m.Stores[i].Overlap);
+            EmitStore(identified, source, kind, origin, senderFirst, m.Stores[i].Overlap);
             ctx.Writer.Line("}");
             return;
         }
-        EmitStore(target, source, kind, origin, senderFirst, m.Stores[i].Overlap);
+        EmitStore(identified, source, kind, origin, senderFirst, m.Stores[i].Overlap);
         EmitElementMoves(m, i);
     }
 

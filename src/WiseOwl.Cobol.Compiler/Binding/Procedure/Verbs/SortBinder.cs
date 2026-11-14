@@ -509,7 +509,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         int width = file.TransfersPastRecord(record.Item) && ctx.Refs.Places.RecordArea(file) is { } area
             ? Model.RecordLayout.AreaWidth(area.Item)
             : Model.RecordLayout.AreaWidth(record.Item);
-        return new BoundRelease(file, record, width, from, SortVaryingOf(file));
+        // ⛔ A RECORD OUTSIDE THE RECORD RANGE WITH NO CHECKING TO RAISE A CONDITION (kb/Work PB5124). COBOL-85 has no
+        // exception checking and states the outcome itself: "the output statement is unsuccessful and, except during
+        // execution of a RELEASE statement, the associated I-O status is set" (§1985:VII.3.8.4 GR10, Amendment 2).
+        // From COBOL-2002 the same sentence raises EC-SORT-MERGE-RELEASE (§2023:13.18.43.4 GR14b), and with that
+        // checking off the result is undefined (§2023:14.6.13.1.1) — the record is released (D-SMA (c)).
+        bool rangeFailsStatement = ctx.Edition.DialectLevel < 2002;
+        return new BoundRelease(file, record, width, from, SortVaryingOf(file), rangeFailsStatement);
     }
 
     // ── RETURN (ISO §2023:14.9.34) ──────────────────────────────────────────────────────────────────────────────

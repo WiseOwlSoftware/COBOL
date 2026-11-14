@@ -7,7 +7,7 @@
 # conformance claim (§12 R-6). This script is what turns "assume it is fixed" into "here is the distribution".
 #
 # Usage:  bash scripts/measure-battery-determinism.sh <leg> <runs> [outdir]
-#           leg  = guard | conformance | unit
+#           leg  = guard | conformance | unit | repo-drift
 #           runs = how many times to repeat on the UNCHANGED tree
 #
 # It changes nothing and builds nothing between runs — that is the point. Build once, first, yourself.
@@ -33,6 +33,9 @@ for i in $(seq 1 "$RUNS"); do
                 > "$OUT/run$i.log" 2>&1 ;;
         unit)
             "$PY" scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.Unit --no-build --verbosity quiet \
+                > "$OUT/run$i.log" 2>&1 ;;
+        repo-drift)
+            "$PY" scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.RepoDrift --no-build --verbosity quiet \
                 > "$OUT/run$i.log" 2>&1 ;;
         *) echo "unknown leg: $LEG" >&2; exit 2 ;;
     esac

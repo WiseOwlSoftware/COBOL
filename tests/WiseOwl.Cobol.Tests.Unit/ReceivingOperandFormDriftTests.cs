@@ -26,11 +26,11 @@ public sealed class ReceivingOperandFormDriftTests
 {
     private static readonly string[] GrammarFiles =
     [
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "CobolParserCore.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolControlFlow.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolData.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolIO.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolOO.g4"),
+        "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4",
     ];
 
     /// <summary>rule-name → its body text, comments stripped.</summary>
@@ -39,7 +39,7 @@ public sealed class ReceivingOperandFormDriftTests
         var rules = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (string rel in GrammarFiles)
         {
-            string path = Path.Combine(TestRepo.Root, rel);
+            string path = TestRepo.Within("src/WiseOwl.Cobol.Frontend/Grammar/", rel);
             Assert.True(File.Exists(path), $"grammar file '{rel}' not found — if it moved, move this guard");
             string g4 = Regex.Replace(File.ReadAllText(path), @"//[^\n]*", " ");
             foreach (Match m in Regex.Matches(g4, @"^(?<name>[a-z][A-Za-z0-9_]*)\s*\r?\n?\s*:(?<body>.*?);",

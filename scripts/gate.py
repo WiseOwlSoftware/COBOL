@@ -11,7 +11,7 @@ docs/rearchitecture/DESIGN-test-build-ci.md §3.14.1, §3.14.3, §3.14.6, §3.17
 Called by `scripts/build-local.ps1` and `scripts/build-local.sh`, which only set the process priority.
 
 ⛔ THE POPULATION IS THE SELECTION (owner decision 1 of PB4323, 2026-10-31; kb/Work PB4328). A change that a test can read
-runs the WHOLE Unit, Conformance and Characterization populations on this host: no plan, no tiers, no impact map, no leg
+runs the WHOLE population of every test target (scripts/build_targets.json, test_population.GATED_ASSEMBLIES) on this host: no plan, no tiers, no impact map, no leg
 2. The order inside each assembly is the test framework's (tests/_shared/GateLegs.cs `GateOrderer`): the test classes
 the previous run of this worktree, or the merge-group run that bounced its pull request, saw red go first, then the
 rest longest first by the committed weights file (tests/_shared/test-weights.json). Ordering changes WHEN a case runs,
@@ -34,7 +34,7 @@ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-b
      (`Host.stop_hosts`) and ends the gate RED (kb/Work PB2523, PB4326). The GnuCOBOL corpus, by the ONE rule
      scripts/external_corpus.py (kb/Work PB2611), is fetched BEFORE the slot (kb/Work PB2524);
   4. the gate slot, always after the lock, so no two gates can wait on each other in a cycle; then the solution build;
-  5. the three assemblies' WHOLE populations CONCURRENTLY, each one `dotnet test --no-build` host in a scrubbed
+  5. the gated assemblies' WHOLE populations CONCURRENTLY, each one `dotnet test --no-build` host in a scrubbed
      environment, printed through scripts/test_leg_report.py; beside them each assembly's `--list-tests` (scrubbed), and,
      only when the change touches tooling, the self-test that reads the built assemblies (`self_tests.py --built`; a red
      one makes the gate RED — kb/Work PB4326);
@@ -2244,7 +2244,7 @@ class Gate:
     @staticmethod
     def _concurrency(out: Outcome) -> float | None:
         """EFFECTIVE CONCURRENCY of the hosts (kb/Work PB4326): their wall seconds summed over the span they took. 3.0
-        means the three assemblies ran flat out side by side; near 1.0, one assembly's tail ran alone. None when no host
+        means the assemblies ran flat out side by side; near 1.0, one assembly's tail ran alone. None when no host
         ran."""
         span = out.timings.get("tests_s", 0.0)
         return round(sum(r.wall_s for r in out.runs) / span, 2) if out.runs and span > 0 else None
@@ -2274,6 +2274,7 @@ class FakeHost(Host):
     POPULATION = {
         "Conformance": ["N.Conf.A", "N.Conf.B", "N.Conf.C", "N.Conf.D", "N.Conf.E", "N.Conf.F"],
         "Unit": ["N.Unit.A", "N.Unit.B", "N.Unit.C", "N.Unit.D"],
+        "RepoDrift": ["N.Drift.A", "N.Drift.B", "N.Drift.C"],
         "Characterization": ["N.Char.A", "N.Char.B"],
     }
 
@@ -2538,7 +2539,7 @@ def self_test() -> int:
         o, h = gate("green")
         arm("a whole planted population is GREEN, every assembly EXACT, one slot taken",
             o.verdict == "GREEN" and o.exit_code == 0 and all(p.exact for p in o.populations.values())
-            and len(o.populations) == 3 and h.slots_taken == 1, o.line)
+            and len(o.populations) == len(GATED_ASSEMBLIES) and h.slots_taken == 1, o.line)
         arm("every assembly runs its WHOLE population in one host, handed no narrowing and no first classes",
             sorted(h.envs) == sorted(GATED_ASSEMBLIES) and sorted(r.asm for r in o.runs) == sorted(GATED_ASSEMBLIES)
             and all(FIRST_CLASSES not in v for v in h.envs.values()) and o.first == [], str(h.envs.keys()))
@@ -2554,7 +2555,7 @@ def self_test() -> int:
             and rec["schema"] == RECORD_SCHEMA
             and sorted(p.name for p in (root / "green" / "runs" / runs[0]).glob("*.trx"))
             == sorted(f"{a}.trx" for a in GATED_ASSEMBLIES)
-            and len(list((root / "green" / "runs" / runs[0]).glob("listing-*.txt"))) == 3, str(runs))
+            and len(list((root / "green" / "runs" / runs[0]).glob("listing-*.txt"))) == len(GATED_ASSEMBLIES), str(runs))
         arm("a GREEN code-lane gate leaves ONE growth sample (kb/Work PB4333): its run, the tests_s its record holds and "
             "the Conformance cases it discovered",
             h.growth == [(runs[0], rec["timings"]["tests_s"], 6)] and "tests_s" in rec["timings"], str(h.growth))
@@ -2584,7 +2585,7 @@ def self_test() -> int:
 
         o, h = gate("red", plant={"red"})
         arm("a red host makes the gate RED, exit 1, and every other host still ran its whole population",
-            o.verdict == "RED" and o.exit_code == 1 and "Conformance RED" in o.line and len(o.runs) == 3
+            o.verdict == "RED" and o.exit_code == 1 and "Conformance RED" in o.line and len(o.runs) == len(GATED_ASSEMBLIES)
             and o.populations["Unit"].exact and "first_red_s" in o.timings and h.growth == [], o.line)
         arm("a red host's whole output, its failure message included, reaches the console through test_leg_report.py",
             said("PLANTED-RED-MESSAGE") and said("Conformance: RED"), "\n".join(sink[-20:]))
@@ -2759,7 +2760,7 @@ def self_test() -> int:
         arm("a red post-build self-test (one that reads the built assemblies, kb/Work PB2563) runs beside the hosts and "
             "makes the gate RED after them, its output printed whole",
             o.verdict == "RED" and o.exit_code == 1 and "POST-BUILD SELF-TESTS RED" in o.line
-            and len(o.runs) == 3 and not any(r.red for r in o.runs)
+            and len(o.runs) == len(GATED_ASSEMBLIES) and not any(r.red for r in o.runs)
             and said("PLANTED-POST-BUILD-RED"), o.line)
         o, h = gate("slot-settings", plant={"slot-settings"})
         arm("shared gate settings that turn malformed while the gate queues: NOT RUN [settings] (ENVIRONMENT), exit 2, "
@@ -2833,7 +2834,7 @@ def self_test() -> int:
         o, h = gate("post-build-crash", plant={"post-build-crash", "tooling"})
         arm("a defect in work beside the critical path is a named RED with its traceback, and the hosts still ran",
             o.verdict == "RED" and o.exit_code == 1 and "POST BUILD SELF TESTS FAILED (RuntimeError" in o.line
-            and len(o.runs) == 3 and said("planted: a defect in the post-build self-tests' runner"), o.line)
+            and len(o.runs) == len(GATED_ASSEMBLIES) and said("planted: a defect in the post-build self-tests' runner"), o.line)
         o, h = gate("one-shape", plant={"red"})
         arm("ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits beside the build and the hosts and runs "
             "the whole population; there is no mode and no scope",
@@ -3193,7 +3194,7 @@ def self_test() -> int:
             "other assemblies up to date in the store, and the verdict is GREEN with Conformance EXACT",
             red1.verdict == "RED" and fix.verdict == "GREEN" and sorted(hf.envs) == ["Conformance"]
             and only_text == "N.Conf.A\n" and hf.envs["Conformance"].get(ONLY_CASES) is not None
-            and fix.populations["Conformance"].exact and sorted(fix.up_to_date) == ["Characterization", "Unit"]
+            and fix.populations["Conformance"].exact and sorted(fix.up_to_date) == ["Characterization", "RepoDrift", "Unit"]
             and fix.carried == {"Conformance": 5} and fix.recorded == ["Conformance"]
             and "Conformance 6/6" in fix.line and "5 carried from run(s)" in fix.line and "build" in hf.events,
             f"{fix.line} {sorted(hf.envs)} {only_text!r}")
@@ -3298,7 +3299,7 @@ def self_test() -> int:
         inert_retry, hrr = regate(d, trees=["tree-2"], keys={"tree-2": "tree-1"})
         arm("a RED run, then an inert-only commit, retries only the red case: the inert path costs no case",
             inert_retry.verdict == "GREEN" and sorted(hrr.envs) == ["Conformance"]
-            and inert_retry.carried == {"Conformance": 5} and sorted(inert_retry.up_to_date) == ["Characterization", "Unit"],
+            and inert_retry.carried == {"Conformance": 5} and sorted(inert_retry.up_to_date) == ["Characterization", "RepoDrift", "Unit"],
             inert_retry.line)
 
         # THE TARGETS (kb/Work PB5207 stage 1, PB5218; owner 2026-11-10: "This is precisely what the Unix make and Windows
@@ -3313,11 +3314,12 @@ def self_test() -> int:
         arm("an audit that turns RED after every test host has exited (a self-test that hung past the last host) stops no "
             "host: the run is RED for the audit alone, its populations are measured EXACT and each target's pass is "
             "recorded in the store at its key",
-            hang.verdict == "RED" and "SELF-TESTS HANG" in hang.line and len(hang.populations) == 3
+            hang.verdict == "RED" and "SELF-TESTS HANG" in hang.line and len(hang.populations) == len(GATED_ASSEMBLIES)
             and all(pp.exact for pp in hang.populations.values()) and hang_rec.get("tree_end") == "tree-1"
             and hang_rec.get("audit_reds") == ["SELF-TESTS HANG"] and sorted(hang.recorded) == sorted(GATED_ASSEMBLIES)
             and all(FakeHost(d, d / "gate.lock").store().up_to_date(t, hang.keys[a])
-                    for a, t in (("Unit", "unit"), ("Conformance", "conformance"), ("Characterization", "characterization"))),
+                    for a, t in (("Unit", "unit"), ("RepoDrift", "repo-drift"), ("Conformance", "conformance"),
+                                 ("Characterization", "characterization"))),
             hang.line)
         tool_hang, hth = regate(d, trees=["tree-2"], keys=same, plant={"tooling"})
         arm("a run RED only for a hung self-test, then a tooling-only difference (every key equal): every target is up to "
@@ -3347,16 +3349,18 @@ def self_test() -> int:
         d = root / "target-unit-only"
         d.mkdir()
         regate(d)
-        unit_only, huo = regate(d, trees=["tree-2"], keys={"tree-2": {"Conformance": "tree-1", "Characterization": "tree-1"}})
+        unit_only, huo = regate(d, trees=["tree-2"], keys={"tree-2": {"Conformance": "tree-1", "Characterization": "tree-1",
+                                                                "RepoDrift": "tree-1"}})
         arm("equal conformance and characterization keys with a changed unit key (a records-only change) run Unit ONLY: "
             "one host, the others up to date, and Unit's new pass is recorded",
             unit_only.verdict == "GREEN" and sorted(huo.envs) == ["Unit"] and "build" in huo.events
-            and sorted(unit_only.up_to_date) == ["Characterization", "Conformance"] and unit_only.recorded == ["Unit"]
+            and sorted(unit_only.up_to_date) == ["Characterization", "Conformance", "RepoDrift"] and unit_only.recorded == ["Unit"]
             and "Conformance up to date" in unit_only.line and "Unit 4/4 ran" in unit_only.line, unit_only.line)
         d = root / "target-conformance-input"
         d.mkdir()
         regate(d)
-        conf_in, hci = regate(d, trees=["tree-2"], keys={"tree-2": {"Unit": "tree-1", "Characterization": "tree-1"}})
+        conf_in, hci = regate(d, trees=["tree-2"], keys={"tree-2": {"Unit": "tree-1", "Characterization": "tree-1",
+                                                              "RepoDrift": "tree-1"}})
         arm("a changed input of conformance (its key differs) runs Conformance, and only it",
             conf_in.verdict == "GREEN" and sorted(hci.envs) == ["Conformance"] and conf_in.recorded == ["Conformance"],
             conf_in.line)
@@ -3411,7 +3415,7 @@ def self_test() -> int:
         arm("at a target's key, an earlier RED run of this worktree leaves only its unpassed case to run (kb/Work PB5099); "
             "the targets that passed are up to date",
             carried_retry.verdict == "GREEN" and sorted(hcr.envs) == ["Conformance"]
-            and carried_retry.carried == {"Conformance": 5} and sorted(carried_retry.up_to_date) == ["Characterization", "Unit"]
+            and carried_retry.carried == {"Conformance": 5} and sorted(carried_retry.up_to_date) == ["Characterization", "RepoDrift", "Unit"]
             and carried_retry.recorded == ["Conformance"], carried_retry.line)
 
         # THE REAL KEYS (`Host.target_keys`, `buildgraph.key`) over a real repository with the real targets file.
@@ -3419,7 +3423,8 @@ def self_test() -> int:
         planted_tool, code_tool = "scripts/orchestrator/planted_tool.py", "scripts/standard_streams.py"
         files = {"src/A.cs": "class A {}\n", "docs/n.md": "# n\n", "kb/Work/X.md": "x\n", planted_tool: "x = 1\n",
                  code_tool: "y = 1\n", "tests/version-matrix/inventory/r.json": "{}\n",
-                 "tests/WiseOwl.Cobol.Tests.Unit/U.cs": "class U {}\n", "tests/characterization/positive/p.cob": "p\n"}
+                 "tests/WiseOwl.Cobol.Tests.Unit/U.cs": "class U {}\n", "tests/characterization/positive/p.cob": "p\n",
+                 ".github/workflows/ci.yml": "on: push\n"}
         keyhost = Host(keyrepo.path)
         kfacets = {"platform": "windows", "configuration": GATE_CONFIGURATION, "toolchain": "t1"}
 
@@ -3434,6 +3439,7 @@ def self_test() -> int:
         ks = {"docs": keys_after({"docs/n.md": "# edited\n", "kb/Work/X.md": "y\n", planted_tool: "x = 2\n"}),
               "unit-test": keys_after({"tests/WiseOwl.Cobol.Tests.Unit/U.cs": "class U { int x; }\n"}),
               "char": keys_after({"tests/characterization/positive/p.cob": "q\n"}),
+              "workflow": keys_after({".github/workflows/ci.yml": "on: pull_request\n"}),
               "inventory": keys_after({"tests/version-matrix/inventory/r.json": '{"v": 2}\n'}),
               "suite-output": keys_after({}, outputs={"conformance-suite": "e" * 64}),
               "src": keys_after({"src/A.cs": "class A { int b; }\n"}),
@@ -3442,20 +3448,26 @@ def self_test() -> int:
             unresolved = str(keyhost.target_keys(keyhost.head_tree() or "", kfacets))
         except buildgraph.Unresolved as e:
             unresolved = f"Unresolved: {e}"
-        arm("the real keys: a docs, kb or tooling-lane edit leaves every key; a Unit test source changes Unit's key only, a "
-            "characterization program Unit's and Characterization's only; an inventory edit Unit's only (Conformance takes "
-            "the generated suite's digest, kb/Work PB5231), and another suite digest Conformance's only; src/ and the "
-            "toolchain change every key; with no record of the suite in the store Conformance's key is UNRESOLVED",
-            len(k0) == 3 and ks["docs"] == k0
+        arm("the real keys: a docs, kb or tooling-lane edit leaves every key; a Unit test source changes Unit's and "
+            "RepoDrift's keys only (a drift test reads every test source), a characterization program Characterization's "
+            "and RepoDrift's and not Unit's, a workflow RepoDrift's only; an inventory edit RepoDrift's only (Unit and "
+            "Conformance take the generated suite's digest, kb/Work PB5231, PB5230), and another suite digest Unit's and "
+            "Conformance's only; src/ and the toolchain change every key; with no record of the suite in the store a "
+            "dependent's key is UNRESOLVED",
+            len(k0) == 4 and ks["docs"] == k0
             and ks["unit-test"]["Unit"] != k0["Unit"] and ks["unit-test"]["Conformance"] == k0["Conformance"]
-            and ks["unit-test"]["Characterization"] == k0["Characterization"]
+            and ks["unit-test"]["Characterization"] == k0["Characterization"] and ks["unit-test"]["RepoDrift"] != k0["RepoDrift"]
             and ks["char"]["Characterization"] != k0["Characterization"] and ks["char"]["Conformance"] == k0["Conformance"]
-            and ks["inventory"]["Unit"] != k0["Unit"] and ks["inventory"]["Conformance"] == k0["Conformance"]
-            and ks["inventory"]["Characterization"] == k0["Characterization"]
-            and ks["suite-output"]["Conformance"] != k0["Conformance"]
-            and ks["suite-output"]["Unit"] == k0["Unit"] and ks["suite-output"]["Characterization"] == k0["Characterization"]
+            and ks["char"]["Unit"] == k0["Unit"] and ks["char"]["RepoDrift"] != k0["RepoDrift"]
+            and ks["workflow"]["RepoDrift"] != k0["RepoDrift"]
+            and all(ks["workflow"][a] == k0[a] for a in ("Unit", "Conformance", "Characterization"))
+            and ks["inventory"]["RepoDrift"] != k0["RepoDrift"]
+            and all(ks["inventory"][a] == k0[a] for a in ("Unit", "Conformance", "Characterization"))
+            and ks["suite-output"]["Conformance"] != k0["Conformance"] and ks["suite-output"]["Unit"] != k0["Unit"]
+            and ks["suite-output"]["RepoDrift"] == k0["RepoDrift"]
+            and ks["suite-output"]["Characterization"] == k0["Characterization"]
             and all(ks["src"][a] != k0[a] and ks["toolchain"][a] != k0[a] for a in GATED_ASSEMBLIES)
-            and unresolved.startswith("Unresolved: conformance's key needs the output digest of conformance-suite"),
+            and unresolved.startswith("Unresolved: ") and "needs the output digest of conformance-suite" in unresolved,
             f"{ks} {unresolved}")
 
         # THE GENERATED TARGET (kb/Work PB5231): a planted graph over a REAL scratch repository, its generator really run
@@ -3464,7 +3476,7 @@ def self_test() -> int:
         grepo.commit("base", {".gitignore": "TestResults/\n__pycache__/\n", "gen/make.py": buildgraph.PLANTED_GENERATOR,
                               "inv/r1.json": '{"id": "r1", "verdict": "GAP"}\n', "src/A.cs": "class A {}\n",
                               "tests/C/T.cs": "class T {}\n", "tests/U/U.cs": "class U {}\n",
-                              "tests/H/H.cs": "class H {}\n"})
+                              "tests/H/H.cs": "class H {}\n", "tests/R/R.cs": "class R {}\n"})
         every = ("platform", "configuration", "toolchain")
         ggraph = buildgraph.Graph.of({
             "suite": buildgraph.GeneratedTarget(
@@ -3476,6 +3488,8 @@ def self_test() -> int:
             "conformance": buildgraph.TestTarget(name="conformance", assembly="Conformance", project="tests/C/",
                                                  inputs=("src/", "tests/C/"), exclude=("@inert",), facets=every,
                                                  depends=("suite",)),
+            "repo-drift": buildgraph.TestTarget(name="repo-drift", assembly="RepoDrift", project="tests/R/",
+                                                inputs=("src/", "tests/R/"), exclude=("@inert",), facets=every),
             "characterization": buildgraph.TestTarget(name="characterization", assembly="Characterization",
                                                       project="tests/H/", inputs=("src/", "tests/H/"), exclude=("@inert",),
                                                       facets=every)}, every)
@@ -3618,10 +3632,12 @@ def self_test() -> int:
             "stays RED, keeps the original beside it, stores nothing, and the next gate at its keys builds and lists but "
             "starts no test host, then records the passes",
             rd.record is not None and rd.level == "passes" and written.get("tree_end") == "tree-1"
-            and len(written.get("keys") or {}) == 3 and written.get("exit_code") == 1 and original.get("tree_end") is None
+            and len(written.get("keys") or {}) == len(GATED_ASSEMBLIES) and written.get("exit_code") == 1
+            and original.get("tree_end") is None
             and "undone at any time before this re-derivation" in written.get("rederived", {}).get("residue", "")
             and not rd.stored and after.verdict == "GREEN" and "build" in hpa.events and hpa.envs == {}
-            and sum(after.carried.values()) == 12 and sorted(after.recorded) == sorted(GATED_ASSEMBLIES),
+            and sum(after.carried.values()) == sum(map(len, FakeHost.POPULATION.values()))
+            and sorted(after.recorded) == sorted(GATED_ASSEMBLIES),
             f"{rd.refusals} {after.line} {hpa.events}")
         d = root / "rederive-green"
         d.mkdir()

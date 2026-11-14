@@ -229,6 +229,15 @@ public enum DialectBehavior
     /// <c>BoundPower.NegativeBaseRealRoots</c> for <c>NumericRenderer.Power</c> and so for
     /// <c>CobolIntrinsics.PowNativeReal(double, CobolExact)</c> and <c>CobolExact.PowReal</c>.</summary>
     NegativeBaseRequiresIntegerExponent = 17,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.13.4 GR4 c) — "If the result of the analysis is false for any pair in a WHEN phrase,
+    /// no more pairs in that WHEN phrase are evaluated"; the 2002 text words it the same (§2002:14.8.12.3 GR4c), and the
+    /// selection objects of a WHEN phrase are evaluated only when the phrase is analyzed. §1985:VI.6.13.4 GR1 says instead
+    /// that the statement "operates as if each selection subject and selection object were evaluated" and assigned a value
+    /// before any comparison (GR2), so at <c>--std 85</c> an object a WHEN phrase never reaches is evaluated too, which is
+    /// observable when it references a function (X3.23a-1989 RANDOM's next number; kb/Work PB5183; VCR row 7.69). Both
+    /// editions are QUOTED. The consumer is <c>EvaluateBinder.Bind</c>, which hoists the analysis of each such pair to the
+    /// beginning of the statement when this behaviour is inactive.</summary>
+    EvaluateObjectsInWhenPhraseOrder = 18,
 }
 
 /// <summary>
@@ -331,6 +340,11 @@ public static class DialectBehaviors
             "7.67", "8.8.1.2 GR6c", "§1985:VI.6.2.3 GR5c",
             "a negative base raised to a non-integer exponent raises EC-SIZE-EXPONENTIATION only from COBOL-2002; "
             + "COBOL-85 raises the size error only when no real number is the result, so (-32) ** 0.2 is -2"),
+        new(DialectBehavior.EvaluateObjectsInWhenPhraseOrder, "evaluate-objects-in-when-phrase-order", 2002,
+            "7.69", "14.9.13.4 GR4 c)", "§1985:VI.6.13.4 GR1",
+            "an EVALUATE selection object is evaluated only when its WHEN phrase is analyzed, and not after a false pair of "
+            + "that phrase, only from COBOL-2002; COBOL-85 operates as if every selection subject and object were evaluated "
+            + "before any comparison"),
     ];
 
     static DialectBehaviors()
