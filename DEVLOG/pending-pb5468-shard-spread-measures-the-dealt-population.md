@@ -9,7 +9,9 @@ fix that spread, so the red named a remedy that does not exist.
 
 `scripts/shard_weights.py report` now records the test assemblies each shard's trx define. It leaves out, and names, an
 OS of a run whose shards ran fewer than every assembly the weights file deals. A weights file that deals an assembly no
-shard of the window ran is UNMEASURED, so the report cannot go blind. The 1.5x threshold is unchanged. The self-test
+shard of the window ran is UNMEASURED, so the report cannot go blind. A window that read shard runs and measured
+none of them is UNMEASURED too, as is a run whose shard artifacts hold no trx (review R1-1). Only a window with no
+shard run is NOT MEASURED. The 1.5x threshold is unchanged. The self-test
 replays run 43430492045: 1.33x WITHIN over the dealt three (Linux decides), 1.65x OVER over Unit alone. With the partial
 branch removed, it fails.
 

@@ -34,7 +34,9 @@ assembly alone. Since PB5235 a Windows leg runs only the target assemblies with 
 key, so its shards may run one assembly's share of a deal balanced over three, and that spread is the deal's design,
 which no regeneration changes (the weights of 2026-11-04 deal Windows' Unit share alone at 1.50x, every weight exact).
 So the OS of a run whose shards together ran fewer than every assembly the weights file names is PARTIAL: it is left
-out, and the verdict line names it. A weights file that names an assembly no shard of the window ran at all is
+out, and the verdict line names it. A window that read shard runs and measured no (run, OS), every one partial or of
+one shard, is UNMEASURED (exit 2), however the assemblies were covered across runs, and so is a run whose
+`test-results-*` artifacts hold no trx (review R1-1: a report that measured nothing is never a green). A weights file that names an assembly no shard of the window ran at all is
 UNMEASURED (exit 2): the file deals load to an assembly that no longer runs, which a regeneration repairs, and a report
 that called every run partial would never measure again. A shard's assemblies are the test assembly keys of its trx's
 test definitions (`codeBase`, keyed as `generate` keys them).
@@ -192,7 +194,8 @@ def verdict(runs: dict[str, dict[str, Shard]], hours: int, dealt: frozenset[str]
             cap: int | None = None) -> tuple[str, int]:
     """The verdict line and exit code for `runs` (run id -> shards) over the `dealt` assemblies (the weights file's).
     The worst spread of any OS of any run that ran every dealt assembly decides; an OS that ran a subset is PARTIAL,
-    left out and named in the line. `cap` is MAX_RUNS when it limited the read: the line then says the newest `cap` runs
+    left out and named in the line. No run is NOT MEASURED (exit 0); runs of which no (run, OS) was measured (every one
+    partial or of one shard) are UNMEASURED (exit 2): a report that read shards and measured nothing is never a green. `cap` is MAX_RUNS when it limited the read: the line then says the newest `cap` runs
     were read, not the whole window. Raises ValueError when a dealt assembly ran in no shard of the window: the weights
     file deals load to an assembly that no longer runs, and every run would otherwise be partial forever."""
     window = (f"in the last {hours} h" if cap is None or len(runs) < cap
@@ -208,9 +211,14 @@ def verdict(runs: dict[str, dict[str, Shard]], hours: int, dealt: frozenset[str]
         partial += [f"run {rid} {p}" for p in left_out]
     partial_note = (f"; {len(partial)} partial (run, OS) left out, a subset of the dealt {'+'.join(sorted(dealt))}: "
                     + ", ".join(partial)) if partial else ""
+    if not runs:
+        return (f"=== SHARD SPREAD: NOT MEASURED -- no merge-group run ran the matrix {window} "
+                "(an inert day divides nothing) ===", 0)
     if not candidates:
-        return (f"=== SHARD SPREAD: NOT MEASURED -- no merge-group run with two or more shards of one OS that ran every "
-                f"dealt assembly {window} (an inert day divides nothing){partial_note} ===", 0)
+        # Shard runs were read and none measured: every (run, OS) was partial or had one shard. A report that read
+        # shards and measured nothing fails loudly (kb/Work PB5468 R1-1), however the assemblies were covered.
+        return (f"=== SHARD SPREAD: UNMEASURED -- {len(runs)} shard run(s) {window}, and no (run, OS) with two or more "
+                f"shards ran every dealt assembly, so no spread was measured{partial_note} ===", 2)
     worst, run_id, (os_name, slowest, mean, count) = max(candidates, key=lambda c: c[0])
     state = "OVER" if worst > threshold else "WITHIN"
     cmp = ">" if worst > threshold else "<="
@@ -273,9 +281,17 @@ def measure_window(hours: int, max_runs: int = MAX_RUNS, gh: Gh = _gh, now: date
                 if "no valid artifacts" not in str(error) and "no artifact" not in str(error).lower():
                     raise
             found = read(Path(scratch))
+            _refuse_shards_without_trx(run_id, Path(scratch), found)
         if found:
             runs[run_id] = found
     return runs
+
+
+def _refuse_shards_without_trx(run_id: str, run_dir: Path, found: object) -> None:
+    """A run that uploaded `test-results-*` artifacts and yielded nothing to read ran shards whose times are lost: a
+    ValueError naming it (UNMEASURED), never an inert run quietly left out (kb/Work PB5468 R1-1)."""
+    if not found and any(p.is_dir() and p.name.startswith(ARTIFACT_PREFIX) for p in run_dir.iterdir()):
+        raise ValueError(f"run {run_id}: its {ARTIFACT_PREFIX}* artifacts hold no trx, so its shards cannot be measured")
 
 
 def gather(root: Path) -> dict[str, dict[str, Shard]]:
@@ -283,6 +299,7 @@ def gather(root: Path) -> dict[str, dict[str, Shard]]:
     runs = {}
     for run_dir in sorted(p for p in root.iterdir() if p.is_dir()):
         walls = shard_walls(run_dir)
+        _refuse_shards_without_trx(run_dir.name, run_dir, walls)
         if walls:
             runs[run_dir.name] = walls
     return runs
@@ -362,7 +379,10 @@ def generate(from_dir: Path | None, out: Path, runs: int = GENERATE_RUNS, gh: Gh
     merge-group runs; return the line that says what it read. Raises GhError, ValueError, UnreadableTrx or OSError
     when it cannot read them, and writes nothing then."""
     if from_dir is not None:
-        read = {p.name: run_class_seconds(p) for p in sorted(q for q in from_dir.iterdir() if q.is_dir())}
+        read = {}
+        for p in sorted(q for q in from_dir.iterdir() if q.is_dir()):
+            read[p.name] = run_class_seconds(p)
+            _refuse_shards_without_trx(p.name, p, read[p.name])
     else:
         read = measure_window(GENERATE_HOURS, runs, gh, read=run_class_seconds)
     read = {run_id: by_os for run_id, by_os in read.items() if by_os}
@@ -479,7 +499,8 @@ def self_test() -> int:
         line, code = verdict({}, 24, unit)
         check("no shard run is NOT MEASURED and exits 0", (code, "NOT MEASURED" in line), (0, True))
         line, code = verdict({"9": {"test-results-Linux-only": Shard(50.0, unit)}}, 24, unit)
-        check("one shard of an OS has no spread", (code, "NOT MEASURED" in line), (0, True))
+        check("one shard of an OS has no spread, and a window that read shards and measured none is UNMEASURED",
+              (code, "UNMEASURED" in line, "no spread was measured" in line), (2, True, True))
 
         # THE POPULATION (kb/Work PB5468): the spread is measured over the assemblies the weights deal, never a subset.
         # Run 43430492045 of 2026-11-13 as it ran: Windows ran Unit alone (the store held Conformance's and
@@ -504,9 +525,10 @@ def self_test() -> int:
                 for k in (1, 2)}
         line, code = verdict({"43430492045": {k: v for k, v in replayed["43430492045"].items() if "Windows" in k},
                               "7": rest}, 24, three)
-        check("a window of partial legs only is NOT MEASURED, green, and names each",
-              (code, "NOT MEASURED" in line, "run 43430492045 Windows ran Unit" in line,
-               "run 7 Windows ran Characterization+Conformance" in line), (0, True, True, True))
+        check("a window of partial legs only, its assemblies covered across runs, is UNMEASURED (exit 2) and names each "
+              "(kb/Work PB5468 R1-1: a report that measured nothing is never a green)",
+              (code, "UNMEASURED" in line, "no spread was measured" in line, "run 43430492045 Windows ran Unit" in line,
+               "run 7 Windows ran Characterization+Conformance" in line), (2, True, True, True, True))
         split = {"test-results-Linux-a": Shard(100.0, frozenset({"Unit"})),
                  "test-results-Linux-b": Shard(100.0, frozenset({"Conformance"}))}
         line, code = verdict({"5": split}, 24, frozenset({"Conformance", "Unit"}))
@@ -538,6 +560,12 @@ def self_test() -> int:
         line, code = report(root, 24, THRESHOLD, repo=dealt_repo)
         check("a torn trx is UNMEASURED and the line names the file", (code, "UNMEASURED" in line, "x.trx" in line), (2, True, True))
         check("a missing directory is UNMEASURED", report(Path(scratch) / "absent", 24, THRESHOLD, repo=dealt_repo)[1], 2)
+        lost = Path(scratch) / "lost"
+        (lost / "8" / "test-results-Linux-shard-1").mkdir(parents=True)
+        (lost / "8" / "test-results-Linux-shard-1" / "harness.log").write_text("x", encoding="utf-8", newline="\n")
+        line, code = report(lost, 24, THRESHOLD, repo=dealt_repo)
+        check("a run whose shard artifacts hold no trx is UNMEASURED and named, never an inert run left out (R1-1)",
+              (code, "UNMEASURED" in line, "run 8:" in line), (2, True, True))
         line, code = report(replay, 24, THRESHOLD, repo=Path(scratch) / "no-repo")
         check("no weights file is UNMEASURED: a spread needs the population it is over", (code, "UNMEASURED" in line), (2, True))
 
