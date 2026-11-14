@@ -1,4 +1,6 @@
-## PB5230: the repository drift tests leave Unit for their own assembly and target, and Unit's inputs are declared narrowly
+## Entry 3579 — 2026-11-13 19:28 PST — PB5230: the repository drift tests leave Unit for their own assembly and target, and Unit's inputs are declared narrowly; The FROM/INTO record-area rule ends at 2002, as the 2014 text says (PB5270); COBOL-85 arms of the function-identifier, EVALUATE, DEBUG-ITEM, INSPECT sizes and the INTO/FROM citations (PB5163, PB5183, PB5209, PB5297, PB5425, PB5352)
+
+### PB5230: the repository drift tests leave Unit for their own assembly and target, and Unit's inputs are declared narrowly
 
 Stage 2 (first half) of the build redesign the owner approved in kb/Work PB5207: "This is precisely what the Unix make and
 Windows MSBuild utilities are for. They rerun only what is required due to changes."
@@ -94,3 +96,67 @@ same spec with the old phrase), `work.py check`. The gate of this branch is in t
 **Left.** The six split classes' RepoDrift halves carry the default weight until
 `shard_weights.py generate` measures them. CI's workflow and linux-gate.sh still list the assemblies by name; the operator's
 PB5235 moves CI onto the targets.
+
+### The FROM/INTO record-area rule ends at 2002, as the 2014 text says (PB5270)
+
+Wave 20262004 group G (PB5183, PB5163, PB5209, PB5270). This branch continues w20261998c (PB5120 and its siblings, merged in
+from worktree-wf_c902d12a-c75-3); the merge kept both sides of main's new DialectBehavior rows 8 to 13 and VCR rows 7.58 to 7.63,
+so the INSPECT BEFORE/AFTER row PB5120 added is now DialectBehavior 14 and VCR row 7.64.
+
+**PB5270.** Re-probed on the branch build: `WRITE FR FROM FR` and `READ F INTO FR` drew COBOL6827 at `--std 2014` as at 2002,
+though `§2014:E.3` lists all five phrases (READ INTO, RELEASE FROM, RETURN INTO, REWRITE FROM, WRITE FROM; items 21, 24, 25, 26
+and 38) as no longer prohibited. The rule had been kept at 2014 by a DETERMINATION made before the 2014 text was in the
+repository. `RecordAreaRule.InForce` is now `editionYear < 2014`, and the COBOL6827 descriptor names the 2014 change. The five
+`pb5077-*-own-record-area` refusals refuse at 85 and 2002; the new golden `pb5270_from_into_own_record_area_2014` runs all five
+phrases from 2014 and prints only the defined results (I-O status, the record count the SORT returned). Docs: CONFORMANCE §3.5,
+FILES_DESIGN D31 (b), VCR row 7.68. No inventory row closes: there is no 2014 inventory, and the 2023 rows never carried the rule.
+
+PB5183, PB5163 and PB5209 were re-probed and still reproduce; the fleet stop arrived before their fixes (see the branch's
+STATUS.md for the next step).
+
+### COBOL-85 arms of the function-identifier, EVALUATE, DEBUG-ITEM, INSPECT sizes and the INTO/FROM citations (PB5163, PB5183, PB5209, PB5297, PB5425, PB5352)
+
+Wave 20262020 group A. This branch finishes w20262014a (whose implementer died on an API 403): it merges
+`worktree-wf_7021f6f6-0af-1`, which carries PB5230 (the repository drift tests leave Unit), PB5270, PB5309 and the w20262013a
+Report Writer group (landed separately as PR 1599 and merged back from main). The merge took main's side of the dead finisher's
+uncommitted PB5378 halves, because main had already landed PB5378's review answers; its shared C# lexer
+(`scripts/csharp_lexer.py`) passes its seven cases and `buildgraph.py --self-test` (36 arms). One merge fix-up: main's PB5196
+drift test reads the 2002 and 1985 texts from Unit, so `scripts/build_targets.json` declares both (BUILD TARGETS was RED, now
+GREEN). Every note below was re-probed on the branch's own build first; each reproduced.
+
+**PB5163.** `FUNCTION RANDOM ()` and `FUNCTION CURRENT-DATE ()` compiled at `--std 85`. The edge is 2002, not 2023: ISO/IEC
+1989:2002 8.4.2.2.1 brackets the argument inside the parentheses and its SR4 NOTE writes `FUNCTION RANDOM ()`. New construct
+`function-empty-argument-list-2002` (COBOL0900), gated by recognition in `VersionConformancePass.ParseArm.VisitFunctionCall`.
+
+**PB5209.** `FUNCTION MAX (TE (ALL) (2:1))` was refused COBOL2363 at every edition: `TryBindAllArgument` gave up on any suffix
+after the subscripts. It now takes the modifier through the one reference-modification tail (`ScreenRefModCount`,
+`ReadScreenedRefMod`, `RefModView`) over the element's place, so the backend's enumeration modifies each occurrence
+(§1985:IV.4.3.8.4.4 GR3). Goldens at 85 and in the 2023 tree.
+
+**PB5183.** At 85 an EVALUATE object no WHEN phrase reached was never evaluated, against §1985:VI.6.13.4 GR1 ("operates as if each
+selection subject and selection object were evaluated"). New `DialectBehavior.EvaluateObjectsInWhenPhraseOrder` (2002, VCR row
+7.69): where it is inactive, `EvaluateBinder.Bind` holds the truth of each pair whose object references a function at the head of
+the statement (`SendingValueTemp.MaterializeTruth`). Design D5 of docs/CONDITIONS_EXCEPTIONS_DESIGN.md records it.
+
+**PB5297.** `MOVE "A" TO TE (DEBUG-SUB-1)` outside a debugging section compiled: the position is evaluated into a temporary by a
+pre-op still pending when the funnel asked `ReferencesDebugItem`, which now asks those pre-ops too (COBOL6442).
+
+**PB5425.** The 1985 INSPECT size rules skipped `W3 (2:)` and `FUNCTION UPPER-CASE (W3)`. `IntrinsicBinder.KnownWidth`, the one
+static size reader, now reads an open reference modification's remaining positions and a function's fixed length, from a new
+`IntrinsicSig.Length` column (`IntrinsicResultLength`: CHAR 1, CURRENT-DATE and WHEN-COMPILED 21, LOWER-CASE, UPPER-CASE and
+REVERSE argument-1's length). Six refusals (COBOL0846), one control, `IntrinsicResultLengthTests`.
+
+**PB5352.** A COBOL-85 READ INTO refusal cited ISO §2023:14.9.30.3 SR1. New `EditionCite` (a rule's 2023 citation and its 1985
+one per I-O module); `IntoPhraseRules` and its twin `FromPhraseRules` cite the admissibility rule, its arms and the MOVE rule as
+the edition numbers them. Three 85 refusals pin the message; `EditionCiteTests` pins the selection.
+
+**Inventory.** 1985 rows re-verdicted CONFORMS through five `record_verdicts --edition 1985` batches (w20262020a-pb5163, -pb5209,
+-pb5183, -pb5297, -pb5425): 1989-FMT-A.2.35.2, 1985-FMT-IV.4.3.8.3.2, 1985-SR-IV.4.2.1-4, 1985-FMT-IV.4.3.8.4.2,
+1985-FMT-IV.4.3.8.5.2, 1985-GR-VI.6.13.4-1, 1985-SR-XV.3.2.3-11, 1985-SR-VI.6.18.3-7, -8 and -9 (1985 GAP 279 to 269). PB5373
+stays open: its remaining rows wait for PB5374's tooling and PB5308.
+
+**Self-review** (architecture, full code, performance, duplication): each rule is asked at the one place its siblings are (the
+parse arm for the format gate, the reference-modification tail, the statement funnel, the one size reader, one citation type
+for both phrase records); the EVALUATE hoist adds code only to an 85 pair whose object references a function; no second copy of
+a rule was added. The gate's verdict is in the branch's report.
+
