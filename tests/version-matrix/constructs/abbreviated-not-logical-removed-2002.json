@@ -1,0 +1,12 @@
+{
+ "id": "abbreviated-not-logical-removed-2002",
+ "description": "The LOGICAL NOT of an abbreviated relation in an abbreviated combined relation condition - NOT followed by a word other than GREATER, >, LESS, <, EQUAL or = (A > B AND NOT >= C OR D is ((A > B) AND (NOT (A >= C))) OR (A >= D)), §1985:VI.6.3.3 GRL2.1/GRL2.2, in every shape but one: NOT before an extended relational operator (NOT >=, NOT <=, NOT IS GREATER THAN OR EQUAL TO) or before an IS-led operator carrying its own NOT (NOT IS NOT > C). The remaining shape, NOT before an IS-led simple relational operator (NOT IS > C), is abbreviated-not-is-simple-operator-removed-2014: 2002 keeps it with another meaning (NegatedAbbreviationForms.Of partitions the two; review R1-1). ISO 2002 prohibited NOT before the relational operators meaning 'greater than or equal to' and 'less than or equal to' (§2002:F.1 item 22) and NOT followed by IS NOT (§2002:8.8.4.2.4.2 SR3), and the 2014 and 2023 general formats admit NOT there only as part of a relational operator or before object-1 (§2023:8.8.4.12.2; §2023:8.8.4.12.4 GR1 NOTE: NOT cannot immediately precede an extended-relational operator). Accepted at 85; COBOL0902 from 2002 (a warning under --permissive, the 85 meaning kept). One grammar node, negatedAbbreviatedRelation (kb/Work PB5123).",
+ "display": "a logical NOT before the relational operator of an abbreviated relation",
+ "diagnosticCode": "COBOL0902",
+ "citation": "§1985:VI.6.3.3 GRL2.2; §2002:F.1 item 22 (NOT prohibited before >= and <= in an abbreviated combined relation condition); §2002:8.8.4.2.4.2 SR3; §2023:8.8.4.12.2",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "§2002:F.1 item 22 (substantive change from ANSI X3.23-1985)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMANOT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 9 VALUE 5.\n01 B PIC 9 VALUE 1.\n01 C PIC 9 VALUE 6.\nPROCEDURE DIVISION.\nMAIN.\n    IF A > B AND NOT >= C\n        DISPLAY \"TRUE\"\n    END-IF.\n    STOP RUN.\n"
+}
