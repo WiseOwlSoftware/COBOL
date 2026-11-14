@@ -36,3 +36,15 @@ per-edition decision beside the Table 14 one.
 **Self-review.** One predicate for the OPEN test and one writer for each lock. The edition comes from `DialectBehaviors.IsActive`,
 not from a year comparison written inline. The physical-file lookup in `SharedOpenAttempt` moved up and was not repeated.
 The OPEN path does one array read and one set lookup.
+
+**Branch review, round 1 (two blocking findings, both fixed).** R1-1: the 85 arm's abnormal paths had no golden; the
+PB140 case that covers an unsuccessful CLOSE WITH LOCK runs at 2014 and so reaches only the connector arm. The new
+`VII.4.2@1985-CLOSE-STATEMENT/pb5210_close_lock_exception_paths_85` (85) closes a never-opened file-name WITH LOCK (42,
+§1985:VII.4.2.4 GR1 and §1985:VII.1.3.5 item b) and shows that the file still opens through a second file-name (OUTPUT, 00)
+and through the first (INPUT, 00). It then opens two file-names of one file INPUT and closes one WITH LOCK. The other, still
+open, reads (00) and closes (00), and its next OPEN and the first one's are both 38 (§1985:VII.4.2.4 GR3, "cannot be opened
+again"). R1-2: 1985-GR-IX.4.2.4-2 and 1985-GR-IX.4.4.4-5 still said that another file-name of a locked file opens. A
+`record_verdicts` batch rewrote both notes for the physical-file lock (CONFORMS kept; 1985 GAP 275 to 275), added the
+physical-file sites and the 85 witness to IX.4.4.4-5, and added the new golden to 1985-GR-VII.4.2.4-3 and 1985-GR-VII.1.3.5-L2.3.
+A sweep of every inventory's notes for a connector-keyed lock found no other row. While merging main, this branch's behaviour
+member moved to value 18 and VCR row 7.68, because main's PB5186 had taken 17 and 7.67.
