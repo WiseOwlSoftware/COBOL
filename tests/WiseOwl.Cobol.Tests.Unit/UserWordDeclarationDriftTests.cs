@@ -280,6 +280,10 @@ public sealed class UserWordDeclarationDriftTests
         ["cd-name"] = "the communication facility's (ISO/IEC 1989:2002 8.3.1.1.1), deleted at 2014 (kb/Work PB4677)",
         ["routine-name"] = "the ENTER statement's routine-name-1 (§1985:IV.4.2.2.1.1, §1985:VI.6.12.3 SR2), deleted with ENTER "
             + "at 2002 (kb/Work PB5178)",
+        ["text-name"] = "the COPY statement's text-name-1, a user-defined word of a disjoint set of its own at COBOL-85 "
+            + "(§1985:IV.4.2.2.1.1), a system-name from 2002 (§2002:F.2 item 135; kb/Work PB5482)",
+        ["library-name"] = "the COPY statement's library-name-1, a user-defined word of a disjoint set of its own at COBOL-85 "
+            + "(§1985:IV.4.2.2.1.1), a system-name from 2002 (§2002:F.2 item 135; kb/Work PB5482)",
     };
 
     /// <summary>The enum is §2023:8.3.2.2's list: one member per listed type, no member the list does not name, save the

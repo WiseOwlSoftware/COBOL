@@ -151,4 +151,20 @@ public sealed class ColumnMap
         int end = _toPhysical.Length - 1;   // the expanded length
         return expanded <= end ? _toPhysical[expanded] : _toPhysical[end] + (expanded - end);
     }
+
+    /// <summary>The inverse of <see cref="ToPhysical"/>: the 0-based index of the expanded line at which the character
+    /// position <paramref name="physical"/> of the physical line begins — the first index that maps to it, so a character
+    /// after a tab is found where its own expanded text begins, not inside the spaces the tab filled (kb/Work PB5503).</summary>
+    public int ToExpanded(int physical)
+    {
+        int end = _toPhysical.Length - 1;   // the expanded length
+        if (physical > _toPhysical[end]) return end + (physical - _toPhysical[end]);
+        int low = 0, high = end;
+        while (low < high)
+        {
+            int mid = (low + high) / 2;
+            if (_toPhysical[mid] >= physical) high = mid; else low = mid + 1;
+        }
+        return low;
+    }
 }

@@ -87,6 +87,12 @@ public sealed class CopyProcessor(
     /// (<see cref="ImplicitFormatOps.Place"/>; kb/Work PB1066).</summary>
     public IReadOnlyDictionary<string, ReferenceFormatMap> ReferenceFormats => _referenceFormats;
 
+    private readonly List<CopyNameUse> _copyNames = [];
+
+    /// <summary>The text-name and library-name of every COPY statement this processor resolved that wrote one as a COBOL word, in
+    /// the order the statements were met (kb/Work PB5482; <see cref="CopyNameUse"/>).</summary>
+    public IReadOnlyList<CopyNameUse> CopyNames => _copyNames;
+
     /// <summary>Report at a SOURCE origin (kb/Work PB82) — the file and physical line the text at a position came
     /// from, never an ordinal of the text being processed.</summary>
     private void Report(DiagnosticDescriptor descriptor, SourceLocation at, params object[] args)
@@ -110,7 +116,7 @@ public sealed class CopyProcessor(
     /// the diagnostics are reported only when <paramref name="diagnostics"/> is given (the line-map replay passes none).</para>
     /// </summary>
     internal static MappedText ApplyReplaceStatements(MappedText mapped, EditionInfo edition,
-        DiagnosticBag? diagnostics = null)
+        DiagnosticBag? diagnostics = null, IReadOnlyDictionary<string, ReferenceFormatMap>? formats = null)
     {
         string text = mapped.Text;
         var w = new OriginWriter();
@@ -130,14 +136,14 @@ public sealed class CopyProcessor(
                 if (scopeEnds[nextEnd] > from)
                 {
                     w.AppendMapped(ApplyReplacements(mapped.Slice(from, scopeEnds[nextEnd] - from), states.Active,
-                        ReplaceResultRule, edition, IsDebuggingLineAt(text, from), diagnostics));
+                        ReplaceResultRule, edition, IsDebuggingLineAt(text, from), diagnostics, formats));
                     from = scopeEnds[nextEnd];
                 }
                 states.EndScope();
             }
             if (to > from)
                 w.AppendMapped(ApplyReplacements(mapped.Slice(from, to - from), states.Active, ReplaceResultRule, edition,
-                    IsDebuggingLineAt(text, from), diagnostics));
+                    IsDebuggingLineAt(text, from), diagnostics, formats));
         }
 
         while (pos < text.Length)
@@ -157,7 +163,8 @@ public sealed class CopyProcessor(
 
             // The statement is parsed over text-words (§2023:7.2.4.2 general format) through its separator period — a
             // period INSIDE pseudo-text is a text-word of the operand, never the statement's end (kb/Work PB1354).
-            var statement = new StatementCursor(mapped, replaceIdx + "REPLACE".Length, diagnostics, "REPLACE", "§2023:7.2.4.2");
+            var statement = new StatementCursor(mapped, replaceIdx + "REPLACE".Length, diagnostics, "REPLACE", "§2023:7.2.4.2",
+                formats);
             // §2023:7.2.4.3 SR2: "A REPLACE statement shall be preceded by a space except when it is the first statement in
             // a compilation group" — REPLACE directly after a parenthesis, a colon, a literal or a pseudo-text delimiter.
             if (replaceIdx > 0 && !CobolSpace.IsSeparator(text[replaceIdx - 1]))
@@ -479,7 +486,8 @@ public sealed class CopyProcessor(
     /// lines (<see cref="EditionInfo.ReplacedTextIsLaidOutInFixedForm"/>), which is when the COBOL-85 rules of introduced
     /// lines and continued literals apply.</para>
     private static MappedText ApplyReplacements(MappedText mapped, IReadOnlyList<Replacement> replacements,
-        ResultRule rule, EditionInfo edition, bool firstLineIsDebugging, DiagnosticBag? diagnostics)
+        ResultRule rule, EditionInfo edition, bool firstLineIsDebugging, DiagnosticBag? diagnostics,
+        IReadOnlyDictionary<string, ReferenceFormatMap>? formats)
     {
         bool fixedForm = edition.ReplacedTextIsLaidOutInFixedForm;
         var active = replacements.Where(r => r.From.Count > 0).ToList();   // an empty operand cannot match
@@ -499,7 +507,7 @@ public sealed class CopyProcessor(
         void ContinuedLiterals(IReadOnlyList<IntroducedLiteral>? literals, int at)
         {
             if (diagnostics is null || literals is null) return;
-            bool replacedInAreaA = FixedFormLine.IsAreaAOffset(mapped.LocateAt(at).Column - FixedFormLine.SourceAreaStart);
+            bool replacedInAreaA = FixedFormLine.IsAreaAOffset(ProgramTextOffsetAt(formats, mapped.LocateAt(at)));
             foreach (var literal in literals)
             {
                 int room = (literal.BeginsInAreaA ?? replacedInAreaA)
@@ -647,6 +655,11 @@ public sealed class CopyProcessor(
         afterCopy = statement.End;
         if (statement.TextName is null)
             return new OneCopyResult(CopyOutcome.NotFound, "*> COPY statement not processed — see its diagnostic", null);
+        // §1985:IV.4.2.2.1.1: the names written as words are user-defined words of the program; the binder asks the rule of them.
+        var copyOrigin = mapped.PointAt(copyIdx).Origin;
+        if (statement.TextNameIsWord) _copyNames.Add(new CopyNameUse(statement.TextName, IsLibraryName: false, copyOrigin));
+        if (statement.LibraryName is { } libraryNameWord && statement.LibraryNameIsWord)
+            _copyNames.Add(new CopyNameUse(libraryNameWord, IsLibraryName: true, copyOrigin));
         string libraryName = statement.TextName;
         // §2023:7.2.3.4 GR12: "If the REPLACING phrase is not specified, the library text may contain a COPY statement that
         // does not include a REPLACING phrase" — so a COPY met INSIDE library text shall not have one (kb/Work PB1356;
@@ -680,7 +693,7 @@ public sealed class CopyProcessor(
         // Library text goes through the same §2023:6.5 logical conversion as the source text, starting in the format in
         // effect for this COPY statement (§2023:7.3.24.3 3)) — its own >>SOURCE FORMAT directives switch it from there, and
         // the COPY's text is unaffected after it (5), the revert). Then COPY … REPLACING (§2023:7.2.3.4 9)).
-        var copyLine = mapped.PointAt(copyIdx).Origin;   // the file and physical line the COPY word stands on
+        var copyLine = copyOrigin;   // the file and physical line the COPY word stands on
         bool? copyFixed = _referenceFormats.TryGetValue(copyLine.File, out var copyFormats) ? copyFormats.LibraryTextDefaultAt(copyLine.Line) : null;
         // The library text's bytes become characters in SourceTextDecoder (A.1 items 25 and 26, kb/Work PB1397): a marked
         // file not well-formed in its encoding is COBOL5434 (reported there), and the COPY draws no second diagnostic.
@@ -731,7 +744,7 @@ public sealed class CopyProcessor(
                 + "(GR12). Flatten the copybook, or drop the REPLACING phrase.",
                 at, default);
         var copybookMapped = ApplyReplacements(normalizedMapped, statement.Replacements, CopyResultRule, edition,
-            IsDebuggingLineAt(normalized, 0), _diagnostics);
+            IsDebuggingLineAt(normalized, 0), _diagnostics, _referenceFormats);
         return new OneCopyResult(CopyOutcome.Found, copybookMapped.Text, copybookPath, copybookMapped);
     }
 
@@ -739,8 +752,8 @@ public sealed class CopyProcessor(
     /// usable library text — its diagnostic is already reported), library-name-1 or the value of literal-2, whether
     /// the REPLACING phrase was written (§2023:7.2.3.4 GR10 turns on that, not on how many operands parsed), its operands,
     /// and the position just past the statement's separator period.</summary>
-    private readonly record struct CopyStatement(string? TextName, string? LibraryName, bool ReplacingSpecified,
-        List<Replacement> Replacements, int End);
+    private readonly record struct CopyStatement(string? TextName, bool TextNameIsWord, string? LibraryName,
+        bool LibraryNameIsWord, bool ReplacingSpecified, List<Replacement> Replacements, int End);
 
     /// <summary>Parse the COPY statement at <paramref name="copyIdx"/> in its §2023:7.2.3.2 general-format order, over
     /// §2023:7.2.2.5 text-words: <c>COPY {text-name-1 | literal-1} [{OF | IN} {library-name-1 | literal-2}]
@@ -752,14 +765,16 @@ public sealed class CopyProcessor(
     /// <see cref="GateCopyPhrase"/> (kb/Work PB1601).</summary>
     private CopyStatement ParseCopyStatement(MappedText mapped, int copyIdx)
     {
-        var c = new StatementCursor(mapped, copyIdx + "COPY".Length, _diagnostics, "COPY", "§2023:7.2.3.2");
+        var c = new StatementCursor(mapped, copyIdx + "COPY".Length, _diagnostics, "COPY", "§2023:7.2.3.2",
+            _referenceFormats);
 
-        string? textName = ReadCopyName(mapped, c, "text-name-1 or literal-1");
+        string? textName = ReadCopyName(mapped, c, "text-name-1 or literal-1", out bool textNameIsWord);
         string? libraryName = null;
+        bool libraryNameIsWord = false;
         if (c.TryPeek(out var w) && (w.IsWord("OF") || w.IsWord("IN")))
         {
             c.Advance(w);
-            libraryName = ReadCopyName(mapped, c, "library-name-1 or literal-2");
+            libraryName = ReadCopyName(mapped, c, "library-name-1 or literal-2", out libraryNameIsWord);
         }
         if (c.TryPeek(out w) && w.IsWord("SUPPRESS"))
         {
@@ -789,7 +804,7 @@ public sealed class CopyProcessor(
             c.MarkError();
         }
         c.ExpectSeparatorPeriod();
-        return new CopyStatement(textName, libraryName, replacing, replacements, c.Pos);
+        return new CopyStatement(textName, textNameIsWord, libraryName, libraryNameIsWord, replacing, replacements, c.Pos);
     }
 
     /// <summary>⛔ THE EDITION GATE OF THE COPY STATEMENT'S OWN PHRASES — the introduction gate (COBOL0900 below the
@@ -841,9 +856,11 @@ public sealed class CopyProcessor(
     /// written, or the VALUE of an alphanumeric literal (a doubled quotation symbol collapsed; a hexadecimal literal
     /// decoded). §2023:7.2.3.3 SR4 (no concatenation expression, no figurative constant) and SR5 ("Literal-1 and
     /// literal-2 shall be alphanumeric literals") are checked here, each as COBOL2450; null when no usable name
-    /// was written.</summary>
-    private string? ReadCopyName(MappedText mapped, StatementCursor c, string operand)
+    /// was written. <paramref name="isWord"/> is true when the name was written as a COBOL word, the form that is a user-defined
+    /// word below COBOL-2002 (<see cref="CopyNameUse"/>).</summary>
+    private string? ReadCopyName(MappedText mapped, StatementCursor c, string operand, out bool isWord)
     {
+        isWord = false;
         void LiteralForm(int at, string message)
             => _diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyLiteralForm.Code,
                 $"COPY {operand}: {message}", mapped.LocateAt(at), default);
@@ -894,6 +911,7 @@ public sealed class CopyProcessor(
         else
         {
             name = w.Value;
+            isWord = true;
             ScreenCopyWord(mapped, w.Value, w.Start);
         }
 
@@ -908,6 +926,7 @@ public sealed class CopyProcessor(
                     && !IsCopyPhraseWord(operandWord))
                     c.Advance(operandWord);
             }
+            isWord = false;
             return null;
         }
         return name;
@@ -1125,7 +1144,7 @@ public sealed class CopyProcessor(
     /// words the lexer's own screen uses (COBOL5563, <c>LiteralScreen.ReportUnterminated</c>), and it is the statement's
     /// first error: nothing else is reported for the text it swallowed.</para></summary>
     private sealed class StatementCursor(MappedText mapped, int pos, DiagnosticBag? diagnostics, string statement,
-        string clause)
+        string clause, IReadOnlyDictionary<string, ReferenceFormatMap>? formats)
     {
         public string Text { get; } = mapped.Text;
 
@@ -1185,8 +1204,9 @@ public sealed class CopyProcessor(
                 default);
         }
 
-        /// <summary>The 0-based physical column text position <paramref name="at"/> came from (kb/Work PB82).</summary>
-        public int SourceColumn(int at) => mapped.LocateAt(at).Column;
+        /// <summary>The 0-based offset into the program-text area of the character text position <paramref name="at"/> was
+        /// written at, tabs expanded (<see cref="ProgramTextOffsetAt"/>; kb/Work PB5503).</summary>
+        public int ProgramTextOffset(int at) => ProgramTextOffsetAt(formats, mapped.LocateAt(at));
 
         /// <summary>Record that the caller reported an error of its own, so no syntax error follows it.</summary>
         public void MarkError() => HasError = true;
@@ -1380,6 +1400,16 @@ public sealed class CopyProcessor(
         if (!any) c.Error(c.Pos, "the REPLACING phrase names no operands");
     }
 
+    /// <summary>The offset into the program-text area (position 8 is offset 0) of the character written at <paramref name="at"/>,
+    /// every tab expanded — what area A and the room before margin R are measured in. The file's physical column counts a tab
+    /// as one position, so it is never the offset (kb/Work PB5503, which shares its root with
+    /// <see cref="ReferenceFormatMap.PlacementAt"/>'s caller, PB5313). A text <paramref name="formats"/> does not hold is read
+    /// as written.</summary>
+    private static int ProgramTextOffsetAt(IReadOnlyDictionary<string, ReferenceFormatMap>? formats, SourceLocation at)
+        => formats is not null && formats.TryGetValue(at.FileName, out var map)
+            ? map.ProgramTextOffsetAt(at.Line + 1, at.Column)
+            : at.Column - FixedFormLine.SourceAreaStart;
+
     /// <summary>The literals replacement operand <paramref name="to"/> places into the resultant text, each with the
     /// character positions it takes and, for pseudo-text-2, whether it is written in area A (kb/Work PB5382; see
     /// <see cref="IntroducedLiteral"/>). Null when it holds none.</summary>
@@ -1389,7 +1419,7 @@ public sealed class CopyProcessor(
         foreach (var e in to.Elements)
             if (e.Kind == TextWordKind.Literal)
                 (literals ??= []).Add(new IntroducedLiteral(e.Value, CharacterPositions.Count(e.Span),
-                    to.IsPseudoText ? FixedFormLine.IsAreaAOffset(c.SourceColumn(e.Start) - FixedFormLine.SourceAreaStart) : null));
+                    to.IsPseudoText ? FixedFormLine.IsAreaAOffset(c.ProgramTextOffset(e.Start)) : null));
         return literals;
     }
 

@@ -404,6 +404,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// like program data).</summary>
     internal void BindDeclarations(Core.ProgramUnitContext program)
     {
+        DeclareCopyWords();
+
         // Every constant entry and every data description entry's place is DECLARED before anything binds, so a
         // reference may name a constant entry that follows it — in SPECIAL-NAMES, in an earlier section, or earlier in
         // the same one (kb/Work PB1231; §2023:13.10.3 SR4/SR5 forbid only a circular dependence). FindConstant binds an
@@ -1941,6 +1943,23 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<see cref="OoDataBinder.EnterMethodDeclarations"/> — its data entries, its METHOD-ID and its procedure-names), which is a
     /// source element of its own, else this binder's own (kb/Work PB2921).</summary>
     internal UserWordCensus WordCensus => Oo.BindingMethodWords ?? OwnWords;
+
+    /// <summary>The text-names and library-names of the COPY statements this program unit stands around, which are its
+    /// user-defined words below COBOL-2002 (<see cref="CopyNameCensus"/>; kb/Work PB5482). Empty from 2002, and for a binder no driver
+    /// made.</summary>
+    internal IReadOnlyList<CopyWord> CopyWords { get; init; } = [];
+
+    /// <summary>⛔ §1985:IV.4.2.2.1.1: a COPY statement's text-name and library-name are user-defined words, each of a disjoint set of
+    /// its own, and "All user-defined words, except segment-numbers and level-numbers, can belong to one and only one of these
+    /// disjoint sets" (kb/Work PB5482). The preprocessor resolves them, so they reach no declaration of the tree; they are
+    /// announced here, through the ONE funnel (<see cref="DeclareUserWord"/>), BEFORE any other declaration of the unit, so a
+    /// data-name, an index-name, a paragraph-name or any other word spelled like one is the second declaration and is refused at
+    /// its own place (COBOL2692), and a text-name that is also a library-name at the COPY statement.</summary>
+    private void DeclareCopyWords()
+    {
+        foreach (var (word, kind, line) in CopyWords)
+            using (Edition.At(line, 0)) DeclareUserWord(word, kind);
+    }
 
     /// <summary>⛔ §2023:8.3.2.2: "<i>Within a source element, a given user-defined word may be used as only one type of
     /// user-defined word</i>", except as <see cref="UserWordKinds.MayBeOneWord"/> says. Asked at the ONE declaration funnel

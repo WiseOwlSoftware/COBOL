@@ -129,6 +129,7 @@ internal sealed class BinderDriver
             CompilationVariables = directives.CompilationVariables,
             SearchSpace = searchSpace,
             Sources = sources,
+            CopyNames = CopyNameCensus.Build(edition, units, u => UnitFirstLine(sources.Of(u))),
         };
         _session = session;
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
@@ -604,6 +605,7 @@ internal sealed class BinderDriver
             OoClasses = session.OoClasses,
             // The unit's own §2023:8.3.2.2 census, the one its class-name references record into too (kb/Work PB3132).
             OwnWords = session.OoClasses.CensusOf(definition.identificationDivision()) ?? new(),
+            CopyWords = session.CopyNames.Of(unit),   // below COBOL-2002 a COPY statement's names are this program's user-defined words (kb/Work PB5482)
             RefModZeroLength = session.RefModZeroLength,
             CobolWords = session.CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§2023:7.3.10)
             Retypes = session.Retypes,         // the fragment re-parses read words as the tree does (kb/Work PB655)
