@@ -20,8 +20,11 @@ RELEASE in every organization) and by the keyed READ, DELETE and START; the debu
 area's. The whole reading never unwraps an out-of-line variable-length group (its image is its current composition; the first gate's red, pb2497_vlg_record_odo_element_tables at 2014, threw there). docs/CONFORMANCE.md D-WRT1 states the whole-area reading; StartTemporaryKeyAreaDriftTests names the one channel.
 
 **Goldens.** `14.9.51-WRITE/pb5217_write_beside_odo_record` (85 on: sequential, relative, indexed and RECORD VARYING
-DEPENDING files) and `XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/pb5217_debug_contents_odo_area`; expected values written
-from the rules before the run. There is no edition below 1985 to refuse. No inventory row changes verdict.
+DEPENDING files, with the indexed abnormal paths: a duplicate key answers 22 and leaves the stored record, an absent key
+answers 23 on START, DELETE and REWRITE), `14.9.32-RELEASE/pb5217_release_beside_odo_record` (the RELEASE arm: a SORT on a
+key past the ODO record's extent returns KEY0 to KEY3 in order; the base cut the keys) and
+`XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/pb5217_debug_contents_odo_area`; expected values written from the rules before
+the run. The RELEASE golden and the abnormal paths answer the branch review's R1-1 and R1-2. There is no edition below 1985 to refuse. No inventory row changes verdict.
 
 **Self-review.** Looked for a second copy of the area image (none: one helper), sibling arms that still cut (the APPLY
 COMMIT save renders an item, not an area, and its ODO object must be committed with it, SR8), and LINE SEQUENTIAL (unchanged:

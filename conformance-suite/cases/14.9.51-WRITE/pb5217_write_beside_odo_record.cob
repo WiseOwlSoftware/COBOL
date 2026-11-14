@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5217_write_beside_odo_record
-      *> rules: [GR-14.9.51.4-13, GR-14.9.35.4-15]
+      *> rules: [GR-14.9.51.4-13, GR-14.9.35.4-15, GR-14.9.51.4-42]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
@@ -38,6 +38,12 @@
       *>       current extent: the WRITE, the WRITE FROM, a keyed READ, a
       *>       REWRITE, a START and a DELETE each find the key the record
       *>       holds (status 00); the deleted key then reads 23.
+      *>       Then the abnormal paths, N still 1: a WRITE of zzzzKEY1
+      *>       finds KEY1 in the file, so INVALID KEY, 22 (14.9.51.4
+      *>       GR42 b), and the record is not written (GR15): KEY1
+      *>       still reads ABCDKEY1. KEY9 is in no record: START EQUAL
+      *>       (14.9.41.4 GR17 e 2), DELETE (14.9.10.4 GR3) and REWRITE
+      *>       (14.9.35.4 GR23) each take INVALID KEY with status 23.
       *>   VF  RECORD VARYING 1 TO 10 DEPENDING ON L, L = 9: WRITE R3
       *>       writes 9 bytes (13.18.43.4 GR13 a): ABCDEFG then area
       *>       positions 8-9, YY; read back through R9 (9 positions).
@@ -179,6 +185,30 @@
            DISPLAY "IX R3 " FS " [" X-R4 "]".
            MOVE "KEY2" TO K.
            READ XF1 INVALID KEY DISPLAY "IX RK4 " FS.
+      *> the abnormal paths, each key past R's current extent
+           MOVE 1 TO N.
+           MOVE "zzzzKEY1" TO X-R4.
+           WRITE X-R4 INVALID KEY DISPLAY "IX IK5 " FS
+               NOT INVALID KEY DISPLAY "IX W5 " FS
+           END-WRITE.
+           MOVE "KEY1" TO K.
+           READ XF1 INVALID KEY DISPLAY "IX RK6".
+           DISPLAY "IX R6 " FS " [" X-R4 "]".
+           MOVE "KEY9" TO K.
+           START XF1 KEY IS EQUAL TO K
+               INVALID KEY DISPLAY "IX STK7 " FS
+               NOT INVALID KEY DISPLAY "IX ST7 " FS
+           END-START.
+           MOVE "KEY9" TO K.
+           DELETE XF1 RECORD
+               INVALID KEY DISPLAY "IX DLK8 " FS
+               NOT INVALID KEY DISPLAY "IX DL8 " FS
+           END-DELETE.
+           MOVE "yyyyKEY9" TO X-R4.
+           REWRITE X-R4
+               INVALID KEY DISPLAY "IX RWK9 " FS
+               NOT INVALID KEY DISPLAY "IX RW9 " FS
+           END-REWRITE.
            CLOSE XF1.
       *> variable length, DEPENDING ON L
            OPEN OUTPUT VF1.
