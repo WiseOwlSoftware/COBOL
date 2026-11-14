@@ -107,6 +107,29 @@ public sealed class CopyNameUserWordTests
         Assert.True(ok, string.Join('\n', errors));
     }
 
+    private const string Inner2Copybook =
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. INNER2.\n       PROCEDURE DIVISION.\n       I2-PARA.\n"
+        + "           DISPLAY \"IN2\".\n       END PROGRAM INNER2.\n";
+
+    /// <summary>The outer program after an earlier contained program's END PROGRAM: a COPY statement there is a word of the CONTAINER,
+    /// not of the contained program that already ended (§1985:IV.4.2.2.1.1 "excluding any contained program"). The contained program's
+    /// paragraph-name is outside the outer program's sets, so the text-name of the same spelling is no conflict; a data-name of the
+    /// outer program is one.</summary>
+    [Theory]
+    [InlineData("       PROCEDURE DIVISION.\n       O-PARA.\n", true)]
+    [InlineData("       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 CPYB PIC X VALUE \"Q\".\n       PROCEDURE DIVISION.\n       O-PARA.\n", false)]
+    public void ACopyAfterAContainedProgramEnds_BelongsToTheContainer(string outerHead, bool legal)
+    {
+        string source = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. OUTERP.\n" + outerHead
+            + "           CALL \"INNER1\".\n           CALL \"INNER2\".\n           STOP RUN.\n"
+            + "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. INNER1.\n       PROCEDURE DIVISION.\n       CPYB.\n"
+            + "           DISPLAY \"IN1\".\n       END PROGRAM INNER1.\n"
+            + "       COPY CPYB.\n       END PROGRAM OUTERP.\n";
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85, copybooks: new Dictionary<string, string> { ["CPYB.cpy"] = Inner2Copybook });
+        if (legal) Assert.True(ok, string.Join('\n', errors));
+        else Assert.Contains(errors, e => e.Contains(Conflict));
+    }
+
     /// <summary>A name written as a literal is no user-defined word (and below 2002 is refused as a literal form: a different
     /// diagnostic): no conflict is reported for it.</summary>
     [Fact]

@@ -14,8 +14,9 @@ internal readonly record struct CopyWord(string Word, UserWordKind Kind, int Lin
 /// sets" — text-names and library-names among them — so a COPY statement's names are words of the program the statement stands
 /// in, and a contained program's are its own. The preprocessor resolves the statement and gives each name with the physical line
 /// of the statement (<see cref="CopyNameUse"/>); this places the statement in the resultant text, where the lines it leaves behind
-/// keep its origin, and in the program unit whose text it follows: the unit whose first token is the last at or before the statement
-/// (a statement before the first unit belongs to the first). Each unit's list is what its binder declares through
+/// keep its origin, and in the program unit whose text contains it: the innermost unit whose first and last tokens bracket the statement,
+/// so a statement written after a contained program's END PROGRAM belongs to the container (a statement outside every unit belongs to
+/// the first). Each unit's list is what its binder declares through
 /// <c>DataBinder.DeclareUserWord</c> before any other word, so the refusal of a word in two sets lands at the other declaration.
 /// Empty from COBOL-2002, where the names are system-names (<see cref="Editions.EditionInfo.CopyNamesAreUserDefinedWords"/>).</summary>
 internal sealed class CopyNameCensus
@@ -26,18 +27,18 @@ internal sealed class CopyNameCensus
 
     private CopyNameCensus(Dictionary<BoundUnit, List<CopyWord>> byUnit) => _byUnit = byUnit;
 
-    /// <summary>The census of <paramref name="units"/> (every program unit of the group, in text order): <paramref name="firstLineOf"/>
-    /// is the RESULTANT line of a unit's first token.</summary>
-    public static CopyNameCensus Build(EditionContext edition, IReadOnlyList<BoundUnit> units, Func<BoundUnit, int> firstLineOf)
+    /// <summary>The census of <paramref name="units"/> (every program unit of the group, in text order): <paramref name="linesOf"/>
+    /// is the RESULTANT line of a unit's first token and of its last.</summary>
+    public static CopyNameCensus Build(EditionContext edition, IReadOnlyList<BoundUnit> units, Func<BoundUnit, (int First, int Last)> linesOf)
     {
         if (!edition.Edition.CopyNamesAreUserDefinedWords || edition.CopyNames.Count == 0 || units.Count == 0) return None;
-        var starts = units.Select(u => (Unit: u, Line: firstLineOf(u))).OrderBy(s => s.Line).ToArray();
+        var spans = units.Select(u => (Unit: u, Lines: linesOf(u))).OrderBy(s => s.Lines.First).ToArray();
         var byUnit = new Dictionary<BoundUnit, List<CopyWord>>();
         foreach (var use in edition.CopyNames)
         {
             int line = edition.LineMap?.ResultantLineOf(use.At) is > 0 and var found ? found : use.At.Line;
-            var owner = starts.LastOrDefault(s => s.Line <= line);
-            if (owner.Unit is null) owner = starts[0];
+            var owner = spans.LastOrDefault(s => s.Lines.First <= line && line <= s.Lines.Last);
+            if (owner.Unit is null) owner = spans[0];
             var kind = use.IsLibraryName ? UserWordKind.LibraryName : UserWordKind.TextName;
             if (!byUnit.TryGetValue(owner.Unit, out var words)) byUnit[owner.Unit] = words = [];
             words.Add(new CopyWord(use.Name, kind, line));

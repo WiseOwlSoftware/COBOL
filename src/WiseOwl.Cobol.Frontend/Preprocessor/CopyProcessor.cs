@@ -337,7 +337,7 @@ public sealed class CopyProcessor(
         return [.. ends];
     }
 
-    /// <summary>Where each line of <paramref name="text"/> lands in the text <see cref="ApplyReplaceStatements(MappedText, EditionInfo, DiagnosticBag?)"/>
+    /// <summary>Where each line of <paramref name="text"/> lands in the text <see cref="ApplyReplaceStatements"/>
     /// makes of it: element <c>i</c> is the 0-based RESULTANT line holding input line <c>i</c> (kb/Work PB1066). A
     /// kept line maps to itself shifted by the lines REPLACE removed above it; a line REPLACE removed (a REPLACE
     /// statement's own) or joined into a replacement maps to the resultant line where that text now starts — the

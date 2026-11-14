@@ -20,3 +20,5 @@ expands a tab to the next stop. Re-probed: a literal after a leading tab was ref
 area B was accepted. `ReferenceFormatMap.ProgramTextOffsetAt` (with `ColumnMap.ToExpanded`) now gives the expanded offset, and both
 sites use `CopyProcessor.ProgramTextOffsetAt`; the formats of the texts read are passed into `ApplyReplaceStatements` and
 `ApplyReplacements`. Goldens `pb5503-replace-literal-tab-area-a` (accept) and `-area-b` (refusal), and two unit facts.
+
+Review round 1 (finisher): CopyNameCensus attributed a COPY written after a contained program's END PROGRAM to that ended unit; the census now picks the innermost unit whose first and last tokens bracket the statement (BinderDriver.UnitLastLine/LastToken, the mirror of FirstToken), pinned by CopyNameUserWordTests.ACopyAfterAContainedProgramEnds_BelongsToTheContainer. A stale cref in CopyProcessor.cs was corrected.
