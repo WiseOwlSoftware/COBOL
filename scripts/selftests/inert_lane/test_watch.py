@@ -24,7 +24,6 @@ def case_00_command_reads_inert_file_red_naming(expect):
         return
     root, repo, base = fixtures.world(*ALL_STEPS)
     out: list[str] = []
-    out: list[str] = []
     expect.equal("a command that reads an inert file is RED, naming it",
                  (watch(root, py + [f"open({str(root / 'DEVLOG' / '0001-x.md')!r}).read()"], None, out.append, c) != 0,
                   any("opened: DEVLOG/0001-x.md" in s for s in out)), (True, True))
@@ -78,6 +77,7 @@ def case_04_import_system_s_listing_directory_holds_code(expect):
     root, repo, base = fixtures.world(*ALL_STEPS)
     out: list[str] = []
     tm = Classification(inert={"DEVLOG/": ""}, tooling_under=("scripts/",), code_reads={"scripts/mod.py": "x"})
+    repo.commit("a module", {"scripts/mod.py": "X = 1\n"})  # each case plants its own world: case 03's module is not in it
     app = py + [f"import sys; sys.path.append({str(root / 'scripts')!r}); import mod"]
     expect.equal("the import system's LISTING of a directory that holds a CODE_READS module is GREEN when the module it "
                  "imports is CODE_READS (kb/Work PB4395 review R2-1: scripts/ for scripts/standard_streams.py); a listing "
