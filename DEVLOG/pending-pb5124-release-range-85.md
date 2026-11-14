@@ -32,3 +32,9 @@ unchanged. Lengths 8 and 3 (by FROM) are released. The unit test
 `SortMergeStatementEcTests.ReleaseStatement_RangeFailsStatement_ReleasesNothing_WhenUnchecked` covers the runtime arm.
 Inventory row `1985-GR-VII.3.8.4-10` moves from DIVERGES to CONFORMS (batch `pb5124-release-range-85`), and the 1985
 GAP drops from 249 to 248.
+
+**The runtime ABI.** `CobolSort.ReleaseStatement` gains a parameter, so its public signature changes and code compiled
+against the old runtime can no longer bind to it. That breaks binary compatibility, so the runtime major goes from 27
+to 28 (`scripts/abi_pin.py bump --runtime-major`), as PB4772 did when it added the `slots` parameter. The documented
+facts file is regenerated to list the new parameter. The first gate (`000001-20261114T030007Z`) was RED on exactly
+those two pins, `RuntimeAbiPinDriftTests` and `DocumentedFactsDriftTests`; every other case ran green.
