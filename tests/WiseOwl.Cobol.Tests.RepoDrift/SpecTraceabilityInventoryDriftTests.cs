@@ -117,7 +117,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     private sealed record Refusal(string Code, string Message);
 
     /// <summary>
-    /// <c>derivation</c> in the schema — §1.1's owner-signed ALTERNATIVE to a spec-derived test, for a rule
+    /// <c>derivation</c> in the schema — §1.1's signed ALTERNATIVE to a spec-derived test, for a rule
     /// that carries no observable obligation (owner decision <c>kb/Work/PB386</c>, 2026-09-03). The twin of
     /// <c>inventory_schema.Derivation</c>.
     /// </summary>
@@ -164,7 +164,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         //: the register the schema POINTS AT, and `AnchorObliged` needs it to tell a WITHDRAWN A.1 item from a
         //: documented decline. Injectable so the fabricated-inventory self-test drives both arms hermetically.
         IReadOnlySet<string> RegisterItems,
-        //: §1.1's owner-signed alternative to §1(c)'s test — `null` when the schema declares none, so removing
+        //: §1.1's signed alternative to §1(c)'s test — `null` when the schema declares none, so removing
         //: the object from the JSON closes the door in both engines at once.
         DerivationRule? Derivation,
         //: Every held edition's catalog, rule-id → (its edition's year, its text): the arms that read a catalog read the
@@ -441,7 +441,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// Does this row carry an owner-signed DERIVATION that stands in place of §1(c)'s test? Mirrors
+    /// Does this row carry a signed DERIVATION that stands in place of §1(c)'s test? Mirrors
     /// <c>Schema.derivation_stands</c> in Python.
     /// </summary>
     /// <remarks>
@@ -778,7 +778,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     private static List<string> DifferentialOnlyCoverage(IEnumerable<Judged> judged, Schema s)
     {
         if (!s.SpecDerivedRequired) return [];
-        // ⚠ A row closed on an owner-signed DERIVATION is not "covered by a differential" — it is covered by
+        // ⚠ A row closed on a signed DERIVATION is not "covered by a differential" — it is covered by
         // nothing, on purpose, because §1.1 says no test can exist for it. Excluding it here is the SECOND ARM
         // of the same rule `DerivedState` implements, and forgetting it would have turned every PB386 closure
         // red under a check about NIST goldens (`feedback_two_arm_dispatch`). `DerivationStands` is the same
@@ -1358,9 +1358,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// ⛔ Every row that closes on an owner-signed DERIVATION still stands under its own arm. The A.2 arm is
-    /// re-resolved against the standard's own undefined-element list on every build; the two argument arms are
-    /// re-checked for shape and for the existence of what they name.
+    /// ⛔ Every row that closes on a signed DERIVATION still stands under its own arm. The two mechanical arms are
+    /// re-resolved on every build (<c>undefined-A.2</c> against the standard's own undefined-element list,
+    /// <c>undefined-in-rule</c> against the row's own catalog text); the three argued arms are re-checked for shape,
+    /// for the existence of what they name and, under a refuter-bound signer, for an UPHELD refuter record.
     /// </summary>
     /// <remarks>
     /// A derivation moves the v1.0 burn-down without a test, which is the whole reason <c>kb/Work/PB386</c>'s
@@ -2049,7 +2050,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 TestRef = "conformance:cases/14.9.5-CANCEL/pb154_cancel_active",
             }, "OK")], reg));
 
-        // ── the DERIVATION: §1.1's owner-signed alternative to a test, and every bound the owner set ──
+        // ── the DERIVATION: §1.1's signed alternative to a test, and every bound set on it ──
         //
         // ⛔ THE ARMS CANNOT BE FALSIFIED AGAINST TODAY'S DOCUMENT, where every determination is correct.
         // So the register and the Annex A.2 list are FABRICATED here, and every refusal is driven with a

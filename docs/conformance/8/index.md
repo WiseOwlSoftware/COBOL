@@ -1,5 +1,5 @@
 ---
-heading: "## 8. Rules with no observable obligation — owner-signed derivations (§2023:4.4 / Annex A.2)"
+heading: "## 8. Rules with no observable obligation — signed derivations (§2023:4.4 / Annex A.2; the rule's own text for 1985)"
 columns: ["Rule", "Arm", "Names", "The derivation", "Signed", "Refuted"]
 ---
 > **⛔ THIS SECTION IS THE ONE ALTERNATIVE TO A SPEC-DERIVED TEST, AND THE OWNER OPENED IT** — decision
