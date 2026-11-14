@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.2.7.4-6",
  "rule-digest": "2bbbcbfd5c27",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#NotExternal; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Segments; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#CapturePadding; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles",
  "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-GR-VII_2_7_4-6",
+ "notes": "§1985:VII.2.7.4 GR6: for an external file connector 'all PADDING CHARACTER clauses in the run unit which are associated with that file connector must have the same specifications. If data-name-1 is specified, it must reference an external data item' (with §1985:VII.2.3.4 GR1g 'The same specification for the PADDING CHARACTER clause'). ExternalFileConnectorRules.Check, over the compilation group, refuses a non-external data-name-1 of an external file (COBOL1624, the witness) and compares FileEntryIdentity.Segments' PAD segment (literal-1's character, or data-name-1's external item identity, captured by CapturePadding and resolved in ResolveFiles) across entries, reporting COBOL6847. Probes at --std 85, two programs of one run unit (work-rd-04/c4): \"*\" vs \"#\" refused; \"*\" vs \"*\" and QUOTE vs QUOTES accepted and the file written by one program is read by the other (PB AAAA); the clause in one entry only (\"*\" or SPACE) refused, as GR1g asks the same specification of every entry; the same external PADC in both accepted; PADC vs literal, PADC vs a different external PADD, and PADC OF an external group vs another external PADC refused; a non-external file with a non-external data-name accepted and runs; the clause is refused at 2014 (COBOL0902, edition arm).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

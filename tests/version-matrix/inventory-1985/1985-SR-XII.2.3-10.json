@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XII.2.3-10",
  "rule-digest": "031ef3e2e39c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#CommentEntryOf; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertLine; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#CommentEntryParagraphs; src/WiseOwl.Cobol.Frontend/Preprocessor/CommentEntryResolver.cs#Resolve; src/WiseOwl.Cobol.Frontend/Preprocessor/DivisionCursor.cs#InIdentificationDivision",
  "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-10",
+ "notes": "§1985:XII.2.3 SR10: 'If the word COPY appears in a comment-entry or in the place where a comment-entry may appear, it is considered part of the comment-entry.' The fixed-form logical conversion (FixedFormConverter#CommentEntryOf, from ConvertLine) recognises an AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY header in the identification division (DivisionCursor) and discards its entry up to the next Area-A word (§1985:IV.7.3.3) before the COPY driver runs, carrying an undecided candidate to CommentEntryResolver#Resolve, so no COPY in the entry is ever a statement; from 2002 the paragraphs are refused COBOL0902. Probes at 85: COPY of a missing text after AUTHOR. on its line, on the next Area-B line, split across two Area-B lines, with REPLACING, and after an unclosed quotation mark all ignored (OK / REAL COPY printed, rc 0); a library text whose AUTHOR/INSTALLATION entries hold COPY is copied with no GR12 nested-COPY refusal; COPY in Area A after AUTHOR. ME. is a real COPY. The witness is AUTHOR. COPY NOSUCHTEXT.",
  "next": {
   "kind": "REMOVED",
   "to": [],
