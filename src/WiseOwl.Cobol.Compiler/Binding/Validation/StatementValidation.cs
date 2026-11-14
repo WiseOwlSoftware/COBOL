@@ -978,7 +978,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckInspectCharactersReplacement(BoundOperand rep)
     {
         var size = rep is BoundStringLiteral literal ? literal.Value.Length
-            : InspectSizeRulesCoverDataItems && rep is BoundFieldOperand ? IntrinsicBinder.KnownWidth(rep)
+            : InspectSizeRulesCoverDataItems && rep is BoundFieldOperand or BoundComputedOperand ? IntrinsicBinder.KnownWidth(rep)
             : null;
         if (size is null or 1) return true;
         data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT REPLACING CHARACTERS BY {InspectOperandImage(rep, size.Value, "literal-3", "identifier-5")} "
@@ -1035,10 +1035,11 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>The size of an INSPECT operand for the size rules: its literal size (<see cref="InspectLiteralSize"/>), or —
     /// where <see cref="InspectSizeRulesCoverDataItems"/> — a data item's static size (the ONE reader of an operand's
-    /// compile-time width, <see cref="IntrinsicBinder.KnownWidth"/>); null when it is a run-time quantity.</summary>
+    /// compile-time width, <see cref="IntrinsicBinder.KnownWidth"/>: a reference modification with no length over an item of static
+    /// size, and a function-identifier whose definition fixes its length, included; kb/Work PB5425); null when it is a run-time quantity.</summary>
     private int? InspectOperandSize((BoundOperand Op, bool Figurative) operand) =>
         InspectLiteralSize(operand)
-        ?? (InspectSizeRulesCoverDataItems && operand.Op is BoundFieldOperand ? IntrinsicBinder.KnownWidth(operand.Op) : null);
+        ?? (InspectSizeRulesCoverDataItems && operand.Op is BoundFieldOperand or BoundComputedOperand ? IntrinsicBinder.KnownWidth(operand.Op) : null);
 
     /// <summary>The statically known size of an INSPECT literal operand, for SR6 / SR9: a figurative constant is ONE
     /// character (ISO §2023:14.9.22.3 SR3: "If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an
@@ -1058,6 +1059,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             BoundStringLiteral literal => $"{literalSlot} '{literal.Value}' ({size} character{(size == 1 ? "" : "s")})",
             BoundFieldOperand field => $"{identifierSlot} (the data item '{field.Place.Item.CobolName}', {size} character{(size == 1 ? "" : "s")})",
+            BoundComputedOperand { Expr: BoundIntrinsicCall call } => $"{identifierSlot} (FUNCTION {call.Sig.Name}, {size} character{(size == 1 ? "" : "s")})",
             _ => $"{literalSlot} (a figurative constant, an implicit one-character item by SR3)",
         };
 

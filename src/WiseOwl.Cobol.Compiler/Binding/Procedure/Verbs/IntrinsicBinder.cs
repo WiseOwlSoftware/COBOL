@@ -1607,9 +1607,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     internal static int? KnownWidth(BoundOperand op) => op switch
     {
         BoundStringLiteral sl => sl.Value.Length,
-        // §2023:8.4.3.3 — a ref-mod view with a LITERAL length has that static width; a computed or
-        // omitted-length form is genuinely runtime.
-        BoundFieldOperand { Place: RefModPlace rm } => rm.StaticLength(innerLength: null),
+        // §2023:8.4.3.3 — a ref-mod view with a LITERAL length has that static width, and so has one whose length is omitted
+        // over an identifier-1 of static length with a literal leftmost position (the positions from the leftmost to the end,
+        // §2023:8.4.3.3.4 GR5 c; kb/Work PB5425); a computed position is genuinely runtime.
+        BoundFieldOperand { Place: RefModPlace rm } => rm.StaticLength(rm.StaticInnerPositions),
+        // A function-identifier whose definition fixes its returned value's length (IntrinsicSig.Length; kb/Work PB5425).
+        BoundComputedOperand { Expr: BoundIntrinsicCall call } => ResultWidth(call),
         BoundFieldOperand { Place.Item: { IsAnyLength: true } or { IsDynamicLength: true } } => null,
         // A group's width is static exactly when nothing beneath it varies at run time — the §2023:15.50.4 r7
         // dynamic guards plus an ODO subordinate's varying current length (§2023:8.5.1.8 GR7/GR8).
@@ -1620,6 +1623,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundPredefinedNull => null,             // §2023:8.4.3.10.1 — an address of class pointer: no character width
         _ => null,   // computed results / error operands — genuinely runtime
     };
+
+    /// <summary>The static character positions of a function call's returned value, or of its reference-modified part: the catalog's
+    /// <see cref="IntrinsicResultLength"/> (a fixed count, or argument-1's own static width), then a modifier's literal length, or
+    /// with the length omitted the positions from a literal leftmost position to the end; null for a length only the run time knows.</summary>
+    private static int? ResultWidth(BoundIntrinsicCall call)
+    {
+        int? whole = call.Sig.Length switch
+        {
+            { Positions: { } n } => n,
+            { OfArgument1: true } when call.Args is [{ } argument1, ..] => KnownWidth(argument1),
+            _ => null,
+        };
+        if (call.RefMod is not { } rm) return whole;
+        if (rm.Length is { } length) return length is PositionConstant { Value: >= 0 and <= int.MaxValue } n ? (int)n.Value : null;
+        return whole is { } size && rm.Start is PositionConstant { Value: >= 1 and <= int.MaxValue } left ? size - (int)left.Value + 1 : null;
+    }
 
     /// <summary>DISPLAY-OF / NATIONAL-OF argument rules — DISPLAY-OF (§2023:15.26.3): argument-1 shall be of class
     /// national (r1); argument-2 shall be of class alphabetic or alphanumeric and one character position in

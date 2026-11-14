@@ -56,6 +56,21 @@ public enum FunctionDeviceForm
 /// enum case with zero rows is a lookup nobody reads (feedback_a_dead_lookup_is_also_unverified).</para></summary>
 public enum IntrinsicBind { Runtime, Fold, Deferred }
 
+/// <summary>The number of character positions an alphanumeric or national function's returned value has, where its definition
+/// fixes it at compile time (kb/Work PB5425): "The number of character positions in this data item is specified in the function
+/// definition" (§1989:A.2.3 GR1 for the 1989 module's alphanumeric functions). <see cref="Positions"/> is a constant count (CHAR's
+/// one, CURRENT-DATE's 21), <see cref="OfArgument1"/> the length of argument-1 (LOWER-CASE, UPPER-CASE, REVERSE: "the same length
+/// as argument-1"); the default is neither, a length only the run time knows or one this table does not state, which every static
+/// size reader (<c>IntrinsicBinder.KnownWidth</c>) answers as unknown.</summary>
+public readonly record struct IntrinsicResultLength(int? Positions, bool OfArgument1)
+{
+    /// <summary>A returned value of exactly <paramref name="positions"/> character positions.</summary>
+    public static IntrinsicResultLength Fixed(int positions) => new(positions, false);
+
+    /// <summary>A returned value as long as argument-1.</summary>
+    public static IntrinsicResultLength SameAsArgument1 => new(null, true);
+}
+
 /// <summary>
 /// One catalog row (deep-dive D2 — the SINGLE source of result-category truth). <paramref name="ArgKinds"/> is the
 /// per-position argument-TYPE code per §2023:15.3 — <c>'n'</c> numeric (type 10), <c>'i'</c> integer (type 6),
@@ -77,7 +92,8 @@ public readonly record struct IntrinsicSig(
     int IntroducedIn, int? RemovedIn = null,
     IntrinsicResultRule Result = IntrinsicResultRule.Fixed,
     IntrinsicDomain Domain = IntrinsicDomain.None, string? DomainRule = null,
-    FunctionDeviceForm DeviceForm = FunctionDeviceForm.Value, int DeviceDigits = 0)
+    FunctionDeviceForm DeviceForm = FunctionDeviceForm.Value, int DeviceDigits = 0,
+    IntrinsicResultLength Length = default)
 {
     /// <summary>Is the function an intrinsic-function-name of the edition <paramref name="dialectLevel"/> — inside
     /// its D8 window [<see cref="IntroducedIn"/>, <see cref="RemovedIn"/>)? The REPOSITORY's <c>FUNCTION ALL
@@ -206,16 +222,16 @@ public static class IntrinsicCatalog
         Add(new("NUMVAL-C", IntrinsicType.Numeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "NumvalC", IntrinsicBind.Runtime, false, 85)); // §2023:15.68
 
         // Character family + LENGTH/ORD.
-        Add(new("CHAR", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "i", "Char", IntrinsicBind.Runtime, false, 85));      // §2023:15.15
+        Add(new("CHAR", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "i", "Char", IntrinsicBind.Runtime, false, 85, Length: IntrinsicResultLength.Fixed(1)));      // §2023:15.15
         Add(new("ORD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "Ord", IntrinsicBind.Runtime, false, 85));             // §2023:15.70
         Add(new("LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "Length", IntrinsicBind.Fold, false, 85, DeviceForm: FunctionDeviceForm.Literal));          // §2023:15.50 (D7 compile-time fold)
-        Add(new("LOWER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "LowerCase", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1)); // §2023:15.57.1
-        Add(new("UPPER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "UpperCase", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1)); // §2023:15.97.1
-        Add(new("REVERSE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "Reverse", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1)); // §2023:15.78.1
+        Add(new("LOWER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "LowerCase", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1, Length: IntrinsicResultLength.SameAsArgument1)); // §2023:15.57.1
+        Add(new("UPPER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "UpperCase", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1, Length: IntrinsicResultLength.SameAsArgument1)); // §2023:15.97.1
+        Add(new("REVERSE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "Reverse", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1, Length: IntrinsicResultLength.SameAsArgument1)); // §2023:15.78.1
 
         // Date/time family (CobolDate; integer date form §2023:15.5.2).
-        Add(new("CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "CurrentDate", IntrinsicBind.Runtime, false, 85)); // §2023:15.21
-        Add(new("WHEN-COMPILED", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "WhenCompiled", IntrinsicBind.Fold, false, 85));  // §2023:15.99 (compile-time constant, r2)
+        Add(new("CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "CurrentDate", IntrinsicBind.Runtime, false, 85, Length: IntrinsicResultLength.Fixed(21))); // §2023:15.21
+        Add(new("WHEN-COMPILED", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "WhenCompiled", IntrinsicBind.Fold, false, 85, Length: IntrinsicResultLength.Fixed(21)));  // §2023:15.99 (compile-time constant, r2)
         Add(new("DATE-OF-INTEGER", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "DateOfInteger", IntrinsicBind.Runtime, false, 85, DeviceForm: FunctionDeviceForm.FixedDigits, DeviceDigits: 8)); // §2023:15.22
         Add(new("DAY-OF-INTEGER", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "DayOfInteger", IntrinsicBind.Runtime, false, 85, DeviceForm: FunctionDeviceForm.FixedDigits, DeviceDigits: 7));   // §2023:15.24
         Add(new("INTEGER-OF-DATE", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "IntegerOfDate", IntrinsicBind.Runtime, false, 85)); // §2023:15.46
