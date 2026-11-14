@@ -20,3 +20,8 @@ record before they are recorded. Their documentation is already in place, and th
 **Also.** `record_verdicts.py` printed "owner-signed DERIVATION" for every derivation closure; it now says "signed",
 since a deciding session can sign too. The branch carries w20262027a's PB5118 group (merged, one conflict in
 `tests/doc-facts/compiler-facts.json` resolved by keeping both codes).
+
+**Gate.** The first run was RED on one RepoDrift case, `TheRowsClosedOnADerivation_AreTheEnumeratedPopulation`, the
+guard that makes each derivation closure a deliberate edit; the three rows were added to its list with their decision.
+Run 000002: `=== BUILD-LOCAL GATE: GREEN — Conformance up to date (24,880 cases) · Unit up to date (40,728 cases) ·
+RepoDrift 177/177 ran · Characterization up to date (37 cases) ===`.
