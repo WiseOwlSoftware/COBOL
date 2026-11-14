@@ -1,4 +1,4 @@
-## PB5385: a debugging section describes the receiver its statement identified at the store
+## Entry 3582 — 2026-11-13 20:02 PST — PB5385: a debugging section describes the receiver its statement identified at the store
 
 **The defect.** kb/Work PB5294 made each data fire of a USE FOR DEBUGGING section identify its place once, when the statement begins
 (`DebugTriggerEmitter.IdentifiedOnce`, §1985:IV.4.3.8). That rule holds "Unless otherwise specified by the rules for a statement", and
@@ -38,3 +38,4 @@ docs/CONTROL_FLOW_DESIGN.md D20 states the rule.
 (`GrammarDiagramGeneratorDriftTests.Generator_RunsClean`), not this change. Self-review: one mechanism (the freeze's locals, assigned
 again by the store), no second copy of the timing rule; a fire whose place is not the store's own object keeps the statement-start
 identification, which is the general rule's answer.
+
