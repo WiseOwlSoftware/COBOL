@@ -1,4 +1,4 @@
-## PB5302: at --std 85 a format 1 SEARCH judges its incremented index against both bounds
+## Entry 3575 — 2026-11-13 18:46 PST — PB5302: at --std 85 a format 1 SEARCH judges its incremented index against both bounds
 
 kb/Work PB5302 asked whether COBOL-85's serial SEARCH ends when the incremented index is still below the table. PB5121 had made
 an index below 1 start the scan at 85, which §1985:VI.6.22.4 GR2a requires, since it tests only "greater than". The advance test
@@ -23,3 +23,4 @@ VCR row 7.56 was corrected.
 **Golden.** `14.9.37-SEARCH/pb5302_search_advance_below_table_85` (accept 85) starts at IX = -1 and prints `AT END`. The PB5121
 witness, which starts at 0, still prints `FOUND AT 2`. No row was re-verdicted, because the inventory carries no 1985 rows yet
 (PB5094).
+
