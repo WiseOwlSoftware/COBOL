@@ -748,4 +748,59 @@ public sealed class ReportWriterConformanceTests
         Assert.False(ok, "MOVE … TO LINE-COUNTER must be rejected (ISO §2023:8.4.3.15.3 SR3)");
         Assert.Contains("LINE-COUNTER", detail);
     }
+
+    [Theory]   // kb/Work PB5524: a SUM ... UPON name that two reports share is ONE refusal. §1985:IV.4.3.8.1 SRL2.1 makes the
+               // name nonunique (COBOL1920); binding the ambiguity's first candidate (the OTHER report's DET) added a cascading
+               // COBOL2046. The golden's `expect` is an any-diagnostic substring check, so only this test pins "exactly one".
+    [InlineData(85)]
+    [InlineData(2023)]
+    public void SumUponNonuniqueDetail_IsOneRefusal_NotACascade(int edition)
+    {
+        var (ok, _, detail) = new WiseOwlCobolCompiler(edition).CompileAndRun("""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB5524T.
+                   ENVIRONMENT DIVISION.
+                   INPUT-OUTPUT SECTION.
+                   FILE-CONTROL.
+                       SELECT RPT-FILE ASSIGN TO PB5524E.
+                       SELECT RPT-FILE2 ASSIGN TO PB5524F.
+                   DATA DIVISION.
+                   FILE SECTION.
+                   FD  RPT-FILE
+                       RECORD CONTAINS 5 CHARACTERS
+                       REPORT IS RPT.
+                   FD  RPT-FILE2
+                       RECORD CONTAINS 5 CHARACTERS
+                       REPORT IS RPT2.
+                   WORKING-STORAGE SECTION.
+                   01  WS-AMT PIC 9(3) VALUE 5.
+                   REPORT SECTION.
+                   RD  RPT
+                       CONTROL IS FINAL.
+                   01  DET TYPE IS DETAIL.
+                       05  LINE PLUS 1.
+                           10  COLUMN 1 PIC 9(3) SOURCE WS-AMT.
+                   RD  RPT2
+                       CONTROL IS FINAL.
+                   01  DET TYPE IS DETAIL.
+                       05  LINE PLUS 1.
+                           10  COLUMN 1 PIC 9(3) SOURCE WS-AMT.
+                   01  CFG TYPE IS CONTROL FOOTING FINAL.
+                       05  LINE PLUS 1.
+                           10  TOT COLUMN 1 PIC 9(5) SUM WS-AMT UPON DET.
+                   PROCEDURE DIVISION.
+                   MAIN-PARA.
+                       OPEN OUTPUT RPT-FILE RPT-FILE2.
+                       INITIATE RPT RPT2.
+                       GENERATE DET OF RPT2.
+                       TERMINATE RPT RPT2.
+                       CLOSE RPT-FILE RPT-FILE2.
+                       STOP RUN.
+            """);
+        Assert.False(ok);
+        Assert.Contains("COBOL1920", detail);
+        Assert.Contains("DET OF RPT2", detail);
+        Assert.DoesNotContain("COBOL2046", detail);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(detail, "COBOL[0-9]{4}"));
+    }
 }
