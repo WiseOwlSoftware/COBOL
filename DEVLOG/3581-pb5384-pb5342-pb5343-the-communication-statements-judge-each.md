@@ -1,4 +1,4 @@
-## PB5384, PB5342, PB5343: the communication statements judge each operand as bound, gate ALL ZERO at 2002, and quote the targeted edition's rule
+## Entry 3581 — 2026-11-13 20:02 PST — PB5384, PB5342, PB5343: the communication statements judge each operand as bound, gate ALL ZERO at 2002, and quote the targeted edition's rule
 
 Three defects of one file, `CommunicationBinder.cs`, each re-probed on this branch's own build before the fix (`cobol --std 85|2002`, probes under the wave's
 scratch directory).
@@ -39,3 +39,4 @@ drop the open PB5343.
 at 85 `RECEIVE ... INTO K-NUM` and `INTO K-NUM (1:2)` of the message `AB` leave `0034` where §1985:XIV.3.5.4 GR3 puts `AB34` in the character positions
 (`CommunicationEmitter.EmitReceive` writes `CobolNum.StoreImage` of the spliced image). It is a code-generation defect of its own, recorded for the
 registrar in the implementer's report.
+
