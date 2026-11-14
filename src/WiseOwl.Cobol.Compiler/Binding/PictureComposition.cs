@@ -329,11 +329,21 @@ internal static class PictureComposition
         }
 
         // SR22 "Neither the symbol 'S' nor the symbol '*' shall be specified in character-string-1 when the
-        // BLANK WHEN ZERO clause is specified for the subject of the entry."
-        if (blankWhenZero && (Count("S") > 0 || Count("*") > 0))
+        // BLANK WHEN ZERO clause is specified for the subject of the entry." (the 2002 text's SR18 says the same). COBOL-85
+        // bars the asterisk alone: "The asterisk when used as the zero suppression symbol and the clause BLANK WHEN ZERO
+        // may not appear in the same entry" (§1985:VI.5.9.3 SR7), and its BLANK WHEN ZERO clause takes any numeric
+        // PICTURE (§1985:VI.5.4.3 SR1), so PIC S9(4) BLANK WHEN ZERO is a COBOL-85 entry (kb/Work PB5191).
+        if (blankWhenZero && Count("*") > 0)
             return Fail(DiagnosticCatalog.PictureComposition,
-                $"the symbol '{(Count("S") > 0 ? 'S' : '*')}' is specified beside a BLANK WHEN ZERO clause — neither "
-                + "'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)");
+                "the symbol '*' is specified beside a BLANK WHEN ZERO clause — "
+                + (edition.DialectLevel < 2002
+                    ? "the asterisk when used as the zero suppression symbol and the clause BLANK WHEN ZERO may not appear in "
+                      + "the same entry (ISO §1985:VI.5.9.3 SR7)"
+                    : "neither 'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)"));
+        if (blankWhenZero && Count("S") > 0 && edition.DialectLevel >= 2002)
+            return Fail(DiagnosticCatalog.PictureComposition,
+                "the symbol 'S' is specified beside a BLANK WHEN ZERO clause — neither 'S' nor '*' may be (ISO "
+                + "§2023:13.18.40.3 SR22)");
 
         // SR24 "For fixed insertion with editing sign control symbols, only one currency symbol and only one
         // editing sign control symbol may be used in character-string-1."
@@ -438,7 +448,8 @@ internal static class PictureComposition
         // a PICTURE clause are specified in 13.18.40.6, Precedence rules"). Assign every occurrence its role,
         // then require an 'x' for EVERY ordered pair: an 'x' means the column symbol "may precede (BUT NOT
         // NECESSARILY IMMEDIATELY)" the row symbol, so the relation binds non-adjacent pairs too.
-        return Precedence(syms, n, cs, char1, char1Extended, dp, decimalSep, grouping, IsFloating, leadingP, Fail);
+        return Precedence(syms, n, cs, char1, char1Extended, dp, decimalSep, grouping, IsFloating, leadingP,
+            edition.DialectLevel, Fail);
     }
 
     /// <summary>
@@ -586,7 +597,7 @@ internal static class PictureComposition
     /// their left-of-point and right-of-point halves.</para></summary>
     private static bool Precedence(List<Sym> syms, int n, char cs, IReadOnlySet<char> char1,
         IReadOnlySet<char> char1Extended, int dp, char decimalSep, char grouping, Func<int, bool> isFloating,
-        bool leadingP,
+        bool leadingP, int dialectLevel,
         Func<DiagnosticDescriptor, string, bool> fail)
     {
         var roleA = new PicRole[n];      // the first candidate role
@@ -632,9 +643,15 @@ internal static class PictureComposition
             // The currency symbol is asked BEFORE the picture letters: at COBOL-85 it may be E or N, which are picture
             // symbols only from COBOL-2002 (§1985:VI.4.5.4 GR11; kb/Work PB5173). No edition admits a currency symbol
             // that is one of its own picture symbols, so the order changes nothing else.
+            // A fixed currency symbol has the trailing role only from COBOL-2002, which adds "the rightmost symbol in
+            // character-string-1" (§2002:13.16.38.2 SR23, §2023:13.18.40.3 SR26). The 1985 chart has one non-floating cs
+            // row and column, the leading one: "The currency symbol must be the leftmost character position to be counted
+            // in the size of the item except that it can be preceded by either a '+' or a '-' symbol" (§1985:VI.5.9.5
+            // GR6), so PIC 999$ and 999$CR are no COBOL-85 character-strings (kb/Work PB5175).
             if (c == cs)
             {
                 if (isFloating(i)) roleA[i] = left ? PicRole.FloatCurrencyLeft : PicRole.FloatCurrencyRight;
+                else if (dialectLevel < 2002) roleA[i] = PicRole.CurrencyLeading;
                 else { roleA[i] = PicRole.CurrencyLeading; roleB[i] = PicRole.CurrencyTrailing; ambiguous.Add(i); }
                 continue;
             }
@@ -723,6 +740,12 @@ internal static class PictureComposition
                   + "\"has the same precedence as the 'cs' symbol in the column and row of non-floating insertion "
                   + "symbols\" (§2023:13.18.40.6), so it may stand only where a fixed currency symbol may: first or "
                   + "second, or last or penultimate"
+                : "")
+            // The COBOL-85 chart is that table cell for cell save its one non-floating cs row and column, the leading
+            // ones (kb/Work PB5175), so the 85 message names its own clause too.
+            + (dialectLevel < 2002
+                ? " (at COBOL-85 the chart of §1985:VI.5.9.6, whose fixed currency symbol is leftmost, preceded at most by "
+                  + "'+' or '-', §1985:VI.5.9.5 GR6)"
                 : ""));
 
         bool IsFixedExtended(Sym s, int at) => char1Extended.Contains(s.Kind) && !isFloating(at);

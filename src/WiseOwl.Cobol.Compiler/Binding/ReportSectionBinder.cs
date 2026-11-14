@@ -391,31 +391,46 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// c. A redefinition or renaming of any part of a control data item. In page heading and page footing report groups,
     /// SOURCE clauses and USE statements must not reference control data-names." Asked of the operand's one data item (an
     /// ambiguous or unresolved name is the procedure phase's), against each CONTROL operand's item. COBOL-2002 and later
-    /// carry no such rule. The USE BEFORE REPORTING half is a walk of the declarative's statements and is not made here.</summary>
+    /// carry no such rule. The USE half is <c>ReportWriterBinder.CheckControlDataReferences</c>, asked of each statement of a
+    /// USE BEFORE REPORTING procedure through the same <see cref="ControlDataReferenceOf"/> (kb/Work PB5424).</summary>
     private void ScreenSourceControlData(ReportModel model, ReportGroupModel group, FieldReferenceSource source)
     {
-        if (Edition.DialectLevel >= 2002 || group.Kind is not (ReportGroupKindModel.ControlFooting or ReportGroupKindModel.PageHeading
-                or ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting)) return;
+        if (Edition.DialectLevel >= 2002) return;
         // A function-identifier or method invocation references a temporary, never control data (kb/Work PB5240).
         if (source.Ref is not Core.DataReferenceContext sourceRef) return;
         var (name, qualifiers) = DataBinder.KeyReference(sourceRef);
         if (_d.QualifiedCandidates(name, qualifiers, Model.Scope.Program).Single is not { } item) return;
-        bool pageGroup = group.Kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting;
-        foreach (var control in model.Controls)
-        {
-            if (control.Item is not { } controlItem || SourceControlRelation(item, controlItem, pageGroup) is not { } relation) continue;
-            Edition.Error(DiagnosticCatalog.ReportSourceControlData, $"RD '{model.Name}': the SOURCE operand '{source.Written}' of "
-                + $"a {ReportGroupTypeWords(group.Kind).ToLowerInvariant()} report group {relation} '{control.Display}'; "
-                + (pageGroup
-                    ? "in page heading and page footing report groups SOURCE clauses must not reference control data-names, "
-                      + "nor a group containing, an item subordinate to, or a redefinition or renaming of a control data item"
-                    : "in control footing and report footing report groups SOURCE clauses must not reference a group item "
-                      + "containing a control data item, a data item subordinate to one, or a redefinition or renaming of "
-                      + "any part of one")
-                + " (ISO §1985:XIII.3.20.3 SR5)");
-            return;   // one report per operand
-        }
+        if (ControlDataReferenceOf(model, group.Kind, item) is not { } hit) return;
+        Edition.Error(DiagnosticCatalog.ReportSourceControlData, $"RD '{model.Name}': the SOURCE operand '{source.Written}' of a "
+            + $"{ReportGroupTypeWords(group.Kind).ToLowerInvariant()} report group {hit.Relation} '{hit.Control.Display}'; "
+            + ControlDataRuleWords(group.Kind, "SOURCE clauses"));
     }
+
+    /// <summary>The ONE reading of §1985:XIII.3.20.3 SR5's subject (kb/Work PB5079, PB5424): whether a reference to
+    /// <paramref name="item"/> from a report group of kind <paramref name="kind"/> of <paramref name="model"/> references control
+    /// data the rule forbids, and which CONTROL operand it meets; null when the group's kind is not one the rule names (control
+    /// footing, page heading, page footing, report footing) or the item meets none. The edition is the caller's question.</summary>
+    internal static (string Relation, ReportControlModel Control)? ControlDataReferenceOf(ReportModel model, ReportGroupKindModel kind,
+        DataItem item)
+    {
+        if (kind is not (ReportGroupKindModel.ControlFooting or ReportGroupKindModel.PageHeading
+                or ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting)) return null;
+        bool pageGroup = kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting;
+        foreach (var control in model.Controls)
+            if (control.Item is { } controlItem && SourceControlRelation(item, controlItem, pageGroup) is { } relation)
+                return (relation, control);
+        return null;
+    }
+
+    /// <summary>The rule's words for a diagnostic about <paramref name="what"/> ("SOURCE clauses", "USE statements") in a report
+    /// group of kind <paramref name="kind"/>, ending with the citation.</summary>
+    internal static string ControlDataRuleWords(ReportGroupKindModel kind, string what) =>
+        (kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting
+            ? $"in page heading and page footing report groups {what} must not reference control data-names, nor a group "
+              + "containing, an item subordinate to, or a redefinition or renaming of a control data item"
+            : $"in control footing and report footing report groups {what} must not reference a group item containing a "
+              + "control data item, a data item subordinate to one, or a redefinition or renaming of any part of one")
+        + " (ISO §1985:XIII.3.20.3 SR5)";
 
     /// <summary>How a SOURCE operand's <paramref name="item"/> relates to a control data item in the ways §1985:XIII.3.20.3 SR5
     /// forbids, as a phrase for the diagnostic ("is …"); null for none. The control data item ITSELF is forbidden in a page
@@ -1632,6 +1647,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// …] [USAGE …]</c>) or format 3 (<c>PICTURE</c> in every row of its Table 1, SR11). An entry with no PICTURE clause and none of
     /// the clauses only format 3 prints is format 2.
     /// <list type="bullet">
+    /// <item>SR4 b — "Both format 2 and format 3 entries may be immediately subordinate to a format 1 entry", under SR4's "one,
+    /// two, or three hierarchic levels": a format 2 entry's parent is the format 1 entry (kb/Work PB5426).</item>
     /// <item>SR4 c — "At least one format 3 entry must be immediately subordinate to a format 2 entry."</item>
     /// <item>SR6 — "A format 2 entry must contain at least one optional clause": its data-name (SR2 calls the data-name a
     /// clause, SR7 says it is optional in format 2), a LINE NUMBER clause or a USAGE clause.</item>
@@ -1671,6 +1688,20 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (!hasName && !line && !usage)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a format 2 entry with no clause after its "
                     + "level-number; a format 2 entry must contain at least one optional clause (ISO §1985:XIII.3.9.3 SR6)");
+            // SR4 b — the levels: the entry a format 2 entry is immediately subordinate to is the group's format 1 entry, so a
+            // report group has at most three hierarchic levels (kb/Work PB5426). The nearest earlier entry of a lower level is
+            // that parent; a format 3 entry is elementary (SR4 d), so a parent below level 01 is a format 2 entry.
+            for (int j = self - 1; j >= 0; j--)
+            {
+                if (!int.TryParse(entries[j].levelNumber().GetText(), out int parentLevel)) break;
+                if (parentLevel >= level) continue;
+                if (parentLevel != 1)
+                    Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a format 2 entry immediately "
+                        + $"subordinate to the level {parentLevel:00} entry, which is not the group's format 1 entry; a description of "
+                        + "a report group may consist of one, two, or three hierarchic levels, and both format 2 and format 3 "
+                        + "entries may be immediately subordinate to a format 1 entry (ISO §1985:XIII.3.9.3 SR4 b)");
+                break;
+            }
             bool formatThreeChild = false;
             int childBound = int.MaxValue;
             for (int j = self + 1; j < entries.Length && !formatThreeChild; j++)
@@ -2538,8 +2569,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // downstream applies it to an item it may not describe.
                 if (blankWhenZero && DataBinder.BlankWhenZeroViolation(pic) is { } bwzFault)
                 {
-                    Edition.Error(DiagnosticCatalog.ClauseSubjectCategory,
-                        $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {bwzFault}");
+                    // A recovery profile (the PICTURE refused by its own rule) has no category to judge (kb/Work PB5191).
+                    if (!pic.IsRecovery)
+                        Edition.Error(DiagnosticCatalog.ClauseSubjectCategory,
+                            $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {bwzFault}");
                     blankWhenZero = false;
                 }
                 if (justified && DataBinder.JustifiedViolation(pic) is { } justifiedFault)
@@ -4266,7 +4299,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>A report group's TYPE in the standard's own words, for a diagnostic (ISO §2023:13.18.57.2).</summary>
-    private static string ReportGroupTypeWords(ReportGroupKindModel kind) => kind switch
+    internal static string ReportGroupTypeWords(ReportGroupKindModel kind) => kind switch
     {
         ReportGroupKindModel.ReportHeading => "REPORT HEADING",
         ReportGroupKindModel.PageHeading => "PAGE HEADING",
@@ -4327,12 +4360,28 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// CONTROL operand <paramref name="operand"/> names, or −1. Both clauses that name a control level ask this
     /// question in the same words: §2023:13.18.57.3 SR10 ("shall be the same as one of the operands of the CONTROL
     /// clause of the corresponding report description entry") and §2023:13.18.54.3 SR8 ("shall be an operand of the
-    /// CONTROL clause of the current report description"), so one comparison serves both — over the WRITTEN
-    /// reference, ref-mod included, which is what §2023:13.18.16.3 SR6 makes unique.</summary>
-    private static int ControlLevelOf(ReportModel model, ReportControlRef operand)
+    /// CONTROL clause of the current report description"); COBOL-85 says it of the data-name
+    /// (§1985:XIII.3.19.3 SR4: "Data-name-2 must be one of the data-names specified in the CONTROL clause for this
+    /// report"). One comparison serves both clauses, in two steps:
+    /// <list type="number">
+    /// <item>the WRITTEN reference, ref-mod included, which is what §2023:13.18.16.3 SR6 makes unique — so two
+    /// operands that SR6 lets "refer to the same physical data item" stay two levels;</item>
+    /// <item>failing that, the data item the reference NAMES with the same ref-mod: "A name may be qualified even
+    /// though it does not need qualification; if there is more than one combination of qualifiers that ensures
+    /// uniqueness, then any such set may be used" (§2023:8.4.2.2.3 SR2), so <c>WS-A</c> and <c>WS-A OF G1</c> name
+    /// one item, and a RESET ON or TYPE operand written with other qualifiers than the CONTROL operand names that
+    /// level (kb/Work PB5423). A reference that names no single item matches nothing here; the lookup reports
+    /// nothing, because the clause's own refusal follows.</item>
+    /// </list></summary>
+    private int ControlLevelOf(ReportModel model, ReportControlRef operand)
     {
         for (int i = 0; i < model.Controls.Count; i++)
             if (model.Controls[i].Operand is { } c && c.SameOperandAs(operand)) return i;
+        if (_d.QualifiedCandidates(operand.Name, operand.Qualifiers, Model.Scope.Program).Single is not { } named) return -1;
+        for (int i = 0; i < model.Controls.Count; i++)
+            if (model.Controls[i] is { Item: { } item, Operand: { } c } && ReferenceEquals(item, named)
+                && c.RefModStart == operand.RefModStart && c.RefModLength == operand.RefModLength)
+                return i;
         return -1;
     }
 

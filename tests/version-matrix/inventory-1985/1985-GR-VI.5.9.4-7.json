@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.9.4-7",
  "rule-digest": "ac957f563b6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#TryExpandRepeats; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#RepeatableSymbol; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#TryRepetitionFactor; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-GR-VI_5_9_4-7; conformance:cases/13.18.40-PICTURE/pb5118-repeat-after-v-85; conformance:cases/13.18.40-PICTURE/pb5118-repeat-after-s-85; conformance:cases/13.18.40-PICTURE/pb5118-repeat-after-cr-85",
+ "notes": "kb/Work PB5118 landed. §1985:VI.5.9.4 GR7: \"An unsigned nonzero integer which is enclosed in parentheses following the symbols 'A', ',', 'X', '9', 'P', 'Z', '*', 'B', '/', '0', '+', '-', or the currency symbol indicates the number of consecutive occurrences of the symbol\", and S, V, '.', CR and DB \"may appear only once in a given PICTURE\". PictureAnalyzer.TryExpandRepeats validates every factor (TryRepetitionFactor, COBOL2147) and, below 2002, the symbol it follows (RepeatableSymbol, COBOL7078: the list, the comma read as the period under DECIMAL-POINT IS COMMA per §1985:VI.4.5.4 GR12, and the currency symbol); PictureComposition.Validate refuses a second S, V, '.', CR or DB (COBOL1934). Witnesses: 1985-GR-VI_5_9_4-7 (each listed symbol repeated, edited as its expansion) and the refusals of 9(3)V(1)9, S(1)9(3) and 9(3)CR(1) at 85; from 2002 any symbol takes a factor (§2002:13.16.38.2 SR7; pb5118-repeat-after-any-symbol).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
