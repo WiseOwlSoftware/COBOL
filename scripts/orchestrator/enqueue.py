@@ -5,8 +5,9 @@ DESIGN-test-build-ci.md sections 3.17.2 step 3, 3.17.5 and 3.17.6). No agent lan
 (land_lane.py, kb/Work PB3103) runs this per WAITING TO LAND branch, and an agent is dispatched only for what a script
 cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
 
-    python scripts/orchestrator/enqueue.py land <branch> [--worktree <path>] [--lane L] [--dry-run]  THE landing step
-    python scripts/orchestrator/enqueue.py queue --title "<one-line subject>" --body-file <forensic message> [--dry-run]
+    python scripts/orchestrator/enqueue.py land <branch> [--worktree <path>] [--lane L] [--fix-first "<cause>"] [--dry-run]
+    python scripts/orchestrator/enqueue.py queue --title "<one-line subject>" --body-file <forensic message>
+                                                 [--fix-first "<cause>"] [--dry-run]
     python scripts/orchestrator/enqueue.py checks [--rev HEAD] [--base origin/main]
     python scripts/orchestrator/enqueue.py --self-test
 
@@ -114,6 +115,14 @@ Every outcome ends on ONE line `=== ENQUEUE: <OUTCOME> … ===` for a caller to 
      that fails is exit 16, STORE NOT PUBLISHED, with no pull request opened), then reuse the branch's open pull request
      or open one (`gh pr create`), and queue it (`gh pr merge --auto`; the merge method is the queue's own, MERGE, so the
      branch's commits stay ancestors of main).
+     FIX FIRST (`--fix-first "<cause>"`, kb/Work PB5483; DESIGN-test-build-ci.md section 3.17.2 step 3): a root fix
+     main is waiting on is queued at the FRONT instead, by GraphQL's `enqueuePullRequest(jump: true, expectedHeadOid:
+     <the pushed head>)` (`jump_to_front`), after an entry of the pull request already in the queue is dequeued (an
+     enqueue of a queued pull request does not move it; one already first at the head is left). The cause is required
+     and names the red (a kb/Work note the worktree carries and/or a failed run id: `fix_first_cause`); `land` refuses
+     an unstated one with exit 2 before it takes the land lock, and every other guard and step is unchanged. When
+     GitHub refuses the jump (its pull-request check has not passed yet, the head moved) the pull request is queued at
+     the back with `gh pr merge --auto` like any landing, and the exit is 17, ENQUEUED, NOT JUMPED.
   5. Print `ENQUEUED pr=<n> sha=<sha> branch=<branch> url=<url>`, write the landing's measurement record (kb/Work
      PB3028, landing_measure.py: each carried change's DONE from git (landing_measure.done_times), enqueued now, the
      worktree's local gate seconds;
@@ -154,7 +163,9 @@ worktree is running or starting (`land` only; nothing written, nothing is red, n
 · 13 another `land` of the branch is running: its land lock
 is held (`land` only; nothing ran, nothing is red, no report line; step 0) · 14 the branch is not TESTED at its tip: no
 recorded GREEN local gate covers it (`land` only; nothing merged; step 3) · 15 the branch carries a stamped entry of a
-predecessor's still-open pull request (`land` only; nothing queued, no report line; step 4). A shared file never holds a
+predecessor's still-open pull request (`land` only; nothing queued, no report line; step 4) · 16 the passes could not
+be published (`queue` step 4) · 17 --fix-first: GitHub refused the jump, and the pull request is queued at the back
+with auto-merge (`queue` step 4; the record says NOT JUMPED). A shared file never holds a
 branch (owner, kb/Work PB5109): git merges two edits of one file, and a merge group that does conflict bounces the pull
 request, which a finisher fixes then.
 
@@ -202,6 +213,7 @@ EXIT_LAND_BUSY = 13   # another `land` of this branch holds the worktree's land 
 EXIT_UNTESTED = 14    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
 EXIT_PREDECESSOR_QUEUED = 15   # the branch carries a stamped DEVLOG entry of a still-open pull request: nothing is wrong, main will have it (kb/Work PB3145)
 EXIT_STORE_UNPUBLISHED = 16   # the branch is pushed but this host's passes could not be published to the store ref: no pull request is opened (kb/Work PB5235)
+EXIT_NOT_JUMPED = 17   # --fix-first: GitHub refused the jump to the queue's front; the pull request is queued at the BACK with auto-merge, as any landing (kb/Work PB5483)
 #: THE LAND LOCK (kb/Work PB3310): `<worktree git dir>/cobol-land.lock`, an exclusive OS lock (gate_slot.ExclusiveLock,
 #: freed when its holder dies, so a dead run never blocks a branch) that one `land` of a branch holds from before its first
 #: read to its outcome line. A branch is checked out in exactly one worktree, so the worktree's lock IS the branch's. Two
@@ -254,7 +266,8 @@ CHECKS = (Check("devlog.py check", ("devlog.py", "check"), 6),
 
 Say = Callable[[str], None]
 Gh = Callable[[list[str]], tuple[int, str, str]]
-Measure = Callable[[str, int], None]   # (branch, pull-request number): write the landing's record (kb/Work PB3028)
+# (branch, pull-request number, the fix-first attempt or None): write the landing's record (kb/Work PB3028, PB5483)
+Measure = Callable[[str, int, "dict | None"], None]
 Publish = Callable[[pathlib.Path, "Say"], None]   # (worktree, say): publish this host's passes to the store ref, or raise
 
 
@@ -299,21 +312,124 @@ def queue_state() -> tuple[str, str]:
 
 
 def measure_landing(cwd: pathlib.Path, branch: str, pr: int, changes: int | None, landing_gates: int | None,
-                    say: Say = print) -> None:
+                    fix_first: dict | None = None, say: Say = print) -> None:
     """Write the landing's record into the coordination directory (landing_measure.record_enqueued). `landing_gates`: the
-    gates the landing itself ran (`land`: 0 or 1, kb/Work PB3612); None for a hand-queued pull request (UNMEASURED)."""
+    gates the landing itself ran (`land`: 0 or 1, kb/Work PB3612); None for a hand-queued pull request (UNMEASURED).
+    `fix_first`: this landing's fix-first attempt (`FixFirst.attempt`, kb/Work PB5483), or None."""
     d = coord.coord_dir()
     rec = landing_measure.record_enqueued(d / landing_measure.FILE, cwd, branch, pr, d / "scratch" / "reports", changes,
-                                          landing_gates=landing_gates)
+                                          landing_gates=landing_gates, fix_first=fix_first)
     say(f"landing-measure: recorded PR #{pr} ({branch}): DONE {rec['done'] or 'UNMEASURED'}, enqueued {rec['enqueued']}, "
         f"local gate {rec['local_gate_s'] if rec['local_gate_s'] is not None else 'UNMEASURED'} s "
         f"in {rec['local_gate_runs'] or 0} run(s), {'UNMEASURED' if rec['landing_gate_runs'] is None else rec['landing_gate_runs']} "
-        "of them run by the landing itself")
+        "of them run by the landing itself"
+        + (f"; fix first: {'JUMPED' if fix_first['jumped'] else 'NOT JUMPED'} ({fix_first['cause']})" if fix_first else ""))
+
+
+# ── FIX FIRST: a root fix main is waiting on goes to the FRONT of the merge queue (kb/Work PB5483) ───────────────────
+# The owner, 2026-11-13: "we rerun things far too many times, often in CI, rather than chase down and fix the ultimate
+# issue. Then we should immediately get the issue fix in the build rather than waiting for all preceeding jobs to encounter
+# the same problem." A landing joins the BACK of the queue, so the branch that removes a red (a flake, a CI-only fault)
+# waits behind every pull request queued before it, and each of those can meet the same red first. `land --fix-first
+# "<cause>"` enqueues it with GraphQL's `enqueuePullRequest(jump: true, expectedHeadOid: <the pushed head>)`. The cause is
+# REQUIRED and must name the red: a kb/Work note the worktree carries (`PB5483`, `R13`) and/or a failed workflow run
+# (`run 19283746501`, or its actions/runs/<id> URL). Jumping is for a fix main is waiting on, never for impatience.
+NOTE_ID = re.compile(r"\b((?:PB|R|A)\d+)\b")
+RUN_ID = re.compile(r"(?:actions/runs/|\brun[ #:]*)(\d{6,})\b", re.IGNORECASE)
+#: The pull request's merge-queue entry, read before the jump: an entry already in the queue is DEQUEUED first, because
+#: enqueuing a queued pull request does not move it (kb/Work PB5483), unless it is already first and at the pushed head.
+ENTRY_QUERY = ("query($id:ID!){node(id:$id){... on PullRequest{headRefOid mergeQueueEntry{position jump "
+               "headCommit{oid}}}}}")
+DEQUEUE_MUTATION = "mutation($id:ID!){dequeuePullRequest(input:{id:$id}){mergeQueueEntry{id}}}"
+#: THE JUMP. `jump` and `expectedHeadOid` are variables, so the request itself carries both (the self-test reads them).
+ENQUEUE_MUTATION = ("mutation($id:ID!,$jump:Boolean!,$oid:GitObjectID!){enqueuePullRequest(input:{pullRequestId:$id,"
+                    "jump:$jump,expectedHeadOid:$oid}){mergeQueueEntry{position jump headCommit{oid}}}}")
+
+
+@dataclasses.dataclass(frozen=True)
+class FixFirst:
+    """A landing that removes a red main is waiting on: the cause as stated, and the note ids and run ids it names."""
+    cause: str
+    notes: tuple[str, ...]
+    runs: tuple[int, ...]
+
+    def attempt(self, jumped: bool, detail: str) -> dict:
+        """The landing record's `fix_first` entry for one attempt (landing_measure.py)."""
+        return {"cause": self.cause, "notes": list(self.notes), "runs": list(self.runs), "jumped": jumped,
+                "detail": one_line(detail, 300), "at": landing_measure.now_iso()}
+
+
+def fix_first_cause(text: str, wt: pathlib.Path) -> tuple[FixFirst | None, str]:
+    """(the parsed cause, "") or (None, why it is refused). A cause names at least one red: a kb/Work note id whose note
+    the worktree carries (`kb/Work/<id>.md`), or a failed workflow run id. A note id it cannot find is refused, never
+    dropped: an unresolvable cause fails loudly."""
+    text = " ".join((text or "").split())
+    notes = tuple(dict.fromkeys(NOTE_ID.findall(text)))
+    runs = tuple(dict.fromkeys(int(r) for r in RUN_ID.findall(text)))
+    if not notes and not runs:
+        return None, (f"--fix-first {text!r} names no red: a cause is a kb/Work note id (PB1234) and/or a failed run "
+                      "(`run 19283746501` or its actions/runs/<id> URL). Jumping the queue is for a fix main is waiting "
+                      "on; a landing with no such cause joins the back like any other")
+    if missing := [n for n in notes if not (wt / "kb" / "Work" / f"{n}.md").is_file()]:
+        return None, f"--fix-first names {', '.join(missing)}, which {wt} does not carry as kb/Work/<id>.md"
+    return FixFirst(text, notes, runs), ""
+
+
+def _graphql(gh: Gh, query: str, **variables: str) -> tuple[dict | None, str]:
+    """One GraphQL call through `gh api graphql`: (its `data`, "") or (None, why). A `-F` variable is typed by gh (`true`
+    is a Boolean); `-f` is a string, so a commit id or node id is never read as a number."""
+    args = ["api", "graphql", "-f", f"query={query}"]
+    for name, value in variables.items():
+        args += ["-F" if value in ("true", "false") else "-f", f"{name}={value}"]
+    try:
+        rc, out, err = gh(args)
+    except ruleset.Unobserved as exc:
+        return None, f"GitHub gave no answer ({exc})"
+    try:
+        doc = json.loads(out) if out.strip() else {}
+    except ValueError:
+        doc = {}
+    if rc != 0 or doc.get("errors") or not isinstance(doc.get("data"), dict):
+        msgs = "; ".join(str(e.get("message", e)) for e in doc.get("errors") or [] if isinstance(e, dict))
+        return None, f"exit {rc}: {msgs or (out + err).strip()[:300] or 'no data'}"
+    return doc["data"], ""
+
+
+def jump_to_front(number: str, sha: str, *, gh: Gh) -> tuple[bool, str]:
+    """Put pull request `number`, at the pushed head `sha`, at the FRONT of the merge queue (kb/Work PB5483): (True, what
+    GitHub answered) or (False, why not). An entry already in the queue is dequeued first (enqueuing it again does not
+    move it), unless it is already first at `sha`; the enqueue carries `jump: true` and `expectedHeadOid: sha`, so a head
+    that moved since the push is GitHub's refusal, never a jump of a commit nobody checked."""
+    try:
+        rc, out, err = gh(["pr", "view", number, "--json", "id", "--jq", ".id"])
+    except ruleset.Unobserved as exc:
+        return False, f"gh pr view #{number}: GitHub gave no answer ({exc})"
+    node = out.strip()
+    if rc != 0 or not node:
+        return False, f"gh pr view #{number} gave no node id (exit {rc}): {(out + err).strip()}"
+    data, why = _graphql(gh, ENTRY_QUERY, id=node)
+    if data is None:
+        return False, f"the merge-queue entry of #{number} could not be read: {why}"
+    entry = (data.get("node") or {}).get("mergeQueueEntry")
+    if entry and entry.get("position") == 1 and (entry.get("headCommit") or {}).get("oid") == sha:
+        return True, f"#{number} is already first in the merge queue at {sha[:12]}"
+    if entry:
+        gone, why = _graphql(gh, DEQUEUE_MUTATION, id=node)
+        if gone is None:
+            return False, f"#{number} is queued at position {entry.get('position')} and could not be dequeued: {why}"
+    data, why = _graphql(gh, ENQUEUE_MUTATION, id=node, jump="true", oid=sha)
+    if data is None:
+        return False, f"GitHub refused to enqueue #{number} at the front: {why}"
+    queued = (data.get("enqueuePullRequest") or {}).get("mergeQueueEntry") or {}
+    if queued.get("jump") is not True:
+        return False, f"GitHub enqueued #{number} but not as a jump (entry {queued})"
+    return True, (f"#{number} enqueued at the FRONT of the merge queue (position {queued.get('position')}, jump, head "
+                  f"{sha[:12]}{', dequeued from position ' + str(entry.get('position')) + ' first' if entry else ''})")
 
 
 def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Callable[[], tuple[str, str]],
           checks: Callable[[str, str], int], measure: Measure | None = None, dry_run: bool = False,
-          publish: Publish = publish_passes, say: Say = print) -> int:
+          publish: Publish = publish_passes, fix_first: FixFirst | None = None, say: Say = print) -> int:
     # 1. THE GUARD — before every other step, so a refusal has pushed and opened nothing.
     st, detail = state()
     if st != ruleset.ACTIVE:
@@ -359,7 +475,8 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
     if dry_run:
         say(f"enqueue (dry run): would push {sha[:12]} to origin/{branch}, publish this host's passes to origin's "
             f"{buildgraph.STORE_REF}, open or reuse its pull request into main titled {title!r}, and queue it with "
-            "`gh pr merge --auto`.")
+            + (f"`enqueuePullRequest(jump: true, expectedHeadOid: {sha[:12]})` (fix first: {fix_first.cause})."
+               if fix_first else "`gh pr merge --auto`."))
         return 0
     p = _git(cwd, "push", "--quiet", "--force", "origin", f"{sha}:refs/heads/{branch}")
     if p.returncode != 0:
@@ -391,21 +508,32 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
             return EXIT_GITHUB
         number, url = m.group(1), out.strip().splitlines()[-1]
         say(f"enqueue: opened pull request #{number}: {url}")
-    rc, out, err = gh(["pr", "merge", number, "--auto"])
-    if rc != 0 and "already" not in (out + err).lower():
-        say(f"⛔ enqueue: gh pr merge --auto #{number} failed (exit {rc}): {(out + err).strip()} — the pull request is "
-            "open but NOT queued; re-run once the cause is fixed.")
-        return EXIT_GITHUB
+    # FIX FIRST (kb/Work PB5483): the jump to the front. Refused, the pull request is queued as every landing is (auto-merge,
+    # the back of the queue), so a refusal never loses the landing, and the exit (17) and the record say it did not jump.
+    attempt = None
+    if fix_first is not None:
+        jumped, detail = jump_to_front(number, sha, gh=gh)
+        attempt = fix_first.attempt(jumped, detail)
+        say(f"enqueue: fix first ({fix_first.cause}): {detail}" if jumped else
+            f"⛔ enqueue: fix first ({fix_first.cause}): NOT JUMPED — {detail}. Queuing #{number} at the BACK with "
+            "auto-merge like any landing; re-run `enqueue.py land <branch> --fix-first \"<cause>\"` once GitHub would "
+            "take it (its pull-request check has passed): the re-run dequeues it and jumps.")
+    if attempt is None or not attempt["jumped"]:
+        rc, out, err = gh(["pr", "merge", number, "--auto"])
+        if rc != 0 and "already" not in (out + err).lower():
+            say(f"⛔ enqueue: gh pr merge --auto #{number} failed (exit {rc}): {(out + err).strip()} — the pull request is "
+                "open but NOT queued; re-run once the cause is fixed.")
+            return EXIT_GITHUB
     say(QUEUED.format(number=number, sha=sha, branch=branch, url=url))
     # 5. Measure it (kb/Work PB3028). The pull request IS queued: a record that cannot be written is a loud warning,
     # never a failed landing and never silence.
     if measure is not None:
         try:
-            measure(branch, int(number))
+            measure(branch, int(number), attempt)
         except (OSError, ValueError, SystemExit) as e:
             say(f"⚠ enqueue: PR #{number} is queued but its landing record was NOT written ({e}); record it with "
                 f"`python scripts/orchestrator/landing_measure.py record --pr {number} --branch {branch}`")
-    return 0
+    return EXIT_NOT_JUMPED if attempt is not None and not attempt["jumped"] else 0
 
 
 # ── the queue watch's remedies (kb/Work PB3527) ──────────────────────────────────────────────────────────────────
@@ -781,10 +909,12 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
          busy: Callable[[pathlib.Path], str] = gate_busy,
          tested: Callable[[pathlib.Path, str, str], Tested] = tested_locally,
          merge: Callable[[pathlib.Path, str, str], git_merge.Merged] = merge_main,
-         measure: Callable[[pathlib.Path, str, int], None] | None = None,
-         lane: str | None = None, dry_run: bool = False, say: Say = print) -> int:
+         measure: Callable[[pathlib.Path, str, int, dict | None], None] | None = None,
+         lane: str | None = None, dry_run: bool = False, fix_first: str | None = None, say: Say = print) -> int:
     """THE landing step (module doc); the collaborators are parameters so the self-test drives every exit arm.
-    `measure(worktree, branch, pr)` writes the queued pull request's landing record (kb/Work PB3028; `queue` step 5).
+    `measure(worktree, branch, pr, fix_first)` writes the queued pull request's landing record (kb/Work PB3028; `queue`
+    step 5). `fix_first`: the stated cause of a FIX FIRST landing (kb/Work PB5483), checked before anything is touched;
+    every other guard and step is the same, and only the queueing jumps.
     `busy(worktree)` is the gate lock, asked before every write of the worktree (`gate_busy`, kb/Work PB4204).
     `tested(worktree, head, base)` is the evidence a landing reads instead of a gate (`tested_locally`).
     `merge(worktree, branch, base)` brings main in (`merge_main`, steps 2 and 4): what it answers (a conflict, or a clean
@@ -832,6 +962,12 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         return end(2, "REFUSED — main is not a branch to land")
     if wt is None or not wt.is_dir():
         return end(2, f"REFUSED — no worktree has {branch} checked out (pass --worktree)")
+    # A FIX FIRST landing states the red it removes (kb/Work PB5483), refused before the lock, the merge or the stamp.
+    first: FixFirst | None = None
+    if fix_first is not None:
+        first, why = fix_first_cause(fix_first, wt)
+        if first is None:
+            return end(2, f"REFUSED — {why}: nothing ran")
     # 0. THE LAND LOCK (kb/Work PB3310), before the first read of the worktree: a second run on the branch would find the
     # first one's merge half done ("dirty") and race it on the stamp, the push and the gates. It is its own outcome, exit
     # 13: nothing ran, nothing is red, so no report line and no finisher; the landing lane retries it once the lock is
@@ -962,12 +1098,20 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
                            "again once they merge")
             return end(6, "NO ENTRY — the branch adds no single stamped DEVLOG entry to title its pull request")
         body_file = pathlib.Path(_git(wt, "rev-parse", "--absolute-git-dir").stdout.strip()) / "enqueue-pr-body.md"
+        if first is not None:
+            body += f"\nFix first (kb/Work PB5483): {first.cause}\n"
         body_file.write_text(body, encoding="utf-8", newline="\n")
         rc = queue(wt, title, str(body_file), gh=gh, state=state,
                    checks=lambda sha, b: checks(wt, sha, b),
-                   measure=(lambda b, n: measure(wt, b, n)) if measure else None, say=say)
+                   measure=(lambda b, n, f: measure(wt, b, n, f)) if measure else None, fix_first=first, say=say)
         if rc != 2 or _git(wt, "merge-base", "--is-ancestor", base, "HEAD").returncode == 0:
-            return end(rc, "ENQUEUED" if rc == 0 else f"NOT QUEUED (exit {rc}, above)")
+            if rc == 0:
+                return end(0, f"ENQUEUED — fix first, at the FRONT of the merge queue ({first.cause})" if first
+                           else "ENQUEUED")
+            if rc == EXIT_NOT_JUMPED:
+                return end(rc, f"ENQUEUED, NOT JUMPED — fix first refused by GitHub (above): queued at the BACK with "
+                               f"auto-merge; re-run with --fix-first once GitHub takes it ({first.cause})")
+            return end(rc, f"NOT QUEUED (exit {rc}, above)")
         say(f"enqueue: main moved again before the queue took the branch; bringing it in (attempt {attempt + 1} of "
             f"{CATCH_UP})" if attempt < CATCH_UP else "enqueue: main kept moving")
     return end(2, f"NOT QUEUED — main moved under every one of {CATCH_UP} catch-up merges; re-run")
@@ -1183,17 +1327,114 @@ def self_test() -> int:
                bool(m) and m.group("pr") == "17" and m.group("branch") == "fix"
                and any(QUEUED_LINE.match(ln) for ln in lines), str(m))
 
+        # ── FIX FIRST (kb/Work PB5483): the jump to the front of the merge queue ─────────────────────────────────────
+        def queue_gh(merge_queue: list[str], log: list[list[str]], open_prs: list[str], head: str) -> Gh:
+            """GitHub with a MERGE QUEUE: `merge_queue` lists the queued pull-request numbers, first in front. `gh pr merge
+            --auto` joins the BACK; `enqueuePullRequest` joins the FRONT only when the request carries `jump` true, and is
+            refused when its `expectedHeadOid` is not `head` (the pull request's head as GitHub has it); every other call
+            is fake_gh's."""
+            plain = fake_gh(open_prs, log)
+
+            def entry(n: str) -> dict | None:
+                return ({"position": merge_queue.index(n) + 1, "jump": False, "headCommit": {"oid": head}}
+                        if n in merge_queue else None)
+
+            def gh(args: list[str]) -> tuple[int, str, str]:
+                if args[:2] == ["pr", "view"]:
+                    log.append(list(args))
+                    return 0, f"PR_node_{args[2]}\n", ""
+                if args[:2] == ["api", "graphql"]:
+                    log.append(list(args))
+                    var = dict(a.split("=", 1) for a in args[3::2])
+                    n = var["id"].removeprefix("PR_node_")
+                    if var["query"] == ENTRY_QUERY:
+                        return 0, json.dumps({"data": {"node": {"headRefOid": head, "mergeQueueEntry": entry(n)}}}), ""
+                    if var["query"] == DEQUEUE_MUTATION:
+                        merge_queue.remove(n)
+                        return 0, json.dumps({"data": {"dequeuePullRequest": {"mergeQueueEntry": {"id": "E"}}}}), ""
+                    if var["query"] == ENQUEUE_MUTATION:
+                        if var.get("oid") != head:
+                            return 1, json.dumps({"errors": [{"message": "expected head oid does not match"}]}), ""
+                        jump = var.get("jump") == "true" and args[args.index("jump=true") - 1] == "-F"
+                        merge_queue.insert(0, n) if jump else merge_queue.append(n)
+                        return 0, json.dumps({"data": {"enqueuePullRequest": {"mergeQueueEntry": {
+                            **entry(n), "jump": jump}}}}), ""
+                    return 1, "", "unrouted query"
+                rc, out, err = plain(args)
+                if args[:2] == ["pr", "merge"] and rc == 0:
+                    merge_queue.append(args[2])
+                return rc, out, err
+            return gh
+        run_cause = FixFirst("the flake of run 19283746501", (), (19283746501,))
+        head_now = scratch.git("rev-parse", "HEAD")
+        mq, jlog, jmeasured = ["30", "31"], [], []
+        rc_jump = queue(wt, "T", str(body), gh=queue_gh(mq, jlog, [], head_now), state=active, checks=passing,
+                        fix_first=run_cause, measure=lambda b, n, f: jmeasured.append((n, f)), say=lines.append)
+        enq = next((a for a in jlog if a[:2] == ["api", "graphql"] and f"query={ENQUEUE_MUTATION}" in a), [])
+        expect("fix first: the pull request is enqueued at the FRONT of the merge queue (enqueuePullRequest with jump true "
+               "and expectedHeadOid the pushed head), never with --auto, and the record holds the jump and its cause "
+               "(kb/Work PB5483)",
+               rc_jump == 0 and mq == ["17", "30", "31"] and "-F" in enq and "jump=true" in enq
+               and f"oid={head_now}" in enq and not [a for a in jlog if a[:2] == ["pr", "merge"]]
+               and any(ln.startswith("ENQUEUED pr=17") for ln in lines[-3:])
+               and len(jmeasured) == 1 and jmeasured[0][1]["jumped"] is True
+               and jmeasured[0][1]["cause"] == run_cause.cause and jmeasured[0][1]["runs"] == [19283746501],
+               f"rc={rc_jump} queue={mq} enqueue={enq} log={jlog} measured={jmeasured}")
+        mq, jlog = ["30", "31", "17"], []
+        rc_requeued = queue(wt, "T", str(body), gh=queue_gh(mq, jlog, ["17 https://github.com/o/r/pull/17"], head_now),
+                            state=active, checks=passing, fix_first=run_cause, say=lines.append)
+        queries = [a[3][len("query="):] for a in jlog if a[:2] == ["api", "graphql"]]
+        mq_first, flog = ["17", "30"], []
+        rc_first = queue(wt, "T", str(body), gh=queue_gh(mq_first, flog, ["17 https://github.com/o/r/pull/17"], head_now),
+                         state=active, checks=passing, fix_first=run_cause, say=lines.append)
+        expect("fix first: a pull request already QUEUED behind others is dequeued and then enqueued with the jump (an "
+               "enqueue of a queued pull request does not move it); one already first at the pushed head is left as it "
+               "is (kb/Work PB5483)",
+               rc_requeued == 0 and mq == ["17", "30", "31"]
+               and queries == [ENTRY_QUERY, DEQUEUE_MUTATION, ENQUEUE_MUTATION]
+               and rc_first == 0 and mq_first == ["17", "30"]
+               and [a[3][len("query="):] for a in flog if a[:2] == ["api", "graphql"]] == [ENTRY_QUERY],
+               f"{rc_requeued} {mq} {queries} {rc_first} {mq_first} {flog}")
+        mq, jlog, jmeasured = ["30"], [], []
+        rc_moved_head = queue(wt, "T", str(body), gh=queue_gh(mq, jlog, [], "f" * 40), state=active, checks=passing,
+                              fix_first=run_cause, measure=lambda b, n, f: jmeasured.append((n, f)), say=lines.append)
+        expect("fix first: GitHub refusing the jump (expectedHeadOid is not the head it has) is exit 17, the pull request "
+               "queued at the BACK with gh pr merge --auto like any landing, never lost, and recorded NOT jumped",
+               rc_moved_head == EXIT_NOT_JUMPED and mq == ["30", "17"]
+               and [a[:4] for a in jlog if a[:2] == ["pr", "merge"]] == [["pr", "merge", "17", "--auto"]]
+               and len(jmeasured) == 1 and jmeasured[0][1]["jumped"] is False
+               and "expected head oid" in jmeasured[0][1]["detail"],
+               f"rc={rc_moved_head} queue={mq} log={jlog} measured={jmeasured}")
+        never: list[list[str]] = []
+        rc_drift_first = queue(wt, "T", str(body), gh=queue_gh(["30"], never, [], head_now),
+                               state=lambda: (ruleset.DRIFT, "x"), checks=passing, fix_first=run_cause, say=lines.append)
+        notes_dir = root / "cause-wt"
+        (notes_dir / "kb" / "Work").mkdir(parents=True)
+        (notes_dir / "kb" / "Work" / "PB7.md").write_text("a note\n", encoding="utf-8", newline="\n")
+        unstated = [fix_first_cause(t, notes_dir) for t in ("", "  ", "CI is slow, land me first", "PB999999 is the red")]
+        stated = [fix_first_cause(t, notes_dir) for t in (
+            "PB7: the flaky test", "https://github.com/o/r/actions/runs/19283746501", "PB7, run 19283746501")]
+        expect("fix first: a cause that names no red (no kb/Work note id, no failed run) or a note the worktree does not "
+               "carry is refused; a stated one parses to its notes and runs; a queue that is not ACTIVE refuses a "
+               "fix-first landing with exit 8 before GitHub is asked anything (kb/Work PB5483)",
+               all(f is None and why for f, why in unstated) and "names no red" in unstated[2][1]
+               and "PB999999" in unstated[3][1]
+               and [(f.notes, f.runs) for f, _ in stated] == [(("PB7",), ()), ((), (19283746501,)),
+                                                               (("PB7",), (19283746501,))]
+               and rc_drift_first == EXIT_QUEUE_NOT_ACTIVE and not never,
+               f"{unstated} {stated} {rc_drift_first} {never}")
+
         seen_m: list[tuple[str, int]] = []
 
-        def broken(branch: str, number: int) -> None:
+        def broken(branch: str, number: int, fix: dict | None) -> None:
             raise OSError("disk full")
         warn: list[str] = []
         rc_ok = queue(wt, "T", str(body), gh=fake_gh([], []), state=active, checks=passing,
-                      measure=lambda b, n: seen_m.append((b, n)), say=lines.append)
+                      measure=lambda b, n, f: seen_m.append((b, n)), say=lines.append)
         rc_broken = queue(wt, "T", str(body), gh=fake_gh([], []), state=active, checks=passing, measure=broken,
                           say=warn.append)
         rc_refused = queue(wt, "T", str(body), gh=fake_gh([], []), state=lambda: (ruleset.ABSENT, "x"),
-                           checks=passing, measure=lambda b, n: seen_m.append(("refused", n)), say=lines.append)
+                           checks=passing, measure=lambda b, n, f: seen_m.append(("refused", n)), say=lines.append)
         expect("a queued pull request is measured once; a record that cannot be written warns loudly and the landing "
                "still succeeds; a refused landing is never measured",
                rc_ok == 0 and seen_m == [("land-train", 17)] and rc_broken == 0
@@ -1664,7 +1905,7 @@ def self_test() -> int:
 
         prs, log = [], []
         measured: list[tuple[pathlib.Path, str, int]] = []
-        rc_q = run_land(gh=fake_gh(prs, log), measure=lambda w, b, n: measured.append((w, b, n)))
+        rc_q = run_land(gh=fake_gh(prs, log), measure=lambda w, b, n, f: measured.append((w, b, n)))
         create = next((a for a in log if a[:2] == ["pr", "create"]), [])
         expect("land: a tested tip opens one pull request titled from the DEVLOG entry, whose body carries the entry "
                "and the commits, and queues it, with no gate run by the landing (kb/Work PB3612)",
@@ -1674,6 +1915,25 @@ def self_test() -> int:
         expect("land: the queued pull request is measured once, in the branch's worktree (kb/Work PB3028)",
                len(measured) == 1 and measured[0][0] == lw and measured[0][1] == "fix",
                str(measured))
+        # FIX FIRST through `land` (kb/Work PB5483): an unstated cause is refused before the land lock, the merge or the
+        # stamp; a non-ACTIVE queue still refuses (exit 8); a stated one keeps every guard and jumps.
+        stamped, notes[:] = [], []
+        tip_before_first = fix.git("rev-parse", "HEAD")
+        rc_no_cause = run_land(stamped=stamped, fix_first="please hurry")
+        no_cause_line = lines[-1]
+        rc_first_inactive = run_land(state=absent, stamped=stamped, fix_first="run 19283746501")
+        land_q, land_log, land_measured = ["40"], [], []
+        rc_land_first = run_land(gh=queue_gh(land_q, land_log, prs, fix.git("rev-parse", "HEAD")),
+                                 fix_first="run 19283746501", measure=lambda w, b, n, f: land_measured.append(f))
+        expect("land --fix-first: an unstated cause is exit 2 REFUSED before anything is merged, stamped or queued; the "
+               "queue not ACTIVE is still exit 8; a stated cause lands through every guard and is enqueued at the FRONT, "
+               "its verdict line and its record saying so (kb/Work PB5483)",
+               rc_no_cause == 2 and "names no red" in no_cause_line and not stamped and not notes
+               and fix.git("rev-parse", "HEAD") == tip_before_first and rc_first_inactive == EXIT_QUEUE_NOT_ACTIVE
+               and rc_land_first == 0 and land_q[0] == "17"
+               and lines[-1].startswith(verdict_line.PREFIX + "ENQUEUED — fix first, at the FRONT")
+               and len(land_measured) == 1 and land_measured[0]["jumped"] is True,
+               f"{rc_no_cause} {no_cause_line} {rc_first_inactive} {rc_land_first} {land_q} {lines[-1:]} {land_measured}")
         rc_again = run_land(gh=fake_gh(prs, []), checks=lambda w, s, b: 6)
         expect("land: a landing check's refusal keeps its own code",
                rc_again == 6, f"{rc_again}")
@@ -1912,7 +2172,7 @@ def self_test() -> int:
         scratch.git("push", "--quiet", "origin", "main")
         log_after: list[list[str]] = []
         measured_after: list[int] = []
-        rc_after = succ_land(listing_gh([own_pr], log_after), measure=lambda w, b, n: measured_after.append(n))
+        rc_after = succ_land(listing_gh([own_pr], log_after), measure=lambda w, b, n, f: measured_after.append(n))
         create_after = next((a for a in log_after if a[:2] == ["pr", "create"]), [])
         expect("land: once the predecessor's pull request has merged the same head lands: main brought in, ONE new entry "
                "left, the pull request titled from it and queued (kb/Work PB3145)",
@@ -2048,7 +2308,7 @@ def self_test() -> int:
             root, "drv", drv.path, review=reviewed, tested=proved, gh=gh, state=active, checks=lambda w, s, b: 0,
             stamp=kw.pop("stamp", stamp_drv), blocked=record, say=lines.append, **kw)
         log_shared: list[list[str]] = []
-        rc_shared = drv_land(listing_gh([(920, "other", "o", list(samples.values()))], log_shared), measure=lambda w, b, n: None)
+        rc_shared = drv_land(listing_gh([(920, "other", "o", list(samples.values()))], log_shared), measure=lambda w, b, n, f: None)
         expect("land: a branch whose shared files an open pull request IN the queue changes too is stamped and "
                "queued (exit 0, ENQUEUED): a shared file is never a hold, and no file list is asked for (kb/Work PB5109)",
                rc_shared == 0 and lines[-1].startswith(verdict_line.PREFIX + "ENQUEUED")
@@ -2089,7 +2349,7 @@ def self_test() -> int:
         return [s for s in steps if g < 0 or body.find(s) <= g]
 
     early = after(function("queue"), "if st != ruleset.ACTIVE:",
-                  ("checks(sha, base)", '"push"', '"pr", "create"', '"pr", "merge"'))
+                  ("checks(sha, base)", '"push"', '"pr", "create"', "jump_to_front(number", '"pr", "merge"'))
     expect("shape: queue() tests the merge queue for ACTIVE before the landing checks, the push and both pull-request "
            "calls (kb/Work PB3024)", not early, f"missing or before the guard: {early}")
     land_body = function("land")
@@ -2106,8 +2366,8 @@ def self_test() -> int:
            not early and "EXIT_LAND_BUSY" in land_body, f"missing or before the lock: {early}")
     expect("shape: the queue step writes the landing record itself, on both entry points, so no brief has to remember "
            "to (kb/Work PB3028)",
-           "measure=lambda branch, pr: measure_landing(cwd, branch, pr, a.changes, None)" in code
-           and "measure=lambda wt, branch, pr: measure_landing(wt, branch, pr, None, 0)" in code
+           "measure=lambda branch, pr, f: measure_landing(cwd, branch, pr, a.changes, None, f)" in code
+           and "measure=lambda wt, branch, pr, f: measure_landing(wt, branch, pr, None, 0, f)" in code
            and "landing_measure.record_enqueued(" in code)
     expect("shape: main is merged in through git_merge.merge, never a bare merge, and the CONFLICT outcome has its "
            "one writer (verdict_line.conflict_outcome; kb/Work PB3610, PB3714, PB5110)",
@@ -2131,6 +2391,10 @@ def main(argv: list[str] | None = None) -> int:
     q.add_argument("--dry-run", action="store_true")
     q.add_argument("--changes", type=int, default=None,
                    help="changes this pull request lands, for the measurement (a lander's train is several)")
+    fix_help = ("FIX FIRST (kb/Work PB5483): enqueue at the FRONT of the merge queue (jump), for a fix main is waiting "
+                "on. The cause is required and names the red: a kb/Work note id the worktree carries and/or a failed "
+                "run id (`run 19283746501`)")
+    q.add_argument("--fix-first", metavar="CAUSE", help=fix_help)
     c = sub.add_parser("checks", help="the landing checks on base..rev")
     c.add_argument("--rev", default="HEAD")
     c.add_argument("--base", default="origin/main")
@@ -2141,6 +2405,7 @@ def main(argv: list[str] | None = None) -> int:
                      help="a lane MANDATORY-PRACTICES I10 does not review (its brief says so); every other branch "
                           "lands only under a CLEAN review stamp at its tip")
     lnd.add_argument("--dry-run", action="store_true", help="say what it would do; change nothing")
+    lnd.add_argument("--fix-first", metavar="CAUSE", help=fix_help)
     a = ap.parse_args(argv)
     if a.self_test:
         return self_test()
@@ -2152,13 +2417,21 @@ def main(argv: list[str] | None = None) -> int:
     if a.verb == "checks":
         return run_checks(a.rev, a.base, _script_runner(cwd))
     if a.verb == "queue":
+        first = None
+        if a.fix_first is not None:
+            first, why = fix_first_cause(a.fix_first, cwd)
+            if first is None:
+                print(f"⛔ enqueue: {why}")
+                return 2
         return queue(cwd, a.title, a.body_file, gh=ruleset.real_gh, state=queue_state,
                      checks=lambda sha, base: run_checks(sha, base, _script_runner(cwd)),
-                     measure=lambda branch, pr: measure_landing(cwd, branch, pr, a.changes, None), dry_run=a.dry_run)
+                     measure=lambda branch, pr, f: measure_landing(cwd, branch, pr, a.changes, None, f),
+                     dry_run=a.dry_run, fix_first=first)
     if a.verb == "land":
         return land(cwd, a.branch, a.worktree, gh=ruleset.real_gh, state=queue_state,
                     checks=lambda wt, sha, base: run_checks(sha, base, _script_runner(wt)), lane=a.lane,
-                    measure=lambda wt, branch, pr: measure_landing(wt, branch, pr, None, 0), dry_run=a.dry_run)
+                    measure=lambda wt, branch, pr, f: measure_landing(wt, branch, pr, None, 0, f), dry_run=a.dry_run,
+                    fix_first=a.fix_first)
     ap.print_help()
     return 2
 
