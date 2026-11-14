@@ -27,15 +27,14 @@ from scratch_repo import ScratchRepo, remove_tree
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
 import gate_runs
 from gate_verdict import (BRANCH, BUSY, BUSY_READING, ENVIRONMENT, EXIT_BUSY, GREEN_READING, NOT_RUN, NOT_RUN_CAUSES,
-                          RED_READING, Reading, UNCLASSIFIED, VERDICT, not_run, read_verdict, _NOT_RUN_TAG)
+                          Outcome, RED_READING, Reading, UNCLASSIFIED, VERDICT, not_run, read_verdict, _NOT_RUN_TAG)
 from gate_host import CI_BOUNCE_RESULTS, GATE_CONFIGURATION, Host, ONLY_CASES
 Gate = gate_mod.Gate
 from gate_runs import (LANDABLE_SCHEMA, LANDING_FIELDS, ORIGINAL_VERDICT_FILE, RECORD_SCHEMA, RUN_DIR, RUN_LABEL,
                        SCHEMA_NOTES, SCHEMA_WHOLE, VERDICT_FILE, live_gate, measuring_runs, predates_landing,
                        read_pid, read_record, record_schema, run_dirs, run_order, run_started, write_pid)
-Outcome = gate_mod.Outcome
 REPO = gate_mod.REPO
-Rederived = gate_mod.Rederived
+from gate_reuse import PassCarry, Rederived
 
 
 def case_00_second_gate_same_worktree_refused_at_once(expect):
@@ -680,16 +679,16 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     rgate = Gate(FakeHost(gd, gd / "gate.lock", graph=ggraph, repo=grepo.path, store_dir=gstore), gd / "runs",
                  say=sink.append)
     own_refusals: list[str] = []
-    own_keys, own_refused = rgate._rederived_keys(g7_rec, own_refusals)
+    own_keys, own_refused = rgate.passes._rederived_keys(g7_rec, own_refusals)
     suite_rec_path = buildgraph.Store(gstore)._path("suite", g7_rec["generated"]["suite"]["key"])
     kept_text = suite_rec_path.read_text(encoding="utf-8")
     suite_rec_path.write_text(kept_text.replace(g7_rec["generated"]["suite"]["outputs"], "f" * 64), encoding="utf-8",
                               newline="\n")
     moved_refusals: list[str] = []
-    rgate._rederived_keys(g7_rec, moved_refusals)
+    rgate.passes._rederived_keys(g7_rec, moved_refusals)
     suite_rec_path.write_text(kept_text, encoding="utf-8", newline="\n")
     old_refusals: list[str] = []
-    old_keys, old_refused = rgate._rederived_keys({k: v for k, v in g7_rec.items() if k != "generated"}, old_refusals)
+    old_keys, old_refused = rgate.passes._rederived_keys({k: v for k, v in g7_rec.items() if k != "generated"}, old_refusals)
     expect("a re-derivation keys Conformance on the digest the run itself was handed; one whose digest the store now "
         "contradicts is refused naming both; a run from before the hand-off has Conformance REFUSED, never stored",
         own_refusals == [] and own_refused == {} and own_keys == g7_rec["keys"]
@@ -730,12 +729,12 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
         return r
     def rederive_in(d: Path, r: Path, **fake) -> tuple[Rederived, FakeHost]:
         host = FakeHost(d, d / "gate.lock", **fake)
-        return Gate(host, d / "runs", say=sink.append).rederive(r), host
+        return PassCarry(host, d / "runs", say=sink.append).rederive(r), host
     d = root / "rederive-passes"
     d.mkdir()
     r = old_stopped(d)
     rd, _ = rederive_in(d, r)
-    Gate(FakeHost(d, d / "gate.lock"), d / "runs", say=sink.append).write_rederived(r, rd) if rd.record else None
+    PassCarry(FakeHost(d, d / "gate.lock"), d / "runs", say=sink.append).write_rederived(r, rd) if rd.record else None
     written, original = read_record(r) or {}, json.loads((r / ORIGINAL_VERDICT_FILE).read_text(encoding="utf-8")) \
         if (r / ORIGINAL_VERDICT_FILE).exists() else {}
     after, hpa = regate(d, trees=["tree-2"], keys=same)
@@ -755,7 +754,7 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     d.mkdir()
     r = old_stopped(d, keep_listings=True)
     rd, _ = rederive_in(d, r)
-    Gate(FakeHost(d, d / "gate.lock"), d / "runs", say=sink.append).write_rederived(r, rd) if rd.record else None
+    PassCarry(FakeHost(d, d / "gate.lock"), d / "runs", say=sink.append).write_rederived(r, rd) if rd.record else None
     after, hpg = regate(d, trees=["tree-2"], keys=same)
     expect("a stopped run with complete green trx and its keys' listings is RECOVERED EXACT: the store holds each "
         "target's pass, so the next gate at those keys finds every target up to date with no build and no test host",
@@ -784,7 +783,7 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     os.utime(r / "Conformance.log", (moved_at + 1, moved_at + 1))   # the hosts' last write: after the move
     host = FakeHost(d, d / "gate.lock")
     host.reflog = [("head-2", moved_at), ("head-1", 0)]
-    moved = Gate(host, d / "runs", say=sink.append).rederive(r)
+    moved = PassCarry(host, d / "runs", say=sink.append).rederive(r)
     expect("a run whose HEAD moved while it ran (a reflog entry between its start and its hosts' last write) is REFUSED",
         moved.record is None and any("HEAD moved while the run ran" in x for x in moved.refusals), str(moved.refusals))
     d = root / "rederive-toolchain"

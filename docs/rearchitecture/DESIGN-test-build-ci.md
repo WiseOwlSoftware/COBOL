@@ -846,7 +846,7 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
 
 #### 3.14.2 The order: the classes red last time first, then longest first (kb/Work PB4328)
 
-- **The first classes** (`scripts/gate.py` `Gate._first`): every test class with a red case in the worktree's previous
+- **The first classes** (`scripts/gate_legs.py` `Legs.first`): every test class with a red case in the worktree's previous
   gate run (`TestResults/build-local/`, the newest earlier run with a verdict and a trx), its newest hand-run Linux gate
   (`TestResults/linux-gate/`) or the failed merge-group run that bounced its pull request (fetched into
   `TestResults/ci-bounce/` by `queue_facts.fetch_bounce_results`, kb/Work PB3644), read by `test_population.red_classes`
@@ -1464,7 +1464,7 @@ differs (Bazel's cut-off on an unchanged output, kb/Work PB5231, PB5230); a chan
 whose output digest is not known is `Unresolved`, naming it, never a key without it (owner 2026-11-10: "If it cannot be
 resolved, there is a problem/bug").
 
-*A generated target is brought up to date first* (`buildgraph.generate`, `bring_up_to_date`, `Gate._generate`), in
+*A generated target is brought up to date first* (`buildgraph.generate`, `bring_up_to_date`, `Generations.generate`), in
 topological order, before any test target's key. It is UP TO DATE when the store records an output digest at its key AND its
 output directory holds exactly that digest (`output_digest`: the sha256 of every file's relative POSIX path and content hash,
 in path order; no absolute path, time or platform). Otherwise the directory is removed and the command runs under a Python
@@ -1507,7 +1507,7 @@ program reads every input of the generator, none in the dependent's key, and is 
 key (the counts, the facets, the worktree, run and head that proved it), written whole. A target is UP TO DATE exactly when
 the store holds a pass at its key: that is the only rule, so a pass recorded in worktree A is up to date in worktree B at the
 same content (a branch re-cut from main, a second worktree). The store holds only what was proven: after its population check,
-`Gate.record_passes` records each assembly whose host was green (or that needed no host because its carried passes covered
+`PassCarry.record_passes` records each assembly whose host was green (or that needed no host because its carried passes covered
 it) and whose population was EXACT, at a tree that did not change while the gate ran. A red, a partial or an unmeasured
 population records nothing.
 
@@ -1523,7 +1523,7 @@ the change touches a script, each re-run where its recorded inputs changed). An 
 has exited (a self-test that hangs past the last host) stops no host (`_Live.stopped_any`): the hosts' results are whole, the
 populations are checked, each exact green one's pass is recorded, and the verdict is RED for the audit alone.
 
-*At a target's key, a re-gate runs only what has not passed* (`Gate.carry`, `Gate._plan`). For each target that is not up to
+*At a target's key, a re-gate runs only what has not passed* (`PassCarry.carry`, `Legs.plan`). For each target that is not up to
 date, an EARLIER RUN of this worktree counts when it is a full-lane run (schema 5 on) that measured its own tree and did not
 see it change while it ran (`tree` equals `tree_end`; an audit-stopped run has no `tree_end` and counts for nothing), is not
 itself a REUSED record, and recorded THIS key for that assembly. Its PASSES (`test_population.passed_cases`: a definition with
@@ -1594,7 +1594,7 @@ a child process (a script or a compiled program a test runs), in native code, th
 (read from a file, built in a loop, passed through a helper the audit does not follow), and what `repo-drift`'s bare roots
 read.
 
-*Re-derived evidence* (`gate.py --rederive <run> [--dry-run]`, `Gate.rederive`). A run whose gate predates this (or that an
+*Re-derived evidence* (`gate.py --rederive <run> [--dry-run]`, `PassCarry.rederive`). A run whose gate predates this (or that an
 audit stopped) may hold complete green results under a record that says `populations: {}` and `tree_end: null` and recorded
 nothing in the store. The re-derivation proves, or refuses naming what is missing, that its record is a full-lane one; its
 recorded toolchain is this host's; every gated assembly's host exited 0, its log ends in the host's own `Passed!  - Failed: 0,
@@ -1606,7 +1606,7 @@ measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog puts HEAD
 driver's) with no move until the hosts' last write. Its residue, written into the record (kb/Work PB5205 review R1-2): an
 uncommitted edit made while the run ran and undone at ANY time before the re-derivation is in no reflog, where the live gate,
 which measures `tree_end` after its hosts, would have refused it. Each target's key is computed from the RECORDED tree, and a
-dependent target's from the generated output the RUN recorded it was handed (`Gate._rederived_keys`, kb/Work PB5231 review
+dependent target's from the generated output the RUN recorded it was handed (`PassCarry._rederived_keys`, kb/Work PB5231 review
 R2-2): a run whose recorded digest the store now contradicts is refused naming both, and a run from before the hand-off has
 its Conformance REFUSED (never stored or carried; its host generated its own suite). A proved
 record keeps its verdict, line and exit code (RED), gains `tree_end`, `keys`, `audit_reds` and `rederived` (when, the

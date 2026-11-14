@@ -48,7 +48,8 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 LINES: tuple[tuple[tuple[str, ...], ...], ...] = (
     # scripts/: the gate
     # (the audits' list first: the verdict's `audit_reasons` and the host both read it; the run store reads the host's lock)
-    (("gate_audits",), ("gate_verdict", "gate_host"), ("gate_runs",), ("gate",)),
+    # (the reuse and generated modules never import each other; the legs are built over the generations; kb/Work PB5411)
+    (("gate_audits",), ("gate_verdict", "gate_host"), ("gate_runs",), ("gate_reuse", "gate_generated"), ("gate_legs",), ("gate",)),
     # scripts/: the lanes' classification, the static reads and the watch built on it, the CLI last (kb/Work PB5398)
     (("lane_classification",), ("source_reads", "inert_watch"), ("inert_lane",)),
     # the gate decides the change's lane through the classification (`lane_classification.CLASSIFICATION.classify`)
@@ -76,6 +77,9 @@ NODES: dict[str, tuple[str, str | None]] = {
     "gate_audits": ("scripts/gate_audits.py", "PB5433"),
     "gate_verdict": ("scripts/gate_verdict.py", "PB5433"),
     "gate_runs": ("scripts/gate_runs.py", "PB5433"),
+    "gate_reuse": ("scripts/gate_reuse.py", "PB5411"),
+    "gate_generated": ("scripts/gate_generated.py", "PB5411"),
+    "gate_legs": ("scripts/gate_legs.py", "PB5411"),
     "gate_host": ("scripts/gate_host.py", "PB5433"),
     "gate": ("scripts/gate.py", None),
     "lane_classification": ("scripts/lane_classification.py", "PB5398"),
@@ -114,7 +118,7 @@ NODES: dict[str, tuple[str, str | None]] = {
 SPLITS: dict[str, tuple[str, tuple[str, ...]]] = {
     "plan_wave": ("PB3728", ("reports", "inflight", "clusters", "groups", "dispatch_ledger")),
     "prune_worktrees":("PB3731", ("branch_classify", "review_coverage", "branch_lifecycle", "branch_survey")),
-    "gate": ("PB5433", ("gate_audits", "gate_verdict", "gate_runs", "gate_host")),
+    "gate": ("PB5411", ("gate_audits", "gate_verdict", "gate_runs", "gate_host", "gate_reuse", "gate_generated", "gate_legs")),
     "inert_lane": ("PB5398", ("lane_classification", "source_reads", "inert_watch")),
     "enqueue": ("PB3735", ("landing_verdict", "land_checks", "land_tree", "land_evidence", "land_queue")),
     "land_lane": ("PB3737", ("lane_state", "conflict_brief", "lane_decide", "lane_watch", "lane_status")),

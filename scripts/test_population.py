@@ -199,7 +199,7 @@ def parse_listing(text: str, source: str) -> Counter:
 def list_population(project: str | Path, configuration: str | None = None,
                     cwd: str | Path = REPO, handed: dict[str, str] | None = None, **spawn) -> tuple[Counter, str]:
     """Discover `project`'s population with `--list-tests`, scrubbed, in English. Returns (names, raw output).
-    `handed`: the generated outputs the gate hands the project's host (kb/Work PB5231; gate.py `Gate._handed`), set after
+    `handed`: the generated outputs the gate hands the project's host (kb/Work PB5231; gate_generated.py `Generations.handed`), set after
     the scrub, so discovery reads the suite the host will run. `spawn` is extra `subprocess` keyword arguments: a
     gate-slot holder passes `**slot.spawn_kwargs()`, so the listing runs inside the cap like every other child of the
     holder (DESIGN §3.14.6)."""
@@ -300,7 +300,7 @@ def red_cases(paths: list[str | Path]) -> set[str]:
 
 # ── RED AT THE PREVIOUS GATE MEANS ANY HOST'S (kb/Work PB3155, PB3184, PB3644): the sources of the first classes ──────
 #: ⛔ EVERY LIVE TOOL THAT WRITES TEST RESULTS (a trx file) INTO A WORKTREE IS ONE ROW HERE: the results directory it
-#: writes, relative to the worktree (None: it writes none there), and what the gate takes from it (scripts/gate.py `Gate._first`).
+#: writes, relative to the worktree (None: it writes none there), and what the gate takes from it (scripts/gate_legs.py `Legs.first`).
 #: The self-test holds this table equal to the live tools that write a trx file (`audit-trx-writers` over the real tree),
 #: so a new writer is classified here or the self-test is red.
 TRX_WRITERS: dict[str, tuple[str | None, str]] = {

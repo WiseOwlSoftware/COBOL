@@ -15,8 +15,9 @@ gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
 from gate_audits import AUDITS, TOOLING_ONLY
 from gate_verdict import GREEN_READING, NOT_RUN_CAUSES, VERDICT, read_verdict
 Gate = gate_mod.Gate
-from gate_host import Host, HostRun
-Outcome = gate_mod.Outcome
+from gate_host import Host
+from gate_legs import Legs
+from gate_verdict import HostRun, Outcome
 from gate_runs import VERDICT_FILE, run_dirs
 
 
@@ -45,8 +46,8 @@ def case_00_script_self_tests_audits_tooling_only_post(expect):
         sorted(rec_no["assembly_wall_s"]) == sorted(GATED_ASSEMBLIES)
         and all(isinstance(v, float) for v in rec_no["assembly_wall_s"].values())
         and isinstance(rec_no["effective_concurrency"], float)
-        and Gate._concurrency(two) == 1.5 and Gate._assembly_walls(two) == {"Conformance": 60.0, "Unit": 30.0}
-        and Gate._concurrency(Outcome()) is None and Gate._assembly_walls(Outcome()) == {},
+        and Legs.concurrency(two) == 1.5 and Legs.assembly_walls(two) == {"Conformance": 60.0, "Unit": 30.0}
+        and Legs.concurrency(Outcome()) is None and Legs.assembly_walls(Outcome()) == {},
         f"{rec_no['assembly_wall_s']} {rec_no['effective_concurrency']}")
 
 

@@ -9,11 +9,11 @@ from pathlib import Path
 
 import selftest_cases
 from gate_fake_host import FakeHost
+from gate_verdict import Outcome
 from scratch_repo import isolate, scratch_dir
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
 Gate = gate_mod.Gate
-Outcome = gate_mod.Outcome
 from gate_audits import audit_shape
 
 

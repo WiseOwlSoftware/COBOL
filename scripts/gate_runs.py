@@ -91,12 +91,12 @@ AWAIT_WAIT_S = 540
 #: `head_tree` and `lane`, which the landing requires as evidence (PB3612; PB3660). The Linux half's `linux` field that
 #: PB3612 also added is gone (kb/Work PB4327: the Linux half left the per-change gate); no landing reads it, so a record
 #: that still carries it is read as before. Schema 5 (kb/Work PB4328): the gate runs the whole population, so a record
-#: of schema 4 or below may be a `LEG 1 ONLY` one, and the reuse rule (`Gate.reusable`) never answers from one; it drops
+#: of schema 4 or below may be a `LEG 1 ONLY` one, and the reuse rule (`PassCarry.reusable`) never answers from one; it drops
 #: the plan's, the scope's, the identity check's and the timings store's fields, which no reader read.
 RECORD_SCHEMA = 5
 
 
-#: The first schema a gate that ran the WHOLE population writes (kb/Work PB4328): the oldest record `Gate.reusable` answers from.
+#: The first schema a gate that ran the WHOLE population writes (kb/Work PB4328): the oldest record `PassCarry.reusable` answers from.
 SCHEMA_WHOLE = 5
 
 
@@ -348,7 +348,7 @@ def launch_and_follow(new_run: Callable[[], Path], argv_for: Callable[[Path], li
     return code
 
 
-#: THE ORIGINAL RECORD OF A RE-DERIVED RUN (kb/Work PB5205; `Gate.rederive`): the verdict file as its gate wrote it, kept
+#: THE ORIGINAL RECORD OF A RE-DERIVED RUN (kb/Work PB5205; `PassCarry.rederive`): the verdict file as its gate wrote it, kept
 #: beside the re-derived one and never overwritten.
 ORIGINAL_VERDICT_FILE = "verdict.original.json"
 

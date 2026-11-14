@@ -356,7 +356,7 @@ class Graph:
         """What the host of target `name` is handed when each generated target's output lies in `root/<generated
         target>` (as `GENERATED_ROOT` lays a worktree's out): for each target it depends on, that target's variable and
         directory. CI's listing and hosts (`ci_plan.py list`, ci_plan's wiring) read it; the gate
-        hands the directories it generated (`Gate._handed`)."""
+        hands the directories it generated (`Generations.handed`)."""
         return {self.targets[d].env: str(root / d) for d in self.targets[name].depends
                 if isinstance(self.targets[d], GeneratedTarget)}
 

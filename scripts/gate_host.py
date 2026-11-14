@@ -43,7 +43,7 @@ FIRST_CLASSES = "WISEOWL_COBOL_GATE_FIRST"
 
 #: ⛔ THE ONE RETRY CHANNEL TO A TEST HOST (kb/Work PB5099): the path of a file of test display names, one per line, that
 #: the host runs INSTEAD of its whole population (tests/_shared/GateLegs.cs `GateOnly`, the same name). Only a re-gate of a
-#: tree an earlier run of this worktree already measured sets it (`Gate.carry`), for the cases that run did not pass; the
+#: tree an earlier run of this worktree already measured sets it (`PassCarry.carry`), for the cases that run did not pass; the
 #: population check then composes the passes it carried (test_population.py `check`'s `carried`), so a case neither
 #: carried nor run is still a named NEVER RAN. Its prefix is a scrubbed one, so only this gate hands it to a host.
 ONLY_CASES = "WISEOWL_COBOL_GATE_ONLY"
@@ -221,7 +221,7 @@ class Host:
         return buildgraph.Store.for_repo(self.repo)
 
     def head_reflog(self) -> list[tuple[str, int]] | None:
-        """THIS WORKTREE'S HEAD REFLOG (kb/Work PB5205; `Gate.rederive`): (commit, Unix time HEAD moved to it), newest first;
+        """THIS WORKTREE'S HEAD REFLOG (kb/Work PB5205; `PassCarry.rederive`): (commit, Unix time HEAD moved to it), newest first;
         None when git cannot say. A linked worktree's HEAD reflog is its own."""
         try:
             text = self.git("log", "-g", "--date=unix", "--format=%H %gd", "HEAD")
@@ -414,13 +414,13 @@ class Host:
 
     def listing(self, asm: str, spawn: Spawn, handed: dict[str, str] | None = None) -> tuple[Counter, str]:
         """`asm`'s population (`--list-tests`), its discovery handed the generated outputs its host is handed (`handed`,
-        `Gate._handed`), so the listing and the run read one suite."""
+        `Generations.handed`), so the listing and the run read one suite."""
         return list_population(self.repo / GATED_ASSEMBLIES[asm], cwd=self.repo, handed=handed, **spawn())
 
     def fetch_bounce_results(self) -> str:
         """The failed merge-group run's test results of this branch's open pull request, into
         `CI_BOUNCE_RESULTS` (`queue_facts.fetch_bounce_results`, the one GitHub reader); the line it returns says what
-        the directory holds. A detached HEAD asks nothing. Never raises: it only orders the run (`Gate._first`)."""
+        the directory holds. A detached HEAD asks nothing. Never raises: it only orders the run (`Legs.first`)."""
         try:
             branch = self.git("rev-parse", "--abbrev-ref", "HEAD")
         except (OSError, subprocess.SubprocessError):
@@ -454,7 +454,7 @@ def host_env(first: Path | None, observations: Path, only: Path | None = None,
     with the one ordering channel (FIRST_CLASSES) when this gate has classes to run first, and the one retry channel
     (ONLY_CASES) when this host runs only the cases an earlier run of the tree did not pass. `handed`: each generated
     target the host's target depends on, its variable naming the output directory the gate generated and keyed the target
-    on (kb/Work PB5231; `Gate._handed`), so the host runs exactly that suite. The test harness's observation
+    on (kb/Work PB5231; `Generations.handed`), so the host runs exactly that suite. The test harness's observation
     log (every retry and non-observation of a child process, tests/_shared/ProcessObservation.cs) goes to `observations`
     in the run directory, one per host, so a non-observation is read beside the host's own log instead of in one temp
     file every gate on the host appends to (kb/Work PB3108)."""
