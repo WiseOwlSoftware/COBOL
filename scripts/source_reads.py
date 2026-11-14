@@ -360,11 +360,10 @@ def code_readers(root: Path, paths: list[str], trees: tuple[str, ...]) -> list[t
 
 #: ⛔ NO COMPILER TEST OPENS A MARKDOWN FILE (owner 2026-11-02, kb/Work PB4453: "There is no compelling reason a compiler
 #: change needs to read an markdown note"). The Markdown names a compiler test may spell, each with why: the ISO text is a
-#: READ entry (`Classification.read`, derived, not listed here), and this is the rest.
-TESTS_MAY_NAME_MARKDOWN = {
-    "DIAGNOSTICS.md": "the gitignored rendered view whose raw render DiagnosticRegistryDriftTests writes to WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC "
-                      "(scripts/gen-diagnostics-doc.ps1); no test reads it",
-}
+#: READ entry (`Classification.read`, derived, not listed here), and this is the rest: none since DiagnosticRegistryDriftTests
+#: writes its raw render to the file gen-diagnostics-doc.ps1 names instead of opening docs/DIAGNOSTICS.md (wave 20262031
+#: review R1-2). A new entry carries its why.
+TESTS_MAY_NAME_MARKDOWN: dict[str, str] = {}
 
 
 DOCS_WALK_RE = re.compile(r"\bTestRepo\s*\.\s*Docs\s*\(\s*\)")
