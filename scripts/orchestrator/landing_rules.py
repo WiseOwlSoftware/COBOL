@@ -214,46 +214,28 @@ def steps_that_can_fail_the_job(job: ci_workflow.Job) -> tuple[list[str], int]:
 # ── the rules ────────────────────────────────────────────────────────────────────────────────────────────────────────
 #: ⛔ THE ARMS each landing script's self-test must declare (the rule, and its lists, are self_test_arms.py's).
 DECLARED: dict[str, tuple[str, ...]] = {
-    'scripts/orchestrator/land_lane.py': (
-        'queue watch: under a stop it reads but acts on nothing (no re-run, no requeue, no alert)',
-        "queue watch: GitHub's facts unobserved this tick: nothing is read and nothing is done",
-        'queue watch: a pull request in the queue reads QUEUED and the watch does NOT end (kb/Work PB3772: it can '
-            "leave the queue unmerged); one whose branch's work is on main ends it MERGED; a required check that failed "
-            "ends it LEFT (BOUNCED: the finisher's); none acted on",
-        'queue watch: a stuck check-run inside the grace is only watched; a pull request with no open pull request '
-            'and its work not on main ALERTS at once (closed by hand)',
-        'queue watch: past the grace, read 1 of a stuck check-run re-runs its workflow run and records the stall '
-            '(cause stuck-check-run, read 1); a check whose job still runs is not stalled',
-        'queue watch: stuck, then cleared by the re-run: the pull request enters the queue (QUEUED, still watched)',
-        'queue watch: read 2 (still stuck one grace after the re-run) closes, reopens and re-queues the pull '
-            'request, recorded as read 2',
-        'queue watch: stuck, then cleared by the reopen: in the queue, no third read',
-        'queue watch: a third stalled read ALERTS the operator (one mailbox question naming the pull request and the '
-            'remedies tried) and the watch acts no more, however long it stays out',
-        "queue watch: status and the survey's NOT QUEUED row say the watch's state, when it read, that an ended "
-            'watch reads nothing again, and each read',
-        'queue watch: a pull request QUEUED and then out of the queue with auto-merge off and no failed run is '
-            'WATCHING inside the grace counted from its last reading in the queue',
-        'queue watch: the requeue put it back in the queue: QUEUED again, and watched on',
-        'queue watch: with no check-run at all the clock starts at the enqueue',
-        'queue watch: a check-run whose job the jobs API could not read never holds the watch for ever',
-        "queue watch: a required check with no check-run yet because a job it needs still runs (PR #777's audits, 25 "
-            'min after the enqueue) is WATCHING with no remedy, never the requeue that cancels the run',
-        "exit 12 while the gate lock is held: not relaunched, not the enqueue unit's work",
-        'exit 12 once the gate lock is free: retried at the same head',
-        "wait_free for exit 12 reads the gate driver's own lock of the worktree",
-        "exit 12 for a gate that is still running: the lane waits at that head while the worktree's gate lock is held",
-        "exit 15 (a merged predecessor's pull request is still open): a retry-when-free class, never the enqueue "
-            "unit's",
-        'classify_red: results unread or no record is UNCLASSIFIED; a timed-out run or one where no test failed is '
-            'INFRA; red cases that all ran GREEN in the record, or an inert or a tooling-lane record, are RUNNER; a red '
-            'case the record listed but did not run is GENUINE; one the record lacks is MERGE',
-        "red_facts: the bounce's red cases (by name) beside the gate record that covers the queued head",
-        "red_facts: results of an OLDER bounce are never the new red's: a fetch that could not download the new "
-            "run's results (it answers run 0) or answers a run the directory's marker does not name leaves the red "
-            'UNCLASSIFIED',
-        'queue watch: an INFRA red is re-queued ONCE by the lane (no agent: the branch is no enqueue-unit work while '
-            'its watch runs), recorded with its class; a MERGE red ends the watch BOUNCED with its class',
+    'scripts/orchestrator/land_lane.py': (   # kb/Work PB5434: the cases of scripts/selftests/orchestrator/land_lane/ that hold the arms
+        'case_000_queue_watch_under_a_stop_it_reads_but_acts_on_no',
+        'case_001_queue_watch_github_s_facts_unobserved_this_tick',
+        'case_002_queue_watch_a_pull_request_in_the_queue_reads_qu',
+        'case_003_queue_watch_past_the_grace_read_1_of_a_stuck_che',
+        'case_004_queue_watch_stuck_then_cleared_by_the_re_run_the',
+        'case_005_queue_watch_read_2_still_stuck_one_grace_after_t',
+        'case_006_queue_watch_stuck_then_cleared_by_the_reopen_in',
+        'case_007_queue_watch_a_third_stalled_read_alerts_the_oper',
+        'case_008_queue_watch_a_pull_request_queued_and_then_out_o',
+        'case_009_queue_watch_the_requeue_put_it_back_in_the_queue',
+        'case_011_queue_watch_with_no_check_run_at_all_the_clock_s',
+        'case_010_queue_watch_a_check_run_whose_job_the_jobs_api_c',
+        'case_012_queue_watch_a_required_check_with_no_check_run_y',
+        'case_012_exit_12_while_the_gate_lock_is_held_not_relaunch',
+        'case_013_exit_12_once_the_gate_lock_is_free_retried_at_th',
+        'case_014_wait_free_for_exit_12_reads_the_gate_driver_s_ow',
+        'case_015_exit_12_for_a_gate_that_is_still_running_the_lan',
+        'case_017_exit_15_a_merged_predecessor_s_pull_request_is_s',
+        'case_017_classify_red_results_unread_or_no_record_is_uncl',
+        'case_018_red_facts_results_of_an_older_bounce_are_never_t',
+        'case_020_queue_watch_an_infra_red_is_re_queued_once_by_th',
     ),
     'scripts/orchestrator/queue_facts.py': (
         'auto-merge on is NOT in the queue',

@@ -1455,7 +1455,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <summary>Render a STOP RUN / GOBACK termination-status phrase to a C# <c>long</c> exit-status expression
     /// (ISO §2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10): the status VALUE truncated to an integer at scale 0 when present
     /// (SR3 — an integer is passed to the OS), else the implementor error/normal indication ERROR ⇒ 1 / NORMAL ⇒ 0
-    /// (§2023:14.9.42.4 GR2/GR3; docs/CONFORMANCE.md §4.2.16). The value renders receiver-less (scale 0) exactly as a
+    /// (§2023:14.9.42.4 GR2/GR3; docs/CONFORMANCE.md DOC-A.1-193). The value renders receiver-less (scale 0) exactly as a
     /// boolean-shift count or an intrinsic integer argument does.
     /// <para>⛔ THE VALUE IS AN OPERAND, NOT AN EXPRESSION (kb/Work PB169) — §2023:14.9.42.2 writes the slot
     /// <c>{identifier-1 | literal-1}</c>. The NUMERIC arm is byte-identical to the former
@@ -1621,7 +1621,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : new($"(-{x.Expr})", x.Scale, Digits: x.Digits, Precision: x.Precision);
 
     /// <summary>The unsigned-wide → Int128-lane funnel (kb/Work R10): a <c>U</c> operand narrows through
-    /// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate, CONFORMANCE.md §4.2.16); every
+    /// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate, CONFORMANCE.md DOC-A.1-123); every
     /// other operand passes through unchanged. The ONE chokepoint every arithmetic path shares (internal: the
     /// CALL BY CONTENT computed-argument site funnels through the same rule).</summary>
     internal static NumX DeU(NumX x) => x.U ? new NumX(RuntimeApi.NumWiden(x.Expr), x.Scale, Digits: x.Digits) : x;

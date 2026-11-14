@@ -122,6 +122,9 @@ kb/Conformance/
 docs/DRIFT_RULES.md
 # The diagnostics table (scripts/gen-diagnostics-doc.ps1), rendered from DiagnosticCatalog.cs.
 docs/DIAGNOSTICS.md
+# The conformance statement (scripts/spec/conformance_doc.py), rendered from its sources under docs/conformance/ (kb/Work
+# PB5430): edit a source file, never the view; rendered_views.py stamps it and refuses a hand edit (rule (e)).
+docs/CONFORMANCE.md
 # Generated status page for the owner's "WiseOwl COBOL Conformance Ledger" artifact (scripts/spec/gen_ledger.py).
 # A build output for the same reason kb/Conformance/ is: every input it reads IS tracked, so the page can be
 # re-derived at will — and committing it would make `--check` red after every landing that moves a row, which

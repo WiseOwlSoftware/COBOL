@@ -846,7 +846,7 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
 
 #### 3.14.2 The order: the classes red last time first, then longest first (kb/Work PB4328)
 
-- **The first classes** (`scripts/gate.py` `Gate._first`): every test class with a red case in the worktree's previous
+- **The first classes** (`scripts/gate_legs.py` `Legs.first`): every test class with a red case in the worktree's previous
   gate run (`TestResults/build-local/`, the newest earlier run with a verdict and a trx), its newest hand-run Linux gate
   (`TestResults/linux-gate/`) or the failed merge-group run that bounced its pull request (fetched into
   `TestResults/ci-bounce/` by `queue_facts.fetch_bounce_results`, kb/Work PB3644), read by `test_population.red_classes`
@@ -872,7 +872,7 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
   at the gate's priority, each host leading its own process group so a RED audit stops its whole tree
   (`Host.stop_hosts`, kb/Work PB4326). Each host's report is printed through `scripts/test_leg_report.py` (a green host
   its verdict line, a red one its complete output; kb/Work PB1573), in a fixed order.
-- ⛔ **THE ONLY PLACE A TEST HOST'S ENVIRONMENT IS MADE** (`gate.host_env`): the scrubbed environment
+- ⛔ **THE ONLY PLACE A TEST HOST'S ENVIRONMENT IS MADE** (`gate_host.host_env`): the scrubbed environment
   (`test_population.scrubbed_env`: no `WISEOWL_COBOL_GATE_*`, `WISEOWL_COBOL_SHARD`, `VSTest*` or `RunSettingsFilePath`),
   in English, with the gate's own `WISEOWL_COBOL_GATE_FIRST` when it has first classes and the harness observation log
   in the run directory, one per host (kb/Work PB3108).
@@ -887,7 +887,7 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
   plus it is WHEN the slot was taken, kb/Work PB4888), `build_s`, `tests_s`, `first_red_s`, `wall_s`, the waits beside),
   `assembly_wall_s`,
   `effective_concurrency` and each population's counts.
-- **A gate that measured nothing ends `NOT RUN [<cause>]`**, never GREEN and never RED. `gate.NOT_RUN_CAUSES` is the ONE table
+- **A gate that measured nothing ends `NOT RUN [<cause>]`**, never GREEN and never RED. `gate_verdict.NOT_RUN_CAUSES` is the ONE table
   of causes, each with a class: ENVIRONMENT (the host, not the tree: `settings`, `interpreter`, `toolchain`, `disk`, `tree`,
   `launch`, `run`, `merge-blocked`, `host`, `sdk`) or BRANCH (the tree's own scripts or merged tree: `driver`,
   `merge-failed`, `population`, `arguments`, `verdict`, `unclassified`). The landing judges a NOT RUN by its class (§3.17.2
@@ -928,7 +928,7 @@ of a `--list-tests` output (`parse_listing`); `filter_population.py` imports it.
 **The drift tests that prove it fails** (`GateLegDriftTests`, one per assembly, each arm one method named for its number,
 for the test assemblies' half; the scripts' half is their own self-tests', kb/Work PB4395):
 (2) the orderer runs the named classes first, then longest first, and its output is a permutation of its input (a planted
-non-permutation throws); (3) `gate.py --self-test` and `test_population.py --self-test` declare every arm (a dropped case,
+non-permutation throws); (3) the case files of `scripts/selftests/gate/` and `test_population.py --self-test` declare every arm (a dropped case,
 a duplicated case, a skipped case, a foreign definition, a red audit that stops the hosts, a second gate in the same worktree
 refused, one shape for every gate): `scripts/self_test_arms.py`'s `DECLARED`, the one register of the arms each pipeline
 self-test must declare (kb/Work PB4395 moved it out of the compiler's test assembly); (4) every test project under `tests/` links `GateLegs.cs` and names `GateTestFramework`;
@@ -1186,7 +1186,7 @@ time; an edited import re-runs only its importer; a planted 60-s self-test under
 record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification, the tracer and the import key (an
 unrelated new file changes nothing; a shadowing module, a module or package answering an imported name and a removed module
 each re-run);
-`gate.py --self-test` proves every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `scripts/self_test_arms.py`
+the case files of `scripts/selftests/gate/` prove every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `scripts/self_test_arms.py`
 holds the arms by name, and `self_tests.py --self-test` forbids `--reuse` in CI and the Linux tool (kb/Work PB4395).
 
 **4. One scratch-repository fixture (kb/Work PB3584).** A self-test that needs a git repository builds and drives it through
@@ -1379,17 +1379,17 @@ as it grows and exits with the gate's own exit code once the verdict file is wri
 running to its verdict. The gate writes `gate.pid` itself, UNDER its worktree's gate lock, so a pid file proves the gate took
 the lock. ⛔ **The window before the lock (kb/Work PB3707).** The run directory exists and its child is alive for the moment
 of interpreter start before the child takes the lock; neither fact says a gate is coming. The launcher therefore records the
-child it spawned in `gate.spawn`, and the child's first act under the lock replaces it with `gate.pid`. `gate.gate_phase`
+child it spawned in `gate.spawn`, and the child's first act under the lock replaces it with `gate.pid`. `gate_runs.gate_phase`
 reads a run by THREE facts, never a pid alone (Windows reuses pids): the gate lock is held by a gate writing this run
 (RUNNING); else the run has no `gate.pid`, is younger than `START_WINDOW_S` (60 s, read from the stamp in its name) and its
 spawn record names a live process (STARTING); else the gate DIED. `enqueue.gate_busy` reads RUNNING and STARTING as a verdict
 still owed (exit 12, never exit 14), and `--await` reports STARTING PENDING. To stop a gate, end the process `gate.pid` names.
 
-**2. One way to wait: the verdict file.** `gate.watch` (the CLI `gate.py --await <run> [--worktree W] [--wait-s N]`) reads the
+**2. One way to wait: the verdict file.** `gate_runs.watch` (the CLI `gate.py --await <run> [--worktree W] [--wait-s N]`) reads the
 run directory, never a log's tail: the record's line and exit code once `verdict.json` is there; `NOT RUN [verdict]` (exit 2,
 BRANCH) when the gate DIED without one; PENDING (exit 4; exit 3 is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN
 [run]` (exit 2, ENVIRONMENT) when there is no such directory. A relative `<run>` (`TestResults/build-local/<run>`) names a run
-of the worktree that gated it, never of the reader's checkout: `gate.resolve_run` is the one resolution, and the follower, the
+of the worktree that gated it, never of the reader's checkout: `gate_runs.resolve_run` is the one resolution, and the follower, the
 rolling wave's await and `reports.Report.gate_state` all read through `watch`.
 
 **3. The handoff.** An implementer or finisher that reaches its TURN CAP while its gate still runs on its committed head, with
@@ -1401,7 +1401,7 @@ carrying that verdict (the finished test, then the branch review), any other ver
 awaiter: `reports.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict is GREEN for the
 report's HEAD and measured that commit's own tree, unchanged while it ran.
 
-**4. Reuse: a measured tree is gated once.** Every verdict record (schema 5, `gate.RECORD_SCHEMA`) carries the HEAD, the TREE
+**4. Reuse: a measured tree is gated once.** Every verdict record (schema 5, `gate_runs.RECORD_SCHEMA`) carries the HEAD, the TREE
 the gate measured at its start and again at its end (`Host.measured_tree`: the git tree id of the working tree, tracked files
 as on disk and untracked files git does not ignore, written through a private copy of the index that keeps the index file's
 own mtime, git's racy-git reference; a path `coord.NEVER_WORK` names measures at HEAD's content, so the harness's edit of the
@@ -1448,7 +1448,7 @@ register under `tests/version-matrix/`, `tests/nist/`, `conformance-suite/` (les
 through the dependency) and `tests/doc-facts/`; the inventory is not its input. `repo-drift` (the repository's drift tests,
 which bind the documents' data files, the records, the scripts a test runs, the CI files, every test source and the names of
 every tracked file to each other and to the compiler, and read the inventory themselves) declares every population input
-(`inert_lane.Classification.is_population_input`) and depends on nothing. The split between the two is the BUILD TARGETS
+(`lane_classification.Classification.is_population_input`) and depends on nothing. The split between the two is the BUILD TARGETS
 audit's, never a list (kb/Work PB5230; below). Every target excludes `@inert` and `@tooling-lane`, the classes the inert lane's
 watch proves no compiler test reads. The graph is refused when it is malformed (`Graph.of`): a dependency on an undeclared
 target or on a test target (which makes no output), a cycle (named: `a -> b -> a`), a generated program that is not among its
@@ -1464,7 +1464,7 @@ differs (Bazel's cut-off on an unchanged output, kb/Work PB5231, PB5230); a chan
 whose output digest is not known is `Unresolved`, naming it, never a key without it (owner 2026-11-10: "If it cannot be
 resolved, there is a problem/bug").
 
-*A generated target is brought up to date first* (`buildgraph.generate`, `bring_up_to_date`, `Gate._generate`), in
+*A generated target is brought up to date first* (`buildgraph.generate`, `bring_up_to_date`, `Generations.generate`), in
 topological order, before any test target's key. It is UP TO DATE when the store records an output digest at its key AND its
 output directory holds exactly that digest (`output_digest`: the sha256 of every file's relative POSIX path and content hash,
 in path order; no absolute path, time or platform). Otherwise the directory is removed and the command runs under a Python
@@ -1482,9 +1482,9 @@ recorded (its digest, file count, seconds, worktree). A gate whose generated tar
 dependent run on another suite would be recorded under a key it did not run. The generator's seconds: about 13 s traced.
 THE TRACE'S RESIDUE: an existence or stat call (`Path.exists`, `is_file`, `is_dir`, `os.stat`, …) raises no audit event.
 The STATIC half of the declaration (`buildgraph.static_check`, part of the BUILD TARGETS audit, review R1-1 and R1-3)
-covers it before any run: the program's import closure (`inert_lane.import_closure`, every import, a lazy one included)
+covers it before any run: the program's import closure (`source_reads.import_closure`, every import, a lazy one included)
 lies in its inputs, and every existence or stat call in the program and its closure, outside self-test functions, probes a
-path under its inputs when `inert_lane.static_dir` can decide the path from literals and the module's static names; a call
+path under its inputs when `source_reads.static_dir` can decide the path from literals and the module's static names; a call
 it cannot decide is a finding until the target's `judged` map states, under `<file>|<function>|<call>`, why the path is an
 input, and a judgment that names no call any more is a finding.
 
@@ -1507,7 +1507,7 @@ program reads every input of the generator, none in the dependent's key, and is 
 key (the counts, the facets, the worktree, run and head that proved it), written whole. A target is UP TO DATE exactly when
 the store holds a pass at its key: that is the only rule, so a pass recorded in worktree A is up to date in worktree B at the
 same content (a branch re-cut from main, a second worktree). The store holds only what was proven: after its population check,
-`Gate.record_passes` records each assembly whose host was green (or that needed no host because its carried passes covered
+`PassCarry.record_passes` records each assembly whose host was green (or that needed no host because its carried passes covered
 it) and whose population was EXACT, at a tree that did not change while the gate ran. A red, a partial or an unmeasured
 population records nothing.
 
@@ -1523,7 +1523,7 @@ the change touches a script, each re-run where its recorded inputs changed). An 
 has exited (a self-test that hangs past the last host) stops no host (`_Live.stopped_any`): the hosts' results are whole, the
 populations are checked, each exact green one's pass is recorded, and the verdict is RED for the audit alone.
 
-*At a target's key, a re-gate runs only what has not passed* (`Gate.carry`, `Gate._plan`). For each target that is not up to
+*At a target's key, a re-gate runs only what has not passed* (`PassCarry.carry`, `Legs.plan`). For each target that is not up to
 date, an EARLIER RUN of this worktree counts when it is a full-lane run (schema 5 on) that measured its own tree and did not
 see it change while it ran (`tree` equals `tree_end`; an audit-stopped run has no `tree_end` and counts for nothing), is not
 itself a REUSED record, and recorded THIS key for that assembly. Its PASSES (`test_population.passed_cases`: a definition with
@@ -1539,7 +1539,7 @@ listing printed it, so a case neither carried nor run is still a named NEVER RAN
 run(s) …`. The per-case evidence stays in this worktree's run directories (the store holds whole-target passes only); the
 earlier runs' trx stay as long as `KEEP_RUNS` keeps them, and a pruned source costs a larger retry, never a wrong verdict.
 
-*Reading the evidence.* `gate.measuring_runs` is the ONE resolution of the run directories that hold a verdict's evidence: the
+*Reading the evidence.* `gate_runs.measuring_runs` is the ONE resolution of the run directories that hold a verdict's evidence: the
 run that measured it (or the one a REUSED record names), `composed_from`, and the run of every target the store showed up to
 date, in whichever worktree recorded it, while it exists. The landing lane's classification of a merge-queue red reads the
 branch's trx through it. A gate that found a target up to date or carried passes writes no growth sample (section 3.14.13),
@@ -1594,11 +1594,11 @@ a child process (a script or a compiled program a test runs), in native code, th
 (read from a file, built in a loop, passed through a helper the audit does not follow), and what `repo-drift`'s bare roots
 read.
 
-*Re-derived evidence* (`gate.py --rederive <run> [--dry-run]`, `Gate.rederive`). A run whose gate predates this (or that an
+*Re-derived evidence* (`gate.py --rederive <run> [--dry-run]`, `PassCarry.rederive`). A run whose gate predates this (or that an
 audit stopped) may hold complete green results under a record that says `populations: {}` and `tree_end: null` and recorded
 nothing in the store. The re-derivation proves, or refuses naming what is missing, that its record is a full-lane one; its
 recorded toolchain is this host's; every gated assembly's host exited 0, its log ends in the host's own `Passed!  - Failed: 0,
-Passed: P, Skipped: S, Total: T` line and its trx is COMPLETE against that line (`gate.result_outcomes`: T results, P Passed,
+Passed: P, Skipped: S, Total: T` line and its trx is COMPLETE against that line (`gate_verdict.result_outcomes`: T results, P Passed,
 S NotExecuted; results, not definitions, because theory rows that share a display name are one definition); every reason is
 an audit's; and its tree stood while it ran, which no file of the run records, so the evidence is the worktree's: the run
 measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog puts HEAD at the recorded head at the run's start (its
@@ -1606,7 +1606,7 @@ measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog puts HEAD
 driver's) with no move until the hosts' last write. Its residue, written into the record (kb/Work PB5205 review R1-2): an
 uncommitted edit made while the run ran and undone at ANY time before the re-derivation is in no reflog, where the live gate,
 which measures `tree_end` after its hosts, would have refused it. Each target's key is computed from the RECORDED tree, and a
-dependent target's from the generated output the RUN recorded it was handed (`Gate._rederived_keys`, kb/Work PB5231 review
+dependent target's from the generated output the RUN recorded it was handed (`PassCarry._rederived_keys`, kb/Work PB5231 review
 R2-2): a run whose recorded digest the store now contradicts is refused naming both, and a run from before the hand-off has
 its Conformance REFUSED (never stored or carried; its host generated its own suite). A proved
 record keeps its verdict, line and exit code (RED), gains `tree_end`, `keys`, `audit_reds` and `rederived` (when, the
@@ -1824,7 +1824,7 @@ every exit path (the EXIT trap after its verdict, and `on_signal` for HUP, INT a
 trees read from `/proc`; the one build runs in the background because bash defers a trap until a foreground command returns);
 a gate killed outright is REAPED by the next gate (an owner that no longer runs, or no owner file and this tree's or older than
 3 hours); and it refuses, `=== LINUX GATE: NOT RUN [disk] (…) ===`, below 1,000,000 free inodes or 20 GB free (`disk` is an
-ENVIRONMENT cause in `gate.NOT_RUN_CAUSES`). `linux-gate.sh --self-test` drives each exit path on real directories and
+ENVIRONMENT cause in `gate_verdict.NOT_RUN_CAUSES`). `linux-gate.sh --self-test` drives each exit path on real directories and
 processes and each bound over a stand-in `df`; its signal arm is SYNCHRONIZED through fifos, never timed, and its grandchild
 takes the first signal with `sigwait` (a `bash -c` witness with a TERM trap was wrong: 2 of 256 runs recorded PROBE although
 the TERM had been sent). That arm reads `/proc`, which Cygwin serves slowly, so on a Windows host it prints `n/a` and runs in
@@ -1834,7 +1834,7 @@ the Linux `selftests` leg and CI's audits job.
 §3.17.4); a CRLF script dies at its first line under bash.
 
 **Verdict.** One `=== LINUX GATE: GREEN|RED|NOT RUN [<cause>] ===` line naming the HEAD it tested; NOT RUN is never green and
-its cause's class is `gate.NOT_RUN_CAUSES`' (§3.14.3). All four legs run by default, about 3–4 minutes for the three test
+its cause's class is `gate_verdict.NOT_RUN_CAUSES`' (§3.14.3). All four legs run by default, about 3–4 minutes for the three test
 assemblies and about 6 with the guard leg (2026-10-04: unit 137 s, characterization 10 s, conformance 127 s, guard 81 s).
 **Limits.** The local WSL distro is the same Ubuntu release as the pinned runner but runs Microsoft's WSL kernel, and the tool
 runs Debug where CI also runs Release (kb/Work PB1957 lists every remaining difference): it catches platform assumptions, and
@@ -1970,11 +1970,11 @@ one-file-per-entry DEVLOG stand.
    and a finisher gates the tip). A run covers the tip when it read GREEN with exit 0, measured the COMMITTED head's own tree
    (`tree` equals `head_tree`), and its head IS the tip or every later commit is main's, a clean merge of main or register-only
    (`prune_worktrees.unreviewed_since`). A record the branch's older driver wrote before a field the landing requires existed
-   (`gate.LANDING_FIELDS`, schema below `LANDABLE_SCHEMA`) is its own reason, "written by a gate older than this lander"
-   (`gate.predates_landing`), and its remedy is to merge origin/main into the branch FIRST and gate the merged head. A later RED
+   (`gate_runs.LANDING_FIELDS`, schema below `LANDABLE_SCHEMA`) is its own reason, "written by a gate older than this lander"
+   (`gate_runs.predates_landing`), and its remedy is to merge origin/main into the branch FIRST and gate the merged head. A later RED
    does not unrecord an earlier GREEN of the same head. ⛔ **BEFORE it reads the record, and before every later write of the
    worktree, it asks the gate lock** (`enqueue.gate_busy`): exit 12, never a red, when a gate of the worktree runs (the gate
-   lock held, `gate.live_gate`; never a process id, which Windows reuses, kb/Work PB3662) or is STARTING (spawned moments ago,
+   lock held, `gate_runs.live_gate`; never a process id, which Windows reuses, kb/Work PB3662) or is STARTING (spawned moments ago,
    kb/Work PB3707), WHATEVER record exists (kb/Work PB4204: an older GREEN record once let a landing merge main into a worktree
    under a running gate); the lane retries it once the lock is free. A lane I10 does not review gates its own tip.
    Then **MERGE `origin/main` into the branch** — not a rebase (a branch that merged a same-file predecessor carries conflict
@@ -1999,7 +1999,7 @@ one-file-per-entry DEVLOG stand.
    in conflict is real: exit 4, the merge is aborted, the report gains `BLOCKED: enqueue … conflict in <files>`, and a
    `cobol-finisher` resolves with `git merge origin/main`. A merge git REFUSED with no file in conflict is no conflict
    (kb/Work PB3673): `git_merge.merge` answers `clean`, `conflicts` or `incomplete` (abi_pin's `Failure(cause, why)`), and the
-   cause is read from the `merge-*` rows of `gate.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a lock, a full disk, a worktree
+   cause is read from the `merge-*` rows of `gate_verdict.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a lock, a full disk, a worktree
    git would overwrite) is exit 2, retried once by the lane; `merge-failed` (BRANCH) is exit 5, a finisher's, and has no producer
    since the merge no longer settles the pin. THE QUEUE'S CONFLICTS ARE SEEN BEFORE THEY HAPPEN (kb/Work PB3723): GitHub's merge
    group removes an entry that conflicts (`merge_conflict`) with no event any reader sees, so `git_merge.foresee_queue` replays
@@ -2181,20 +2181,30 @@ demand and not committed.
   (`Set-LfContent`). `merge.renormalize` is the documented per-clone setting (CONTRIBUTING.md).
 - **Generated indexes leave the tree (PB3026):** a derived index is a RENDERED VIEW: gitignored, rendered on demand by its
   generator, never committed. `scripts/rendered_views.py` holds the ONE registry (`VIEWS`): `docs/DRIFT_RULES.md`
-  (`drift_rules.py --out`), the `kb/Conformance` burn-down (`gen_conformance_notes.py --out`), `docs/DIAGNOSTICS.md`
+  (`drift_rules.py --out`), the conformance statement `docs/CONFORMANCE.md` (`conformance_doc.py --out`, from
+  `docs/conformance/`), the `kb/Conformance` burn-down (`gen_conformance_notes.py --out`), `docs/DIAGNOSTICS.md`
   (`gen-diagnostics-doc.ps1`), the `kb/Reference` and `kb/Grammar` vault views, and the ledger page. A new generated index is
   one row there plus a `.gitignore` entry. `rendered_views.py --check` is the gate's `RENDERED VIEWS` audit (it runs before the
   slot) and a step of CI's `audits` job, and enforces per view: not tracked (`git ls-files` ∩ outputs = ∅), gitignored when
   inside the tree, its generator's own `--check` renders it in memory, plus a sweep that no tracked `docs/` or `kb/` markdown
-  declares itself generated without a row. Nothing compares a view with a copy on disk, so "absent" and "stale" no longer
-  exist; a reader that needs a view refuses with the render command when it is absent, never reads an empty one as "no
+  declares itself generated without a row. Every in-tree FILE view carries a stamp as its first line (`stamp_line`: the
+  generator, its sources, the body's sha256 and the remedy), and rule (e) is RED on a file at a view's path with no stamp or
+  an edited body, and a render refuses to overwrite one, so a hand edit to a gitignored view is never lost silently
+  (kb/Work PB5430). The stamp has ONE writer, `write_view`: a generator's `--out` reaches it through `write_rendered`
+  (stamped at a view's path, the body alone anywhere else, such as the package's copy under `obj/`), and
+  `gen-diagnostics-doc.ps1`, whose render a C# test makes, hands its raw file to `rendered_views.py diagnostics --write`; so
+  a generator run directly stamps its view exactly as `rendered_views.py` does, and `render_all` fails a generator that
+  exits 0 without leaving a stamped view. A view that is only STALE (sources changed, body untouched) is not RED: the next render replaces it,
+  and "absent" is never stale; a reader that needs a view refuses with the render command when it is absent, never reads an empty one as "no
   diagnostics". NOT views, and tracked on purpose: generated SOURCE the build compiles (`*.g.cs`, `*.Table.cs`: a clone must
   build with no pre-step; each has its own drift test), DATA extracted from the licensed standard, and the gating status
   block embedded in `VERSION_CHANGE_REFERENCE.md`.
 - **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh pull request, never inside a fix
-  pull request; a fix edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md`
-  becomes one source file per entry under `docs/conformance/`, read by one module and rendered whole as a view
-(DESIGN-orchestrator-loop.md §16.8, kb/Work PB3726, PB5395, PB5429, PB5430, PB5431).
+  pull request; a fix edits its notes, its code, its tests, its goldens and the design doc of its subsystem.
+- **The conformance statement** is one source file per entry under `docs/conformance/`, read by one module
+  (`conformance_source.py`) and rendered whole as the view above, which the NuGet packages carry (a pack-time target in
+  `Directory.Build.props`); a determination is a new file of its section, never an edit of the view
+  (DESIGN-orchestrator-loop.md §16.8, kb/Work PB3726, PB5395, PB5429, PB5430, PB5431).
 
 #### 3.17.5 The loop's units and the fleet (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
 
@@ -2288,7 +2298,7 @@ run? I would think not." Of the 300 landings of 2026-10-16..23, 137 changed only
 still paid a full local gate. And the regex was not a classification: `docs/` and `kb/Work/` are test INPUTS, so CI skipped the
 very tests that read them (kb/Work PB3603).
 
-**The classification — ONE module, `scripts/inert_lane.py`.** A path is INERT when it lies under an `INERT` entry and under no
+**The classification — ONE module, `scripts/lane_classification.py`** (the static reads are `scripts/source_reads.py`, the watch `scripts/inert_watch.py`, the commands `scripts/inert_lane.py`; kb/Work PB5398)**.** A path is INERT when it lies under an `INERT` entry and under no
 `READ` entry; each entry names who reads it (an audit, a person; a READ entry names the tests that read it). A change is in the
 inert lane when its changed paths (`git diff --name-only --no-renames`, so a code file renamed into an inert directory shows
 its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/`, `kb/` (the knowledge base, THE work register
@@ -2381,7 +2391,7 @@ not when a listed file is edited.
 `self_tests.py` on Linux in every merge group, and those self-tests are audits that read the inert paths by design (the
 register, the DEVLOG, the skills submodule), so the inert watch cannot vouch for them and a `kb/` or `DEVLOG/` change can turn
 them red on Linux. The Windows gate's inert lane ends after its audits and takes no slot, and the merge group is the first
-Linux run of a notes-only change. `inert_lane.py --self-test` (its `wiring` arm) holds the CI job and the local lane's lack of
+Linux run of a notes-only change. the cases of `scripts/selftests/inert_lane/test_wiring.py` hold the CI job and the local lane's lack of
 a Linux step.
 
 **The tooling lane (kb/Work PB4395; PIPELINE-REVIEW §13, owner 2026-11-01 "Build the approved lane").** A change whose every
@@ -2408,7 +2418,7 @@ only), and tooling DATA a script reads (`model_rules.json`, `tools/rr/rr.war`), 
 compiler's test assembly that walk it; kb/Work PB4395 item 1 moves each into the self-test of the script it checks, and the
 entry narrows when its last walker leaves. CI runs the whole population for a tooling-lane change (it is the regression net),
 and the landing reads a tooling-lane record as it reads an inert one (`land_lane.red_facts`: no compiler test reads the
-change, `inert_lane.TEST_FREE_LANES`).
+change, `lane_classification.TEST_FREE_LANES`).
 
 **The proof — the inert watch.** A list of "what no test reads" that nobody proves drifts from the tests, and a test that
 starts reading an inert path would let an inert change land untested. So every whole-assembly test run on Linux runs under
@@ -2429,14 +2439,14 @@ clone with its own build (kb/Work PB3529). Windows has no open events, so the Wi
 watch is a READ entry naming the reader (the path leaves the inert lane) or making the reader an audit, and for a tooling-lane
 path a CODE_READS entry naming it or making the reader a script's self-test, never deleting the watch.
 
-**Drift test.** `inert_lane.py --self-test`'s `wiring` arm (the real tree; kb/Work PB4395 moved it out of the compiler's test
+**Drift test.** `scripts/selftests/inert_lane/test_wiring.py` (the real tree; kb/Work PB4395 moved it out of the compiler's test
 assembly, where `InertLaneDriftTests` held it): the `changes` job classifies through the module and carries no path regex;
 every `dotnet test` line of a Linux job runs under the watch; `gate.py` classifies through the module and its inert and
 tooling lanes take no slot and build nothing, and `linux-gate.sh` classifies nothing but watches its test legs; CI's `audits`
 job runs the self-tests and `inert_lane.py check`. The `INERT LANE` audit (`inert_lane.py check`) holds every entry to a
 tracked path, every READ entry under an INERT one and every tooling the build or a compiler test is seen to read under
 CODE_READS. The classification's logic and the watch's firing (a read, a listing, a READ path, a tooling-lane import served
-from a stale bytecode cache, a CODE_READS read, the command's own exit code) are `inert_lane.py --self-test`'s arms, run by
+from a stale bytecode cache, a CODE_READS read, the command's own exit code) are the case files under `scripts/selftests/inert_lane/` (`test_classification.py`, `test_scratch_repository.py`, `test_static_reads.py`, `test_watch.py`), run by
 the self-test runner in every gate that touches tooling and in CI (the inotify arms on Linux).
 `self_tests.py --self-test` holds both self-test legs of the Linux tool to the audit clone.
 

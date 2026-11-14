@@ -1,0 +1,3 @@
+---
+cells: ["DOC-A.1-106", "**I-O status 0x — the value of x**, §2023:9.1.13.3 item 1, optional (documented if provided)", "**Not provided.** No input-output statement ever sets an I-O status of '0' followed by a letter: the successful-completion values WiseOwl COBOL produces are the standard's '00', '02', '04', '05', '06', '07' and '09' (`FileStatusCode`), and its implementor-defined I-O statuses are the fatal '90' and '91' (item 110). Because no '0x' value exists, the COBOL-2023 latitude on whether an upper-case and a lower-case x are equivalent does not arise.", "`conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/l1_dns_a1_106_no_0x_io_status`"]
+---

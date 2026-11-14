@@ -34,7 +34,7 @@ from typing import NamedTuple
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import abi_pin  # noqa: E402  (the Failure a refused merge is classified by, gate.NOT_RUN_CAUSES, kb/Work PB3673)
+import abi_pin  # noqa: E402  (the Failure a refused merge is classified by, gate_verdict.NOT_RUN_CAUSES, kb/Work PB3673)
 from standard_streams import ensure_utf8  # noqa: E402
 
 NL = chr(10)

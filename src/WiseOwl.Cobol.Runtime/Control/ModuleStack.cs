@@ -136,7 +136,7 @@ public sealed class ModuleStack
                 // COBOL with no OO involved, and a stack list that silently drops recursion is worse than a
                 // cosmetic repeat: the repeat is visible, the missing frames are not.
                 //
-                // ⚖ THE COST, DOCUMENTED (docs/CONFORMANCE.md §4.2.16): a CONTAINED program now yields
+                // ⚖ THE COST, DOCUMENTED (docs/CONFORMANCE.md DOC-A.1-135): a CONTAINED program now yields
                 // `MAIN;MAIN; ` — CURRENT is outermost-granularity (r7) while ACTIVATING is element-granularity
                 // (r5), so for a nested program the first two entries coincide. That is r9's own composition, not
                 // a defect; §2023:15.65.1's looser "a list of all the module names" reading was the alternative and it

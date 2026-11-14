@@ -174,7 +174,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 /// R10): a 16-byte unsigned COMP-5 item's field read, or a folded literal beyond <see cref="Int128.MaxValue"/>
 /// (the HIGHEST-ALGEBRAIC container bound, §2023:15.43.4 r2). The VALUE paths (store, display, relation) keep the
 /// full [0, 2^128) range via the runtime's <c>UInt128</c> overloads; the ARITHMETIC paths funnel through
-/// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate — CONFORMANCE.md §4.2.16), never a
+/// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate — CONFORMANCE.md DOC-A.1-123), never a
 /// silent wrap. Mutually exclusive with <see cref="Dec"/> and <see cref="Real"/>.</param>
 /// <param name="Approximate">Only with <see cref="Real"/>: the binary64 is an implementor-defined APPROXIMATION the
 /// ENGINE produced — a floating-math function's returned value (§2023:15.4.1: "the characteristics and representation of

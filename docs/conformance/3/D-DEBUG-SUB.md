@@ -1,0 +1,7 @@
+- **D-DEBUG-SUB — what DEBUG-SUB-1 to DEBUG-SUB-3 are** (kb/Work PB4810). General rule 10 of the 1985 text describes each as `PICTURE S9999
+  SIGN IS LEADING SEPARATE`, and a member the reference does not use is SPACES. **Determination (the text decides, no latitude):** each is a
+  NUMERIC item of that PICTURE, carried as its five-character image (`+0003`, or five spaces; one description and one profile for the three,
+  `ImplicitRegisters.DebugSubRegisters`), so a numeric comparison, COMPUTE and DISPLAY read the occurrence number (DISPLAY shows `+0003`), and a
+  MOVE to an alphanumeric item drops the separate sign (ISO/IEC 1989:2023 §2023:14.9.25.4 GR6): CCVS DB201A moves DEBUG-SUB-1 to `PIC X(5)` and
+  compares `"0005"`, which `"0005 "` satisfies. A member the reference does not use is spaces, which a numeric use reads as invalid data. **Implementor latitude (ISO leaves the content of an invalid numeric sender undefined; precedence follows GnuCOBOL, rule 1):** a MOVE of an image-carried numeric holding such content to an alphanumeric item copies the characters as they stand (the separate sign dropped), as GnuCOBOL's display-to-alphanumeric MOVE does, so an unused DEBUG-SUB-n moved to `PIC X(5)` is five spaces and compares equal to SPACES; the decode-and-reformat of a VALID image is unchanged (`CobolNum.DeSignImage`). Witness: `conformance:cases/_unassigned/pb4810-debug-reach-and-implicit`.
+  Witness: `conformance:cases/_unassigned/pb4810-debug-contents-and-sub-values`.

@@ -9,7 +9,7 @@ the build targets' import closure, scripts/build_targets.json).
 WHERE A TEST LIVES. The tests of a script `<root>/<path>/<name>.<ext>`, for each live-tools root (`live_tools.ROOTS`),
 live in the directory `<root>/selftests/<path>/<name>/`; `subject_of` is the ONE function of that rule (a test file's
 repository path to its subject's), and `selftest_cases.subject`, the refusals below and the static readers
-(`inert_lane._imports`, `scratch_repo._self_test_scopes`) all call it. A test whose subject is no file under a root lives
+(`source_reads._imports`, `scratch_repo._self_test_scopes`) all call it. A test whose subject is no file under a root lives
 in `<root>/selftests/_tree/<name>/`, the one directory whose subject the rule does not look up.
 
 THE REFUSALS (`check` returns each as a line; scripts/self_tests.py turns the first into the run's RED verdict):
@@ -86,7 +86,6 @@ REMAINING: tuple[str, ...] = (
     "scripts/fuzz_batch.py",
     "scripts/fuzz_claude.py",
     "scripts/fuzz_ollama.py",
-    "scripts/gate.py",
     "scripts/gate_growth.py",
     "scripts/gate_slot.py",
     "scripts/git_batch.py",
@@ -101,7 +100,6 @@ REMAINING: tuple[str, ...] = (
     "scripts/hooks/test_shell_location.py",
     "scripts/hooks/test_worktree_rm_allow.py",
     "scripts/hooks/tooling_check.py",
-    "scripts/inert_lane.py",
     "scripts/line_endings.py",
     "scripts/live_tools.py",
     "scripts/models/kept_liveness_model.py",
@@ -112,7 +110,6 @@ REMAINING: tuple[str, ...] = (
     "scripts/orchestrator/coord.py",
     "scripts/orchestrator/enqueue.py",
     "scripts/orchestrator/group_sizes.py",
-    "scripts/orchestrator/land_lane.py",
     "scripts/orchestrator/landing_check.py",
     "scripts/orchestrator/landing_measure.py",
     "scripts/orchestrator/landing_rules.py",

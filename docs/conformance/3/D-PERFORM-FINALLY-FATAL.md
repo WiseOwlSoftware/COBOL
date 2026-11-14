@@ -1,0 +1,1 @@
+- **D-PERFORM-FINALLY-FATAL — Exception-checking PERFORM — FINALLY on the fatal path (§2023:14.9.28.4, a GENUINE STANDARD DEFECT)**: NOTE 8 says "the

@@ -39,7 +39,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///     (<c>RegisteredFormal</c> / <c>RegisteredReturning</c>) and every profile and group atom array they name.</item>
 /// </list>
 /// ⛔ The pin is a FILE nobody edits, <c>src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin</c> (kb/Work PB3610): this class MEASURES the
-/// four numbers and writes them when <c>WISEOWL_COBOL_WRITE_ABI_PIN=1</c> (as <c>WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1</c> writes the
+/// four numbers and writes them when <c>WISEOWL_COBOL_WRITE_ABI_PIN=1</c> (as <c>WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC</c> has its test write the
 /// diagnostics doc), driven by <c>scripts/abi_pin.py</c>. When a hash moves: decide whether the boundary really changed. If
 /// it did, <c>python scripts/abi_pin.py bump --runtime-major</c> (a surface removal or a codec change) or
 /// <c>bump --call-abi</c> (a compiler-side crossing change) raises the number in <c>Directory.Build.props</c> or

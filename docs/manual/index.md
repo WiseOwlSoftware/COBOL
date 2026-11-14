@@ -37,9 +37,10 @@ answered.
 | 4.2.10 | Nonstandard extensions | the conformance statement, section 3.2; [Editions](user-guide/editions/) for `--flag-extensions` |
 | 4.2.12, 4.2.13 | Archaic and obsolete elements | [Editions](user-guide/editions/) |
 
-The conformance statement is `docs/CONFORMANCE.md` in the source repository. The release pipeline will publish it, and
-the generated reference chapters (command line, diagnostics, edition matrix), as part of this manual; until then the
-file in the repository is the statement.
+The conformance statement is `docs/CONFORMANCE.md`: every WiseOwl COBOL package carries it at that path, rendered when
+the package is built from its sources in the source repository's `docs/conformance/` (one file per entry). The release
+pipeline will publish it, with the generated reference chapters (command line, diagnostics, edition matrix), as part of
+this manual.
 
 ## How this manual is built
 
