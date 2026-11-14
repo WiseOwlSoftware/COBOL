@@ -29,4 +29,4 @@ Self-review: one renderer (the pack runs `conformance_doc.py`, the view's own ge
 (`Conformance.keys`); no second population for the arm (PHANTOM's loop). Found on the way and not fixed (outside the
 group): the CLI packs as `cobol`, not the `WiseOwl.COBOL` tool package CLAUDE.md names (no `PackageId`/`PackAsTool`).
 
-LINUX GATE: not part of the per-change gate (PB4327).
+Gate: run 000002-20261114T164614Z at db6e01c2a9, `=== BUILD-LOCAL GATE: GREEN — Conformance 24,966/24,966 ran · Unit 40,766/40,766 ran · RepoDrift 177/177 ran · Characterization 37/37 ran (skipped 0) ===`. LINUX GATE: not part of the per-change gate (PB4327).
