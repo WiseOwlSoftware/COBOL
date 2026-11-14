@@ -1,4 +1,4 @@
-## PB5483: a root fix lands first, and the landing lane re-runs one cause once
+## Entry 3586 — 2026-11-13 20:51 PST — PB5483: a root fix lands first, and the landing lane re-runs one cause once
 
 The owner, 2026-11-13: "we rerun things far too many times, often in CI, rather than chase down and fix the ultimate
 issue. Then we should immediately get the issue fix in the build rather than waiting for all preceeding jobs to encounter
@@ -34,3 +34,4 @@ cause is opened only by the re-queue of a red with at most three failing tests. 
 not treated as a flake: it is never re-run or held, and goes to a finisher. The hold's note is now the one open note
 whose title or Sites line names the test. A hold with no note picks up a note filed later, on the lane's next read
 (or by `land_lane.py name-hold`).
+
