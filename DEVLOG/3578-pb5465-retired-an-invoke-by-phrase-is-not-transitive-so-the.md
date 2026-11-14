@@ -1,4 +1,4 @@
-## PB5465 retired: an INVOKE BY phrase is not transitive, so the reported wrong answer is the conforming answer
+## Entry 3578 — 2026-11-13 19:16 PST — PB5465 retired: an INVOKE BY phrase is not transitive, so the reported wrong answer is the conforming answer
 
 PB5465 reported that `INVOKE C "M" USING BY CONTENT G N` passes N BY REFERENCE, so the method's store into its formal
 changes the caller's N, and called it a silent wrong answer by analogy with CALL's carry-over rule. The re-probe on this
@@ -26,3 +26,4 @@ after; GAP 0 to 0).
 The sibling sweep found every INVOKE argument reader already per-argument (`OfInvokeArgument`, `OoBindInvoke`'s
 pre-screen, `StorageClaimScan`, `VersionConformancePass.VisitInvokeArgument`), and CALL already splits GR5 (Format 1)
 from GR9 (Format 2).
+
