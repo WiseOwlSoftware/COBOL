@@ -1434,7 +1434,7 @@ against the schema's required and permitted keys), `test_next_unit.py` (no meter
 real dispatch-spec template and `check_practices.py`'s same-file rule; the fix lane's whole plan against a golden the pre-campaign planner wrote; the campaign lane's selection, `blocked_by` order, `after:` derivation and waits, and `work.py check`'s topology rules, section 9.1), `test_watch_agent.py` (a transcript with a
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
 against the retired train records, kb/Work PB3028; `landing_rules.py --self-test` keeps the retired train writer out), `landing_check.py
---self-test` (section 4.7's file-set guarantee), `land_lane.py --self-test` (section 4.9: planted survey rows start
+--self-test` (section 4.7's file-set guarantee), the cases of `scripts/selftests/orchestrator/land_lane/` (kb/Work PB5434; section 4.9: planted survey rows start
 in survey order and only once; a planted exit 3 is a STOP, never retried at its head (the enqueue unit's finisher), an exit 12
 (GATE BUSY) only once the worktree's gate lock is free (held until a gate has written its verdict, so a gate still running
 owes none, kb/Work PB3662; the Linux half left the gate, so the lock is exit 12's only source, kb/Work PB4327), and an exit 15 (PREDECESSOR QUEUED) only once no open pull request owns a DEVLOG
@@ -1829,7 +1829,7 @@ change to the subject or to `fixtures.py` re-runs every file of the subject, a c
 file, and the PASS store, the lanes' TOOLING_READS proof and the clock proof apply per file exactly as they apply to a
 standalone test today, because each case file IS a standalone test to the runner. A `# SELF-TEST-PLATFORM:`,
 `# SELF-TEST-NEEDS:`, `# SELF-TEST-CLOCK:` or `# SELF-TEST-POPULATION:` header applies per file, so a Windows-only world
-(land_lane's detached runner) is one file with the header while the rest of the subject still runs on Linux.
+is one file with the header while the rest of the subject still runs on Linux. (As built, kb/Work PB5434: land_lane's real-process world, `test_detached_runner.py`, is a file of its own but carries no header, because the self-test it came from ran on both operating systems, the reused-pid arm reading `/proc` on Linux; a header would have dropped that coverage.)
 
 **The layout rule: `scripts/selftest_layout.py`**, which `self_tests.py` calls on every run before it runs anything, and
 whose refusal is the run's RED verdict (`=== SELF-TESTS: RED — layout: … ===`), so no gate, CI job or hand run can run the
