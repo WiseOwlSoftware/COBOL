@@ -2363,6 +2363,19 @@ the manual's build renders it beside the manual. Oracle: `dotnet pack` of the to
 to the checkout's render (stamp aside), and `conformance_doc.py --check` GREEN. Publishing the package stays the
 owner's (CLAUDE.md, Ownership).
 
+**Step C as built (LANDED, kb/Work PB5431; rule 5: where the step above was wrong).** The target is
+`CobolPackConformanceStatement` in `Directory.Build.props`, joined to NuGet's own extension point
+`TargetsForTfmSpecificContentInPackage`, so it runs only inside a pack and adds the render as a `TfmSpecificPackageFile`
+at `docs/CONFORMANCE.md`; it renders UNSTAMPED (the stamp's remedy names a checkout's command, which a package user has
+not got). Every packable project carries it, as every one carries `LICENSE`, so the library packages hold the statement
+the tool's messages name too. There is no tool package by that name yet: the CLI packs as `cobol` (no `PackageId` or
+`PackAsTool` is set), so the oracle ran on it and on `WiseOwl.Cobol.Runtime`: both hold `docs/CONFORMANCE.md` whose
+sha256 is the checkout view's stamped body digest, and a planted malformed entry file fails the pack with
+`conformance_doc.py`'s refusal (MSB3073). **There is no manual build**: `docs/manual/` is hand-written Markdown that no
+script or workflow builds, so the half of the step that renders the statement beside the manual has nothing to join; the
+manual's index says the packages carry the statement, and whichever change adds the manual's publication renders it
+there through the same `conformance_doc.py --out`.
+
 ### 16.9 `PublicAPI.Unshipped.txt`: one order, one module, no driver
 
 PB3727 gave the public-API baselines a keyed merge driver; the owner's decision of 2026-11-10 (PB5110: "No custom merge
@@ -2431,7 +2444,7 @@ resolves to a real clause of the standard's "Standard classes", so no audit coul
 | 4 | PB5396 | section 16.9: the Unshipped baselines in one order; `public_api_baselines.py`; the PUBLIC API BASELINES audit | `public_api_baselines.py` (new), `landing_check.py`, `gate.py` (`AUDITS`), the CI workflow, `PublicAPI.Unshipped.txt` | the line multiset unchanged; no RS0016/RS0017/RS0025 |
 | 5 | PB5429 | section 16.8 step B1: the document made regular in place (keys, order, bodies, epilogues, 3.7.1) | `docs/CONFORMANCE.md`, `conformance_source.py`, `docchecks/register.py` | the readers' outputs equal step A's; the line-multiset diff only the keys, headings and markers |
 | 6 | PB5430 | section 16.8 step B2: the sources under `docs/conformance/`, the renderer, the view with its stamp and rule (e), the citation arm after its burn-down, every instruction and link moved | `docs/CONFORMANCE.md` (deleted from the tree), `docs/conformance/**`, `conformance_source.py`, `conformance_doc.py`, `rendered_views.py`, `.gitignore`, `audit_code_citations.py`, `cite-resolve-baseline.json`, `RegistryShapeDriftTests.cs`, CLAUDE.md, the skills, templates and issue template that name the file, README and manual links, `DOC_INDEX.md` | the render byte-identical to the normalised monolith; every citation resolves; the readers' outputs unchanged |
-| 7 | PB5431 | section 16.8 step C: the published conformance statement in the package and the manual's build | `Directory.Build.props`, the manual's build | the packed file equals the render |
+| 7 | PB5431 | section 16.8 step C: the published conformance statement in the packages (there is no manual build yet) | `Directory.Build.props` | the packed file equals the render |
 | 8 | PB5432 | gate's cases out; `FakeHost` → `scripts/gate_fake_host.py` (an ordinary module), `perf_baseline.py` re-pointed | `gate.py`, `gate_fake_host.py` (new), `scripts/selftests/gate/`, `arch/perf_baseline.py`, `self_test_arms.py`, `self_tests.py` (`NET_KNOWN`) | the same labels; `--list` the same; `perf_baseline.py`'s self-test GREEN |
 | 9 | PB5433 | section 16.5 step 1: the gate's module split | `gate.py`, the four new modules, every importer section 16.5 names, `self_tests.py` (`entry_point_arms`) | the case files GREEN; `--await` and `--audit-shape` the same |
 | 10 | PB5411 | section 16.5 step 2: the `Gate` class split, its seven edges decided | `gate.py`, `gate_reuse.py`, `gate_generated.py`, `gate_legs.py` (new), the case files that plant the class | the case files GREEN; a gate run's record the same fields and verdict on one recorded tree |

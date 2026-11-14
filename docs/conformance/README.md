@@ -7,7 +7,8 @@ file per entry. The whole statement, `docs/CONFORMANCE.md`, is rendered from the
 
 to write it (stamped on its first line; a hand edit of the rendered file is refused by `rendered_views.py --check`), or
 `python scripts/spec/conformance_doc.py --check` to render it in memory and name any source out of shape. Edit the files
-here, never the rendered whole. The NuGet package and the manual's build carry the rendered statement.
+here, never the rendered whole. Every NuGet package carries the rendered statement at `docs/CONFORMANCE.md`, rendered
+at pack time by the `CobolPackConformanceStatement` target in `Directory.Build.props`.
 
 `head.md` is the title and status before section 1. Each section is a directory named by its number, holding `index.md`
 (frontmatter `heading:`, and `columns:` for a table section; its body is the section's opening prose), an optional

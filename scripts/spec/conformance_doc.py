@@ -6,8 +6,8 @@
     python scripts/spec/conformance_doc.py --check        # render in memory: every source out of shape named, exit 1 on any
 
 The whole is a VIEW: `scripts/rendered_views.py`'s `conformance` row runs `--out` into the gitignored `docs/CONFORMANCE.md`
-and writes the stamp that makes a hand edit of the view visible (its rule (e)); the NuGet package and the manual's build
-render it the same way. The sources are the thing to edit: a determination is `docs/conformance/3/D-<KEY>.md`, a register
+and writes the stamp that makes a hand edit of the view visible (its rule (e)); every NuGet package renders it the same way
+at pack time, unstamped (`Directory.Build.props`, `CobolPackConformanceStatement`; kb/Work PB5431). The sources are the thing to edit: a determination is `docs/conformance/3/D-<KEY>.md`, a register
 row `docs/conformance/7/DOC-A.1-<n>.md`, and `docs/conformance/README.md` says the rest. The reading and the layout are
 `conformance_source.py`'s (`read_sources`, `render_section`), so this script and every reader see one document.
 """
