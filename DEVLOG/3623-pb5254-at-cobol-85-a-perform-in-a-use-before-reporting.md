@@ -1,4 +1,4 @@
-## PB5254: at COBOL-85 a PERFORM in a USE BEFORE REPORTING procedure may not reach a GENERATE, INITIATE or TERMINATE
+## Entry 3623 — 2026-11-14 14:11 PST — PB5254: at COBOL-85 a PERFORM in a USE BEFORE REPORTING procedure may not reach a GENERATE, INITIATE or TERMINATE
 
 §1985:XIII.4.9.3 SR3 has two sentences. The first, that GENERATE, INITIATE and TERMINATE "must not appear in a paragraph within a
 USE BEFORE REPORTING procedure", was always refused (COBOL2378). The second, "A PERFORM statement in a USE BEFORE REPORTING
@@ -21,3 +21,4 @@ a PERFORM of a paragraph with no report statement runs.
 
 **Row.** `1985-SR-XIII.4.9.3-3` PARTIAL to CONFORMS (1985 GAP 172 to 171). `docs/REPORT_WRITER_DESIGN.md` states the 85
 compile-time half beside the run-time rule.
+
