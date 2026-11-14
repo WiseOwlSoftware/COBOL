@@ -425,6 +425,17 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         return -1;
     }
 
+    /// <summary>The citation of the subscript rule in force at the edition being compiled (kb/Work PB5193; the mismatch
+    /// kb/Work PB5352 closed for the file rules): the 2023 text's SR8 (a key) and SR9 (a condition-name) are SR6 and SR7
+    /// of §2002:14.8.34.2 and of §2014:14.9.34.2, and §1985:VI.6.22.3 SR4 states the key rule alone.</summary>
+    private string SubscriptRuleCite(string rule2023) => data.Edition.DialectLevel switch
+    {
+        >= 2023 => $"ISO §2023:14.9.37.3 {rule2023}",
+        >= 2014 => $"ISO §2014:14.9.34.2 {(rule2023 == "SR8" ? "SR6" : "SR7")}",
+        >= 2002 => $"ISO §2002:14.8.34.2 {(rule2023 == "SR8" ? "SR6" : "SR7")}",
+        _ => "ISO §1985:VI.6.22.3 SR4",
+    };
+
     /// <summary>SR8's and SR9's shared subscript requirement, asked of the subscript AS WRITTEN: the position that
     /// selects identifier-1's occurrence shall be the first index-name associated with identifier-1, and "the
     /// index-name subscript shall not be followed by a '+' or a '–'".</summary>
@@ -437,7 +448,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (toks.Count == 0)
             return Key(table, $"'{DataBinder.WrittenText(dref)}' is not subscripted by '{firstIndex}': it \"shall be "
                 + "subscripted by the first index-name associated with identifier-1 along with any subscripts "
-                + $"required to uniquely identify the data item\" (ISO §2023:14.9.37.3 {rule})");
+                + $"required to uniquely identify the data item\" ({SubscriptRuleCite(rule)})");
         // The index-name may be written QUALIFIED (§2023:8.4.2.2.2 Format 3; §2023:8.4.2.2.3 SR6), and must be when another
         // table declares the same spelling (SR1) — so the qualifiers are consumed here and the reference is judged
         // by the DECLARATION it resolves to, never by its spelling alone (kb/Work PB919).
@@ -456,7 +467,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 && !ReferenceEquals(ix.Decl, table.Indexes[0])))
             return Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where "
                 + $"the first index-name associated with '{table.CobolName}' — '{firstIndex}' — is required "
-                + $"(ISO §2023:14.9.37.3 {rule})");
+                + $"({SubscriptRuleCite(rule)})");
         if (toks.Count == next) return true;
         toks = [toks[0], .. toks.Skip(next)];
         bool relative = toks[1].Type is Core.PLUS or Core.MINUS or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT;
@@ -466,9 +477,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (relative && data.Edition.DialectLevel < FirstEditionWithSubscriptSentences) return true;
         return relative
             ? Key(table, $"'{DataBinder.WrittenText(dref)}' writes '{Written(toks)}': \"the index-name subscript shall not be "
-                + $"followed by a '+' or a '–'\" (ISO §2023:14.9.37.3 {rule})")
+                + $"followed by a '+' or a '–'\" ({SubscriptRuleCite(rule)})")
             : Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where the "
-                + $"first index-name '{firstIndex}' alone is required (ISO §2023:14.9.37.3 {rule})");
+                + $"first index-name '{firstIndex}' alone is required ({SubscriptRuleCite(rule)})");
     }
 
     /// <summary>ISO §2023:3.178 asked of a <c>nonNumericLiteral</c>: a figurative constant is never zero-length
