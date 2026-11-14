@@ -148,11 +148,6 @@ public static class PictureAnalyzer
             return PicInfo.Recovery();
         }
 
-        // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99". Every
-        // repetition factor is VALIDATED here (§2023:13.18.40.3 SR6) and the expansion is bounded, so no unchecked
-        // count reaches StringBuilder.Append (kb/Work PB531).
-        if (!TryExpandRepeats(picture, edition, where, out string expanded)) return PicInfo.Recovery();
-
         // The picture's currency symbol — the ONE member of the unit's CURRENCY SIGN SET it uses (§2023:13.18.40.3
         // r24 fixed / r28 floating: a picture carries one currency symbol kind), or the legacy single symbol.
         // Two DIFFERENT set members in one picture are an invalid PICTURE (0808). The mask is canonicalized to
@@ -160,10 +155,19 @@ public static class PictureAnalyzer
         IReadOnlyDictionary<char, CurrencyDefinition> currencySet = currencies
             ?? new Dictionary<char, CurrencyDefinition>
             { [char.ToUpperInvariant(currency)] = new(currency.ToString(), LiteralClass.Alphanumeric) };
+
+        // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99". Every
+        // repetition factor is VALIDATED here (§2023:13.18.40.3 SR6; at COBOL-85 also the symbol it follows,
+        // §1985:VI.5.9.4 GR7) and the expansion is bounded, so no unchecked count reaches StringBuilder.Append
+        // (kb/Work PB531). The expansion is case-folded by the edition's rule (FoldPictureCase), so the currency
+        // scan below compares each symbol as it stands: at COBOL-85 a lowercase letter that is no PICTURE symbol
+        // is not the currency symbol (§1985:VI.5.9.3 SR3; kb/Work PB5174).
+        if (!TryExpandRepeats(picture, edition, where, currencySet.ContainsKey, decimalPointIsComma, out string expanded))
+            return PicInfo.Recovery();
+
         char cs = '\0';
-        foreach (char raw in expanded)
+        foreach (char up in expanded)
         {
-            char up = char.ToUpperInvariant(raw);
             if (!currencySet.ContainsKey(up)) continue;
             if (cs == '\0') { cs = up; continue; }
             if (cs == up) continue;
@@ -179,7 +183,7 @@ public static class PictureAnalyzer
         LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused ? null : currencySet[cs].LiteralClass;
         if (cs == '\0') cs = '$';   // no currency symbol in this picture: the whitelist/editing checks see the default
         // GR14: the first occurrence contributes the whole string; the mask below is canonical ('$').
-        int currencyExtra = expanded.Any(c => char.ToUpperInvariant(c) == cs) ? currencyString.Length - 1 : 0;
+        int currencyExtra = expanded.Contains(cs) ? currencyString.Length - 1 : 0;
         clause = PictureClauseIdentity.Of(expanded, cs, currencyString, decimalPointIsComma);
 
         // ── PICTURE format 2 (the LOCALE phrase, §2023:13.18.40.2; kb/Work PB64 T6): its own analysis — the format-1
@@ -467,14 +471,23 @@ public static class PictureAnalyzer
         // shape. The usage pair is asked of UsageFamilies.IsDisplayOrNational, the predicate SR2's own screen
         // (DataBinder.BlankWhenZeroViolation) asks, so the screen and this promotion cannot name different usages
         // (BlankWhenZeroUsagePairDriftTests).
-        if (anyEdit || (blankWhenZero && digits > 0 && !signed && UsageFamilies.IsDisplayOrNational(usage)))
+        // COBOL-85 has no bar on S beside the clause, and its GR2 is about the PICTURE alone: "When the BLANK WHEN ZERO clause
+        // is used for an item whose PICTURE is numeric, the category of the item is considered to be numeric edited"
+        // (§1985:VI.5.4.4 GR2), so a signed numeric picture is promoted there too (kb/Work PB5191). The S of such a picture
+        // is no editing symbol ("The 'S' is not counted in determining the size", §1985:VI.5.9.4 GR8), and a numeric edited
+        // item holds no operational sign, so it leaves the edit mask: PIC S9(4) BLANK WHEN ZERO edits as 9999, zero as
+        // four spaces. (Validate refuses S beside any editing symbol, so only this arm brings an S here.)
+        if (anyEdit || (blankWhenZero && digits > 0 && (!signed || edition.DialectLevel < 2002) && UsageFamilies.IsDisplayOrNational(usage)))
+        {
+            string mask = signed ? expanded.Replace("S", "", StringComparison.Ordinal) : expanded;
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§2023:13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
-                Length: CharacterPositions(expanded, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: signed)
-            { SignKind = signKind, EditMask = CanonicalCurrencyMask(expanded, cs), EditingRules = editRules, DigitPositions = digitPos,
+                Length: CharacterPositions(mask, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: false)
+            { SignKind = PicInfo.SignKindFor(usage, false, sign), EditMask = CanonicalCurrencyMask(mask, cs), EditingRules = editRules, DigitPositions = digitPos,
               CurrencyString = currencyString == "$" ? null : currencyString, CurrencyClass = currencyClass };
+        }
 
         // ⛔ GR11's ANTECEDENT, at the arm that answers it (kb/Work PB535). This arm is the FALL-THROUGH — it is
         // reached by exhaustion, by everything that is not national, boolean, alphabetic/alphanumeric or edited —
@@ -832,11 +845,11 @@ public static class PictureAnalyzer
     /// </summary>
     /// <returns><see langword="false"/> when a factor violates SR6 or the expansion would exceed
     /// <see cref="MaxCharacterPositions"/>; the diagnostic has been reported and the caller recovers.</returns>
-    internal static bool TryExpandRepeats(string picture, EditionContext edition, string where,
-        out string expanded)
+    internal static bool TryExpandRepeats(string picture, EditionContext edition, string where, Func<char, bool> isCurrencySymbol,
+        bool decimalPointIsComma, out string expanded)
     {
         var sb = new System.Text.StringBuilder();
-        string p = picture.ToUpperInvariant();
+        string p = FoldPictureCase(picture, edition.DialectLevel);
         expanded = "";
         for (int i = 0; i < p.Length; i++)
         {
@@ -853,6 +866,14 @@ public static class PictureAnalyzer
                         + "an unsigned nonzero integer (ISO §2023:13.18.40.3 SR6)");
                     return false;
                 }
+                if (!RepeatableSymbol(c, edition.DialectLevel, isCurrencySymbol, decimalPointIsComma))
+                {
+                    edition.Error(DiagnosticCatalog.PictureRepetitionSymbol85, $"{where}: the repetition factor '({factor})' "
+                        + $"follows the symbol '{c}' in PICTURE {picture}; at COBOL-85 an unsigned nonzero integer enclosed in "
+                        + "parentheses may follow only the symbols A , X 9 P Z * B / 0 + - or the currency symbol "
+                        + "(ISO §1985:VI.5.9.4 GR7)");
+                    return false;
+                }
                 if ((long)sb.Length + n > MaxCharacterPositions)
                 {
                     ReportTooLarge(edition, where, picture, (long)sb.Length + n);
@@ -867,6 +888,44 @@ public static class PictureAnalyzer
         }
         expanded = sb.ToString();
         return true;
+    }
+
+    /// <summary>Whether a parenthesized repetition factor may follow the symbol <paramref name="symbol"/> (case already folded) at
+    /// <paramref name="dialectLevel"/> (kb/Work PB5118). COBOL-2002 and later give the factor to "the symbol that immediately
+    /// precedes the left parenthesis", whatever it is (§2002:13.16.38.2 SR7, §2023:13.18.40.3 SR6). COBOL-85 lists the symbols:
+    /// "An unsigned nonzero integer which is enclosed in parentheses following the symbols 'A', ',', 'X', '9', 'P', 'Z', '*',
+    /// 'B', '/', '0', '+', '-', or the currency symbol indicates the number of consecutive occurrences of the symbol"
+    /// (§1985:VI.5.9.4 GR7), so S, V, the decimal point, CR and DB take none. The comma of that list is the comma's role, the
+    /// insertion one: under DECIMAL-POINT IS COMMA "the functions of comma and period are exchanged in the character-string
+    /// of the PICTURE clause" (§1985:VI.4.5.4 GR12), so it is the period there
+    /// (<see cref="PictureComposition.GroupingSeparator"/>).
+    /// <para>So the 1985 symbols the list leaves out are S, V, the decimal point and the letters of CR and DB (a factor follows
+    /// the symbol's last letter, R or B; DB(n) repeats a B, whose string the precedence walk then refuses). A character that
+    /// is no COBOL-85 PICTURE symbol at all (N, 1, E, a lowercase letter SR3 does not fold) is not this rule's: its own gate
+    /// or the SR2 whitelist refuses it, by name (the national and boolean introduction gates, COBOL0900), and a currency
+    /// symbol is in the list whatever letter it is (kb/Work PB5173: E and N may be the 1985 currency symbol).</para></summary>
+    private static bool RepeatableSymbol(char symbol, int dialectLevel, Func<char, bool> isCurrencySymbol, bool decimalPointIsComma) =>
+        dialectLevel >= 2002 || isCurrencySymbol(symbol)
+        || !(symbol is 'S' or 'V' or 'C' or 'R' or 'D' || symbol == PictureComposition.DecimalSeparator(decimalPointIsComma));
+
+    /// <summary>The character-string with the case equivalence of <paramref name="dialectLevel"/> applied, the one fold every
+    /// symbol is read through (kb/Work PB5174). From COBOL-2002 every letter of a character-string is its uppercase letter
+    /// (§2023:8.1.3.2 GR3 for the symbols; a currency symbol is matched in the folded string). COBOL-85 folds only the
+    /// letters of its symbols: "The lowercase letters corresponding to the uppercase letters representing the PICTURE
+    /// symbols A, B, P, S, V, X, Z, CR, and DB are equivalent to their uppercase representations in a PICTURE
+    /// character-string. All other lowercase letters are not equivalent to their corresponding uppercase representations."
+    /// (§1985:VI.5.9.3 SR3) — so under CURRENCY SIGN IS "W" the letter w is no symbol, and the SR2 whitelist refuses it.
+    /// SR3 is about the letters of the COBOL character set; a character outside it (a currency symbol such as é) keeps the
+    /// implementor's equivalence, the invariant uppercase mapping at every edition (docs/CONFORMANCE.md DOC-A.1-43).</summary>
+    internal static string FoldPictureCase(string picture, int dialectLevel)
+    {
+        if (dialectLevel >= 2002) return picture.ToUpperInvariant();
+        return string.Create(picture.Length, picture, static (span, source) =>
+        {
+            for (int i = 0; i < source.Length; i++)
+                span[i] = source[i] is (< 'a' or > 'z') or 'a' or 'b' or 'p' or 's' or 'v' or 'x' or 'z' or 'c' or 'r' or 'd'
+                    ? char.ToUpperInvariant(source[i]) : source[i];
+        });
     }
 
     /// <summary>SR6's integer, read ONCE: the digits of the factor with no sign, no space and no other

@@ -291,7 +291,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <para>An AMBIGUOUS name resolves to nothing here, exactly as an unknown one does: a prescan has no use
     /// for "some procedure with this spelling", and the statement's own operand bind reports the ambiguity and
     /// fails the compile either way (kb/Work PB466).</para></summary>
-    public PcRange? ResolveProcedureQuiet(Core.ProcedureNameContext pn) => Resolve(pn).Range;
+    public ResolvedProcedure? ResolveProcedureQuiet(Core.ProcedureNameContext pn) => Resolve(pn).Procedure;
 
     /// <summary>⛔ THE ONE §2023:8.4.2.2 procedure-name resolution algorithm — <b>one body, not one per scope</b>.
     /// It runs over whichever pair of name maps the reference stands in: a METHOD body's own maps when one is

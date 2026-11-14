@@ -553,6 +553,35 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         return true;
     }
 
+    /// <summary>§1985:XIII.3.20.3 SR5, its USE half (kb/Work PB5424): "In control footing, page heading, page footing, and
+    /// report footing report groups, SOURCE clauses and associated USE statements must not reference any of the following"
+    /// — a group containing a control data item, an item subordinate to one, a redefinition or renaming of part of one —
+    /// and in page heading and page footing groups the control data-names themselves. Asked by
+    /// <c>StatementBinder.BindStatement</c> of every statement bound in a USE BEFORE REPORTING procedure, over the references
+    /// the statement WRITES itself (<see cref="BoundReferences.Of"/>: a nested statement is asked at its own position), through
+    /// the one relation the SOURCE half asks (<see cref="ReportSectionBinder.ControlDataReferenceOf"/>). The procedure is
+    /// the declarative section the USE statement heads; a procedure it PERFORMs is not asked, as the segment rule of a
+    /// PERFORM range asks only the procedures it names (docs/CONFORMANCE.md section 3.8). COBOL-2002 and later carry no
+    /// such rule.</summary>
+    /// <returns>True HAVING REPORTED a violation (one per statement).</returns>
+    public bool CheckControlDataReferences(BoundStatement core)
+    {
+        if (ctx.Edition.DialectLevel >= 2002 || ctx.Enclosing.Declarative is not { ReportGroup: { } group } use) return false;
+        var report = ctx.Data.State.Reports.Visible.FirstOrDefault(r => r.Groups.Contains(group));
+        if (report is null) return false;
+        foreach (var place in BoundReferences.Of(core).Places)
+            if (place.Item is { } item && ReportSectionBinder.ControlDataReferenceOf(report, group.Kind, item) is { } hit)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.ReportSourceControlData, "this statement of USE BEFORE REPORTING declarative "
+                    + $"section '{use.SectionName}', which names the "
+                    + $"{ReportSectionBinder.ReportGroupTypeWords(group.Kind).ToLowerInvariant()} report group '{group.Name}' of "
+                    + $"RD '{report.Name}', references '{item.CobolName}', which {hit.Relation} '{hit.Control.Display}'; "
+                    + ReportSectionBinder.ControlDataRuleWords(group.Kind, "USE statements"));
+                return true;
+            }
+        return false;
+    }
+
     /// <summary>Is one of the two items the other or an ancestor of it — the hierarchy in which a store into one
     /// alters the other's value?</summary>
     private static bool SameStorageLine(DataItem a, DataItem b)
