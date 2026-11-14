@@ -1,0 +1,3 @@
+---
+cells: ["DOC-A.1-2", "**ACCEPT statement — device used when FROM is unspecified**, §2023:14.9.1 GR5, required + documented", "The implementor default ACCEPT device is the process **standard input** stream. The input-capable SPECIAL-NAMES device-names (§2023:12.3.7 Format 4, `device-name-1 IS mnemonic-name-3`) are **CONSOLE** and **SYSIN**, both naming standard input; a mnemonic bound to an output-only device fails §2023:14.9.1.3 SR2 (`COBOL0817`). The device-names and their capabilities are ONE table, `ImplementorNames` (item **189**). Implemented in `AcceptDisplayBinder.MnemonicDevice` + `AcceptDisplayEmitter.EmitAcceptDevice`.", "`conformance-test:AcceptDifferentialTests.Device_ShortLine_StoresLeftAlignedSpaceFilled`"]
+---

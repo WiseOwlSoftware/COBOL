@@ -268,12 +268,12 @@ def _profile(root: Path) -> list[str]:
 
 
 def _shape(root: Path) -> list[str]:
-    return conformance_source.check(conformance_source.load(root))
+    return conformance_source.problems(root)
 
 
 CHECKS = (
-    Check("CONFORMANCE SHAPE (every entry keyed and in order, every heading listed, no text outside an entry, a row body "
-          "or the epilogue; conformance_source.py --check)", _shape),
+    Check("CONFORMANCE SOURCES (docs/conformance/ reads: every file one keyed entry named by its key, and the rendered whole "
+          "regular; conformance_doc.py --check)", _shape),
     Check("ANNEX A.3 REGISTER (§2 covers every item, cites resolved clauses, names emitted codes)", _a3),
     Check("README STATUS against §2/§5", _readme),
     Check("CONFORMANCE SUITE PROFILE against §2/§5", _profile),

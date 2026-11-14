@@ -23,6 +23,7 @@ test's import closure (kb/Work PB4992) and read the registers' EXTRACT (`tests/v
 """
 from __future__ import annotations
 
+import json
 import pathlib
 import re
 import sys
@@ -30,13 +31,20 @@ from typing import NamedTuple
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parent))  # scripts/spec, for inventory_schema
 from inventory_schema import DerivationRow  # noqa: E402  (the §8 row's shape, which the registers' extract shares)
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
-from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-#: THE document's path, relative to a repository root. The only place a script names it.
+#: THE document's SOURCES, relative to a repository root (step B2, kb/Work PB5430): one directory per section, named by its
+#: number, each holding `index.md` (frontmatter `heading:`, and `columns:` for a table; its body the section's preamble), an
+#: optional `epilogue.md`, and one file per entry named by the entry's key; `head.md` is the text before section 1.
+SOURCE_REL = "docs/conformance"
+#: The document's RENDERED VIEW (gitignored; `rendered_views.py`'s `conformance` row renders it with `conformance_doc.py`):
+#: what a citation, a diagnostic and a user name. Nothing reads the view; every reader reads the sources through `load`.
 PATH_REL = "docs/CONFORMANCE.md"
-PATH = REPO / "docs" / "CONFORMANCE.md"
+HEAD_FILE = "head.md"
+INDEX_FILE = "index.md"
+EPILOGUE_FILE = "epilogue.md"
+#: The directory's page on GitHub (hand-written: what the directory is and how to render the whole); no section's source.
+README_FILE = "README.md"
 
 #: The section numbers the readers address (the document's own, `## <n>. …`).
 A3_SECTION = "2"
@@ -540,23 +548,154 @@ def parse(text: str) -> Conformance:
     return Conformance(text)
 
 
+# ── the sources: one directory per section, one file per entry (step B2, kb/Work PB5430) ───────────────────────────
+
+def frontmatter(text: str, where: str) -> tuple[dict, str]:
+    """A source file's frontmatter and body. The frontmatter is the lines between a first line `---` and the next `---`,
+    each `<name>: <JSON value>` (JSON, so a heading's quotes and a cell's pipes need no escaping of their own, and every
+    such value is YAML too); a malformed line is a ValueError naming the file, never a field quietly dropped."""
+    lines = text.split("\n")
+    if not lines or lines[0] != "---" or "---" not in lines[1:]:
+        raise ValueError(f"{where}: no frontmatter (a first line `---`, `<name>: <JSON>` lines, a closing `---`)")
+    end = lines.index("---", 1)
+    fields: dict = {}
+    for line in lines[1:end]:
+        name, sep, value = line.partition(": ")
+        if not sep or re.fullmatch(r"[a-z]+", name) is None:
+            raise ValueError(f"{where}: frontmatter line {line[:60]!r} is not `<name>: <JSON value>`")
+        try:
+            fields[name] = json.loads(value)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"{where}: frontmatter line {line[:60]!r} holds no JSON value ({e.msg})") from None
+    return fields, "\n".join(lines[end + 1:]).strip("\n")
+
+
+def with_frontmatter(fields: dict, body: str) -> str:
+    """A source file's text: the frontmatter of `fields` (one JSON value a line), then the body, then one newline."""
+    head = "".join(f"{name}: {json.dumps(value, ensure_ascii=False)}\n" for name, value in fields.items())
+    return f"---\n{head}---\n" + (body + "\n" if body else "")
+
+
+def file_name(key: str) -> str:
+    """The name (without `.md`) of the file an entry keyed `key` is stored in: the key itself, its en dash (an A.3 item
+    range, `28–30`) written as a hyphen so every tracked path stays ASCII."""
+    return key.replace("–", "-")
+
+
+def _read(path: pathlib.Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _heading_number(heading: str) -> str | None:
+    found = HEADING.match(heading.strip())
+    return None if found is None else found.group(2)
+
+
+def _section_from(directory: pathlib.Path, rel: str, findings: list[str]) -> str | None:
+    """One section rendered from its directory (`rel` its repository-relative name), each file out of shape a finding;
+    None when the section cannot be rendered at all (no readable index)."""
+    number = directory.name
+    kind = KINDS.get(number, PROSE)
+    try:
+        fields, preamble = frontmatter(_read(directory / INDEX_FILE), f"{rel}/{INDEX_FILE}")
+    except (OSError, ValueError) as e:
+        findings.append(f"{rel}: its {INDEX_FILE} does not read: {e}")
+        return None
+    heading = fields.get("heading")
+    if not isinstance(heading, str) or _heading_number(heading) != number:
+        findings.append(f"{rel}/{INDEX_FILE}: its heading {heading!r} does not name §{number}, the directory's number")
+        return None
+    columns = fields.get("columns", [])
+    if (kind == TABLE) != bool(columns):
+        findings.append(f"{rel}/{INDEX_FILE}: `columns:` belongs to a table section's index, and §{number} is a {kind} section")
+    epilogue_path = directory / EPILOGUE_FILE
+    epilogue = _read(epilogue_path).strip("\n") if epilogue_path.is_file() else None
+    entries: list[tuple[tuple, Entry]] = []
+    bodies: list[Entry] = []
+    for path in sorted(directory.iterdir(), key=lambda p: p.name):
+        if path.name in (INDEX_FILE, EPILOGUE_FILE):
+            continue
+        where = f"{rel}/{path.name}"
+        if path.suffix != ".md" or not path.is_file():
+            findings.append(f"{where}: not an entry file (`<key>.md`)")
+            continue
+        key = path.stem
+        if kind == PROSE:
+            findings.append(f"{where}: §{number} is a prose section, whose whole text is its {INDEX_FILE}")
+            continue
+        if kind == BULLETS:
+            body = _read(path).strip("\n")
+            found = _BULLET.match(body)
+            if found is None or found.group(1) != key:
+                findings.append(f"{where}: the determination does not open `- **{key}` (a key is its file's name)")
+            entries.append((natural_key(key), Entry(key, body, 0)))
+            continue
+        try:
+            meta, body = frontmatter(_read(path), where)
+        except ValueError as e:
+            findings.append(str(e))
+            continue
+        if kind == TABLE:
+            row = meta.get("cells")
+            if not isinstance(row, list) or not row or not all(isinstance(c, str) for c in row):
+                findings.append(f"{where}: `cells:` is not the row's list of cells")
+                continue
+            if len(row) != len(columns):
+                findings.append(f"{where}: {len(row)} cells, and the table has {len(columns)} columns")
+            row_key = row[0].strip("`")
+            if file_name(row_key) != key:
+                findings.append(f"{where}: the row's key `{row[0]}` is not its file's name ({file_name(row_key)}.md)")
+            entries.append((natural_key(row_key), Entry(row_key, row_line(row), 0)))
+            if body:
+                bodies.append(Entry(row_key, body, 0))
+        else:
+            order = meta.get("order")
+            if not isinstance(order, int) or isinstance(order, bool):
+                findings.append(f"{where}: `order:` is not the block's place in the section (an integer)")
+                continue
+            entries.append(((order,), Entry(key, body, 0)))
+    if kind == BLOCKS and len({o for o, _ in entries}) != len(entries):
+        findings.append(f"{rel}: two blocks share an `order:`")
+    head = row_line(columns) + "\n|" + "---|" * len(columns) if kind == TABLE else ""
+    shape = Shape(kind, preamble, head, [e for _, e in sorted(entries, key=lambda oe: oe[0])],
+                  sorted(bodies, key=lambda b: natural_key(b.key)), epilogue, [])
+    return render_section(heading, shape)
+
+
+def read_sources(root: pathlib.Path = REPO) -> tuple[str, list[str]]:
+    """The whole document rendered from its sources at `root` (`render_section` per section, in section-number order),
+    and a finding for every source out of shape: a missing or malformed frontmatter, a key that is not its file's name, a
+    row whose cells are not its columns, a stray file or directory."""
+    base = root / SOURCE_REL
+    if not (base / HEAD_FILE).is_file():
+        return "", [f"{SOURCE_REL}: no {HEAD_FILE} (the document's title and status, before section 1)"]
+    findings: list[str] = []
+    parts = [_read(base / HEAD_FILE).strip("\n")]
+    for path in sorted(base.iterdir(), key=lambda p: natural_key(p.name)):
+        rel = f"{SOURCE_REL}/{path.name}"
+        if not path.is_dir():
+            if path.name not in (HEAD_FILE, README_FILE):
+                findings.append(f"{rel}: a file outside every section")
+        elif re.fullmatch(r"[1-9][0-9]*(?:\.[1-9][0-9]*)*", path.name) is None:
+            findings.append(f"{rel}: a directory that is no section number")
+        elif (rendered := _section_from(path, rel, findings)) is not None:
+            parts.append(rendered)
+    return "\n\n".join(parts) + "\n", findings
+
+
+def problems(root: pathlib.Path = REPO) -> list[str]:
+    """Every way the document's sources at `root` are out of shape: the source files' own, then the rendered whole's
+    (`check`). [] when the sources render a regular document; the DOC AUDITS and `conformance_doc.py --check` ask it."""
+    text, findings = read_sources(root)
+    return findings + (check(parse(text)) if text else [])
+
+
 def load(root: pathlib.Path = REPO) -> Conformance:
-    """The conformance statement of the repository at `root`, read once (UTF-8, universal newlines)."""
-    return Conformance((root / PATH_REL).read_text(encoding="utf-8"))
-
-
-def main(argv: list[str]) -> int:
-    """`--check`: the document's shape (kb/Work PB5429), every finding printed, exit 1 on any."""
-    if argv != ["--check"]:
-        print("usage: conformance_source.py --check", file=sys.stderr)
-        return 2
-    findings = check(load())
-    for finding in findings:
-        print(f"  ✗ {finding}")
-    print(f"{PATH_REL} shape: {'RED, ' + str(len(findings)) + ' finding(s)' if findings else 'GREEN'}")
-    return 1 if findings else 0
-
-
-if __name__ == "__main__":
-    ensure_utf8()
-    sys.exit(main(sys.argv[1:]))
+    """The conformance statement of the repository at `root`, rendered from its sources once. A source out of shape is a
+    SystemExit naming it: no reader works from a document it could only partly read."""
+    text, findings = read_sources(root)
+    if findings:
+        raise SystemExit(f"⛔ {SOURCE_REL} does not read: " + "; ".join(findings[:5])
+                         + (f" (+{len(findings) - 5} more)" if len(findings) > 5 else "")
+                         + " — python scripts/spec/conformance_doc.py --check names them all")
+    return Conformance(text)

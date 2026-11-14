@@ -1,0 +1,3 @@
+---
+cells: ["DRV-GR-7.3.18.3-3", "unpopulatable-antecedent", "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)", "**§2023:7.3.18.3 GR3**: *\"Each LISTING directive shall be listed, even if the listing is being suppressed by a LISTING directive.\"* (`cite.py --check 7.3.18.3` → OK, rule 3). Like GR2, this sits under GR1's *\"Otherwise\"* arm (`--check 7.3.18.3` → OK 1)), whose antecedent, a compiler that produces a source listing, is false (§7's A.1 item 117, re-measured on the pinned build). \"Shall be listed\" has no listing to appear in. ⚠ CONTINGENT on §7's A.1 item 117.", "owner: 2026-10-08", "—"]
+---

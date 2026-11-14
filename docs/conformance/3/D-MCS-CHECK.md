@@ -1,0 +1,4 @@
+- **D-MCS-CHECK — unsuccessful execution when checking is off; what EC-MCS-IMP covers** (kb/Work PB4744; DESIGN-message-control.md §0 Q4, Q8). §2023:14.6.13.1.1 NOTE 3 says an exception condition is set to exist only if checking for it is enabled, and otherwise "the results of
+  the operation are undefined". Whether a SEND or RECEIVE is successful never depends on checking: the ON EXCEPTION or NOT ON EXCEPTION phrase is chosen by the outcome, and the condition is set to exist (for EXCEPTION-STATUS, a declarative or a WHEN phrase)
+  only when its checking is enabled. A conditional phrase takes the condition ahead of a WHEN phrase and a declarative (§2023:14.6.13.1.3 1), §2023:14.6.13.1.4 1)). EC-MCS-IMP covers every failure of the MCS itself (an unusable socket directory, a socket error that is not a partner's
+  end) and is fatal, as every provided level-2 -IMP name is (A.1 item 100).

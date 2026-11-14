@@ -199,7 +199,7 @@ STAMP_PATHS = (
     construct_store.STORE_REL,
     "conformance-suite",
     "kb/Work",
-    conformance_source.PATH_REL,
+    conformance_source.SOURCE_REL,
     "docs/REARCHITECTURE_PLAN.md",
     "docs/VERSION_CHANGE_REFERENCE.md",
     ".agent-fleet.json",

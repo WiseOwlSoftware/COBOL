@@ -147,6 +147,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation_corpus  # noqa: E402
+import conformance_source  # noqa: E402  (the conformance statement's sources: their section directories)
 import cite as cite_mod  # noqa: E402  — THE one reader of the standard's printed rule paths (CLAUDE.md rule 1)
 import citation  # noqa: E402  — THE one citation format and its parser (kb/Work PB4887)
 import construct_store  # noqa: E402  (the construct catalogue, one file per construct, kb/Work PB5110)
@@ -417,6 +418,13 @@ def own_sections(lines: list[str]) -> set[str]:
     return {m.group(1) for line in lines if (m := OWN_HEADING.match(line))}
 
 
+@functools.lru_cache(maxsize=None)
+def conformance_sections() -> frozenset[str]:
+    """The conformance statement's section numbers: the directories its sources stand in (`docs/conformance/<n>/`)."""
+    base = REPO / conformance_source.SOURCE_REL
+    return frozenset(p.name for p in base.iterdir() if p.is_dir()) if base.is_dir() else frozenset()
+
+
 def phantom_scan(universe: set[str] | None):
     """PHANTOM, CITATION and BARE over EVERY file that carries a citation, source and prose alike — they need no
     context, so they have no false-positive problem outside code and there is no reason to leave the design docs
@@ -448,8 +456,12 @@ def file_findings(rel: str, lines: list[str], universe: set[str]) -> list[tuple[
     # way a checked-in list of exempt SITES would.
     if MARKER in "\n".join(lines[:40]):
         return []
-    # A design doc numbers its OWN sections and then points at them; those are not citations of anything.
+    # A design doc numbers its OWN sections and then points at them; those are not citations of anything. A source file
+    # of the conformance statement is one entry of a document cut into files (kb/Work PB5430): its own sections are the
+    # whole statement's, one directory each, never only the headings the file itself happens to hold.
     mine = own_sections(lines) if rel.endswith(".md") else set()
+    if rel.startswith(conformance_source.SOURCE_REL + "/"):
+        mine |= conformance_sections()
     out = []
     for i, line in enumerate(lines, 1):
         # A line carrying `citation.EXAMPLE_MARKER` shows the refused form on purpose (kb/Work PB4911).

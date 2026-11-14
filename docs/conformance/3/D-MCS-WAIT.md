@@ -1,0 +1,5 @@
+- **D-MCS-WAIT — CONTINUE AFTER of a RECEIVE** (kb/Work PB4744; DESIGN-message-control.md §0 Q5). §2023:14.9.31.4 GR2 completes the RECEIVE "when the message or an exception is returned from the
+  MCS or when the CONTINUE parameters are completed", content of identifier-1 then all spaces and the RECEIVE successful, and gives MESSAGE RECEIVED no other meaning. `CONTINUE AFTER MESSAGE RECEIVED` polls: a waiting
+  message is received, otherwise identifier-1 is spaces, data-name-2 zero and the statement successful. `CONTINUE AFTER arithmetic-expression-1 SECONDS` waits at most that long, the interval evaluated by the rule of
+  the CONTINUE statement (`CobolTiming.Interval`: whole seconds, at most `CobolTiming.MaxSeconds`, §2023:14.9.9.4 GR1 "the implementor shall specify the maximum meaningful value"); a negative value is zero, a poll,
+  and EC-CONTINUE-LESS-THAN-ZERO is set to exist when its checking is enabled, nonfatal, the RECEIVE successful. The deadline runs on the host's time source, never the run unit's `Clock`, which `WISEOWL_COBOL_CLOCK` may freeze. A SEND has no time limit.
