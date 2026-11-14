@@ -76,9 +76,13 @@ internal static class AreaPlacementPass
         if (items.Heads.TryGetValue(token.TokenIndex, out string? item))
         {
             // §1985:IV.7.3.3: an area-A item "starts in area A of any line": where it starts, not whether it begins the line.
-            if (placement is not (AreaPlacement.BeginsLineInAreaA or AreaPlacement.WithinLineInAreaA))
+            // §1985:IV.7.5: DECLARATIVES and END DECLARATIVES "must each appear on a line by itself", so they must begin it.
+            bool startsInAreaA = placement == AreaPlacement.BeginsLineInAreaA
+                || (placement == AreaPlacement.WithinLineInAreaA && !items.LineAlone.Contains(token.TokenIndex));
+            if (!startsInAreaA)
                 ConstructRegistry.Check(edition.Edition, edition, Constructs.FixedFormAreaAItemOutsideAreaA2002,
-                    $"{item} {(placement == AreaPlacement.WithinLineInAreaB ? "follows other text of its line, in area B" : "begins in area B")}");
+                    $"{item} {(placement == AreaPlacement.WithinLineInAreaB ? "follows other text of its line, in area B"
+                        : placement == AreaPlacement.WithinLineInAreaA ? "must begin its line (it follows other text of it)" : "begins in area B")}");
         }
         else if (placement == AreaPlacement.BeginsLineInAreaA && !items.EitherArea.Contains(token.TokenIndex))
             ConstructRegistry.Check(edition.Edition, edition, Constructs.FixedFormTextInAreaA2002,
@@ -98,6 +102,9 @@ internal static class AreaPlacementPass
     {
         /// <summary>Token index → the area-A item the token heads.</summary>
         public Dictionary<int, string> Heads { get; } = [];
+
+        /// <summary>The heads that must begin their line (DECLARATIVES, END DECLARATIVES: §1985:IV.7.5).</summary>
+        public HashSet<int> LineAlone { get; } = [];
 
         /// <summary>The level-numbers other than 01 and 77, which COBOL-85 lets begin in area A or area B.</summary>
         public HashSet<int> EitherArea { get; } = [];
@@ -144,7 +151,10 @@ internal static class AreaPlacementPass
                 if (token.Type == Core.DIVISION && i > 0 && node.GetChild(i - 1) is ITerminalNode { Symbol: var name })
                     Head(name, $"the division header {name.Text} DIVISION");
                 else if (token.Type == Core.END && nextToken?.Type == Core.DECLARATIVES)
+                {
                     Head(token, "END DECLARATIVES");
+                    LineAlone.Add(token.TokenIndex);
+                }
                 else if (token.Type == Core.END
                     && ((nextToken is not null && EndMarkerWords.Contains(nextToken.Type)) || next is Core.MethodKeywordContext))
                     Head(token, $"the end marker END {next!.GetText()}");
@@ -185,6 +195,7 @@ internal static class AreaPlacementPass
         public override object? VisitDeclarativePart(Core.DeclarativePartContext ctx)
         {
             Head(ctx.Start, "DECLARATIVES");
+            LineAlone.Add(ctx.Start.TokenIndex);
             return VisitChildren(ctx);
         }
 
