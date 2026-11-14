@@ -51,6 +51,11 @@ public sealed partial class FileControlBinder
             // format specifies literal-1 and is read before the word is tried as data-name-1 (kb/Work PB5420).
             if (SymbolicCharacter(dref, dref.GetText(), _host.LiteralEnv) is { } symbolic)
                 return new PaddingCharacterSpec { Literal = symbolic, At = Edition.Cursor };
+            if (_host.LiteralEnv.IsSymbolicCharacter(dref.GetText()))   // a national symbolic-character: literal-1, but not alphanumeric
+            {
+                ReportPaddingLiteral(dref.GetText(), "");
+                return new PaddingCharacterSpec { Literal = dref.GetText(), At = Edition.Cursor };
+            }
             var (name, quals) = _host.ClauseDataName(dref, "PADDING CHARACTER");
             return new PaddingCharacterSpec { DataName = name, Qualifiers = quals, At = Edition.Cursor };
         }
@@ -63,7 +68,7 @@ public sealed partial class FileControlBinder
             return new PaddingCharacterSpec { Literal = lit.GetText(), At = Edition.Cursor };
         }
         string? value = OneCharacter(lit, _host.LiteralEnv);
-        if (value is null) ReportPaddingLiteral(lit.GetText(), "");
+        if (value is null) ReportPaddingLiteral(ConcatFolder.Spelling(lit), "");
         return new PaddingCharacterSpec { Literal = value ?? lit.GetText(), At = Edition.Cursor };
     }
 
@@ -83,6 +88,9 @@ public sealed partial class FileControlBinder
         {
             // Format 6, ALL literal-1 or ALL constant-name (§2023:8.3.3.6.3 SR2), is read by its one reader and stands for one
             // character when its literal is one alphanumeric character.
+            // A numeric constant-name is no literal-1 of ALL (§2023:8.3.3.6.3 SR2): FoldAllLiteral's best-effort value for it must not stand.
+            if (fig.ALL() is not null && fig.cobolWord()?.GetText() is { } k && env.Constant(k) is { Category: not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean) })
+                return null;
             if (ConcatFolder.FoldAllLiteral(fig, env, report: null) is { } folded)
                 return folded.Category is PicCategory.Alphanumeric && folded.Value.Length == 1 ? folded.Value : null;
             // Format 7, ALL symbolic-character-1, one or more of the character the symbolic-character names (§1985:IV.4.2.2.2.3
@@ -98,10 +106,11 @@ public sealed partial class FileControlBinder
         return CobolLiteral.ClassOf(token) == LiteralClass.Alphanumeric && CobolLiteral.Decode(token) is { Length: 1 } v ? v : null;
     }
 
-    /// <summary>The one character <paramref name="word"/> stands for when it names a symbolic-character bound at
-    /// <paramref name="site"/>, else null (a symbolic-character is a figurative constant, §1985:IV.4.2.2.2.3 GR7).</summary>
+    /// <summary>The one character <paramref name="word"/> stands for when it names an alphanumeric symbolic-character bound at
+    /// <paramref name="site"/>, else null (a symbolic-character is a figurative constant, §1985:IV.4.2.2.2.3 GR7; a national
+    /// one is no one-character alphanumeric literal, §2002:12.3.4.10.2 SR1).</summary>
     private static string? SymbolicCharacter(Antlr4.Runtime.RuleContext site, string word, LiteralEnvironment env) =>
-        env.IsSymbolicCharacter(word) ? env.SymbolicValue(site, word) : null;
+        env.IsSymbolicCharacter(word) && env.SymbolicOf(site, word) is { National: false } sym ? sym.Value : null;
 
     /// <summary>Screen a resolved data-name-1 (an unresolved one was reported by its resolution).</summary>
     private void ScreenPaddingDataName(PaddingCharacterSpec pad)
