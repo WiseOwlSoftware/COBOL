@@ -5,3 +5,5 @@
 **PB5523.** Re-probe: `CODE ALL SYM` with `SYMBOLIC CHARACTERS FOR NATIONAL SYM IS 66` compiled. `CodeFigurativeCharacters` reads `SymbolicOf` and refuses a national symbol with COBOL2713 (§2023:13.18.12.3 SR1, §2023:12.3.7.4 GR11c). Golden `pb5523_code_all_national_symbolic_character` (refused 2002 to 2023).
 
 Rows re-verdicted: none (both notes claimed none). Notes flipped to landed.
+
+Review round 1: the diagnostics golden only checks that some error contains the hint, so `ReportWriterConformanceTests.SumUponNonuniqueDetail_IsOneRefusal_NotACascade` now pins exactly one diagnostic (COBOL1920, no cascading COBOL2046); it fails at 85 with the early return removed.
