@@ -2055,7 +2055,8 @@ one-file-per-entry DEVLOG stand.
    stays a `needs` of `ci-gate` because the drift check wires every job. ⛔ The job checks out only `scripts/orchestrator` and
    `scripts/standard_streams.py` (a sparse checkout), so a module its scripts import that the list leaves out would make it
    cancel nothing while the run stays green: `scripts/sparse_checkout.py` (kb/Work PB3787) reads the closure of every
-   sparse-checkout job and refuses a file it runs or imports that the list does not cover (§3.17.8).
+   sparse-checkout job and refuses a file it runs, imports or reads by a literal path that the list does not cover (§3.17.8;
+   the reads since kb/Work PB5230's bounce, merge-group run 43552030404, where `ci-gate` lacked `scripts/build_targets.json`).
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the record
    the probe reads) and the cache jobs (`toolchain-cache`, `package-cache`); the matrix and the audits run on `merge_group` and
    `workflow_dispatch`. On `pull_request` only the required check runs (`changes` + `ci-gate`, kb/Work PB4330), so twenty pull
@@ -2223,7 +2224,8 @@ commit, is the only job with `actions: write`, has every step `continue-on-error
 `cancel_superseded.py` and `queue_facts.live_heads` are declared) and `scripts/sparse_checkout.py --self-test` (over the workflow's jobs from
 the one reader `scripts/ci_workflow.py`): every job whose checkout has a `sparse-checkout` list lists
 each repository file its steps name, each file its local action names and each repository module a Python script it runs
-imports, transitively (a function body's lazy import is followed, kb/Work PB3810), and sets `sparse-checkout-cone-mode: false`.
+imports, transitively (a function body's lazy import is followed, kb/Work PB3810), and each file such a script reads by a
+literal path outside its own `self_test` (kb/Work PB5230), and sets `sparse-checkout-cone-mode: false`.
 
 ### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
 

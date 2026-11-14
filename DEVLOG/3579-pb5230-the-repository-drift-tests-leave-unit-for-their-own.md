@@ -160,3 +160,11 @@ parse arm for the format gate, the reference-modification tail, the statement fu
 for both phrase records); the EVALUATE hoist adds code only to an 85 pair whose object references a function; no second copy of
 a rule was added. The gate's verdict is in the branch's report.
 
+
+**The merge-group bounce (run 43552030404).** The first queueing of this entry failed `ci-gate`'s population check on both
+OSes with `FileNotFoundError: scripts/build_targets.json`: `test_population.py` now reads the targets file at import, and
+`ci-gate` checks out only a sparse list that did not hold it. The audit of those lists, `scripts/sparse_checkout.py`,
+followed a script's imports but not the files it reads. It now also follows each file a Python script reads by a literal
+path (a `/` chain or a string constant in the receiver of `read_text`, `read_bytes` or `open`, or the argument of `open(`),
+outside the script's own `self_test`, and treats such a file as data. `ci-gate`'s two lists now name the file. With that
+line reverted, `--check` is RED on exactly the file and the new real-tree self-test arm fails (kb/Work PB1957, class (e)).
