@@ -154,7 +154,7 @@ MARKDOWN_ENTRY = "**/*.md"
 
 
 #: ⛔ THE LANES, cheapest first (module docstring): `inert` runs the audits; `tooling` the audits with the script
-#: self-tests; `full` (the code lane) the build and the three whole populations beside the audits.
+#: self-tests; `full` (the code lane) the build and the gated whole populations beside the audits.
 LANES = ("inert", "tooling", "full")
 
 
@@ -185,7 +185,7 @@ class Lane:
 
     @property
     def builds(self) -> bool:
-        """The code lane: a build and the three whole populations."""
+        """The code lane: a build and the gated whole populations."""
         return self.name == "full"
 
 
@@ -219,9 +219,9 @@ class Classification:
 
     def is_population_input(self, path: str) -> bool:
         """Whether a compiler test or the build MAY read `path`: it is neither inert nor a tooling-lane path. THE ONE
-        DEFINITION of the code lane's paths (`classify`) and of the inputs of the Unit, Conformance and Characterization
-        populations (scripts/gate.py `Host.population_key`, kb/Work PB5205): a gate's population passes stand for another
-        tree exactly when every such path, and the toolchain, are the same."""
+        DEFINITION of the code lane's paths (`classify`) and of `@population-inputs`, the declared inputs of the
+        repo-drift target (scripts/build_targets.json; kb/Work PB5218, PB5230): its pass stands for another tree exactly
+        when every such path, and the toolchain, are the same."""
         return not self.is_inert(path) and not self.in_tooling_lane(path)
 
     def is_watched(self, path: str) -> bool:
@@ -340,13 +340,14 @@ CLASSIFICATION = Classification(inert={
            "note, and by people; no test reads it since kb/Work PB2878 (the register drift tests became "
            "work_inventory.py; the retired-name sweep and the activation-boundary registry stopped reading it)",
 }, read={
-    "docs/rearchitecture/architecture-edges.json": "ArchitectureEdgesDriftTests",
-    "docs/rearchitecture/evidence/arch-census/": "ArchCensusDriftTests (CensusRecord)",
+    "docs/rearchitecture/architecture-edges.json": "RepoDrift's ArchitectureEdgesDriftTests and BackendContractDriftTests",
+    "docs/rearchitecture/evidence/arch-census/": "RepoDrift's ArchCensusDriftTests (CensusRecord)",
     # Every held edition's rule catalog (inventory-schema.json editions.of `catalog`): a pattern, so an edition that gains
     # a catalog is a READ path the day it lands (kb/Work PB4994's older-edition drift tests first read the 1985 one).
-    "docs/rearchitecture/spec-rule-catalog*.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests "
-                                                   "(TraceabilityInventory.RowsOf and inventory_view.py --edition read "
-                                                   "every held edition's catalog)",
+    "docs/rearchitecture/spec-rule-catalog*.json": "RepoDrift's CatalogCoverageDriftTests and traceability-inventory drift "
+                                                   "tests (TraceabilityInventory.RowsOf and inventory_view.py --edition "
+                                                   "read every held edition's catalog), Unit's EcRaiseSiteDriftTests, "
+                                                   "and SuiteManifest's conformance-suite/harness/generate.py",
     "specs/ANSI_COBOL_1985.md": "RecordClauseRuleDriftTests (the Since column's 1985 side, kb/Work PB5196)",  # spec_pdf: names-the-file
     "specs/ISO_COBOL_2002.md": "RecordClauseRuleDriftTests (the Since column's 2002 side, kb/Work PB5196)",  # spec_pdf: names-the-file
     "specs/ISO_COBOL_2023.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "  # spec_pdf: names-the-file
@@ -381,6 +382,7 @@ CLASSIFICATION = Classification(inert={
        "tests/WiseOwl.Cobol.Benchmarks/Programs/": "scripts/arch/perf_baseline.py",
        "tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj": "scripts/linux-gate.sh",
+       "tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Unit/CarrierLandingFormTests.cs": "scripts/spec/audit_annex_a1.py",
        "tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj": "scripts/linux-gate.sh",
        "tests/_shared/SpecClauseText.cs": "scripts/spec/spec_headings.py",
@@ -388,6 +390,7 @@ CLASSIFICATION = Classification(inert={
        "tests/external/gnucobol-verdict-baseline.tsv": "scripts/corpus_sweep.py (the differential's committed cases)",
        "tests/nist/corpus.tsv": "scripts/guard-nist-audit.sh, guard-verify.sh, linux-gate.sh, "
                                 "scripts/orchestrator/test_orchestrate_account.ps1",
+       "tests/nist/normalization-cases.json": "scripts/guard-verify.sh (the acceptance basis's parity table, kb/Work PB5460)",
        "tests/version-matrix/": "the inventory and its schema: scripts/spec/audit_*.py, ledger_plan.py, "
                                 "scripts/orchestrator/land_lane.py, test_ledger_state.py, the rename audits and "
                                 "the eleven test_orchestrate_*.ps1 parts",
@@ -400,17 +403,24 @@ CLASSIFICATION = Classification(inert={
        ".claude/skills/workstream/templates/wf_r2_review.js": "scripts/arch/test_wf_r2_review.mjs, the workflow's dry "
                                                                "run ArchReviewFleetDriftTests runs",
        ".gitattributes": "every compiler test: the checkout's bytes (line endings) of every file it reads",
-       ".github/": "CiArtifactDriftTests, ReadyToRunRuntimeDriftTests (every workflow and the results actions)",
-       "scripts/arch/": "ArchCensusDriftTests (census.py), ArchReviewFleetDriftTests (the R2 review workflow scripts)",
+       ".github/": "RepoDrift's CiArtifactDriftTests and ReadyToRunRuntimeDriftTests (every workflow and the results "
+                   "actions)",
+       "scripts/arch/": "RepoDrift's ArchCensusDriftTests (census.py) and ArchReviewFleetDriftTests (the R2 review workflow "
+                      "scripts)",
+       "scripts/build_targets.json": "scripts/test_population.py (GATED_ASSEMBLIES, the gated assemblies' one statement) "
+                                     "and RepoDrift's GateLegDriftTests (the gated projects and the weights' assemblies, "
+                                     "kb/Work PB5230)",
        "scripts/ci_workflow.py": "imported by scripts/test_population.py",
        "scripts/detached.py": "imported by scripts/orchestrator/coord.py",
        "scripts/filter_population.py": "its self-test reads the built test assemblies",
        "scripts/gen-cobol-words.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-constructs.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-diagnostics-doc.ps1": "a generator whose output a compiler drift test checks",
-       "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and GrammarDiagramGeneratorDriftTests",
+       "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and RepoDrift's "
+                                           "GrammarDiagramGeneratorDriftTests",
        "scripts/gen-reserved-words.ps1": "a generator whose output a compiler drift test checks",
-       "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and VaultReferenceGeneratorDriftTests",
+       "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and RepoDrift's "
+                                          "VaultReferenceGeneratorDriftTests",
        "scripts/git_batch.py": "imported by scripts/spec/inventory_schema.py and inventory_store.py (the inventory view "
                                "conformance-suite/harness/generate.py reads, SuiteManifest; a partial clone's batched "
                                "blob reads, kb/Work PB4992)",
@@ -432,9 +442,10 @@ CLASSIFICATION = Classification(inert={
        "scripts/semgrep/verify.py": "imported by scripts/arch/r2_inputs.py (its semgrep step reads errors[] through verify's "
                                     "helpers, kb/Work PB4462 review R1-1; ArchReviewFleetDriftTests runs the self-test)",
        "scripts/sharedfile.py": "imported by scripts/orchestrator/coord.py",
-       "scripts/spec/": "the spec extractors and audits a compiler test runs or reads (SpecTraceabilityInventoryDriftTests, "
-                      "AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, "
-                      "TrackedTreeScopeDriftTests, CatalogCoverageDriftTests, TestRepoDriftTests)",
+       "scripts/spec/": "the spec extractors and audits a test runs or reads: RepoDrift's SpecTraceabilityInventoryDriftTests, "
+                      "AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, TrackedTreeScopeDriftTests, "
+                      "CatalogCoverageDriftTests and TestRepoDriftTests, and the modules SuiteManifest's generate.py "
+                      "imports (Unit, Conformance)",
        # The modules the scripts above IMPORT (`code_readers`' import closure, kb/Work PB4395 review R2-1).
        "scripts/standard_streams.py": "imported at startup by every script a compiler test runs: conformance-suite/"
                                       "harness/run.py and generate.py, scripts/spec/drift_rules.py, audit_annex_a1.py, "
