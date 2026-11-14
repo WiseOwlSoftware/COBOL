@@ -327,7 +327,8 @@ off-by-one through every later counter check.
   also refuses every reference-modified spelling, since §2023:8.4.3.3.4 GR6 c) makes a ref-mod's unique data item
   alphanumeric and SR5 requires a numeric one. `UPON data-name-2` (SR7) is captured by `UponDetailRef` and
   resolved through the report-group funnel — it "shall be the name of a detail" and "may be qualified only by a
-  report-name" (**COBOL2046**); a detail of ANOTHER report is legal, and because GR7 c) 2) accumulates on a
+  report-name" (**COBOL2046**); from 2002 a detail of ANOTHER report is legal (below 2002 it is refused, and the
+  name resolves in the SUM's own report alone: §1985:XIII.3.19.3 SR2, kb/Work PB5474), and because GR7 c) 2) accumulates on a
   GENERATE run against THAT report's engine the addition registers there (`ReportDetailRef.Owner`,
   `CobolReport.AddGenerateTrigger`). **ONE counter per ENTRY** (GR1) however many times the SUM keyword
   appears (SR1): the grammar's `reportSumClause` is the repeated `reportSumGroup` followed by the clause's ONE RESET
@@ -742,7 +743,7 @@ code's length up, and a line wider than that is cut at it). The one evaluation i
 group, either during page advance processing … or whenever page advance processing is not performed"): from
 `AdvancePage` at §2023:14.9.16.4 GR6 c) — after the page footing, which is therefore written with the OLD value — from
 `PresentBody` for a body group that took no advance, and from the first GENERATE (whose report and page headings precede
-its first body group). SR1/SR2/SR3 are COBOL2713 (`ResolveReportCode`, `ScreenReportCodeAgreement`); the clause is not
+its first body group). literal-1 may be a figurative constant (kb/Work PB5475; §2023:8.3.3.6.3 SR1): `CodeFigurativeCharacters` reads it as the string it denotes (ALL literal-1 is literal-1, ZERO, SPACE, QUOTE, HIGH-VALUE and LOW-VALUE one fill character) and `Screen85CodeLiteral` asks §1985:XIII.3.6.3 SR1's two characters of that value. SR1/SR2/SR3 are COBOL2713 (`ResolveReportCode`, `ScreenReportCodeAgreement`); the clause is not
 edition-gated, because the 2023 text does not say which edition introduced the identifier form and an unverified gate
 would reject legal source (docs/CONFORMANCE.md A.4.11).
 
