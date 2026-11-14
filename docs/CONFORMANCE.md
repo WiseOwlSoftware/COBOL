@@ -1006,9 +1006,12 @@ of an unsupported facility.
   ±14:00, +13:00, +05:45, +00:00 and −09:30). Inventory rows `RV-15.21.3-1` and `RV-15.99.3-1` carry this one
   determination at DOCUMENTED-NON-SUPPORT. **It holds for the 1989 intrinsic-function amendment as well** (kb/Work PB5304):
   §1989:A.2.11.3 prints the same table ("two numeric digits are returned in the range 00 through 13"), and the same formatter
-  serves `--std 85`, so the 1989 row `1989-RV-A.2.11.3-1` departs in the same two positions for the same reason. The 1985 ground
-  for documenting it is §1985:I.1.5.2.1 (an element whose syntax or function is in part implementor defined is specified by the
-  implementor) with this entry as the specification.
+  serves `--std 85`, so the 1989 row `1989-RV-A.2.11.3-1` departs in the same two positions for the same reason. No 1985 latitude
+  covers it: §1989:A.2.11.3 RV1 states the ranges with no implementor-defined wording, §1985:I.1.5.2.1 concerns substitute or
+  additional language elements, and §1989:A.2.3 leaves to the implementor only what a NUMERIC or INTEGER function's value does not
+  specify. The departure is therefore documented non-support of §1989:A.2.11.3 RV1 (a stated exception to §1985:I.1.5.2.2,
+  "An implementation must accept the syntax and provide the function for all Standard COBOL language elements"), and the row
+  is recorded DOCUMENTED-NON-SUPPORT with this entry as the statement (kb/Work PB5304).
 - **STOP RUN / GOBACK termination status (§2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10 — Annex A required items 192/193)**:
   the status "passed to the operating system" and the ERROR/NORMAL termination indication both map to the single
   observable available on .NET — the process exit code (`Environment.ExitCode`). The constraint on the STATUS
