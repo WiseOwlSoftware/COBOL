@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-29",
  "rule-digest": "90625a07716a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitActivation; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#InitialArea",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIV.2.2.4-29",
+ "notes": "kb/Work PB5373 class 1, recorded 2026-11-14 (wave 20262028 A). §1985:XIV.2.2.4 GR29, the level 1 twin of GR7 word for word: \"If the MCS attempts to schedule a program lacking an INITIAL clause, the results are undefined.\" Closed on the mechanical arm undefined-in-rule (docs/CONFORMANCE.md section 8, DRV-1985-GR-XIV.2.2.4-29, signed claude: 2026-11-12); the determinate behaviour is the one the GR7 row states. No test: a rule whose result is undefined has no expected value.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
