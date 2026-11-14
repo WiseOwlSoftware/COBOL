@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "COBOL1965: SEARCH ALL 'E': 'K-IS-FIVE (IX + 1)' writes 'IX+1': \"the index-name subscript shall not be followed by a '+' or a '–'\" (ISO §2002:14.8.34.2 SR7)"}
