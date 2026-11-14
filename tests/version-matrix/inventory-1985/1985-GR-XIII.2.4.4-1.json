@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.2.4.4-1",
  "rule-digest": "f58028dfc647",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenMultipleFileClause",
  "test-ref": "conformance:cases/XIII.2.4@1985-I-O-CONTROL-PARAGRAPH/1985-GR-XIII_2_4_4-1",
+ "notes": "Overturn confirmed (reading B). A report file is opened by the Report Writer OPEN (XIII.4.5.1 \"initiates the processing of report files\"), whose SR1 admits OUTPUT or EXTEND and whose SR2 makes the phrases' availability depend only on the Sequential I-O LEVEL (the page it points to, VII-39, holds the boxed level-2 phrases). The Report Writer module restates the multiple file reel rules of the Sequential OPEN that it keeps, nearly verbatim: NO REWIND on a reel (GR7b), GR12 (the multiple-file-tape equivalence) and GR13 a-c (one file open at a time; the OUTPUT positioning rule; each file sequential); it does not restate VII.4.3.3 SR2, and nothing in Section XIII imports the Sequential OPEN's syntax rules: XIII.2.4.4 GR1 imports the CLAUSE (VII-16) and XIII.2.3.4 GR4 imports the file control CLAUSES. So OPEN EXTEND of a report file named in a MULTIPLE FILE TAPE clause is legal 1985 source, positioned after its last record (GR10) as a file of a single file tape (GR12). CheckOpenModeForFile applies the Sequential SR2 to every file with MultipleFileReels, report files included (it already branches on IsReportFile for the INPUT/I-O refusal), so the program is refused COBOL6814: rejects legal source. Without the clause the same OPEN EXTEND compiles and appends (own control p1b). The rest of the clause handling (resolution, POSITION, GR13c sibling, the 2002 gate) is not in dispute. The GR13c member check (COBOL6816) is also stated by the RW OPEN, so it stays. No open kb/Work note holds this; kb/Work PB5086 (landed) introduced the check. kb/Work PB5479 holds the defect (adjudication: held-85/set8/decisions.json (the adjudication of coderead-85/held-9.json, the 1985 read 4)).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
