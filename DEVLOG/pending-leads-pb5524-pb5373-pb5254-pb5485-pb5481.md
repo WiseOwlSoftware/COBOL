@@ -1,0 +1,12 @@
+## Review leads from PB5524, PB5373, PB5254, PB5485, PB5481, PB5497 and PB5420 filed as notes and findings
+
+Notes only; no code changed. New notes (ids PB5542-PB5548 of the allocated PB5542-PB5551; PB5549-PB5551 unused):
+- PB5542: GENERATE and USE BEFORE REPORTING continue on the first candidate of an Ambiguous report-group match (sibling of PB5524).
+- PB5543: ConcatFolder takes a symbolic character through SymbolicValue and drops the national flag (unprobed).
+- PB5544: IntrinsicBinder's ALL-subscript walk still declines a reference modifier on a later qualifier (sibling of PB5485).
+- PB5545: two quotations attributed to the 1985 standard in EvaluateOperandCombinations are not in it (PB5481).
+- PB5546: AreaPlacementPass class summary stale and a golden comment citing the wrong clause (PB5497).
+- PB5547: the "signed derivations" wording sweep stopped short in DOC_INDEX, the design doc and audit_annex_a1.py (PB5373).
+- PB5548: test gap, PADDING CHARACTER IS ALL with a national symbolic character (PB5420).
+
+Findings beside existing notes: PB5531 (second report of the 1985 list-closing-paragraph extraction root), PB5373 (class 2 needs an orchestrator-run refuter pass; stop dispatching to implementers), PB5420 (duplicated Sites line), PB5094 (1985-GR-XII.2.4-9.json still says p9d2 is refused). The PB5254 GO TO range lead was already filed as kb/Work/PB5254/2026-11-14-perform-range-go-to-not-followed.md.
