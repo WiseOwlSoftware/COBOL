@@ -17,7 +17,8 @@ using Core = CobolParserCore;
 /// every item by where it BEGINS ITS LINE:
 /// <list type="bullet">
 /// <item>an AREA-A ITEM — a division header, a section header, a paragraph header, a level indicator (FD, SD, RD),
-/// level-number 01 or 77, DECLARATIVES, END DECLARATIVES, an end marker — begins its line in area A (row
+/// level-number 01 or 77, DECLARATIVES, END DECLARATIVES, an end marker — STARTS in area A (§1985:IV.7.3.3 "starts in
+/// area A of any line": positions 8-11, whether or not it begins the line, so <c>X. Y.</c> with Y in position 11 is legal) (row
 /// <c>fixed-form-area-a-item-outside-area-a-2002</c>, COBOL3734);</item>
 /// <item>every other text that begins a line — a sentence, a statement, an entry or clause continued on a later line,
 /// a separator period — begins in area B (row <c>fixed-form-text-in-area-a-2002</c>, COBOL3735). A level-number
@@ -74,9 +75,10 @@ internal static class AreaPlacementPass
         using var _ = edition.At(token);
         if (items.Heads.TryGetValue(token.TokenIndex, out string? item))
         {
-            if (placement != AreaPlacement.BeginsLineInAreaA)
+            // §1985:IV.7.3.3: an area-A item "starts in area A of any line": where it starts, not whether it begins the line.
+            if (placement is not (AreaPlacement.BeginsLineInAreaA or AreaPlacement.WithinLineInAreaA))
                 ConstructRegistry.Check(edition.Edition, edition, Constructs.FixedFormAreaAItemOutsideAreaA2002,
-                    $"{item} {(placement == AreaPlacement.WithinLine ? "follows other text of its line" : "begins in area B")}");
+                    $"{item} {(placement == AreaPlacement.WithinLineInAreaB ? "follows other text of its line, in area B" : "begins in area B")}");
         }
         else if (placement == AreaPlacement.BeginsLineInAreaA && !items.EitherArea.Contains(token.TokenIndex))
             ConstructRegistry.Check(edition.Edition, edition, Constructs.FixedFormTextInAreaA2002,
