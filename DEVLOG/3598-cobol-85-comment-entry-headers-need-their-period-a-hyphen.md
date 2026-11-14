@@ -1,4 +1,4 @@
-## COBOL-85 comment-entry headers need their period, a hyphen cannot continue an entry, and `*>` is a text-word below 2002
+## Entry 3598 — 2026-11-14 05:37 PST — COBOL-85 comment-entry headers need their period, a hyphen cannot continue an entry, and `*>` is a text-word below 2002
 
 Three notes of one root, the §2023:6.5 logical conversion and the text-word scanner it feeds (PB5168, PB5169, PB5470), fixed in one change.
 
@@ -9,3 +9,4 @@ Three notes of one root, the §2023:6.5 logical conversion and the text-word sca
 **Goldens and rows.** Accepted at 85: `XII.2@1985-COPY-STATEMENT/pb5470-copy-star-greater-is-a-text-word` (removes the text-words `*> "Z"` from library text and matches `DISPLAY "1" *> J`). Refused at 85: four programs, `pb5168-comment-entry-header-without-period`, `pb5168-date-compiled-header-without-period` (COBOL7166), `pb5169-comment-entry-hyphen-continuation`, `pb5169-date-compiled-hyphen-continuation` (COBOL7165). Seven 1985 rows went PARTIAL to CONFORMS in the 1985 store (GAP 223 to 216): 1985-FMT-VI.3.2.1.1, 1985-FMT-VI.3.4.2, 1985-FMT-IV.6.1.3.1, 1985-SR-VI.3.2.1.2-1, 1985-SR-VI.3.4.3-1, 1985-GR-XII.2.4-5, 1985-GR-XII.2.4-6; the notes carry `closes_rows: []` with the reason, because `work.py check` still refuses a 1985 id there (PB5094).
 
 **Gate.** First run RED on the DOC CITATIONS audit (a quotation in the COBOL7166 description read under the next clause's citation); fixed and re-run: `=== BUILD-LOCAL GATE: GREEN — Conformance 24,836/24,836 ran · Unit 40,742/40,742 ran · RepoDrift 177/177 ran · Characterization 37/37 ran (skipped 0) … (run 000002-20261114T131503Z) ===`. The five new conformance tests passed in its Conformance.trx. Self-review found nothing further beyond the two items above.
+
