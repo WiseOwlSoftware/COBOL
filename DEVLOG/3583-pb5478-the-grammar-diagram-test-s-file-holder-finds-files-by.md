@@ -1,4 +1,4 @@
-## PB5478: the grammar-diagram test's file holder finds files by enumeration, so a watcher overflow loses nothing
+## Entry 3583 — 2026-11-13 20:30 PST — PB5478: the grammar-diagram test's file holder finds files by enumeration, so a watcher overflow loses nothing
 
 `GrammarDiagramGeneratorDriftTests.Generator_RunsClean` went red twice on 2026-11-13 on Windows, once in a local gate and
 once in merge-group run 43550577247 (pull request #1607), with `InternalBufferOverflowException` from the watcher of its
@@ -21,3 +21,4 @@ The holder's recursive listing is the first that the walk guard (`TestsTreeWalks
 The guard now follows a constructor parameter through the `new` expressions of its class, and it reads a
 `ScratchDirectory.Create` or `Path.GetTempPath` root as a directory outside the repository, which is safe. Its unresolved
 roots stay at RunDirectoryState's two, and new planted cases cover both shapes.
+
