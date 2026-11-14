@@ -1136,6 +1136,7 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assign
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 WiseOwl.Cobol.Runtime.ModuleStack.RunningIsMain.get -> bool
 WiseOwl.Cobol.Runtime.DialectBehavior.CancelRefusesEveryActiveProgram = 16 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.CloseWithLockLocksFileConnector = 17 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.ProgramTable.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 WiseOwl.Cobol.Runtime.CobolStandardData
