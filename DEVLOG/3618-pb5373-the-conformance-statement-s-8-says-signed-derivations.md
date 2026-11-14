@@ -1,4 +1,4 @@
-## PB5373: the conformance statement's §8 says "signed derivations"; the ten open no-witness 1985 rows stay blocked
+## Entry 3618 — 2026-11-14 12:31 PST — PB5373: the conformance statement's §8 says "signed derivations"; the ten open no-witness 1985 rows stay blocked
 
 Wave 20262032, group A, on `fe96afd75f`.
 
@@ -31,3 +31,4 @@ no diagnostic code used (COBOL7216-COBOL7218 returned).
 
 **Gate** (`TestResults/build-local/000001-20261114T201545Z`, head `d35cb47001`): `=== BUILD-LOCAL GATE: GREEN — Conformance
 25,009/25,009 ran · Unit 40,767/40,767 ran · RepoDrift 177/177 ran · Characterization 37/37 ran (skipped 0) ... ===`.
+
