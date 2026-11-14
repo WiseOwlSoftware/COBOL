@@ -1,4 +1,6 @@
-## PB5386, PB5412, PB5486: a receiver is identified at its store, the record-area rule asks the storage, the FROM function rule cites 1985
+## Entry 3606 — 2026-11-14 07:30 PST — PB5386, PB5412, PB5486: a receiver is identified at its store, the record-area rule asks the storage, the FROM function rule cites 1985; A property receiver with a function in its reference modifier carries two brackets
+
+### PB5386, PB5412, PB5486: a receiver is identified at its store, the record-area rule asks the storage, the FROM function rule cites 1985
 
 Wave 20262025, group B: three notes the 1985 code read filed against the binder of the implied MOVE of the FROM and INTO phrases.
 
@@ -39,3 +41,14 @@ goldens pin the 1985 citation; `EditionCiteTests` pins the selection.
 Inventory: batch `w20262025b-pb5386` (six 2023 rows re-recorded CONFORMS with the PB5386 witnesses, and `SR-14.9.25.3-4`'s code
 location moved off the deleted `ResolveTargets`; 2023 GAP 0 → 0), `w20262025b-pb5386-85` and `w20262025b-pb5412-85`. Codes: none
 allocated were used (COBOL7129 to COBOL7131 returned).
+
+### A property receiver with a function in its reference modifier carries two brackets
+
+Branch review round 1 of the PB5386 landing (R1-1) found a regression: `MOVE "QQ" TO NM OF AR(1) (FUNCTION INTEGER(K):2)` crashed the
+emitter with "the object-property receiver ... was claimed ... but no receiver store placed its steps", source main compiles. The property's
+PB2078 bracket and the new PB5386 identification bracket sit in two `BoundReceiverBrackets` nodes, and `ReceiverBracketEmitter.Find` returned
+only the first match. It now returns every matching bracket of every scope in force, property bracket outermost; `Receive` opens them in that
+order and closes them in reverse. Golden `pb5386_move_property_refmod_function` prints `[AQQDEF]` at 2002, 2014 and 2023 (the object
+property needs 2002, so no lower edition has a program to refuse). Sibling arms: READ and RETURN INTO, the arithmetic statements and SET all
+reach the same `Receive`, so one fix covers them.
+
