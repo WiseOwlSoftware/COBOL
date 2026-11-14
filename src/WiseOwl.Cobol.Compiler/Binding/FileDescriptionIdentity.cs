@@ -16,8 +16,8 @@ namespace WiseOwl.Cobol.Binding;
 /// entry that writes none has nothing to disagree with and is skipped; the later editions state none of these rules for their descendants of the clauses
 /// (their text names the FORMAT clause alone, §2023:13.18.24.4 GR12, a clause this compiler declines), so the rows are asked at COBOL-85 only.</para>
 /// <para>The implementor's consistency rule for VALUE OF (the clause's implementor-names name label fields this implementation never reads, docs/CONFORMANCE.md
-/// §3.7): two entries are consistent when every implementor-name they both write is given the same literal-1; a data-name-1 holds its value at run time, so it
-/// agrees with anything at compile time.</para>
+/// §3.7): two entries are consistent when every implementor-name they both write is given the same literal-1 VALUE (its class and value,
+/// never its spelling: FileControlBinder.ValueOfLiteralValue, kb/Work PB5362); a data-name-1 holds its value at run time, so it agrees with anything at compile time.</para>
 /// </summary>
 internal static class FileDescriptionIdentity
 {
@@ -45,7 +45,7 @@ internal static class FileDescriptionIdentity
     /// <summary>What <paramref name="f"/>'s entry specifies for <paramref name="rule"/>'s clause, or null when it writes none.</summary>
     internal static FdClauseValue? Of(FileModel f, Rule rule) =>
         rule.Key == Linage
-            ? f.Linage is { } linage ? new FdClauseValue(LinageValue(linage), linage.Body.At) : null
+            ? f.Linage is { } linage && LinageValue(linage) is var lines ? new FdClauseValue(lines, lines, linage.Body.At) : null
             : f.FdClauses.TryGetValue(rule.Key, out var value) ? value : null;
 
     /// <summary>The LINAGE clause's operands, in the order the format prints them (lines, footing, top, bottom): the integer of a literal, <see cref="Undecided"/>
@@ -59,9 +59,10 @@ internal static class FileDescriptionIdentity
         return x.Zip(y).All(p => p.First == Undecided || p.Second == Undecided || p.First == p.Second);
     }
 
-    /// <summary>The VALUE OF entries as <c>NAME=literal</c> or <c>NAME=~</c>, joined by <c>|</c> (the implementor-name folded).</summary>
-    internal static string ValueOfValue(IEnumerable<(string Name, string? Literal)> entries) =>
-        string.Join("|", entries.Select(e => $"{WiseOwl.Cobol.Runtime.CobolNames.UpperFold(e.Name)}={e.Literal ?? Undecided}"));
+    /// <summary>The VALUE OF entries as <c>NAME=value</c> or <c>NAME=~</c>, joined by <c>|</c> (the implementor-name folded): each value
+    /// is the literal-1's value key, which carries neither separator (FileControlBinder.ValueOfLiteralValue).</summary>
+    internal static string ValueOfValue(IEnumerable<(string Name, string? Value)> entries) =>
+        string.Join("|", entries.Select(e => $"{WiseOwl.Cobol.Runtime.CobolNames.UpperFold(e.Name)}={e.Value ?? Undecided}"));
 
     private static bool ValueOfConsistent(string a, string b)
     {

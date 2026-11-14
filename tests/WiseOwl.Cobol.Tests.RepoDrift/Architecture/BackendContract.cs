@@ -207,6 +207,8 @@ internal static class BackendContract
             "Model.FileModel.BeyondAssign", "Model.FileModel.EntryFace", "Model.FileModel.OrganizationFace", "Model.OccursKey.Written",
             "Model.PictureClauseIdentity.Phrases()", "Model.RaisingTarget.Spelled", "Model.RecordKey.Face",
             "Model.RedefinesClass.RejectReason", "Model.SameClause.Written", "Model.SuppressWhenOperand.Written",
+            // a file description clause as written, which the external connector's agreement diagnostic shows (kb/Work PB5362)
+            "Model.FdClauseValue.Written",
             // how a diagnostic names an arithmetic mode's intermediate data item and its bounds (kb/Work PB194, PB2402)
             "Model.ArithmeticModes.IntermediateName()", "Model.ArithmeticModes.IntermediateExtremes()",
         ]),

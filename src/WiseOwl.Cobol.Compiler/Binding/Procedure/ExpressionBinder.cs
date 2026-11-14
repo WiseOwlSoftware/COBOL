@@ -361,15 +361,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// guard is lifted (P10 national wave). The §2023:8.3.3.5.3 SR1 length and SR5 grouping rules are the literal's
     /// own and LiteralScreen asks them of every literal token (kb/Work PB1393) — never a binder funnel.</summary>
     public BoundStringLiteral NationalLiteralOperand(string raw) =>
-        // NationalData2002 (the N"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
-        // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
+        // NationalData2002 (the N"…" literal introduction) is the literal token's format gate, position-blind
+        // (LiteralScreen.GateFormat, kb/Work PB5416).
         new(CobolLiteral.Decode(raw)) { Category = PicCategory.National };
 
     /// <summary>Bind a <c>B"…"</c> boolean literal (ISO §2023:8.3.3.4): SR2 ('0'/'1' only) is lexer-enforced, and the
     /// §2023:8.3.3.4.3 SR1 length rule is LiteralScreen's (kb/Work PB1393).</summary>
     public BoundStringLiteral BooleanLiteralOperand(string raw) =>
-        // BooleanData2002 (the B"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
-        // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
+        // BooleanData2002 (the B"…" literal introduction) is the literal token's format gate, position-blind
+        // (LiteralScreen.GateFormat, kb/Work PB5416).
         new(CobolLiteral.Decode(raw)) { Category = PicCategory.Boolean };
 
     /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> / <c>ALL X"…"</c> (a

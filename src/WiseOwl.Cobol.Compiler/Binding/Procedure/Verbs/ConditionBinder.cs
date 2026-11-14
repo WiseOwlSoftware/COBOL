@@ -109,8 +109,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (nn?.concatenationExpression() is { } ce && ConcatFolder.ClassOf(ce, ctx.Data.LiteralEnv) is PicCategory.Boolean)
             return new BoundBoolLiteral(ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.LiteralEnv).Value);
         if (nn?.BOOLLIT() is { } bl)
-            // BooleanData2002 (the B"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
-            // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
+            // BooleanData2002 (the B"…" literal introduction) is the literal token's format gate, position-blind
+            // (LiteralScreen.GateFormat, kb/Work PB5416).
             return new BoundBoolLiteral(CobolLiteral.Decode(bl.GetText()));
         // The predefined NULL is no boolean operand and a boolean expression is no §2023:8.4.3.10.3 SR1 context: the ONE
         // SR1 refusal (COBOL2576), through the literal mapping that owns it (kb/Work PB1427).
