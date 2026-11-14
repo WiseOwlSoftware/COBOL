@@ -442,10 +442,10 @@ def self_test() -> int:
        and cited_rules(citation.scan("§1989:A.2.7.3"), old, e85) == ["1989-AR-A.2.7.3-1"]
        and cited_rules(citation.scan("§1985:A.2.7.3"), old, e85) == [],
        "a clause names every rule under it, a designator its kind and ordinal, each in its own document's numbering")
-    lists = [{"rule-id": "1985-GR-VI.6.3.3-L1.2", "section": "VI.6.3.3", "kind": "GR", "ordinal": 2, "sublist": 1},
-             {"rule-id": "1985-GR-VI.6.3.3-L2.2", "section": "VI.6.3.3", "kind": "GR", "ordinal": 2, "sublist": 2}]
-    ok(cited_rules(citation.scan("§1985:VI.6.3.3 GRL2.2"), lists, e85) == ["1985-GR-VI.6.3.3-L2.2"]
-       and cited_rules(citation.scan("§1985:VI.6.3.3 GR2"), lists, e85) == ["1985-GR-VI.6.3.3-L1.2"],
+    lists = [{"rule-id": "1985-GR-IV.4.4.2-2", "section": "IV.4.4.2", "kind": "GR", "ordinal": 2, "sublist": 1},
+             {"rule-id": "1985-GR-IV.4.4.2-L2.2", "section": "IV.4.4.2", "kind": "GR", "ordinal": 2, "sublist": 2}]
+    ok(cited_rules(citation.scan("§1985:IV.4.4.2 GRL2.2"), lists, e85) == ["1985-GR-IV.4.4.2-L2.2"]
+       and cited_rules(citation.scan("§1985:IV.4.4.2 GR2"), lists, e85) == ["1985-GR-IV.4.4.2-2"],
        "a restarted list's designator names its list: GRL2.2 the second list's rule, GR2 the first's alone (kb/Work "
        "PB4969, PB5123: GRL2.2 used to name every rule of the clause)")
     ok(cited_rules(citation.scan("§2023:14.9.2 Format 1"), new, e23) == ["FMT-14.9.2.2"],
