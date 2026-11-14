@@ -415,7 +415,10 @@ public sealed partial class FileControlBinder
                 + $"{integer1} TO {integer2}; integer-2 shall be greater than integer-1 (ISO §2023:13.18.10.3 SR1)");
         // §1985:VII.3.3.3 GR5: an external connector's BLOCK CONTAINS clauses "must have the same value for integer-1 and integer-2" (kb/Work PB5300).
         if (values.All(v => v is not null))
-            file.FdClauses[FileDescriptionIdentity.Block] = new(string.Join("..", values), Edition.Cursor);
+        {
+            string block = string.Join("..", values);
+            file.FdClauses[FileDescriptionIdentity.Block] = new(block, block, Edition.Cursor);
+        }
     }
 
     /// <summary>Bind a LINAGE clause into <see cref="FileModel.Linage"/> (ISO §2023:13.18.34: <c>LINAGE IS
@@ -560,7 +563,10 @@ public sealed partial class FileControlBinder
         // §1985:VII.3.4.4 GR3: an external connector's CODE-SET clauses "must have the same character set": the SET each name denotes (a name is the program's
         // own and two programs may name one set differently), not the name (kb/Work PB5300).
         if (alnumSet is not null || natSet is not null)
-            file.FdClauses[FileDescriptionIdentity.CodeSet] = new($"{alnumSet?.Phrase}/{natSet?.Phrase}", Edition.Cursor);
+        {
+            string sets = $"{alnumSet?.Phrase}/{natSet?.Phrase}";
+            file.FdClauses[FileDescriptionIdentity.CodeSet] = new(sets, sets, Edition.Cursor);
+        }
     }
 
     /// <summary>§2023:13.16.3 SR7's SECOND half — "…or for record descriptions associated with a file description entry

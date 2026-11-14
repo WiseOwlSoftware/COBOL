@@ -1000,9 +1000,10 @@ written alone, which parses as the `ALL cobolWord` arm (the parse cannot tell it
 is resolved as Format 6 before the Format 7 readers see it. With a reporting context it asks SR2 — COBOL1648 for
 a zero-length literal-1 (structurally: contiguous delimiters, never "decodes to nothing"), COBOL2491 for a
 constant-name standing for a numeric literal — and every §2023:8.8.3.2 rule of a concatenated literal-1; the
-per-position diagnostic dedup keeps a figurative read at two sites to one report. The version pass's
-`VisitFigurativeConstant` keeps only the statement-scoped 2002 gate for a national/boolean literal-1 (the `&` gate is
-`VisitConcatenationExpression`'s, on recognition); the §2023:8.3.3 literal-token rules are LiteralScreen's. The rules
+per-position diagnostic dedup keeps a figurative read at two sites to one report. The 2002 gate of a national or
+boolean literal-1 is the literal token's, `LiteralScreen.GateFormat`, position-blind like every literal-format gate
+(kb/Work PB5416; the version pass's statement-scoped `VisitFigurativeConstant` arm is gone), the `&` gate is
+`VisitConcatenationExpression`'s, on recognition, and the §2023:8.3.3 literal-token rules are LiteralScreen's. The rules
 moved to the binder because they need the program's constant-names, which the parse walk has not got (the version
 pass used to ask them over a quoted-only operand list — kb/Work PB1393's arm, PB1627).
 

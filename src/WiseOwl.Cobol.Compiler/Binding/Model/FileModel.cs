@@ -1252,5 +1252,7 @@ public sealed record LinageInfo(LinageOperand Body, LinageOperand? Footing, Lina
     }
 }
 
-/// <summary>What an entry specifies in one file description clause (<see cref="FileModel.FdClauses"/>) and where it wrote it.</summary>
-public readonly record struct FdClauseValue(string Value, WiseOwl.Cobol.Editions.DiagnosticCursor At);
+/// <summary>What an entry specifies in one file description clause (<see cref="FileModel.FdClauses"/>) and where it wrote it: <paramref name="Value"/>
+/// is what the clause's agreement rule compares, <paramref name="Written"/> how a diagnostic shows it. The two differ where the rule compares a meaning
+/// rather than a spelling (the VALUE OF literal-1's value, kb/Work PB5362).</summary>
+public readonly record struct FdClauseValue(string Value, string Written, WiseOwl.Cobol.Editions.DiagnosticCursor At);
