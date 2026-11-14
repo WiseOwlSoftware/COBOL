@@ -1152,3 +1152,4 @@ static WiseOwl.Cobol.Runtime.CobolStandardData.Characters(string! displayImage, 
 static WiseOwl.Cobol.Runtime.CobolNum.FormatStandardData(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> string!
 WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterRerunRecords(string! name, long every, string! device, string! file) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.RegisterRerunRecords(string! name, long every, string! device, string! file) -> void
+WiseOwl.Cobol.Runtime.IO.FileConnector.RecordLengthConflicts(int length) -> bool
