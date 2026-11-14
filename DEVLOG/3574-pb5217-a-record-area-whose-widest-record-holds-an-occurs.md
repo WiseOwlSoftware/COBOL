@@ -1,4 +1,4 @@
-## PB5217: a record area whose widest record holds an OCCURS DEPENDING table is read whole, so a shorter record and a key past the table keep their characters
+## Entry 3574 — 2026-11-13 18:41 PST — PB5217: a record area whose widest record holds an OCCURS DEPENDING table is read whole, so a shorter record and a key past the table keep their characters
 
 **The defect.** In a file whose record descriptions include one with an OCCURS DEPENDING ON table, `WRITE R3` of a
 shorter `PIC X(7)` record with the DEPENDING item at 1 wrote `ABCDE` and spaces (re-probed at the base 725550baca at
@@ -31,3 +31,4 @@ COMMIT save renders an item, not an area, and its ODO object must be committed w
 `TransfersPastRecord` is false there).
 
 **Gate.** `build-local` GREEN at 0f9280226a (run 000003-20261114T021230Z; Conformance and Characterization from run 000002). Run 000001 was red on the two reds above; run 000002 on an unrelated GrammarDiagramGeneratorDriftTests watcher buffer overflow.
+
