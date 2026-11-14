@@ -1252,7 +1252,8 @@ of an unsupported facility.
   disposition (§2023:14.6.13.1.3 5)/7)), since the executed statement is not a SORT or MERGE. **(c) With checking off**
   nothing is raised (§2023:14.6.13.1.1) and the statement proceeds: an open USING/GIVING file meets its implicit OPEN's
   '41', an out-of-range record is released as shaped (a DEPENDING ON size slices or space-extends the record area as
-  the lenient reference modification `(1:size)` would), an out-of-order MERGE input merges in stream order, and a
+  the lenient reference modification `(1:size)` would; at COBOL-2002 and later only — COBOL-85's RELEASE is unsuccessful,
+  D-SORT-RELEASE-SIZE-85), an out-of-order MERGE input merges in stream order, and a
   nested SORT/MERGE runs. Every one of those results is "undefined" in its rule. (kb/Work PB1036; golden
   `2002/pb1036_sort_merge_statement_ec`.)
 - **D-SKE — a SORT/MERGE key whose length varies, at edition 1985 (§2023:14.9.40.3 SR6 d), §2023:14.9.24.3 SR4 d); kb/Work PB2512)**: the 2023 text refuses a key that is "a variable-length group, an occurs-depending-on data item, a dynamic-length elementary item or an item subordinate to a dynamic-capacity table" (MERGE's copy prints a comma before "or an item subordinate"; the refusal quotes each statement's own copy verbatim). When this determination was made the repository held no 1985 text, so whether the 1985 SORT/MERGE rules carry an equivalent was not read from the standard; it now holds the texts `scripts/spec/spec_pdf.py`'s `EDITIONS` names (ANSI X3.23-1985 among them), and this determination has not yet been read against the 1985 SORT/MERGE rules (kb/Work PB5256, branch review R1-8). **Determination: the arm is not edition-gated; a key that is an occurs-depending group is refused at `--std 85` too** (the occurs-depending group is the only varying-length key an 85 program can write: DYNAMIC LENGTH is 2014 and a dynamic-capacity table is 2023). Basis, under CLAUDE.md rule 1's precedence for a latitude the controlling text does not settle (the ISO text read here is silent for 1985, then GnuCOBOL, then IBM or Micro Focus): GnuCOBOL 3.2 was surveyed first (`cobc -fsyntax-only -free` on `pb1173-sort-file-key-odo-group` and `pb1173-merge-key-odo-group`, at `-std=cobol85`, the default, `ibm` and `mf`) and compiles the occurs-depending group key with exit 0 at every one of them, even at its default dialect where the 2023 text forbids the key, so it has no such check and gives no guidance. The next rung, Micro Focus's SORT statement page, prints the prohibition in 1985-shaped words ("The data items identified by KEY data-names must not be variable length items", beside the OCCURS rule that predates it), and the key's "same byte positions" rule (SR6 e) / SR4 e)) has no meaning for a window whose length varies. **Rejected reading:** gating the arm at 2002 and accepting an 85 key that is an occurs-depending group (it would sort on whatever length the first record held, and no text read here permits it). **Open to the standard itself:** a holder of the 1985 text that shows its SORT/MERGE rules carry no such prohibition turns the occurs-depending arm of `SortKeyAdmission` into an edition gate and moves `85` out of the `refuse-at` of `pb1173-sort-file-key-odo-group` and `pb1173-merge-key-odo-group`. (Goldens `14.9.24-MERGE/pb1173-sort-file-key-odo-group`, `pb1173-merge-key-odo-group`.)
@@ -2566,6 +2567,20 @@ of an unsupported facility.
   includes the declaratives its statements execute, a run-time fact), and at COBOL-2002 and later the same misuse is the run-time exception of
   kb/Work PB1036. Witnesses: `conformance:cases/XI.4.2@1985-RELEASE-STATEMENT/pb5104_release_return_in_performed_range_85`,
   `conformance:wiseowl/diagnostics/pb5104-release-of-file-no-sort-names-85`, `conformance:wiseowl/diagnostics/pb5104-return-of-file-no-sort-names-85`.
+
+- **D-SORT-RELEASE-SIZE-85 — a RELEASE of a record outside the SD's RECORD IS VARYING range at COBOL-85** (kb/Work PB5124;
+  the text decides, no latitude). §1985:VII.3.8.4 GR10 (the Amendment 2 paragraph): "If the number of character positions in
+  the logical record to be written is less than integer-2 or greater than integer-3, the output statement is unsuccessful and,
+  except during execution of a RELEASE statement, the associated I-O status is set", and the SD's RECORD clause is this
+  clause. COBOL-85 has no exception checking, so the sentence is the whole outcome: nothing is released, data-name-1 keeps
+  its value (GR9) and the record area its content (§1985:III.2, Unsuccessful Execution: it "does not affect any data
+  referenced by that statement"); no I-O status is set, and the statement after the RELEASE runs. From COBOL-2002 the
+  sentence raises EC-SORT-MERGE-RELEASE (§2023:13.18.43.4 GR14b) and with that checking off the result is the
+  implementor's (D-SMA (c)), so the edition is asked once, by the binder (`BoundRelease.RangeFailsStatement`), and the
+  runtime's one range test reads it (`CobolSort.ReleaseStatement`). Only data-name-1 can name a size outside the range:
+  §1985:VII.3.8.3 SR2 keeps every record description inside it. Witnesses:
+  `conformance:cases/VII.3.8@1985-RECORD-CLAUSE/pb5124_release_outside_record_range_85` (short, long, zero, and FROM in and
+  out of range) and `unit:SortMergeStatementEcTests` (`ReleaseStatement_RangeFailsStatement_ReleasesNothing_WhenUnchecked`).
 
 - **D-SORT-GIVING-SAME-85 — two GIVING files of one SORT in a SAME RECORD AREA clause** (kb/Work PB5276; the text decides, no latitude). §1985:XI.4.4.3
   SR9: "File-names associated with the GIVING phrase may not be specified in the same SAME clause", and SAME [RECORD] AREA is the 1985 clause
