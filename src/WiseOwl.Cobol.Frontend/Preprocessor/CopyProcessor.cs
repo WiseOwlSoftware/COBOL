@@ -1459,8 +1459,9 @@ public sealed class CopyProcessor(
     /// <summary>Read one REPLACING operand (see <see cref="Operand"/>): the content of a <c>==pseudo-text==</c>
     /// (bounded by the pseudo-text-delimiter TEXT-WORDS, so an <c>==</c> inside a literal does not end it; each
     /// delimiter's separation checked against §2023:8.3.5 6)), or — the COBOL-85 / 2002 / 2014 COPY forms (removed by ISO
-    /// 2023, Annex E.2 item 1) — a literal, or an identifier / word: a word with optional OF/IN qualifiers and one
-    /// balanced subscript group. Null (and a syntax error) when no operand is there.</summary>
+    /// 2023, Annex E.2 item 1) — a literal, or an identifier / word: a word with its OF/IN qualifiers, or a
+    /// function-identifier's FUNCTION function-name, and every balanced parenthesized group after it (subscripts,
+    /// arguments, a reference modifier; kb/Work PB5469). Null (and a syntax error) when no operand is there.</summary>
     private static Operand? ReadOperand(StatementCursor c, OperandScreen screen, Action<int>? nonPseudoText,
         Action<int>? nestedCopy)
     {
@@ -1513,24 +1514,35 @@ public sealed class CopyProcessor(
             return null;
         }
 
-        // identifier-1/2 or word-1/2: a data-name with optional OF/IN qualifiers and an optional subscript —
-        // e.g. WRK IN GRP-002 (1). A plain word (including a signed number such as +2) is the degenerate
-        // single-text-word case. The verbatim span is returned with the text-words it holds: those are compared, and
-        // as a replacement it is inserted as written.
+        // identifier-1/2 or word-1/2, read in the identifier's general format (kb/Work PB5469): a data-name with its OF/IN
+        // qualifiers, then "a syntactically correct combination of qualifiers, subscripts, or reference modifiers"
+        // (§1985:IV.4.3.8.5.1, the identifier's format 2), e.g. TBL OF GRP (2) (1:1) — or a function-identifier
+        // (its format 1, Amendment 1), FUNCTION function-name with its argument list and a reference modifier
+        // (§1985:IV.4.3.8.3.2), e.g. FUNCTION UPPER-CASE ("ab") (1:1). Every parenthesized group that
+        // follows belongs to the operand: no operand begins with a left parenthesis, so the next operand, BY or the
+        // period ends it. A plain word (including a signed number such as +2) is the degenerate single-text-word case.
+        // The verbatim span is returned with the text-words it holds: those are compared (GR4: "treated as pseudo-text
+        // containing only identifier-1"), and as a replacement it is inserted as written.
         int start = w.Start;
         var words = new List<TextWord> { w };
         c.Advance(w);
-        while (c.TryPeek(out var q) && (q.IsWord("OF") || q.IsWord("IN")))
+        if (w.IsWord("FUNCTION") && c.TryPeek(out var name) && name.Kind == TextWordKind.CharacterString && !name.IsWord("BY"))
         {
-            c.Advance(q);
-            words.Add(q);
-            if (c.TryPeek(out var qualifier) && qualifier.Kind == TextWordKind.CharacterString)
-            {
-                c.Advance(qualifier);
-                words.Add(qualifier);
-            }
+            c.Advance(name);
+            words.Add(name);
         }
-        if (c.TryPeek(out var open) && open.Kind == TextWordKind.Separator && open.Span[0] == '(')
+        else
+            while (c.TryPeek(out var q) && (q.IsWord("OF") || q.IsWord("IN")))
+            {
+                c.Advance(q);
+                words.Add(q);
+                if (c.TryPeek(out var qualifier) && qualifier.Kind == TextWordKind.CharacterString)
+                {
+                    c.Advance(qualifier);
+                    words.Add(qualifier);
+                }
+            }
+        while (c.TryPeek(out var open) && open.Kind == TextWordKind.Separator && open.Span[0] == '(')
         {
             int depth = 0;
             while (c.TryTake(out var t))
@@ -1540,6 +1552,7 @@ public sealed class CopyProcessor(
                 if (t.Span[0] == '(') depth++;
                 else if (t.Span[0] == ')' && --depth == 0) break;
             }
+            if (depth != 0) break;   // the text ended inside the group: the statement's own end reports it
         }
         return new Operand(c.Slice(start, c.Pos), words, start, IsPseudoText: false);
     }
