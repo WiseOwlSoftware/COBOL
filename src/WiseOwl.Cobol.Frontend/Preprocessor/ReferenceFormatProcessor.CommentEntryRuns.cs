@@ -42,9 +42,15 @@ public static partial class ReferenceFormatProcessor
             var site = new TextSite(line.Number, index, line.Columns);
             if (carried.IsHeader)
             {
-                builder.Emit(CommentEntryHeader(area), site);
+                builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: isFixed), site);
             }
-            else builder.Discard(site);
+            else
+            {
+                // §1985:VI.3.2.1.2 SR1: a body line with the continuation indicator, as the converter reports a certain entry's.
+                if (isFixed && new FixedFormLine(line.Text).Indicator.Value == FixedFormLine.ContinuationIndicator)
+                    gates?.OnCommentEntryContinued(file, line.Number);
+                builder.Discard(site);
+            }
         }
         return builder.Result;
     }

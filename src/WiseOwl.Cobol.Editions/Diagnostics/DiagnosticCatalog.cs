@@ -9466,6 +9466,28 @@ public static class DiagnosticCatalog
         + "imply the NEXT phrase from AT END (§2023:14.9.30.3 SR9).",
         "ISO §1985:VIII.4.5.3 SR3; §1985:IX.4.5.3 SR5");
 
+    /// <summary>COBOL7165 — a COBOL-85 comment-entry continued by a hyphen in the indicator area (kb/Work PB5169). The
+    /// fixed-form logical conversion reads the entry as commentary and discards its lines, a continuation line among them,
+    /// so no later stage could refuse it.</summary>
+    public static readonly DiagnosticDescriptor CommentEntryContinued = new(
+        "COBOL7165", "comment-entry-continued", EditionSeverity.Error,
+        "§1985:VI.3.2.1.2 SR1: \"The continuation of the comment-entry by the use of the hyphen in the indicator area is not "
+        + "permitted; however, the comment-entry may be contained on one or more lines.\" (§1985:VI.3.4.3 SR1 words the "
+        + "DATE-COMPILED paragraph's rule the same.) A line of a comment-entry (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED "
+        + "or SECURITY) has a hyphen in the indicator area. Write the rest of the entry on a line of its own, without the hyphen.",
+        "ISO §1985:VI.3.2.1.2 SR1; §1985:VI.3.4.3 SR1");
+
+    /// <summary>COBOL7166 — the header of a COBOL-85 comment-entry paragraph with no separator period after its word (kb/Work
+    /// PB5168). The fixed-form logical conversion writes the header and its terminating periods itself, so the period the
+    /// source omitted was never asked of the parser.</summary>
+    public static readonly DiagnosticDescriptor CommentEntryHeaderWithoutPeriod = new(
+        "COBOL7166", "comment-entry-header-without-period", EditionSeverity.Error,
+        "§1985:III: \"Paragraph Header. A reserved word, followed by the separator period, that indicates the beginning of a "
+        + "paragraph in the Identification and Environment Divisions.\" §1985:IV.2.1.6: \"The separator period, when used in the "
+        + "formats, has the status of a required word.\" The header of an AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED or "
+        + "SECURITY paragraph has no period after its word. Write the period directly after the word, before the comment-entry.",
+        "ISO §1985:III; §1985:IV.2.1.6");
+
     /// <summary>COBOL6827 — the FROM or INTO operand of a READ, RETURN, WRITE, REWRITE or RELEASE is the file's own record area, at
     /// the editions that forbid it (kb/Work PB5077). §1985:IX.4.5.3 SR1: "The storage area associated with identifier-1 and the
     /// record area associated with file-name-1 must not be the same storage area." (READ, RETURN), §1985:IX.4.6.3 SR1: "Record-name-1
