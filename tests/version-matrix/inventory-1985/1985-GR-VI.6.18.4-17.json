@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.18.4-17",
  "rule-digest": "4aab759f9f70",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#IdentifyOperands; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceIdentification.cs#Freeze",
  "test-ref": "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/1985-GR-VI_6_18_4-17",
+ "notes": "§1985:VI.6.18.4 GR17 runs a format 3 as a format 1 then a format 2 statement, with 'Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement'. InspectEmitter#IdentifyOperands freezes every operand's subscripts before the tallying pass, and EmitBody runs TALLYING, stores the counters, then REPLACING reading its data-item operands after those stores; at --std 85 InspectBinder#Bind sets ReplacingTakesLengthAnew (DialectBehavior.InspectFormat3LengthIdentifiedOnce off), so EmitBody re-reads an occurs-depending identifier-1 at its new length. Probes at 85: ODO group G (N=2, 'AAAAAA') TALLYING N REPLACING A BY B -> N 4, G 'BBBBAA' (2023 gives 'BBAAAA'); TE(S) TALLYING S REPLACING BY TE(S)(2:1) keeps S=1 for the replacement; REPLACING ALL C after TALLYING C replaces the tallied value '3'; signed S9(3) and CHARACTERS AFTER correct; INSPECT BACKWARD refused COBOL0845. The witness exercises a subscript naming the counter.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

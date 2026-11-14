@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.3.4-5",
  "rule-digest": "69daae0508f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
  "test-ref": "conformance:cases/X.5.3@1985-CANCEL-STATEMENT/1985-GR-X_5_3_4-5",
+ "notes": "§1985:X.5.3.4 GR5: 'A program named in the CANCEL statement must not refer directly or indirectly to any program that has been called and has not yet executed an EXIT PROGRAM statement'; 1985 states no result for a violation. BindCancel folds DialectBehavior.CancelRefusesEveryActiveProgram (false at 85) into BoundCancel, and ProgramTable.CancelNode refuses a named program with a called activation (Active > MainActive) and, through the GR4 cascade, each contained program, raising EC-PROGRAM-CANCEL-ACTIVE and leaving it uncancelled; the never-called main program is the GR8 no-action case (PB5241). Probes at --std 85: the witness (SUBB cancels the returned SUBA, which restarts at CNT=1 while SUBC keeps CNT=3) matches its .out; an identifier naming the active caller (CANCEL NM, NM = 'SUBA') ends the run with the GR5 message; CANCEL \"MAINPGM\" from the main program is no action; CANCEL \"SUBA\" \"SUBA\" cancels once and the re-call starts at CNT=1; CANCEL. is refused (COBOL0001). A self-CANCEL from a contained COMMON program runs as no action, which is within the violation's undefined result.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

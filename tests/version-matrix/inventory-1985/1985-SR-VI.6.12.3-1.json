@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.12.3-1",
  "rule-digest": "d57eb850d782",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitEnterStatement; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
  "test-ref": "conformance:cases/VI.6.12@1985-ENTER-STATEMENT/1985-SR-VI_6_12_3-1",
+ "notes": "§1985:VI.6.12.3 SR1: 'Language-name-1 may refer to any programming language which the implementor specifies may be entered through COBOL. Language-name-1 is specified by the implementor.' WiseOwl specifies no language (docs/CONFORMANCE.md: ENTER 'Not provided', the §1985:I.1.5.2.5.5 option), so every ENTER naming another language must be refused at 85. VersionConformancePass#VisitEnterStatement refuses ENTER only from 2002 (COBOL0902, probed at --std 2002), and at 85 StatementBinder#BindEnter binds any language-name as a BoundNop: ENTER FORTRAN SUBRTN. compiles and runs with no diagnostic, so the routine the program expects never runs. Probes at 85: e1 (ENTER FORTRAN SUBRTN.) BEFORE/AFTER rc=0; e5 (ENTER FORTRAN. with in-line text) rc=0; ENTER. (zero operands) refused COBOL0001; ENTER COBOL DISPLAY refused COBOL6973. The witness ENTER COBOL. passes but is not a witness of the other-language arm. kb/Work PB5308 holds the defect (code read: coderead-85/out-read4/rd-03.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

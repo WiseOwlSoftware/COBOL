@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.20.3-6",
  "rule-digest": "91f59e1ddb87",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportGenerateDetailCount",
  "test-ref": "conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/1985-SR-XIII_3_20_3-6",
+ "notes": "§1985:XIII.3.20.3 SR6: with a GENERATE report-name statement \"the corresponding report description entry must include no more than one detail report group\", and \"If no GENERATE data-name statements are specified for such a report, a detail report group is not required.\" ReportWriterBinder.BindGenerate, on the report-name arm, counts the RD's detail groups when Edition.DialectLevel < 2002 and reports COBOL6823 (an error) at each GENERATE report-name once there are two or more; nothing requires a detail group, so a summary-only report compiles. Probes at --std 85 (classes b,c): two details with GENERATE RPT twice gives two COBOL6823 errors; GENERATE DA then GENERATE RPT gives COBOL6823; two details with only GENERATE DA/DB compiles and prints DET-A, DET-B; no detail with GENERATE RPT compiles and prints two control footings; one detail, three GENERATE RPT gives footings F 002 / F 001 with the detail not printed; GENERATE DA with no such detail refused COBOL1757; the two-detail GENERATE RPT program compiles at --std 2023. The witness is the two-detail refusal.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

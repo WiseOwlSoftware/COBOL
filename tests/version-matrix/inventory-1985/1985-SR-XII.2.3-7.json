@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XII.2.3-7",
  "rule-digest": "a43605fb542f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
  "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-7",
+ "notes": "§1985:XII.2.3 SR7: 'A COPY statement may be specified in the source program anywhere a character-string or a separator, other than the closing quotation mark, may occur except that a COPY statement must not occur within a COPY statement.' CopyProcessor#FindStatementKeyword finds COPY as any text-word (never inside a literal or comment) wherever it stands, and ExpandCopiesOneLevel splices it; ParseCopyStatement, ReadCopyName and ReadOperand refuse a COPY word as an operand, inside pseudo-text, or after the operands (COBOL2451), and at --std 85 ResolveOneCopy refuses library text that holds a COPY (COBOL0900, §1985:XII.2.4 GR12; accepted from 2002). Probes at 85: COPY in the identification division (PROGRAM-ID), the configuration section, a PICTURE clause ('PIC COPY PICX. VALUE'), and mid-statement ('ADD COPY ONE. TO N') expand and run (A=AB N=3); COPY inside a literal and a continued literal stays literal text; COPY as library-name, in pseudo-text-1, twice, and after the text-name refused COBOL2451; COPY as a word operand refused COBOL7006; nested library COPY refused at 85, runs at 2002. The witness is COPY inside pseudo-text-2.",
  "next": {
   "kind": "CHANGED",
   "to": [

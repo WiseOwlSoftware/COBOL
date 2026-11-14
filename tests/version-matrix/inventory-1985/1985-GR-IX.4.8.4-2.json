@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.8.4-2",
  "rule-digest": "6e27f9e4fda8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand",
  "test-ref": "conformance:cases/IX.4.8@1985-USE-STATEMENT/1985-GR-IX_4_8_4-2",
+ "notes": "§1985:IX.4.8.4 GR2: \"Within a declarative procedure, there must be no reference to any nondeclarative procedures\"; it is a general rule with no stated consequence, so by §1985:I.1.6 (\"The results of violating the formats or rules of Standard COBOL are undefined unless otherwise specified\") a 1985 compiler need not refuse it, and 1985 has no RESUME exception to admit. Every procedure-name operand goes through ProcedureTableBuilder.ResolveProcedureOperand into StatementValidation.CheckDeclarativesBoundary, which at --std 85 reports the violation as warning COBOL2375 and compiles (determination docs/CONFORMANCE.md D-DECLREF, the at-85 paragraph); RESUME is refused at 85 by the edition gate (COBOL0876). Probes at --std 85 (classes b,c): PERFORM P-2, PERFORM P-2 THRU P-3 (two warnings), GO TO P-2, PERFORM of the nondeclarative section, ALTER P-SW TO PROCEED TO P-3 (two warnings) each warn COBOL2375 and run; RESUME NEXT STATEMENT refused COBOL0876; the witness's PERFORM and GO TO of declarative paragraphs compile with no diagnostic and print the USE procedure lines. The warning text quotes §2023:14.9.49.3 SR3 (with its RESUME exception) at 85 rather than the 1985 rule, a wording point, not a behavior one.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
