@@ -30,6 +30,8 @@ from typing import NamedTuple
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parent))  # scripts/spec, for inventory_schema
 from inventory_schema import DerivationRow  # noqa: E402  (the §8 row's shape, which the registers' extract shares)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 #: THE document's path, relative to a repository root. The only place a script names it.
@@ -544,7 +546,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.path.append(str(REPO / "scripts"))
-    from standard_streams import ensure_utf8  # noqa: E402  (scripts/, a CLI's console)
     ensure_utf8()
     sys.exit(main(sys.argv[1:]))
