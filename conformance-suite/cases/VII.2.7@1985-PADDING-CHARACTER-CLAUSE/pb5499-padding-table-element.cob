@@ -8,7 +8,7 @@
       *> The clause names no subscript, and "Each table element reference must
       *> be subscripted" (§1985:IV.4.3.8.2.3 SR4), so a data-name-1 that is a
       *> table element (PT, under OCCURS) has no legal reading: refused
-      *> (COBOL2024).
+      *> (COBOL6848; the subscripted form is COBOL2024).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. MP5499.
        ENVIRONMENT DIVISION.

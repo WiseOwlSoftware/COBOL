@@ -123,7 +123,16 @@ internal static class ExternalFileConnectorRules
             foreach (var f in conns)
             {
                 if (FileDescriptionIdentity.Of(f, rule) is not { } mine) continue;
-                if (reference is not { } first) { reference = mine; continue; }
+                if (reference is not { } first)
+                {
+                    reference = mine;
+                    if (rule.Agree(mine.Value, mine.Value)) continue;
+                    using (edition.At(f.ClauseOrEntryAt(mine.At)))
+                        edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
+                            $"external file '{externalName}': this file description entry specifies {rule.Clause} and its own record descriptions are not all the same length "
+                            + $"(\"{mine.Written}\") — the entries of an external file connector agree in it (ISO {rule.Cite})");
+                    continue;
+                }
                 if (rule.Agree(first.Value, mine.Value)) continue;
                 using (edition.At(f.ClauseOrEntryAt(mine.At)))
                     edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,

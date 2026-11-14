@@ -44,7 +44,7 @@ internal static class FileDescriptionIdentity
         new(CodeSet, "the CODE-SET clause", "§1985:VII.3.4.4 GR3", string.Equals),
         new(Linage, "the LINAGE clause", "§1985:VII.3.7.4 GR11", OperandsAgree),
         new(Record, "the RECORD clause", "§1985:VII.3.8.4 GR2", OperandsAgree),
-        new(RecordLength, "no RECORD clause", "§1985:VII.3.8.4 GR2", OperandsAgree),
+        new(RecordLength, "no RECORD clause", "§1985:VII.3.8.4 GR2", SameLength),
         new(ValueOf, "the VALUE OF clause", "§1985:VII.3.9.4 GR2", ValueOfConsistent),
     ];
 
@@ -88,6 +88,10 @@ internal static class FileDescriptionIdentity
     /// for a data-name, empty for a phrase not written.</summary>
     private static string LinageValue(LinageInfo l) => string.Join("|",
         new[] { l.Body, l.Footing, l.Top, l.Bottom }.Select(o => o is null ? "" : o.Literal is { } n ? n.ToString(System.Globalization.CultureInfo.InvariantCulture) : Undecided));
+
+    /// <summary>"All record description entries associated with this file connector must be the same length": both values are one size (a Format 1 shape, no lower
+    /// operand) and the same one. An entry whose own descriptions differ agrees with nothing, itself included (the loop asks every entry against itself).</summary>
+    private static bool SameLength(string a, string b) => a.StartsWith('|') && a == b;
 
     private static bool OperandsAgree(string a, string b)
     {
