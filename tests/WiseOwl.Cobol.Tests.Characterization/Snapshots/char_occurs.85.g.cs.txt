@@ -84,7 +84,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                         goto __searchEnd0;
                     }
                     _IX_1 += 1;
-                    if (_IX_1 > 5L)
+                    if (_IX_1 < 1 || _IX_1 > 5L)
                     {
                         goto __searchAtEnd0;
                     }

@@ -19,7 +19,7 @@ after the subscripts. It now takes the modifier through the one reference-modifi
 
 **PB5183.** At 85 an EVALUATE object no WHEN phrase reached was never evaluated, against §1985:VI.6.13.4 GR1 ("operates as if each
 selection subject and selection object were evaluated"). New `DialectBehavior.EvaluateObjectsInWhenPhraseOrder` (2002, VCR row
-7.68): where it is inactive, `EvaluateBinder.Bind` holds the truth of each pair whose object references a function at the head of
+7.69): where it is inactive, `EvaluateBinder.Bind` holds the truth of each pair whose object references a function at the head of
 the statement (`SendingValueTemp.MaterializeTruth`). Design D5 of docs/CONDITIONS_EXCEPTIONS_DESIGN.md records it.
 
 **PB5297.** `MOVE "A" TO TE (DEBUG-SUB-1)` outside a debugging section compiled: the position is evaluated into a temporary by a

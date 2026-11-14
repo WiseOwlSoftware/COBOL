@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.3.13.4-2",
  "rule-digest": "99fe7ff1307c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GroupIndicatePending; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ArmGroupIndicate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GroupIndicatePresent; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements",
  "test-ref": "conformance:cases/XIII.3.13@1985-GROUP-INDICATE-CLAUSE/1985-GR-XIII_3_13_4-2",
+ "notes": "§1985:XIII.3.13.4 GR2: with neither PAGE nor CONTROL an indicated item 'is presented the first time its detail is presented after the INITIATE statement is executed. Thereafter spaces are supplied for indicated items with SOURCE or VALUE clauses.' INITIATE calls ArmGroupIndicate (every detail's GroupIndicatePending set); PresentBody copies the group's flag to GroupIndicatePresent, which EmitFieldPlacements' guard reads so an unindicated item places nothing (its columns stay spaces) while its LINE is still presented; GenerateCore clears the flag at 85 only when the group was presented (DialectBehavior.GroupIndicateConsumedByIssuedGenerate inactive, PB5246). Probes at --std 85: the witness (HDR 1, 2, 3; HDR 4, 5 after a second INITIATE); a format-3 entry with its own LINE and GROUP INDICATE prints HDR then an empty line, a SOURCE alphanumeric and a signed edited -ZZ9 item print SRC1 / -  5 then spaces while the unindicated -ZZ9 prints 7; a second detail is indicated on its own first presentation and 70 further GENERATEs with no PAGE clause never re-indicate; GROUP INDICATE twice (COBOL2423), in a REPORT FOOTING (COBOL2519) and a 2002 PRESENT WHEN (COBOL0900) are refused.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1535,7 +1535,8 @@ internal sealed class StatementValidation(DataBinder data)
     /// Asked by <c>MoveBinder.BindFromPhrase</c> (WRITE, REWRITE, RELEASE: the sender) and by <see cref="CheckIntoReceiver"/>
     /// (READ, RETURN: the receiver), the two funnels every FROM and INTO phrase passes through, so the next phrase of
     /// the family inherits it. The decision is <see cref="StorageSharing.IsRecordAreaOf"/>; the edition scope is
-    /// <see cref="RecordAreaRule.InForce"/> (COBOL-2023 replaced the rule with its overlapping-operand rules, §2023:14.6.10).
+    /// <see cref="RecordAreaRule.InForce"/> (COBOL-2014 dropped the rule, §2014:E.3, for the overlapping-operand rules
+    /// COBOL-2023 keeps, §2023:14.6.10).
     /// Returns true when the operand is acceptable; false after reporting.</summary>
     public bool CheckPhraseOperandIsNotRecordArea(FileModel file, Place operand, RecordAreaVerb verb, string statement)
     {

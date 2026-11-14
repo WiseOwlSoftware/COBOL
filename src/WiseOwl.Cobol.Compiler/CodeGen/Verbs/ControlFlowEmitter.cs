@@ -707,8 +707,8 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// EC-RANGE-SEARCH-INDEX exception condition is set to exist". The <c>&gt; bound</c> half is emitted at every
     /// edition; the <c>&lt; 1</c> half only when <see cref="BoundSearch.IndexBelowTableIsUnsuccessful"/> holds (from
     /// COBOL-2002, <c>DialectBehavior.SearchIndexBelowTableUnsuccessful</c>, VCR row 7.56): §1985:VI.6.22.4 GR2 tests the
-    /// upper bound alone, so at <c>--std 85</c> the WHEN conditions are evaluated with the index below the table and the
-    /// scan increments it toward occurrence 1 (kb/Work PB5121). Only the EC <c>Set</c> is checking-gated.</item>
+    /// upper bound alone, so at <c>--std 85</c> the WHEN conditions are evaluated with the index below the table (kb/Work
+    /// PB5121); the lower bound is then judged by the advance test below. Only the EC <c>Set</c> is checking-gated.</item>
     /// <item>None of the conditions satisfied → "the search index is incremented by one occurrence number", and
     /// with it (GR3 b)/c)) the VARYING operand: an index data item "incremented by the same amount as, and at the
     /// same time as, the search index", an integer data item "incremented by the value one at the same time".
@@ -719,22 +719,31 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// outside the permissible range of occurrence values, in which case the search operation is unsuccessful,
     /// the EC-RANGE-SEARCH-NO-MATCH exception condition is set to exist". The new value is formed before it is
     /// judged, so an unsuccessful serial search leaves the index (and the in-step item) one past the table — a
-    /// state GR4 contemplates in as many words. ⛔ Format 2 forbids exactly this; see
+    /// state GR4 contemplates in as many words. "Outside the permissible range" is either bound: §1985:VI.6.22.4 GR2 b)
+    /// words the advance the same, so at <c>--std 85</c> an index that started below 0 is still below occurrence 1 after
+    /// the increment and the search is unsuccessful; GR10's figure, which loops back to the "greater than" test only, "is
+    /// not intended to dictate implementation" (kb/Work PB5302). From 2002 the start test leaves no index below 1 to
+    /// increment, so the lower half is emitted only at 85. ⛔ Format 2 forbids exactly this; see
     /// <see cref="EmitAllScan"/>.</item></list></summary>
     private void EmitSerialScan(BoundSearch s, int id, string bound, Action<string, string, bool> unsuccessful)
     {
         var w = ctx.Writer;
-        // GR4 (2002 on): an index below 1 is unsuccessful at the start; §1985:VI.6.22.4 GR2 tests the upper bound alone, so at COBOL-85
-        // an index below the table (left there by a PERFORM, §1985:VI.6.23.4 GR2) starts the scan (kb/Work PB5121).
-        unsuccessful(s.IndexBelowTableIsUnsuccessful ? $"{s.IndexField} < 1 || {s.IndexField} > {bound}" : $"{s.IndexField} > {bound}",
-            "EC-RANGE-SEARCH-INDEX", s.CheckSearchIndex);
+        // "Outside the permissible range of occurrence values" is either bound. GR4 (2002 on) judges the START value by it; §1985:VI.6.22.4
+        // GR2 a) tests the upper bound alone, so at COBOL-85 an index below the table (left there by a PERFORM, §1985:VI.6.23.4 GR2)
+        // starts the scan (kb/Work PB5121) and the lower bound is judged only after an increment (GR2 b), kb/Work PB5302).
+        string upper = $"{s.IndexField} > {bound}";
+        string outside = $"{s.IndexField} < 1 || {upper}";
+        unsuccessful(s.IndexBelowTableIsUnsuccessful ? outside : upper, "EC-RANGE-SEARCH-INDEX", s.CheckSearchIndex);
         w.Line($"__search{id}:");
         EmitSearchWhens(s, id);
         w.Line($"{s.IndexField} += 1;");
         // §2023:14.9.37.4 GR3 b): identifier-2 is incremented with the search index, so an object-property identifier-2 is SET with each
         // increment, before the next WHEN evaluation can read it (kb/Work PB2078).
         if (s.AlsoVaried is { } also) brackets.Receive(also, () => set.AugmentSetTarget(also, down: false, new NumX("1", 0), "SEARCH VARYING"));
-        unsuccessful($"{s.IndexField} > {bound}", "EC-RANGE-SEARCH-NO-MATCH", s.CheckSearchNoMatch);
+        // The new value is judged against BOTH bounds (§2023:14.9.37.4 GR4; §1985:VI.6.22.4 GR2 b) words it the same). From 2002 the
+        // start test admitted only an index at or above 1, so after an increment the lower half cannot hold and is not emitted; at
+        // COBOL-85 an index that started below 0 is still below 1 after the increment and ends the search (kb/Work PB5302).
+        unsuccessful(s.IndexBelowTableIsUnsuccessful ? upper : outside, "EC-RANGE-SEARCH-NO-MATCH", s.CheckSearchNoMatch);
         w.Line($"goto __search{id};");
     }
 

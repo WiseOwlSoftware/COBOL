@@ -364,8 +364,10 @@ public sealed record BoundBinary(BoundExpr Left, char Op, BoundExpr Right) : Bou
 /// <summary>Arithmetic negation.</summary>
 public sealed record BoundNegate(BoundExpr Operand) : BoundExpr;
 
-/// <summary>Exponentiation (<c>base ** exp</c>).</summary>
-public sealed record BoundPower(BoundExpr Base, BoundExpr Exp) : BoundExpr;
+/// <summary>Exponentiation (<c>base ** exp</c>). <see cref="NegativeBaseRealRoots"/>: the COBOL-85 rule for a negative base is in
+/// force, §1985:VI.6.2.3 GR5c's size error only when no real number is the result, rather than the integer-exponent rule of
+/// §2023:8.8.1.2 GR6c (kb/Work PB5186, <c>DialectBehavior.NegativeBaseRequiresIntegerExponent</c>).</summary>
+public sealed record BoundPower(BoundExpr Base, BoundExpr Exp, bool NegativeBaseRealRoots) : BoundExpr;
 
 /// <summary>An INDEXED BY index-name read as its 1-based occurrence number (the C# <c>long</c> index field,
 /// DESIGN §3.5). Valid in SET senders, SEARCH, relation conditions, and subscripts (ISO §2023:13.18.38).</summary>
@@ -1414,7 +1416,7 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
 /// <param name="StrongReceiverCount">That rule's record-area count requirement, quoted.</param>
 /// <param name="EntryFace">How the description entry names itself in a message — "FD" / "SD".</param>
 /// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
-/// at the editions before COBOL-2023 (kb/Work PB5077).</param>
+/// at the editions before COBOL-2014 (kb/Work PB5077, PB5270).</param>
 public sealed record IntoPhraseRules(
     string Statement,
     EditionCite MoveRule,
@@ -2092,7 +2094,8 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 /// <paramref name="AlsoVaried"/> is null there.</para>
 /// <para><paramref name="IndexBelowTableIsUnsuccessful"/> is Format 1's start test (<c>DialectBehavior.SearchIndexBelowTableUnsuccessful</c>, VCR row 7.56): from
 /// COBOL-2002 an index at or below zero is unsuccessful at once (§2023:14.9.37.4 GR4); at COBOL-85 only an index above the table is
-/// (§1985:VI.6.22.4 GR2), and an index below it starts the scan (kb/Work PB5121).</para>
+/// (§1985:VI.6.22.4 GR2a), and an index below it starts the scan (kb/Work PB5121); at COBOL-85 the advance test then judges the
+/// incremented index against both bounds (§1985:VI.6.22.4 GR2b, kb/Work PB5302).</para>
 /// <para><paramref name="Table"/> is identifier-1 as the statement wrote it: the WHOLE table under the enclosing occurrence the
 /// statement names (<c>PlaceBuilder.WholeTable</c>), the operand SEARCH explicitly references (X3.23-1985 USE FOR DEBUGGING general
 /// rule 5; kb/Work PB4855). The scan reads <paramref name="IndexField"/>, never it.</para>

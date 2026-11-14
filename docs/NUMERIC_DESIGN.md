@@ -1003,6 +1003,17 @@ turned it into zero), both silently. One screen, `CheckPowRule6`, now runs on ev
 the value returned is the positive number") and cannot arise here — both bodies yield a single value. Checked in
 the same pass rather than left to be discovered as a fourth leg.
 
+**(b′) r6c is the rule FROM COBOL-2002; COBOL-85 asks whether a real result exists (kb/Work PB5186).** §1985:VI.6.2.3 GR5c
+raises the size error condition only "If no real number exists as the result of the evaluation"; §2002:8.8.1.1 introduced the
+integer-exponent rule (§2002:F.1 item 14). So at `--std 85` `(-32) ** 0.2` is −2 and `(-4) ** 0.5` is the size error. The edition
+is `DialectBehavior.NegativeBaseRequiresIntegerExponent` (VCR row 7.67), read once by `ExpressionBinder.BindPower` into
+`BoundPower.NegativeBaseRealRoots`. Whether a real result exists is a property of the exponent's EXACT value, which its binary64
+cannot carry (0.2 is not 1/5), so at 85 `NumericRenderer.Power` hands the exponent to the runtime as a `CobolExact`
+(`CobolIntrinsics.PowNativeReal(double, CobolExact)` and its checked twin, and `CobolExact.PowReal`'s `negativeBaseRealRoots`
+arm for an exact operand): the exponent `U × 10^−s` is p/q in lowest terms with q odd exactly when 2^s divides U
+(`CobolExact.HasOddDenominator`), and the power is then `±|b|^(p/q)`, negative when p is odd. The zero-base rule is the same in
+every edition and stays `CheckPowRule6`'s; the standard-arithmetic `CobolDec.Pow` is unreachable at 85 (no ARITHMETIC clause).
+
 **⛔ THE VALUE PAST THE CARRIER IS ONE EXACT VALUE, AND THERE IS ONE ARM FAMILY (kb/Work PB69, 2026-08-18; PB4569, 2026-11-04).**
 `PowNativeInt` — the Int128-returning literal-exponent twin — is deleted. Its past-the-carrier fallback SATURATED to
 `Int128.MaxValue`, which is safe above a STORE's capacity check and poison at every value-semantics consumer:

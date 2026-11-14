@@ -856,7 +856,7 @@ static WiseOwl.Cobol.Runtime.CobolExact.FromWide(WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolExact.Mul(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.Negate(WiseOwl.Cobol.Runtime.CobolExact a) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.Pow(WiseOwl.Cobol.Runtime.CobolExact b, System.Int128 e) -> WiseOwl.Cobol.Runtime.CobolExact
-static WiseOwl.Cobol.Runtime.CobolExact.PowReal(WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolExact e, WiseOwl.Cobol.Runtime.SizeChecks taken = WiseOwl.Cobol.Runtime.SizeChecks.None) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.PowReal(WiseOwl.Cobol.Runtime.CobolExact b, WiseOwl.Cobol.Runtime.CobolExact e, WiseOwl.Cobol.Runtime.SizeChecks taken = WiseOwl.Cobol.Runtime.SizeChecks.None, bool negativeBaseRealRoots = false) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.QuotientAtScale(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int toScale, WiseOwl.Cobol.Runtime.CobolRounding mode, bool checkedTransfer) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolExact.Sub(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolExact.SubsidiaryQuotient(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int scale) -> WiseOwl.Cobol.Runtime.CobolExact
@@ -907,7 +907,9 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMaxExact(params WiseOwl.Cobol.Ru
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMaxWide(params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinExact(params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.OrdMinWide(params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> long
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeReal(double b, WiseOwl.Cobol.Runtime.CobolExact exponent) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeRealChecked(double b, double e, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeRealChecked(double b, WiseOwl.Cobol.Runtime.CobolExact exponent, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValue(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolExact rate, params WiseOwl.Cobol.Runtime.CobolExact[]! amounts) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.PresentValueExact(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolExact rate, params WiseOwl.Cobol.Runtime.CobolExact[]! amounts) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.RangeExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolExact
@@ -1136,7 +1138,8 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assign
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 WiseOwl.Cobol.Runtime.ModuleStack.RunningIsMain.get -> bool
 WiseOwl.Cobol.Runtime.DialectBehavior.CancelRefusesEveryActiveProgram = 16 -> WiseOwl.Cobol.Runtime.DialectBehavior
-WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateObjectsInWhenPhraseOrder = 17 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.NegativeBaseRequiresIntegerExponent = 17 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateObjectsInWhenPhraseOrder = 18 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.ProgramTable.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
 WiseOwl.Cobol.Runtime.CobolStandardData

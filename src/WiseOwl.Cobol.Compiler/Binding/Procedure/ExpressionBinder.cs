@@ -1384,7 +1384,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     {
         var bases = p.unaryExpression();
         BoundExpr acc = BindExprCore(bases[0], context);
-        for (int i = 1; i < bases.Length; i++) acc = new BoundPower(acc, BindExprCore(bases[i], context));
+        // Which edition's negative-base rule the power obeys (kb/Work PB5186): §1985:VI.6.2.3 GR5c at 85, §2023:8.8.1.2 GR6c from 2002.
+        bool realRoots = !DialectBehaviors.IsActive(DialectBehavior.NegativeBaseRequiresIntegerExponent, ctx.Edition.Edition.Year);
+        for (int i = 1; i < bases.Length; i++) acc = new BoundPower(acc, BindExprCore(bases[i], context), realRoots);
         return acc;
     }
 

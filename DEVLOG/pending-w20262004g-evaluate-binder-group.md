@@ -10,7 +10,7 @@ and 38) as no longer prohibited. The rule had been kept at 2014 by a DETERMINATI
 repository. `RecordAreaRule.InForce` is now `editionYear < 2014`, and the COBOL6827 descriptor names the 2014 change. The five
 `pb5077-*-own-record-area` refusals refuse at 85 and 2002; the new golden `pb5270_from_into_own_record_area_2014` runs all five
 phrases from 2014 and prints only the defined results (I-O status, the record count the SORT returned). Docs: CONFORMANCE §3.5,
-FILES_DESIGN D31 (b), VCR row 7.67. No inventory row closes: there is no 2014 inventory, and the 2023 rows never carried the rule.
+FILES_DESIGN D31 (b), VCR row 7.68. No inventory row closes: there is no 2014 inventory, and the 2023 rows never carried the rule.
 
 PB5183, PB5163 and PB5209 were re-probed and still reproduce; the fleet stop arrived before their fixes (see the branch's
 STATUS.md for the next step).

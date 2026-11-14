@@ -51,7 +51,7 @@ using Core = CobolParserCore;
 /// <param name="ZeroLengthLiteralRuleCite">The quoted rule forbidding a zero-length literal-1, or
 /// <see langword="null"/> where the verb states none.</param>
 /// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
-/// at the editions before COBOL-2023 (kb/Work PB5077).</param>
+/// at the editions before COBOL-2014 (kb/Work PB5077, PB5270).</param>
 internal sealed record FromPhraseRules(
     string Statement,
     EditionCite MoveRule,
