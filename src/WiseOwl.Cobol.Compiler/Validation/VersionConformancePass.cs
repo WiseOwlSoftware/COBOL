@@ -2804,13 +2804,18 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The LOGICAL NOT of an abbreviated relation (<c>A &gt; B AND NOT &gt;= C</c>; §1985:VI.6.3.3 GRL2.2) — the
-        /// grammar's one <c>negatedAbbreviatedRelation</c> node, which only that reading produces. ISO 2002 prohibited the
-        /// word NOT before the relational operators meaning 'greater than or equal to' and 'less than or equal to'
-        /// (§2002:F.1 item 22), and from 2002 on NOT before a relational operator is part of it or not written at all
-        /// (§2023:8.8.4.12.2; kb/Work PB5123).</summary>
+        /// grammar's one <c>negatedAbbreviatedRelation</c> node, which only the 85 reading produces. Its two shapes have two
+        /// edition histories, so the gate asks <see cref="NegatedAbbreviationForms.Of"/> which one it is (kb/Work PB5123,
+        /// review R1-1). NOT before an IS-led simple relational operator (<c>NOT IS &gt; C</c>) stays legal in 2002, where
+        /// §2002:8.8.4.2.4.3 GR2b makes it part of the operator, and leaves the format in 2014 (§2014:8.8.4.2.4.1). Every
+        /// other shape is prohibited from 2002: NOT before 'greater than or equal to' and 'less than or equal to'
+        /// (§2002:F.1 item 22) and NOT before IS NOT (§2002:8.8.4.2.4.2 SR3).</summary>
         public override object? VisitNegatedAbbreviatedRelation(CobolParserCore.NegatedAbbreviatedRelationContext ctx)
         {
-            _p.Check(Constructs.AbbreviatedNotLogicalRemoved2002, "NOT before the relational operator of an abbreviated relation");
+            if (NegatedAbbreviationForms.Of(ctx) == NegatedAbbreviationForm.IsLedSimpleOperator)
+                _p.Check(Constructs.AbbreviatedNotIsSimpleOperatorRemoved2014, "NOT before an IS-led simple relational operator of an abbreviated relation");
+            else
+                _p.Check(Constructs.AbbreviatedNotLogicalRemoved2002, "NOT before the relational operator of an abbreviated relation");
             return base.VisitChildren(ctx);
         }
 

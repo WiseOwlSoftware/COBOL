@@ -22,8 +22,10 @@
       *> refused or if the carried operator is the negated one (T8:
       *> A >= D is true, A < D false). T11-T12 are the same for <=.
       *> T13 fails if NOT IS > is refused or carries NOT > (A > D is
-      *> true, A NOT > D false). ISO 2002 prohibited the form
-      *> (§2002:F.1 item 22), so it is accepted at 85 alone.
+      *> true, A NOT > D false). ISO 2002 prohibited NOT before >=
+      *> and <= (§2002:F.1 item 22) and read NOT IS > with the NOT
+      *> part of the operator (§2002:8.8.4.2.4.3 GR2b, T13 FALSE
+      *> there), so the program is 85's alone.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5123A.
        DATA DIVISION.

@@ -1,0 +1,12 @@
+{
+ "id": "abbreviated-not-is-simple-operator-removed-2014",
+ "description": "NOT before an IS-led simple relational operator with no NOT of its own in an abbreviated combined relation condition (A > B AND NOT IS > C OR D). At 85 the NOT is the logical operator (§1985:VI.6.3.3 GRL2.2: the word after it is IS, not GREATER, >, LESS, <, EQUAL or =), so the tail is (NOT (A > C)) and > is carried. ISO 2002 prints [NOT] simple-relational-operator in the abbreviated tail (§2002:8.8.4.2.4.1) and GR2 b) of §2002:8.8.4.2.4.3 makes the NOT part of the simple relational operator, so at 2002 the tail is (A NOT > C) and NOT > is carried. The 2014 general format (§2014:8.8.4.2.4.1) drops the bracketed NOT, so from 2014 the shape is in no format: COBOL0902 (a warning under --permissive, the 2002 meaning kept). The other shapes of the grammar's negatedAbbreviatedRelation node are abbreviated-not-logical-removed-2002; NegatedAbbreviationForms.Of partitions the two (kb/Work PB5123, review R1-1).",
+ "display": "NOT before an IS-led simple relational operator in an abbreviated relation",
+ "diagnosticCode": "COBOL0902",
+ "citation": "§1985:VI.6.3.3 GRL2.2; §2002:8.8.4.2.4.3 GR2b; §2014:8.8.4.2.4.1 (the bracketed NOT dropped)",
+ "introducedIn": 85,
+ "removedIn": 2014,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR row 7.74 (kb/Work PB5123)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMANOTIS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 9 VALUE 5.\n01 B PIC 9 VALUE 1.\n01 C PIC 9 VALUE 6.\nPROCEDURE DIVISION.\nMAIN.\n    IF A > B AND NOT IS > C\n        DISPLAY \"TRUE\"\n    END-IF.\n    STOP RUN.\n"
+}

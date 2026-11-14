@@ -11,7 +11,8 @@ public static partial class ConstructRegistry
     /// implemented) are REGISTERED — their edition metadata is frozen here.</summary>
     public static readonly IReadOnlyList<ConstructDialectStatus> Entries =
     [
-        new("abbreviated-not-logical-removed-2002", "a logical NOT before the relational operator of an abbreviated relation", 85, 2002, null, "COBOL0902", "§1985:VI.6.3.3 GRL2.2; §2002:F.1 item 22 (NOT prohibited before >= and <= in an abbreviated combined relation condition); §2023:8.8.4.12.2"),
+        new("abbreviated-not-is-simple-operator-removed-2014", "NOT before an IS-led simple relational operator in an abbreviated relation", 85, 2014, null, "COBOL0902", "§1985:VI.6.3.3 GRL2.2; §2002:8.8.4.2.4.3 GR2b; §2014:8.8.4.2.4.1 (the bracketed NOT dropped)"),
+        new("abbreviated-not-logical-removed-2002", "a logical NOT before the relational operator of an abbreviated relation", 85, 2002, null, "COBOL0902", "§1985:VI.6.3.3 GRL2.2; §2002:F.1 item 22 (NOT prohibited before >= and <= in an abbreviated combined relation condition); §2002:8.8.4.2.4.2 SR3; §2023:8.8.4.12.2"),
         new("accept-four-digit-year-2002", "ACCEPT FROM DATE YYYYMMDD / DAY YYYYDDD", 2002, null, null, "COBOL0815", "ISO §2023:14.9.1.2 (the YYYYMMDD and YYYYDDD phrases; the 1985 formats list only bare DATE / DAY / DAY-OF-WEEK / TIME); §2023:14.9.1.4 GR8"),
         new("address-identifier-2002", "an address-identifier operand (ADDRESS OF ...)", 2002, null, null, "COBOL0900", "ISO §2023:8.4.3.1.2 Format 9 (address-identifier) + §2023:8.4.3.11 / §2023:8.4.3.13; §2023:14.9.4.3 SR3/SR4 (the CALL argument); §2023:14.9.23.3 SR9 (the INVOKE argument); §2023:8.8.4.2.2 Format 3 (the relation operand); 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)"),
         new("aligned-clause-2002", "ALIGNED clause", 2002, null, null, "COBOL0900", "ISO §2023:13.18.1"),

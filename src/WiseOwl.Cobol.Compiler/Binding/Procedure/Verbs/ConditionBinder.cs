@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Expressions;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -803,9 +804,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         Core.UnaryLogicalExpressionContext u => u.NOT() is not null
             ? new BoundNot(BindCondition(u.primaryCondition(), carry)) : BindCondition(u.primaryCondition(), carry),
         Core.AbbreviatedRelationContext ar => BindAbbreviatedRelation(ar, carry),
-        // §1985:VI.6.3.3 GRL2.2: the logical NOT of an abbreviated relation — the insertion happens inside, so the
-        // stated operator is the one carried on (kb/Work PB5123; refused from 2002 by VersionConformancePass).
-        Core.NegatedAbbreviatedRelationContext nar => new BoundNot(BindAbbreviatedRelation(nar.abbreviatedRelation(), carry)),
+        Core.NegatedAbbreviatedRelationContext nar => BindNegatedAbbreviatedRelation(nar, carry),
         Core.PrimaryConditionContext p => BindPrimary(p, carry),
         _ => Refused("unsupported condition form"),
     };
@@ -927,12 +926,32 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// parenthesized group opens a fresh scope — the relation has nothing to insert: COBOL2552 (kb/Work PB1390;
     /// it used to be refused unreported, which the COBOL2319 internal-error net caught).</summary>
     private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry) =>
-        BindAbbreviatedRelation(ar, carry, out _);
+        BindAbbreviatedRelation(ar, carry, negateOperator: false, out _);
+
+    /// <summary>NOT before the relational operator of an abbreviated relation whose next word is not GREATER, &gt;, LESS,
+    /// &lt;, EQUAL or = (the grammar's <c>negatedAbbreviatedRelation</c>; kb/Work PB5123). At 85 the NOT is the logical
+    /// operator, "and, therefore, the implied insertion of subject or relational operator results in a negated relation
+    /// condition" (§1985:VI.6.3.3 GRL2.2): the stated operator is the one carried on. From 2002 the one shape still
+    /// written, NOT before an IS-led simple relational operator, reads the NOT as "part of the simple relational
+    /// operator" (§2002:8.8.4.2.4.3 GR2b), so <c>A &gt; B AND NOT IS &gt; C OR D</c> is
+    /// <c>((A &gt; B) AND (A NOT &gt; C)) OR (A NOT &gt; D)</c> and NOT &gt; is carried (review R1-1). The shape is
+    /// <see cref="NegatedAbbreviationForms.Of"/>'s, the one the edition gate asks; under --permissive a shape gated out
+    /// keeps the meaning of the last edition that had it.</summary>
+    private BoundCondition BindNegatedAbbreviatedRelation(Core.NegatedAbbreviatedRelationContext nar, AbbrevCarry carry) =>
+        ctx.Edition.Edition.Has(2002) && NegatedAbbreviationForms.Of(nar) == NegatedAbbreviationForm.IsLedSimpleOperator
+            ? BindAbbreviatedRelation(nar.abbreviatedRelation(), carry, negateOperator: true, out _)
+            : new BoundNot(BindAbbreviatedRelation(nar.abbreviatedRelation(), carry));
 
     /// <param name="statedObject">The relation's own object as bound, or null when the relation was refused before it was
     /// bound as a relation: the leading partial-expression asks it (<see cref="BindPartialComparison"/>), because the relation
     /// it splices is a boolean relation when its subject OR its object is of class boolean (§2023:8.8.4.2.1).</param>
-    private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry, out BoundOperand? statedObject)
+    private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry, out BoundOperand? statedObject) =>
+        BindAbbreviatedRelation(ar, carry, negateOperator: false, out statedObject);
+
+    /// <param name="negateOperator">A NOT that is part of the relational operator precedes the written one
+    /// (§2002:8.8.4.2.4.3 GR2b; <see cref="BindNegatedAbbreviatedRelation"/>): the negated operator is the stated one,
+    /// so it is the one carried on.</param>
+    private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry, bool negateOperator, out BoundOperand? statedObject)
     {
         statedObject = null;
         if (carry.BooleanRelation)
@@ -944,6 +963,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return Refused("abbreviated relation with no preceding relation subject");
         }
         string op = MapOperator(ar.comparisonOperator().GetText());
+        if (negateOperator) op = NegateOperator(op);
         carry.Op = op;
         statedObject = ComparisonOperand(ar.comparisonOperand());
         return WrittenRelational(subject, op, statedObject);
@@ -2058,9 +2078,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             t.Contains('>') || t.Contains("GREATER") ? (orEqual ? ">=" : ">")
             : t.Contains('<') || t.Contains("LESS") ? (orEqual ? "<=" : "<")
             : "==";
-        if (!not) return baseOp;
-        return baseOp switch { ">" => "<=", ">=" => "<", "<" => ">=", "<=" => ">", "==" => "!=", _ => "==" };
+        return not ? NegateOperator(baseOp) : baseOp;
     }
+
+    /// <summary>The canonical comparison true exactly when <paramref name="op"/> (one of <see cref="MapOperator"/>'s
+    /// results) is false: the operator a NOT that is part of a relational operator makes (§2002:8.7.5.2 SR1).</summary>
+    private static string NegateOperator(string op) => op switch
+    {
+        ">" => "<=", ">=" => "<", "<" => ">=", "<=" => ">", "==" => "!=", "!=" => "==",
+        _ => throw new ArgumentOutOfRangeException(nameof(op), op, "not a canonical comparison"),
+    };
 
     public static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr) =>
         SolePrimary(expr)?.dataReference();
