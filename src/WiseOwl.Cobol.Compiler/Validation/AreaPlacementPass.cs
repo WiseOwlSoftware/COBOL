@@ -4,6 +4,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding;                 // EditionContext, the At(IToken) cursor
 using WiseOwl.Cobol.Editions;                // ConstructRegistry, Constructs
+using WiseOwl.Cobol.Frontend.Common;         // SourcePoint
 using WiseOwl.Cobol.Frontend.Generated;      // CobolParserCore
 using WiseOwl.Cobol.Frontend.Preprocessor;   // AreaPlacement, FixedFormAreas
 
@@ -35,10 +36,12 @@ using Core = CobolParserCore;
 /// at every edition this pass screens (the row is not yet introduced there, an error on both axes), so a compilation
 /// that holds such a line ends before the bind and this pass never sees its token: the line is reported once.</para>
 /// <para>WHY ONE PASS OVER THE TOKENS. The rule has two arms, and each needs the other's knowledge: which tokens head
-/// an area-A item is the GRAMMAR's (the parse tree), where a token begins its line is the REFERENCE FORMAT's
-/// (<see cref="FixedFormAreas"/>, the record the §2023:6.5 logical conversion keeps of where each fixed-form line's text
-/// begins, read through the source map, so a token from library text or REPLACE text is placed where the user wrote
-/// it). The pass collects the heads (<see cref="AreaItems"/>) and then asks every token once, so a token that is not
+/// an area-A item is the GRAMMAR's (the parse tree), the area a token begins in is the REFERENCE FORMAT's
+/// (<see cref="FixedFormAreas"/>, the record the §2023:6.5 logical conversion keeps of each fixed-form line's areas, read
+/// through the source map at the place the token was laid out at, so a token from library text or REPLACE text is placed
+/// where the user wrote it), and WHETHER it begins its line is a fact of the RESULTANT program, which is judged only after
+/// COPY and REPLACE (§1985:XII.2.4 GR8; kb/Work PB5313): the walk reads it from the token before. The pass collects the
+/// heads (<see cref="AreaItems"/>) and then asks every token once, so a token that is not
 /// a head is screened by the second arm automatically — a new statement, clause or entry needs no change here. It
 /// runs pre-bind, beside <see cref="LevelNumberPass"/>: a pure syntax rule over the raw tree whose diagnostics join
 /// the edition gates' instead of pre-empting them.</para>
@@ -56,23 +59,38 @@ internal static class AreaPlacementPass
         items.Visit(tree);
         var pending = new Stack<IParseTree>();
         pending.Push(tree);
+        int previousLine = 0;   // the resultant line of the token before, in text order (the walk's order)
         while (pending.Count > 0)
         {
             var node = pending.Pop();
             if (node is ITerminalNode terminal)
             {
-                if (terminal is not IErrorNode && terminal.Symbol.Type != TokenConstants.EOF)
-                    Screen(terminal.Symbol, areas.PlacementAt(terminal.Symbol.Line, terminal.Symbol.Column), items, edition);
+                var token = terminal.Symbol;
+                if (token.Type == TokenConstants.EOF) continue;
+                // A token begins its line when no token of the program text precedes it on its RESULTANT line (kb/Work
+                // PB5313): the program is judged after COPY and REPLACE (§1985:XII.2.4 GR8), so a line a replacement
+                // introduces is a line, and text a stage dropped (a REPLACE statement's own) is no text before it.
+                bool beginsLine = token.Line != previousLine;
+                previousLine = token.Line;
+                if (terminal is not IErrorNode)
+                    Screen(token, areas.PlacementAt(token.Line, token.Column, beginsLine, out var written), written, items,
+                        edition);
                 continue;
             }
             for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
         }
     }
 
-    private static void Screen(IToken token, AreaPlacement placement, AreaItems items, EditionContext edition)
+    private static void Screen(IToken token, AreaPlacement placement, SourcePoint? written, AreaItems items,
+        EditionContext edition)
     {
         if (placement == AreaPlacement.None) return;
         using var _ = edition.At(token);
+        // A word a replacement placed is judged in the area its pseudo-text-2 writes it in (kb/Work PB5313), which is not
+        // where the diagnostic stands, so the message names it.
+        string area(string which) => written is { } at
+            ? $"begins in area {which}, where pseudo-text-2 writes it (line {at.Origin.Line} of {Path.GetFileName(at.Origin.File)})"
+            : $"begins in area {which}";
         if (items.Heads.TryGetValue(token.TokenIndex, out string? item))
         {
             // §1985:IV.7.3.3: an area-A item "starts in area A of any line": where it starts, not whether it begins the line.
@@ -82,11 +100,11 @@ internal static class AreaPlacementPass
             if (!startsInAreaA)
                 ConstructRegistry.Check(edition.Edition, edition, Constructs.FixedFormAreaAItemOutsideAreaA2002,
                     $"{item} {(placement == AreaPlacement.WithinLineInAreaB ? "follows other text of its line, in area B"
-                        : placement == AreaPlacement.WithinLineInAreaA ? "must begin its line (it follows other text of it)" : "begins in area B")}");
+                        : placement == AreaPlacement.WithinLineInAreaA ? "must begin its line (it follows other text of it)" : area("B"))}");
         }
         else if (placement == AreaPlacement.BeginsLineInAreaA && !items.EitherArea.Contains(token.TokenIndex))
             ConstructRegistry.Check(edition.Edition, edition, Constructs.FixedFormTextInAreaA2002,
-                token.Type == Core.DOT ? "a separator period begins in area A" : $"'{token.Text}' begins in area A");
+                token.Type == Core.DOT ? $"a separator period {area("A")}" : $"'{token.Text}' {area("A")}");
     }
 
     /// <summary>

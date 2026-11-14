@@ -368,12 +368,13 @@ public sealed class CopyProcessor(
     private enum ReplaceKind { Whole, Leading, Trailing }
 
     /// <summary>One REPLACING-phrase operand pair of a COPY (§2023:7.2.3) or REPLACE (§2023:7.2.4) statement: pseudo-text-1 or
-    /// partial-word-1 as the text-words it is compared by, the replacement text exactly as written, and — for a whole
-    /// pseudo-text-2 — what its replacing action would introduce that its statement's rule forbids
+    /// partial-word-1 as the text-words it is compared by, the replacement text exactly as written with the origins of the
+    /// place it was written at (<see cref="To"/>; kb/Work PB5313), whether it is pseudo-text (<see cref="ToIsPseudoText"/>),
+    /// and — for a whole pseudo-text-2 — what its replacing action would introduce that its statement's rule forbids
     /// (<see cref="Introduces"/>; null when nothing), and the literals the replacement text holds (<see cref="Literals"/>),
     /// each with the area it begins in, for the COBOL-85 continued-literal rule (kb/Work PB5382).</summary>
-    private readonly record struct Replacement(IReadOnlyList<TextWord> From, string To, ReplaceKind Kind,
-        string? Introduces = null, IReadOnlyList<IntroducedLiteral>? Literals = null);
+    private readonly record struct Replacement(IReadOnlyList<TextWord> From, MappedText To, bool ToIsPseudoText,
+        ReplaceKind Kind, string? Introduces = null, IReadOnlyList<IntroducedLiteral>? Literals = null);
 
     /// <summary>A literal a replacement places into the resultant text: its value as written, the character positions it
     /// takes, and whether it begins in area A — known for a literal of pseudo-text-2, which "begins in the same area of the
@@ -420,22 +421,24 @@ public sealed class CopyProcessor(
     /// in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is
     /// specified on a debugging line", §1985:XII.2.4 GR9), and otherwise it is what pseudo-text-2 wrote, unless
     /// <paramref name="takesReplacedIndicator"/> — COBOL-85's REPLACE, whose introduced lines take "the same character as
-    /// the line on which the text being replaced begins" (§1985:XII.3.4 GR11) — makes it a source line too.</summary>
-    private static string IntroducedText(string to, bool onDebuggingLine, bool takesReplacedIndicator)
+    /// the line on which the text being replaced begins" (§1985:XII.3.4 GR11) — makes it a source line too. The text keeps
+    /// the origins <paramref name="to"/> was written at (kb/Work PB5313), which lay out the words a replacement places.</summary>
+    private static MappedText IntroducedText(MappedText to, bool onDebuggingLine, bool takesReplacedIndicator)
     {
         bool decided = onDebuggingLine || takesReplacedIndicator;   // every line's indicator is the replaced line's
-        if (!decided || (to.IndexOf('\n') < 0 && !StartsWithCarrier(to, 0))) return to;
+        string text = to.Text;
+        if (!decided || (text.IndexOf('\n') < 0 && !StartsWithCarrier(text, 0))) return to;
         string carrier = ReferenceFormatProcessor.DebugLineCarrier;
-        var sb = new StringBuilder(to.Length + carrier.Length * 4);
+        var w = new OriginWriter();
         int start = 0;
         for (bool first = true; ; first = false)
         {
-            int end = to.IndexOf('\n', start);
-            int bodyStart = StartsWithCarrier(to, start) ? start + carrier.Length : start;
-            if (!first && onDebuggingLine) sb.Append(carrier);
-            sb.Append(to, bodyStart, (end < 0 ? to.Length : end) - bodyStart);
-            if (end < 0) return sb.ToString();
-            sb.Append('\n');
+            int end = text.IndexOf('\n', start);
+            int bodyStart = StartsWithCarrier(text, start) ? start + carrier.Length : start;
+            if (!first && onDebuggingLine) w.Append(carrier.AsSpan(), to.PointAt(start));
+            w.AppendSlice(to, bodyStart, (end < 0 ? text.Length : end) - bodyStart);
+            if (end < 0) return w.Finish();
+            w.NewLine(to.PointAt(end));
             start = end + 1;
         }
     }
@@ -544,7 +547,7 @@ public sealed class CopyProcessor(
             bool matched = false;
             for (int operand = 0; operand < active.Count; operand++)
             {
-                var (from, to, kind, introduces, literals) = active[operand];
+                var (from, to, toIsPseudoText, kind, introduces, literals) = active[operand];
                 if (kind == ReplaceKind.Whole)
                 {
                     if (w + from.Count > words.Count) continue;
@@ -558,8 +561,9 @@ public sealed class CopyProcessor(
                     sb.AppendSlice(mapped, copiedUpTo, matchStart - copiedUpTo);
                     int lineStart = matchStart == 0 ? 0 : text.LastIndexOf('\n', matchStart - 1) + 1;
                     bool onDebuggingLine = lineStart == 0 ? firstLineIsDebugging : StartsWithCarrier(text, lineStart);
-                    string introduced = IntroducedText(to, onDebuggingLine,
+                    var introducedText = IntroducedText(to, onDebuggingLine,
                         takesReplacedIndicator: fixedForm && !rule.KeepsPseudoTextDebuggingLines);
+                    string introduced = introducedText.Text;
                     // A replacement that BEGINS on a debugging line of its own (pseudo-text-2 written with its D indicator, kept by
                     // COPY) starts a line: the carrier makes every text word after it on the resultant line debugging text, so
                     // library text ahead of the match on the same line would be hidden with it and the program with the debugging lines
@@ -567,7 +571,12 @@ public sealed class CopyProcessor(
                     if (StartsWithCarrier(introduced, 0) && !CobolSpace.IsBlank(text.AsSpan(lineStart, matchStart - lineStart)))
                         sb.NewLine(mapped.PointAt(matchStart));
                     // The replacement is written here, so it stands at the position of the text it replaced (kb/Work PB1801).
-                    sb.Append(introduced.AsSpan(), mapped.PointAt(matchStart));
+                    // A word of pseudo-text-2 "begins in the same area of the resultant program as it appears in
+                    // pseudo-text-2", and identifier-2, literal-2 and word-2 in that of the leftmost word replaced
+                    // (§1985:XII.2.4 GR9; REPLACE's pseudo-text-2 the same, §1985:XII.3.4 GR10): pseudo-text-2 is laid out
+                    // where it was written (kb/Work PB5313).
+                    if (toIsPseudoText) sb.AppendLaidOut(introducedText, mapped.PointAt(matchStart));
+                    else sb.Append(introduced.AsSpan(), mapped.PointAt(matchStart));
                     if (introduces is not null) Forbidden(operand, matchStart, introduces);
                     if (onDebuggingLine && fixedForm) ContinuedLiterals(literals, matchStart);
                     while (nextDirective < directives.Count && directives[nextDirective].Start < matchStart) nextDirective++;
@@ -612,8 +621,8 @@ public sealed class CopyProcessor(
 
                 sb.AppendSlice(mapped, copiedUpTo, words[w].Start - copiedUpTo);
                 var at = mapped.PointAt(words[w].Start);
-                string produced = leading ? string.Concat(to.AsSpan(), word[part.Length..])
-                    : string.Concat(word[..^part.Length], to.AsSpan());
+                string produced = leading ? string.Concat(to.Text.AsSpan(), word[part.Length..])
+                    : string.Concat(word[..^part.Length], to.Text.AsSpan());
                 sb.Append(produced.AsSpan(), at);
                 if (ForbiddenIn(produced, rule) is { } what) Forbidden(operand, words[w].Start, what);
                 copiedUpTo = words[w].End;
@@ -1214,6 +1223,10 @@ public sealed class CopyProcessor(
         /// written at, tabs expanded (<see cref="ProgramTextOffsetAt"/>; kb/Work PB5503).</summary>
         public int ProgramTextOffset(int at) => ProgramTextOffsetAt(formats, mapped.LocateAt(at));
 
+        /// <summary>The statement's text from <paramref name="from"/> up to <paramref name="to"/>, with the origins of the
+        /// place it was written at (kb/Work PB5313).</summary>
+        public MappedText Slice(int from, int to) => mapped.Slice(from, to - from);
+
         /// <summary>Record that the caller reported an error of its own, so no syntax error follows it.</summary>
         public void MarkError() => HasError = true;
 
@@ -1398,7 +1411,7 @@ public sealed class CopyProcessor(
             c.Advance(by);
             if (ReadOperand(c, screen, nonPseudoText, nestedCopy) is not { } to) return;
             ScreenOperandPair(screen, from, to, kind);
-            into.Add(new Replacement(from.MatchWords, to.Text, kind,
+            into.Add(new Replacement(from.MatchWords, to.Written, to.IsPseudoText, kind,
                 kind == ReplaceKind.Whole ? ForbiddenIn(to.Text, screen.Rules.Result) : null,
                 kind == ReplaceKind.Whole ? IntroducedLiterals(c, to) : null));
             any = true;
@@ -1430,12 +1443,14 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>One REPLACING operand as read from its statement: its text as written (the content of
-    /// <c>==pseudo-text==</c> without its delimiters, or the operand's own span), where it starts, whether it is
-    /// pseudo-text, and its elements AS SCANNED IN THE STATEMENT — never re-scanned out of context, where the operand's
-    /// first characters would sit at a line start (a <c>==&gt;&gt;PAGE==</c> written mid-line is a text-word, not a
-    /// compiler directive line).</summary>
-    private readonly record struct Operand(string Text, List<TextWord> Elements, int Start, bool IsPseudoText)
+    /// <c>==pseudo-text==</c> without its delimiters, or the operand's own span) with the origins of the place it was
+    /// written at (<see cref="Written"/>; kb/Work PB5313), where it starts, whether it is pseudo-text, and its elements AS
+    /// SCANNED IN THE STATEMENT — never re-scanned out of context, where the operand's first characters would sit at a line
+    /// start (a <c>==&gt;&gt;PAGE==</c> written mid-line is a text-word, not a compiler directive line).</summary>
+    private readonly record struct Operand(MappedText Written, List<TextWord> Elements, int Start, bool IsPseudoText)
     {
+        public string Text => Written.Text;
+
         /// <summary>The text-words compared (§2023:7.2.3.4 9) c) / §2023:7.2.4.4 8) c): no separator comma or semicolon and no
         /// compiler directive line — each is a single space).</summary>
         public List<TextWord> MatchWords => Elements.FindAll(e => !e.IsSpaceForMatching);
@@ -1472,8 +1487,11 @@ public sealed class CopyProcessor(
                     if (t.End < c.Text.Length && c.Text[t.End] is not (',' or ';' or '.')
                         && !CobolSpace.IsSeparator(c.Text[t.End]))
                         screen.Delimiter(t.Start, $"the closing == is followed by '{c.Text[t.End]}'");
-                    return new Operand(c.Text[w.End..t.Start].Trim(CobolSpace.Separators), elements, w.Start,
-                        IsPseudoText: true);
+                    // The content without its delimiters, and without the spaces and line ends that stand beside them.
+                    int contentStart = w.End, contentEnd = t.Start;
+                    while (contentStart < contentEnd && CobolSpace.IsSeparator(c.Text[contentStart])) contentStart++;
+                    while (contentEnd > contentStart && CobolSpace.IsSeparator(c.Text[contentEnd - 1])) contentEnd--;
+                    return new Operand(c.Slice(contentStart, contentEnd), elements, w.Start, IsPseudoText: true);
                 }
                 if (t.IsWord("COPY")) nestedCopy?.Invoke(t.Start);
                 elements.Add(t);
@@ -1487,7 +1505,7 @@ public sealed class CopyProcessor(
         if (w.Kind == TextWordKind.Literal)
         {
             c.Advance(w);
-            return new Operand(w.Value, [w], w.Start, IsPseudoText: false);
+            return new Operand(c.Slice(w.Start, w.End), [w], w.Start, IsPseudoText: false);
         }
         if (w.Kind != TextWordKind.CharacterString)
         {
@@ -1523,7 +1541,7 @@ public sealed class CopyProcessor(
                 else if (t.Span[0] == ')' && --depth == 0) break;
             }
         }
-        return new Operand(c.Text[start..c.Pos], words, start, IsPseudoText: false);
+        return new Operand(c.Slice(start, c.Pos), words, start, IsPseudoText: false);
     }
 
     /// <summary>The places searched for library text, in order — THE default COBOL library of the DOC-A.1-40
