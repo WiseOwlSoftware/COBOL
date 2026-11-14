@@ -404,7 +404,7 @@ intrinsic family shares; unchecked the sum, difference and product are the bare 
 `CobolFloat.Div`. **A zero divisor raises in EVERY lane, checked or not** (kb/Work PB1605): `CobolNum.Divide`,
 `CobolFloat.Div` and `CobolDec.Div` all throw the one `CobolSizeError.ZeroDivide()` (§2023:14.7.5 case 2 exists whether
 or not checking is enabled — checking picks only the disposition, and with checking off it is DOC-A.1-70's abnormal
-termination); `ZeroDivisorLaneTests` holds all three arms and both checked twins.
+termination, save in a COBOL-85 arithmetic statement, which ends and lets the program continue, kb/Work PB5484); `ZeroDivisorLaneTests` holds all three arms and both checked twins.
 
 **MOVE/DISPLAY/compare.** literal→float = the fixed→float cast; float→fixed = `ToScaled`; float→float = a `ClrType`
 cast. DISPLAY = `CobolFloat.Display(float/double)` — invariant-culture shortest round-trip (§2023:14.9.11 GR1
@@ -920,7 +920,7 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 - COMP-5 signed negative extreme (−2^(width−1), e.g. −32768 for 2 bytes) is IN range — a naive magnitude check mis-flags it; bound the signed two's-complement value, not the magnitude (legacy clean ExceedsBinaryCapacity).
 - COMP-5 unsigned 8-byte range (long.Max, ulong.Max] requires `Int128` storage — a signed-long codec cannot hold it; the monomorphic wide engine carries the full 0..2^64−1 range.
 - Exponentiation: 0**0 → EC-SIZE-EXPONENTIATION; negative base with non-integer exponent → EC-SIZE-EXPONENTIATION; negative base with integer exponent → defined (real) result; a base whose both-roots are returned uses the positive root (§2023:8.8.1.2 rule 6).
-- Divide by zero → EC-SIZE-ZERO-DIVIDE in every lane (`CobolSizeError.ZeroDivide()`, never a .NET DivideByZeroException, a 0 or an Infinity): under SIZE ERROR the receiver is unchanged and the phrase runs; with checking off and no phrase the run unit terminates abnormally (CONFORMANCE.md DOC-A.1-70, kb/Work PB1605).
+- Divide by zero → EC-SIZE-ZERO-DIVIDE in every lane (`CobolSizeError.ZeroDivide()`, never a .NET DivideByZeroException, a 0 or an Infinity): under SIZE ERROR the receiver is unchanged and the phrase runs; with checking off and no phrase the run unit terminates abnormally (CONFORMANCE.md DOC-A.1-70, kb/Work PB1605) from 2002, while at COBOL-85 the arithmetic statement ends, its resultant unchanged, and the program continues (§1985:VI.6.4.2 GR3; `ArithmeticEmitter.EmitArith`'s two-phase shape with no condition checked and every raise caught, kb/Work PB5484).
 - ROUNDED MODE PROHIBITED: an inexact result at the receiver scale raises SIZE ERROR and leaves the receiver UNCHANGED even though no overflow occurred (ISO §2023:14.7.4.3 rule 7) — TryStore checks inexactness before the capacity check.
 - Trailing-P rounding grid: PIC 9(3)P value 1234 is stored as 1230 (multiple of 10^1) and capacity counts only the 3 nines; ScaleAndRound must round to the 10^P grid, not to scale 0.
 - Composite-of-operands limit is a COMPILE-time diagnostic for ADD/SUBTRACT/MULTIPLY/DIVIDE (not COMPUTE); exceeding it is a compile error, not a runtime SIZE ERROR. The threshold is 18 digits at 85 (§1985:VI.6.4.4 item 2) and 31 from 2002 (§2023:14.7.7 rule 2 — see the Edition gating section).

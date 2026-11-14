@@ -257,7 +257,8 @@ public sealed class RelativeConnector : KeyedConnector
         _lastSlot = s;
         NoteRecordRead(read.Image, read.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(read.Image);
-        return ReadSucceeded(FileStatusCode.Success);
+        // §1985:VIII.4.5.4 GR16 — outside the reader's record size the READ is successful, with '04' (FileConnector.RecordLengthConflicts)
+        return ReadSucceeded(RecordLengthConflicts(read.Image.Length) ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success);
     }
 
     /// <summary>Format-2 random READ (§2023:14.9.30 GR29): the FPI takes the RELATIVE KEY item's value (staged by
@@ -275,7 +276,8 @@ public sealed class RelativeConnector : KeyedConnector
         _lastSlot = _pendingKey;
         NoteRecordRead(rec.Image, rec.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(rec.Image);
-        return ReadSucceeded(FileStatusCode.Success);
+        // §1985:VIII.4.5.4 GR16 — outside the reader's record size the READ is successful, with '04' (FileConnector.RecordLengthConflicts)
+        return ReadSucceeded(RecordLengthConflicts(rec.Image.Length) ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success);
     }
 
     /// <summary>The record a tree value holds, in the native character set (§2023:13.18.13.4 GR6 a)); null for a value this

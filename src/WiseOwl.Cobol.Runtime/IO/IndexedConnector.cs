@@ -534,7 +534,7 @@ public sealed class IndexedConnector : KeyedConnector
         _lastReadPrime = found.Prime;
         NoteRecordRead(found.Record.Image, found.Record.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(found.Record.Image);
-        return ReadSucceeded(duplicate ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success);
+        return ReadSucceeded(IndexedReadStatus(found.Record.Image.Length, duplicate));
     }
 
     /// <summary>Format-2 random READ (§2023:14.9.30 GR30–GR32): <paramref name="keyIndex"/> becomes the key of
@@ -568,8 +568,17 @@ public sealed class IndexedConnector : KeyedConnector
         _lastReadPrime = found.Prime;
         NoteRecordRead(found.Record.Image, found.Record.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(found.Record.Image);
-        return ReadSucceeded(duplicateFollows ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success);
+        return ReadSucceeded(IndexedReadStatus(found.Record.Image.Length, duplicateFollows));
     }
+
+    /// <summary>The status of a successful indexed READ (kb/Work PB5480): '04' when the record's length is outside the reader's
+    /// record size (§1985:IX.4.5.4 GR18, <see cref="FileConnector.RecordLengthConflicts"/>), else '02' when the next record
+    /// duplicates the key of reference (§1985:IX.1.3.4 GRL2.1, §2023:14.9.30.4 GR27), else '00'. DETERMINATION: with both
+    /// conditions true the one status is '04', the length conflict, which GR18 states as the READ's own outcome and which
+    /// the delivered record's content depends on, while '02' only reports a neighbour (docs/CONFORMANCE.md).</summary>
+    private string IndexedReadStatus(int recordLength, bool duplicateFollows) =>
+        RecordLengthConflicts(recordLength) ? FileStatusCode.RecordLengthShortLong
+        : duplicateFollows ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
 
     /// <summary>Whether the record after <paramref name="found"/> in alternate key <paramref name="keyIndex"/>'s order (key
     /// part, then release ordinal — §2023:14.9.30.4 GR26) has an equal key part: a seek strictly past the entry, selection
