@@ -18,7 +18,7 @@ by hand and bumped the major, so two such branches always conflicted, and the re
 has its OWN hash, which no branch measured, and its own major (a finisher's merge, 2026-10-24: "main's 17 shipped
 AnnuityDec(CobolRounding, CobolDec, long), so the merged surface is an incompatible change against main's 17: major 18").
 So an author runs `bump` or `repin`, which edits the three places a number lives and has the test WRITE the measurement
-(`WISEOWL_COBOL_WRITE_ABI_PIN=1`, as `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1` writes the diagnostics doc).
+(`WISEOWL_COBOL_WRITE_ABI_PIN=1`, as `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC` has its test write the diagnostics render).
 
 ⛔ NO MERGE DRIVER (owner, kb/Work PB5110: "No custom merge drivers are required"). Two branches that both changed the pin
 conflict in plain git, here and in the merge queue alike, and the finisher regenerates: take main's pin, re-apply this branch's
@@ -27,7 +27,7 @@ own bump (`bump`, or `repin`), and the measuring test writes the hashes of the m
 progress: it writes the pin's counters into `Directory.Build.props` and `RuntimeAbi.cs`, measures the tree and stages the three.
 
 ⛔ A SETTLE THAT FAILS SAYS WHOSE FAILURE IT IS (kb/Work PB3673). `settle` returns a `Failure(cause, why)`, the cause one of
-the two `merge-*` rows of gate.NOT_RUN_CAUSES, the gate's one classification by who can fix a cause: MERGE_BLOCKED
+the two `merge-*` rows of gate_verdict.NOT_RUN_CAUSES, the gate's one classification by who can fix a cause: MERGE_BLOCKED
 (the host's: a build output another process holds, a full disk, a command that cannot start, a git write refused; no finisher
 can fix it and a retry may clear it) or MERGE_FAILED (the tree's own: a malformed pin or owned file, a build or the
 measuring test that is red, a measurement that wrote no pin). `git_merge.merge` gives git's own refusals the same two.
@@ -62,7 +62,7 @@ NL = chr(10)
 _VERSION = re.compile(r"(<Version>)(\d+)(\.0\.0</Version>)")
 _CALL_ABI = re.compile(r"(public static int CallAbi \{ get; \} = )(\d+)(;)")
 #: THE TWO CLASSES OF A CLEAN MERGE THAT COULD NOT BE COMPLETED (kb/Work PB3673): the tags of the two `merge-*` rows of
-#: gate.NOT_RUN_CAUSES, the gate's ONE classification of a cause by who can fix it (enqueue.py reads the class
+#: gate_verdict.NOT_RUN_CAUSES, the gate's ONE classification of a cause by who can fix it (enqueue.py reads the class
 #: from there; enqueue.py's self-test holds each tag to a row). BLOCKED is a cause outside the merged tree, which no
 #: finisher fixes and a retry may clear; FAILED is the merged tree's own. The settle's Failure carries them, and
 #: git_merge.merge gives git's own refusals of the merge commit the same two.

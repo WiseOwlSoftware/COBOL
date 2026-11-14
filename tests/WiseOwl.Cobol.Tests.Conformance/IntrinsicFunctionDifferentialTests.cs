@@ -915,7 +915,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         // its first entry is CURRENT (r7 — OUTERMOST granularity) while every entry after it is the ACTIVATING
         // chain (r5 — ELEMENT granularity). For a contained program those two coincide, so OUTERM appears as both
         // the CURRENT entry and the first link of the chain. A visible repeat can be read; dropped frames cannot.
-        // Recorded as an implementor determination in docs/CONFORMANCE.md §4.2.16 row 213.
+        // Recorded as an implementor determination in docs/CONFORMANCE.md DOC-A.1-213.
         var src = """
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OUTERM.

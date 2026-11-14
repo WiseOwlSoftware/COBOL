@@ -40,7 +40,7 @@ The driver, `scripts/gate.py` (DESIGN-test-build-ci.md §3.13, §3.14; kb/Work P
 second gate in the same worktree is refused), decides the change's LANE (`python scripts/inert_lane.py classify --base
 <rev>`: a change no test reads is the INERT LANE, which runs the audits alone, kb/Work PB2878 — `docs/`, `kb/`, `DEVLOG/` and EVERY `*.md` since kb/Work PB4453: what a document says is the DOC AUDITS audit, never a test; a change whose every other path
 is tooling in `scripts/`, `.github/`, `tools/` or `.claude/` that no compiler test or the build reads — not under
-`inert_lane.py`'s `CODE_READS` — is the TOOLING LANE, which runs the audits with the script self-tests and no slot, build or
+`lane_classification.py`'s `CODE_READS` — is the TOOLING LANE, which runs the audits with the script self-tests and no slot, build or
 test host, its verdict `TOOLING LANE (kb/Work PB4395)`), starts the audits BESIDE
 everything after them (outside the slot; FAIL-FAST: a red audit known before the slot or the hosts ends the gate in
 seconds with `NO TEST RAN`, and one found while the hosts run STOPS them, kb/Work PB2523, PB4326 — run `python
@@ -163,7 +163,7 @@ re-run). Here, additionally:
 - `scripts/build-local.{ps1,sh}` prints ONE `=== BUILD-LOCAL GATE: ` verdict line — `GREEN`, `RED`, `BUILD
   FAILED`, `BUSY` (exit 3: another gate holds
   this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN [<cause>]` (exit
-  2: it measured nothing; the cause's class is `gate.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
+  2: it measured nothing; the cause's class is `gate_verdict.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
   `[interpreter]` is no defect of yours, BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
   block on that line, never on the exit code. The run directory it names holds
   every host's full log and trx (`Conformance.trx`, `Unit.trx`, `Characterization.trx`), each listing, the first-classes

@@ -381,14 +381,14 @@ internal sealed class TestWeights
 
 /// <summary>THE ORDER OF A RUN (kb/Work PB4328; DESIGN-test-build-ci.md section 3.14.3): the test collections whose
 /// classes the gate names FIRST (the file <see cref="FirstVariable"/> names: the classes red at the worktree's previous
-/// gate or in the merge-queue run that bounced it, written by <c>scripts/gate.py</c> <c>Gate._first</c>), then every
+/// gate or in the merge-queue run that bounced it, written by <c>scripts/gate_legs.py</c> <c>Legs.first</c>), then every
 /// collection longest first by the committed weights (a collection weighs the sum of its classes' weights, a class the
 /// file does not name the default), ties in discovery order. Longest first keeps a long collection from starting last
 /// and running alone at the end; the first classes put a re-gate's likely reds where its log shows them first. It
 /// ORDERS, it never selects: every collection it is handed is returned exactly once (<see cref="GateOrder"/>).</summary>
 internal sealed class GateOrderer(string assemblyKey, TestWeights weights, IReadOnlySet<string> first)
 {
-    /// <summary>The variable naming the first-classes file, one class per line (<c>scripts/gate.py</c> <c>FIRST_CLASSES</c>,
+    /// <summary>The variable naming the first-classes file, one class per line (<c>scripts/gate_host.py</c> <c>FIRST_CLASSES</c>,
     /// the same name; its prefix is one <c>scripts/test_population.py</c> scrubs, so only the gate hands it to a host).</summary>
     public const string FirstVariable = "WISEOWL_COBOL_GATE_FIRST";
 

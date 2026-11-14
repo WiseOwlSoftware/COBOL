@@ -29,8 +29,8 @@ WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not
     a PROPAGATION FAULT (PR #385, 2026-10-22: job `ci-gate` completed success at 18:46:46Z, its check-run on the head
     commit stayed in_progress for 50 minutes, the queue empty, the merge state BLOCKED): `CheckRun.stuck`.
 `fetch_bounce_results` asks for the REDS of a bounce (kb/Work PB3644): it downloads the test results of the
-newest failed merge-group run of a branch's open pull request into the worktree (`gate.CI_BOUNCE_RESULTS`), where the
-gate runs their classes first (`gate.Host.fetch_bounce_results`, called before every gate's order is drawn).
+newest failed merge-group run of a branch's open pull request into the worktree (`gate_host.CI_BOUNCE_RESULTS`), where the
+gate runs their classes first (`gate_host.Host.fetch_bounce_results`, called before every gate's order is drawn).
 `live_heads` asks which commits the queue is TESTING (kb/Work PB3769): it returns the head commit of each of the
 queue's current entries (`mergeQueue(branch: "main").entries.headCommit`: the merge-group commit its workflow run tests)
 for CI's `supersede` job (scripts/orchestrator/cancel_superseded.py), which cancels every unfinished merge-group run whose
@@ -315,7 +315,7 @@ class BounceFetch:
 
 
 def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) -> BounceFetch:
-    """THE REDS OF A BOUNCE, where the gate reads their classes to run first (kb/Work PB3644, PB4328; gate.CI_BOUNCE_RESULTS): the test
+    """THE REDS OF A BOUNCE, where the gate reads their classes to run first (kb/Work PB3644, PB4328; gate_host.CI_BOUNCE_RESULTS): the test
     results (TRX) of the newest FAILED merge-group run of `branch`'s open pull request, downloaded into `dest`. The
     queue's bounce lives in GitHub's CI run, never in a worktree, so a finisher's re-gate planned from local files alone
     ran the failed cases in the order of any other gate (the bounce's classes go first). Returns a BounceFetch: the line saying what `dest`

@@ -1302,8 +1302,11 @@ def main(argv):
             print("usage: drift_rules.py --out <path>")
             return 2
         out = pathlib.Path(argv[1])
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(render(rows), encoding="utf-8", newline="\n")
+        from rendered_views import write_rendered  # noqa: PLC0415  (scripts/: the one writer of a view, its stamp)
+        refused = write_rendered(out, render(rows))
+        if refused is not None:
+            print(f"⛔ {refused}")
+            return 1
         print(f"wrote {out} — {len(rows)} drift tests")
         return 0
     if not argv:

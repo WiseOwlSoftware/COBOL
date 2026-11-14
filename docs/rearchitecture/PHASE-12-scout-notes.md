@@ -377,7 +377,7 @@ registry (since P2.10a, landed the day AFTER the plan was written) is **`src/Wis
 DiagnosticCatalog.cs`** (public static `DiagnosticDescriptor` fields; `All` reflects them) + `DiagnosticDescriptor.cs`.
 A new catalog-routed code touches THREE things: the descriptor in `DiagnosticCatalog.cs`, the emit site
 (`Edition.Error(DiagnosticCatalog.X, …)`), and the regenerated **`docs/DIAGNOSTICS.md`** (`pwsh
-scripts/gen-diagnostics-doc.ps1` or `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1`). Enforced by
+scripts/gen-diagnostics-doc.ps1`). Enforced by
 `tests/WiseOwl.Cobol.Tests.Unit/DiagnosticRegistryDriftTests.cs` (unique Ids :26; no bare literal for split codes
 0899/1533 :37; doc-in-sync :55). `EditionCodes.cs` holds ONLY 0900-0903. Bare-string emit
 (`Edition.Error("COBOLnnnn", …)`) is still legal for non-split codes, but the P10/P11 pattern for new rule-FAMILY

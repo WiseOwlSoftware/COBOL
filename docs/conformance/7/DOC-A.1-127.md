@@ -1,0 +1,3 @@
+---
+cells: ["DOC-A.1-127", "**OBJECT-COMPUTER paragraph — computer-name and implied equipment configuration**, §2023:12.3.6 GR2, optional (documented if provided)", "**Not provided.** `computer-name-1` (ISO §2023:12.3.6.2 — optional since 2002; kb/Work PB78) is accepted with any spelling and identifies no equipment configuration: there is ONE object computer, the .NET runtime the program is compiled for, whether the name is present, absent (§2023:12.3.6.4 GR3), or the paragraph is omitted (GR4). The clauses that follow it (PROGRAM COLLATING SEQUENCE; CHARACTER CLASSIFICATION — A.4.9 item 7, implemented, kb/Work PB64 T5) behave identically with or without a name.", "`conformance:cases/A.1-Implementor-defined-language-element-list/pb373_object_computer_name_inert`"]
+---

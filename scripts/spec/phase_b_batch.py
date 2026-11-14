@@ -64,7 +64,8 @@ DEFAULT_OUT = REPO / "scratchpad" / "phase-b"
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation  # noqa: E402  (THE citation format and its parser, kb/Work PB4887)
 import grammar_source  # noqa: E402  (THE reader of the grammar's rules, kb/Work PB3204)
-import inventory_schema  # noqa: E402  (THE reader of the catalog and the §7 register, kb/Work PB3209)
+import conformance_source  # noqa: E402  (THE reader of docs/CONFORMANCE.md and its §7 register, kb/Work PB3209, PB5395)
+import inventory_schema  # noqa: E402  (THE reader of the rule catalog)
 import inventory_view  # noqa: E402  (THE view of the inventory, kb/Work PB4992)
 import work  # noqa: E402  (path must be set first)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -523,25 +524,32 @@ def doc_lines(path: pathlib.Path) -> tuple[str, ...]:
     return tuple(path.read_text(encoding="utf-8", errors="replace").splitlines()) if path.exists() else ()
 
 
-@functools.lru_cache(maxsize=2)
-def register_rows_by_line(lines: tuple[str, ...]) -> dict[int, str]:
-    """`{line -> row key}` for the §7 Annex A.1 register (`DOC-A.1-<n>`) in these docs/CONFORMANCE.md lines.
+@functools.lru_cache(maxsize=None)
+def conformance_statement() -> conformance_source.Conformance:
+    """docs/CONFORMANCE.md read once per run: half a megabyte of very long rows, re-read for each of a batch's subjects it
+    would be the largest single cost in here."""
+    return conformance_source.load(REPO)
 
-    ⛔ THE REGISTER HAS ONE READER, `inventory_schema.section7_rows_at` (kb/Work PB3209). This dossier once kept
-    its own pattern for "an A.1 row" — a first cell that is a bare number — written before §7 was re-keyed to
+
+@functools.lru_cache(maxsize=2)
+def register_rows_by_line(conformance: conformance_source.Conformance) -> dict[int, str]:
+    """`{line -> row key}` for the §7 Annex A.1 register (`DOC-A.1-<n>`) in this conformance statement.
+
+    ⛔ THE REGISTER HAS ONE READER, `conformance_source.Conformance.a1_rows_at` (kb/Work PB3209, PB5395). This dossier once
+    kept its own pattern for "an A.1 row" — a first cell that is a bare number — written before §7 was re-keyed to
     `DOC-A.1-<n>`: it matched no §7 row at all and every row of §2's Annex A.3 table, so each dossier handed an
     adjudicator an A.3 item number labelled as an A.1 item and withheld the real one.
     """
-    return {line: row.key for line, row in inventory_schema.section7_rows_at("\n".join(lines))}
+    return {line: row.key for line, row in conformance.a1_rows_at()}
 
 
-def doc_citing(lines: tuple[str, ...], pat: re.Pattern) -> dict:
+def doc_citing(conformance: conformance_source.Conformance, pat: re.Pattern) -> dict:
     """The docs/CONFORMANCE.md lines citing the subject; a line that is a §7 register row carries its key."""
-    rel = inventory_schema.REGISTER_PATH.relative_to(REPO).as_posix()
-    register = register_rows_by_line(lines)
+    rel = conformance_source.PATH_REL
+    register = register_rows_by_line(conformance)
     hits = []
     dropped = 0
-    for i, line in enumerate(lines, 1):
+    for i, line in enumerate(conformance.lines, 1):
         if not pat.search(line):
             continue
         if len(hits) >= MAX_LINES:
@@ -635,7 +643,7 @@ def build_dossier(sections: list[str], subject: str) -> dict:
         "grammar": grammar_for(kws, provenance, pat, role_of(subject)),
         "source": {"citing": citing(src, pat), "named": named(src, kws)},
         "tests": {"citing": citing(tst, pat), "named": named(tst, kws)},
-        "determinations": doc_citing(doc_lines(inventory_schema.REGISTER_PATH), pat),
+        "determinations": doc_citing(conformance_statement(), pat),
         "register": register_for(secs),
         "diagnostics": diagnostics_citing(pat),
     }
@@ -665,13 +673,13 @@ def self_test() -> int:
         "|---|---|---|",
         "| 26 | an A.3 element of the file control entry, §2023:12.4.5 | documented |",
         "## 7. Annex A.1 — implementor-defined language elements",
-        f"| {inventory_schema.REGISTER_HEADER_CELL} | Element | What we do | Pinned by |",
+        "| A.1 item | Element | What we do | Pinned by |",
         "|---|---|---|---|",
         "| DOC-A.1-151 | RECORD DELIMITER clause, §2023:12.4.5.11.4 GR1 | determined | `Some.Test` |",
         "## 8. Rules with no observable obligation",
         "| DRV-GR-12.4.5-1 | closed set | §2023:12.4.5 | the argument |",
     )
-    hits = {h["line"]: h for h in doc_citing(planted, clause_pattern(["12.4.5"]))["lines"]}
+    hits = {h["line"]: h for h in doc_citing(conformance_source.parse("\n".join(planted)), clause_pattern(["12.4.5"]))["lines"]}
     checks = [
         ("every citing line is returned (§2, §7 and §8)", sorted(hits) == [5, 9, 11]),
         ("the §7 Annex A.1 row carries its register key", hits.get(9, {}).get("a1-item") == "DOC-A.1-151"),
