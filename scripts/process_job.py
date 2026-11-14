@@ -22,6 +22,8 @@ THE MECHANISM.
     end, or this process dying) kills whatever is still in it. Nested jobs are supported (Windows 8+), so a tree inside
     gate_slot's own job works.
   * POSIX: the root leads a new session (`start_new_session`); `kill` is `killpg(SIGKILL)` and `alive` probes the group.
+  * Both: `kill` returns only once EVERY member is gone, so the caller may then delete the files the tree held
+    (kb/Work PB5500; `ProcessJob.kill`); a member that outlives the bound fails it loudly, naming the pid.
 Callers give the child FILES, never pipes, for its output: a pipe an orphan still holds blocks its reader, a file never
 does."""
 from __future__ import annotations
@@ -85,7 +87,14 @@ if IS_WINDOWS:
     _k32.OpenProcess.restype = wintypes.HANDLE
     _k32.CloseHandle.argtypes = [wintypes.HANDLE]
     _k32.CloseHandle.restype = wintypes.BOOL
+    _k32.WaitForMultipleObjects.argtypes = [wintypes.DWORD, ctypes.POINTER(wintypes.HANDLE), wintypes.BOOL,
+                                            wintypes.DWORD]
+    _k32.WaitForMultipleObjects.restype = wintypes.DWORD
+    _SYNCHRONIZE, _PROCESS_QUERY_LIMITED_INFORMATION = 0x00100000, 0x1000
+    _WAIT_OBJECT_0, _WAIT_TIMEOUT, _MAXIMUM_WAIT_OBJECTS = 0x0, 0x102, 64
     _k32.GetCurrentProcess.restype = wintypes.HANDLE
+    _k32.IsProcessInJob.argtypes = [wintypes.HANDLE, wintypes.HANDLE, ctypes.POINTER(wintypes.BOOL)]
+    _k32.IsProcessInJob.restype = wintypes.BOOL
     _ntdll = ctypes.WinDLL("ntdll")
     _ntdll.NtResumeProcess.argtypes = [wintypes.HANDLE]
     _ntdll.NtResumeProcess.restype = ctypes.c_long
@@ -196,19 +205,92 @@ class ProcessJob:
         return [int(ids.ProcessIdList[i]) for i in range(ids.NumberOfProcessIdsInList)]
 
     def kill(self) -> None:
-        """Kill the root and every process of its tree, orphaned or not; then reap the root. Idempotent."""
+        """Kill the root and every process of its tree, orphaned or not, and return only once EVERY one of them is gone
+        (kb/Work PB5500): a caller may then read, move or delete the files the tree wrote. A member still running
+        `KILL_BOUND_S` after the kill is the defect this module exists for: OSError naming its pid. Idempotent.
+
+        Gone is not what the kill call or the job's pid list says. TerminateJobObject and killpg only REQUEST the end,
+        and Windows drops a process from the job's pid list BEFORE it closes that process's handles: on a loaded host an
+        orphan that inherited the root's output file still held it after `alive()` read empty (18 of 50). A process
+        object is signaled only once its handle table is run down, so on Windows the kill opens a SYNCHRONIZE handle to
+        every member BEFORE terminating the job and waits on each; on POSIX a member's descriptors are closed before it
+        is a zombie, which `alive()` already reads as dead (kb/Work PB5206)."""
+        deadline = time.monotonic() + self.KILL_BOUND_S
         if IS_WINDOWS:
             if self._job is not None:
-                _k32.TerminateJobObject(self._job, 1)
+                self._terminate_and_await(deadline)
         else:
             try:
                 os.killpg(self.popen.pid, signal.SIGKILL)
             except ProcessLookupError:
                 pass
         try:
-            self.popen.wait(30)
+            self.popen.wait(max(0.0, deadline - time.monotonic()))
         except subprocess.TimeoutExpired:  # a root the kill did not reach is the defect this module exists for
             raise OSError(f"process_job: pid {self.popen.pid} survived its tree's kill") from None
+        if not IS_WINDOWS:
+            while survivors := self.alive():
+                if time.monotonic() >= deadline:
+                    raise OSError(f"process_job: pids {survivors} of {self.popen.pid}'s tree survived its kill")
+                time.sleep(0.01)
+
+    KILL_BOUND_S = 30.0
+
+    def _terminate_and_await(self, deadline: float) -> None:
+        """Windows: hold every member, terminate the job, and wait until each held process object is signaled. The
+        members are re-read after each pass, so a process a member started between the hold and the terminate is
+        caught while it is still listed."""
+        waited: set[int] = set()
+        while True:
+            held = self._hold_members(waited)
+            _k32.TerminateJobObject(self._job, 1)
+            if not held:
+                return
+            try:
+                self._await(held, deadline)
+            finally:
+                for h in held.values():
+                    _k32.CloseHandle(h)
+            waited.update(held)
+
+    def _hold_members(self, skip: set[int]) -> dict[int, int]:
+        """A SYNCHRONIZE handle to each listed member not in `skip`; a pid that is gone, or reused by a process outside
+        the job between the listing and the open, is not held (it is no member)."""
+        held: dict[int, int] = {}
+        for pid in self.alive():
+            if pid in skip:
+                continue
+            h = _k32.OpenProcess(_SYNCHRONIZE | _PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+            if not h:
+                continue
+            member = wintypes.BOOL()
+            if not _k32.IsProcessInJob(h, self._job, ctypes.byref(member)):
+                err = ctypes.WinError(ctypes.get_last_error())
+                _k32.CloseHandle(h)
+                for other in held.values():
+                    _k32.CloseHandle(other)
+                raise err
+            if member.value:
+                held[pid] = h
+            else:
+                _k32.CloseHandle(h)
+        return held
+
+    @staticmethod
+    def _await(held: dict[int, int], deadline: float) -> None:
+        """Wait until every held process object is signaled; OSError naming the pids still running at `deadline`."""
+        items = list(held.items())
+        for i in range(0, len(items), _MAXIMUM_WAIT_OBJECTS):
+            chunk = items[i:i + _MAXIMUM_WAIT_OBJECTS]
+            arr = (wintypes.HANDLE * len(chunk))(*(h for _, h in chunk))
+            ms = int(max(0.0, deadline - time.monotonic()) * 1000)
+            rc = _k32.WaitForMultipleObjects(len(chunk), arr, True, ms)
+            if rc == _WAIT_TIMEOUT:
+                survivors = [pid for pid, h in chunk
+                             if _k32.WaitForMultipleObjects(1, (wintypes.HANDLE * 1)(h), True, 0) == _WAIT_TIMEOUT]
+                raise OSError(f"process_job: pids {survivors} of a tree survived its kill")
+            if not _WAIT_OBJECT_0 <= rc < _WAIT_OBJECT_0 + len(chunk):
+                raise ctypes.WinError(ctypes.get_last_error())
 
     def close(self) -> None:
         """Kill what is left and release the job."""
@@ -236,7 +318,7 @@ def _self_test() -> int:
         if not ok:
             fails.append(name)
 
-    from detached import pid_alive  # this directory's: the one liveness probe (kb/Work PB4008)
+    from detached import pid_alive, proc_stat  # this directory's: the one liveness probe (kb/Work PB4008)
 
     if sys.platform.startswith("linux"):
         # Adopt this test's orphans and do not reap them until the end (kb/Work PB5206): a killed orphan then stays a
@@ -246,10 +328,22 @@ def _self_test() -> int:
         if ctypes.CDLL(None, use_errno=True).prctl(36, 1, 0, 0, 0) != 0:
             fails.append("prctl(PR_SET_CHILD_SUBREAPER) failed")
 
-    def until_dead(pid: int) -> None:
-        """Wait for `pid` to die, with no limit: a tree the kill does not end is the hang detector's (no wall clock)."""
-        while pid_alive(pid):
-            time.sleep(0.1)
+    def orphan_tree(d: str, name: str) -> tuple[list[str], str]:
+        """A root that starts a sleeping grandchild (which inherits the root's stdout), writes its pid and sleeps on."""
+        pidfile = os.path.join(d, name + ".pid")
+        sleeper = [sys.executable, "-c", "import time; time.sleep(600)"]
+        return ([sys.executable, "-c", "import subprocess, time; p = subprocess.Popen(" + repr(sleeper)
+                 + f", stdin=subprocess.DEVNULL); open({pidfile!r}, 'w').write(str(p.pid)); time.sleep(600)"],
+                pidfile)
+
+    def read_pid(pidfile: str, job: "ProcessJob") -> int:
+        """The grandchild's pid once the root has written it (no wall clock: a root that never writes is a hang)."""
+        while not (os.path.exists(pidfile) and open(pidfile, encoding="utf-8").read().strip()):
+            if job.popen.poll() is not None:
+                raise OSError(f"process_job self-test: the root exited ({job.popen.returncode}) before it wrote "
+                              f"{pidfile}")
+            time.sleep(0.02)
+        return int(open(pidfile, encoding="utf-8").read().strip())
 
     with tempfile.TemporaryDirectory(prefix="process-job-") as d:
         pidfile = os.path.join(d, "grandchild.pid")
@@ -266,30 +360,74 @@ def _self_test() -> int:
                 grand = int(open(pidfile, encoding="utf-8").read().strip())  # written before the root exited
                 check("the orphan is still in the tree after its parent exited", bool(job.alive()), True)
                 job.kill()
-                until_dead(grand)
-                check("kill reaches the orphaned grandchild (taskkill /T cannot)", pid_alive(grand), False)
+                check("kill reaches the orphaned grandchild (taskkill /T cannot), and returns once it is gone",
+                      pid_alive(grand), False)
                 check("nothing of the tree is left after kill", job.alive(), [])
                 if sys.platform.startswith("linux"):
-                    from detached import proc_stat  # noqa: PLC0415
                     stat = proc_stat(grand)
                     check("the killed orphan is an unreaped zombie here, the case alive() must call dead",
                           stat[0] if stat else "gone", "Z")
                     if stat:
                         os.waitpid(grand, 0)   # reap it now that the case is checked (ours only as its subreaper)
 
-        # A root still running past its wait is TimeoutExpired, and the block's end kills it and its child.
-        with open(os.path.join(d, "out2.txt"), "w", encoding="utf-8", newline="\n") as out:
-            hold = [sys.executable, "-c", "import subprocess, sys, time; subprocess.Popen(" + repr(sleeper)
-                    + ", stdin=subprocess.DEVNULL); time.sleep(600)"]
-            with ProcessJob.start(hold, stdout=out, stderr=out, stdin=subprocess.DEVNULL) as job:
-                try:
-                    job.wait(1.0)
-                    timed_out = False
-                except subprocess.TimeoutExpired:
-                    timed_out = True
-                root = job.pid
-            check("a root past its wait is TimeoutExpired", timed_out, True)
-            check("the block's end kills a still-running root", pid_alive(root), False)
+        # A root still running past its wait is TimeoutExpired, and the block's end kills it and its child. The
+        # grandchild inherited out2.txt as its stdout, so the file is free only once the WHOLE tree is gone: before
+        # kb/Work PB5500 kill() returned when the root was reaped and the grandchild could still hold the file
+        # (merge group 43558438384: WinError 32 deleting out2.txt; 16 of 50 on a loaded host).
+        out2 = os.path.join(d, "out2.txt")
+        hold, pidfile2 = orphan_tree(d, "held")
+        with open(out2, "w", encoding="utf-8", newline="\n") as out:
+            job = ProcessJob.start(hold, stdout=out, stderr=out, stdin=subprocess.DEVNULL)
+        with job:
+            grand = read_pid(pidfile2, job)
+            try:
+                job.wait(1.0)
+                timed_out = False
+            except subprocess.TimeoutExpired:
+                timed_out = True
+            root = job.pid
+        check("a root past its wait is TimeoutExpired", timed_out, True)
+        check("the block's end kills a still-running root", pid_alive(root), False)
+        check("the block's end returns once the grandchild is gone too", pid_alive(grand), False)
+        try:
+            os.remove(out2)
+            freed = True
+        except PermissionError as e:
+            freed = f"{e}"
+        check("the tree's output file is free once the block ends", freed, True)
+        if sys.platform.startswith("linux") and proc_stat(grand):
+            os.waitpid(grand, 0)
+
+        # kill() returns only once every member is gone, and fails LOUDLY naming one the kill did not end. The tree's
+        # kill primitive is stubbed to end the root alone, so the grandchild survives it: the pre-PB5500 kill()
+        # returned normally here, the root being reaped.
+        tree, pidfile3 = orphan_tree(d, "survivor")
+        with open(os.path.join(d, "out3.txt"), "w", encoding="utf-8", newline="\n") as out:
+            job = ProcessJob.start(tree, stdout=out, stderr=out, stdin=subprocess.DEVNULL)
+        with job:
+            grand = read_pid(pidfile3, job)
+            job.KILL_BOUND_S = 0.5   # the survivor never dies, so the bound is reached on any host
+            if IS_WINDOWS:
+                real = _k32.TerminateJobObject
+                _k32.TerminateJobObject = lambda _job, _code: (job.popen.kill(), True)[1]
+            else:
+                real = os.killpg
+                os.killpg = lambda pg, sig: os.kill(pg, sig) if sig else real(pg, sig)
+            try:
+                job.kill()
+                raised = "kill() returned with a member still running"
+            except OSError as e:
+                raised = str(grand) in str(e) or f"the error does not name pid {grand}: {e}"
+            finally:
+                if IS_WINDOWS:
+                    _k32.TerminateJobObject = real
+                else:
+                    os.killpg = real
+            check("a member the kill does not end fails kill() loudly, naming its pid", raised, True)
+            del job.KILL_BOUND_S
+        check("the real kill then ends the survivor", pid_alive(grand), False)
+        if sys.platform.startswith("linux") and proc_stat(grand):
+            os.waitpid(grand, 0)
 
     if IS_WINDOWS:
         bind_current()

@@ -1171,8 +1171,13 @@ and reported HANG with its output so far: `=== SELF-TESTS: HANG — … ===`, ex
 test host runs as the root of a `scripts/process_job.py` ProcessJob (Windows: started suspended, put in its own
 kill-on-close Job object, then resumed; POSIX: a new session), so a kill reaches an orphaned grandchild that
 `taskkill /T` cannot, and their output goes to FILES, never pipes, because a pipe an orphan still holds blocks its reader
-(on 2026-11-10 the HANG stop itself waited 87 minutes on one). A self-test that exits leaving processes of its tree running
-has them killed, and its output names them.
+(on 2026-11-10 the HANG stop itself waited 87 minutes on one). A kill RETURNS ONLY ONCE EVERY PROCESS OF THE TREE IS GONE
+(kb/Work PB5500), so the caller can read, move or delete the files the tree wrote: `TerminateJobObject` and `killpg` only
+request the end, and Windows drops a process from the job's pid list before it closes that process's handles, so on Windows
+the kill holds a SYNCHRONIZE handle to every member before terminating the job and waits on each process object (signaled
+only after its handle table is run down), and on POSIX it waits until no live member is left; a member still running 30 s
+after the kill fails it loudly, naming the pid. A self-test that exits leaving processes of its tree running has them
+killed, and its output names them.
 
 **Proof.** `self_tests.py --self-test` (`fleet_arms`) runs the phase from four CONCURRENT simulated gates over one planted
 repository: a full run records; the gates on the unchanged tree re-run nothing; a changed input (a file read through a name
