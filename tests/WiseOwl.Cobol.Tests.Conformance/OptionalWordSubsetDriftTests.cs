@@ -204,18 +204,19 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     // ON ORDER PICTURE SPECIAL-NAMES. STATUS SYMBOL TABLE THROUGH THRU; folios 291/292 add ALPHABET, NATIVE,
     // STANDARD-1/2, UCS-4, UTF-8/16 and SYMBOLIC. IS is in none of them, and neither is the CHARACTERS of
     // SYMBOLIC CHARACTERS (the heading line's one rule stops three points short of it). §2023:13.18.44 exchanges the
-    // period and the comma under DECIMAL-POINT IS COMMA, so every spelling must edit 123,45 identically.
+    // period and the comma under DECIMAL-POINT IS COMMA, so every spelling must edit 123,45 identically. The clauses
+    // stand in the §1985:VI.4.5.2 sequence, which binds at 85 (§1985:IV.2.1; kb/Work PB5171).
     private const string SpecialNames85 = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWE.
            ENVIRONMENT DIVISION.
            CONFIGURATION SECTION.
            SPECIAL-NAMES.
-               DECIMAL-POINT {0} COMMA
-               CURRENCY {1} {2} "@"
-               SYMBOLIC {3} SC-ORD66 {4} 66
-               ALPHABET AL-NATV {5} NATIVE
-               SWITCH-1 {6} MNEM-ONE.
+               SWITCH-1 {0} MNEM-ONE
+               ALPHABET AL-NATV {1} NATIVE
+               SYMBOLIC {2} SC-ORD66 {3} 66
+               CURRENCY {4} {5} "@"
+               DECIMAL-POINT {6} COMMA.
            DATA DIVISION.
            WORKING-STORAGE SECTION.
            01 N   PIC 9(3)V99 VALUE 123,45.
@@ -922,7 +923,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
         new("use-format-3-ec", "14.9.49.2 Format 3 (EC)", 2023, ["AFTER"], "OPWC", UseFormat3Ec),
         new("start-with-length", "14.9.41.2", 2002, ["WITH"], "OPWD", StartWithLength),
         new("special-names-85", "12.3.7.2 (COBOL-85 clauses)", 85,
-            ["IS", "SIGN", "IS", "CHARACTERS", "IS", "IS", "IS"], "OPWE", SpecialNames85),
+            ["IS", "IS", "CHARACTERS", "IS", "SIGN", "IS", "IS"], "OPWE", SpecialNames85),
         new("special-names-for", "12.3.7.2 (FOR / WITH)", 2023, ["FOR", "FOR", "FOR", "WITH"], "OPWF",
             SpecialNamesFor),
         new("special-names-switch", "12.3.7.2 (switch entry)", 85, ["IS", "STATUS", "IS", "STATUS", "IS"], "OPWG",

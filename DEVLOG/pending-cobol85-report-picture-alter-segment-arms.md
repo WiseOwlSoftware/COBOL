@@ -53,7 +53,9 @@ alternative outside `NotInFigure`. Every row was reclassified, `SpecialNameEntry
 and DESIGN-frontend-grammar.md describes the three classes. The codes are the existing COBOL2423 (repeat) and COBOL2987
 (order); goldens `pb5171-currency-sign-twice-85`, `pb5171-special-names-out-of-order-85` (85),
 `pb5171-decimal-point-twice` (every edition) and `pb5171-currency-sign-twice` (accepted from 2002). Row
-1985-FMT-VI.4.5.2 CONFORMS (its other two arms closed with PB5172 and PB5170).
+1985-FMT-VI.4.5.2 CONFORMS (its other two arms closed with PB5172 and PB5170). The first gate found two 85 test
+programs that wrote the clauses out of the 1985 sequence (`OptionalWordSubsetDriftTests`' special-names-85 row and
+`pb695_special_names_optional_words`); both now write the printed sequence.
 
 **Rows.** Fifteen 1985 rows re-verdicted CONFORMS through `record_verdicts --edition 1985` (1985 GAP 288 → 276 on the first branch; 217 → 216 for PB5171 on main); no 2023
 row changed. Goldens for each note, refusals with their own JSON. The self-review read the diff for one mechanism per
