@@ -113,7 +113,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         [new BoundInvokeArg(op.Set.Binding!.Formals[0].Item, tempPlace, null, null, WriteBack: false)],
                         null, op.OwnerClrNameOf(op.Set)));
             }
-            if (op.Interleaved) brackets.Add(new ReceiverBracket(op.Temp, [.. open.Select(Operand)], [.. close.Select(Operand)]));
+            if (op.Interleaved) brackets.Add(new ReceiverBracket(new PropertyReceiverKey(op.Temp),[.. open.Select(Operand)], [.. close.Select(Operand)]));
             else
             {
                 pre.AddRange(open);

@@ -148,8 +148,9 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             }
             // kb/Work PB128: identifier-4 rides the ONE receiving chokepoint like every other resultant —
             // the direct Refs.Resolve bypass skipped the CONSTANT RECORD / CAPACITY-register / constant-name
-            // screens, and §2023:14.9.12.3 SR2 fixes its category (numeric or numeric-edited).
-            if (host.Expr.ResolveReceiving(rem.receivingIdentifier()) is not { } r0
+            // screens, and §2023:14.9.12.3 SR2 fixes its category (numeric or numeric-edited). It is identified when the remainder
+            // is stored (§1985:VI.6.11.4 GR4; kb/Work PB5386), like every arithmetic receiver.
+            if (host.Expr.ResolveReceivingAtStore(rem.receivingIdentifier()) is not { } r0
                 || host.Expr.ScreenResultant(r0, rem.receivingIdentifier(), editedOk: true, "§2023:14.9.12.3 SR2") is not { } r)
                 return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.receivingIdentifier().GetText()}'");
             ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients, CompositeMembers.ReceivingItems85);

@@ -546,7 +546,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         BoundMove? into = null;
         if (r.INTO() is not null)
         {
-            if (r.receivingIdentifier() is not { } d || host.Expr.ResolveReceiving(d) is not { } ip)
+            if (r.receivingIdentifier() is not { } d || host.Expr.ResolveReceivingAtStore(d) is not { } ip)   // identified after the record is returned (§1985:XI.4.3.4 GR6b; kb/Work PB5386)
                 return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
             into = host.Move.BindIntoPhrase(file, area, ip, IntoPhraseRules.Return);
         }

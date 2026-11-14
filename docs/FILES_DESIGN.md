@@ -2363,13 +2363,22 @@ record-name-1"), and its READ INTO general rule refers an overlap to the overlap
 (kb/Work PB5270; an earlier DETERMINATION, made while the 2014 text was not in the repository, had kept it there). **The decision:** the five phrases already
 funnel through `MoveBinder` (D23), so the screen is asked there, once: `StatementValidation.CheckPhraseOperandIsNotRecordArea`, from
 `BindFromPhrase` (the sender; the file is now a parameter) and from `CheckIntoReceiver` (the receiver). Its question is
-`StorageSharing.IsRecordAreaOf`, which is EXACT where `MayShare` is conservative, because it refuses the statement: the operand is a
-record description entry of the file or of a SAME RECORD AREA peer (every 01 under an FD redefines one area), or a subordinate item that
-begins the area and is as long as it; a part of the record, a reference-modified operand and another file's record are not "the same".
+`StorageSharing.IsRecordAreaOf`, which is EXACT where `MayShare` is conservative, because it refuses the statement. The rule forbids a
+STORAGE, whatever reference names it (kb/Work PB5412), so the question is the storage the operand denotes against the records of the
+area: the file's own, a SAME RECORD AREA peer's (every 01 under an FD redefines one area) and a SAME AREA peer's ("The area being shared
+includes all storage areas assigned to the files", §1985:VII.2.13.4 GR1; `FileModel.StorageSharingFiles`). The operand names the area
+when it is a record description entry, a subordinate item that begins the record and is as long as it (asked of the declaration, so it
+holds for every usage), or any other reference whose static extent (`StorageExtent.OfReference`) is the whole of a record: a literal
+reference modification (`R1 (1:10)`; `R1 (1:)`, which is R1 itself whatever its length, §2023:8.4.3.3.4 GR5c), an element of a table
+whose every OCCURS level has one occurrence, a level-66 THROUGH alias of the whole record. A part of the record, a reference modification
+whose bounds are run-time quantities, an element of a table of several occurrences and another file's record are not "the same". The
+first implementation decided on the FORM of the reference (it answered false for every reference-modified, OCCURS-governed or RENAMES
+operand), which accepted thirteen probes of the 1985 code read, read 3, and the SAME AREA form of read 4.
 `RecordAreaRule` owns the edition scope (`Year < 2014`), the wording ("must" at 1985, "shall" at 2002) and the one citation per verb and
 organization, because the 1985 text repeats the rule in the sequential, relative and indexed modules. The verb is a column of the two
 existing rows (`FromPhraseRules`, `IntoPhraseRules`), so the next FROM or INTO phrase is a row. Witnesses: five `pb5077-*` refusals
-(refused at 85 and 2002), the legal-side golden `pb5077_from_into_outside_the_record_area`, the acceptance of all five phrases
+(refused at 85 and 2002) and six `pb5412-*` refusals of the other reference forms, the legal-side goldens
+`pb5077_from_into_outside_the_record_area` and `pb5412_from_part_of_the_record_area`, the acceptance of all five phrases
 from 2014 `pb5270_from_into_own_record_area_2014`, and `IoExceptionPhraseRequirementTests` for the predicate's boundaries.
 
 ### D32. The run unit's external file connector rules are asked of the compilation group from the one entry identity (kb/Work PB5069)

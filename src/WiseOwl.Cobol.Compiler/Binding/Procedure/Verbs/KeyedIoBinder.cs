@@ -50,7 +50,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // READ ... INTO is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.30.4 GR4 b); kb/Work PB348) - the
         // SAME call the sequential arm makes, so the two organizations cannot disagree about which rules the
         // phrase carries (feedback_two_arm_dispatch).
-        BoundMove? into = r.readInto()?.receivingIdentifier() is { } d && host.Expr.ResolveReceiving(d) is { } recv
+        // identifier-1 is identified after the record has been read (§2023:14.9.30.4 GR4 b); kb/Work PB5386): ResolveReceivingAtStore.
+        BoundMove? into = r.readInto()?.receivingIdentifier() is { } d && host.Expr.ResolveReceivingAtStore(d) is { } recv
             && ctx.Refs.Places.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
