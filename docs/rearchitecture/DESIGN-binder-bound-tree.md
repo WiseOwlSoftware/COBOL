@@ -685,10 +685,21 @@ of evaluation") makes the order observable. The STORE half is the emitter's: a r
 through `PlaceIdentification.SenderFirst`, which evaluates the sending value into a local first whenever both sides
 identify at run time (`PlaceIdentification.IdentifiesAtRunTime`, which also counts a literal subscript into an
 occurs-depending or OCCURS DYNAMIC table: §2023:13.18.38.4 GR7's bound test rides the table step, so `MOVE N (I) TO O (1)`
-raised the receiver's EC-BOUND-ODO first). The PRE-OP half is the binder's: a receiver's function-bearing subscript or
-user-function activation is a pre-op that runs before the statement, which no store order can reach, so when the
-receiver registered one and the sender identifies at run time `MoveBinder.BindMoveOf` freezes the sender at N = 1 as
-well. An OBJECT-PROPERTY receiver is the same arm in another form: its identifier-3's pre-ops move into its accessor
+raised the receiver's EC-BOUND-ODO first). The PRE-OP half is the binder's. A receiver whose identification registers
+pre-ops (a subscript or reference modifier the resolver cannot read in place — a function-identifier, a division, an
+item read through a shared REDEFINES area — lowered to a §2023:15.4 temporary, or a user-function activation in one) is
+resolved by `ExpressionBinder.ResolveReceivingAtStore`, which takes those pre-ops off the statement's queue and keeps
+them as the receiver's IDENTIFICATION BRACKET (`ReceiverBracket` keyed `WrittenReceiverKey`, on
+`ProcedureBindState.ReceiverIdentifications`, wrapped by `BindStatement` into the statement's `BoundReceiverBrackets`),
+which `ReceiverBracketEmitter.Receive` opens immediately before that receiver's store (kb/Work PB5386). Every statement
+whose rules identify a receiver as it is stored resolves it that way: MOVE (§1985:VI.6.19.4 GR2), the arithmetic
+statements (§2023:14.7.7 4) b), DIVIDE's REMAINDER §1985:VI.6.11.4 GR4), SET's identifier-1 (§2023:14.9.39.4 GR2), the PERFORM
+VARYING induction variable (§2023:14.9.28.4 GR12) and the INTO phrase of READ and RETURN, whose identifier-1 is identified
+"after the record has been read" (§2023:14.9.30.4 GR4 b), §2023:14.9.34.4 GR5 b), §1985:XI.4.3.4 GR6b). Before that, the
+pre-ops were hoisted before the statement, so `MOVE 2 TO I, WE (I)` stored into WE (1) and `RETURN SF INTO WE (SEQ)` stored
+each record where the previous one's SEQ pointed. The bracket opens before the store's sending value is evaluated, so
+when a receiver has one and the sender identifies at run time `MoveBinder.BindMoveOf` freezes the sender at N = 1 as
+well (`MoveBinder.ReceiverOpensAtRunTime` asks both bracket kinds). An OBJECT-PROPERTY receiver is the same arm in another form: its identifier-3's pre-ops move into its accessor
 bracket (`OoPendingPropertyOp.Prelude`), which `ReceiverBracketEmitter.Receive` opens just before the store, together
 with identifier-3's evaluation into the identified-object temporary and the GET of a part store, so
 `MoveBinder.ReceiverOpensAtRunTime` asks whether that bracket evaluates anything and the binder freezes on it too

@@ -2433,13 +2433,55 @@ public interface IProfiledStatement
 /// step, so a statement without one binds byte-identically.</para></summary>
 public sealed record BoundActivationSite(BoundStatement Inner) : BoundStatement;
 
-/// <summary>One RECEIVING object property's accessors, bound to the moment its statement reaches the receiver
-/// (kb/Work PB2078): <paramref name="Open"/> is identifier-3's evaluation and the §2023:8.4.3.9.4 GR1 GET (the latter
-/// only when the statement also READS the property), run immediately before the receiver is accessed;
-/// <paramref name="Close"/> is the GR2 SET, run immediately after the receiver is stored — and not at all when that
-/// store raised a size error. <paramref name="Temp"/> is the property's compiler temporary, the item the
-/// statement's receiver <see cref="Place"/> denotes.</summary>
-public sealed record ReceiverBracket(DataItem Temp, IReadOnlyList<BoundStatement> Open, IReadOnlyList<BoundStatement> Close);
+/// <summary>The steps of ONE receiving operand that run when its statement reaches it, bound to that moment (kb/Work PB2078,
+/// PB5386): <paramref name="Open"/> runs immediately before the receiver is accessed, <paramref name="Close"/> immediately after
+/// it is stored — and not at all when that store raised a size error. Two kinds of receiver carry such steps
+/// (<paramref name="Receiver"/>):
+/// <list type="bullet">
+///   <item>an OBJECT PROPERTY: Open is identifier-3's evaluation and the §2023:8.4.3.9.4 GR1 GET (the latter only when the
+///     statement also READS the property), Close is the GR2 SET (<c>OoBinder.OoWrapPropertyOps</c>);</item>
+///   <item>a data item whose IDENTIFICATION evaluates something — a subscript or reference modifier lowered to a §2023:15.4
+///     temporary, a function activation in one: Open is that evaluation, and there is no Close
+///     (<c>ExpressionBinder.ResolveReceivingAtStore</c>). The statements that identify a receiver as it is stored —
+///     §2023:14.9.25.4 GR1 (MOVE), §2023:14.7.7 4) b) (the arithmetic statements), the INTO phrase of READ and RETURN
+///     (§2023:14.9.30.4 GR4 b), §2023:14.9.34.4 GR5 b), §1985:XI.4.3.4 GR6b) — would otherwise identify it before the statement
+///     ran, at the hoist every other operand's evaluation rides.</item>
+/// </list></summary>
+public sealed record ReceiverBracket(ReceiverBracketKey Receiver, IReadOnlyList<BoundStatement> Open, IReadOnlyList<BoundStatement> Close);
+
+/// <summary>Which receiving operand a <see cref="ReceiverBracket"/> belongs to — the question the emitter asks of each store
+/// (<see cref="Names"/>).</summary>
+public abstract record ReceiverBracketKey
+{
+    /// <summary>Is <paramref name="receiver"/>, the place a store is about to write, the operand this key names?</summary>
+    public abstract bool Names(Place receiver);
+
+    /// <summary>How the receiver names itself in the emitter's internal-error message.</summary>
+    public abstract string Face { get; }
+}
+
+/// <summary>An object property's receiver: <paramref name="Temp"/> is the property's compiler temporary, the item the
+/// statement's receiver <see cref="Place"/> denotes (whatever reference modification is written on it).</summary>
+public sealed record PropertyReceiverKey(DataItem Temp) : ReceiverBracketKey
+{
+    /// <inheritdoc/>
+    public override bool Names(Place receiver) => ReferenceEquals(Temp, receiver.Item);
+
+    /// <inheritdoc/>
+    public override string Face => $"the object-property receiver '{Temp.CobolName}'";
+}
+
+/// <summary>A written receiving data reference: <paramref name="Reference"/> is the place the receiving chokepoint resolved,
+/// compared by identity, because two references to one item (<c>MOVE X TO T (I), T (FUNCTION F (I))</c>) are identified
+/// apart.</summary>
+public sealed record WrittenReceiverKey(Place Reference) : ReceiverBracketKey
+{
+    /// <inheritdoc/>
+    public override bool Names(Place receiver) => ReferenceEquals(Reference, receiver);
+
+    /// <inheritdoc/>
+    public override string Face => $"the receiver '{Reference.Item.CobolName}'";
+}
 
 /// <summary>⛔ A STATEMENT WHOSE RECEIVING OBJECT PROPERTIES ARE ACCESSED ONE RECEIVER AT A TIME (kb/Work PB2078).
 /// ISO §2023:14.7.7 4) b) stores the intermediate result "in or combined with and then stored in each single resulting
@@ -2453,7 +2495,9 @@ public sealed record ReceiverBracket(DataItem Temp, IReadOnlyList<BoundStatement
 /// ACTIVATIONS: <c>EcBinder</c> stamps and queries them through this node exactly as through a
 /// <see cref="BoundSequence"/> step, and the emitters that loop over a statement's receivers
 /// (<c>ReceiverBracketEmitter.Receive</c>) place them. Created by <c>OoBinder.OoWrapPropertyOps</c> for the
-/// properties a binder CLAIMED as receivers of such a statement (<c>ProcedureBindState.ClaimInterleavedReceiver</c>); the
+/// properties a binder CLAIMED as receivers of such a statement (<c>ProcedureBindState.ClaimInterleavedReceiver</c>), and by
+/// <c>StatementBinder.BindStatement</c> for the data-item receivers whose identification the statement performs at their
+/// store (<c>ExpressionBinder.ResolveReceivingAtStore</c>, kb/Work PB5386); the
 /// emitter fails loudly when a claimed bracket is never placed, so a receiver loop that forgets <c>Receive</c> cannot
 /// silently drop a GET or a SET.</para></summary>
 public sealed record BoundReceiverBrackets(BoundStatement Inner, IReadOnlyList<ReceiverBracket> Brackets) : BoundStatement

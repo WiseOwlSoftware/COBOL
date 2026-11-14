@@ -128,9 +128,11 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §2023:13.18.38.3 r7)");
         }
         // Identifier-1 is bound; what the receivers register from here on (a function-bearing subscript's temporary,
-        // a user-defined function's activation) is THEIR evaluation, which §2023:14.6.4 puts after the sender's.
+        // a user-defined function's activation) is THEIR evaluation, which §2023:14.6.4 puts after the sender's. Each receiver
+        // is identified immediately before the data is moved to it (§1985:VI.6.19.4 GR2; §2023:14.9.25.4 GR1), so its own
+        // evaluation is its identification bracket, run at its store (kb/Work PB5386), not a pre-op of the statement.
         int senderPreOpsEnd = ctx.Data.Procedure.PendingPreOps.Mark();
-        var resolved = host.Expr.ResolveTargets(targets.receivingIdentifier());
+        List<Place> resolved = [.. targets.receivingIdentifier().Select(host.Expr.ResolveReceivingAtStore).OfType<Place>()];
         return BindMoveOf(source, resolved, senderPreOpsEnd: senderPreOpsEnd);
     }
 
@@ -324,6 +326,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// that is no claimed property opens nothing.</summary>
     private static bool ReceiverOpensAtRunTime(ProcedureBindState procedure, Place receiver, Bound.StoreKind kind)
     {
+        // A data-item receiver whose identification evaluates something (a subscript lowered to a §2023:15.4 temporary) opens
+        // its identification bracket at its store (ExpressionBinder.ResolveReceivingAtStore; kb/Work PB5386).
+        foreach (var identification in procedure.ReceiverIdentifications.Since(0))
+            if (identification.Receiver.Names(receiver)) return true;
         foreach (var op in procedure.PropertyOps.Since(0))
             if (ReferenceEquals(op.Temp, receiver.Item))
                 return op.Interleaved

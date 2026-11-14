@@ -1701,7 +1701,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// Format 2's brace.</para></summary>
     public BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
         host.Expr.IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
-        : host.Expr.ResolveReceiving(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand
+        : host.Expr.ResolveReceivingAtStore(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand, identified as it is set (GR2; PB5386)
         : null;
 
     /// <summary><c>SET condition-name+ TO TRUE | FALSE</c> (ISO §2023:14.9.39 Format 4).

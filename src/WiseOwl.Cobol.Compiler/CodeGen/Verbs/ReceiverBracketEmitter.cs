@@ -24,6 +24,11 @@ namespace WiseOwl.Cobol.CodeGen;
 /// </list>
 /// <para>A size error ends the receiver's participation: §2023:14.7.7 4) b) leaves "only that data item … unchanged", so the
 /// SET does not run for a receiver whose store raised one (<paramref name="sizeErrorFlag"/>, the statement's flag).</para>
+/// <para>⛔ THE SAME PLACEMENT SERVES A DATA-ITEM RECEIVER WHOSE IDENTIFICATION EVALUATES SOMETHING (kb/Work PB5386): a subscript or
+/// reference modifier lowered to a §2023:15.4 temporary is that receiver's bracket, keyed on its written reference
+/// (<see cref="WrittenReceiverKey"/>) and opened by the same <see cref="Receive"/>, so a statement that identifies the receiver
+/// as it stores it (MOVE, the arithmetic statements, READ / RETURN … INTO) evaluates the subscript after the earlier stores of
+/// the statement and, for INTO, after the record has been read.</para>
 /// <para>The scope is opened by <see cref="StatementEmitter"/> for a <see cref="BoundReceiverBrackets"/> and CLOSED
 /// loudly: a claimed bracket no <see cref="Receive"/> or <see cref="Settle"/> placed means an emitter forgot the call, and
 /// a dropped GET or SET would be a silent wrong answer.</para>
@@ -59,9 +64,9 @@ internal sealed class ReceiverBracketEmitter(EmitContext ctx)
         finally { _scopes.Pop(); }
         if (completed && node.Brackets.FirstOrDefault(b => !scope.Placed.Contains(b)) is { } unplaced)
             throw new InvalidOperationException(
-                $"internal error: the object-property receiver '{unplaced.Temp.CobolName}' was claimed by its statement's binder "
-                + "but no receiver store placed its accessors (ReceiverBracketEmitter.Receive / Settle); emitting the statement "
-                + "would drop its GET/SET");
+                $"internal error: {unplaced.Receiver.Face} was claimed by its statement's binder "
+                + "but no receiver store placed its steps (ReceiverBracketEmitter.Receive / Settle); emitting the statement "
+                + "would drop its accessors or its identification");
         return terminated;
     }
 
@@ -139,7 +144,7 @@ internal sealed class ReceiverBracketEmitter(EmitContext ctx)
     {
         foreach (var scope in _scopes)
             foreach (var bracket in scope.Brackets)
-                if (ReferenceEquals(bracket.Temp, receiver.Item))
+                if (bracket.Receiver.Names(receiver))
                     return (scope, bracket);
         return null;
     }
