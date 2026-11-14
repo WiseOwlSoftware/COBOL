@@ -947,7 +947,8 @@
     "COBOL7081",
     "COBOL7144",
     "COBOL7165",
-    "COBOL7166"
+    "COBOL7166",
+    "COBOL7234"
   ],
   "cliOptions": [
     "--copy",
