@@ -40,4 +40,30 @@ public sealed class EditionCiteTests
     [InlineData(FileOrganization.Indexed, "§1985:IX.4.9.4 GR3")]
     public void WriteFrom_At85_CitesTheModulesMoveRule(FileOrganization organization, string cite) =>
         Assert.Equal(cite, WiseOwl.Cobol.Binding.Procedure.FromPhraseRules.Write.PhraseAt(85, organization).Cite);
+
+    /// <summary>kb/Work PB5486: the FROM function-class rule is a 1985 rule too (ANSI X3.23a-1989 added it to each FROM syntax rule),
+    /// so its message cites the module of the file's organization at 85 and the 2023 rule from 2002.</summary>
+    [Theory]
+    [InlineData("WRITE", FileOrganization.Sequential, "§1985:VII.4.7.3 SR1")]
+    [InlineData("WRITE", FileOrganization.Relative, "§1985:VIII.4.9.3 SR1")]
+    [InlineData("WRITE", FileOrganization.Indexed, "§1985:IX.4.9.3 SR1")]
+    [InlineData("REWRITE", FileOrganization.Sequential, "§1985:VII.4.5.3 SR1")]
+    [InlineData("REWRITE", FileOrganization.Relative, "§1985:VIII.4.6.3 SR1")]
+    [InlineData("REWRITE", FileOrganization.Indexed, "§1985:IX.4.6.3 SR1")]
+    [InlineData("RELEASE", FileOrganization.Sequential, "§1985:XI.4.2.3 SR3")]
+    public void FromFunctionRule_At85_CitesTheModulesSyntaxRule(string verb, FileOrganization organization, string cite)
+    {
+        var rules = FromRules(verb);
+        string at85 = rules.FunctionRuleCite!.At(85, organization);
+        Assert.StartsWith(cite + " — ", at85);
+        Assert.EndsWith("\"If identifier-1 is a function-identifier, it must reference an alphanumeric function.\"", at85);
+        Assert.DoesNotContain("§1985", rules.FunctionRuleCite.At(2002, organization));
+    }
+
+    private static WiseOwl.Cobol.Binding.Procedure.FromPhraseRules FromRules(string verb) => verb switch
+    {
+        "WRITE" => WiseOwl.Cobol.Binding.Procedure.FromPhraseRules.Write,
+        "REWRITE" => WiseOwl.Cobol.Binding.Procedure.FromPhraseRules.Rewrite,
+        _ => WiseOwl.Cobol.Binding.Procedure.FromPhraseRules.Release,
+    };
 }

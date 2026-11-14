@@ -1563,7 +1563,9 @@ internal sealed class StatementValidation(DataBinder data)
         if (!RecordAreaRule.InForce(data.Edition.Edition.Year) || !StorageSharing.IsRecordAreaOf(file, operand)) return true;
         var (cite, words) = RecordAreaRule.Describe(verb, file.Organization, data.Edition.Edition.Year);
         data.Edition.Error(DiagnosticCatalog.IoPhraseOperandIsRecordArea,
-            $"{statement} {operand.DenotedItem!.CobolName}: the operand names the record area of file '{file.CobolName}' "
+            // The operand's own item names it: a reference modification or a table element of the record names no item of its own
+            // (DenotedItem is null for the slice), and the message names the item its storage is taken from (kb/Work PB5412).
+            $"{statement} {operand.Item.CobolName ?? "FILLER"}: the operand names the record area of file '{file.CobolName}' "
             + $"({cite}: \"{words}\")");
         return false;
     }

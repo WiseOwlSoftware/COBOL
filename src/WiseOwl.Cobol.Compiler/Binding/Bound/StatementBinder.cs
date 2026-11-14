@@ -455,6 +455,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // always pre-ops, §2023:8.4.3.2.3 SR1), so a property argument's GET — a pre-op of the OUTER property
         // wrap — still runs before the activation that consumes its temp.
         var marks = Udf.Mark;
+        // The receivers this statement identifies as it stores them (kb/Work PB5386): mark-on-entry / drain-own-suffix like the
+        // two pending queues, so a nested statement's receivers are its own.
+        int identificationMark = data.Procedure.ReceiverIdentifications.Mark();
         // The operand-activation scope (kb/Work PB892): THIS statement's line is the one whose §2023:7.3.25 profile an
         // operand activation carries, and THIS statement counts only the activations it drains itself — both are
         // saved around a nested statement's bind and restored after it.
@@ -495,7 +498,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (Ctx.Enclosing.InBeforeReportingProcedure) Rw.CheckControlDataReferences(core);
         // X3.23-1985 USE FOR DEBUGGING syntax rule 11 (kb/Work PB4858) — asked HERE, of every statement, because this is the one funnel and
         // BoundReferences reads the statement's OWN references (a nested statement is asked at its own position).
-        if (!_inDebuggingSection && Ctx.Table.HasDebugRegisters && ReferencesDebugItem(core, marks.PreOps))
+        if (!_inDebuggingSection && Ctx.Table.HasDebugRegisters && ReferencesDebugItem(core, marks.PreOps, identificationMark))
             data.Edition.Error(DiagnosticCatalog.DebugItemOutsideDebuggingSection,
                 "the statement references the DEBUG-ITEM special register or one of its members outside a debugging section; "
                 + "X3.23-1985 USE FOR DEBUGGING syntax rule 11 restricts references to DEBUG-ITEM to references from within a debugging section");
@@ -553,6 +556,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // such statement carrying a function-identifier or an object-property reference; Rewrap therefore lands
         // the hoist on the FIRST implicit statement — the one whose operands it evaluates — and leaves the series
         // outermost. A non-series statement goes through untouched.
+        // The receivers' identification brackets innermost (kb/Work PB5386): the emitter opens each at its receiver's store, inside
+        // the statement the hoist and the property wrap below enclose.
+        core = BoundImplicitSeries.Rewrap(core, n => WrapReceiverIdentifications(n, identificationMark));
         core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, marks.PreOps));
         core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, marks.PropertyOps));
         // ISO §2023:14.9.33.4 GR2 a) 2./3. — the statement an operand activation was specified in is where a RESUME AT
@@ -578,13 +584,25 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// storage item's (DEBUG-SUB-1 has none: the register is the runtime's) is evaluated into a temporary by a pre-op still pending on
     /// <c>PendingPreOps</c> from <paramref name="preOpMark"/>, and the node reads only the temporary, so the walk asks those pre-ops too.
     /// A nested statement drained its own before this one is asked.</summary>
-    private bool ReferencesDebugItem(BoundStatement statement, int preOpMark)
+    private bool ReferencesDebugItem(BoundStatement statement, int preOpMark, int identificationMark)
     {
         if (BoundReferences.Of(statement).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
         foreach (var preOp in data.Procedure.PendingPreOps.Since(preOpMark))
             if (BoundReferences.Of(preOp).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
+        // A receiver's identification is the same evaluation, taken off the pre-op queue to run at the receiver's store (PB5386).
+        foreach (var identification in data.Procedure.ReceiverIdentifications.Since(identificationMark))
+            foreach (var step in identification.Open)
+                if (BoundReferences.Of(step).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
         return false;
     }
+
+    /// <summary>The receivers <paramref name="core"/> identifies as it stores each one (<c>ExpressionBinder.ResolveReceivingAtStore</c>;
+    /// kb/Work PB5386), drained from <paramref name="mark"/> into the <see cref="BoundReceiverBrackets"/> whose scope the emitter opens
+    /// at each receiver's store. The statement unchanged when it has none.</summary>
+    private BoundStatement WrapReceiverIdentifications(BoundStatement core, int mark) =>
+        data.Procedure.ReceiverIdentifications.AnyAfter(mark)
+            ? new BoundReceiverBrackets(core, data.Procedure.ReceiverIdentifications.DrainFrom(mark))
+            : core;
 
     /// <summary>Whether the paragraph now binding is in a debugging section (X3.23-1985 USE FOR DEBUGGING general rule 1).</summary>
     private bool _inDebuggingSection;

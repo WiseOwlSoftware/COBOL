@@ -936,6 +936,14 @@ public sealed class FileModel
         SameClauses.Where(c => c.Kind == SameClauseKind.RecordArea).SelectMany(c => c.Members)
             .Where(o => !ReferenceEquals(o, this) && o.Records.Count > 0).Distinct();
 
+    /// <summary>The files whose record areas are this file's STORAGE (kb/Work PB5412): <see cref="AreaFiles"/>, and every file
+    /// named with this one in a SAME AREA clause, which shares "all storage areas assigned to the files" (§1985:VII.2.13.4 GR1)
+    /// though not the current logical record. Derived from <see cref="SameClauses"/> like <see cref="SameRecordAreaPeers"/>;
+    /// asked by the rule that a FROM or INTO operand is not the file's record area (<c>StorageSharing.IsRecordAreaOf</c>).</summary>
+    public IEnumerable<FileModel> StorageSharingFiles =>
+        AreaFiles.Concat(SameClauses.Where(c => c.Kind == SameClauseKind.Area).SelectMany(c => c.Members)
+            .Where(o => !ReferenceEquals(o, this))).Distinct();
+
     /// <summary>The first record of this file that has a character window — the anchor every other
     /// character-window record implicitly redefines (§2023:13.18.33.4 GR3), or null when every record is out of
     /// line.</summary>

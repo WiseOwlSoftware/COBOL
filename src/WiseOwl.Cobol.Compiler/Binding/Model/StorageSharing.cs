@@ -40,23 +40,39 @@ internal static class StorageSharing
         return false;
     }
 
-    /// <summary>⛔ THE OTHER QUESTION, asked of a FILE's record area (kb/Work PB5077): does <paramref name="operand"/> name the
+    /// <summary>⛔ THE OTHER QUESTION, asked of a FILE's record area (kb/Work PB5077, PB5412): does <paramref name="operand"/> name the
     /// record area of <paramref name="file"/> — "the same storage area" that §1985:IX.4.5.3 SR1 and §2002:14.8.29.2 SR2
     /// forbid a READ INTO identifier-1 (and RETURN INTO, WRITE FROM, REWRITE FROM, RELEASE FROM: <c>RecordAreaRule</c>)?
     /// It is EXACT where <see cref="MayShare"/> is conservative, because the rule REFUSES the statement: a false positive
     /// rejects legal source, so a storage the compiler cannot place as the whole area is not "the same".
-    /// <para>The operand names the area when it is (1) a record description entry of the file or of a file that shares its
-    /// area through a record-area SAME clause (every 01 under an FD redefines the one area, §2023:13.18.33.4 GR3;
-    /// §2023:12.4.6.4.4 GR2), or (2) a subordinate item of such a record that begins the area (offset 0) and is as long
-    /// as the record, which is the identical storage under another name. A reference-modified operand, an item under an
-    /// OCCURS (no single position), an alias of RENAMES and an item shorter than the record are not.</para></summary>
+    /// <para>The area is the storage of every record of the file and of each file that shares it
+    /// (<see cref="FileModel.StorageSharingFiles"/>: a record-area SAME clause, §2023:12.4.6.4.4 GR2, and a SAME AREA clause,
+    /// §1985:VII.2.13.4 GR1 "The area being shared includes all storage areas assigned to the files"). The rule forbids the
+    /// STORAGE, whatever reference names it, so the operand names the area when the storage it denotes is the whole of one of
+    /// those records: (1) the record description entry itself, or a subordinate of it that begins the area (offset 0) and is
+    /// as long as the record (asked of the declaration, so it holds for every usage); (2) any other reference whose storage is
+    /// statically that whole record (<see cref="StorageExtent.OfReference"/>) — a literal reference modification
+    /// (<c>R1 (1:10)</c>; <c>R1 (1:)</c>, which is R1 itself whatever its length), an element of a table of one occurrence (<c>R1-E (1)</c>), a level-66 THROUGH alias
+    /// of the whole record. A reference whose extent is a run-time quantity (a variable reference modifier) is outside the
+    /// syntax rule, and an item shorter than the record is not the area.</para></summary>
     public static bool IsRecordAreaOf(FileModel file, Place operand)
     {
-        if (operand.DenotedItem is not { IsCompilerTemp: false, Renames: null } item) return false;
-        var root = RootOf(item);
-        if (!file.AreaFiles.Any(f => f.Records.Contains(root))) return false;
-        if (ReferenceEquals(item, root)) return true;
-        return RecordLayout.OffsetOf(item) == 0 && RecordLayout.PhysicalWidth(item) == RecordLayout.PhysicalWidth(root);
+        // R (1:) is the whole of R at whatever length R has: "If length is not specified, the unique data item extends from and
+        // includes the position identified by leftmost-position up to and including the rightmost position of the data item
+        // referenced by identifier-1" (§2023:8.4.3.3.4 GR5c), so it names R's storage even where R's length varies.
+        while (operand is RefModPlace { Length: null, Start.Int32Literal: 1 } whole) operand = whole.Inner;
+        var records = file.StorageSharingFiles.SelectMany(f => f.Records).ToList();
+        if (operand.DenotedItem is { IsCompilerTemp: false, Renames: null } item)
+        {
+            var root = RootOf(item);
+            if (records.Contains(root)
+                && (ReferenceEquals(item, root)
+                    || RecordLayout.OffsetOf(item) == 0 && RecordLayout.PhysicalWidth(item) == RecordLayout.PhysicalWidth(root)))
+                return true;
+        }
+        return StorageExtent.OfReference(operand) is { } named
+            && records.Any(record => StorageExtent.OfItem(record) is { } whole
+                && ReferenceEquals(whole.Area, named.Area) && whole.Start == named.Start && whole.Length == named.Length);
     }
 
     /// <summary>The 01/77 records whose storage <paramref name="item"/> occupies: its own root, plus the roots of

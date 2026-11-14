@@ -47,7 +47,11 @@ using Core = CobolParserCore;
 /// makes the FROM phrase a MOVE followed by the verb (kb/Work PB5352).</param>
 /// <param name="FunctionCategories">The result categories a function-identifier in this position may have, or
 /// <see langword="null"/> where the verb states no such rule.</param>
-/// <param name="FunctionRuleCite">The quoted rule behind <paramref name="FunctionCategories"/>.</param>
+/// <param name="FunctionRuleCite">The quoted rule behind <paramref name="FunctionCategories"/>, as the edition being compiled
+/// numbers and words it (kb/Work PB5486): ANSI X3.23a-1989 added the same restriction to each 1985 FROM rule ("If identifier-1
+/// is a function-identifier, it must reference an alphanumeric function", the first sentence of the syntax rule that also
+/// forbids the record area), so the rule is in force at every edition and only its wording and number change. The category
+/// set needs no edition arm: the national and boolean functions the 2023 sets add do not exist below COBOL-2002 (COBOL1502).</param>
 /// <param name="ZeroLengthLiteralRuleCite">The quoted rule forbidding a zero-length literal-1, or
 /// <see langword="null"/> where the verb states none.</param>
 /// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
@@ -56,7 +60,7 @@ internal sealed record FromPhraseRules(
     string Statement,
     EditionCite MoveRule,
     PicCategory[]? FunctionCategories,
-    string? FunctionRuleCite,
+    EditionCite? FunctionRuleCite,
     string? ZeroLengthLiteralRuleCite,
     RecordAreaVerb AreaVerb)
 {
@@ -66,13 +70,19 @@ internal sealed record FromPhraseRules(
     public ImplicitMovePhrase PhraseAt(int dialectLevel, FileOrganization organization) =>
         new(Statement, MoveRule.At(dialectLevel, organization));
 
+    /// <summary>The function sentence every 1985 FROM rule opens with since ANSI X3.23a-1989, identical in the five I-O and
+    /// sort-merge clauses that state it (§1985:VII.4.7.3 SR1 and its siblings).</summary>
+    private const string Alphanumeric1985 =
+        "\"If identifier-1 is a function-identifier, it must reference an alphanumeric function.\"";
+
     /// <summary>RELEASE (ISO §2023:14.9.32) — the only FROM phrase carrying the zero-length-literal rule.</summary>
     public static readonly FromPhraseRules Release = new(
         "RELEASE FROM",
         new("ISO §2023:14.9.32.4 GR4 a); §2023:14.9.32.3 SR3", "§1985:XI.4.2.4 GR3"),
         [PicCategory.Alphanumeric, PicCategory.National],
-        "ISO §2023:14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
-        + "national function.\"",
+        new("ISO §2023:14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
+            + "national function.\"",
+            "§1985:XI.4.2.3 SR3 — " + Alphanumeric1985),
         "ISO §2023:14.9.32.3 SR4 — \"Literal-1 shall not be a zero-length literal.\"",
         RecordAreaVerb.Release);
 
@@ -83,8 +93,10 @@ internal sealed record FromPhraseRules(
         "WRITE FROM",
         new("ISO §2023:14.9.51.4 GR5 a); §2023:14.9.51.3 SR6", "§1985:VII.4.7.4 GR3", "§1985:VIII.4.9.4 GR3", "§1985:IX.4.9.4 GR3"),
         [PicCategory.Alphanumeric, PicCategory.National],
-        "ISO §2023:14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
-        + "national function.\"",
+        new("ISO §2023:14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
+            + "national function.\"",
+            "§1985:VII.4.7.3 SR1 — " + Alphanumeric1985, "§1985:VIII.4.9.3 SR1 — " + Alphanumeric1985,
+            "§1985:IX.4.9.3 SR1 — " + Alphanumeric1985),
         null,
         RecordAreaVerb.Write);
 
@@ -94,8 +106,10 @@ internal sealed record FromPhraseRules(
         "REWRITE FROM",
         new("ISO §2023:14.9.35.4 GR7 a); §2023:14.9.35.3 SR6", "§1985:VII.4.5.4 GR4", "§1985:VIII.4.6.4 GR5", "§1985:IX.4.6.4 GR5"),
         [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
-        "ISO §2023:14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
-        + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
+        new("ISO §2023:14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
+            + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
+            "§1985:VII.4.5.3 SR1 — " + Alphanumeric1985, "§1985:VIII.4.6.3 SR1 — " + Alphanumeric1985,
+            "§1985:IX.4.6.3 SR1 — " + Alphanumeric1985),
         null,
         RecordAreaVerb.Rewrite);
 }
@@ -128,9 +142,11 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §2023:13.18.38.3 r7)");
         }
         // Identifier-1 is bound; what the receivers register from here on (a function-bearing subscript's temporary,
-        // a user-defined function's activation) is THEIR evaluation, which §2023:14.6.4 puts after the sender's.
+        // a user-defined function's activation) is THEIR evaluation, which §2023:14.6.4 puts after the sender's. Each receiver
+        // is identified immediately before the data is moved to it (§1985:VI.6.19.4 GR2; §2023:14.9.25.4 GR1), so its own
+        // evaluation is its identification bracket, run at its store (kb/Work PB5386), not a pre-op of the statement.
         int senderPreOpsEnd = ctx.Data.Procedure.PendingPreOps.Mark();
-        var resolved = host.Expr.ResolveTargets(targets.receivingIdentifier());
+        List<Place> resolved = [.. targets.receivingIdentifier().Select(host.Expr.ResolveReceivingAtStore).OfType<Place>()];
         return BindMoveOf(source, resolved, senderPreOpsEnd: senderPreOpsEnd);
     }
 
@@ -324,6 +340,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// that is no claimed property opens nothing.</summary>
     private static bool ReceiverOpensAtRunTime(ProcedureBindState procedure, Place receiver, Bound.StoreKind kind)
     {
+        // A data-item receiver whose identification evaluates something (a subscript lowered to a §2023:15.4 temporary) opens
+        // its identification bracket at its store (ExpressionBinder.ResolveReceivingAtStore; kb/Work PB5386).
+        foreach (var identification in procedure.ReceiverIdentifications.Since(0))
+            if (identification.Receiver.Names(receiver)) return true;
         foreach (var op in procedure.PropertyOps.Since(0))
             if (ReferenceEquals(op.Temp, receiver.Item))
                 return op.Interleaved
@@ -410,10 +430,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // The class is read off the BOUND operand through the same Table-16 sender position the category screen
         // uses, so a folded integer function (FUNCTION LENGTH constant-folds to a numeric literal, which is how
         // it escaped every earlier reading of this position) still answers "numeric", not "unknown". ──
-        if (fc is not null && rules.FunctionCategories is { } admitted
+        if (fc is not null && rules.FunctionCategories is { } admitted && rules.FunctionRuleCite is { } functionRule
             && MoveTable16.SenderPosition(source).Category is var cat && !admitted.Contains(cat))
             ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
-                $"{rules.Statement} {DataBinder.WrittenText(fc)}: {rules.FunctionRuleCite} — this function's result is of "
+                $"{rules.Statement} {DataBinder.WrittenText(fc)}: {functionRule.At(ctx.Edition.DialectLevel, file.Organization)} — this function's result is of "
                 + $"category {cat.ToString().ToLowerInvariant()}");
 
         // ── §2023:14.9.32.3 SR4, "Literal-1 shall not be a zero-length literal." RELEASE's alone: neither
