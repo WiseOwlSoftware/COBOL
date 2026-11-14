@@ -64,8 +64,14 @@ def _inventory(root: Path) -> list[str]:
     rows = inventory_view.inventory(schema=sch, tree=tree)
     resolved = tuple(json.loads(common.text(root, KINDS_PATH))["documentKinds"])
     paths = {p for r in rows for p in _paths(r, sch.code_location_sep, resolved)}
-    texts = {p: _document_text(root, p) for p in paths if (root / p).is_file()}
+    texts = {p: _document_text(root, p) for p in paths if _document_exists(root, p)}
     return anchor_findings(rows, texts, sch.code_location_sep, schema.prose_of, resolved)
+
+
+def _document_exists(root: Path, rel: str) -> bool:
+    """Whether the tree holds the document: the conformance statement is its sources (its rendered view is not tracked,
+    and is absent in a fresh checkout such as CI's: kb/Work PB5430), any other document its own file."""
+    return (root / conformance_source.SOURCE_REL).is_dir() if rel == conformance_source.PATH_REL else (root / rel).is_file()
 
 
 def _document_text(root: Path, rel: str) -> str:
@@ -113,7 +119,8 @@ def _planted_root_findings() -> list[str]:
              for n in range(120)]
     files = {schema.SCHEMA_REL: schema.WORKING_TREE.text(schema.SCHEMA_REL), KINDS_PATH: json.dumps({"documentKinds": [".md"]}),
              newest.catalog: json.dumps({"rules": rules}),
-             conformance_source.PATH_REL: " ".join(f"Anchor{n}" for n in range(120) if n != 7)}
+             # the conformance statement as its sources: a head and no section, the anchors its whole text
+             f"{conformance_source.SOURCE_REL}/{conformance_source.HEAD_FILE}": " ".join(f"Anchor{n}" for n in range(120) if n != 7)}
     for rel, text in files.items():
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
         (root / rel).write_text(text, encoding="utf-8", newline="\n")

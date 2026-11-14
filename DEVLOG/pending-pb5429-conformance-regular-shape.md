@@ -24,3 +24,15 @@ resolve. Eleven, each the standard's clause number 4.2.16 written as a section o
 (`DOC-A.1-123` for the Int128 intermediate, the runtime message in `CobolNum.cs` included; `DOC-A.1-12`, `-135`, `-193`,
 `-213`); seven planted bad anchors carry the example marker. The rest (16 templates such as `#DOC-A.1-<n>`, 6 in kb/Work
 note bodies) wait for the arm, which steps B2 and C continue on this branch.
+
+**PB5430, commit 2 (the cut).** The statement's storage is now `docs/conformance/`: one directory per section and one
+file per entry named by its key (514 files), JSON-valued frontmatter for the index (`heading:`, `columns:`), a row
+(`cells:`) and a section-4 block (`order:`); a determination is its bullet as written. `conformance_source.load` renders
+the sources and parses the render, so no reader changed; `conformance_doc.py` renders and checks. The migration cut the
+step-B1 monolith from HEAD and the render was byte-identical (1,363,844 bytes); the script was then deleted.
+`docs/CONFORMANCE.md` is an ignored view whose first line `rendered_views.py` now stamps with its body's digest, and
+rule (e) refuses an edited or unstamped view and a render over one. The CITATIONS baseline was re-keyed (40 entries, the
+same citations and kinds), and an A.3 range key is stored as an ASCII file name. Four rows the cut's renderer could not
+write back (A.4.8 and A.4.11 with unescaped grammar pipes, DOC-A.1-31 and DOC-A.1-95 with a stray `||`) were repaired
+and `check` now refuses both shapes. Left for the next link: the pointer sweep, the conformance arm and PB4053 (commit 3)
+and the published statement (PB5431).

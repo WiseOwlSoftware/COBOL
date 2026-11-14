@@ -2319,6 +2319,30 @@ the source file and line the migration moved each citation to (the multiset of c
 `audit_code_citations.py --check` GREEN), updates `inventory-schema.json`'s anchor pattern only if a key spelling changed
 (it should not: B1 fixed the keys), and moves every instruction and link listed above.
 
+**Step B2 as built, commits 1 and 2 (kb/Work PB5430; rule 5: where the table above was wrong).** The storage is the
+table's with four corrections. (1) A determination's file is the bullet AS WRITTEN with no frontmatter: a `title:` would
+be a second copy of the bullet's own opening words, and `notes:` a second copy of the kb/Work ids its text already names.
+(2) Frontmatter values are JSON, one `<name>: <value>` a line (`conformance_source.frontmatter`): a heading's quotes and a
+cell's pipes need no escaping of their own, every value is also YAML, and a malformed line is a finding naming the file.
+A table row's file holds `cells:` and, for a row with extended prose, that prose as its body; a table's separator is
+always `|---|`, so `columns:` is the whole head. (3) The text before section 1 is `docs/conformance/head.md`, and a key
+with an en dash (an A.3 range, `28–30`) is stored as `28-30.md` (`conformance_source.file_name`), so every tracked path
+stays ASCII. (4) The one-entry-per-file rule is NOT a `RegistryShapeDriftTests` case: a compiler test that opened these
+Markdown files would make them test inputs, which kb/Work PB4453 forbids; `conformance_doc.py --check` (a DOC AUDITS check
+through `conformance_source.problems`, and `rendered_views.py --check`'s rule (d)) refuses a key that is not its file's
+name, a row whose cells are not its columns, a malformed frontmatter, two blocks of one `order:`, an entry file in a prose
+section and a stray file or directory. `load(root)` renders the sources (`read_sources`) and parses the result, so every
+reader's API is unchanged and the reader is still the one module that opens the document's storage. The migration read
+the B1 monolith from `HEAD` (the working tree's copy is the stamped view by then), cut it into 514 files, proved the
+render byte-identical (1,363,844 bytes) and was deleted in the next commit. The stamp is `rendered_views.stamp_line`
+(the generator, `View.sources`, the body's sha256, the remedy) on every in-tree FILE view (`View.stamped`), and rule (e)
+is `rendered_views.edited`. A host checkout that holds an UNSTAMPED render from before this step (`docs/DRIFT_RULES.md`,
+`docs/DIAGNOSTICS.md`) is RED under rule (e) once: delete the file and render it again. The CITATIONS audit's
+`cite-resolve-baseline.json` was re-keyed in commit 2, not 3 (the cut moved the 40 citations, and the audit is RED
+until they are re-keyed), and its BARE check reads a source file's own sections as the statement's directories
+(`audit_code_citations.conformance_sections`). Commit 3 (the pointers, the conformance arm, PB4053) and step C are not built
+yet.
+
 *Step C — the published statement (PB5431).* The package and the documentation build carry the rendered
 `docs/CONFORMANCE.md`: a pack-time MSBuild target in `Directory.Build.props` runs `conformance_doc.py --out` into the
 intermediate directory and packs it at `docs/CONFORMANCE.md` beside `LICENSE` (the one `Pack="true"` item today), and

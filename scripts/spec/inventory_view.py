@@ -472,7 +472,7 @@ def self_test() -> int:
     ok(opened == [], f"the view and the state rule open no Markdown document (opened {opened[:3]})")
     planted = markdown_opened("import conformance_source; inventory_schema.Schema.register_items = "
                               "lambda self: set(conformance_source.load().a1_determinations())")
-    ok(any(p.replace("\\", "/").endswith("docs/CONFORMANCE.md") for p in planted),
+    ok(any("docs/conformance/" in p.replace("\\", "/") for p in planted),   # the statement's sources (kb/Work PB5430)
        f"the probe sees a state input that reads the Markdown register (planted; opened {planted[:3]})")
     # Branch review R2-1: a tree main never held (a WIP checkpoint whose schema predates `editions.of`) is refused by name.
     old_raw = json.loads(WORKING_TREE.text(SCHEMA_REL))
