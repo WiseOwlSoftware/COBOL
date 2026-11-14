@@ -1,0 +1,5 @@
+**2026-11-14, lead filed by the notes batch 20261114a.** UNVERIFIED LEAD: re-probe before fixing.
+
+Review round 3 lead R3-1 on the PB5210 branch (wave 20262020 group C), verbatim: "R3-1 LEAD (low, not blocking at round 3): tests/version-matrix/inventory-1985/1985-GR-VIII.4.2.4-2.json:7 The finisher says the re-verdict keeps main probes, but the rewritten notes drop the read-4 probe result "and does not reach a same-named file of another program (00)" (work-rd-05/c3/cl.cob: SUBP XF assigned to subp.rel opens 00 after CLP XF on clp.rel is closed WITH LOCK). It still holds on the branch build (SUB OPEN 00), and it is the evidence that the 85 lock is keyed by physical file and not by name, which the new sentence "no file-name of any program reopens it" leaves implicit."
+
+The clerk checked the current row on main: `grep "another program"` over `tests/version-matrix/inventory-1985/1985-GR-VIII.4.2.4-2.json` finds nothing, so the probe result is still absent from the notes. The fix is a `record_verdicts.py --edition 1985` batch that restores that sentence (and the probe path) in the row's notes; the clerk does not write inventory rows.
