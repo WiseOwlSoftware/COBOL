@@ -1,15 +1,14 @@
       *>--- conformance-case
       *> id: 1985-FMT-VI_6_12_2
       *> rules: [1985-FMT-VI.6.12.2]
-      *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> §1985:VI.6.12.2 (THE ENTER STATEMENT). An output test: the
-      *> program must translate and run at 85 and DISPLAY exactly the
-      *> lines its .out holds, the outcome the rule requires. Placed
-      *> from the audit's draft, confirmed by
-      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
+      *> §1985:VI.6.12.2 (THE ENTER STATEMENT). A refusal: an implementation
+      *> "may include the ENTER statement or not, at the option of the
+      *> implementor" (§1985:I.1.5.2.5.5), and WiseOwl does not provide it, so
+      *> even the return word of the format, ENTER COBOL, is refused at 85
+      *> with COBOL7240 (kb/Work PB5308); a compiler that accepts it fails.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. ENTTST.
        ENVIRONMENT DIVISION.

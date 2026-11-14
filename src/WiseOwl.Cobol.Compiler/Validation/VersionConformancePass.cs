@@ -1305,8 +1305,8 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>ENTER — the '85 other-language entry statement, deleted 2002. Comment-equivalent (BoundNop)
-        /// at 85 — the conforming COBOL-only posture.</summary>
+        /// <summary>ENTER — the '85 other-language entry statement, deleted 2002. Not provided at 85 either: the binder
+        /// refuses it by name there (COBOL7240, kb/Work PB5308).</summary>
         public override object? VisitEnterStatement(CobolParserCore.EnterStatementContext ctx)
         {
             _p.Check(Constructs.EnterRemoved2002, "the ENTER statement");
