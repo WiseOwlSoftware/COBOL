@@ -3897,7 +3897,8 @@ guard remained to prove it equivalent to. v1.0 keeps Cut 3 and the §2023:4.2.16
    engine as present; the one pointer is `docs/rearchitecture/LEGACY-ARCHIVE.md`.
 2. **The gate is green:** the whole-population gate (`pwsh scripts/build-local.ps1`) and the CLI-level NIST leg
    (`bash scripts/guard-fast.sh`, driving `cobol`) are green from a clean checkout on Windows and Linux.
-3. **The §2023:4.2.16 conformance document is published:** `docs/CONFORMANCE.md` exists, is complete per the section map in
+3. **The §2023:4.2.16 conformance document is published:** the statement (its sources under `docs/conformance/`, rendered whole as
+   `docs/CONFORMANCE.md` and carried by the NuGet packages, kb/Work PB5431) is complete per the section map in
    §7 of this doc, is linked from `README.md` and `docs/DOC_INDEX.md`, and every claim cites a spec § and (where a
    behavioral claim) a passing conformance test / golden.
 4a. **Static runtime facades RETIRED with the flip (owner-ratified 2026-07-16 — DESIGN-runtime-library §6 Q3):**

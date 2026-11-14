@@ -219,6 +219,12 @@ class Conformance:
         section = self.own_section(number)
         return _classify(number, KINDS.get(number, PROSE), section.body.split("\n"), section.line + 1)
 
+    def keys(self) -> frozenset[str]:
+        """Every key the document holds, each an anchor a citation may name (`CONFORMANCE.md#DOC-A.1-56`): the entries and
+        the row bodies of every section (kb/Work PB5430, the CITATIONS audit's conformance arm)."""
+        shapes = [self.shape(number) for number in self.numbers()]
+        return frozenset(e.key for s in shapes for e in (*s.entries, *s.bodies))
+
     def determinations(self) -> dict[str, Entry]:
         """`{key -> entry}` for the determinations of sections 3 and 3.1, every one keyed `D-<KEY>` since step B1."""
         return {e.key: e for number in ("3", "3.1") for e in self.shape(number).entries}

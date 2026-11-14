@@ -89,6 +89,12 @@ if (Test-Path 'tests/version-matrix/inventory-schema.json') {
     if ($LASTEXITCODE -ne 0) {
         Write-Host "vault  : the kb/Conformance burn-down did not render - run: python scripts/rendered_views.py conformance-burn-down"
     }
+    # The conformance statement is a rendered view too (kb/Work PB5430): docs/CONFORMANCE.md from docs/conformance/. A
+    # render refuses to overwrite a hand-edited copy (rendered_views rule (e)), so a failure here names an edit to carry.
+    & python scripts/rendered_views.py conformance *>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "conform: docs/CONFORMANCE.md did not render - run: python scripts/rendered_views.py conformance"
+    }
 } else {
     Write-Host "invent : not built yet (P14 Step 0)"
 }

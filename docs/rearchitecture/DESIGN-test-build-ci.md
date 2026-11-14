@@ -2181,20 +2181,26 @@ demand and not committed.
   (`Set-LfContent`). `merge.renormalize` is the documented per-clone setting (CONTRIBUTING.md).
 - **Generated indexes leave the tree (PB3026):** a derived index is a RENDERED VIEW: gitignored, rendered on demand by its
   generator, never committed. `scripts/rendered_views.py` holds the ONE registry (`VIEWS`): `docs/DRIFT_RULES.md`
-  (`drift_rules.py --out`), the `kb/Conformance` burn-down (`gen_conformance_notes.py --out`), `docs/DIAGNOSTICS.md`
+  (`drift_rules.py --out`), the conformance statement `docs/CONFORMANCE.md` (`conformance_doc.py --out`, from
+  `docs/conformance/`), the `kb/Conformance` burn-down (`gen_conformance_notes.py --out`), `docs/DIAGNOSTICS.md`
   (`gen-diagnostics-doc.ps1`), the `kb/Reference` and `kb/Grammar` vault views, and the ledger page. A new generated index is
   one row there plus a `.gitignore` entry. `rendered_views.py --check` is the gate's `RENDERED VIEWS` audit (it runs before the
   slot) and a step of CI's `audits` job, and enforces per view: not tracked (`git ls-files` ∩ outputs = ∅), gitignored when
   inside the tree, its generator's own `--check` renders it in memory, plus a sweep that no tracked `docs/` or `kb/` markdown
-  declares itself generated without a row. Nothing compares a view with a copy on disk, so "absent" and "stale" no longer
-  exist; a reader that needs a view refuses with the render command when it is absent, never reads an empty one as "no
+  declares itself generated without a row. Every in-tree FILE view carries a stamp as its first line (`stamp_line`: the
+  generator, its sources, the body's sha256 and the remedy), and rule (e) is RED on a file at a view's path with no stamp or
+  an edited body, and a render refuses to overwrite one, so a hand edit to a gitignored view is never lost silently
+  (kb/Work PB5430). A view that is only STALE (sources changed, body untouched) is not RED: the next render replaces it,
+  and "absent" is never stale; a reader that needs a view refuses with the render command when it is absent, never reads an empty one as "no
   diagnostics". NOT views, and tracked on purpose: generated SOURCE the build compiles (`*.g.cs`, `*.Table.cs`: a clone must
   build with no pre-step; each has its own drift test), DATA extracted from the licensed standard, and the gating status
   block embedded in `VERSION_CHANGE_REFERENCE.md`.
 - **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh pull request, never inside a fix
-  pull request; a fix edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md`
-  becomes one source file per entry under `docs/conformance/`, read by one module and rendered whole as a view
-(DESIGN-orchestrator-loop.md §16.8, kb/Work PB3726, PB5395, PB5429, PB5430, PB5431).
+  pull request; a fix edits its notes, its code, its tests, its goldens and the design doc of its subsystem.
+- **The conformance statement** is one source file per entry under `docs/conformance/`, read by one module
+  (`conformance_source.py`) and rendered whole as the view above, which the NuGet packages carry (a pack-time target in
+  `Directory.Build.props`); a determination is a new file of its section, never an edit of the view
+  (DESIGN-orchestrator-loop.md §16.8, kb/Work PB3726, PB5395, PB5429, PB5430, PB5431).
 
 #### 3.17.5 The loop's units and the fleet (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
 

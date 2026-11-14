@@ -34,6 +34,12 @@ THE CHECKS, each narrow on purpose:
   BARE      — (kb/Work PB4887) a bare `§N` that names a clause of the 2023 standard and no document of the
               repository's own (`citation.bare_standard`): a citation of the standard carries its edition.
 
+  CONFORMANCE — (kb/Work PB5430) a citation of the conformance statement by section (`CONFORMANCE.md §3.2`) or anchor
+              (`CONFORMANCE.md#DOC-A.1-56`) names a section directory or an entry key of `docs/conformance/`
+              (`conformance_source`). It turned on with no baseline after its debt was burned down: eleven sites had
+              written the standard's clause 4.2.16 as if it were a section of the statement. A template (an anchor
+              followed by `<` or `{`) and a work-register note's body (its owner's history) are not its population.
+
   RESOLVE   — (kb/Work PB5317) every edition-form citation of every edition, through `cite.resolve`, the one checker:
               the rule list of the cited kind, the ordinal, the sub-item path, `Format n`, `Table n`, and a paired
               quotation inside the cited rule. Until it, a 1985 rule number was checked by nothing (`§1985:XI.4.4.4
@@ -425,6 +431,46 @@ def conformance_sections() -> frozenset[str]:
     return frozenset(p.name for p in base.iterdir() if p.is_dir()) if base.is_dir() else frozenset()
 
 
+#: A citation of the conformance statement by section or anchor (`CONFORMANCE.md §3.2`, `CONFORMANCE.md#DRV-GR-14.9.5.4-11`;
+#: kb/Work PB5430). The anchor is matched possessively, and a TEMPLATE, an anchor followed at once by `<` or `{`
+#: (`#DOC-A.1-<n>`, `#DRV-{rule-id}`), is a pattern a tool fills in, never a citation.
+CONFORMANCE_CITE = re.compile(r"CONFORMANCE\.md,? §([0-9]+(?:\.[0-9]+)*)|CONFORMANCE\.md#([A-Za-z0-9._-]++)(?![<{])")
+
+#: The work register's note bodies are not the arm's population: a note's prose is its owner's history (CLAUDE.md rule
+#: 8: a filed note is edited only by its owner), and what it named then is not a pointer a reader follows now.
+CONFORMANCE_HISTORY = "kb/Work/"
+
+
+@functools.lru_cache(maxsize=None)
+def conformance_keys() -> frozenset[str]:
+    """The conformance statement's keys, each an anchor (`conformance_source.Conformance.keys`)."""
+    return conformance_source.load(REPO).keys()
+
+
+def conformance_findings(rel: str, lines: list[str], sections: frozenset[str],
+                         keys: frozenset[str]) -> list[tuple[str, str, str, str]]:
+    """CONFORMANCE over ONE file's lines: every `CONFORMANCE.md §N` names a section the statement has, and every
+    anchor after `CONFORMANCE.md#` one of its keys (kb/Work PB5430). The one implementation the audit and its self-test share."""
+    if rel.startswith(CONFORMANCE_HISTORY):
+        return []
+    out: list[tuple[str, str, str, str]] = []
+    for n, line in enumerate(lines, 1):
+        if "CONFORMANCE.md" not in line or citation.example(line):
+            continue
+        for m in CONFORMANCE_CITE.finditer(line):
+            number, anchor = m.group(1), m.group(2)
+            if number is not None and number.rstrip(".") not in sections:
+                out.append(("CONFORMANCE", f"{rel}:{n}", m.group(0),
+                            f"the conformance statement has no section {number.rstrip('.')} (its sections are the "
+                            f"directories of docs/conformance/): name the standard's clause in edition form "
+                            f"(§2023:<clause>), or the statement's section or key the sentence is about"))
+            elif anchor is not None and anchor.rstrip(".") not in keys:
+                out.append(("CONFORMANCE", f"{rel}:{n}", m.group(0),
+                            f"the conformance statement has no entry keyed {anchor.rstrip('.')} (a key is the name of "
+                            f"its file under docs/conformance/<section>/)"))
+    return out
+
+
 def phantom_scan(universe: set[str] | None):
     """PHANTOM, CITATION and BARE over EVERY file that carries a citation, source and prose alike — they need no
     context, so they have no false-positive problem outside code and there is no reason to leave the design docs
@@ -441,7 +487,9 @@ def phantom_scan(universe: set[str] | None):
             lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
         except OSError:
             continue
-        findings += file_findings(path.relative_to(REPO).as_posix(), lines, universe)
+        rel = path.relative_to(REPO).as_posix()
+        findings += file_findings(rel, lines, universe)
+        findings += conformance_findings(rel, lines, conformance_sections(), conformance_keys())
     return findings
 
 
@@ -1689,6 +1737,34 @@ CONSTRUCT_SELF_TEST = [
 ]
 
 
+#: (line, the CONFORMANCE findings it must give) over a planted statement of sections {"3", "7"} and keys
+#: {"D-SWK", "DOC-A.1-56"}: each misattribution the burn-down of kb/Work PB5430 rewrote, and the shapes the arm passes.
+CONFORMANCE_SELF_TEST = [
+    ("the intermediate (docs/CONFORMANCE.md §4.2.16)", 1),  # citation-audit: example
+    ("see CONFORMANCE.md#DOC-A.1-999 for the byte", 1),  # citation-audit: example
+    ("see CONFORMANCE.md#7 for the register", 1),  # citation-audit: example
+    ("docs/CONFORMANCE.md §3 D-SWK, and CONFORMANCE.md#DOC-A.1-56.", 0),
+    ("the section ends a sentence: docs/CONFORMANCE.md §7.", 0),
+    ("a template: docs/CONFORMANCE.md#DOC-A.1-<n> and #DRV-{rule-id}, CONFORMANCE.md#DRV-{rule-id}", 0),
+    ("a planted bad anchor CONFORMANCE.md#DOC-A.1-999  // citation-audit: example", 0),
+]
+
+
+def conformance_self_test() -> bool:
+    """CONFORMANCE fires on each misattribution and stays silent on a real section, a real key, a template and a marked
+    example; a work-register note's body is not its population."""
+    sections, keys = frozenset({"3", "7"}), frozenset({"D-SWK", "DOC-A.1-56"})
+    ok = True
+    for line, want in CONFORMANCE_SELF_TEST:
+        got = len(conformance_findings("docs/probe.md", [line], sections, keys))
+        print(f"  {'ok  ' if got == want else 'FAIL'} CONFORMANCE gives {want} on {line[:70]}"
+              + ("" if got == want else f"  (got {got})"))
+        ok &= got == want
+    held = conformance_findings(CONFORMANCE_HISTORY + "PB1.md", [CONFORMANCE_SELF_TEST[0][0]], sections, keys)
+    print(f"  {'ok  ' if not held else 'FAIL'} CONFORMANCE reads no work-register note")
+    return ok and not held
+
+
 def construct_self_test() -> bool:
     ok = True
     for want, defect, repaired in CONSTRUCT_SELF_TEST:
@@ -1801,6 +1877,7 @@ def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) ->
     ok &= ordinal_self_test(ordinals, tops)
     ok &= diagnostic_self_test(direct)
     ok &= construct_self_test()
+    ok &= conformance_self_test()
     ok &= resolve_self_test()
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1

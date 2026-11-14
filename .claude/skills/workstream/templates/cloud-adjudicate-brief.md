@@ -21,8 +21,9 @@ probes under `/tmp/adj/{BATCH}/probe/`). Inputs: `python scripts/spec/phase_b_ba
 ## What each row kind means
 
 - **DOC-A.1-N (Annex A.1 implementor-defined item).** The item's own sentence in `specs/ISO_COBOL_2023.md` says it "shall
-  be documented" or "need not be documented". This project's documentation is `docs/CONFORMANCE.md` (a
-  `| DOC-A.1-N |` determination row). CONFORMS only when (a) a determination for exactly this item exists — unless it
+  be documented" or "need not be documented". This project's documentation is the conformance statement, its sources under
+  `docs/conformance/` (a `DOC-A.1-N` determination row is `docs/conformance/7/DOC-A.1-N.md`), rendered whole into the
+  gitignored `docs/CONFORMANCE.md` by `python scripts/rendered_views.py conformance`. CONFORMS only when (a) a determination for exactly this item exists — unless it
   need not be documented — AND (b) the compiler/runtime behaves as stated or required (read the code; probe when
   reading cannot decide). A behavior the code fixes but nothing documents under its own key ⇒ DIVERGES (harm
   silent). Facility absent ⇒ NOT-IMPLEMENTED. Determination present but the code differs, or an edge unverified ⇒

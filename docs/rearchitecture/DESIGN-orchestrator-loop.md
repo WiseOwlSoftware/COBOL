@@ -2340,8 +2340,21 @@ is `rendered_views.edited`. A host checkout that holds an UNSTAMPED render from 
 `docs/DIAGNOSTICS.md`) is RED under rule (e) once: delete the file and render it again. The CITATIONS audit's
 `cite-resolve-baseline.json` was re-keyed in commit 2, not 3 (the cut moved the 40 citations, and the audit is RED
 until they are re-keyed), and its BARE check reads a source file's own sections as the statement's directories
-(`audit_code_citations.conformance_sections`). Commit 3 (the pointers, the conformance arm, PB4053) and step C are not built
-yet.
+(`audit_code_citations.conformance_sections`).
+
+**Step B2 as built, commit 3 (kb/Work PB5430).** The instructions that name a place to write a determination point at
+`docs/conformance/` (CLAUDE.md rule 1, `spec-lookup`, `dispatch-spec-implementer.md`, `golden-lane-brief.md`,
+`cloud-adjudicate-brief.md` with the render command, the issue template, `DOC_INDEX.md`, the plan's section 15 exit
+criterion and `DESIGN-test-build-ci.md` section 3.17.4); README.md's three links and its tree listing name the directory.
+The imperative sweep's other hits are citations of the statement (`documented in docs/CONFORMANCE.md §7`), which do not
+move; `wf_lane3_adjudicate.js` names the statement only to be read, and `session-probe.ps1` renders the view at every
+session start. The conformance arm is `audit_code_citations.conformance_findings` (kind `CONFORMANCE`, over PHANTOM's
+population, against `conformance_sections` and `Conformance.keys`), GREEN with no baseline. Two decisions the burn-down
+left to it: an anchor followed at once by `<` or `{` is a TEMPLATE (`#DOC-A.1-<n>`), never a citation (the anchor is
+matched possessively, so the template is not read as its prefix), and a kb/Work note's body is not its population
+(CLAUDE.md rule 8 keeps a filed note's prose its owner's history, as the DEVLOG is). PB4053 is retired: all six of its
+acceptance notes had landed, so its acceptance ran as `inflight.collision` over two notes sited on different row files
+(no meeting) and two on one (they meet), the record in `kb/Work/PB4053/2026-11-14-retired.md`.
 
 *Step C — the published statement (PB5431).* The package and the documentation build carry the rendered
 `docs/CONFORMANCE.md`: a pack-time MSBuild target in `Directory.Build.props` runs `conformance_doc.py --out` into the
