@@ -211,7 +211,9 @@ jobs:
   # ── How evenly the merge group divided the work (scripts/shard_weights.py report): the slowest shard's wall over the
   # mean shard wall of one OS in one run, the worst of the newest 8 shard runs of the last 24 hours (one run's artifacts
   # are about 200 MB, so it downloads one run at a time and deletes it). Red above 1.5x. NOT MEASURED, and green, on a
-  # day nothing ran the matrix. The report is live while tests/_shared/test-weights.json exists and build-and-test.yml
+  # day nothing ran the matrix. An OS of a run whose shards ran fewer than every assembly the weights file deals (a
+  # Windows leg that ran only the targets with no published pass, kb/Work PB5235) is PARTIAL and left out: the deal
+  # balances the sum over every assembly, so no regeneration changes a subset's spread (kb/Work PB5468). The report is live while tests/_shared/test-weights.json exists and build-and-test.yml
   # names WISEOWL_COBOL_SHARD (the weighted shards, kb/Work PB4329), because its remedy is regenerating that file
   # (`python scripts/shard_weights.py generate`). It reads the merge group's `test-results-*` artifacts (14 days). ──
   shard-spread:
