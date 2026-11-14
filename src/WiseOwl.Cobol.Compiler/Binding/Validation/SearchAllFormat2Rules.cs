@@ -51,6 +51,11 @@ using WiseOwl.Cobol.Runtime;
 internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolver refs, StatementValidation validation,
                                               ConditionBinder conditions)
 {
+    /// <summary>The edition that first states the two subscript sentences of Format 2 (§2002:14.8.34.2 SR6 and SR7): the
+    /// index-name subscript "shall not be followed by a '+' or a '–'" and a condition-name "shall be subscripted by the first
+    /// index-name"; §1985:VI.6.22.3 SR4 has neither (kb/Work PB5193).</summary>
+    private const int FirstEditionWithSubscriptSentences = 2002;
+
     /// <summary>Screen one <c>SEARCH ALL</c> against ISO §2023:14.9.37.3 SR7–SR13. Pure in the check-catalog sense:
     /// every verdict is reported to the ONE sink and the caller's bind is unaffected (a Format-2 violation is the
     /// SOURCE's error and §2023:4.2.2 ¶2 puts its indication at compile time — the statement still binds, so one
@@ -324,7 +329,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         }
         referenced[pos] = true;
 
-        return CheckKeySubscript(dref, cond.Parent, table, firstIndex, "SR9") && ok;
+        // §1985:VI.6.22.3 SR4 puts no subscript rule on a condition-name (only on data-name-1 / data-name-2); the
+        // requirement that it be subscripted by the first index-name is §2002:14.8.34.2 SR7 and §2023:14.9.37.3 SR9.
+        return (data.Edition.DialectLevel < FirstEditionWithSubscriptSentences || CheckKeySubscript(dref, cond.Parent, table, firstIndex, "SR9")) && ok;
     }
 
     /// <summary>SR10 (with SR12's identifier arm and SR13) — identifier-3 / identifier-4, the identifiers inside
@@ -452,8 +459,12 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 + $"(ISO §2023:14.9.37.3 {rule})");
         if (toks.Count == next) return true;
         toks = [toks[0], .. toks.Skip(next)];
-        return toks[1].Type is Core.PLUS or Core.MINUS
-                             or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT
+        bool relative = toks[1].Type is Core.PLUS or Core.MINUS or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT;
+        // §1985:VI.6.22.3 SR4 asks only that the key be "subscripted by the first index-name ... along with other
+        // subscripts as required": K (IX + 1) is, and the "shall not be followed by a '+' or a '–'" sentence arrives
+        // with §2002:14.8.34.2 SR6 (kb/Work PB5193).
+        if (relative && data.Edition.DialectLevel < FirstEditionWithSubscriptSentences) return true;
+        return relative
             ? Key(table, $"'{DataBinder.WrittenText(dref)}' writes '{Written(toks)}': \"the index-name subscript shall not be "
                 + $"followed by a '+' or a '–'\" (ISO §2023:14.9.37.3 {rule})")
             : Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where the "
