@@ -1,4 +1,4 @@
-## PB5193: SEARCH ALL's two 2002 subscript sentences stop refusing 1985 source
+## Entry 3609 — 2026-11-14 09:37 PST — PB5193: SEARCH ALL's two 2002 subscript sentences stop refusing 1985 source
 
 At `--std 85`, `SEARCH ALL ... WHEN K (IX + 1) = 2`, `WHEN C1 (IX - 1)` and `WHEN C1 (JX)` drew COBOL1965 citing
 §2023:14.9.37.3 SR8 and SR9. Re-probe on this build confirmed all three (exit 65, same text) at 85 and 2002.
@@ -26,3 +26,4 @@ edition; `SearchAllFormat2Rules.SubscriptRuleCite` now names §2002:14.8.34.2 SR
 §1985:VI.6.22.3 SR4 (each checked with `cite.py --check`). Goldens: `pb5193-search-all-key-index-plus-cites-2002`/`-2014`,
 `pb5193-search-all-condition-index-plus-cites-2002`/`-2014`, `pb5193-search-all-key-second-index-cites-1985`, each refusing
 with the full message.
+
