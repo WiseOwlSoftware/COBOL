@@ -49,8 +49,8 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// <summary>Whether a size error condition in an arithmetic statement with no ON SIZE ERROR phrase ends only that
     /// statement (kb/Work PB5484): at COBOL-85 "the values of the affected resultant identifiers are undefined", the others
     /// are stored as if no size error had occurred, and "control is transferred to the end of the arithmetic statement"
-    /// (§1985:VI.6.4.2 GR3) — "the program will continue and the value of any affected resultant identifier is undefined"
-    /// (§1985:B.2.2 item 45), a zero divisor and an exponentiation-rule violation included (§1985:VI.6.4.2 GR1, GR2).
+    /// (§1985:VI.6.4.2 GR3), and the change record §1985:B.2.2 item 45 adds "the program will continue and the value of any
+    /// affected resultant identifier is undefined", a zero divisor and an exponentiation-rule violation included (§1985:VI.6.4.2 GR1, GR2).
     /// From 2002 the condition is a fatal exception condition and "processing proceeds as specified in" the fatal
     /// exception rules (§2023:14.7.5), which with checking off leave the disposition to the implementor.</summary>
     public bool UnphrasedSizeErrorEndsOnlyTheStatement => Year < 2002;
