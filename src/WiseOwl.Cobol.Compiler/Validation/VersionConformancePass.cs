@@ -3094,13 +3094,11 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        // ── Step 14h.4b: the boolean-operator + national/boolean LITERAL gates (the delicate cases) ────────────
-        // (1) The boolean OPERATORS gate is detected at the primaryCondition / computeStatement ALTITUDE with a
-        //     whole-subtree operator scan (BooleanOperatorGate) — never per booleanExpression node: the tiers nest via parentheses /
-        //     the relation form, so a per-node gate would over-count. (2) The national/boolean LITERAL gates fire
-        //     for a PROCEDURE-DIVISION statement operand only (a StatementContext ancestor); a data-division VALUE
-        //     literal is left to the data/PIC gate (its item's national/boolean USAGE, Step 14g) — firing here too
-        //     would double the below-2002 diagnostic.
+        // ── Step 14h.4b: the boolean-operator gate (the delicate case) ──────────────────────────────────────────
+        // The boolean OPERATORS gate is detected at the primaryCondition / computeStatement ALTITUDE with a
+        // whole-subtree operator scan (BooleanOperatorGate) — never per booleanExpression node: the tiers nest via parentheses /
+        // the relation form, so a per-node gate would over-count. The national and boolean LITERAL gates are not here: a
+        // literal's format is a property of its token, gated position-blind by LiteralScreen.GateFormat (kb/Work PB5416).
 
         /// <summary>⭐ THE boolean-operator introduction gate — ONE rule, called once per GRAMMAR SITE that hosts
         /// a top-level <c>booleanExpression</c>. B-AND/B-OR/B-XOR/B-NOT are a COBOL-2002 introduction (ISO
@@ -3237,49 +3235,9 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>National (<c>N"…"</c>) and boolean (<c>B"…"</c>) literals as a PROCEDURE-DIVISION statement
-        /// operand — COBOL-2002 introductions (ISO §2023:8.3.3.5 / §2023:8.3.3.4). Scoped to a StatementContext ancestor so a
-        /// DATA-division VALUE literal is left to the data/PIC gate (Step 14g) — firing here too would double the
-        /// below-2002 diagnostic. One Check per literal occurrence, matching the binder's NationalLiteralOperand /
-        /// BooleanLiteralOperand / boolean-expression-operand paths.</summary>
-        public override object? VisitNonNumericLiteral(CobolParserCore.NonNumericLiteralContext ctx)
-        {
-            bool nat = ctx.NATLIT() is not null;
-            if ((nat || ctx.BOOLLIT() is not null) && InStatement(ctx))
-                _p.Check(nat ? Constructs.NationalData2002 : Constructs.BooleanData2002,
-                    nat ? "national literal N\"…\"" : "boolean literal B\"…\"");
-            // The literal's OWN syntax rules — the §2023:8.3.3 length and hexadecimal-grouping rules — are LiteralScreen's,
-            // asked of every literal TOKEN wherever it is written (kb/Work PB1393). The grouping rule used to be asked
-            // here and in the ALL arm below, and a concatenation operand and a keyword-omitted intrinsic argument
-            // slipped past both.
-            return base.VisitChildren(ctx);
-        }
-
-        /// <summary>The <c>ALL literal</c> figurative's literal-1 (ISO §2023:8.3.3.6.3 SR2 — kb/Work PB71): a national or
-        /// boolean literal-1 is the same COBOL-2002 introduction as the bare literal (statement-scoped, as above —
-        /// a VALUE clause's is the data/PIC gate's). The tokens are direct children of figurativeConstant, not of
-        /// nonNumericLiteral, so the override above never saw them — `ALL B"1"` at --std 85 was ungated. Only the
-        /// EDITION gates live here. A CONCATENATED literal-1 is THE §2023:8.8.3 concatenationExpression node (kb/Work
-        /// PB1627), so the &amp; gate is <see cref="VisitConcatenationExpression"/>'s on recognition, and §2023:8.3.3.6.3
-        /// SR2 and the §2023:8.8.3.2 rules are the binder's, through the one Format 6 reader
-        /// <c>ConcatFolder.FoldAllLiteral</c> — they need the program's constant-names, which a parse walk has not
-        /// got (the rules used to be asked here, over a quoted-only operand list).</summary>
-        public override object? VisitFigurativeConstant(CobolParserCore.FigurativeConstantContext ctx)
-        {
-            if (ctx.allLiteral() is not { } al || !InStatement(ctx)) return base.VisitChildren(ctx);
-            // The literal-1 tokens: the one quoted literal, or a concatenation's quoted operands.
-            var ops = al.concatenationExpression()?.concatOperand();
-            bool nat = ops?.Any(o => o.NATLIT() is not null) ?? al.NATLIT() is not null;
-            bool bl = ops?.Any(o => o.BOOLLIT() is not null) ?? al.BOOLLIT() is not null;
-            if (nat || bl)
-                _p.Check(nat ? Constructs.NationalData2002 : Constructs.BooleanData2002,
-                    nat ? "the figurative ALL N\"…\"" : "the figurative ALL B\"…\"");
-            return base.VisitChildren(ctx);
-        }
-
         /// <summary>A concatenation expression — the <c>&amp;</c> operator joining literals (ISO §2023:8.8.3) — is a
-        /// COBOL-2002 introduction (concat-operator-2002; roadmap D6). POSITION-BLIND, unlike the national/
-        /// boolean literal gate above: §2023:8.8.3.3 GR3 lets a concat stand anywhere a literal may (VALUE clauses,
+        /// COBOL-2002 introduction (concat-operator-2002; roadmap D6). POSITION-BLIND:
+        /// §2023:8.8.3.3 GR3 lets a concat stand anywhere a literal may (VALUE clauses,
         /// SPECIAL-NAMES operands, statement operands, FUNCTION arguments), and no data-side gate covers the
         /// construct — recognition of the parse node IS the one funnel. One Check per concatenation
         /// expression; the &amp; token appears in no other rule, so recognition is exact. The §2023:8.8.3.2 SR
@@ -3320,15 +3278,6 @@ internal sealed class VersionConformancePass
         {
             RelationalOperatorGate.Check(_p._edition, _p._sink, ctx);
             return base.VisitChildren(ctx);
-        }
-
-        /// <summary>Whether <paramref name="ctx"/> sits inside a procedure-division statement (a StatementContext
-        /// ancestor) — the scope that reaches the binder's literal-operand gates, excluding data-division VALUE.</summary>
-        private static bool InStatement(Antlr4.Runtime.RuleContext ctx)
-        {
-            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
-                if (a is CobolParserCore.StatementContext) return true;
-            return false;
         }
 
 

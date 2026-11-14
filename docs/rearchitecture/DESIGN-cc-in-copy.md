@@ -83,7 +83,7 @@ directive. Inside pseudo-text the diagnostic also quotes §2023:7.2.3.3 SR10 / �
 ### §3.2a Text-words — the one scanner under COPY and REPLACE (kb/Work PB1350 / PB1351 / PB1354)
 
 Everything the text-manipulation stage does is decided over §2023:7.2.2.5 TEXT-WORDS, and ONE type forms them:
-`TextWordScanner` (`src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs`). A space or a comment is no text-word; the
+`TextWordScanner` (`src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs`). A space or a carried comment-entry line is no text-word, and no comment is ever met here (the §2023:6.5 logical conversion removed them all, and below 2002 `*>` is an ordinary text-word, kb/Work PB5470); the
 colon and parentheses are separator text-words outside literals; a period, comma or semicolon separates only when
 a space (or a line end, or a closing `==`) follows (§2023:8.3.5 2)/3)), so `Z,ZZ9` and `ZZ.ZZ` are one word; a literal
 is ONE word from its prefix (`X" N" NX" B" BX"`) through its closing delimiter with doubled quotes inside; `&` is a
@@ -121,7 +121,7 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   `N"…"` and insensitive in the hexadecimal and boolean formats. Separator commas/semicolons are dropped (c) 1.).
   What a match PRODUCES is screened in the same pass by the statement's `ResultRule` (`ForbiddenIn`: §2023:7.2.3.4 GR13 /
   §2023:7.2.4.4 GR9 — no COPY statement, REPLACE statement (REPLACE only), SOURCE FORMAT directive or comment, the
-  comment asked of the produced TEXT by `TextWordScanner.HoldsComment` since the scanner skips a comment; a blank
+  comment asked of the produced TEXT by `TextWordScanner.HoldsComment` (a character-string holding the indicator); a blank
   line cannot arise, §2023:6.5 2) discarded it; COBOL2574), and a COPY with REPLACING met inside library text is COBOL1640 (GR12) (kb/Work PB1356).
 - **Locating library text** — `FindCopybook` over `LibraryPlaces()` (the working directory, then each configured
   search path) and `LocateInLibrary` (as spelled, then — unless the FILE NAME holds a period —
