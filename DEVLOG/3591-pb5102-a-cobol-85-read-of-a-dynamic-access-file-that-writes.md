@@ -1,4 +1,4 @@
-## PB5102: a COBOL-85 READ of a dynamic-access file that writes AT END must write NEXT
+## Entry 3591 — 2026-11-14 03:34 PST — PB5102: a COBOL-85 READ of a dynamic-access file that writes AT END must write NEXT
 
 **The defect.** At `--std 85`, `READ file RECORD AT END ...` on an ACCESS MODE IS DYNAMIC indexed or relative file compiled
 clean and ran as the implied-NEXT sequential read that COBOL-2002 and later define (§2023:14.9.30.3 SR9). The 1985 READ
@@ -22,3 +22,4 @@ pins the later editions' implied NEXT. Rows `1985-SR-IX.4.5.3-5` and `1985-SR-VI
 
 **Group note.** The dispatch also named `MoveBinder.BindIntoPhrase` and `SortEmitter.EmitReturn`; PB5102 has no site there
 (those belong to the landed PB5077), so nothing was changed in them.
+
