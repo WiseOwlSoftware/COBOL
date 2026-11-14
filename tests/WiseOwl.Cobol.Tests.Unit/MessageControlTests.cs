@@ -561,6 +561,102 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("SEED", after.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true).Into);
     }
 
+    /// <summary>⛔ A HOST THAT CANNOT TELL A FREE LIVENESS BYTE FROM A HELD ONE IS STATUS 92, NOT A HANG (kb/Work PB5364; DESIGN-communication-facility.md §6 "The store"): the lock-file host answers
+    /// a non-waiting hold <see cref="RegionLockResult.Held"/> for every byte of a lock directory this user may enter but not list, so no run unit id can ever be drawn. The session's draw is
+    /// bounded, the session then holds no liveness byte, and every statement answers 92 before it reads anything; the files are left as they were. The endpoint counts the draws and fails
+    /// the case past a bound far above the session's, so an unbounded draw is a red here and never a hang of the run.</summary>
+    [Fact]
+    public void HostThatAnswersEveryLivenessByteHeld_IsStatus92_ForEveryStatement_AndDoesNotHang()
+    {
+        var first = Session("""{ "queues": [ { "name": "Q1", "messages": [ "SEED" ] } ], "destinations": [ { "name": "DEV" } ], "terminals": [ { "name": "T1" } ] }""");
+        Assert.Equal("00", OutputStatus(first.Send(Cd("C"), CommunicationFormat.Output, OutputArea(3, "DEV"), "OLD", SendIndicator.EndOfMessage)));
+        first.Dispose();
+        byte[] store = Bytes(Path.Combine(_root, "mcs.store")), device = Bytes(Path.Combine(_root, "DEV.out"));
+        var host = new UnobservableHost();
+        using (HostRegionLocks.Forcing(host))
+        {
+            var session = Open();
+            string output = OutputArea(3, "DEV"), input = InputArea("Q1");
+            Assert.Equal(output[..8] + "92" + output[10..], session.Send(Cd("C"), CommunicationFormat.Output, output, "NEW", SendIndicator.EndOfMessage));
+            Assert.Equal(input[..79] + "92" + input[81..], session.AcceptMessageCount(input));
+            var receipt = session.Receive(Cd("C"), CommunicationFormat.Input, input, false, "XXXX", noDataPhrase: true);
+            Assert.Equal(input[..79] + "92" + input[81..], receipt.Area);
+            Assert.Equal("XXXX", receipt.Into);
+        }
+        Assert.InRange(host.LivenessHolds, 1, UnobservableHost.HangBound - 1);
+        Assert.Equal(store, Bytes(Path.Combine(_root, "mcs.store")));
+        Assert.Equal(device, Bytes(Path.Combine(_root, "DEV.out")));
+        var after = Open();
+        Assert.Equal("SEED", after.Receive(Cd("C"), CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true).Into);
+    }
+
+    /// <summary>⛔ THE PREMISE OF <see cref="UnobservableHost"/>, ON THE REAL LOCK-FILE HOST (kb/Work PB5364): over a lock directory this user may enter but not list (mode 0300), a
+    /// non-waiting exclusive hold of a run unit's liveness byte answers <see cref="RegionLockResult.Held"/> with no holder at all, and the waiting store mutex answers
+    /// <see cref="RegionLockResult.Unavailable"/>, so the model the session's witness runs on is the host's own answer. Unix only: the mode is a Unix permission. An identity
+    /// that bypasses file permissions (root) cannot establish the premise, which the case states with the host's evidence rather than passing on it.</summary>
+    [Fact]
+    public void UnlistableLockDirectory_AnswersALivenessByteHeld_AndTheWaitingMutexUnavailable()
+    {
+        if (OperatingSystem.IsWindows()) return;
+        string store = Path.Combine(_root, "mcs.store");
+        File.WriteAllBytes(store, []);
+        string directory = SidecarLockFiles.LockDirectoryOf(store);
+        Directory.CreateDirectory(directory);
+        File.WriteAllBytes(Path.Combine(directory, "keep"), []);   // no lock file's name: the directory is never the last holder's to remove
+        File.SetUnixFileMode(directory, UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        try
+        {
+            bool applied = File.GetUnixFileMode(directory) == (UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            bool refused;
+            try { _ = Directory.EnumerateFileSystemEntries(directory).ToList(); refused = false; }
+            catch (UnauthorizedAccessException) { refused = true; }
+            var denial = HostCapability.Classify(refused, applied, $"chmod 0300 on the lock directory {directory}, then a listing of it", $"mode read back: {applied}");
+            if (!denial.Enforced)
+            {
+                Assert.True(denial.Verdict == HostCapability.DenialVerdict.BypassedByThisIdentity, denial.Because);
+                return;
+            }
+            using var endpoint = SidecarRegionLocks.ForPath(store);
+            Assert.Equal(RegionLockResult.Held, endpoint.Hold(HostRegionLocks.McsRunUnitLivenessByte(1), exclusive: true, wait: false));
+            Assert.Equal(RegionLockResult.Unavailable, HostRegionLocks.HoldStoreMutex(endpoint));
+        }
+        finally
+        {
+            File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        }
+    }
+
+    /// <summary>The lock-file host over a lock directory this user may enter but not list (<c>SidecarRegionLocks</c>' <c>Conflict.Unobservable</c>): a non-waiting hold answers
+    /// <see cref="RegionLockResult.Held"/>, a waiting one <see cref="RegionLockResult.Unavailable"/>, and "does another hold it" Held. It counts the non-waiting holds of the
+    /// liveness region and throws past <see cref="HangBound"/>, the witness's stand-in for a draw that never ends.</summary>
+    private sealed class UnobservableHost : IRegionLockHost
+    {
+        internal const int HangBound = 10_000;
+
+        internal int LivenessHolds;
+
+        public RegionLocks Open(SafeFileHandle handle, string hostPath, bool writable) => new Endpoint(this, writable);
+
+        private sealed class Endpoint(UnobservableHost host, bool writable) : RegionLocks(writable)
+        {
+            internal override bool ExclusiveNeedsWritableHandle => false;
+
+            internal override RegionLockResult Hold(long offset, bool exclusive, bool wait)
+            {
+                if (wait) return RegionLockResult.Unavailable;
+                if (offset >= HostRegionLocks.TransactionLivenessByte(0) && ++host.LivenessHolds >= HangBound)
+                    throw new InvalidOperationException($"the run unit draw asked {HangBound} liveness bytes of a host that cannot tell held from free: it does not end");
+                return RegionLockResult.Held;
+            }
+
+            internal override RegionLockResult HeldByAnother(long offset) => RegionLockResult.Held;
+
+            internal override void Release(long offset) { }
+
+            public override void Dispose() { }
+        }
+    }
+
     /// <summary>A store file the host cannot open (the MCS directory is gone) is status 92 at once, and nothing waits.</summary>
     [Fact]
     public void StoreFileTheHostRefuses_IsStatus92()
