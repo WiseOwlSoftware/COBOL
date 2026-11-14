@@ -32,7 +32,7 @@ public sealed class EditionCiteTests
 
     [Fact]
     public void ARuleWithNo1985Arm_IsCitedByIts2023NumberAt85() =>
-        Assert.Equal("ISO §2023:x", new EditionCite("ISO §2023:x").At(85, FileOrganization.Indexed));
+        Assert.Equal("ISO §2023:14.9.30.3 SR2", new EditionCite("ISO §2023:14.9.30.3 SR2").At(85, FileOrganization.Indexed));
 
     [Theory]
     [InlineData(FileOrganization.Sequential, "§1985:VII.4.7.4 GR3")]
