@@ -85,8 +85,7 @@ Never start a build or gate once one exists. No other STOP file is yours (anothe
 
 GATE — ORDER, DON'T SKIP (owner 2026-09-28; kb/Work PB1708, PB1721): `pwsh scripts/build-local.ps1
 -Priority BelowNormal` — nothing to derive, pass or trim, ALWAYS `-Priority BelowNormal`, one gate per worktree (a second is refused by its lock). It takes a gate slot (`gate-slot: waiting, k ahead` is the cap
-working: keep blocking), builds, and runs the WHOLE Unit, Conformance and Characterization populations, three hosts
-at once — the classes red at your previous gate (or in the merge-queue run that bounced your branch) first, then longest
+working: keep blocking), builds, and runs the WHOLE population of every test target (`scripts/build_targets.json`) not already up to date at its key, one host each at once — the classes red at your previous gate (or in the merge-queue run that bounced your branch) first, then longest
 first by the committed weights — and checks each population by name (owner decision 1 of PB4323, kb/Work PB4328: the
 population is the selection; MANDATORY-PRACTICES I1). The gate has ONE shape (kb/Work PB3022): a re-gate after a fix
 runs it again. It is done on `=== BUILD-LOCAL GATE: GREEN — …`; a red is `…: RED` — fix it and re-gate.

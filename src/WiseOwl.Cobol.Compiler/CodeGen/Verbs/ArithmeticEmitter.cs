@@ -61,8 +61,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// over a FLOAT-LONG pair at 1E308 and a <c>PIC 9(3)</c> pair 5 + 10 left the second at 10. It also passed no
     /// <c>outermost</c>, so its final transfer was not the one an explicit ADD makes.</para></summary>
     public void StoreInPlace(Receiver r, string op, NumX value, bool inSizeError)
-        => GuardedStore(inSizeError, r.Place, r.Rounding, () =>
-            StoreArith(r.Place, num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, inSizeError), outermost: true), r.Rounding));
+        => GuardedStore(inSizeError, r.Place, r.Rounding, at =>
+            StoreArith(at, num.Combine(num.FieldNum(at), op, value, RcvFor(r, inSizeError), outermost: true), r.Rounding));
 
     /// <summary>GIVING arithmetic: the value is computed once and stored into each receiver, rounded by that
     /// receiver's own ROUNDED mode (ISO §2023:14.7.5 rule 4 — one value, stored left-to-right into each resultant).</summary>
@@ -80,7 +80,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // ONE initial evaluation (§2023:14.7.7 GR4 + NOTE 3): materialized with several receivers so a receiver
             // aliasing a sender cannot change the value the remaining receivers store.
             if (MaterializesInitialEvaluation(targets)) v = Snapshot(v);
-            foreach (var r in targets) GuardedStore(ise, r.Place, r.Rounding, () => StoreArith(r.Place, v, r.Rounding));
+            foreach (var r in targets) GuardedStore(ise, r.Place, r.Rounding, at => StoreArith(at, v, r.Rounding));
         });
 
     /// <summary><c>MULTIPLY a BY b GIVING r…</c> (ISO §2023:14.9.26): the product is each receiver's FINAL TRANSFER, so — like the
@@ -99,8 +99,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             NumX ax = num.Render(a, opRcv, keepWide: true), bx = num.Render(b, opRcv, keepWide: true);   // every digit into the product (kb/Work PB4599)
             if (MaterializesInitialEvaluation(targets)) { ax = Snapshot(ax); bx = Snapshot(bx); }
             foreach (var r in targets)
-                GuardedStore(ise, r.Place, r.Rounding, () =>
-                    StoreArith(r.Place, num.Combine(ax, "*", bx, RcvFor(r, ise), outermost: true), r.Rounding));
+                GuardedStore(ise, r.Place, r.Rounding, at =>
+                    StoreArith(at, num.Combine(ax, "*", bx, RcvFor(r, ise), outermost: true), r.Rounding));
         });
 
     public void EmitDivide(IReadOnlyList<Receiver> targets, BoundExpr? dividend, BoundExpr divisor, SizeErrorPhrase? sizeErr)
@@ -126,14 +126,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             }
             foreach (var r in targets)
             {
-                // The quotient renders at the receiver's OWN scale + ROUNDED mode.
-                NumX q = dividendX ?? num.FieldNum(r.Place);            // INTO-no-GIVING divides the target
+                // The quotient renders at the receiver's OWN scale + ROUNDED mode; INTO-no-GIVING divides the target, read through
+                // the receiver as its store identifies it.
                 // The DIVIDE top-level quotient IS the final transfer to r — outermost, so it rounds at r's scale +
                 // ROUNDED mode (§2023:14.9.12.4 / §2023:14.7.4). Operand sub-divisions (rendered above at :75-76) stay nested.
                 // Each receiver's quotient can raise its OWN size error (a PROHIBITED-inexact at r's scale) —
                 // guarded per receiver so the raise does not abandon the receivers to its right (PB129).
-                GuardedStore(ise, r.Place, r.Rounding, () =>
-                    StoreArith(r.Place, FinalQuotient(q, divisorX, RcvFor(r, ise)), r.Rounding));
+                GuardedStore(ise, r.Place, r.Rounding, at =>
+                    StoreArith(at, FinalQuotient(dividendX ?? num.FieldNum(at), divisorX, RcvFor(r, ise)), r.Rounding));
             }
         });
 
@@ -188,7 +188,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 num.Combine(subsidiary, "*", divisor, rcv, keepWide: true), rcv);   // GR7: dividend − subsidiaryQuotient × divisor
             // The quotient STORE sees the whole quotient, so an over-wide one meets ITS size error (§2023:14.7.5) and takes the
             // statement's disposition there.
-            GuardedStore(ise, d.Quotient.Place, d.Quotient.Rounding, () => StoreArith(d.Quotient.Place,
+            GuardedStore(ise, d.Quotient.Place, d.Quotient.Rounding, at => StoreArith(at,
                 quotientFor(d.Quotient.Rounding), d.Quotient.Rounding));
             // GR6c stores identifier-4 only "if the size error condition is not raised": under a SIZE ERROR phrase (ON, NOT
             // or both, kb/Work PB3989's one disposition for every [NOT] SIZE ERROR statement) or EC-SIZE checking the store
@@ -199,10 +199,16 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // at identifier-3's scale with every integer digit (SubsidiaryShape; kb/Work PB3975). A zero divisor raises
             // before either store and leaves both.
             if (ise)
+            {
                 using (w.Block($"if (!{ecState.SizeErrVar})"))
-                    GuardedStore(true, d.Remainder, CobolRounding.Truncation, () => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));
+                    GuardedStore(true, d.Remainder, CobolRounding.Truncation, at => StoreArith(at, remainder, CobolRounding.Truncation));
+                // The remainder the quotient's size error left unstored is unchanged (§1985:VI.6.11.4 GR8a), so the debugging section for the item
+                // alone does not follow it (§1985:XV.3.2.4 GR6 c: the statement "causes the content of the data item … to be changed"), unless an
+                // earlier store of the same item succeeded (the quotient's).
+                if (debug.StoreFlagFor(d.Remainder) is { } stored) w.Line($"if ({ecState.SizeErrVar} && !{stored}Ok) {stored} = false;");
+            }
             else
-                brackets.Receive(d.Remainder, null, () => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));   // REMAINDER has no ROUNDED phrase
+                brackets.Receive(d.Remainder, null, () => StoreArith(debug.IdentifiedAtStore(d.Remainder), remainder, CobolRounding.Truncation));   // REMAINDER has no ROUNDED phrase
         });
 
     /// <summary>The forms identifier-3 of <c>DIVIDE ... REMAINDER</c> can take, as far as its SUBSIDIARY QUOTIENT is
@@ -479,8 +485,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                     // `COMPUTE R R2 = A * A * A / (A * A)` stored ...998 in both receivers where the single-receiver form stores ...999.
                     NumX ax = Snapshot(num.Render(root.Left, rcv, keepWide: true)), bx = Snapshot(num.Render(root.Right, rcv, keepWide: true));
                     foreach (var r in c.Targets)
-                        GuardedStore(ise, r.Place, r.Rounding, () =>
-                            StoreArith(r.Place, num.Combine(ax, rootOp, bx, RcvFor(r, ise), outermost: true), r.Rounding));
+                        GuardedStore(ise, r.Place, r.Rounding, at =>
+                            StoreArith(at, num.Combine(ax, rootOp, bx, RcvFor(r, ise), outermost: true), r.Rounding));
                     return;
                 }
                 // An exact WIDE value (a nested product past the Int128 carrier, kb/Work PB1900) is snapshotted AS ITSELF and
@@ -488,8 +494,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // every digit, and each receiver's ROUNDED phrase sees them. Any other value settles to itself.
                 NumX v = Snapshot(num.Render(c.Rhs, rcv, keepWide: true));
                 foreach (var r in c.Targets)
-                    GuardedStore(ise, r.Place, r.Rounding, () =>
-                        StoreArith(r.Place, num.Settle(v, RcvFor(r, ise), outermost: true), r.Rounding));
+                    GuardedStore(ise, r.Place, r.Rounding, at =>
+                        StoreArith(at, num.Settle(v, RcvFor(r, ise), outermost: true), r.Rounding));
                 return;
             }
             foreach (var r in c.Targets)
@@ -504,11 +510,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                     KeepsOnProhibitedInexact(ise, r.Rounding, () =>
                     {
                         NumX v = Snapshot(num.Render(c.Rhs, RcvFor(r, ise), outermost: true));
-                        ReceiverStore(ise, r.Place, () => StoreArith(r.Place, v, r.Rounding));
+                        ReceiverStore(ise, r.Place, at => StoreArith(at, v, r.Rounding));
                     });
                 else
-                    GuardedStore(ise, r.Place, r.Rounding, () =>
-                        StoreArith(r.Place, num.Render(c.Rhs, RcvFor(r, ise), outermost: true), r.Rounding));
+                    GuardedStore(ise, r.Place, r.Rounding, at =>
+                        StoreArith(at, num.Render(c.Rhs, RcvFor(r, ise), outermost: true), r.Rounding));
             }
         });
 
@@ -524,7 +530,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             var (carrier, value) = NumericRenderer.IntakeCarrier(
                 num.Render(p.Value, ReceiverContext.None with { Checks = TakenBy(ise) }));
             var position = new NumX(RuntimeApi.PositionValueOf(carrier, value.Expr, value.Scale, p.RefMod), 0);
-            GuardedStore(ise, p.Temp, CobolRounding.Truncation, () => StoreArith(p.Temp, position, CobolRounding.Truncation));
+            GuardedStore(ise, p.Temp, CobolRounding.Truncation, at => StoreArith(at, position, CobolRounding.Truncation));
         });
 
     /// <summary>The size-error catch pair (kb/Work PB129 — factored so the outer statement try and every
@@ -562,15 +568,20 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// they would have had. The old single statement-wide try let one receiver's PROHIBITED/overflow raise
     /// abandon every receiver to its right. <paramref name="mode"/> is the receiver's ROUNDED mode: a PROHIBITED
     /// receiver of an unchecked statement keeps its value on an inexact transfer (<see cref="KeepsOnProhibitedInexact"/>).</summary>
-    private void GuardedStore(bool inSizeError, Place receiver, CobolRounding mode, Action emitOne)
+    private void GuardedStore(bool inSizeError, Place receiver, CobolRounding mode, Action<Place> emitOne)
         => KeepsOnProhibitedInexact(inSizeError, mode, () => ReceiverStore(inSizeError, receiver, emitOne));
 
     /// <summary>One receiver's compute+store with its object-property accessors around it
-    /// (<see cref="ReceiverBracketEmitter.Receive"/>), inside its own size-error try when checking is on.</summary>
-    private void ReceiverStore(bool inSizeError, Place receiver, Action emitOne)
-        => brackets.Receive(receiver, inSizeError ? ecState.SizeErrVar : null, () =>
+    /// (<see cref="ReceiverBracketEmitter.Receive"/>), inside its own size-error try when checking is on. <paramref name="emitOne"/> stores
+    /// through the place it is handed: the receiver as its store identifies it, "immediately before" the result is stored in it
+    /// (§1985:VI.6.4.6 GR2's left-to-right sequence of single results, §1985:VI.6.11.4 GR4's REMAINDER), which a debugging section for the item
+    /// reads too (<see cref="DebugTriggerEmitter.IdentifiedAtStore"/>, kb/Work PB5385).</summary>
+    private void ReceiverStore(bool inSizeError, Place receiver, Action<Place> emitOne)
+    {
+        var at = debug.IdentifiedAtStore(receiver);
+        brackets.Receive(receiver, inSizeError ? ecState.SizeErrVar : null, () =>
         {
-            if (!inSizeError) { emitOne(); return; }
+            if (!inSizeError) { emitOne(at); return; }
             var w = ctx.Writer;
             string flag = ecState.SizeErrVar!;
             // A debugging section for the item alone (§1985:XV.3.2.4 GR6) follows a statement that "causes the content of the data item … to be changed": the
@@ -579,11 +590,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             string? stored = debug.StoreFlagFor(receiver);
             string? earlier = stored is null ? null : $"__dbgWas{ctx.Names.NextEc()}";
             if (earlier is not null) w.Line($"bool {earlier} = {flag}; {flag} = false;");
-            using (w.Block("try")) emitOne();
+            using (w.Block("try")) emitOne(at);
             WriteSizeCatches(flag, ecState.SizeErrEcVar);
             // "{stored}Ok" is whether an earlier receiver store of the same item succeeded: an item named as a receiver twice has changed, whatever the later store did.
             if (earlier is not null) w.Line($"if ({flag}) {{ if (!{stored}Ok) {stored} = false; }} else {stored} = {stored}Ok = true; {flag} |= {earlier};");
         });
+    }
 
     /// <summary>⛔ §2023:14.7.4.3 RULE 7 IN A STATEMENT WITH NO SIZE ERROR PHRASE AND CHECKING OFF (kb/Work PB3990). "If the
     /// PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant identifier,

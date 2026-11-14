@@ -71,18 +71,21 @@ positions: at --std 85 the standard data format characters of §1985:IV.4.3.4, `
 `CommunicationBinder` builds one `BoundCommunicationStatement` per statement, carrying `Cd.Area`'s place: they are one operation over one area, and the optional members are the operands
 each format prints. COBOL6170 is a name that is no cd-name, or a cd-name of a format the statement's rule does not admit. COBOL6171 is an operand of the wrong class or category.
 
-The operand rules by edition (kb/Work PB5278, PB5289, PB5082, PB5240):
+The operand rules by edition (kb/Work PB5278, PB5289, PB5082, PB5240, PB5384, PB5342):
 
 | Operand | 85 | 2002 |
 |---|---|---|
-| RECEIVE identifier-1 | any data item (§1985:XIV.3.5.3 has SR1 alone) | category alphanumeric (A.2.5.2 SR2) |
+| RECEIVE identifier-1 | any data item (§1985:XIV.3.5.3 has SR1 alone) | category alphanumeric (A.2.5.2 SR2), asked of the reference: a reference-modified numeric item is alphanumeric (§2023:8.4.3.3.4 GR6) |
 | SEND identifier-1 | any data item; a function-identifier names an alphanumeric function (§1985:XIV.3.6.3 SR6) | class alphanumeric (A.2.6.2 SR2, SR7) |
-| SEND identifier-2 | a one-character unsigned integer: `PicInfo.IsIntegerDescription` with one digit position (P is not counted, §1985:VI.5.9.4) | the same (SR3) |
-| ADVANCING identifier-3 | an integer data item (`IsIntegerDescription`): never an index data item, an index-name, a constant-name or a symbolic-character | the same (SR4) |
-| ADVANCING integer-1 | an integer, or the figurative ZERO with or without ALL | the same |
-| ENABLE and DISABLE KEY | `sendingOperand`, so an alphanumeric function-identifier too (§1985:IV.4.3.8.3.3 SR3), "defined as alphanumeric" (§1985:XIV.3.2.3 SR4, §1985:XIV.3.3.3 SR4) | removed (COBOL0902) |
+| SEND identifier-2 | a one-character unsigned integer: `PicInfo.IsIntegerDescription` with one digit position (P is not counted, §1985:VI.5.9.4 GR8); a LINAGE-COUNTER by its implicit description, one digit only for a one-digit page size (§1985:VII.1.3.7); never a reference-modified item (§1985:IV.4.3.8.4.4 GR5) | the same (SR3) |
+| ADVANCING identifier-3 | an integer data item (`IntrinsicResultType.IsIntegerOperand`, the one integer classifier): never an index data item, an index-name, a reference-modified item, a function, a constant-name or a symbolic-character; a counter register by its implicit description | the same (SR4) |
+| ADVANCING integer-1 | an integer, or the figurative ZERO with or without ALL | an integer or ZERO; ALL ZERO is COBOL0902 (§2002:8.3.1.2.5.2 SR1a, `FigurativeAssociation.GateAllZeroAsNumeric`, VCR Table 7 row 7.28) |
+| ENABLE and DISABLE KEY | `sendingOperand`, so an alphanumeric function-identifier too (§1985:IV.4.3.8.3.3 SR3), "defined as alphanumeric" (§1985:XIV.3.2.3 SR4, §1985:XIV.3.3.3 SR4), asked of the reference as RECEIVE's is | removed (COBOL0902) |
 
-`CommunicationBinder.ClassRules2002` is the binder's one edition read.
+`CommunicationBinder.Prints2002` is the binder's one edition read: it decides the 2002 class rules and which edition's rule every COBOL6170 and COBOL6171
+message quotes. The two editions number and word the same rules differently (2002 inserted SEND's SR2, so SEND's 85 SR2 to SR6 are its SR3 to SR7, and 85
+writes "must" where 2002 writes "shall"), so each rule is a `SyntaxRule` carrying both, and a message at `--std 85` quotes §1985:XIV.3, never 2002's A.2
+(kb/Work PB5343; `CommunicationRuleCitationTests`).
 
 The ADVANCING phrase's operands are screened and kept nowhere. The devices of this MCS are oriented to variable-length messages (A.2.6.3 GR2), so vertical positioning "is not
 applicable" and "the MCS will ignore" it (GR12). REPLACING LINE follows.

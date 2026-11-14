@@ -1,5 +1,5 @@
 {
-  "about": "THE BUILD'S GRAPH (kb/Work PB5207, PB5218, PB5231; scripts/buildgraph.py). Each target has a KIND: a `test` target is a test assembly, which records a PASS; a `generated` target is a Python command that writes declared OUTPUTS into a directory of the worktree's own and records their DIGEST. Each declares its INPUTS (path patterns, each naming its reader), its exclusions (each naming why), the FACETS its key covers (all of `facets` unless it names fewer) and the targets it DEPENDS on. A target's key is a digest of its facets, the OUTPUT DIGEST of each dependency (never the dependency's inputs) and the git blob ids of the tracked paths its inputs match, less its exclusions; its record is stored once per target and key in the one store every worktree shares. An input missed here is a FALSE GREEN: the BUILD TARGETS audit (`python scripts/buildgraph.py check`) fails when a test source of an assembly names a repository path outside its target's inputs, and every run of a generated target is traced and refused when it reads outside its inputs.",
+  "about": "THE BUILD'S GRAPH (kb/Work PB5207, PB5218, PB5231; scripts/buildgraph.py). Each target has a KIND: a `test` target is a test assembly, which records a PASS; a `generated` target is a Python command that writes declared OUTPUTS into a directory of the worktree's own and records their DIGEST. Each declares its INPUTS (path patterns, each naming its reader), its exclusions (each naming why), the FACETS its key covers (all of `facets` unless it names fewer) and the targets it DEPENDS on. A target's key is a digest of its facets, the OUTPUT DIGEST of each dependency (never the dependency's inputs) and the git blob ids of the tracked paths its inputs match, less its exclusions; its record is stored once per target and key in the one store every worktree shares. An input missed here is a FALSE GREEN: the BUILD TARGETS audit (`python scripts/buildgraph.py check`) fails when a test source of an assembly names a repository path outside its target's inputs, and every run of a generated target is traced and refused when it reads outside its inputs. The test targets' order is the gate's host start order, the longest population first; scripts/test_population.py GATED_ASSEMBLIES reads the test assemblies from here (kb/Work PB5230).",
   "facets": ["platform", "configuration", "toolchain"],
   "build": {
     "about": "What building a test assembly and the compiler it tests reads, shared by every test target ('@build').",
@@ -18,6 +18,18 @@
       "scripts/gen-vault-reference.ps1": "the Cli project's Exec step",
       "scripts/gen-grammar-diagrams.ps1": "the Cli project's Exec step",
       "tools/rr/": "scripts/gen-grammar-diagrams.ps1 (the Cli project's Exec step)"
+    },
+    "judged": {
+      "tests/_shared/TrackedTree.cs|new ProcessStartInfo(\"git\", \"ls-files -z\") { WorkingDirectory = TestRepo.Root });": "`git ls-files` at the root reads the index, never a file: the names it returns reach a caller only through TrackedTree.Files(scope), and the audit records every Under prefix of every declared TreeScope as a read of its directory in the declaring source (a prefix without `/` at the top is a bare root there, refused in a narrow target); TrackedTreeScopeDriftTests holds every TrackedTree.Files call to a declared scope",
+      "tests/_shared/PythonInstrument.cs|var psi = new ProcessStartInfo(Interpreter.Value) { WorkingDirectory = TestRepo.Root };": "the WORKING DIRECTORY of every Python script a test runs through PythonInstrument.Run (the repository root), never a read: each caller names its own script, and that script is the caller's own read, judged at its call: SuiteManifest's generate.py at the conformance-suite hand-off site (unit, conformance), ConformanceSuiteRunnerDriftTests' harness/run.py (declared by conformance), and RepoDrift's six (every population input); what a script reads is the dynamic proof's to see",
+      "tests/_shared/GateLegAudit.cs|var offenders = RootCarrying(cases.Select(c => (c.DisplayName, (object[]?)c.TestMethodArguments)), HostRoot);": "arm (5): the root AS TEXT, matched against discovered case names (RootCarrying compares strings, opens nothing)",
+      "tests/_shared/TestRepo.cs|public static string Configuration { get; } = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;": "TestRepo, the one locator: this build's configuration, the name of the test host's output directory",
+      "tests/_shared/TestRepo.cs|public static string TargetFramework { get; } = new DirectoryInfo(AppContext.BaseDirectory).Name;": "TestRepo, the one locator: this build's target framework, the name of the test host's output directory",
+      "tests/_shared/TestRepo.cs|for (var d = new DirectoryInfo(AppContext.BaseDirectory); d is not null; d = d.Parent)": "TestRepo.Locate, the one locator of the repository root, walking up from the test host to WiseOwl.Cobol.sln",
+      "tests/_shared/TestRepo.cs|$\"repo root not found above '{AppContext.BaseDirectory}' — looked for a directory holding \"": "TestRepo.Locate's refusal: the message NAMES the directory the walk started from, as text; nothing is read",
+      "tests/_shared/HostLoad.cs|string.IsNullOrEmpty(workingDirectory) ? Environment.CurrentDirectory : workingDirectory;": "HostLoad.RunDirectory: the directory a load report NAMES when the caller gave none, as text; nothing is read",
+      "tests/_shared/HostLoad.cs|string[] fields = File.ReadAllText(\"/proc/loadavg\").Split(' ', StringSplitOptions.RemoveEmptyEntries);": "the Linux kernel's load counters (/proc), outside the repository: a host observation, no input",
+      "tests/_shared/HostLoad.cs|using var reader = new StreamReader(\"/proc/stat\");": "the Linux kernel's CPU counters (/proc), outside the repository: a host observation, no input"
     }
   },
   "targets": {
@@ -82,18 +94,6 @@
         "scripts/spec/inventory_store.py|write_store|f.is_file()": "write_store is the recorder's, never called by the generator (both calls)"
       }
     },
-    "unit": {
-      "kind": "test",
-      "assembly": "Unit",
-      "project": "tests/WiseOwl.Cobol.Tests.Unit/",
-      "inputs": {
-        "@population-inputs": "the compiler's unit tests and the repository's drift tests in one assembly read nearly every path a test may read, the names of every tracked file among them (tests/_shared/TrackedTree.cs); until stage 2 splits repo-drift out of it, its inputs are every population input (inert_lane.Classification.is_population_input)"
-      },
-      "exclude": {
-        "@inert": "no test reads it (the inert lane's watch)",
-        "@tooling-lane": "no compiler test or build reads it (the watch and the INERT LANE audit)"
-      }
-    },
     "conformance": {
       "kind": "test",
       "assembly": "Conformance",
@@ -118,7 +118,75 @@
         "conformance-suite/harness/cobol_source.py": "imported by generate.py alone"
       },
       "judged": {
-        "tests/WiseOwl.Cobol.Tests.Conformance/CorpusManifestTests.cs|scripts/": "TestRepo.Scripts(script) over the literal arrays of guard scripts it names (guard-fast.sh, guard-run-group.sh, guard-nist-audit.sh): each matches scripts/guard*.sh"
+        "tests/WiseOwl.Cobol.Tests.Conformance/CorpusManifestTests.cs|scripts/": "TestRepo.Scripts(script) over the literal arrays of guard scripts it names (guard-fast.sh, guard-run-group.sh, guard-nist-audit.sh): each matches scripts/guard*.sh",
+        "tests/WiseOwl.Cobol.Tests.Conformance/ArchOracle.cs|foreach (var (root, token) in new[] { (scratch, \"<scratch>\"), (TestRepo.Root, \"<repo>\") })": "ArchOracle.Portable: the root AS TEXT, replaced by `<repo>` in captured diagnostics and emitted C#; nothing is read through it",
+        "tests/WiseOwl.Cobol.Tests.Conformance/ArchOracleDriftTests.cs|string[] machineSpecific = [TestRepo.Root, Path.GetTempPath()];": "the root AS TEXT: the drift test asserts no observation contains it; nothing is read through it",
+        "tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCache.cs|sb.Append(\"cwd \").Append(Environment.CurrentDirectory).Append('\\n');": "the working directory as TEXT in a cache entry's key material; nothing is read",
+        "tests/WiseOwl.Cobol.Tests.Conformance/NonCobolElement.cs|.Append(MetadataReference.CreateFromFile(typeof(WiseOwl.Cobol.Runtime.ProgramRegistry).Assembly.Location))": "a Roslyn compilation reference to an assembly the test host has loaded (the framework's, or a product assembly built from src/, which @build covers): no repository file is read through it",
+        "tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCacheDriftTests.cs|src/prog.cob": "a path inside the test's own scratch directory (its Write helper writes relative to it), not a repository path",
+        "tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCacheDriftTests.cs|src/PB985CPY.cpy": "a path inside the test's own scratch directory (its Write helper writes relative to it), not a repository path"
+      }
+    },
+    "unit": {
+      "kind": "test",
+      "assembly": "Unit",
+      "project": "tests/WiseOwl.Cobol.Tests.Unit/",
+      "depends": ["conformance-suite"],
+      "inputs": {
+        "@build": "the compiler, the runtime and the CLI it tests, and the sources its sweeps read (src/)",
+        "tests/WiseOwl.Cobol.Tests.Unit/": "its own sources, project and data (Architecture/binder-member-readers.json, Store/, TestData/)",
+        "specs/ISO_COBOL_2023.md": "the ORACLE the compiler's tables are derived from and checked against (SpecClauseText and ~40 table drift tests: Table12StatementNameDriftTests, PictureTable10DriftTests, ...)",
+        "specs/ISO_COBOL_2002.md": "the 2002 text a table's edition column is checked against (RecordClauseRuleDriftTests.EveryRowSince2002_IsInThe2002ClauseAndNotInThe1985RecordClause, kb/Work PB5196)",
+        "specs/ANSI_COBOL_1985.md": "the 1985 text a table's edition column is checked against (RecordClauseRuleDriftTests.EveryRowSince2002_IsInThe2002ClauseAndNotInThe1985RecordClause, kb/Work PB5196)",
+        "data/unicode/": "the pinned UCD and CLDR tables the runtime's generated tables come from (CollationTableTests, CldrCollationSettingsTests, GraphemeBreakerTests)",
+        "docs/rearchitecture/spec-rule-catalog.json": "the standard's rules as the catalog extracts them (EcRaiseSiteDriftTests)",
+        "tests/version-matrix/reserved-words.json": "CobolWordsDriftTests, ReservedWordsDriftTests, InitializeLaneDriftTests, ...",
+        "tests/version-matrix/reserved-words-2002.json": "ReservedWordsDriftTests",
+        "tests/version-matrix/cobol-words.json": "CobolWordsDriftTests, NonstandardExtensionRegisterDriftTests, ScreenFacilityConstructDriftTests, WhenOperandAheadDriftTests",
+        "tests/version-matrix/context-sensitive-words.json": "ContextSensitiveWordsDriftTests, CobolWordsReachDriftTests, CobolWordsSpellingSweepDriftTests",
+        "tests/version-matrix/context-sensitive-words-2002.json": "ContextSensitiveWordsDriftTests",
+        "tests/version-matrix/intrinsic-introductions.json": "IntrinsicIntroductionDriftTests",
+        "tests/version-matrix/conformance-register.json": "ConformanceRegister (DeclinedFacilityAnnexDriftTests)",
+        "tests/version-matrix/constructs/": "the construct catalogue (TestRepo.ConstructRows: ConstructRegistryDriftTests, DataBinderNameReferenceDriftTests, DocumentedFactsDriftTests, RegistryShapeDriftTests)",
+        "tests/nist/": "the NIST corpus programs a compiler test compiles (StorageFormEquivalenceTests, LexerDfaCacheDriftTests)",
+        "conformance-suite/": "the suite's programs, options and adapter its tests read beside the manifests (TestRepo.SuiteCase, SuiteManifest.Root, LexerDfaCacheDriftTests, NumericDisplayFormDriftTests, ConformanceSuiteAdapterDriftTests)",
+        "tests/doc-facts/": "the compiler facts the documents state and the manual's programs (DocFacts, DocumentedFactsDriftTests, UserManualDriftTests)"
+      },
+      "exclude": {
+        "@inert": "no test reads it (the inert lane's watch)",
+        "@tooling-lane": "no compiler test or build reads it (the watch and the INERT LANE audit)",
+        "conformance-suite/harness/": "the generator and its modules: conformance-suite's program, reached only through it (SuiteManifest takes its output from the gate in WISEOWL_COBOL_GATE_SUITE and runs it only when no gate did); no Unit test runs harness/run.py"
+      },
+      "judged": {
+        "tests/WiseOwl.Cobol.Tests.Unit/GateLegDriftTests.cs|\"host\" => GateLegAudit.HostRoot,": "arm (5)'s witness on this host: the root AS TEXT, planted into display names the audit must flag; nothing is read through it",
+        "tests/WiseOwl.Cobol.Tests.Unit/Architecture/BinderMemberReadersDriftTests.cs|var walk = TypeReferenceWalk.Read([Path.Combine(AppContext.BaseDirectory, \"WiseOwl.Cobol.Compiler.dll\")],": "the compiler assembly this test host was built with (src/, which @build covers), beside the host",
+        "tests/WiseOwl.Cobol.Tests.Unit/Architecture/BinderMemberReadersDriftTests.cs|string written = Path.Combine(AppContext.BaseDirectory, \"binder-member-readers.measured.json\");": "WRITES the measured readers into the test host's build output for a person to diff; nothing is read",
+        "tests/WiseOwl.Cobol.Tests.Unit/Architecture/BinderMemberReadersDriftTests.cs|[MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],": "a Roslyn compilation reference to an assembly the test host has loaded (the framework's, or a product assembly built from src/, which @build covers): no repository file is read through it",
+        "tests/WiseOwl.Cobol.Tests.Unit/CsNameReservationDriftTests.cs|[MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],": "a Roslyn compilation reference to an assembly the test host has loaded (the framework's, or a product assembly built from src/, which @build covers): no repository file is read through it",
+        "tests/WiseOwl.Cobol.Tests.Unit/ImportedTypeNameDriftTests.cs|.Append(MetadataReference.CreateFromFile(typeof(ICobolProgram).Assembly.Location));": "a Roslyn compilation reference to an assembly the test host has loaded (the framework's, or a product assembly built from src/, which @build covers): no repository file is read through it",
+        "tests/WiseOwl.Cobol.Tests.Unit/RepositoryIndexTests.cs|.Append(MetadataReference.CreateFromFile(typeof(CobolRepositoryAttribute).Assembly.Location));": "a Roslyn compilation reference to an assembly the test host has loaded (the framework's, or a product assembly built from src/, which @build covers): no repository file is read through it",
+        "tests/WiseOwl.Cobol.Tests.Unit/RoslynFreeSeamDriftTests.cs|[MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],": "a Roslyn compilation reference to an assembly the test host has loaded (the framework's, or a product assembly built from src/, which @build covers): no repository file is read through it",
+        "tests/WiseOwl.Cobol.Tests.Unit/ScratchDirectoryTests.cs|[MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],": "a Roslyn compilation reference to an assembly the test host has loaded (the framework's, or a product assembly built from src/, which @build covers): no repository file is read through it",
+        "tests/WiseOwl.Cobol.Tests.Unit/RepositoryLocatorTests.cs|File.Copy(typeof(RepositoryLocator).Assembly.Location, Path.Combine(TempDir, \"WiseOwl.Cobol.Runtime.dll\"));": "copies the runtime assembly the host loaded (built from src/, which @build covers) into the test's own scratch directory",
+        "tests/WiseOwl.Cobol.Tests.Unit/FileBoundaryTests.cs|if (OperatingSystem.IsLinux() && File.Exists(\"/proc/self/mem\")) path = \"/proc/self/mem\";": "the Linux kernel's view of this process's memory (/proc), outside the repository: the test's boundary witness",
+        "tests/WiseOwl.Cobol.Tests.Unit/SortWorkBoundTests.cs|foreach (string fd in Directory.EnumerateFileSystemEntries(\"/proc/self/fd\"))": "this process's open descriptors (/proc), outside the repository: the test counts what SORT left open",
+        "tests/WiseOwl.Cobol.Tests.Unit/PhysicalFileIdentityDriftTests.cs|Assert.Equal(Path.Combine(Environment.CurrentDirectory, \"pb2748-id.dat\"), CobolFile.ResolveHostPath(\"pb2748-id.dat\"));": "the EXPECTED value: the runtime resolves a relative host name against the working directory; nothing is read",
+        "tests/WiseOwl.Cobol.Tests.Unit/PhysicalFileIdentityDriftTests.cs|Assert.Equal(Path.Combine(Environment.CurrentDirectory, \"custmast.txt\"), CobolFile.ResolveHostPath(\"CUSTMAST\"));": "the EXPECTED value: the runtime resolves a relative host name against the working directory; nothing is read",
+        "tests/WiseOwl.Cobol.Tests.Unit/ProcessObservationDriftTests.cs|Assert.Equal(Environment.CurrentDirectory, HostLoad.RunDirectory(null));": "the EXPECTED value of HostLoad.RunDirectory's default, compared as text; nothing is read",
+        "tests/WiseOwl.Cobol.Tests.Unit/ProcessObservationDriftTests.cs|Assert.Equal(Environment.CurrentDirectory, HostLoad.RunDirectory(\"\"));": "the EXPECTED value of HostLoad.RunDirectory's default, compared as text; nothing is read",
+        "tests/WiseOwl.Cobol.Tests.Unit/SharedReadCoherenceDriftTests.cs|src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.WholeStore.cs": "asserted ABSENT: the whole store and its file were deleted (kb/Work PB3334); a file reappearing there is under src/, which @build covers"
+      }
+    },
+    "repo-drift": {
+      "kind": "test",
+      "assembly": "RepoDrift",
+      "project": "tests/WiseOwl.Cobol.Tests.RepoDrift/",
+      "inputs": {
+        "@population-inputs": "the repository's drift tests bind the documents' data files, the records, the scripts a compiler test runs, the CI files, every test source and the NAMES of every tracked file (tests/_shared/TrackedTree.cs, NulByteDriftTests' whole-tree sweep) to each other and to the compiler: every population input (inert_lane.Classification.is_population_input); it reads the traceability inventory itself (TraceabilityInventory, SpecTraceabilityInventoryDriftTests, RegistryShapeDriftTests) and never the generated suite, so it depends on no generated target"
+      },
+      "exclude": {
+        "@inert": "no test reads it (the inert lane's watch)",
+        "@tooling-lane": "no compiler test or build reads it (the watch and the INERT LANE audit)"
       }
     },
     "characterization": {
@@ -133,6 +201,9 @@
       "exclude": {
         "@inert": "no test reads it (the inert lane's watch)",
         "@tooling-lane": "no compiler test or build reads it (the watch and the INERT LANE audit)"
+      },
+      "judged": {
+        "tests/WiseOwl.Cobol.Tests.Characterization/CharacterizationCorpus.cs|TestRepo.Root.Replace('\\\\', '/').TrimEnd('/') + \"/\";": "Snapshot.RepoRootFwd: the root AS TEXT, stripped from snapshot diagnostics so they are repo-relative; nothing is read through it"
       }
     }
   }

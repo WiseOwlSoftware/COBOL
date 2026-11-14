@@ -37,12 +37,9 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 ALLOWED = set(ADJUDICATED)
 
-#: `tests/<project>/<...>/<Class>.cs#<Method>` -> the canonical form, when the project names the form.
+#: `tests/<project>/<...>/<Class>.cs#<Method>` -> the canonical form, when the project is an xUnit form's `test-dir`
+#: (the schema's `test-ref.forms`, read there and never copied here: kb/Work PB5230 added a form, `repo-drift`).
 CS_REF = re.compile(r"^tests/(?P<proj>[A-Za-z0-9_.]+)/(?:.*/)?(?P<cls>[A-Za-z0-9_]+)\.cs#(?P<m>[A-Za-z0-9_]+)$")
-PROJECT_FORM = {
-    "WiseOwl.Cobol.Tests.Unit": "unit",
-    "WiseOwl.Cobol.Tests.Conformance": "conformance-test",
-}
 #: A repository path a file-backed form names (`conformance-suite/cases/<folder>/<id>.cob` -> `conformance:cases/
 #: <folder>/<id>`, the SPEC-DERIVED suite form, the one that can actually CLOSE a row) is spelled by the schema's own
 #: inverse of its path templates (`Schema.ref_for_path`), never by a pattern of this file's: dropping such a path
@@ -70,8 +67,10 @@ def normalize_ref(ref: str, schema: Schema) -> tuple[str | None, str | None]:
         return keep(head)
     norm = head.replace("\\", "/")
     m = CS_REF.match(norm)
-    if m and m.group("proj") in PROJECT_FORM:
-        return keep(f"{PROJECT_FORM[m.group('proj')]}:{m.group('cls')}.{m.group('m')}")
+    project_form = {form["test-dir"].rsplit("/", 1)[-1]: scheme
+                    for scheme, form in schema.test_ref_forms.items() if "test-dir" in form}
+    if m and m.group("proj") in project_form:
+        return keep(f"{project_form[m.group('proj')]}:{m.group('cls')}.{m.group('m')}")
     if (canon := schema.ref_for_path(norm if norm.endswith(".cob") else norm + ".cob")) is not None:
         return keep(canon)
     return None, f"test-ref {ref!r} did not parse and was removed by normalize_batch"

@@ -2248,10 +2248,12 @@ internal static class RuntimeApi
     /// <paramref name="min"/>..<paramref name="max"/> is the record range §2023:13.18.43.4 GR14 / GR19 test,
     /// <paramref name="size"/> the GR13 a) DEPENDING ON value (null: the image's own length, GR13 b)/c)) and
     /// <paramref name="extents"/> the record's extent table (D-FRA (v); kb/Work PB1053) and
-    /// <paramref name="slots"/> the leaf vector of a record holding managed slots (kb/Work PB4772).</summary>
+    /// <paramref name="slots"/> the leaf vector of a record holding managed slots (kb/Work PB4772);
+    /// <paramref name="rangeFailsStatement"/> makes a record outside the range unsuccessful with checking off too
+    /// (COBOL-85, §1985:VII.3.8.4 GR10; kb/Work PB5124).</summary>
     public static string SortReleaseStatement(string sd, string image, int min, int max, string? size = null, string? extents = null,
-        string? slots = null) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image}, {min}, {max}{(size is null ? "" : $", size: {size}")}{(extents is null ? "" : $", extents: {extents}")}{(slots is null ? "" : $", slots: {slots}")})";
+        string? slots = null, bool rangeFailsStatement = false) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image}, {min}, {max}{(size is null ? "" : $", size: {size}")}{(extents is null ? "" : $", extents: {extents}")}{(slots is null ? "" : $", slots: {slots}")}{(rangeFailsStatement ? ", rangeFailsStatement: true" : "")})";
 
     /// <summary>The RETURN STATEMENT — <c>CobolSort.ReturnStatement</c> (§2023:14.9.34.4 GR1 + GR3's phase and at-end
     /// tests, then GR3's retrieval). The implicit GIVING return renders <see cref="SortReturn"/> instead.</summary>

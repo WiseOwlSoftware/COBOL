@@ -84,6 +84,9 @@ SEGMENT_HELPER = re.compile(r'\bstatic\s+string\s+(\w+)\(\s*params\s+string\[\]\
 #: files it; `Y(string id, string name) => ... X(id) ...`: a file beside that program.
 CASE_HELPER = re.compile(r"\bstatic\s+string\s+(\w+)\(\s*string\s+id\s*\)\s*=>[^;]*\bs_suiteCases\b")
 BESIDE_HELPER = re.compile(r"\bstatic\s+string\s+(\w+)\(\s*string\s+id\s*,\s*string\s+name\s*\)\s*=>[^;]*\b(\w+)\(\s*id\s*\)")
+#: `X(string directory, string repoRelative) => ...`: a computed path DECLARED to lie under a literal directory, which is
+#: what a call reads (kb/Work PB5230; the BUILD TARGETS audit reads it the same way, scripts/buildgraph.py `WITHIN`).
+WITHIN_HELPER = re.compile(r"\bstatic\s+string\s+(\w+)\(\s*string\s+directory\s*,\s*string\s+repoRelative\s*\)\s*=>")
 #: The trees `s_suiteCases` files a test id under: `s_suiteCases = new(() => new[] { Suite("cases"), ... }`.
 CASE_TREES = re.compile(r"\bs_suiteCases\s*=\s*new\([^{]*\{([^}]*)\}")
 PUBLIC_STRING = re.compile(r"\bpublic\s+static\s+string\s+(\w+)\s*\(")
@@ -155,7 +158,8 @@ def drift_files(root=ROOT):
 
 def test_repo(root=ROOT):
     """TestRepo's path helpers, read from its source: {"helpers": {name: repo-relative prefix}, "case": the helpers
-    naming a conformance-suite test's program by id, "beside": those naming a file beside it, "trees": the trees an id
+    naming a conformance-suite test's program by id, "beside": those naming a file beside it, "within": those reading a
+    computed path under the literal directory their first argument declares, "trees": the trees an id
     is filed under, "unread": every public string method the index cannot read}. A method that builds a path into a
     build output (`"bin"`) reads no tracked file and is not unread. `--check` fails on an unread method, so a helper
     added to TestRepo in a shape this cannot read turns the audit red instead of governing nothing."""
@@ -174,11 +178,13 @@ def test_repo(root=ROOT):
     def builds(m):
         return '"bin"' in text[m.end():text.find(";", m.end())]
 
+    within = [m.group(1) for m in WITHIN_HELPER.finditer(text)]
     unread = [m.group(1) for m in PUBLIC_STRING.finditer(text)
-              if m.group(1) not in helpers and m.group(1) not in case and m.group(1) not in beside and not builds(m)]
+              if m.group(1) not in helpers and m.group(1) not in case and m.group(1) not in beside
+              and m.group(1) not in within and not builds(m)]
     if case and not trees:
         unread += [f"{c} (the trees s_suiteCases files an id under)" for c in case]
-    return {"helpers": helpers, "case": case, "beside": beside, "trees": trees, "unread": unread}
+    return {"helpers": helpers, "case": case, "beside": beside, "within": within, "trees": trees, "unread": unread}
 
 
 def prefixed(helpers, name, args):
@@ -353,6 +359,8 @@ class Sources:
                     p = joined
             elif m.group(1) in helpers:
                 p = "/".join(([helpers[m.group(1)]] if helpers[m.group(1)] else []) + segs)
+            elif m.group(1) in self.repo["within"]:   # the directory the call declares (its first argument)
+                p = "/".join(path_join(args[:1], consts, helpers)[0])
             elif m.group(1) in self.repo["case"] or m.group(1) in self.repo["beside"]:
                 program = self.case(segs[0]) if segs else None
                 p = program if program and m.group(1) in self.repo["case"] else (
