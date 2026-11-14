@@ -1,0 +1,3 @@
+## Notes batch 20261113e: PB5501-PB5508
+
+Eight new kb/Work notes and four dated files, filed from the evening's final leads and none re-probed here. Analysis: PB5501 (a 1985 size error inside a condition). Defects: PB5502 (semgrep verify.py nondeterminism), PB5503 (tabs in IntroducedLiterals' area), PB5504 (SET Format 2 UP/DOWN without brackets.Receive), PB5505 (fix-first cannot jump a new pull request), PB5506 and PB5507 (process_job.py kill and self_tests.py survivor reports), PB5508 (TestsTreeWalks.ListingMethods lacks two methods). Dated files beside PB5469, PB5472, PB5386 and PB5483. Lead 13 (self_tests.py rmtree ignore_errors) is not filed: its sibling-sweep file is not on main. No compiler or tooling code changed.
