@@ -331,12 +331,61 @@ public sealed class LogicalLineBuilderTests
     public void CommentEntryParagraph_KeepsItsHeader(string word)
     {
         string src = "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. P.\n000300 " + word + ". FIRST \"LINE,\n"
-                   + "000400     SECOND LINE. WITH A PERIOD\n000500-    AND A CONTINUATION\n000600 PROCEDURE DIVISION.\n";
+                   + "000400     SECOND LINE. WITH A PERIOD\n000500     AND A THIRD LINE\n000600 PROCEDURE DIVISION.\n";
         var (m, bag) = Normalize(src, InitialReferenceFormat.Fixed, 85);
         string[] lines = m.Text.Split('\n');
         Assert.Equal(word + ". .", lines[2]);
         Assert.Equal(["", ""], lines[3..5]);
         Assert.Equal("PROCEDURE DIVISION.", lines[5].Trim());
+        Assert.Empty(bag.Diagnostics);
+    }
+
+    [Theory] // §1985:VI.3.2.1.2 SR1 (kb/Work PB5169): "The continuation of the comment-entry by the use of the hyphen in the
+             // indicator area is not permitted" — COBOL7165 at the hyphen line (column 7), the entry still discarded.
+    [InlineData("AUTHOR")]
+    [InlineData("DATE-COMPILED")]
+    [InlineData("SECURITY")]
+    public void CommentEntryContinuedByAHyphen_IsRefused(string word)
+    {
+        string src = "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. P.\n000300 " + word + ". A NAME BROKEN IN THE MIDDLE OF A WO\n"
+                   + "000400-    RD.\n000500 PROCEDURE DIVISION.\n";
+        var (m, bag) = Normalize(src, InitialReferenceFormat.Fixed, 85);
+        var error = Assert.Single(bag.Diagnostics);
+        Assert.Equal("COBOL7165", error.Code);
+        Assert.Equal((3, 6), (error.Location.Line, error.Location.Column));   // 0-based: line 4, the indicator column 7
+        Assert.Equal("", m.Text.Split('\n')[3]);                              // the entry is still discarded
+    }
+
+    [Fact] // The hyphen of a free-form line is no indicator: a free-form comment-entry has none to continue (D-CE1).
+    public void CommentEntry_InFreeForm_HasNoHyphenIndicator()
+    {
+        var (_, bag) = Normalize("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\nAUTHOR. A NAME.\n- AND SO ON\nPROCEDURE DIVISION.\n",
+            InitialReferenceFormat.Free, 85);
+        Assert.DoesNotContain("COBOL7165", bag.Diagnostics.Select(d => d.Code));
+    }
+
+    [Theory] // §1985:III "A reserved word, followed by the separator period" and §1985:IV.2.1.6 (kb/Work PB5168): a fixed-form
+             // comment-entry paragraph header with no separator period is COBOL7166 at its word; a period after spaces, or a header
+             // alone on its line, is a header; a period glued to the entry's first word is no separator period.
+    [InlineData("AUTHOR JOHN SMITH.", true)]
+    [InlineData("AUTHOR", true)]
+    [InlineData("AUTHOR.JOHN SMITH.", true)]
+    [InlineData("AUTHOR. JOHN SMITH.", false)]
+    [InlineData("AUTHOR .", false)]
+    [InlineData("AUTHOR.", false)]
+    public void FixedFormCommentEntryHeader_NeedsItsSeparatorPeriod(string header, bool refused)
+    {
+        string src = "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. P.\n000300 " + header + "\n000400 PROCEDURE DIVISION.\n";
+        var (m, bag) = Normalize(src, InitialReferenceFormat.Fixed, 85);
+        Assert.Equal(refused ? ["COBOL7166"] : [], bag.Diagnostics.Select(d => d.Code).ToArray());
+        Assert.Equal("AUTHOR. .", m.Text.Split('\n')[2].Trim());   // the paragraph is written whole either way: the parse recovers
+    }
+
+    [Fact] // D-CE1: in free form (GnuCOBOL 3.2's -free reading, WiseOwl's extension at 85) the header's period is optional.
+    public void FreeFormCommentEntryHeader_PeriodIsOptional()
+    {
+        var (_, bag) = Normalize("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\nAUTHOR Pat O'Brien.\nPROCEDURE DIVISION.\n",
+            InitialReferenceFormat.Free, 85);
         Assert.Empty(bag.Diagnostics);
     }
 

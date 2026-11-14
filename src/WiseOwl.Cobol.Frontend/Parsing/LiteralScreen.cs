@@ -245,13 +245,20 @@ public static class LiteralScreen
         sink.Report(new EditionDiagnostic(descriptor.Code, EditionSeverity.Error, descriptor.Id, message, "", ""));
 
     /// <summary>⛔ THE LITERAL FORMATS A LATER EDITION INTRODUCED — asked of the token, position-blind, because a format is
-    /// a property of the literal as WRITTEN whatever consumes it (a VALUE clause of an alphanumeric item has no data
-    /// gate to carry it, unlike a national or boolean literal, whose item's category is gated in
-    /// <c>VersionConformancePass.GateData</c>):
+    /// a property of the literal as WRITTEN whatever consumes it:
     /// <list type="bullet">
+    /// <item>the NATIONAL literal (§2023:8.3.3.5, <c>N"…"</c> and <c>NX"…"</c>) and the BOOLEAN literal (§2023:8.3.3.4,
+    /// <c>B"…"</c> and <c>BX"…"</c>), COBOL-2002 introductions: a COBOL-85 literal is "nonnumeric or numeric"
+    /// (§1985:IV.4.2.2.2). They are gated under the rows of their data classes (<see cref="Constructs.NationalData2002"/>,
+    /// <see cref="Constructs.BooleanData2002"/>), which the edition introduced together. The gate used to be the version
+    /// pass's, scoped to a procedure-division statement, on the reasoning that a data-division literal seeds an item whose
+    /// category <c>VersionConformancePass.GateData</c> gates; but a literal stands in positions that seed no item, so
+    /// <c>VALUE OF ID IS N"AB"</c> in an FD, a level-88 or VALUE literal of an alphanumeric item and a SPECIAL-NAMES literal
+    /// compiled at --std 85 with no edition diagnostic (kb/Work PB5416). A national item's own national VALUE literal now
+    /// draws two reports, the item's and the literal's, each at its own position and each naming its own construct;</item>
     /// <item>the HEXADECIMAL ALPHANUMERIC literal <c>X"…"</c> — §2023:8.3.3.2.2 format 2, a COBOL-2002 introduction
     /// (<see cref="Constructs.HexAlphanumericLiteral2002"/>; VCR row 7.29, kb/Work PB1545). Its national and boolean
-    /// twins <c>NX"…"</c> / <c>BX"…"</c> arrive with their classes and are gated as those classes are;</item>
+    /// twins <c>NX"…"</c> / <c>BX"…"</c> are gated by their classes, above;</item>
     /// <item>the ZERO-LENGTH literal — §2023:8.3.3.1, "If the opening and closing delimiters are contiguous, the length of
     /// the literal is zero, and it is known as a zero-length literal", in every one of its spellings
     /// (<see cref="CobolLiteral.IsZeroLength"/>), a COBOL-2014 introduction (<see cref="Constructs.ZeroLengthLiteral2014"/>;
@@ -262,12 +269,23 @@ public static class LiteralScreen
     /// quotation symbol", where §1985:IV.4.2.2.2.1 delimits a nonnumeric literal "at the beginning and at the end by the
     /// separator quotation mark" (<see cref="Constructs.ApostropheQuotationSymbol2002"/>; VCR row 7.72, kb/Work PB5160).</item>
     /// </list>
-    /// The first two edges are DERIVED, the derivation being the VCR row's; the apostrophe's is QUOTED from both texts.</summary>
+    /// The hexadecimal and zero-length edges are DERIVED, the derivation being the VCR row's; the national, boolean and
+    /// apostrophe edges are QUOTED from the texts they cite.</summary>
     private static void GateFormat(string raw, EditionInfo edition, IDiagnosticSink sink)
     {
-        if (CobolLiteral.IsHexadecimalFormat(raw) && CobolLiteral.ClassOf(raw) is LiteralClass.Alphanumeric)
-            ConstructRegistry.Check(edition, sink, Constructs.HexAlphanumericLiteral2002,
-                $"the hexadecimal alphanumeric literal {CobolLiteral.Abbreviated(raw)}");
+        switch (CobolLiteral.ClassOf(raw))
+        {
+            case LiteralClass.National:
+                ConstructRegistry.Check(edition, sink, Constructs.NationalData2002, $"the national literal {CobolLiteral.Abbreviated(raw)}");
+                break;
+            case LiteralClass.Boolean:
+                ConstructRegistry.Check(edition, sink, Constructs.BooleanData2002, $"the boolean literal {CobolLiteral.Abbreviated(raw)}");
+                break;
+            case LiteralClass.Alphanumeric when CobolLiteral.IsHexadecimalFormat(raw):
+                ConstructRegistry.Check(edition, sink, Constructs.HexAlphanumericLiteral2002,
+                    $"the hexadecimal alphanumeric literal {CobolLiteral.Abbreviated(raw)}");
+                break;
+        }
         if (CobolLiteral.IsZeroLength(raw))
             ConstructRegistry.Check(edition, sink, Constructs.ZeroLengthLiteral2014,
                 $"the zero-length literal {raw}");

@@ -134,11 +134,6 @@ public sealed class EditionGateArmDriftTests
     /// … ADVANCING ON LOCK gate sat on the bound arm while its two printed siblings gated on recognition.</summary>
     private static readonly Dictionary<string, string> AdjudicatedDualArm = new(StringComparer.Ordinal)
     {
-        ["NationalData2002"] =
-            "two occurrences: a national LITERAL as a procedure-division statement operand (parse arm) and a "
-            + "national DATA ITEM's resolved usage (bound arm). Gating the literal from the data arm would miss "
-            + "it; gating the item from the parse arm would double the diagnostic on its own VALUE clause",
-        ["BooleanData2002"] = "the boolean twin of NationalData2002 — same literal/item split, same reason",
         ["ReportSourceExpression2002"] =
             "two occurrences: an arithmetic expression, literal or parenthesized operand of the SOURCE clause (parse arm, "
             + "recognition) and a sole function-identifier whose bound result is numeric (bound arm, kb/Work PB5240). "

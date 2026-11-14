@@ -128,7 +128,7 @@ internal static class ExternalFileConnectorRules
                 using (edition.At(f.ClauseOrEntryAt(mine.At)))
                     edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
                         $"external file '{externalName}': this file description entry and the first one in the run unit that writes {rule.Clause} "
-                        + $"differ in what they specify (\"{mine.Value}\" against \"{first.Value}\") — the entries of an external file connector agree "
+                        + $"differ in what they specify (\"{mine.Written}\" against \"{first.Written}\") — the entries of an external file connector agree "
                         + $"in it (ISO {rule.Cite})");
             }
         }

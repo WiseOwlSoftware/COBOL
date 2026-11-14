@@ -1000,9 +1000,10 @@ written alone, which parses as the `ALL cobolWord` arm (the parse cannot tell it
 is resolved as Format 6 before the Format 7 readers see it. With a reporting context it asks SR2 — COBOL1648 for
 a zero-length literal-1 (structurally: contiguous delimiters, never "decodes to nothing"), COBOL2491 for a
 constant-name standing for a numeric literal — and every §2023:8.8.3.2 rule of a concatenated literal-1; the
-per-position diagnostic dedup keeps a figurative read at two sites to one report. The version pass's
-`VisitFigurativeConstant` keeps only the statement-scoped 2002 gate for a national/boolean literal-1 (the `&` gate is
-`VisitConcatenationExpression`'s, on recognition); the §2023:8.3.3 literal-token rules are LiteralScreen's. The rules
+per-position diagnostic dedup keeps a figurative read at two sites to one report. The 2002 gate of a national or
+boolean literal-1 is the literal token's, `LiteralScreen.GateFormat`, position-blind like every literal-format gate
+(kb/Work PB5416; the version pass's statement-scoped `VisitFigurativeConstant` arm is gone), the `&` gate is
+`VisitConcatenationExpression`'s, on recognition, and the §2023:8.3.3 literal-token rules are LiteralScreen's. The rules
 moved to the binder because they need the program's constant-names, which the parse walk has not got (the version
 pass used to ask them over a quoted-only operand list — kb/Work PB1393's arm, PB1627).
 
@@ -1405,7 +1406,12 @@ reference formats, and the only place source comments are recognized. Its model:
   once per file (the file is an argument of each report, never state of the instance). It holds the edition gates —
   `floating-comment-indicator-2002` and `floating-literal-continuation-2002` (COBOL0900, once per compilation, asked
   in FIXED form only: free form is itself a 2002 introduction reached below 2002 only through the `--source-format
-  free|auto` selection, and its comment and its literal continuation are the floating ones), `debugging-line-removed-2014`,
+  free|auto` selection, and its comment and its literal continuation are the floating ones; **the comment indicator's
+  gate is asked of the FINISHED text, not of the conversion** (kb/Work PB5470): COBOL-85 has no floating comment, `*>` is
+  an ordinary text-word there (§1985:III), so the fixed-form conversion below 2002 leaves it in the text
+  (`ReferenceFormatDiagnostics.FixedFormReadsFloatingComments`, the one edition predicate), COPY and REPLACE read it in
+  library text and pseudo-text, and `SurvivingFloatingComments`, run in `Frontend.Preprocess` after the comment-entry
+  resolver, refuses one that survives: COBOL0900 and, after a character, COBOL2495), `debugging-line-removed-2014`,
   `floating-debugging-indicator-2002`, `col7-continuation-obsolete-2023` and `fixed-form-word-continuation-removed-2023` — and the syntax-rule diagnostics
   above, plus SR2 (a `*>` not preceded by a separator space — COBOL2495; the text after it is still the comment) and
   SR3 (a continuation line completing a `*>` or `>>` begun at the end of the line it continues — COBOL2496).
