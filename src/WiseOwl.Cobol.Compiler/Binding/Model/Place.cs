@@ -65,6 +65,15 @@ public abstract record Place
     /// too.</para></summary>
     public DataItem? DescribedItem => DenotedItem is null ? null : Item;
 
+    /// <summary>⛔ <b>IS THE ITEM THIS REFERENCE DENOTES A GROUP ITEM?</b> — the "group item" question of a rule that
+    /// states a LEVEL or a KIND of the referenced operand (kb/Work PB5383), which <see cref="Item"/><c>.IsGroup</c> answers
+    /// wrongly in both directions. A reference-modified operand is a unique ELEMENTARY item whatever the item
+    /// underneath is (§2023:8.4.3.3.4 GR5/GR6: <see cref="DenotedItem"/> is null), so it is no group. A THROUGH level-66
+    /// alias "defines an alphanumeric group item" (§2023:13.18.45.4 GR2) although its entry carries no children here
+    /// (<see cref="RenamesPlace"/>). A non-THROUGH alias takes the renamed item's attributes (GR1), group-ness included, so
+    /// <see cref="Item"/> answers it while <see cref="DenotedItem"/> supplies the alias's own level.</summary>
+    public bool DenotesGroupItem => DenotedItem is not null && (Undecorated is RenamesPlace || Item.IsGroup);
+
     /// <summary>The data item the reference's own NAME denotes, when that is not the item whose attributes and
     /// storage this place carries — set by the ONE resolver, and today exactly the non-THROUGH level-66 RENAMES
     /// alias (kb/Work PB602).

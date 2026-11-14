@@ -349,8 +349,11 @@ internal sealed class VersionConformancePass
             // Formerly, they had to be elementary or have a level number of 1 or 77" (call-using-group-any-level-2002;
             // kb/Work PB4305). Bound arm: a USING operand's level and group-ness are facts of the item it resolves to.
             case BoundCallProgram call:
+                // The operand's kind and level are those of the item its REFERENCE denotes (Place.DenotesGroupItem,
+                // Place.DenotedItem), not of the item underneath: a reference-modified operand is elementary and a
+                // level-66 THROUGH alias is a group at level 66 (§1985:X.5.2.3 SR3; kb/Work PB5383).
                 foreach (var arg in call.Args)
-                    if (arg.Place?.Item is { IsGroup: true, Level: not (1 or 77) } item)
+                    if (arg.Place is { DenotesGroupItem: true, DenotedItem: { Level: not (1 or 77) } item })
                         Check(Constructs.CallUsingGroupAnyLevel2002,
                             $"the CALL USING argument '{item.CobolName}', a group item at level {item.Level:00}");
                 break;
