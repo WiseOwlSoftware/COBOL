@@ -130,6 +130,22 @@ public sealed class SourceLineMap
     /// null when the line is outside the mapped text (a synthetic position).</summary>
     public SourceOrigin? Origin(int line) => line >= 1 && line <= _origins.Length ? _origins[line - 1].Origin : null;
 
+    /// <summary>The first RESULTANT line (1-based) whose origin is <paramref name="origin"/>, or 0 when no line of the map has it.
+    /// What a position known only as a place the user wrote (a COPY statement's file and line) is placed at in the resultant text,
+    /// where the lines a statement leaves behind (the framing lines of its library text) keep its origin (kb/Work PB5482).</summary>
+    public int ResultantLineOf(SourceOrigin origin)
+    {
+        if (_firstLineOf is null)
+        {
+            var first = new Dictionary<SourceOrigin, int>();
+            for (int i = 0; i < _origins.Length; i++) first.TryAdd(_origins[i].Origin, i + 1);
+            _firstLineOf = first;
+        }
+        return _firstLineOf.GetValueOrDefault(origin);
+    }
+
+    private Dictionary<SourceOrigin, int>? _firstLineOf;
+
     /// <summary>Whether a text stage omitted RESULTANT line <paramref name="line"/> (1-based; <see cref="LineOrigin.Omitted"/>);
     /// false for a line outside the map.</summary>
     public bool IsOmitted(int line) => line >= 1 && line <= _origins.Length && _origins[line - 1].Omitted;

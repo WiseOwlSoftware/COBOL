@@ -224,6 +224,8 @@ public static class CompilerDriver
             SourceFile = options.SourcePath,
             // kb/Work PB3147: the COBOL-85 area-placement rules read where each token begins its fixed-form line.
             Areas = frontend.Areas,
+            // kb/Work PB5482: below COBOL-2002 a COPY statement's text-name and library-name are user-defined words of the program.
+            CopyNames = frontend.CopyNames,
             // kb/Work PB803: the compilation's over-punch convention travels to the emitter on the SAME
             // per-compilation object the edition does (DataBinder.Edition → EmitContext.SignEncoding), so every
             // NumProfile and every signed class condition this compile emits states one convention.

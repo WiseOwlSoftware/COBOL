@@ -31,6 +31,9 @@ public enum UserWordKind
     IndexName,
     InterfaceName,
     LevelNumber,
+    /// <summary>A library-name (§1985:IV.4.2.2.1.1, the COPY statement's library-name-1): a user-defined word of a disjoint set of
+    /// its own at COBOL-85 only; ISO 2002 made it a system-name (§2002:F.2, item 135; kb/Work PB5482).</summary>
+    LibraryName,
     LocaleName,
     MethodName,
     MnemonicName,
@@ -50,6 +53,9 @@ public enum UserWordKind
     ScreenName,
     SectionName,
     SymbolicCharacter,
+    /// <summary>A text-name (§1985:IV.4.2.2.1.1, the COPY statement's text-name-1): a user-defined word of a disjoint set of its
+    /// own at COBOL-85 only; ISO 2002 made it a system-name (§2002:F.2, item 135; kb/Work PB5482).</summary>
+    TextName,
     TypeName,
     UserFunctionName,
 }
@@ -108,6 +114,10 @@ public static class UserWordKinds
         || (a == UserWordKind.LevelNumber && MayShareWithALevelNumber.Contains(b))
         || (b == UserWordKind.LevelNumber && MayShareWithALevelNumber.Contains(a))
         || (MayShareOneName.Contains(a) && MayShareOneName.Contains(b));
+
+    /// <summary>Whether <paramref name="kind"/> is a COPY statement's text-name or library-name — the two types that are user-defined
+    /// words below COBOL-2002 only (<see cref="Editions.EditionInfo.CopyNamesAreUserDefinedWords"/>; kb/Work PB5482).</summary>
+    public static bool IsCopyName(UserWordKind kind) => kind is UserWordKind.TextName or UserWordKind.LibraryName;
 
     /// <summary>The standard's own name for the type (<c>AlphabetName</c> → <c>alphabet-name</c>).</summary>
     public static string Spelling(this UserWordKind kind) =>

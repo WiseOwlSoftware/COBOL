@@ -46,6 +46,13 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// line" (§2002:7.1.3.3 GR11) — and no continued-literal error remains.</summary>
     public bool ReplacedTextIsLaidOutInFixedForm => Year < 2002;
 
+    /// <summary>Whether a COPY statement's text-name and library-name are USER-DEFINED WORDS (kb/Work PB5482): at COBOL-85 they
+    /// are, each in a disjoint set of its own, and "All user-defined words, except segment-numbers and level-numbers, can belong
+    /// to one and only one of these disjoint sets" (§1985:IV.4.2.2.1.1), so a data-name, an index-name or any other
+    /// user-defined word of the same source program shall not be spelled like one. From 2002 they are system-names, "instead of
+    /// user-defined words, and do not have to be different from user-defined words" (§2002:F.2, item 135).</summary>
+    public bool CopyNamesAreUserDefinedWords => Year < 2002;
+
     /// <summary>True when the targeted edition is at or after <paramref name="introducedIn"/> — the one
     /// predicate behind the grammar's <c>{isXXXX()}?</c> introduction gates and every version-varying bind
     /// decision.</summary>

@@ -46,7 +46,12 @@ internal sealed class UserWordCensus
         + $"{second.Spelling()}) — a given user-defined word may be used as only one type of user-defined word "
         + "(ISO §2023:8.3.2.2); the "
         + "exceptions are a compilation-variable-name, a level-number that matches a paragraph-name or "
-        + "section-name, and the constant-name / data-name / property-name / record-key-name / record-name group";
+        + "section-name, and the constant-name / data-name / property-name / record-key-name / record-name group"
+        + (UserWordKinds.IsCopyName(first) || UserWordKinds.IsCopyName(second)
+            ? "; below COBOL-2002 a COPY statement's text-name and library-name are user-defined words of disjoint sets of "
+              + "their own (§1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, can belong to "
+              + "one and only one of these disjoint sets\")"
+            : "");
 
     private readonly Dictionary<(string Word, UserWordKind Kind), int> _unqualifiedDeclarations = new(UnqualifiedKey.Instance);
 

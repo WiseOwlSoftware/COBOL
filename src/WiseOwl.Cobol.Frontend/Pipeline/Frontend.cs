@@ -82,6 +82,11 @@ public sealed class Frontend
     /// source and each copybook — for the COBOL-85 area-placement rules (<c>AreaPlacementPass</c>).</summary>
     public FixedFormAreas Areas { get; private set; } = FixedFormAreas.None;
 
+    /// <summary>The text-name and library-name each COPY statement of the last parsed source wrote as a COBOL word (kb/Work PB5482):
+    /// below COBOL-2002 they are user-defined words of the program, which the binder asks the one-type-per-word rule of
+    /// (<c>DataBinder.DeclareUserWord</c>; §1985:IV.4.2.2.1.1).</summary>
+    public IReadOnlyList<CopyNameUse> CopyNames { get; private set; } = [];
+
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
     /// syntax error was reported (collected into <paramref name="diagnostics"/>).
@@ -114,7 +119,7 @@ public sealed class Frontend
             // Every stage from the normalizer on reports into THIS pass's bag; only the converged pass's diagnostics
             // are the compilation's (a DEFINE's SR2 redefinition, a FLAG warning or a line's reference-format gate
             // depends on the state in effect).
-            var (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats) =
+            var (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames) =
                 RunTextStages(raw, sourcePath, implicitOps, formatOps);
             var passLineMap = new SourceLineMap(processed.Lines);
             LineMap = passLineMap;
@@ -163,6 +168,7 @@ public sealed class Frontend
                 diagnostics.AddCompileOutput(passDiagnostics.CompileOutput);
                 Directives = directives.WithStackOps(ops);
                 Areas = passAreas;
+                CopyNames = copyNames;
                 return tree;
             }
             if (pass > SpeculationBound(encounters, formats))
@@ -185,7 +191,8 @@ public sealed class Frontend
     /// it ends. Each run reports into a bag and a reference-format diagnostics of its own, as each §2023:14.9.28.4 GR14 pass does:
     /// only the last run's are the pass's.</summary>
     private (DiagnosticBag Diagnostics, ReferenceFormatDiagnostics Gates, MappedText Text, DirectiveResults Directives,
-        ConditionalCompilationResult Encounters, IReadOnlyDictionary<string, ReferenceFormatMap> Formats) RunTextStages(
+        ConditionalCompilationResult Encounters, IReadOnlyDictionary<string, ReferenceFormatMap> Formats,
+        IReadOnlyList<CopyNameUse> CopyNames) RunTextStages(
         string raw, string sourcePath, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps)
     {
         var pins = CommentEntryPins.None;
@@ -196,9 +203,9 @@ public sealed class Frontend
             // once-per-compilation gate (the obsolete column-7 hyphen) fires once however many files use it (kb/Work PB1640).
             var referenceFormatGates = new ReferenceFormatDiagnostics(DialectLevel, Permissive, passDiagnostics);
             var (normalized, referenceFormats) = Normalize(raw, sourcePath, referenceFormatGates, formatOps, pins);
-            var (processed, directives, encounters, formats, programText) =
+            var (processed, directives, encounters, formats, programText, copyNames) =
                 Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps, pins);
-            if (programText is not { } pin) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats);
+            if (programText is not { } pin) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames);
             pins = pins.With(pin);
         }
     }
@@ -282,7 +289,8 @@ public sealed class Frontend
     /// (<see cref="Parse"/>). Returns the resultant text, the directive results (WITHOUT the implicit ops, which the
     /// caller replays once the program has converged), and the driver's directive encounters.</summary>
     private (MappedText Text, DirectiveResults Directives, ConditionalCompilationResult Encounters,
-        IReadOnlyDictionary<string, ReferenceFormatMap> Formats, CommentEntryPin? ProgramText) Preprocess(
+        IReadOnlyDictionary<string, ReferenceFormatMap> Formats, CommentEntryPin? ProgramText,
+        IReadOnlyList<CopyNameUse> CopyNames) Preprocess(
         MappedText normalized, ReferenceFormatMap referenceFormats, string sourcePath, DiagnosticBag diagnostics,
         ReferenceFormatDiagnostics referenceFormatGates, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps,
         CommentEntryPins pins)
@@ -400,7 +408,7 @@ public sealed class Frontend
         return (new MappedText(text, lineOrigins),   // the constructor re-asserts the line-count invariant
             new DirectiveResults(turnEvents, refModZeroLengthEvents, flagEvents, propagateEvents, cobolWordsMap, leapSecondEvents,
                 compilationVariables, directiveSites),
-            manipulated, copy.ReferenceFormats, resolved.ProgramText);
+            manipulated, copy.ReferenceFormats, resolved.ProgramText, copy.CopyNames);
     }
 
     /// <summary>The ISO §2023:7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the

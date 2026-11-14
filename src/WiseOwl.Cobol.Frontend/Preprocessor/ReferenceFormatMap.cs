@@ -32,6 +32,10 @@ public sealed class ReferenceFormatMap
     // the file uses the positions past margin R for identification tags (kb/Work PB2555).
     private readonly MarginRCut?[] _cuts;
 
+    // Per 0-based physical line: the map from an index of its expanded text to the physical column, null on a line that held
+    // no tab and no supplementary-plane character (kb/Work PB5503).
+    private readonly ColumnMap?[] _columns;
+
     private ReferenceFormatMap((int FromLine, bool Fixed, bool Detected)[] changes, int[] directiveLines,
         ReadOnlySpan<PhysicalLine> lines)
     {
@@ -40,10 +44,12 @@ public sealed class ReferenceFormatMap
         var physicalText = new string[lines.Length];
         _textStarts = new (int, bool)?[lines.Length];
         _cuts = new MarginRCut?[lines.Length];
+        _columns = new ColumnMap?[lines.Length];
         int tagShaped = 0;   // the fixed-form lines that carry ONE word of identification-area width past margin R
         for (int i = 0; i < lines.Length; i++)
         {
             physicalText[i] = lines[i].Text;
+            _columns[i] = lines[i].Columns;
             if (!At(i + 1).Fixed) continue;
             var fixedLine = new FixedFormLine(lines[i].Text);
             int start = fixedLine.ProgramTextStart;
@@ -106,6 +112,22 @@ public sealed class ReferenceFormatMap
         return _textStarts[line - 1] is { } start && start.Column == column
             ? start.InAreaA ? AreaPlacement.BeginsLineInAreaA : AreaPlacement.BeginsLineInAreaB
             : AreaPlacement.WithinLine;
+    }
+
+    /// <summary>The 0-based offset into the program-text area (position 8 is offset 0) of the character at 0-based physical
+    /// <paramref name="column"/> of 1-based physical <paramref name="line"/> — the offset the character stands at once every tab
+    /// is expanded (<see cref="PhysicalLines"/>), which is what area A (<see cref="FixedFormLine.IsAreaAOffset"/>) and the
+    /// room before margin R are measured in, and never the file's own column, where a tab counts one (kb/Work PB5503).
+    /// Negative before the program-text area. A line that is not one of this text's reads the column as it is.</summary>
+    public int ProgramTextOffsetAt(int line, int column)
+    {
+        if (line < 1 || line > _columns.Length) return column - FixedFormLine.SourceAreaStart;
+        int index = _columns[line - 1]?.ToExpanded(column) ?? column;
+        string text = PhysicalText[line - 1];
+        int position = index <= text.Length
+            ? CharacterPositions.PositionAt(text, index)
+            : CharacterPositions.Count(text) + (index - text.Length);   // past the line's end: space-filled to margin R
+        return position - FixedFormLine.SourceAreaStart;
     }
 
     /// <summary>Where the program text of 1-based physical <paramref name="line"/> was cut at margin R (kb/Work PB2555), or
