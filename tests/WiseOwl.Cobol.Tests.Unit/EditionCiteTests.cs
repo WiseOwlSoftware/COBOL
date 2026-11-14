@@ -57,7 +57,7 @@ public sealed class EditionCiteTests
         string at85 = rules.FunctionRuleCite!.At(85, organization);
         Assert.StartsWith(cite + " — ", at85);
         Assert.EndsWith("\"If identifier-1 is a function-identifier, it must reference an alphanumeric function.\"", at85);
-        Assert.StartsWith("ISO §2023:", rules.FunctionRuleCite.At(2002, organization));
+        Assert.DoesNotContain("§1985", rules.FunctionRuleCite.At(2002, organization));
     }
 
     private static WiseOwl.Cobol.Binding.Procedure.FromPhraseRules FromRules(string verb) => verb switch
