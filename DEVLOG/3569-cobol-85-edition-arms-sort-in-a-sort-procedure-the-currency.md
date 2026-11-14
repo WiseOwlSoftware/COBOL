@@ -1,4 +1,4 @@
-## COBOL-85 edition arms: SORT in a sort procedure, the currency exclusion list, the Report Writer's 1985 rules and forms, and the index data item contexts
+## Entry 3569 — 2026-11-13 17:02 PST — COBOL-85 edition arms: SORT in a sort procedure, the currency exclusion list, the Report Writer's 1985 rules and forms, and the index data item contexts
 
 Wave 20262001 group D landed eight of its nine kb/Work notes, and wave 20262013 group A replayed them onto current main
 and landed the ninth (PB5242). Each is a rule the compiler applied in its 2002 or 2023
@@ -54,3 +54,4 @@ SR-XIII.3.19.3-1 and SR-VI.5.14.3-5. The 1985 GAP fell from 451 to 443. Four 202
 `line_endings.py --fix` repaired it. The second was RED on INERT LANE: the new drift test opened a Markdown
 transcription, so its rule texts are now quoted constants. No test ran in either. The replayed commits gated GREEN on
 current main before PB5242 began (run 000001-20261113T002956Z). See the branch report for the final verdict.
+
