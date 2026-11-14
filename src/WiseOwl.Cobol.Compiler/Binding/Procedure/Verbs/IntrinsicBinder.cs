@@ -3248,16 +3248,28 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         // Collect OF/IN qualifiers and the ONE trailing subscript group — which the grammar hangs off the LAST
         // qualification when qualifiers are present (qualification : (OF|IN) cobolWord (subscriptPart|refModPart)*).
+        // A reference modifier written AFTER the subscript group is part of the shape (kb/Work PB5209): the identifier
+        // format prints `[ ( {subscript} ... ) ] [ reference-modifier ]` (§1985:IV.4.3.8.5.2), and "If an ALL subscript
+        // is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of
+        // the table" (§1985:IV.4.3.8.4.4 GR3; §2023:15.3: "the effect is as if each table element associated with that
+        // subscript position were specified", each one the identifier with its modifier). It is admitted below through
+        // the one reference-modification tail. A modifier BEFORE the subscripts is not this shape.
         var quals = new List<string>();
         Core.SubscriptPartContext? sp = null;
         foreach (var suffix in dref.dataReferenceSuffix())
         {
-            if (sp is not null) return false;                    // anything after the subscript group — not the shape
+            if (suffix.refModPart() is not null) { if (sp is null) return false; continue; }
+            if (sp is not null) return false;                    // anything else after the subscript group — not the shape
             if (suffix.subscriptPart() is { } direct) { sp = direct; continue; }
-            if (suffix.qualification() is not { } q || q.cobolWord() is not { } qw) return false;   // ref-mod tail
+            if (suffix.qualification() is not { } q || q.cobolWord() is not { } qw) return false;
             quals.Add(qw.GetText());
-            if (q.refModPart().Length > 0 || q.subscriptPart().Length > 1) return false;
-            if (q.subscriptPart() is [{ } trailing]) sp = trailing;
+            if (q.subscriptPart().Length > 1) return false;
+            if (q.subscriptPart() is [{ } trailing])
+            {
+                if (q.refModPart() is [{ } first, ..] && first.Start.TokenIndex < trailing.Start.TokenIndex) return false;
+                sp = trailing;
+            }
+            else if (q.refModPart().Length > 0) return false;
         }
         if (sp is null) return false;
 
@@ -3346,6 +3358,26 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) occurrence of '{name}'"));
             return true;
+        }
+        // The reference modifier written after the subscripts (kb/Work PB5209), through THE ONE reference-modification tail every
+        // identifier takes (ReferenceResolver.ResolveImplCore's): the §2023:8.4.3.3.3 SR3 count, the SR1 admission of the
+        // element's description and its literal range screens, and the GR5 view. The view is the ELEMENT's, so the backend's one
+        // enumeration applies it to each occurrence.
+        var written = ReferenceResolver.ReadWritten(dref);
+        if (written.IsReferenceModified)
+        {
+            if (!ctx.Refs.RefMods.ScreenRefModCount(dref, written, name)
+                || ctx.Refs.RefMods.ReadScreenedRefMod(dref, written, element.Item, out _) is not { } spec)
+            {
+                args.Add(BoundOperandError.Refused(ctx.Edition, $"reference modification of table(ALL) argument '{name}'"));
+                return true;
+            }
+            if (ctx.Refs.RefMods.RefModView(element.Item, element, spec) is not { } view)
+            {
+                args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"reference modification of table(ALL) argument '{name}'"));
+                return true;
+            }
+            element = view;
         }
         // ⛔ AN ALL ARGUMENT IS AN ARGUMENT OF THE LIST LIKE ANY OTHER (kb/Work PB4162): §2023:15.3 makes it "as if each table element ...
         // were specified", each evaluated at its place in the argument list (§2023:8.4.3.2.4 GR2), so the window records it and a later
