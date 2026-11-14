@@ -66,6 +66,7 @@ public static class Constructs
     public const string CopyNestedLibraryText2002 = "copy-nested-library-text-2002";
     public const string CopyReplacingNonPseudoTextRemoved2023 = "copy-replacing-non-pseudo-text-removed-2023";
     public const string CopySuppress2002 = "copy-suppress-2002";
+    public const string CopyUnqualifiedTextName2002 = "copy-unqualified-text-name-2002";
     public const string CurrencyPictureSymbol2002 = "currency-picture-symbol-2002";
     public const string DataRecordsRemoved2002 = "data-records-removed-2002";
     public const string DateToYyyymmdd2002 = "date-to-yyyymmdd-2002";

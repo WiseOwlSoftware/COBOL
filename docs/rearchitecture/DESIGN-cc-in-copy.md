@@ -127,7 +127,16 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   search path) and `LocateInLibrary` (as spelled, then — unless the FILE NAME holds a period —
   `.CPY .CBL .COB .cpy .cbl .cob`): the DOC-A.1-40
   determination; the source file's own directory is not searched, and a text not found is CBL3620 on every path
-  (kb/Work PB1355).
+  (kb/Work PB1355). The libraries a compilation has available are the default library and each library a COPY
+  statement of the group names with OF/IN that a place holds (`FindCopybook` reports it); `CountLibraries` refuses at 85
+  each unqualified COPY of a group that names one, the ones met before it waiting for it (§1985:XII.2.3 SR1, constructs
+  row `copy-unqualified-text-name-2002`; kb/Work PB5473).
+- **Operands as written** — a REPLACING operand is read as the `MappedText` of the place it was written at
+  (`StatementCursor.Slice`), so a whole replacement of pseudo-text-2 is written with `OriginWriter.AppendLaidOut`: it
+  stands at the replaced text and is laid out where pseudo-text-2 wrote it (kb/Work PB5313; the area rule is
+  DESIGN-frontend-grammar's). identifier-1/identifier-2 is read whole — qualifiers or a function-identifier's name, then
+  every parenthesized group (kb/Work PB5469) — and every line an operand that is not pseudo-text introduces takes the
+  replaced line's indicator (kb/Work PB5471).
 
 A fixed-form debugging line reaches the stage as `ReferenceFormatProcessor.DebugLineCarrier` (`*>` plus the Unicode
 noncharacter U+FDD0) + its text; the scanner skips only the carrier, so the line's text-words take part in matching (the

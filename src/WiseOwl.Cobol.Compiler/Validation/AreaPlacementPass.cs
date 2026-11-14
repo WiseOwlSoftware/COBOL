@@ -59,7 +59,7 @@ internal static class AreaPlacementPass
         items.Visit(tree);
         var pending = new Stack<IParseTree>();
         pending.Push(tree);
-        int previousLine = 0;   // the resultant line of the token before, in text order (the walk's order)
+        int previousLine = 0;   // the resultant line the token before ends on, in text order (the walk's order)
         while (pending.Count > 0)
         {
             var node = pending.Pop();
@@ -71,7 +71,7 @@ internal static class AreaPlacementPass
                 // PB5313): the program is judged after COPY and REPLACE (§1985:XII.2.4 GR8), so a line a replacement
                 // introduces is a line, and text a stage dropped (a REPLACE statement's own) is no text before it.
                 bool beginsLine = token.Line != previousLine;
-                previousLine = token.Line;
+                previousLine = token.Line + (token.Text is { } text ? text.AsSpan().Count('\n') : 0);   // a token may span lines
                 if (terminal is not IErrorNode)
                     Screen(token, areas.PlacementAt(token.Line, token.Column, beginsLine, out var written), written, items,
                         edition);

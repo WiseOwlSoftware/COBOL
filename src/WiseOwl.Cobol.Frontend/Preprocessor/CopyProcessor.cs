@@ -693,7 +693,8 @@ public sealed class CopyProcessor(
                 + "REPLACING phrase\". Move the REPLACING phrase to the outermost COPY, or flatten the copybook.",
                 at, default);
 
-        string? copybookPath = FindCopybook(libraryName, statement.LibraryName);
+        string? copybookPath = FindCopybook(libraryName, statement.LibraryName, out bool libraryAvailable);
+        CountLibraries(libraryName, statement.LibraryName, libraryAvailable, at);
         if (copybookPath == null)
         {
             // §2023:7.2.3.4 GR1 "Text-name-1 or literal-1 identifies the library text to be processed by the COPY
@@ -768,6 +769,44 @@ public sealed class CopyProcessor(
         var copybookMapped = ApplyReplacements(normalizedMapped, statement.Replacements, CopyResultRule, edition,
             IsDebuggingLineAt(normalized, 0), _diagnostics, _referenceFormats);
         return new OneCopyResult(CopyOutcome.Found, copybookMapped.Text, copybookPath, copybookMapped);
+    }
+
+    /// <summary>The first library other than the default one that a COPY statement of this compilation group named and a
+    /// library place holds (null while there is none), and the unqualified COPY statements met before it — each with the
+    /// text-name it gives — which §1985:XII.2.3 SR1 refuses once it is known (kb/Work PB5473).</summary>
+    private string? _namedLibrary;
+    private readonly List<(SourceLocation At, string TextName)> _unqualifiedCopies = [];
+
+    /// <summary>⛔ §1985:XII.2.3 SR1: "If more than one COBOL library is available during compilation, text-name-1 must be
+    /// qualified by library-name-1" — the rule ISO/IEC 1989:2002 relaxed (Annex F.2 item 38: "text-name need not be
+    /// qualified when the library text resides in the default library"; constructs row copy-unqualified-text-name-2002).
+    /// Which libraries are available is the implementor's to say (the DOC-A.1-40 determination, docs/CONFORMANCE.md §7):
+    /// the default library and each library a COPY statement of the compilation group names with OF or IN that a library
+    /// place holds (<see cref="FindCopybook"/>). A subdirectory no COPY statement names is no library the compilation
+    /// uses, so it does not make every unqualified COPY of a program wrong. The set is known only as the group is read, so
+    /// an unqualified COPY met before the first named library waits for it, and each is refused when it is found, at its
+    /// own position. <paramref name="libraryAvailable"/> is whether a library place holds the library
+    /// <paramref name="libraryName"/> names (<see cref="FindCopybook"/>).</summary>
+    private void CountLibraries(string textName, string? libraryName, bool libraryAvailable, SourceLocation at)
+    {
+        var edition = EditionInfo.Of(dialectLevel, permissive);
+        if (_diagnostics is not { } diagnostics || ConstructRegistry.IsAvailable(edition, Constructs.CopyUnqualifiedTextName2002))
+            return;
+        void Refuse(SourceLocation copy, string name) => ConstructRegistry.Check(edition, new BagSink(diagnostics, copy),
+            Constructs.CopyUnqualifiedTextName2002, $"COPY {name} names no library while the library {_namedLibrary} is "
+            + "also available — §1985:XII.2.3 SR1: \"If more than one COBOL library is available during compilation, "
+            + "text-name-1 must be qualified by library-name-1\"");
+        if (libraryName is null)
+        {
+            if (_namedLibrary is not null) Refuse(at, textName);
+            else _unqualifiedCopies.Add((at, textName));
+        }
+        else if (_namedLibrary is null && libraryAvailable)
+        {
+            _namedLibrary = libraryName;
+            foreach (var (copy, name) in _unqualifiedCopies) Refuse(copy, name);
+            _unqualifiedCopies.Clear();
+        }
     }
 
     /// <summary>A parsed COPY statement: text-name-1 or the value of literal-1 (null when the statement names no
@@ -1599,15 +1638,20 @@ public sealed class CopyProcessor(
     /// in order. With OF/IN, library-name-1 (or literal-2's value) names a subdirectory: the FIRST place holding a
     /// subdirectory of that name IS the library, and the text is located in it alone — GR2 "Library-name-1 names a
     /// resource that shall be available to the compiler and shall provide access to the library text", so there is
-    /// no fallback to another library. Null when no text is found (the caller reports CBL3620).</summary>
-    private string? FindCopybook(string textName, string? libraryName)
+    /// no fallback to another library. Null when no text is found (the caller reports CBL3620).
+    /// <paramref name="libraryAvailable"/> is whether a place holds the library library-name-1 names (false without
+    /// OF/IN): the libraries a compilation has available (<see cref="CountLibraries"/>; kb/Work PB5473).</summary>
+    private string? FindCopybook(string textName, string? libraryName, out bool libraryAvailable)
     {
+        libraryAvailable = false;
         if (!string.IsNullOrEmpty(libraryName))
         {
             foreach (var place in LibraryPlaces())
             {
                 string library = Path.Combine(place, libraryName);
-                if (_inputs.DirectoryExists(library)) return LocateInLibrary(library, textName);
+                if (!_inputs.DirectoryExists(library)) continue;
+                libraryAvailable = true;
+                return LocateInLibrary(library, textName);
             }
             return null;
         }
