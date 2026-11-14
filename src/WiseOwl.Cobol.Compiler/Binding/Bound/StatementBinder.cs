@@ -692,13 +692,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Whether the signature of the method an invocation activates has a gated message-tag item: its RETURNING item or a formal.</summary>
     private static bool NamesGatedMessageTag(OoMethodSymbol method) => method.Binding?.SignatureItems.Any(IsGatedMessageTag) == true;
 
-    /// <summary>ENTER language-name-1 [routine-name-1] (§1985:VI.6.12.2): inert, and its routine-name declared as one
-    /// (§1985:IV.4.2.2.1.1: "All user-defined words ... can belong to one and only one of these disjoint sets").</summary>
-    private BoundNop BindEnter(Core.EnterStatementContext enter)
-    {
-        if (enter.routineName() is { } routine) data.DeclareUserWord(routine.GetText(), UserWordKind.RoutineName);
-        return new BoundNop();
-    }
+    /// <summary>ENTER language-name-1 [routine-name-1] (§1985:VI.6.12.2): not provided (kb/Work PB5308). §1985:I.1.5.2.5.5 lets
+    /// an implementation "include the ENTER statement or not", ISO 2023 has no ENTER and GnuCOBOL refuses it (CLAUDE.md
+    /// rule 1), and no language-name is "specified by the implementor" (§1985:VI.6.12.3 SR1), so every ENTER is refused by
+    /// name rather than compiled to nothing, which ran a program as if the other-language routine had run.</summary>
+    private BoundRejected BindEnter(Core.EnterStatementContext enter) =>
+        BoundRejected.Report(data.Edition, DiagnosticCatalog.EnterStatementNotProvided,
+            $"ENTER {enter.enterOperand().GetText().ToUpperInvariant()}: this implementation does not provide the ENTER "
+            + "statement (§1985:I.1.5.2.5.5 leaves it to the implementor; no language-name is specified, §1985:VI.6.12.3 SR1)");
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {
@@ -781,10 +782,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.entryStatement() is not null => BoundRejected.Report(data.Edition, DiagnosticCatalog.StatementFormatShape, "ENTRY: ISO/IEC 1989 defines no ENTRY statement — a secondary entry point is a vendor extension, and "
             + "this implementation admits none (ISO §2023:4.2.2). Make the entry point a separate program, or a "
             + "nested program, and CALL it"),
-        // ENTER language-name [routine-name] (X3.23-1985 Nucleus, deleted by ISO 2002 — 0902-gated ≥2002 by
-        // the version-conformance pass, VCR Table 7 row 7.16): comment-equivalent when only COBOL is supported — the
-        // conforming '85 posture; accepted-inert as a no-op. Routine-name-1 is a user-defined word (§1985:VI.6.12.3 SR2) of
-        // its own disjoint set (§1985:IV.4.2.2.1.1), so it is declared through the one funnel (kb/Work PB5178).
+        // ENTER language-name [routine-name] (X3.23-1985 Nucleus, deleted by ISO 2002 — 0902-gated >=2002 by the
+        // version-conformance pass, VCR Table 7 row 7.16): not provided at 85 (kb/Work PB5308), refused by name.
         _ when s.enterStatement() is { } enter => BindEnter(enter),
         // USE (ISO §2023:14.9.49.3 SR1 — kb/Work PB361). The ONE legal position, the first sentence of a declarative
         // section, is consumed by ProcedureTableBuilder.DeclCollectSection and never reaches this binder, so a USE

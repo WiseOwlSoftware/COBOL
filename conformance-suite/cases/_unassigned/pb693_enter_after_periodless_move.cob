@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb693_enter_after_periodless_move
       *> rules: []
-      *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -19,8 +18,9 @@
       *> after the MOVE - parsed as a MOVE with the receivers N and
       *> ENTER and answered COBOL1639: a conforming COBOL-85
       *> program rejected.  With the gate the enterStatement arm wins
-      *> at 85 and the statement is the comment-equivalent no-op VCR
-      *> 7.16 documents, so N keeps the 2 the MOVE put there.
+      *> at 85 and the statement is refused by name, COBOL7240 (the
+      *> ENTER statement is not provided, kb/Work PB5308), where it was
+      *> COBOL1639 at the receiver ENTER.
       *>
       *> This is the direction pb693_unlock_after_periodless_move
       *> (2002 dir) cannot show: there the word is free at 85 and
