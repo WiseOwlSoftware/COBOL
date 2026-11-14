@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen;
@@ -523,9 +524,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// reaches the position intake on its own carrier (<see cref="NumericRenderer.IntakeCarrier"/>), which raises
     /// EC-BOUND-SUBSCRIPT / EC-BOUND-REF-MOD for a non-integer (§2023:8.4.2.3.4 GR1b, §2023:8.4.3.3.4 rule 5)c)) and yields the
     /// saturated integer position the integer temporary stores. It rides <see cref="EmitArith"/> with no phrase, so
-    /// the expression's own size-error conditions (a zero divisor) keep the arithmetic statements' discipline.</summary>
+    /// the expression's own size-error conditions (a zero divisor) keep the arithmetic statements' discipline — all but
+    /// COBOL-85's, which is the rule of an ARITHMETIC STATEMENT (§1985:VI.6.4.2 GR3) and which a position expression is not.</summary>
     public void EmitPositionValue(BoundPositionValue p)
-        => EmitArith(null, ise =>
+        => EmitArith(null, arithmeticStatement: false, ise =>
         {
             var (carrier, value) = NumericRenderer.IntakeCarrier(
                 num.Render(p.Value, ReceiverContext.None with { Checks = TakenBy(ise) }));
@@ -541,7 +543,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// finds the name not enabled and does nothing — <c>CobolSizeError.IsProhibitedInexact</c>). Every other condition
     /// is not enabled, so it propagates: a zero divisor or an exponentiation-rule violation ends the run unit exactly as
     /// it does with checking off (DOC-A.1-70), where the family-wide catch used to latch it, drop it and go on with the
-    /// receiver unchanged. A statement WITH the phrase catches everything: §2023:14.7.5 enables checking of all of it.</para></summary>
+    /// receiver unchanged. A statement WITH the phrase catches everything: §2023:14.7.5 enables checking of all of it. So
+    /// does a COBOL-85 statement without it, which checks nothing and ends only itself (§1985:VI.6.4.2 GR3, kb/Work
+    /// PB5484; <see cref="EmitArith(SizeErrorPhrase?, bool, Action{bool})"/>).</para></summary>
     private void WriteSizeCatches(string flag, string? ecnVar, string alsoOnCatch = "")
     {
         var w = ctx.Writer;
@@ -688,9 +692,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// flag is set by any per-receiver overflow (<c>TryStore</c> false — phase b, the other receivers still store,
     /// rule 2) or by a <c>CobolSizeError</c> raised during evaluation (e.g. a zero divisor — phase a, no receiver
     /// changes, rule 4); the ON / NOT ON SIZE ERROR imperative then runs once. With no phrase the stores run
-    /// unchecked (the plain <c>Store</c> path) — behavior unchanged.
+    /// unchecked (the plain <c>Store</c> path) — behavior unchanged — save in a COBOL-85 arithmetic statement (the overload below).
     /// </summary>
-    public void EmitArith(SizeErrorPhrase? sizeErr, Action<bool> emitStores)
+    public void EmitArith(SizeErrorPhrase? sizeErr, Action<bool> emitStores) => EmitArith(sizeErr, arithmeticStatement: true, emitStores);
+
+    /// <summary><see cref="EmitArith(SizeErrorPhrase?, Action{bool})"/> for an arithmetic statement
+    /// (<paramref name="arithmeticStatement"/>) or for an expression that rides its shape without being one (a position
+    /// value, <see cref="EmitPositionValue"/>).</summary>
+    private void EmitArith(SizeErrorPhrase? sizeErr, bool arithmeticStatement, Action<bool> emitStores)
     {
         var w = ctx.Writer;
         // EC-SIZE checking (>>TURN … EC-SIZE … CHECKING ON, ISO §2023:7.3.25): an ENABLED statement routes through
@@ -698,7 +707,18 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // occurred so the §2023:14.9.49 F3 selection and the fatal default see the precise level-3 name. Checking off
         // + no phrase = the unchecked fast path, byte-identical (deep-dive D10 / SSOT §18.16).
         var ecSize = ec.EnabledSizeNames();
-        if (sizeErr is null && ecSize.Count == 0) { emitStores(false); return; }
+        // ⛔ COBOL-85 HAS NO FATAL SIZE ERROR (kb/Work PB5484). With no ON SIZE ERROR phrase "the values of the affected
+        // resultant identifiers are undefined", the others are stored as if no size error had occurred, and "control is
+        // transferred to the end of the arithmetic statement" (§1985:VI.6.4.2 GR3; §1985:B.2.2 item 45: "the program will
+        // continue"), a zero divisor and an exponentiation-rule violation included (GR1, GR2). Such a statement takes the
+        // two-phase shape with NO condition checked — every render and landing the unchecked one, so an overflowing
+        // resultant keeps its low-order digits as at every edition — and with EVERY raise caught: a resultant whose value
+        // cannot be formed keeps its content (GnuCOBOL 3.2's continue-with-the-resultant-unchanged; docs/CONFORMANCE.md
+        // DOC-A.1-70), the next receiver is stored, and the statement after it runs. 2002 made the condition a fatal
+        // exception condition (§2023:14.7.5), which is the shape below for every later edition.
+        bool catchesEveryCondition = sizeErr is null && ecSize.Count == 0 && arithmeticStatement
+            && EditionInfo.Of(ctx.Data.DialectLevel).UnphrasedSizeErrorEndsOnlyTheStatement;
+        if (sizeErr is null && ecSize.Count == 0 && !catchesEveryCondition) { emitStores(false); return; }
 
         string flag = $"__sizeErr{ctx.Names.NextSizeErr()}";
         w.Line($"bool {flag} = false;");
@@ -715,7 +735,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // by it, the store chooses the checked landing by it, and the catches below catch exactly it - a condition not
         // taken is the not-enabled disposition (DOC-A.1-70), never a dropped one.
         ecState.SizeErrChecks = sizeErr is not null ? SizeChecks.All : EcState.ChecksOf(ecSize);
-        ecState.SizeErrOnlyNames = sizeErr is null ? ecSize : null;
+        ecState.SizeErrOnlyNames = sizeErr is null && !catchesEveryCondition ? ecSize : null;
         using (w.Block("try")) emitStores(true);   // checked renders: AddChecked / SubChecked / the checked landings (§2023:14.7.5)
         // A zero divisor / PROHIBITED-inexact quotient raises CobolSizeError; an intermediate that overflows the
         // long engine raises OverflowException (the checked(...) the store wraps the value in). Both are the

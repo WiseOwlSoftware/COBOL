@@ -49,23 +49,56 @@ internal sealed class _PRG_CHAR_ARITHMETIC : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
-                    C = (long)(CobolNum.Store(((Int128)(A) + (B)), 0, _P_2, CobolRounding.Truncation));
-                    C = (long)(CobolNum.Store(((Int128)(A) - (B)), 0, _P_2, CobolRounding.Truncation));
-                    C = (long)(CobolNum.Store(CobolNum.Divide(((Int128)(A) + (B)), 0, 5L, 0, 0, CobolRounding.Truncation), 0, _P_2, CobolRounding.Truncation));
                     bool __sizeErr0 = false;
                     try
                     {
                         try
                         {
-                            if (!CobolNum.TryStore(((Int128)(A) * (B)), 0, _P_3, CobolRounding.Truncation, out var __sv0)) __sizeErr0 = true;
-                            else SMALL = (long)(__sv0);
+                            C = (long)(CobolNum.Store(((Int128)(A) + (B)), 0, _P_2, CobolRounding.Truncation));
                         }
                         catch (CobolSizeError) { __sizeErr0 = true; }
                         catch (global::System.OverflowException) { __sizeErr0 = true; }
                     }
                     catch (CobolSizeError) { __sizeErr0 = true; }
                     catch (global::System.OverflowException) { __sizeErr0 = true; }
-                    if (__sizeErr0)
+                    bool __sizeErr1 = false;
+                    try
+                    {
+                        try
+                        {
+                            C = (long)(CobolNum.Store(((Int128)(A) - (B)), 0, _P_2, CobolRounding.Truncation));
+                        }
+                        catch (CobolSizeError) { __sizeErr1 = true; }
+                        catch (global::System.OverflowException) { __sizeErr1 = true; }
+                    }
+                    catch (CobolSizeError) { __sizeErr1 = true; }
+                    catch (global::System.OverflowException) { __sizeErr1 = true; }
+                    bool __sizeErr2 = false;
+                    try
+                    {
+                        try
+                        {
+                            C = (long)(CobolNum.Store(CobolNum.Divide(((Int128)(A) + (B)), 0, 5L, 0, 0, CobolRounding.Truncation), 0, _P_2, CobolRounding.Truncation));
+                        }
+                        catch (CobolSizeError) { __sizeErr2 = true; }
+                        catch (global::System.OverflowException) { __sizeErr2 = true; }
+                    }
+                    catch (CobolSizeError) { __sizeErr2 = true; }
+                    catch (global::System.OverflowException) { __sizeErr2 = true; }
+                    bool __sizeErr3 = false;
+                    try
+                    {
+                        try
+                        {
+                            if (!CobolNum.TryStore(((Int128)(A) * (B)), 0, _P_3, CobolRounding.Truncation, out var __sv0)) __sizeErr3 = true;
+                            else SMALL = (long)(__sv0);
+                        }
+                        catch (CobolSizeError) { __sizeErr3 = true; }
+                        catch (global::System.OverflowException) { __sizeErr3 = true; }
+                    }
+                    catch (CobolSizeError) { __sizeErr3 = true; }
+                    catch (global::System.OverflowException) { __sizeErr3 = true; }
+                    if (__sizeErr3)
                     {
                         global::System.Console.WriteLine("OVERFLOW");
                     }

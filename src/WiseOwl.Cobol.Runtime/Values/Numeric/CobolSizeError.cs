@@ -26,6 +26,11 @@ namespace WiseOwl.Cobol.Runtime;
 ///         termination: EC-SIZE-… (fatal): …", exit 1 — never a raw CLR crash, which is what
 ///         <c>IF 10 ** 100000 &gt; 5</c> under STANDARD-DECIMAL used to be).</item>
 /// </list>
+/// <para>⛔ COBOL-85 has no fatal size error (kb/Work PB5484): an arithmetic statement with no ON SIZE ERROR phrase leaves
+/// "the values of the affected resultant identifiers" undefined and transfers control "to the end of the arithmetic
+/// statement" (§1985:VI.6.4.2 GR3), so at 85 such a statement takes the first disposition with no condition checked —
+/// its catch takes every raise and the resultant keeps its content (<c>ArithmeticEmitter.EmitArith</c>,
+/// <c>EditionInfo.UnphrasedSizeErrorEndsOnlyTheStatement</c>). The raise itself does not depend on the edition.</para>
 /// <para><paramref name="ecName"/> is the precise Table 13 level-3 EC-SIZE-* name (§2023:14.6.13.1.6): a zero divisor is
 /// EC-SIZE-ZERO-DIVIDE; an exponentiation-rule violation EC-SIZE-EXPONENTIATION; the PROHIBITED-inexact
 /// EC-SIZE-TRUNCATION; a range overflow EC-SIZE-OVERFLOW ("arithmetic overflow in calculation"). ⛔ It is REQUIRED —
@@ -62,7 +67,8 @@ public sealed class CobolSizeError(string detail, string ecName) : CobolFatalExc
     /// it whether or not checking is enabled: the condition exists either way, and only its disposition differs.
     /// With checking off and no SIZE ERROR phrase §2023:14.6.13.1.3 item 8 leaves that disposition to the implementor,
     /// and WiseOwl COBOL's (CONFORMANCE.md DOC-A.1-70) is that a quotient which cannot be formed has no value to store,
-    /// so the run unit terminates abnormally naming the condition (kb/Work PB1605). Until then the scaled lane
+    /// so the run unit terminates abnormally naming the condition (kb/Work PB1605) — from 2002; at COBOL-85 the statement
+    /// ends and the program continues (§1985:VI.6.4.2 GR3, kb/Work PB5484). Until then the scaled lane
     /// answered 0 and the binary64 lane ±Infinity (or NaN), and the run went on with that value.</summary>
     public static CobolSizeError ZeroDivide() =>
         new("a zero divisor in a divide operation (ISO §2023:14.7.5 case 2)", "EC-SIZE-ZERO-DIVIDE");
