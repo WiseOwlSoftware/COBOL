@@ -1,0 +1,3 @@
+## Leads filed 2026-11-14 (PB5533-PB5535, PB5395 beside-file)
+
+Four leads from the PB5484, PB5395, PB5373 and PB5416 reports were checked against kb/Work on origin/main and on the queued notes-leads-20261114b branch, and none was filed. PB5533 records the two try regions every 85 no-phrase arithmetic statement now carries and asks for a PERFORM-loop measurement. PB5534 records the stale "owner-signed" label in the CONFORMANCE.md section 8 heading (a parser key) and the drift-test comments. PB5535 records that the national/boolean literal edition gate names the data construct. The `doc_citing` lead belongs to open note PB5395: on main it reads the single source file, so it is a hazard for the split, written as a dated file beside that note. PB5536 is unused.
