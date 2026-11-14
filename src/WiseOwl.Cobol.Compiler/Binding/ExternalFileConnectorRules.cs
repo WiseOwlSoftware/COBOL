@@ -68,8 +68,13 @@ internal static class ExternalFileConnectorRules
                                 newIn2023, "ISO §2023:14.8.4.2; Annex E.2 item 9");
             }
             // The agreement rules relate two describers; one has nothing to agree with (a lone program's external file
-            // is checked against the other runtime elements at run time).
-            if (conns.Count < 2) continue;
+            // is checked against the other runtime elements at run time), except the rules an entry owes itself: its own
+            // record descriptions are one length (§1985:VII.3.8.4 GR2).
+            if (conns.Count < 2)
+            {
+                if (edition.DialectLevel < 2002) CheckFileDescriptions(edition, externalName, conns);
+                continue;
+            }
 
             // FILE STATUS (VCR 18, new in 2023): if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming
             // the same corresponding external data item (§2023:12.4.5.3 GR1 i)).
@@ -123,7 +128,16 @@ internal static class ExternalFileConnectorRules
             foreach (var f in conns)
             {
                 if (FileDescriptionIdentity.Of(f, rule) is not { } mine) continue;
-                if (reference is not { } first) { reference = mine; continue; }
+                if (reference is not { } first)
+                {
+                    reference = mine;
+                    if (rule.Agree(mine.Value, mine.Value)) continue;
+                    using (edition.At(f.ClauseOrEntryAt(mine.At)))
+                        edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
+                            $"external file '{externalName}': this file description entry specifies {rule.Clause} and its own record descriptions are not all the same length "
+                            + $"(\"{mine.Written}\") — the entries of an external file connector agree in it (ISO {rule.Cite})");
+                    continue;
+                }
                 if (rule.Agree(first.Value, mine.Value)) continue;
                 using (edition.At(f.ClauseOrEntryAt(mine.At)))
                     edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
