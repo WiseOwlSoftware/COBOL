@@ -43,10 +43,10 @@ class Generations:
         measured tree (`Host.generate`: up to date when the store records its output digest at its key AND its outputs on
         disk have it, else it runs, traced), and each test target's key takes its dependencies' output digests
         (`Host.target_keys`): so a records-only change whose generated suite is byte-identical leaves Conformance's key,
-        and Conformance, up to date. Sets `out.keys` and `out.generated`; returns how it failed when a generated
-        target could not be brought up to date, as a value (`GenerationFailed`; the gate ends RED with it) (it failed, read outside its inputs, wrote an undeclared output, was not
-        deterministic, or ran while the tree changed) or the graph is malformed: no test host can run on a suite that
-        is not the key's. No measured tree: no generation and no key (nothing is up to date or recorded)."""
+        and Conformance, up to date. Sets `out.keys` and `out.generated`; returns, as a value (`GenerationFailed`, which the
+        gate ends RED with), how it failed when a generated target could not be brought up to date (it failed, read outside
+        its inputs, wrote an undeclared output, was not deterministic, or ran while the tree changed) or the graph is
+        malformed: no test host can run on a suite that is not the key's. No measured tree: no generation and no key (nothing is up to date or recorded)."""
         if not out.tree:
             out.keys = {}
             return None

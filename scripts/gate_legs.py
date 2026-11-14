@@ -36,7 +36,7 @@ class Legs:
         self.heartbeat, self.heartbeat_poll_s = heartbeat, heartbeat_poll_s
 
     def plan(self, out: Outcome, run: Path, listings: dict[str, Counter], carry: Carry,
-              todo: list[str]) -> dict[str, Path | None]:
+             todo: list[str]) -> dict[str, Path | None]:
         """THE RETRY AT EACH TARGET'S KEY (kb/Work PB5099, PB5218): per assembly of `todo`, the listed cases the carried
         passes (`carry`) do not cover, written one name per line to `<run>/only-<assembly>.txt` for the host's retry hook
         (ONLY_CASES). Returns, per assembly that has a case left, its retry file (None: its whole population, when the
@@ -128,7 +128,7 @@ class Legs:
         return f"kept as {kept.name}"
 
     def run_hosts(self, out: Outcome, run: Path, first: Path | None, spawn: Spawn, hosts_started: float,
-                   plan: dict[str, Path | None]) -> None:
+                  plan: dict[str, Path | None]) -> None:
         """The planned assemblies CONCURRENTLY, one host each, each printed through the one leg report
         (scripts/test_leg_report.py) in a fixed order whatever order they finished in. `plan` (`plan`, kb/Work PB5099,
         PB5218) names each assembly that runs: None for its whole population, a retry file for its cases not yet passed;
@@ -181,7 +181,7 @@ class Legs:
             out.runs.append(HostRun(asm, rc, rep.returncode != 0, round(wall, 1), round(fin, 1)))
 
     def check_populations(self, out: Outcome, listings: dict[str, Counter], run: Path, carry: Carry | None,
-                           todo: list[str]) -> None:
+                          todo: list[str]) -> None:
         """Ran equals discovered, by name, per assembly of `todo` (scripts/test_population.py `check`): its trx against
         its listing, with the passes `carry` brings (a RETRY, kb/Work PB5099: an assembly it ran nothing in has no trx and
         is all carried). A host that ran and wrote no trx is UNMEASURED, a RED. A target up to date is not checked here:

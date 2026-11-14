@@ -9,6 +9,12 @@ docs/rearchitecture/DESIGN-test-build-ci.md §3.14.1, §3.14.3, §3.14.6, §3.17
 
 Called by `scripts/build-local.ps1` and `scripts/build-local.sh`, which only set the process priority.
 
+THE MODULES (kb/Work PB5433, PB5411; DESIGN-orchestrator-loop.md section 16.5). This file is the driver: `Gate` (its stages in order, the
+audits and lanes, the work beside them, THE one place a verdict and record are written) and the CLI. `gate_verdict.py` is the verdict
+vocabulary and `Outcome`, `gate_audits.py` the audits, `gate_host.py` the real machine, `gate_runs.py` the run store and the await;
+`Gate` holds `gate_reuse.PassCarry` (what a recorded run lets this gate reuse), `gate_generated.Generations` and `gate_legs.Legs` (the
+test populations), each returning what it found and never calling back.
+
 ⛔ THE POPULATION IS THE SELECTION (owner decision 1 of PB4323, 2026-10-31; kb/Work PB4328). A change that a test can read
 runs the WHOLE population of every test target (scripts/build_targets.json, test_population.GATED_ASSEMBLIES) on this host: no plan, no tiers, no impact map, no leg
 2. The order inside each assembly is the test framework's (tests/_shared/GateLegs.cs `GateOrderer`): the test classes
