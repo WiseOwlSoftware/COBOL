@@ -1,0 +1,13 @@
+{
+ "id": "function-empty-argument-list-2002",
+ "status": "active",
+ "description": "An empty argument list written after a function name, `FUNCTION RANDOM ()` or `FUNCTION CURRENT-DATE ()` (kb/Work PB5163). The 1985 function-identifier format (§1985:IV.4.3.8.3.2, added by Amendment 1) writes the parentheses only around a braced `{ argument-1 } ...`, and braces require one of their options (§1985:IV.2.1.4), so a parenthesis pair delimiting no argument is not a list of function arguments (§1985:IV.4.2.1 SR4). ISO/IEC 1989:2002 brackets the argument inside the parentheses (8.4.2.2.1) and its SR4 NOTE writes `FUNCTION MAX (FUNCTION RANDOM () A B)`; Annex F.1 item 20 records the left parenthesis after a function with optional arguments as always its argument list. Gated by recognition, VersionConformancePass ParseArm.VisitFunctionCall, at the left parenthesis of the empty list (the keyword-omitted forms need a REPOSITORY entry, itself a 2002 introduction).",
+ "display": "an empty function argument list '( )'",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§1985:IV.4.3.8.3.2 and §1985:IV.2.1.4; ISO/IEC 1989:2002 8.4.2.2.1, its 8.4.2.2.2 SR4 NOTE and Annex F.1 item 20; ISO §2023:8.4.3.2.2 (2023 text)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "the function-identifier format (85->2002): an empty argument list",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMFEA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 D PIC X(21).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION CURRENT-DATE () TO D.\n    DISPLAY D (1:2).\n    STOP RUN.\n"
+}
