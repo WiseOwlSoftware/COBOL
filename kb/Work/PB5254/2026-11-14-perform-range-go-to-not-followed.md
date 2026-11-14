@@ -1,0 +1,5 @@
+**Finding (2026-11-14, review R1-1 of the PB5254 branch w20262034a, under-rejects at --std 85): the PERFORM range is taken without following GO TO.**
+
+`src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs:244` `GateBeforeReportingPerformRange` (on the PB5254 branch; not yet on main) takes the PERFORM range from `ProcedureReach.Closure` without following GO TO, so a GENERATE, INITIATE or TERMINATE reached through a GO TO in the performed range is not refused at --std 85. §1985:VI.6.21.4 GR11 ("The range of a PERFORM statement consists logically of all those statements that are executed as a result of executing the PERFORM statement", checked with `scripts/spec/cite.py --check`) puts statements executed via GO TO (and CALL) in the range. The narrowing has no decision note (CLAUDE.md rule 3), and the 1985 inventory row `1985-SR-XIII.4.9.3-3` is marked CONFORMS, while the 1985 sibling kb/Work PB5104 reads the same GR with GO TO followed.
+
+Fix direction: follow GO TO as PB5104 does (one reach mechanism for both), then re-read the CONFORMS verdict on `1985-SR-XIII.4.9.3-3`.
