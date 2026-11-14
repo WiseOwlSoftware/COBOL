@@ -245,6 +245,12 @@ the text it writes, decided by the line the match begins on (`firstLineIsDebuggi
   on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines"), and so does REPLACE from 2002; COBOL-85's
   REPLACE gives each introduced line the replaced line's indicator, so it drops them (`ResultRule.KeepsPseudoTextDebuggingLines`, asked
   with `EditionInfo.ReplacedTextIsLaidOutInFixedForm`).
+- **A kept carrier after text on the replaced line starts a line (kb/Work PB5472):** when the introduced text begins with a debugging-line
+  carrier and the line holds non-blank text ahead of the match, `ApplyReplacements` writes a line break before the replacement. The carrier
+  makes every word after it on the resultant line debugging text, so without the break the library words ahead of the match would be hidden
+  with it when the program is read with the debugging lines considered as comment lines (§1985:VI.7.3), and a unit WITH DEBUGGING MODE
+  (the only unit whose source debugging lines run the §1985:VI.7.3 both-ways check) would be refused COBOL7061 at 85 for `COPY X REPLACING ==XX== BY == / D QQ==` into `DISPLAY "[" XX "]".`. Goldens
+  `pb5472-copy-debugging-line-replaces-mid-line` and `pb5472-copy-debugging-line-replacement-needed`.
 - The text after the match keeps the indicator of the line the match ENDS on (GR11 decides the introduced lines only). When the line the
   replacement ends on differs in kind from that line (a match crossing between a debugging line and a source line, either way) or a kept
   directive line intervenes, the rest starts a line of its own, with the carrier when the end line is a debugging line.
