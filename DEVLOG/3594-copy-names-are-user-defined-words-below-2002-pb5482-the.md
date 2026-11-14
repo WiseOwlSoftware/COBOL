@@ -1,4 +1,4 @@
-## COPY names are user-defined words below 2002 (PB5482); the COBOL7039 area check counts expanded tabs (PB5503)
+## Entry 3594 — 2026-11-14 03:39 PST — COPY names are user-defined words below 2002 (PB5482); the COBOL7039 area check counts expanded tabs (PB5503)
 
 Two mechanisms of the COPY processor, one commit each, wave 20262027 group C.
 
@@ -22,3 +22,4 @@ sites use `CopyProcessor.ProgramTextOffsetAt`; the formats of the texts read are
 `ApplyReplacements`. Goldens `pb5503-replace-literal-tab-area-a` (accept) and `-area-b` (refusal), and two unit facts.
 
 Review round 1 (finisher): CopyNameCensus attributed a COPY written after a contained program's END PROGRAM to that ended unit; the census now picks the innermost unit whose first and last tokens bracket the statement (BinderDriver.UnitLastLine/LastToken, the mirror of FirstToken), pinned by CopyNameUserWordTests.ACopyAfterAContainedProgramEnds_BelongsToTheContainer. A stale cref in CopyProcessor.cs was corrected.
+
