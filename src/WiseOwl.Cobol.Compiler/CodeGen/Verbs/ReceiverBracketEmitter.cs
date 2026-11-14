@@ -79,8 +79,10 @@ internal sealed class ReceiverBracketEmitter(EmitContext ctx)
     public void Identify(params IEnumerable<Place?> receivers)
     {
         foreach (var receiver in receivers)
-            if (receiver is not null && Find(receiver) is ({ } scope, { } bracket) && scope.Opened.Add(bracket))
-                foreach (var step in bracket.Open) Statements.EmitStatement(step);
+            if (receiver is not null)
+                foreach (var (scope, bracket) in Find(receiver))
+                    if (scope.Opened.Add(bracket))
+                        foreach (var step in bracket.Open) Statements.EmitStatement(step);
     }
 
     /// <summary>Emit one receiver's access-and-store (<paramref name="store"/>) with its object-property accessors around
@@ -89,15 +91,21 @@ internal sealed class ReceiverBracketEmitter(EmitContext ctx)
     /// else null.</summary>
     public void Receive(Place receiver, string? sizeErrorFlag, Action store)
     {
-        if (Find(receiver) is not ({ } scope, { } bracket)) { store(); return; }
-        if (!scope.Opened.Contains(bracket))
-            foreach (var step in bracket.Open) Statements.EmitStatement(step);
-        scope.Placed.Add(bracket);
-        if (bracket.Close.Count == 0) { store(); return; }
+        var found = Find(receiver);
+        if (found.Count == 0) { store(); return; }
+        foreach (var (scope, bracket) in found)
+        {
+            if (!scope.Opened.Contains(bracket))
+                foreach (var step in bracket.Open) Statements.EmitStatement(step);
+            scope.Placed.Add(bracket);
+        }
+        // The brackets nest: the first found opened first, so it closes last.
+        var close = found.AsEnumerable().Reverse().SelectMany(f => f.Bracket.Close).ToList();
+        if (close.Count == 0) { store(); return; }
         if (sizeErrorFlag is null)
         {
             store();
-            foreach (var step in bracket.Close) Statements.EmitStatement(step);
+            foreach (var step in close) Statements.EmitStatement(step);
             return;
         }
         // The flag accumulates over the statement's receivers; this receiver's own outcome needs it clear around its store.
@@ -106,7 +114,7 @@ internal sealed class ReceiverBracketEmitter(EmitContext ctx)
         w.Line($"bool {prior} = {sizeErrorFlag}; {sizeErrorFlag} = false;");
         store();
         using (w.Block($"if (!{sizeErrorFlag})"))
-            foreach (var step in bracket.Close) Statements.EmitStatement(step);
+            foreach (var step in close) Statements.EmitStatement(step);
         w.Line($"{sizeErrorFlag} |= {prior};");
     }
 
@@ -124,28 +132,33 @@ internal sealed class ReceiverBracketEmitter(EmitContext ctx)
     public void Settle(params IEnumerable<Place?> receivers)
     {
         foreach (var receiver in receivers)
-            if (Unsettled(receiver) is ({ } scope, { } bracket) && scope.Placed.Add(bracket))
-                foreach (var step in bracket.Close) Statements.EmitStatement(step);
+        {
+            var unsettled = Unsettled(receiver);
+            foreach (var (scope, bracket) in unsettled.AsEnumerable().Reverse())
+                if (scope.Placed.Add(bracket))
+                    foreach (var step in bracket.Close) Statements.EmitStatement(step);
+        }
     }
 
     /// <summary>Whether <see cref="Settle"/> on <paramref name="receivers"/> would emit any CLOSE step — so a statement whose
     /// settlement must be guarded (a CALL's: only a successful activation stores, and the SET runs outside the activation's
     /// own exception partition, kb/Work PB2078) emits its guard only when there is something to guard.</summary>
     public bool Settles(IEnumerable<Place?> receivers) =>
-        receivers.Any(r => Unsettled(r) is (_, { Close.Count: > 0 }));
+        receivers.Any(r => Unsettled(r).Any(u => u.Bracket.Close.Count > 0));
 
     /// <summary>The bracket of <paramref name="receiver"/> that <see cref="Identify"/> opened and no store has placed yet.</summary>
-    private (Scope, ReceiverBracket)? Unsettled(Place? receiver) =>
-        receiver is not null && Find(receiver) is ({ } scope, { } bracket) && scope.Opened.Contains(bracket)
-            && !scope.Placed.Contains(bracket)
-            ? (scope, bracket) : null;
+    private List<(Scope Scope, ReceiverBracket Bracket)> Unsettled(Place? receiver) =>
+        receiver is null ? [] : [.. Find(receiver).Where(f => f.Scope.Opened.Contains(f.Bracket) && !f.Scope.Placed.Contains(f.Bracket))];
 
-    private (Scope, ReceiverBracket)? Find(Place receiver)
-    {
-        foreach (var scope in _scopes)
-            foreach (var bracket in scope.Brackets)
-                if (bracket.Receiver.Names(receiver))
-                    return (scope, bracket);
-        return null;
-    }
+    /// <summary>EVERY bracket, of any scope in force, that has one for <paramref name="receiver"/>, outermost first: an object
+    /// property's own bracket (<see cref="PropertyReceiverKey"/>, kb/Work PB2078) encloses the bracket that evaluates the
+    /// receiver's subscript or reference modifier (<see cref="WrittenReceiverKey"/>, kb/Work PB5386), because the property's
+    /// identified object is evaluated and fetched before the modifier of its data item is. A function in a reference modifier
+    /// of a property receiver carries both, and the binder wraps them as two <see cref="BoundReceiverBrackets"/> nodes, so the
+    /// two brackets sit in two scopes.</summary>
+    private List<(Scope Scope, ReceiverBracket Bracket)> Find(Place receiver) =>
+    [
+        .. _scopes.SelectMany(scope => scope.Brackets.Where(b => b.Receiver.Names(receiver)).Select(b => (scope, b)))
+            .OrderBy(f => f.b.Receiver is PropertyReceiverKey ? 0 : 1)
+    ];
 }
