@@ -1480,6 +1480,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // ⚙ GR-12.4.5.9.4-2, added deliberately (kb/Work PB1636, owner signature 2026-10-23): its
             // owner-signed §8 determination is DRV-GR-12.4.5.9.4-2 in docs/CONFORMANCE.md.
             "GR-12.4.5.9.4-2",
+            // ⚙ The first rows of an older edition, added deliberately (kb/Work PB5373 class 1, signature
+            // `claude: 2026-11-12`): three 1985 rules whose own text declares the result undefined, each closed on
+            // the mechanical arm `undefined-in-rule` (§8 DRV-1985-GR-XIV.2.2.4-7, -29, DRV-1985-GR-XIV.3.6.4-5).
+            "1985-GR-XIV.2.2.4-7", "1985-GR-XIV.2.2.4-29", "1985-GR-XIV.3.6.4-5",
         ];
 
         var s = LoadSchema();
@@ -1489,7 +1493,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             .Select(r => r.RuleId).Order(StringComparer.Ordinal).ToList();
 
         Assert.True(population.Order(StringComparer.Ordinal).SequenceEqual(closed, StringComparer.Ordinal),
-            "the set of rows closed on an owner-signed derivation is not the measured population.\n"
+            "the set of rows closed on a signed derivation is not the measured population.\n"
             + $"    expected: [{string.Join(", ", population.Order(StringComparer.Ordinal))}]\n"
             + $"    actual  : [{string.Join(", ", closed)}]\n"
             + "    A row added here is a row the burn-down moves without a test. It needs a signed §8 determination "

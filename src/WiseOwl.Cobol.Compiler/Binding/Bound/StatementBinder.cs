@@ -490,6 +490,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (Ctx.Enclosing.InBeforeReportingProcedure && _controlStoreReports == controlStoreMark
             && Rw.CheckControlDataStores(core))
             _controlStoreReports++;
+        // §1985:XIII.3.20.3 SR5, the USE half (kb/Work PB5424): asked HERE for the same reason, of the references each statement
+        // of a USE BEFORE REPORTING procedure writes itself.
+        if (Ctx.Enclosing.InBeforeReportingProcedure) Rw.CheckControlDataReferences(core);
         // X3.23-1985 USE FOR DEBUGGING syntax rule 11 (kb/Work PB4858) — asked HERE, of every statement, because this is the one funnel and
         // BoundReferences reads the statement's OWN references (a nested statement is asked at its own position).
         if (!_inDebuggingSection && Ctx.Table.HasDebugRegisters && ReferencesDebugItem(core, marks.PreOps))

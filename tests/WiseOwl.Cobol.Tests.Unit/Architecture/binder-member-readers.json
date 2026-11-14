@@ -1136,6 +1136,12 @@
     "WiseOwl.Cobol.Binding.ReportSectionBinder::BindReportSection": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
+    "WiseOwl.Cobol.Binding.ReportSectionBinder::ControlDataReferenceOf": [
+      "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder"
+    ],
+    "WiseOwl.Cobol.Binding.ReportSectionBinder::ControlDataRuleWords": [
+      "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder"
+    ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::InheritContainerReports": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
@@ -1151,6 +1157,9 @@
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder"
+    ],
+    "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportGroupTypeWords": [
+      "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ResolveReports": [
       "WiseOwl.Cobol.Binding.Passes.ResolveReportsPass"

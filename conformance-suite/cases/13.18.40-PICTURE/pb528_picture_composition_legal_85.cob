@@ -35,8 +35,8 @@
       *>     and the two fraction digits; 012.34 suppresses the leading 0 => " $12.34".
       *> L10 +$$99 with 12 - SR26's "optionally preceded by one of the symbols '+' or '-'". The two '$' are a
       *>     floating string (one digit position); 012 suppresses the leading 0 and floats the '$' => "+ $12".
-      *> L11 999$+ with -12 - SR26's rightmost-currency leg, "optionally followed by one of '+', '-', 'CR' or
-      *>     'DB'" => "012$-".
+      *> (No L11: SR26's rightmost-currency leg, 999$+, is a COBOL-2002 addition, §2002:13.16.38.2 SR23; at
+      *>     COBOL-85 the currency symbol is leftmost, §1985:VI.5.9.5 GR6, kb/Work PB5175.)
       *> L12 ++ with 1 - SR12 a's second bullet made concrete: two occurrences of '+' ARE a picture, and rule
       *>     6 makes them a floating string of one digit position => "+1".
       *> L13 999.99CR with -12.34 - Table 8: 'CR' over a negative value renders CR => "012.34CR".
@@ -65,7 +65,6 @@
        01 L08 PIC $999+.
        01 L09 PIC $$$9.99.
        01 L10 PIC +$$99.
-       01 L11 PIC 999$+.
        01 L12 PIC ++.
        01 L13 PIC 999.99CR.
        01 L14 PIC ZZZ,ZZ9.99.
@@ -88,7 +87,6 @@
            MOVE -12 TO L08
            MOVE 12.34 TO L09
            MOVE 12 TO L10
-           MOVE -12 TO L11
            MOVE 1 TO L12
            MOVE -12.34 TO L13
            MOVE 1234.5 TO L14
@@ -107,7 +105,6 @@
            DISPLAY "L08=[" L08 "]"
            DISPLAY "L09=[" L09 "]"
            DISPLAY "L10=[" L10 "]"
-           DISPLAY "L11=[" L11 "]"
            DISPLAY "L12=[" L12 "]"
            DISPLAY "L13=[" L13 "]"
            DISPLAY "L14=[" L14 "]"
