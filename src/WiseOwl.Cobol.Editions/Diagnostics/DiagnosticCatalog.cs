@@ -3326,6 +3326,16 @@ public static class DiagnosticCatalog
         + "the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\" (§1985:XI.4.3.3 SR3)",
         "§1985:XI.4.2.3 SR2; §1985:XI.4.3.3 SR3");
 
+    /// <summary>COBOL7234 — a PERFORM in a USE BEFORE REPORTING procedure has a GENERATE, INITIATE or TERMINATE statement in its range
+    /// (kb/Work PB5254). §1985:XIII.4.9.3 SR3: "A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or
+    /// TERMINATE statements in its range." A COBOL-85 rule, reported at --std 85, asked of the bound program
+    /// (<c>VersionConformancePass.GateBeforeReportingPerformRange</c>); COBOL-2002 and later replace it by the run-time EC-FLOW-REPORT.</summary>
+    public static readonly DiagnosticDescriptor BeforeReportingPerformRange = new(
+        "COBOL7234", "before-reporting-perform-range", EditionSeverity.Error,
+        "A PERFORM in a USE BEFORE REPORTING procedure has a GENERATE, INITIATE or TERMINATE statement in its range. \"A PERFORM statement in a "
+        + "USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or TERMINATE statements in its range.\" (§1985:XIII.4.9.3 SR3)",
+        "§1985:XIII.4.9.3 SR3");
+
     /// <summary>COBOL2689 — an inline comment on a line that ends in a floating literal continuation indicator
     /// (kb/Work PB1359). §2023:6.3.7.3 / §2023:6.4.4.3: an inline comment may be written on any line except one that contains
     /// a floating literal continuation indicator.</summary>

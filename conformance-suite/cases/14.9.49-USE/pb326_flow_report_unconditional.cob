@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb326_flow_report_unconditional
       *> rules: [GR-14.9.49.4-10]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -10,11 +10,13 @@
       *> exception condition is set to exist, the result of the execution of the GENERATE, INITIATE, or
       *> TERMINATE statement is unsuccessful, and the state of the report is unchanged."
       *>
-      *> THE POINT OF THIS PROGRAM IS THE UNCONDITIONAL HALF, AT THE OLDEST EDITION. §2023:14.6.13.1.1 gates only the
-      *> RAISING of the condition on checking being enabled; "the result … is unsuccessful, and the state of the
-      *> report is unchanged" is stated outright and holds at every edition and every checking setting. COBOL-85
-      *> has no >>TURN directive at all, so no checking can be enabled here — and the nested GENERATE must still
-      *> produce nothing.  (Its checked twin is 2002/pb326_ec_flow_report.)
+      *> THE POINT OF THIS PROGRAM IS THE UNCONDITIONAL HALF. §2023:14.6.13.1.1 gates only the RAISING of the condition on
+      *> checking being enabled; "the result ... is unsuccessful, and the state of the report is unchanged" is stated outright
+      *> and holds at every checking setting. This program has no >>TURN directive at all, so no checking is enabled here — and
+      *> the nested GENERATE must still produce nothing.  (Its checked twin is pb326_ec_flow_report.)  It is not a COBOL-85
+      *> program: §1985:XIII.4.9.3 SR3 refuses a PERFORM in a USE BEFORE REPORTING procedure whose range holds a GENERATE at
+      *> compile time (COBOL7234, kb/Work PB5254; conformance:pb5254-perform-range-generate-85), and COBOL-2002 replaced that
+      *> sentence by this run-time rule.
       *>
       *> The program is legal: §2023:14.9.49.3 SR10 forbids GENERATE/INITIATE/TERMINATE only "in a paragraph within a
       *> USE BEFORE REPORTING procedure", and GEN-P is a paragraph of a DIFFERENT declarative section, which SR4
