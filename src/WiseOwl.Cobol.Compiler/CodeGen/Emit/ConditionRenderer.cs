@@ -46,7 +46,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         return c.Accept(this);
     }
 
-    public string Visit(BoundRelational n) => RenderRelational(n);
+    public string Visit(BoundRelational n) =>
+        SizeErrorGuarded(RenderRelational(n), n.Left, n.Right);
     // An EMPTY logical is the tautology (EVALUATE's ANY object composes as an AND over zero terms).
     public string Visit(BoundLogical n) => n.Operands.Count == 0
         ? "true"
@@ -57,7 +58,20 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     public string Visit(BoundSwitchCondition n) => n.TestsOn
         ? $"ExternalSwitches.Get({EmitText.CsLiteral(n.ImplementorName)})"
         : $"!ExternalSwitches.Get({EmitText.CsLiteral(n.ImplementorName)})";
-    public string Visit(BoundSignCondition n) => RenderSign(n);
+    public string Visit(BoundSignCondition n) =>
+        SizeErrorGuarded(RenderSign(n), new BoundComputedOperand(n.Expr));
+
+    /// <summary>⛔ A COBOL-85 CONDITION WHOSE ARITHMETIC EXPRESSION RAISES A SIZE ERROR CONTINUES THE PROGRAM (kb/Work PB5501). The
+    /// size error ends no statement here (a condition has no resultant to leave undefined), and 1985 says "the program will
+    /// continue" (§1985:B.2.2 item 45), so the leaf evaluates to FALSE instead of reaching the run unit's fatal boundary
+    /// (<c>CobolSizeError.FalseWhenRaised</c>, the determination and its citations). Only an operand that is an
+    /// arithmetic expression can raise one; a plain item, a literal and a function value cannot, so their relations render
+    /// as they always did. From 2002 the condition is a fatal exception condition (§2023:14.7.5) and nothing is wrapped.</summary>
+    private string SizeErrorGuarded(string rendered, params BoundOperand[] operands) =>
+        EditionInfo.Of(ctx.Data.DialectLevel).UnphrasedSizeErrorEndsOnlyTheStatement
+        && operands.Any(o => o is BoundComputedOperand { Expr: BoundBinary or BoundPower or BoundNegate })
+            ? RuntimeApi.SizeErrorFalse(rendered)
+            : rendered;
 
     /// <summary>§2023:8.8.4.8 (kb/Work PB133 wave C) — the formal carrier's IsNull IS the omitted-argument
     /// condition; the CA10-checked GR12 raise lives in the carrier's accessors, never here (testing presence

@@ -52,7 +52,10 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// (§1985:VI.6.4.2 GR3), and the change record §1985:B.2.2 item 45 adds "the program will continue and the value of any
     /// affected resultant identifier is undefined", a zero divisor and an exponentiation-rule violation included (§1985:VI.6.4.2 GR1, GR2).
     /// From 2002 the condition is a fatal exception condition and "processing proceeds as specified in" the fatal
-    /// exception rules (§2023:14.7.5), which with checking off leave the disposition to the implementor.</summary>
+    /// exception rules (§2023:14.7.5), which with checking off leave the disposition to the implementor.
+    /// <para>The same item 45 covers a size error in a CONDITION's arithmetic expression, which has no statement to end and no
+    /// resultant to leave undefined: the program continues and the relation or sign condition is false (kb/Work PB5501,
+    /// <c>CobolSizeError.FalseWhenRaised</c>).</para></summary>
     public bool UnphrasedSizeErrorEndsOnlyTheStatement => Year < 2002;
 
     /// <summary>True when the targeted edition is at or after <paramref name="introducedIn"/> — the one

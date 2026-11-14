@@ -41,6 +41,11 @@ internal static class RuntimeApi
     /// that can never be true (<see cref="CobolCallException.CarriedNames"/>).</summary>
     public static bool CallEcIsCarried(string ec) => CobolCallException.CanCarry(ec);
 
+    /// <summary>A COBOL-85 relation or sign condition over a computed operand: false when the expression raises a size error
+    /// (<c>CobolSizeError.FalseWhenRaised</c>, kb/Work PB5501).</summary>
+    public static string SizeErrorFalse(string condition) =>
+        $"{nameof(CobolSizeError)}.{nameof(CobolSizeError.FalseWhenRaised)}(() => {condition})";
+
     /// <summary>Boolean NOT — ISO §2023:8.8.4.5 boolean expressions (the D-B1 '0'/'1' string substrate).</summary>
     public static string BoolNot(string operand) => $"{nameof(CobolBool)}.{nameof(CobolBool.Not)}({operand})";
 

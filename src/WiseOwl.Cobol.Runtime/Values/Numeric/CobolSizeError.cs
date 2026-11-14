@@ -40,6 +40,22 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public sealed class CobolSizeError(string detail, string ecName) : CobolFatalException(ecName, detail)
 {
+    /// <summary>⛔ THE COBOL-85 CONDITION WHOSE ARITHMETIC EXPRESSION RAISES A SIZE ERROR (kb/Work PB5501). A condition has no
+    /// resultant identifier and no ON SIZE ERROR phrase, and COBOL-85 defines the size error condition only through "an
+    /// arithmetic statement" (§1985:VI.6.4.2 GR3) while the change record says "If a size error condition occurs and an ON SIZE
+    /// ERROR phrase has not been specified, the program will continue" (§1985:B.2.2 item 45). So the run goes on, and the
+    /// 1985 text gives the relation no value: DETERMINATION (docs/CONFORMANCE.md DOC-A.1-70) — a relation or sign condition
+    /// whose operand expression cannot be evaluated is FALSE (a relation that cannot be established, as an IEEE NaN comparison is). Evaluates <paramref name="condition"/>; a size error, the
+    /// <see cref="OverflowException"/> a checked intermediate raises included (the same pair the no-phrase statement's catch
+    /// takes, <c>ArithmeticEmitter.EmitArith</c>), answers false. Emitted only at an edition for which
+    /// <c>EditionInfo.UnphrasedSizeErrorEndsOnlyTheStatement</c> holds.</summary>
+    public static bool FalseWhenRaised(Func<bool> condition)
+    {
+        try { return condition(); }
+        catch (CobolSizeError) { return false; }
+        catch (OverflowException) { return false; }
+    }
+
     /// <summary>Is this §2023:14.7.4.3 rule 7's condition — ROUNDED MODE IS PROHIBITED and a value the resultant identifier
     /// cannot represent exactly (<see cref="ProhibitedInexact"/>)? The one fact the emitted code of an arithmetic
     /// statement with no SIZE ERROR phrase and checking off filters on: there the resultant is left unchanged and
