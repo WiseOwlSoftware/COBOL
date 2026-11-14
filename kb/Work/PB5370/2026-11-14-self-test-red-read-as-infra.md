@@ -1,0 +1,5 @@
+## 2026-11-14: a second witness: PR #1640's audits-job self-test red was read as INFRA and re-queued once at the same tree
+
+PR #1640's audits job, step "Script self-tests", was RED on one deterministic case (`scripts/selftests/inert_lane/test_watch.py` case 04; kb/Work PB5522). The lane read it as INFRA ("no test failed in merge-group run ...: a job died before or outside its tests") and re-queued it once at the same tree, which spent a second merge group (runs 43623073747, then 43624633970) failing identically.
+
+Mechanism, confirmed on origin/main: `land_lane.red_facts` collects the failed cases only from downloaded TRX files (`scripts/orchestrator/land_lane.py:879`, `tp.red_cases(sorted(dest.rglob("*.trx")))`), and the audits job writes no TRX, so `RedFacts.failed` is empty. `classify_red` then returns INFRA at `scripts/orchestrator/land_lane.py:839-840` (`if not f.failed: return lm.INFRA, ...`). The self-test arm the note asks for (a run whose only red is a check step) must include the audits job's self-test step. Run ids are the filing instruction's; not re-run here.
