@@ -1,4 +1,4 @@
-## PB5475 and PB5474: the 85 CODE clause reads a figurative constant by its value, and SUM UPON stays in its own report
+## Entry 3608 — 2026-11-14 09:18 PST — PB5475 and PB5474: the 85 CODE clause reads a figurative constant by its value, and SUM UPON stays in its own report
 
 Two defects of `ReportSectionBinder` found by the 1985 code read (read 4), one in each direction.
 
@@ -25,3 +25,4 @@ The gate's first run was RED on three drift tests, each a real finding: `ReportS
 `ConcatFolder.FigurativeChar`; `CODE NULL` had been refused only as a literal whose class is unknown, so `BindCodeClause` now
 decides the `predefinedNull` arm through `PredefinedNullRule.Report` (COBOL2576, as every other literal decoder does); and the new
 `DataBinder.LiteralEnv` reader is listed in `binder-member-readers.json`.
+
