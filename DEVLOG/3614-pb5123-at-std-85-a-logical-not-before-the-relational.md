@@ -1,4 +1,4 @@
-## PB5123: at --std 85 a logical NOT before the relational operator of an abbreviated relation (A > B AND NOT >= C OR D) parses and negates the relation; from 2002 it is COBOL0902
+## Entry 3614 — 2026-11-14 11:12 PST — PB5123: at --std 85 a logical NOT before the relational operator of an abbreviated relation (A > B AND NOT >= C OR D) parses and negates the relation; from 2002 it is COBOL0902
 
 **The defect.** §1985:VI.6.3.3 reads the NOT of an abbreviated combined relation condition by the word after it: before GREATER, >, LESS, <, EQUAL or = it is part of the relational operator (GRL2.1); otherwise "The NOT is interpreted as a logical operator and, therefore, the implied insertion of subject or relational operator results in a negated relation condition" (GRL2.2). So at 85 `A > B AND NOT >= C OR D` is ((A > B) AND (NOT (A >= C))) OR (A >= D). The grammar admitted NOT after a connective only inside `comparisonOperator` (the 2023 printed set, kb/Work PB1034) or before a bare object, so the 1985 form was `COBOL0001: cannot parse construct near '>='` at every edition, and `AND NOT IS > C` was COBOL0001 near 'IS'.
 
@@ -15,3 +15,4 @@
 **Self-review.** Architecture: one grammar node, one predicate (GRL2.1), one gate, one binder arm reusing `BindAbbreviatedRelation`. Code: the carried operator is the stated one (T8, T13 discriminate); sibling consumers of `succeedingCondition` swept (`SearchAllFormat2Rules`, the FILE STATUS flag walker and `BindPartialOperandsStandalone` recurse into the child `abbreviatedRelation`). Performance: the predicate reads two token types, only at a NOT. Duplication: none added.
 
 **Found on the way.** The first gate was RED at the EDITION GATES audit: `edition_gates.named_rules` read only `GR<n>`, so the construct's `§1985:VI.6.3.3 GRL2.2` named every rule of the clause (KEPT ones too) and proved nothing, and `GR2` named the second rule of every list of a block. It now matches the designator in `citation.rule_designator`'s spelling (kind, list, ordinal), with a planted self-test leg; the audit is GREEN over all 333 gates.
+
