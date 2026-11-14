@@ -27,7 +27,7 @@ key. Frontmatter values are JSON, one `<name>: <value>` a line.
 | `5/` | Annex A.4, the optional modules | A.4 module: `cells:` |
 | `6/` | maintenance | (prose only) |
 | `7/` | Annex A.1, the implementor-defined elements | row `DOC-A.1-<item>`: `cells:`, and a body for a row's extended prose |
-| `8/` | the owner-signed derivations | row `DRV-<rule-id>`: `cells:` |
+| `8/` | the signed derivations (an owner's or a deciding session's signature, kb/Work PB5373) | row `DRV-<rule-id>`: `cells:` |
 
 A new determination is a new `3/D-<KEY>.md` (the key unique in the whole statement); a new register row is a new file
 in its section. Entries render in natural key order (`DOC-A.1-9` before `DOC-A.1-10`), section 4's blocks by `order:`.

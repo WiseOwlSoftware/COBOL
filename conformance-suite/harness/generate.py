@@ -37,7 +37,7 @@ directory that holds anything else (or a path that is not a directory) is refuse
 
 THE COMPLETENESS REPORT (§4) is per edition and per WITNESS KIND, never one count: each inventory row whose band
 holds the edition is counted once, under the first of these that holds — documented non-support ("unwitnessed until
-implemented"); a suite test; a documented determination (docs/CONFORMANCE.md §7); an owner-signed derivation; only
+implemented"); a suite test; a documented determination (docs/CONFORMANCE.md §7); a signed derivation; only
 WiseOwl's own tests (a spec-derived test-ref, or a test of the wiseowl manifest); no witness. The suite's own measure is
 the rows a program can observe (all but documented non-support and derivations) witnessed by a suite test.
 

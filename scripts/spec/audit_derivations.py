@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The gate over the `derivation` evidence kind — §1.1's owner-signed alternative to a spec-derived test.
+"""The gate over the `derivation` evidence kind — §1.1's signed alternative to a spec-derived test.
 
     python scripts/spec/audit_derivations.py              # report every live derivation and any finding
     python scripts/spec/audit_derivations.py --check      # exit 1 on any finding (the gate)

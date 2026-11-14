@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
-/// <c>docs/CONFORMANCE.md</c>'s registers (§7 the Annex A.1 implementor-defined element register, §8 the owner-signed
+/// <c>docs/CONFORMANCE.md</c>'s registers (§7 the Annex A.1 implementor-defined element register, §8 the signed
 /// derivations, and the diagnostic codes §2 and §5 name) as the compiler tests read them: THE EXTRACT
 /// <c>tests/version-matrix/conformance-register.json</c> (kb/Work PB4453).
 /// </summary>
@@ -78,7 +78,7 @@ internal static class ConformanceRegister
         return map;
     }
 
-    /// <summary><c>§8 row key → row</c> for the register of owner-signed DERIVATIONS (<c>kb/Work/PB386</c>).</summary>
+    /// <summary><c>§8 row key → row</c> for the register of signed DERIVATIONS (<c>kb/Work/PB386</c>, <c>PB5373</c>).</summary>
     internal static Dictionary<string, DerivationRow> Derivations()
     {
         var map = new Dictionary<string, DerivationRow>(StringComparer.Ordinal);
