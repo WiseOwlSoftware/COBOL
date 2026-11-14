@@ -920,6 +920,11 @@ def bounce_step(w: dict[str, Any], pr: Any, cls: str, why: str, cases: frozenset
         return WatchStep(LEFT, f"{text}; the lane re-queued this bounce and it did not take: the enqueue unit's finisher",
                          red=cls)
     requeued = any(r.get("act") == REQUEUE_BOUNCE for r in prior)
+    if cls == lm.RUNNER and len(cases) > lm.FLAKE_CASES:
+        # Review R2-1: many cases that ran GREEN at the gate failing at once is no flake (a Linux, Release or runner
+        # difference, or a broken runner): it is never re-run, opens no cause, and is the finisher's.
+        return WatchStep(LEFT, f"{text}; {len(cases)} red cases at once is no flake (more than {lm.FLAKE_CASES}): never "
+                               "re-run (kb/Work PB5483): the enqueue unit's finisher", red=cls)
     if cls in lm.PIPELINE_CLASSES and not requeued and (again := sorted(cases & held)):
         return WatchStep(LEFT, f"{text}; HELD for the root fix of its cause ({', '.join(again[:NAMED])}): already re-queued "
                                "once with no fix landed, so never re-run again (kb/Work PB5483); the operator is alerted",
@@ -1055,30 +1060,46 @@ def note_landed(repo: pathlib.Path, note: str) -> bool:
     return shown.returncode == 0 and bool(TERMINAL_NOTE.search(shown.stdout.split("\n---", 1)[0]))
 
 
+#: Where a note names its defect (review R2-2): its frontmatter `title:` and its `**Sites:**` line, the register's own
+#: places for what a note is about. A mention anywhere else (an example, a related note) is no claim on the test.
+NOTE_CLAIM = re.compile(r"^(?:title:.*|\*\*Sites?:\*\*.*)$", re.M)
+
+
 def cause_note(repo: pathlib.Path, cases: tuple[str, ...]) -> str:
-    """The OPEN kb/Work note on origin/main whose text names one of the failing tests (by its method name), the newest
-    (highest id) when several do; "" when none does (the hold alert then asks for one)."""
+    """THE note a hold of `cases` names (review R2-2): the ONE open kb/Work note on origin/main whose title or Sites line
+    names one of the failing tests (by its method name); "" when none does or more than one does (ambiguous: the hold
+    alert then asks for one, and `name-hold` attaches it)."""
     found: set[str] = set()
     for case in cases:
         name = case.split("(", 1)[0].rsplit(".", 1)[-1]
         if len(name) < 6:
             continue
-        hits = subprocess.run(["git", "grep", "-l", "-F", name, MAIN, "--", "kb/Work"], cwd=repo, capture_output=True,
-                              text=True, encoding="utf-8", errors="replace")
+        hits = subprocess.run(["git", "grep", "-l", "-F", name, MAIN, "--", "kb/Work/*.md"], cwd=repo,
+                              capture_output=True, text=True, encoding="utf-8", errors="replace")
         for line in hits.stdout.splitlines():
-            m = re.search(r"kb/Work/((?:PB|R|A)\d+)(?:\.md|/)", line)
-            if m and not note_landed(repo, m.group(1)):
+            m = re.search(r"kb/Work/((?:PB|R|A)\d+)\.md$", line)
+            if not m:
+                continue
+            shown = subprocess.run(["git", "show", f"{MAIN}:kb/Work/{m.group(1)}.md"], cwd=repo, capture_output=True,
+                                   text=True, encoding="utf-8", errors="replace").stdout
+            if any(name in claim for claim in NOTE_CLAIM.findall(shown)) and not note_landed(repo, m.group(1)):
                 found.add(m.group(1))
-    return max(found, key=lambda n: (n.rstrip("0123456789"), int(re.sub(r"\D", "", n)))) if found else ""
+    return next(iter(found)) if len(found) == 1 else ""
 
 
-def open_causes_now(cdir: pathlib.Path, landed: Callable[[str], bool], say: Say) -> dict[str, dict]:
-    """The open causes (landing_measure.open_causes) after release (b): a cause whose hold names a note `landed(note)`
-    reads landed is released, the release recorded with its reason, and is no longer open."""
+def open_causes_now(cdir: pathlib.Path, landed: Callable[[str], bool], say: Say,
+                    find: Callable[[tuple[str, ...]], str] = lambda cases: "") -> dict[str, dict]:
+    """The open causes (landing_measure.open_causes) after release (b). A HELD cause with no note is resolved again on
+    every read (`find`, cause_note: review R2-3), so a note filed after the hold is attached (landing_measure.HOLD_NOTES);
+    then a cause whose note `landed(note)` reads landed is released, the release recorded with its reason."""
     import landing_measure as lm  # noqa: PLC0415
-    recs, rel_path = lm.read_all(cdir / lm.FILE), cdir / lm.RELEASES
-    causes = lm.open_causes(recs, lm.read_all(rel_path))
+    recs, rel_path, notes_path = lm.read_all(cdir / lm.FILE), cdir / lm.RELEASES, cdir / lm.HOLD_NOTES
+    causes = lm.open_causes(recs, lm.read_all(rel_path), lm.read_all(notes_path))
     for case, c in list(causes.items()):
+        if c["held_at"] and not c["notes"] and (note := find((case,))):
+            lm.record_hold_note(notes_path, case, note)
+            c["notes"].append(note)
+            say(f"land lane: the hold on {case} now names {note}")
         if done := next((n for n in c["notes"] if landed(n)), ""):
             lm.record_release(rel_path, case, lm.NOTE_LANDED, f"{done} reads landed on origin/main")
             say(f"land lane: the hold on {case} is released: its note {done} is landed")
@@ -1127,12 +1148,29 @@ def watch_holds(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], e
 def release_hold(cdir: pathlib.Path, case: str, reason: str, say: Say = print) -> int:
     """The operator's release (c): refused (exit 2) for a cause that is not open, so a typo releases nothing."""
     import landing_measure as lm  # noqa: PLC0415
-    causes = lm.open_causes(lm.read_all(cdir / lm.FILE), lm.read_all(cdir / lm.RELEASES))
+    causes = lm.open_causes(lm.read_all(cdir / lm.FILE), lm.read_all(cdir / lm.RELEASES), lm.read_all(cdir / lm.HOLD_NOTES))
     if case not in causes:
         say(f"land lane: {case!r} is not held or re-queued-and-open; open causes: {', '.join(sorted(causes)) or 'none'}")
         return 2
     lm.record_release(cdir / lm.RELEASES, case, lm.OPERATOR, reason)
     say(f"land lane: the hold on {case} is released ({reason})")
+    return 0
+
+
+def name_hold(cdir: pathlib.Path, case: str, note: str, say: Say = print) -> int:
+    """The operator attaches the note of an open cause (review R2-3: a hold gains its note later, and that note's landing
+    then releases it). Refused (exit 2) for a cause that is not open or a note id that is not one."""
+    import landing_measure as lm  # noqa: PLC0415
+    causes = lm.open_causes(lm.read_all(cdir / lm.FILE), lm.read_all(cdir / lm.RELEASES), lm.read_all(cdir / lm.HOLD_NOTES))
+    if case not in causes:
+        say(f"land lane: {case!r} is not an open cause; open causes: {', '.join(sorted(causes)) or 'none'}")
+        return 2
+    try:
+        lm.record_hold_note(cdir / lm.HOLD_NOTES, case, note)
+    except ValueError as exc:
+        say(f"land lane: {exc}")
+        return 2
+    say(f"land lane: the hold on {case} now names {note}; it is released when {note} lands on main")
     return 0
 
 
@@ -1159,7 +1197,8 @@ def real_effects(cdir: pathlib.Path, say: Say, repo: pathlib.Path = coord.REPO) 
         requeue=lambda repo, pr, head: enqueue.requeue(repo, pr, head, gh=ruleset.real_gh, state=enqueue.queue_state),
         alert=lambda subject, body, ref: notify_operator(cdir, subject, body, ref, say, kind="question"),
         measure=measure, red_facts=red_facts, measure_red=measure_red,
-        open_causes=lambda: open_causes_now(cdir, lambda note: note_landed(repo, note), say),
+        open_causes=lambda: open_causes_now(cdir, lambda note: note_landed(repo, note), say,
+                                            lambda cases: cause_note(repo, cases)),
         cause_note=lambda cases: cause_note(repo, cases))
 
 
@@ -1264,7 +1303,8 @@ def classify_bounce(att: dict[str, Any], w: dict[str, Any], pr: Any, branch: str
         effects.alert(f"Landing held for a root fix: PR #{pr.number} ({branch}) met a cause already re-run once",
                       f"{step.why}. Re-running it again would only meet it again. "
                       + (f"Its note is {note}: the hold ends when {note} lands on main, " if note else
-                         "No open kb/Work note names the failing test: FILE ONE, ")
+                         "No open kb/Work note names the failing test in its title or Sites line: FILE ONE (the lane "
+                         "attaches it on its next read, or `land_lane.py name-hold <case> <note>`), ")
                       + "or when a root fix lands with `python scripts/orchestrator/enqueue.py land <the fix's branch> "
                       f"--fix-first \"<kb/Work note> run {facts.run}\"`, or by `land_lane.py release-hold <case> --reason "
                       f"...`. Then land {branch} again (`land_lane.py rearm {branch} --why ...`).", att["log"])
@@ -2719,6 +2759,53 @@ def self_test() -> int:
                and typo == 2 and by_hand == 0 and after_hand == {}
                and alarms == (["A.Pass"], []) and classify({"rc": EXIT_NOT_JUMPED}) == DONE,
                f"{hold_alert} {still} {released} {rels} {typo} {by_hand} {after_hand} {alarms}")
+        # Review round 2. R2-1: a RUNNER red of more than FLAKE_CASES cases is no flake (never re-run, never held, the
+        # finisher's), even when one of its cases is an open cause. R2-2: the hold's note is the ONE open note whose title or
+        # Sites line names the test; a mere mention is none, two claimants are none. R2-3: a hold with no note gains one
+        # filed later, on the next read, and that note's landing releases it; `name-hold` attaches one by hand.
+        wide = frozenset(f"W.Case{i}" for i in range(lm.FLAKE_CASES + 1)) | {"A.Pass"}
+        too_many = bounce_step({}, pr19, lm.RUNNER, "w", wide, frozenset({"A.Pass"}))
+        small = bounce_step({}, pr19, lm.RUNNER, "w", frozenset({"A.Pass", "W.Case0"}), frozenset({"A.Pass"}))
+        nrepo = ScratchRepo.init(root / "wt-notes")
+
+        def nfile(nid: str, title: str, body: str, status: str = "open") -> str:
+            return f"---\nid: {nid}\nstatus: {status}\ntitle: \"{nid} - {title}\"\n---\n\n{body}\n"
+        nrepo.commit("notes", {
+            "kb/Work/PB61.md": nfile("PB61", "the flake of CompilesRedefines", "**Sites:** tests/Unit/Foo.cs"),
+            "kb/Work/PB62.md": nfile("PB62", "a doc note", "An example: CompilesRedefines shows the rule."),
+            "kb/Work/PB63.md": nfile("PB63", "landed long ago", "**Sites:** Foo.ReadsSequentialFile", "landed")})
+        nrepo.git("update-ref", MAIN, "HEAD")
+        named_one = cause_note(nrepo.path, ("Unit.Foo.CompilesRedefines",))
+        mention_only = cause_note(nrepo.path, ("Unit.Foo.ReadsSequentialFile",))
+        nrepo.commit("a second claimant", {"kb/Work/PB64.md": nfile("PB64", "CompilesRedefines again", "x")})
+        nrepo.git("update-ref", MAIN, "HEAD")
+        ambiguous = cause_note(nrepo.path, ("Unit.Foo.CompilesRedefines",))
+        c21 = fresh("late-note")
+        lm.record_red(c21 / lm.FILE, 1, "b1", 21, lm.RUNNER, "flake", "requeue", True, "2026-11-13T01:00:00Z", cases=("Q.Case",))
+        lm.record_red(c21 / lm.FILE, 2, "b2", 22, lm.RUNNER, "flake", lm.HOLD_FOR_FIX, True, "2026-11-13T02:00:00Z",
+                      cases=("Q.Case",))                                           # held with no note
+        filed: list[str] = []
+        first_read = open_causes_now(c21, lambda n: False, quiet.append, lambda cases: "".join(filed))
+        filed.append("PB5500")                                                     # the operator files the note
+        second_read = open_causes_now(c21, lambda n: False, quiet.append, lambda cases: "".join(filed))
+        landed_read = open_causes_now(c21, lambda n: n == "PB5500", quiet.append, lambda cases: "")
+        c22 = fresh("name-hold")
+        lm.record_red(c22 / lm.FILE, 1, "b1", 31, lm.RUNNER, "flake", "requeue", True, "2026-11-13T01:00:00Z", cases=("R.Case",))
+        named_by_hand = (name_hold(c22, "R.Case", "PB77", quiet.append), name_hold(c22, "R.Cas", "PB77", quiet.append),
+                         name_hold(c22, "R.Case", "nonsense", quiet.append))
+        by_hand_released = open_causes_now(c22, lambda n: n == "PB77", quiet.append)
+        expect("review round 2 (kb/Work PB5483): a RUNNER red of more than FLAKE_CASES cases is never re-run or held "
+               "(the finisher's) while a small one meeting an open cause is held; the hold's note is the one open note "
+               "whose title or Sites line names the test (a mention, a landed note or two claimants are none); a hold "
+               "with no note gains one filed later and is released when it lands; name-hold attaches one by hand",
+               too_many.state == LEFT and too_many.act == "" and "no flake" in too_many.why and small.act == HOLD_BOUNCE
+               and named_one == "PB61" and mention_only == "" and ambiguous == ""
+               and first_read["Q.Case"]["notes"] == [] and second_read["Q.Case"]["notes"] == ["PB5500"]
+               and "Q.Case" not in landed_read
+               and [(r["case"], r["by"]) for r in lm.read_all(c21 / lm.RELEASES)] == [("Q.Case", lm.NOTE_LANDED)]
+               and named_by_hand == (0, 2, 2) and "R.Case" not in by_hand_released,
+               f"{too_many} {small} {named_one!r} {mention_only!r} {ambiguous!r} {first_read} {second_read} "
+               f"{landed_read} {named_by_hand} {by_hand_released}")
 
         # 17. THE CONFLICT BRIEF (kb/Work PB3640): main and the branch both edit scripts/x.py since their merge base;
         #     main also adds a file the branch never touches. The brief names the conflicted file, main's commit on it
@@ -2897,6 +2984,10 @@ def main(argv: list[str] | None = None) -> int:
                                              "main (kb/Work PB5483), recorded with the reason")
     rh.add_argument("case")
     rh.add_argument("--reason", required=True, help="what fixed it (the pull request, the note)")
+    nh = sub.add_parser("name-hold", help="the operator: attach the kb/Work note of a held cause, so that note's landing "
+                                          "releases the hold (kb/Work PB5483)")
+    nh.add_argument("case")
+    nh.add_argument("note")
     cb = sub.add_parser("conflict-brief", help="the brief a CONFLICT finisher starts from (kb/Work PB3640): the "
                                                "conflicted files, main's commits on them, their notes and reports")
     cb.add_argument("branch")
@@ -2932,6 +3023,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if a.verb == "release-hold":
         return release_hold(cdir, a.case, a.reason)
+    if a.verb == "name-hold":
+        return name_hold(cdir, a.case, a.note)
     if a.verb == "conflict-brief":
         return show_conflict_brief(cdir, a.branch)
     if a.verb == "run":

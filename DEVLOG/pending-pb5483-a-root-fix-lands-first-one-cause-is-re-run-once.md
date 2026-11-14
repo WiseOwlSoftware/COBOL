@@ -28,3 +28,9 @@ be held again. Fixed: the open causes are read in time order, so a release cover
 open kb/Work note that mentions the failing test, and is released when that note lands on main, when a fix-first landing
 names the runs, or by `land_lane.py release-hold`. A hold older than 12 hours is alerted again. The per-cause figures
 and the hold now share one key (each red test case). The lane treats exit 17 as a queued landing and alerts once.
+
+The second review round found that a held red opened a cause for every test that failed beside the held one. Fixed: a
+cause is opened only by the re-queue of a red with at most three failing tests. A RUNNER red with more failing tests is
+not treated as a flake: it is never re-run or held, and goes to a finisher. The hold's note is now the one open note
+whose title or Sites line names the test. A hold with no note picks up a note filed later, on the lane's next read
+(or by `land_lane.py name-hold`).

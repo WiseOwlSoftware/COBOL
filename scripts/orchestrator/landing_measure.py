@@ -400,40 +400,77 @@ def record_release(path: pathlib.Path, case: str, by: str, reason: str, at: str 
     return rel
 
 
-def open_causes(recs: list[dict], releases: list[dict]) -> dict[str, dict]:
+#: THE MOST RED CASES A FLAKE HAS (kb/Work PB5483 review R2-1). A red of at most this many failing cases is keyed per case
+#: (a re-queue opens each case as a cause, and the red is held when ANY of its cases is open). A red of more is no flake:
+#: many tests that ran GREEN at the branch's gate failing at once is a Linux, Release or runner difference or a broken
+#: runner, so it opens no cause, is never held, and the landing lane sends it to a finisher instead of re-running it
+#: (land_lane.bounce_step).
+FLAKE_CASES = 3
+#: The notes attached to a hold after it began (review R2-3), one JSON object per line in `<coord>/hold-notes.jsonl`:
+#: {case, note, at}. The landing lane re-resolves a hold with no note on every read (land_lane.open_causes_now), so a
+#: note filed AFTER the hold is attached, and its landing then releases the hold.
+HOLD_NOTES = "hold-notes.jsonl"
+
+
+def keyed(red: dict) -> list[str]:
+    """The causes one red can open or advance (review R2-1): its cases when it is flake-sized (FLAKE_CASES), else none."""
+    causes = red_causes(red)
+    return causes if len(causes) <= FLAKE_CASES else []
+
+
+def record_hold_note(path: pathlib.Path, case: str, note: str, at: str | None = None) -> dict:
+    """Attach `note` to the open hold on `case` (HOLD_NOTES)."""
+    if not case.strip() or not re.fullmatch(r"(?:PB|R|A)\d+", note or ""):
+        raise ValueError(f"a hold's note is a kb/Work id and its case is named (got {case!r}, {note!r})")
+    entry = {"case": case, "note": note, "at": at or now_iso()}
+    iso_time(entry["at"])
+    _write_all(path, [*read_all(path), entry])
+    return entry
+
+
+def open_causes(recs: list[dict], releases: list[dict], names: list[dict] = ()) -> dict[str, dict]:
     """THE CAUSES THE LANDING LANE HAS RE-RUN OR HELD AND NO FIX HAS RELEASED (kb/Work PB5483; land_lane.bounce_step),
-    read IN TIME ORDER (review R1-2): each cause (`red_causes`) with {since: its first re-queue or hold after its last
-    release, requeued, held_at: its first hold since then or None, notes: the kb/Work notes its holds name, runs}. A
-    release covers only the reds BEFORE it, so a red of the same case after a fix is a new cause: one re-queue, then a
-    hold. A release is a recorded one (RELEASES: the operator's, or a note the lane read `landed` on origin/main) or a
-    merged landing whose fix-first attempt names a failed run of the cause, at its `merged` time."""
-    events: list[tuple[dt.datetime, int, str, dict | None]] = []
+    read IN TIME ORDER (review R1-2): each cause with {since: its first re-queue after its last release, requeued,
+    held_at: its first hold since then or None, notes: the kb/Work notes its holds name or were attached later (`names`,
+    HOLD_NOTES), runs}. A cause is OPENED only by a re-queue of a flake-sized red (`keyed`), one per case: the case
+    itself went through the re-run. A held red advances only the open causes among its cases and opens nothing (review
+    R2-1: the tests that merely co-failed with the held one are not held). A release covers only the reds BEFORE it, so a
+    red of the same case after a fix is a new cause: one re-queue, then a hold. A release is a recorded one (RELEASES:
+    the operator's, or a note the lane read `landed` on origin/main) or a merged landing whose fix-first attempt names a
+    failed run of the cause, at its `merged` time."""
+    events: list[tuple[dt.datetime, int, object]] = []   # (time, 0 red | 1 release | 2 note, payload)
     run_cases: dict[object, set[str]] = {}
     for r in recs:
         for red in r.get("reds") or []:
-            for case in red_causes(red):
-                run_cases.setdefault(red.get("run"), set()).add(case)
-                if red.get("act") in ("requeue", HOLD_FOR_FIX):
-                    events.append((iso_time(red["at"]), 0, case, red))
+            run_cases.setdefault(red.get("run"), set()).update(keyed(red))
+            if red.get("act") in ("requeue", HOLD_FOR_FIX) and keyed(red):
+                events.append((iso_time(red["at"]), 0, red))
     for r in recs:
         if r.get("merged"):
             for f in r.get("fix_first") or []:
                 for case in {c for run in f.get("runs") or [] for c in run_cases.get(run, ())}:
-                    events.append((iso_time(r["merged"]), 1, case, None))
-    events += [(iso_time(rel["at"]), 1, rel["case"], None) for rel in releases]
+                    events.append((iso_time(r["merged"]), 1, case))
+    events += [(iso_time(rel["at"]), 1, rel["case"]) for rel in releases]
+    events += [(iso_time(n["at"]), 2, n) for n in names]
     state: dict[str, dict] = {}
-    for _at, kind, case, red in sorted(events, key=lambda e: (e[0], e[1])):   # a red at a release's instant: before it
-        if red is None:
-            state.pop(case, None)
-            continue
-        s = state.setdefault(case, {"since": red["at"], "requeued": 0, "held_at": None, "notes": [], "runs": []})
-        s["runs"].append(red.get("run"))
-        if red["act"] == "requeue":
-            s["requeued"] += 1
+    for _at, kind, item in sorted(events, key=lambda e: (e[0], e[1])):   # a red at a release's instant: before it
+        if kind == 1:
+            state.pop(item, None)
+        elif kind == 2:
+            if (s := state.get(item["case"])) is not None and item["note"] not in s["notes"]:
+                s["notes"].append(item["note"])
+        elif item["act"] == "requeue":
+            for case in keyed(item):
+                s = state.setdefault(case, {"since": item["at"], "requeued": 0, "held_at": None, "notes": [], "runs": []})
+                s["requeued"] += 1
+                s["runs"].append(item.get("run"))
         else:
-            s["held_at"] = s["held_at"] or red["at"]
-            if red.get("cause") and red["cause"] not in s["notes"]:
-                s["notes"].append(red["cause"])
+            for case in (c for c in keyed(item) if c in state):
+                s = state[case]
+                s["held_at"] = s["held_at"] or item["at"]
+                s["runs"].append(item.get("run"))
+                if item.get("cause") and item["cause"] not in s["notes"]:
+                    s["notes"].append(item["cause"])
     return state
 
 
@@ -1263,6 +1300,20 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
         {"run": 2, "class": RUNNER, "act": HOLD_FOR_FIX, "cases": ["A"], "at": "2026-11-13T02:00:00Z"}]})])
     if keyed["reds"]["by_cause"] != {"A": {"requeued": 1, "held": 1}, "B": {"requeued": 1, "held": 0}}:
         fails.append(f"{fix_arm}: per-cause keys {keyed['reds']['by_cause']}")
+    # review R2-1: a held red opens nothing for the tests that merely co-failed; a red too big for a flake opens nothing
+    many = [patch_record(None, {"pr": 960, "branch": "b960", "reds": [
+        {"run": 11, "class": RUNNER, "act": "requeue", "cases": ["X"], "at": "2026-11-13T01:00:00Z"},
+        {"run": 12, "class": RUNNER, "act": HOLD_FOR_FIX, "cases": ["X", "Z0", "Z1"], "cause": "PB7",
+         "at": "2026-11-13T02:00:00Z"},
+        {"run": 13, "class": RUNNER, "act": "requeue", "cases": [f"W{i}" for i in range(FLAKE_CASES + 1)],
+         "at": "2026-11-13T03:00:00Z"}]})]
+    co_failed = open_causes(many, [])
+    # review R2-3: a note attached after the hold is the hold's note
+    attached = open_causes(many, [], [{"case": "X", "note": "PB8", "at": "2026-11-13T04:00:00Z"},
+                                      {"case": "Z0", "note": "PB9", "at": "2026-11-13T04:00:00Z"}])
+    if set(co_failed) != {"X"} or co_failed["X"]["held_at"] != "2026-11-13T02:00:00Z" or co_failed["X"]["requeued"] != 1 \
+            or attached["X"]["notes"] != ["PB7", "PB8"] or set(attached) != {"X"}:
+        fails.append(f"{fix_arm}: co-failed {co_failed} attached {attached}")
     held_path_recs = [r for r in read_all(held) if r["pr"] not in (905, 906)]
     _write_all(held, held_path_recs)
     hf = after_figures([r for r in read_all(held) if r["pr"] != 905])

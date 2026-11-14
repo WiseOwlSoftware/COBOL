@@ -2028,6 +2028,16 @@ one-file-per-entry DEVLOG stand.
    with no fix-first, and (b) and (c) are what release them. A hold older than `landing_measure.HOLD_ALARM_H` (12) hours
    is alerted again once per window (`land_lane.hold_alarms`), so a hold whose fix the lane cannot see is never left
    unseen.
+   **What a cause is (review R2-1, R2-2, R2-3).** Only a flake-sized red is keyed per case: at most
+   `landing_measure.FLAKE_CASES` (3) red cases. A cause is OPENED only by the re-queue of such a red, one per case, so
+   the case itself went through the re-run; a later red is held when ANY of its cases is open, and being held opens
+   nothing for the tests that merely co-failed. A RUNNER red of more cases is no flake (many tests that ran GREEN at the
+   gate failing at once is a Linux, Release or runner difference or a broken runner): `bounce_step` never re-runs or holds
+   it, and it goes to a finisher. The hold's note is the ONE open note whose `title:` or `**Sites:**` line names the
+   failing test (`cause_note`); a mere mention, a landed note or two claimants is no note, and the alert asks for one. A
+   held cause with no note is resolved again on every read of the open causes (`open_causes_now`), so a note filed after
+   the hold is attached (`<coord>/hold-notes.jsonl`) and its landing releases the hold; `land_lane.py name-hold <case>
+   <note>` attaches one by hand.
    **What the queue stacks (kb/Work PB3107, PB3123; owner 2026-10-13: "Due to our local testing, we should rarely see
    failures").** A merge group is built ON TOP of every group queued ahead of it, so the tree a group tests is one no branch
    ever checked. THE RULE for every check a landing or a merge group runs: **a check's verdict on a pull request may not depend
