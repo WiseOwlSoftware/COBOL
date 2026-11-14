@@ -24,7 +24,7 @@ Every normative ISO/IEC 1989:2023 rule — and its 1985/2002/2014 applicability 
   documented-non-support decision** (optional modules only, per §2023:4.2.16);
 - **(b)** a conformance **verdict VERIFIED against the spec TEXT** (not against the legacy or GnuCOBOL);
 - **(c)** a **spec-derived test** that covers it — the expected value COMPUTED FROM THE SPEC, never copied from an
-  implementation oracle; **OR, only for a rule that carries no observable obligation, the owner-signed
+  implementation oracle; **OR, only for a rule that carries no observable obligation, the signed
   DERIVATION of §1.1 below.**
 
 The traceability inventory at **zero unresolved GAP** = P14 DONE (D13). This supersedes differential-based confidence.
@@ -544,7 +544,7 @@ entry there (`lineage.py --self-test` adds a 2027 and watches the order, the bri
 | `verdict` | one of the six defined in `inventory-schema.json` — the vocabulary lives THERE, not here, so it cannot drift between this doc and the tools |
 | `code-location` | the traceability link: `path` or `path#Symbol` (see the correction below), or `""` if not located |
 | `test-ref` | the spec-derived test covering it, in a form that RESOLVES on disk (§8), or `""` |
-| `derivation` | §1.1's owner-signed alternative to `test-ref`, for a rule with no observable obligation: the register anchor `docs/CONFORMANCE.md#DRV-<rule-id>`, **COMPUTED from the row's own rule-id**, or `""` |
+| `derivation` | §1.1's signed alternative to `test-ref`, for a rule with no observable obligation: the register anchor `docs/CONFORMANCE.md#DRV-<rule-id>`, **COMPUTED from the row's own rule-id**, or `""` |
 | `editions` | (2023 only) the band within the editions no held text decides yet: a run from the introducing edition through 2023 among 2002 and 2014. Whether the rule exists at 85 is the lineage's (§10.2): the `85` token leaves this field when the 1985 change records are complete and a check finds the stored and the derived 85 agree (kb/Work PB4996) |
 | `next` | (an older edition only) the change record against the next held edition (§10.2) |
 | `notes` | the fix-queue item id for a DIVERGES; the owner decision for a non-support |

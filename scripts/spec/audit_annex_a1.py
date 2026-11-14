@@ -593,7 +593,7 @@ def check_pins(pinned: dict[int, list[str]], inventory: list[dict], schema) -> l
             continue
         if n not in pinned:
             findings.append(f'inventory {rid} closes on '
-                            f'{refs or "an owner-signed derivation"} but CONFORMANCE.md §7 carries no row for '
+                            f'{refs or "a signed derivation"} but CONFORMANCE.md §7 carries no row for '
                             f'item {n}')
             continue
         for r in refs:

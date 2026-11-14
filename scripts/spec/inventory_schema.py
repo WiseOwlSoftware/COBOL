@@ -775,7 +775,7 @@ class DerivedSelector:
 
 
 class Derivation:
-    """`derivation` in the schema — §1.1's owner-signed ALTERNATIVE to a spec-derived test.
+    """`derivation` in the schema — §1.1's signed ALTERNATIVE to a spec-derived test.
 
     ⛔ THE OWNER OPENED THIS DOOR AND SET ITS BOUNDS (kb/Work PB386, 2026-09-03); the class is those bounds,
     encoded. A rule that carries NO OBSERVABLE OBLIGATION cannot meet `DESIGN-spec-conformance-review.md` §1(c) —
@@ -1067,7 +1067,7 @@ class Schema:
             for name, entry in raw.get("derived-verdicts", {}).items()
             if not name.startswith("$")
         }
-        #: §1.1's owner-signed alternative to a spec-derived test (kb/Work PB386). `None` when the schema
+        #: §1.1's signed alternative to a spec-derived test (kb/Work PB386, PB5373). `None` when the schema
         #: declares none — the door is DATA, so removing the object closes it everywhere at once.
         self.derivation: Derivation | None = (Derivation(raw["derivation"], tree=tree) if "derivation" in raw
                                               else None)

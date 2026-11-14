@@ -69,7 +69,7 @@ def claims_support(disposition: str) -> bool:
 # ── the extract the compiler tests read ───────────────────────────────────────────────────────────────────────────
 
 def build_extract(conformance: Conformance, derivation_heading: str) -> dict:
-    """The register rows as data: §2, §5, §7 (the A.1 determinations) and §8 (the owner-signed derivations), and the
+    """The register rows as data: §2, §5, §7 (the A.1 determinations) and §8 (the signed derivations), and the
     diagnostic codes §2 and §5 name. The rows stand in natural key order whatever order the document holds them in, so
     the extract is order-stable (kb/Work PB5429): the document's own order is `conformance_source.check`'s to hold."""
     return {
