@@ -1,4 +1,4 @@
-## PB5308: the ENTER statement is not provided, so --std 85 refuses it by name (COBOL7240) instead of compiling it to nothing
+## Entry 3624 — 2026-11-14 14:11 PST — PB5308: the ENTER statement is not provided, so --std 85 refuses it by name (COBOL7240) instead of compiling it to nothing
 
 **Re-probe.** `ENTER FORTRAN SUBRTN.` between two DISPLAYs, `cobol --std 85 --source-format fixed --run`, on this branch's base: exit 0, `BEFORE`, `AFTER`, no diagnostic. The program ran as if the other-language routine had run.
 
@@ -11,3 +11,4 @@
 **Goldens.** `1985-FMT-VI_6_12_2` (ENTER COBOL), `1985-SR-VI_6_12_3-1` (ENTER FORTRAN SUBRTN) and `1985-SR-VI_6_12_3-3` (both sentences) are now refusals at 85 (COBOL7240; their `.out` files are gone), and `_unassigned/pb693_enter_after_periodless_move` is a refusal for the periodless-MOVE sentence. VCR Table 7 row 7.16 and docs/conformance/3.7.1 say so.
 
 **Rows.** `1985-SR-VI.6.12.3-1` and `1985-SR-VI.6.12.3-3`: DIVERGES to CONFORMS through `record_verdicts --edition 1985` (GAP 172 to 170). `1985-FMT-VI.6.12.2` and `1985-SR-VI.6.12.3-2` stay PARTIAL and keep prose written against the accepting compiler; they want a re-read.
+
