@@ -1530,6 +1530,26 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>⛔ THE ONE ENFORCEMENT OF COBOL-85's "THE NEXT PHRASE MUST BE SPECIFIED FOR FILES IN DYNAMIC ACCESS MODE, WHEN
+    /// RECORDS ARE TO BE RETRIEVED SEQUENTIALLY" (kb/Work PB5102) — §1985:VIII.4.5.3 SR3 (relative) and §1985:IX.4.5.3 SR5
+    /// (indexed). The 1985 READ prints the AT END phrase in format 1 only, and format 1 is the sequential retrieval, so a
+    /// READ of a dynamic-access file that writes AT END (or its NOT twin, which a later edition adds) is a sequential read
+    /// and must write NEXT. COBOL-2002 and later imply the NEXT phrase from those phrases (§2023:14.9.30.3 SR9), so
+    /// the requirement is the 1985 dialect's alone, and <c>KeyedIoBinder.BindRead</c> binds the READ as the implied
+    /// NEXT it reads either way, the refusal being reported beside it. Returns true when the statement conforms.</summary>
+    public bool CheckReadDynamicNextWritten(FileModel file, bool atEnd, bool notAtEnd, bool next)
+    {
+        if (data.Edition.Edition.Year >= 2002 || file.AccessMode != FileAccessMode.Dynamic || next || !(atEnd || notAtEnd))
+            return true;
+        bool indexed = file.Organization == FileOrganization.Indexed;
+        data.Edition.Error(DiagnosticCatalog.ReadDynamicNextRequired,
+            $"READ of {file.Organization.ToString().ToLowerInvariant()} file '{file.CobolName}' (ACCESS MODE IS DYNAMIC) retrieves "
+            + $"sequentially but specifies no NEXT phrase ({(indexed ? "§1985:IX.4.5.3 SR5" : "§1985:VIII.4.5.3 SR3")}: "
+            + "\"The NEXT phrase must be specified for files in dynamic access mode, when records are to be retrieved "
+            + "sequentially\")");
+        return false;
+    }
+
     /// <summary>⛔ THE ONE ENFORCEMENT OF "THE FROM / INTO OPERAND SHALL NOT BE THE FILE'S RECORD AREA" (kb/Work PB5077) —
     /// §1985:IX.4.5.3 SR1 and its nine siblings, §2002:14.8.29.2 SR2 and its four (<see cref="RecordAreaRule"/> words each).
     /// Asked by <c>MoveBinder.BindFromPhrase</c> (WRITE, REWRITE, RELEASE: the sender) and by <see cref="CheckIntoReceiver"/>
