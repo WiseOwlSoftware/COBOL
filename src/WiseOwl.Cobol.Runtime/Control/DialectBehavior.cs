@@ -218,6 +218,16 @@ public enum DialectBehavior
     /// <c>BoundCancel.RefusesEveryActiveProgram</c> for <c>CallEmitter.EmitCancel</c> and so for
     /// <c>ProgramTable.Cancel</c>.</summary>
     CancelRefusesEveryActiveProgram = 16,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.13.4 GR4 c) — "If the result of the analysis is false for any pair in a WHEN phrase,
+    /// no more pairs in that WHEN phrase are evaluated"; the 2002 text words it the same (§2002:14.8.12.3 GR4c), and the
+    /// selection objects of a WHEN phrase are evaluated only when the phrase is analyzed. §1985:VI.6.13.4 GR1 says instead
+    /// that the statement "operates as if each selection subject and selection object were evaluated" and assigned a value
+    /// before any comparison (GR2), so at <c>--std 85</c> an object a WHEN phrase never reaches is evaluated too, which is
+    /// observable when it references a function (X3.23a-1989 RANDOM's next number; kb/Work PB5183; VCR row 7.68). Both
+    /// editions are QUOTED. The consumer is <c>EvaluateBinder.Bind</c>, which hoists the analysis of each such pair to the
+    /// beginning of the statement when this behaviour is inactive.</summary>
+    EvaluateObjectsInWhenPhraseOrder = 17,
 }
 
 /// <summary>
@@ -316,6 +326,11 @@ public static class DialectBehaviors
             "a CANCEL naming any program in the active state, the run unit's main program included, raises "
             + "EC-PROGRAM-CANCEL-ACTIVE only from COBOL-2002; COBOL-85 forbids only a program that has been called and "
             + "has not exited, so a CANCEL of the main program, never called, takes no action"),
+        new(DialectBehavior.EvaluateObjectsInWhenPhraseOrder, "evaluate-objects-in-when-phrase-order", 2002,
+            "7.68", "14.9.13.4 GR4 c)", "§1985:VI.6.13.4 GR1",
+            "an EVALUATE selection object is evaluated only when its WHEN phrase is analyzed, and not after a false pair of "
+            + "that phrase, only from COBOL-2002; COBOL-85 operates as if every selection subject and object were evaluated "
+            + "before any comparison"),
     ];
 
     static DialectBehaviors()
