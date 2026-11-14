@@ -1,4 +1,4 @@
-## PB5468: the shard-spread report measures only the population the weights deal
+## Entry 3571 — 2026-11-13 17:43 PST — PB5468: the shard-spread report measures only the population the weights deal
 
 The nightly of 2026-11-13 went red on `shard-spread` at 1.64x (run 43430492045, Windows, shard 4 at 162 s against a
 98 s mean). I downloaded the eight runs the report read and read every trx. In that run the Windows leg ran Unit alone:
@@ -19,3 +19,4 @@ Before: the nightly's `shard-spread` was red at 1.64x OVER. After: the same eigh
 run 43417801455), which is WITHIN. Linux's full spread has risen from 1.11x to 1.48x, with shard 2 slowest in every run:
 the 2026-11-04 weights are aging. The note records that, and records the deal's per-assembly imbalance, which does not
 lengthen the merge group today.
+
