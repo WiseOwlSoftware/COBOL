@@ -40,6 +40,13 @@
       *>   evaluated after the record has been read and immediately
       *>   before it is moved to the data item" (§1985:VII.4.4.4 GR8b):
       *>   the record read carries FR-SUB = 3, so XE (3) receives "3Z".
+      *>   The second READ reaches the end of the file: "The implied
+      *>   MOVE statement does not occur if the execution of the READ
+      *>   statement was unsuccessful" (the same rule), and "If
+      *>   identifier-1 is specified in a phrase that is not executed
+      *>   or evaluated, the associated debugging section is not
+      *>   executed" (§1985:XV.3.2.4 GR6): "H AT END" and no D1 line,
+      *>   X unchanged.
       *> I an ALL REFERENCES section runs for a statement that names
       *>   the item (GR5) although the zero divisor stored nothing: SUB
       *>   still holds 2, so the reference is A-E (2).
@@ -107,6 +114,8 @@
            OPEN OUTPUT F. MOVE "3Z" TO FR. WRITE FR. CLOSE F.
            MOVE ALL "." TO X.
            OPEN INPUT F. MOVE "1A" TO FR.
+           READ F INTO XE (FR-SUB) AT END DISPLAY "H AT END".
+           DISPLAY "H " X.
            READ F INTO XE (FR-SUB) AT END DISPLAY "H AT END".
            CLOSE F.
            DISPLAY "H " X.

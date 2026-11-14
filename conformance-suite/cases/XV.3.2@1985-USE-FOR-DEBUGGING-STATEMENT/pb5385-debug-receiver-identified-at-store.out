@@ -14,6 +14,8 @@ G SIZE ERROR
 G 00000
 D1 XE [+0003] [3Z]
 H ....3Z....
+H AT END
+H ....3Z....
 I SIZE ERROR
 D2 A-E [+0002] [0]
 I 00000 2
