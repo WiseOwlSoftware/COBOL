@@ -1,4 +1,4 @@
-## PB5186: at --std 85 a negative base raised to a non-integer exponent has its real result
+## Entry 3570 — 2026-11-13 17:41 PST — PB5186: at --std 85 a negative base raised to a non-integer exponent has its real result
 
 **The defect (kb/Work PB5186).** §1985:VI.6.2.3 GR5c raises the size error condition only "If no real number exists as the
 result of the evaluation". `CobolIntrinsics.CheckPowRule6`, the one screen every native `**` reaches, applied the later rule
@@ -31,3 +31,4 @@ below zero, a zero and a negative exponent, an SDIDI value, a float item's conte
 **Found on the way, not fixed (a different mechanism).** At `--std 85` a size error with no ON SIZE ERROR phrase ends the run unit
 for EC-SIZE-EXPONENTIATION (`COMPUTE R = Z ** 0`) and EC-SIZE-ZERO-DIVIDE (`COMPUTE R = 5 / Z`), where §1985:VI.6.4.2 makes the
 resultant undefined and the program continues; the implementer's report carries it for the registrar.
+
