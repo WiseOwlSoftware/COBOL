@@ -914,7 +914,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // so `66 RN RENAMES GA` (GA PIC 9) is a numeric integer item and a legal subscript. The alias owns no field: naming it
         // as a member of its record (GR.RN) was C# that does not compile. A THROUGH span has no field either; PositionRead
         // returns null for it and the segment reroutes to the D18 route, which reads it through its place.
-        if (item.Renames is { IsAlias: true, From: { } renamed }) item = renamed;
+        item = item.AttributeItem;
         if (!IntrinsicArgumentRules.IsArithmeticOperandClass(item)) (pending ??= []).Add(new PendingScreen(item, name));
         scaled = item.Pic?.Scale > 0;
         return PositionRead(item, position);
@@ -1045,7 +1045,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     {
         // A level-66 entry owns no field to name (a THROUGH span, or an alias the caller did not resolve): its place is composed
         // by the one item-to-place builder, which the D18 route reads (kb/Work PB5477, PB1380).
-        if (item.Renames is not null) return null;
+        if (item.OwnsNoField) return null;
         bool numeric = item.Pic is { Category: PicCategory.Numeric };
         // ⛔ THE BET ON OVERLOAD RESOLUTION IS ONLY GOOD FOR THE CARRIERS THAT HAVE AN OVERLOAD (kb/Work PB201).
         if (!HasPositionOverload(item, numeric)) return null;
