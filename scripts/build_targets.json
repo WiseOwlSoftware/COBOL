@@ -182,7 +182,7 @@
       "assembly": "RepoDrift",
       "project": "tests/WiseOwl.Cobol.Tests.RepoDrift/",
       "inputs": {
-        "@population-inputs": "the repository's drift tests bind the documents' data files, the records, the scripts a compiler test runs, the CI files, every test source and the NAMES of every tracked file (tests/_shared/TrackedTree.cs, NulByteDriftTests' whole-tree sweep) to each other and to the compiler: every population input (inert_lane.Classification.is_population_input); it reads the traceability inventory itself (TraceabilityInventory, SpecTraceabilityInventoryDriftTests, RegistryShapeDriftTests) and never the generated suite, so it depends on no generated target"
+        "@population-inputs": "the repository's drift tests bind the documents' data files, the records, the scripts a compiler test runs, the CI files, every test source and the NAMES of every tracked file (tests/_shared/TrackedTree.cs, NulByteDriftTests' whole-tree sweep) to each other and to the compiler: every population input (lane_classification.Classification.is_population_input); it reads the traceability inventory itself (TraceabilityInventory, SpecTraceabilityInventoryDriftTests, RegistryShapeDriftTests) and never the generated suite, so it depends on no generated target"
       },
       "exclude": {
         "@inert": "no test reads it (the inert lane's watch)",

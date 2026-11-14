@@ -66,6 +66,8 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 import gate  # noqa: E402  (scripts/gate.py: RECORD_SCHEMA, the record gate_rows reads)
+import gate_runs
+import gate_fake_host  # noqa: E402  (the planted machine the gate's own cases run over)
 
 ROOT =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BENCH = os.path.join(ROOT, "tests", "WiseOwl.Cobol.Benchmarks")
@@ -525,9 +527,9 @@ def gate_rows(run_dirs: list[str]) -> tuple[dict, list[dict]]:
     for d in run_dirs:
         path = os.path.join(d, "verdict.json")
         v = json.load(open(path, encoding="utf-8"))
-        if v.get("schema") != gate.RECORD_SCHEMA:
+        if v.get("schema") != gate_runs.RECORD_SCHEMA:
             raise MeasurementError(f"{path} is a schema {v.get('schema')} record, not scripts/gate.py's schema "
-                                   f"{gate.RECORD_SCHEMA}: its timings measured another gate")
+                                   f"{gate_runs.RECORD_SCHEMA}: its timings measured another gate")
         if v.get("verdict") != "GREEN":
             raise MeasurementError(f"{path} is {v.get('verdict')}: only a GREEN gate ran the whole population")
         if v.get("reused_from"):  # kb/Work PB3536: a re-gate of an unchanged tree answers from a record, running nothing
@@ -844,7 +846,7 @@ def self_test() -> int:
     # The gate rows read the record scripts/gate.py WRITES (kb/Work PB4328): the gate's own self-test host runs a
     # planted GREEN gate, and gate_rows reads its verdict.json, so a field the writer renames or drops is red here.
     with tempfile.TemporaryDirectory() as tmp:
-        planted = gate.Gate(gate.FakeHost(Path(tmp), Path(tmp) / "gate.lock"), Path(tmp) / "runs",
+        planted = gate.Gate(gate_fake_host.FakeHost(Path(tmp), Path(tmp) / "gate.lock"), Path(tmp) / "runs",
                             say=lambda _line: None).run()
         run = next(d for d in (Path(tmp) / "runs").iterdir() if d.is_dir())
         try:
@@ -876,7 +878,7 @@ def self_test() -> int:
                 "population, kb/Work PB5099)", {"composed_from": ["000001-20261022T000000Z"]}, "COMPOSED")
         refuses("refuses a gate of the inert lane (it ran the audits and no test)", {"lane": "inert"}, "inert lane")
         refuses("refuses a record of another schema (its timings measured another gate)",
-                {"schema": gate.RECORD_SCHEMA - 1}, "schema")
+                {"schema": gate_runs.RECORD_SCHEMA - 1}, "schema")
     hot = bench_params(os.path.join("GeneratedCode", "GeneratedProgramBenchmarks.cs"))
     wit = witnesses()
     agree = set(wit) == set(hot) | {FLOOR_PROGRAM} and all(

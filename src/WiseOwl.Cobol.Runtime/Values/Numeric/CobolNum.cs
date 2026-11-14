@@ -320,7 +320,7 @@ public static partial class CobolNum
     // and the EMITTER routes it here by the operand's static carrier (NumX.U) — the U-suffixed names are
     // deliberate, see FormatDisplayU's remark on the int-constant CS0121 ambiguity an overload pair causes.
     // The VALUE-preserving paths (store, display, compare) take the full range; the ARITHMETIC engine's
-    // intermediate stays Int128 (documented, CONFORMANCE.md §4.2.16), so an operand beyond it goes through
+    // intermediate stays Int128 (documented, CONFORMANCE.md DOC-A.1-123), so an operand beyond it goes through
     // Widen, which raises the size-error condition rather than wrapping. ─────────────────────────────────────────
 
     /// <summary>Narrow an unsigned wide value into the native arithmetic intermediate (<see cref="Int128"/> —
@@ -331,7 +331,7 @@ public static partial class CobolNum
         value <= (UInt128)Int128.MaxValue
             ? (Int128)value
             : throw new CobolSizeError("operand " + value + " exceeds the native arithmetic intermediate range "
-                + "(Int128 — the documented native technique, ISO §2023:8.8.1.3 / CONFORMANCE.md §4.2.16)", "EC-SIZE-OVERFLOW");
+                + "(Int128 — the documented native technique, ISO §2023:8.8.1.3 / CONFORMANCE.md DOC-A.1-123)", "EC-SIZE-OVERFLOW");
 
     /// <summary>Store an unsigned wide value (a 16-byte unsigned COMP-5 item's full-container value, or the
     /// HIGHEST-ALGEBRAIC fold of one — §2023:15.43.4 r2) into the receiver: rescale to the receiver's scale, then the

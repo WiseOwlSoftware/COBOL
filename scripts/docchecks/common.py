@@ -15,14 +15,13 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-#: scripts/spec holds the ONE parser of docs/CONFORMANCE.md's registers (inventory_schema.register_section).
+#: scripts/spec holds the ONE reader of docs/CONFORMANCE.md (conformance_source), and the registers' own modules.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "spec"))
 
 #: The compiler-side facts the documents state (`tests/doc-facts/compiler-facts.json`, written by the Unit test
 #: DocumentedFactsDriftTests and held equal to the compiler there): the Markdown is checked against THIS FILE, so a
 #: compiler test never opens a Markdown file (kb/Work PB4453).
 FACTS_PATH = "tests/doc-facts/compiler-facts.json"
-CONFORMANCE = "docs/CONFORMANCE.md"
 VCR = "docs/VERSION_CHANGE_REFERENCE.md"
 README = "README.md"
 
@@ -56,22 +55,6 @@ def tracked(root: Path, *pathspecs: str) -> list[str]:
     """Tracked paths under the pathspecs that exist in the working tree (`git ls-files`)."""
     out = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", *pathspecs], capture_output=True, check=True)
     return sorted(p for p in out.stdout.decode("utf-8").split("\0") if p and (root / p).is_file())
-
-
-def section(body: str, heading: str, next_heading: str = "\n## ") -> str:
-    """The text from `heading` to the next `## ` heading ("" when the heading is absent)."""
-    at = body.find(heading)
-    if at < 0:
-        return ""
-    rest = body[at + len(heading):]
-    end = rest.find(next_heading)
-    return rest if end < 0 else rest[:end]
-
-
-def table_row(body: str, key: str) -> str | None:
-    """The line of a register row whose first cell is `key` (`| DOC-A.1-62 |`), or None."""
-    prefix = f"| {key} |"
-    return next((ln for ln in body.split("\n") if ln.startswith(prefix)), None)
 
 
 def need(findings: list[str], ok: bool, message: str) -> None:

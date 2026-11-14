@@ -65,7 +65,7 @@
   owns an entry the branch carries (kb/Work PB3145); exit 13 (another `land` of the branch holds the worktree's land
   lock, kb/Work PB3310) is the same: nothing ran, the lane retries it once the lock is free. A shared file never
   holds a branch (owner, kb/Work PB5109): a merge group that conflicts bounces, and a finisher fixes it then. A gate NOT RUN (it
-  measured nothing) goes by its cause's class in `gate.NOT_RUN_CAUSES` (kb/Work PB3526): the landing runs no gate (kb/Work
+  measured nothing) goes by its cause's class in `gate_verdict.NOT_RUN_CAUSES` (kb/Work PB3526): the landing runs no gate (kb/Work
   PB4331), so the only one it reads is its own merge of main's (`merge-blocked`: exit 2, retried once; `merge-failed`:
   exit 5, a finisher's). A gate of the worktree that runs or is starting when the landing would write it is exit 12,
   GATE BUSY, whatever record exists (kb/Work PB4204): the lane lands the head again once the gate lock is free.

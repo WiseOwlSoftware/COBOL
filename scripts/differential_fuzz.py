@@ -150,6 +150,7 @@ import config as suite_config  # noqa: E402
 import run as suite_run  # noqa: E402
 from spec_headings import GENERAL_FORMAT_NOUN  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
 import api_key  # noqa: E402  (THE reader of an API key file and its accounts, kb/Work PB4916)
+import conformance_source  # noqa: E402  (the ONE reader of the conformance claim, kb/Work PB5395)
 import fuzz_claude  # noqa: E402  (the Claude program writer, kb/Work PB4504)
 from fuzz_ollama import (ABORTED, DEGENERATE, DEGENERATE_FORMS, DEGENERATE_LINES, DEGENERATE_REASONS, MODEL_ERRORS,  # noqa: E402
                          NUM_CTX, NUM_PREDICT, OllamaError, PauseGate, lossless, ollama_chat, parse_model_options,
@@ -285,25 +286,21 @@ def edition_changes(text: str) -> list[str]:
     return items
 
 
-CONFORMANCE = REPO / "docs" / "CONFORMANCE.md"
 ANNEX_A4_HEADING = re.compile(r"^#{2,6} (A\.4\.\d+) ")
 #: An Annex A.4 item naming a language element and its clause: "6\) BLINK clause (13.18.9)", "4\) COMMIT statement 14.9.7".
 ANNEX_A4_ITEM = re.compile(r"^\d+\\?\) (?P<name>.+?)(?: \([\d.]+\)| \d+(?:\.\d+)+.*)\s*$")
 #: An item that is a WHOLE clause or statement; "ACCEPT statement, format 3: screen (14.9.1)" is one format of a claimed
 #: statement and "REWRITE FILE file-name-1 (14.9.35)" one phrase of one, so neither is.
 WHOLE_ELEMENT = re.compile(r"^[A-Z][A-Z0-9-]*(?: [A-Z][A-Z0-9-]*)* (?:clause|statement)$")
-#: A row of CONFORMANCE.md §5, "Annex A.4 optional-element disposition": `| A.4.2 | <module> | Not claimed | … |`.
-DISPOSITION_ROW = re.compile(r"^\| (A\.4\.\d+) \| ([^|]+?) \| ([^|]+?) \|")
 
-
-def declined_modules(conformance_text: str) -> dict[str, str]:
+def declined_modules(conformance: conformance_source.Conformance) -> dict[str, str]:
     """{Annex A.4 number: module name} for every optional module docs/CONFORMANCE.md §5 records as Not claimed: the
     conformance claim's one statement of what WiseOwl declines (§2023:4.2.7), read, never restated here."""
-    return {m.group(1): m.group(2).strip() for line in conformance_text.splitlines()
-            if (m := DISPOSITION_ROW.match(line)) and m.group(3).strip("* ").startswith("Not claimed")}
+    return {r["clause"]: r["module"] for r in conformance.a4_dispositions()
+            if r["disposition"].strip("* ").startswith("Not claimed")}
 
 
-def declined_seed_titles(spec_text: str, conformance_text: str) -> set[str]:
+def declined_seed_titles(spec_text: str, conformance: conformance_source.Conformance) -> set[str]:
     """The seed titles that are a WHOLE clause or statement of a declined optional module (kb/Work PB3523): the Annex A.4
     items of each module `declined_modules` names. WiseOwl refuses such a construct by name (the screen section's
     COBOL1560, VALIDATE's, COMMIT's …), so a program seeded there ends BOTH_REJECT or as a WE_REJECT the conformance
@@ -316,7 +313,7 @@ def declined_seed_titles(spec_text: str, conformance_text: str) -> set[str]:
     A title that a module the claim does NOT decline also lists stays a seed, whole or as one of its formats: A.4.14
     VALIDATE (declined) and A.4.11 Report Writer (claimed in part, its RW nucleus with PRESENT WHEN and VARYING) both list
     the PRESENT WHEN clause (13.18.41) and the VARYING clause (13.18.64), and WiseOwl implements both (review R1-1)."""
-    declined = declined_modules(conformance_text)
+    declined = declined_modules(conformance)
     refused: set[str] = set()
     kept: set[str] = set()
     module = None
@@ -624,9 +621,9 @@ class PromptFacts(typing.NamedTuple):
     declined: list[str]
 
     @classmethod
-    def read(cls, spec_text: str, conformance_text: str) -> PromptFacts:
+    def read(cls, spec_text: str, conformance: conformance_source.Conformance) -> PromptFacts:
         return cls(spec_functions(spec_text), added_in_2023(spec_text), added_reserved_words(spec_text),
-                   edition_changes(spec_text), list(declined_modules(conformance_text).values()))
+                   edition_changes(spec_text), list(declined_modules(conformance).values()))
 
 
 def system_prompt(facts: PromptFacts, family: str) -> str:
@@ -1062,11 +1059,11 @@ def prompt_plan(prefixes: tuple[str, ...], seed: int, in_order: bool) -> tuple[l
     is written from. ONE builder, read by the run and by scripts/fuzz_batch.py, so a batch's request i and the judge's
     row i name the same clause (kb/Work PB4506)."""
     spec_text = SPEC.read_text(encoding="utf-8")
-    conformance_text = CONFORMANCE.read_text(encoding="utf-8")
-    declined = declined_seed_titles(spec_text, conformance_text)
+    conformance = conformance_source.load(REPO)
+    declined = declined_seed_titles(spec_text, conformance)
     every = clauses(spec_text, prefixes)
     seeds = order_seeds([c for c in every if c[1] not in declined], seed, in_order)
-    facts = PromptFacts.read(spec_text, conformance_text)
+    facts = PromptFacts.read(spec_text, conformance)
     return seeds, len(every) - len(seeds), {family: system_prompt(facts, family) for family in EXAMPLES}
 
 
@@ -1719,7 +1716,7 @@ def self_test() -> int:
           and "<u>" not in whole and "1\\)" not in whole
           and "FOO BAR x" in cut and "1) rule" in cut and "intro" not in cut and "g g" not in cut
           and cut.endswith("[General, General rules: omitted to fit the prompt]"), (whole, cut))
-    budget_facts = PromptFacts.read(SPEC.read_text(encoding="utf-8"), CONFORMANCE.read_text(encoding="utf-8"))
+    budget_facts = PromptFacts.read(SPEC.read_text(encoding="utf-8"), conformance_source.load(REPO))
     check("budget: the longest system prompt and the longest clause, at a conservative 2.5 characters a token, leave the reply's NUM_PREDICT and three corrections of 1,500 tokens inside NUM_CTX",
           (max(len(system_prompt(budget_facts, f)) for f in EXAMPLES) + sizes[longest]) / 2.5 + NUM_PREDICT + 3 * 1500 <= NUM_CTX,
           (max(len(system_prompt(budget_facts, f)) for f in EXAMPLES), sizes[longest]))
@@ -1822,8 +1819,8 @@ def self_test() -> int:
           and len(real) > 80, (len(real), sorted(set(real) & {"TRANSLATE", "NATIONAL", "SUBSTRING", "YEAR"})))
     added_words = added_reserved_words(spec_text)
     reserved = reserved_words(spec_text)
-    conformance_text = CONFORMANCE.read_text(encoding="utf-8")
-    facts = PromptFacts.read(spec_text, conformance_text)
+    conformance = conformance_source.load(REPO)
+    facts = PromptFacts.read(spec_text, conformance)
     prompts = {family: system_prompt(facts, family) for family in EXAMPLES}
     sp = prompts["statement"]
     check("prompt: the facts are the spec's and the conformance claim's (the functions, the 2023 additions, the declined modules), and every family's prompt names the declined modules",
@@ -1838,7 +1835,7 @@ def self_test() -> int:
           and not any("function" in c.lower() or c.endswith(":") for c in changes) and len(changes) > 15
           and edition_changes("x\n" + FOREWORD_CHANGES + "\n- — Group:\n  - — Alpha thing\n— Beta thing\n- — " + FOREWORD_FUNCTIONS
                               + "\n    — GAMMA function\n— Delta\n") == ["Alpha thing", "Beta thing"], changes)
-    declined_titles = declined_seed_titles(spec_text, conformance_text)
+    declined_titles = declined_seed_titles(spec_text, conformance)
     every_title = {t for _n, t, _b in clauses(spec_text, ("13.18", "14.9"))}
     check("seeds: a WHOLE clause or statement of an optional module CONFORMANCE.md §5 records as Not claimed is not a seed (the screen clauses, VALIDATE's, FORMAT, SELECT WHEN), matched by title; a module's single format of a claimed statement (ACCEPT format 3, SET format 6, COLUMN format 2), a claimed module's clause (Report Writer's PAGE, and PRESENT WHEN and VARYING, which declined VALIDATE lists too) and a Partial module's statements (COMMIT and ROLLBACK, A.4.3, kb/Work PB3338) stay",
           {"BLINK clause", "UNDERLINE clause", "REQUIRED clause", "BLANK clause", "VALIDATE statement", "VALIDATE-STATUS clause",
@@ -1851,7 +1848,9 @@ def self_test() -> int:
                     "3\\) SHARED clause (13.18.70)\n4\\) PART clause (13.18.71)\n"
                     "#### A.4.3 Commit\n4\\) COMMIT statement 14.9.7\n#### A.4.4 Tables\n1\\) OCCURS clause (13.18.38)\n"
                     "2\\) SHARED clause (13.18.70)\n3\\) PART clause, format 2: tables (13.18.71)\n#### A.5 Other\n3\\) FOO clause (1.2)\n")
-    fixture_claim = ("| A.4.2 | Screens | Not claimed | x |\n| A.4.3 | Commit | **Not claimed** | x |\n| A.4.4 | Tables | **Claimed** | x |\n")
+    fixture_claim = conformance_source.parse(
+        "## 5. Annex A.4 x\n\n| A.4 # | Module | Disposition | Note |\n|---|---|---|---|\n"
+        "| A.4.2 | Screens | Not claimed | x |\n| A.4.3 | Commit | **Not claimed** | x |\n| A.4.4 | Tables | **Claimed** | x |\n")
     check("seeds: the declined titles are read from the Annex A.4 items of the modules the claim declines, whole elements only, the parenthesized and the bare clause number alike, nothing past A.4, less every title a module the claim does not decline lists, whole (SHARED) or by one format (PART)",
           declined_seed_titles(fixture_spec, fixture_claim) == {"BLINK clause", "COMMIT statement"}
           and declined_modules(fixture_claim) == {"A.4.2": "Screens", "A.4.3": "Commit"},

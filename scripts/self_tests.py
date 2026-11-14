@@ -19,7 +19,7 @@ as any `test_*.py` does (rule b), with `PYTHONPATH` = `scripts/` prepended in `R
 named five, CI's audits job named those five plus `landing_check.py`, linux-gate.sh named three, and eleven of the
 fourteen orchestrator self-tests (the loop's unit choice, the allocator's lock, the wave planner, …) ran in no gate and
 no CI job at all, so a regression in any of them passed everything. A list goes stale the day a self-test is added.
-This runner FINDS them, and the local gate (scripts/gate.py AUDITS, only for a change that touches tooling,
+This runner FINDS them, and the local gate (scripts/gate_audits.py AUDITS, only for a change that touches tooling,
 kb/Work PB4326, and beside its build and legs, never inside the gate slot), the Linux gate
 (scripts/linux-gate.sh leg `selftests`) and CI (the `audits` job on Linux and `windows-self-tests` on Windows) all run
 THIS entry point, so no gate can run a self-test CI does not, or the reverse (the CI invariant, kb/Work PB1957).
@@ -51,7 +51,7 @@ The default run names it `deferred to --built` in its verdict; `--built` runs ex
 `linux-built-self-tests` job; linux-gate.sh after its unit and conformance legs). The default run never builds: it is one of the
 gate's audits, which run outside the gate slot, and the slot is what rations builds.
 
-POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/inert_lane.py): what it read
+POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/lane_classification.py): what it read
 must be tooling, a TOOLING_READS entry or an inert corpus, else it is RED naming the path. The one exemption is a self-test
 that reads the tracked tree as a population, declared the same way and checked against the trace (a declaration whose
 trace shows no git command over the whole repository is RED; a whole-tree git command without the declaration is judged):
@@ -157,7 +157,7 @@ import process_job  # this directory's: the self-test's whole process tree, stop
 import sharedfile  # this directory's: the one Windows share-retry rule for files several processes read and replace
 import live_tools  # this directory's: the one list of the live tools' trees, which discovery reads
 import selftest_layout  # this directory's: the case layout rule, called first by every run (kb/Work PB5428)
-import inert_lane  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
+import lane_classification  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
 import self_test_inputs as inputs  # this directory's: what a self-test read, and the tracer that records it
 import self_test_clock as clocks  # this directory's: the clock a self-test's PASS is proven against (kb/Work PB4358)
 from gate_slot import ExclusiveLock, git_common_dir  # this directory's: the OS file lock every gate place is
@@ -635,7 +635,7 @@ class Runner:
     hang_after_s: float = HANG_AFTER_S
     by: str = ""
     #: What counts as tooling when a PASS is recorded (`_record`'s proof); the fleet arms plant their own.
-    classification: inert_lane.Classification = inert_lane.CLASSIFICATION
+    classification: lane_classification.Classification = lane_classification.CLASSIFICATION
 
     def __post_init__(self) -> None:
         self.budget = self.budget or Budget.for_repo(self.repo)
@@ -859,7 +859,7 @@ class Runner:
         if test.population and not whole:  # a declaration the trace does not bear out would exempt a self-test unproved
             raise ValueError(f"{test.path} declares SELF-TEST-POPULATION but its trace shows no git command over the "
                              f"whole tree: remove the declaration (the self-test no longer reads the tree as a population)")
-        if not test.population:  # only a DECLARED population reader is exempt: the flag's accepted residue (inert_lane.py)
+        if not test.population:  # only a DECLARED population reader is exempt: the flag's accepted residue (lane_classification.py)
             stray = self.classification.unclassified_reads((p for p, blob in deps.files.items() if blob != inputs.UNTRACKED),
                                                                  deps.trees)
             if stray:
@@ -867,7 +867,7 @@ class Runner:
                     f"it read {', '.join(stray[:6])}{' and more' if len(stray) > 6 else ''}, which the tooling flag does "
                     f"not see: a change to only {'it' if len(stray) == 1 else 'one of them'} would skip this self-test in "
                     f"a gate and turn it red in CI's merge group. Give the path a TOOLING_READS entry naming "
-                    f"{test.path} in scripts/inert_lane.py"
+                    f"{test.path} in scripts/lane_classification.py"
                     + (f"; or, if it reads the tracked tree as a population, declare `# SELF-TEST-POPULATION: tree — "
                        f"<why>` in its first {HEADER_LINES} lines" if whole else "") + " (kb/Work PB4326)")
         self.store.record(test.path, self.platform, deps, seconds, self.by, clock, key, reused)
@@ -1239,7 +1239,7 @@ NET_STANDALONE = re.compile(r"^test_[^/]*\.(py|ps1)$")
 #: runner's own and the conformance harness's generator.
 NET_KNOWN = ("scripts/orchestrator/test_alloc.py", "scripts/orchestrator/test_orchestrate_core.ps1",
              "scripts/orchestrator/landing_check.py", "scripts/hooks/test_forbidden_commands.py",
-             "scripts/guard-population.sh", "scripts/gate.py", "scripts/self_tests.py",
+             "scripts/guard-population.sh", "scripts/selftests/gate/test_verdicts.py", "scripts/self_tests.py",
              "conformance-suite/harness/generate.py")
 
 
@@ -1312,14 +1312,14 @@ def entry_point_arms(check: Callable[[str, object, object], None]) -> None:
     (kb/Work PB2914, PB3022); and none of them runs a discovered self-test itself (a hand list again, kb/Work PB2563)."""
     from ci_workflow import jobs  # noqa: PLC0415 — this directory's: the one reader of a CI workflow's shape
     scripts = REPO / "scripts"
-    driver = scripts / "gate.py"
-    audits = _module_literal(driver, "AUDITS")
+    gate_audits = scripts / "gate_audits.py"
+    audits = _module_literal(gate_audits, "AUDITS")
     linux = (scripts / "linux-gate.sh").read_text(encoding="utf-8")
     workflow = (REPO / ".github" / "workflows" / "build-and-test.yml").read_text(encoding="utf-8")
     check("arm: the gate's audits run this runner, its post-build half `--built`, the runner only for a change that "
           "touches tooling, and with --reuse",
-          (("SELF-TESTS", ["scripts/self_tests.py"]) in audits, _module_literal(driver, "BUILT_SELF_TESTS"),
-           _module_literal(driver, "TOOLING_ONLY"), _module_literal(driver, "SELF_TESTS_REUSE")),
+          (("SELF-TESTS", ["scripts/self_tests.py"]) in audits, _module_literal(gate_audits, "BUILT_SELF_TESTS"),
+           _module_literal(gate_audits, "TOOLING_ONLY"), _module_literal(gate_audits, "SELF_TESTS_REUSE")),
           (True, ["scripts/self_tests.py", "--built"], ("SELF-TESTS",), "--reuse"))
     # linux-gate.sh runs its legs in parallel (kb/Work PB2879) in the AUDIT clone, outside the inert watch of its test
     # legs (kb/Work PB2878): each runner call may redirect to its leg's result file and run in the background.
@@ -1349,7 +1349,7 @@ def entry_point_arms(check: Callable[[str, object, object], None]) -> None:
           hand_named({"w": "# scripts/x.py --self-test\npython scripts/x.py --check\npwsh scripts/o/test_y.ps1\n"
                            "python scripts/x.py --self-test\npython scripts/self_tests.py\n"}, planted),
           ["w: scripts/o/test_y.ps1 in `pwsh scripts/o/test_y.ps1`", "w: scripts/x.py in `python scripts/x.py --self-test`"])
-    sources = {"scripts/gate.py AUDITS": "\n".join(" ".join(cmd) for _, cmd in audits),
+    sources = {"scripts/gate_audits.py AUDITS": "\n".join(" ".join(cmd) for _, cmd in audits),
                "scripts/linux-gate.sh": linux, ".github/workflows/build-and-test.yml": workflow}
     sources |= {f"scripts/{n}": (scripts / n).read_text(encoding="utf-8")
                 for n in ("build-local.ps1", "build-local.sh", "battery.sh")}
@@ -1479,8 +1479,8 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         tests = [found[n] for n in sorted(bodies)]
         plat = this_platform()
         # The planted repository's own classification: its scripts are tooling, and the data its self-tests read is
-        # declared, as scripts/inert_lane.py declares the real tree's (the proof of the tooling flag, `_record`).
-        planted = inert_lane.Classification(inert={}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
+        # declared, as scripts/lane_classification.py declares the real tree's (the proof of the tooling flag, `_record`).
+        planted = lane_classification.Classification(inert={}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
                                             tooling_reads={"data/": "the fleet arms' fixtures"})
         budget_dir, store_dir = root / ".git" / BUDGET_DIR, root / ".git" / PASS_STORE_DIR
 

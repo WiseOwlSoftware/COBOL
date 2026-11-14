@@ -56,7 +56,7 @@ REVIEW_LINE = re.compile(r"^\**Review:", re.I)
 
 #: The header's worktree: an absolute path ending `worktrees<sep><name>`, a drive path with either separator or a POSIX
 #: one (never the tail of a drive path: a `/` after a word or a colon starts none). A GATE-PENDING report's relative
-#: `Gate run:` is resolved against it (gate.resolve_run; review R1-1 of wave 1152), on every host.
+#: `Gate run:` is resolved against it (gate_runs.resolve_run; review R1-1 of wave 1152), on every host.
 WORKTREE = re.compile(r"([A-Za-z]:[\\/][^\s`*]*?[\\/]worktrees[\\/][A-Za-z0-9_.\-]+|(?<![\w:])/[^\s`*]*?/worktrees/"
                       r"[A-Za-z0-9_.\-]+)")
 
@@ -160,8 +160,8 @@ class Report:
     @functools.cached_property
     def gate_state(self) -> str:
         """The gate a GATE-PENDING report's agent handed over at its turn cap (kb/Work PB3536), read from its run
-        directory (`gate.resolve_run`: a relative name is the report's WORKTREE's run, never the reader's
-        checkout's) through the gate's ONE reader (`gate.watch`, no wait): GREEN — its verdict record is GREEN
+        directory (`gate_runs.resolve_run`: a relative name is the report's WORKTREE's run, never the reader's
+        checkout's) through the gate's ONE reader (`gate_runs.watch`, no wait): GREEN — its verdict record is GREEN
         (exit 0) for this report's HEAD and measured that commit's own tree, unchanged while it ran (the measured tree
         leaves out coord.NEVER_WORK, so the harness's edit of its tracked settings file is no difference); RUNNING — no
         verdict yet and the gate holds its worktree's gate lock (or has taken none yet); ENDED — any other end (RED, NOT
@@ -171,12 +171,12 @@ class Report:
             return "NONE"
         if not self.gate_run or not self.head:
             return "ENDED"
-        import gate  # noqa: PLC0415  (scripts/: the gate's own reader; heavy, so only for this status)
-        run = gate.resolve_run(self.gate_run, self.worktree)   # a relative name is the WORKTREE's run (R1-1)
-        code, _ = gate.watch(run, 0, gate.gate_running(run))
-        if code == gate.AWAIT_PENDING_EXIT:
+        import gate_runs  # noqa: PLC0415  (scripts/: the gate's own reader; heavy, so only for this status)
+        run = gate_runs.resolve_run(self.gate_run, self.worktree)   # a relative name is the WORKTREE's run (R1-1)
+        code, _ = gate_runs.watch(run, 0, gate_runs.gate_running(run))
+        if code == gate_runs.AWAIT_PENDING_EXIT:
             return "RUNNING"
-        rec = gate.read_record(run) if code == 0 else None
+        rec = gate_runs.read_record(run) if code == 0 else None
         if not rec or not same_commit(str(rec.get("head") or ""), self.head):
             return "ENDED"
         committed = None

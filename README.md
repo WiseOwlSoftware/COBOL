@@ -7,7 +7,7 @@ ordinary .NET assembly.
 
 The standard is the specification. Every normative rule of ISO/IEC 1989:2023 is a row in a traceability inventory,
 and a row closes only when a test derived from the standard proves the compiler conforms. Where the standard leaves a
-choice to the implementor, [docs/CONFORMANCE.md](docs/CONFORMANCE.md) records the choice and its reasons.
+choice to the implementor, the conformance statement ([docs/conformance/](docs/conformance/)) records the choice and its reasons.
 
 ## What you need
 
@@ -142,7 +142,7 @@ src/
 tests/                               the populations above
 specs/ISO_COBOL_2023.md                   the standard, transcribed to Markdown and searchable
 docs/DESIGN.md                       the design, with one deep-dive document per subsystem beside it
-docs/CONFORMANCE.md                  every implementor-defined choice, with its reasons
+docs/conformance/                    the conformance statement, one file per entry (rendered as docs/CONFORMANCE.md)
 kb/Work/                             the work register: one note per defect, analysis, decision or upstream record
 DEVLOG/                              the history, one file per landing
 scripts/                             the gate, the specification tools, the generators
@@ -188,7 +188,7 @@ the compiler conforms. The open rows are the project's one progress number, and 
 `pwsh scripts/session-probe.ps1` prints the rows, the open rows and the corpus sizes for the commit you are on, and
 the gate's verdict line prints the tests it ran.
 
-What the compiler declines is documented as §2023:4.2.6 and §2023:4.2.7 require, in [docs/CONFORMANCE.md](docs/CONFORMANCE.md):
+What the compiler declines is documented as §2023:4.2.6 and §2023:4.2.7 require, in the conformance statement ([docs/conformance/](docs/conformance/)):
 its §2 dispositions every processor-dependent element of Annex A.3, its §5 every optional module of Annex A.4, and its
 §4 the facilities declined whole. Every element those two tables do not claim in full is named below by its Annex
 item, and a documentation audit (`scripts/doc_audits.py`, `scripts/docchecks/register.py`) fails when this list and the tables disagree:
@@ -221,7 +221,7 @@ are planned; see [docs/rearchitecture/DESIGN-USER-DOCUMENTATION.md](docs/rearchi
 
 - **All four editions**, COBOL-85, 2002, 2014 and 2023, each with its own syntax and semantics, and a diagnostic
   wherever an edition lacks a construct.
-- **The language**, with the standing of each rule recorded in [docs/CONFORMANCE.md](docs/CONFORMANCE.md): the
+- **The language**, with the standing of each rule recorded in the conformance statement ([docs/conformance/](docs/conformance/)): the
   Identification, Environment, Data and Procedure divisions, the compiler directing facility and conditional
   compilation, COPY and REPLACE, national and boolean data, dynamic-capacity tables, typed and strongly-typed items,
   exception handling (declaratives and the `EC-` exception conditions), sequential, relative and indexed files, SORT

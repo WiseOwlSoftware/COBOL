@@ -885,7 +885,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   tool was deleted once the file was seeded. The register's audit checks the removers (`work.py check`,
   `edges_remover_problems`: the gate's WORK REGISTER audit, CI's audits job and the landing's merged-head check): each
   is an open kb/Work note whose `**Removes …**` line names the row as `` `From → To` ``, and every note a plan names
-  exists. It is the register's, not the drift test's, because no test reads `kb/Work/` (`scripts/inert_lane.py`: a
+  exists. It is the register's, not the drift test's, because no test reads `kb/Work/` (`scripts/lane_classification.py`: a
   register-only change runs the audits and no test).
 - **The landing of a remover (PB2417 review, R2-1).** A remover's landing flips its note terminal, so every row that
   still names it is refused by `work.py check`, and the landing leaves the file the one way its row allows. A walked
@@ -1032,7 +1032,7 @@ first_line, last_line, body, source, lead)`, comments and actions blanked, the p
 three private readers that did not agree on which rules the grammar declares (the dossier's missed 78 of 1,205);
 its self-test plants each trap they fell into and refuses
 a script that declares one of their names again. The `docs/CONFORMANCE.md` register tables are read by
-`inventory_schema.register_section_at` (with each row's line, for a line-by-line reader such as the Phase-B
+`conformance_source.Conformance.rows_at` (with each row's line, for a line-by-line reader such as the Phase-B
 dossier), the rule catalog by `inventory_schema.Edition.rules` and the traceability inventory by
 `inventory_view.inventory`.
 

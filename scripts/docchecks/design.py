@@ -15,6 +15,8 @@ from pathlib import Path
 from . import common
 from .common import Check, need
 
+import conformance_source  # noqa: E402
+
 ROUTES_PATH = "tests/doc-facts/untyped-host-routes.json"
 RUNTIME_API = "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs"
 DATA_MODEL = "docs/DATA_MODEL_DESIGN.md"
@@ -87,15 +89,15 @@ def route_findings(documents: dict[str, str], pattern: re.Pattern[str]) -> list[
 
 def user_documents(root: Path) -> dict[str, str]:
     """The documents a user reads: README.md, CONFORMANCE.md, the manual and the samples, whole."""
-    paths = [common.README, common.CONFORMANCE] + [
-        p for p in common.tracked(root, "docs/manual", "samples") if p.endswith((".md", ".cs", ".cob", ".cbl", ".txt"))]
-    return {p: common.text(root, p) for p in paths}
+    manual = [p for p in common.tracked(root, "docs/manual", "samples") if p.endswith((".md", ".cs", ".cob", ".cbl", ".txt"))]
+    return {common.README: common.text(root, common.README), conformance_source.PATH_REL: conformance_source.load(root).text,
+            **{p: common.text(root, p) for p in manual}}
 
 
 def _boolean(root: Path) -> list[str]:
     return boolean_store_findings({"RuntimeApi.cs (StrStoreBoolean)": common.text(root, RUNTIME_API),
                                    "DATA_MODEL_DESIGN.md (D19)": common.text(root, DATA_MODEL),
-                                   "CONFORMANCE.md (D-B5)": common.text(root, common.CONFORMANCE)})
+                                   "CONFORMANCE.md (D-B5)": conformance_source.load(root).text})
 
 
 def _operand(root: Path) -> list[str]:

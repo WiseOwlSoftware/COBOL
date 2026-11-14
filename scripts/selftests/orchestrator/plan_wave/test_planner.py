@@ -2917,12 +2917,14 @@ def case_153_the_ratchet_work_py_names_is_the_drift_t(expect):
         ended.wait()
 
         import gate  # noqa: PLC0415  (scripts/: the gate's own reader and its lock)
+        import gate_host  # noqa: PLC0415
+        import gate_runs  # noqa: PLC0415
 
         def gate_run(name, rec=None, pid=None):
             # a run that names a gate pid sits in a real worktree: the reader asks THAT worktree's gate lock (review R1-1 of
             # wave 20261104: a pid is reused, the lock is not), so the arm can hold it
             wt = ScratchRepo.init(gdir / "wts" / name).path if pid is not None else None
-            run = (wt / gate.RUN_ROOT if wt else gdir / "runs") / name
+            run = (wt / gate_runs.RUN_ROOT if wt else gdir / "runs") / name
             run.mkdir(parents=True)
             if rec is not None:
                 (run / "verdict.json").write_text(json.dumps({"verdict": "x", "line": "=== BUILD-LOCAL GATE: x ===", **rec}),
@@ -2940,8 +2942,8 @@ def case_153_the_ratchet_work_py_names_is_the_drift_t(expect):
                 "j": gate_run("pid-reused", pid=os.getpid())}   # no verdict, gate.pid names a LIVE process, nobody holds the lock
         # run "c" is the one gate that runs: its worktree's gate lock is held, its label naming the run (what `Gate.run` writes)
         c_lock = gate.ExclusiveLock.try_take(
-            gate.Host(runs["c"].parents[2]).lock_path(),
-            f"gate {runs['c'].parents[2]} (pid 7, since T{gate.RUN_LABEL}{runs['c']})")
+            gate_host.Host(runs["c"].parents[2]).lock_path(),
+            f"gate {runs['c'].parents[2]} (pid 7, since T{gate_runs.RUN_LABEL}{runs['c']})")
         for letter, run in runs.items():
             (gdir / f"w9g1{letter}-PB1-report.md").write_text(
                 f"Status: GATE-PENDING\nBranch: b\nHEAD: {head[:12]}\nGate run: {run}\n\n## Gate\n", encoding="utf-8",
@@ -2983,7 +2985,7 @@ def case_153_the_ratchet_work_py_names_is_the_drift_t(expect):
         harness.git("commit", "-q", "-m", "work")
         (hw / ".claude" / "settings.local.json").write_text('{"permissions": {}}\n', encoding="utf-8", newline="\n")
         hhead = harness.git("rev-parse", "HEAD")
-        htree = gate.Host(hw).measured_tree()
+        htree = gate_host.Host(hw).measured_tree()
         hrun = hw / "TestResults" / "build-local" / "20261023T000000Z-abcdef"
         hrun.mkdir(parents=True)
         (hrun / "verdict.json").write_text(json.dumps({"verdict": "GREEN", "line": "=== BUILD-LOCAL GATE: GREEN — x ===",

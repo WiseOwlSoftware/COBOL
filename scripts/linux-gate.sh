@@ -53,7 +53,7 @@
 # line each, and ONE verdict:
 #   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN [<cause>] (…) ===
 #   === LINUX GATE: BUSY — … ===  (exit 3: another gate of this tree is running; this run touched nothing, kb/Work PB3310)
-# Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of gate.NOT_RUN_CAUSES, which classifies it
+# Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of gate_verdict.NOT_RUN_CAUSES, which classifies it
 # ONCE (ENVIRONMENT or BRANCH: kb/Work PB3526); the driver's self-test holds every NOT RUN line here to a known tag.
 set -u
 
@@ -231,7 +231,7 @@ busy_line() {
 # other's clone: on 2026-10-16 the second `enqueue.py land` of a branch deleted the first's clone mid-test, and its
 # `dotnet test` hung 6 h 40 min in the deleted directory holding a gate slot. Each run now has its own clone (the pid in
 # the directory name), and a second run on a tree whose gate is RUNNING answers `=== LINUX GATE: BUSY ...` (exit 3) before
-# it touches anything: BUSY is neither a pass nor a red (gate.BUSY is the same word). The check and the registration (the owner file) are one step under
+# it touches anything: BUSY is neither a pass nor a red (gate_verdict.BUSY is the same word). The check and the registration (the owner file) are one step under
 # an flock on a dotfile (reap_gates' glob skips it), so two gates started together cannot both pass.
 begin_gate() {
   local name="${2##*/}" me="$BASHPID" other   # captured here: inside $( ) BASHPID is that subshell's
@@ -517,7 +517,7 @@ if [ ! -f WiseOwl.Cobol.sln ]; then
   echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
 fi
 # ⛔ THE TOOLCHAIN (kb/Work PB4007): CI runs exactly toolchain.env's versions, so a Linux run under any other measures
-# what CI will not run; the Windows gate holds its own host to the manifest the same way (gate.Host.toolchain).
+# what CI will not run; the Windows gate holds its own host to the manifest the same way (gate_host.Host.toolchain).
 if ! toolchain_report="$("$PY" scripts/toolchain.py check --scope gate 2>&1)"; then
   printf '%s\n' "$toolchain_report"
   echo "=== LINUX GATE: NOT RUN [toolchain] (this host's tools are not toolchain.env's — run scripts/wsl/setup-wsl.sh) ==="; exit 2

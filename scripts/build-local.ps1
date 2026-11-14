@@ -27,7 +27,7 @@ if ($Priority -ne 'Normal') {
 Set-Location (Split-Path -Parent $PSScriptRoot)
 # THE ONE INTERPRETER (scripts/python-resolve.ps1, the twin of python-resolve.sh; kb/Work PB1637, PB3197): a host with no
 # runnable Python ends on the gate's own verdict line, NOT RUN [interpreter] (an ENVIRONMENT cause in
-# gate.NOT_RUN_CAUSES) with exit 2 as the driver's NOT RUN does.
+# gate_verdict.NOT_RUN_CAUSES) with exit 2 as the driver's NOT RUN does.
 try {
     . (Join-Path $PSScriptRoot 'python-resolve.ps1')
 } catch {
