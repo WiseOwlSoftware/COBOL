@@ -17,7 +17,7 @@ gave the cut record.
 `SequentialIoEmitter.RecordAreaSendImage` is the one whole-area image, used by `SentRecordImage` (WRITE, REWRITE and
 RELEASE in every organization) and by the keyed READ, DELETE and START; the debug contents read the area whole.
 `FileModel.TransfersPastRecord` also holds for an OCCURS DEPENDING record-name-1, whose current size can be below the
-area's. docs/CONFORMANCE.md D-WRT1 states the whole-area reading.
+area's. The whole reading never unwraps an out-of-line variable-length group (its image is its current composition; the first gate's red, pb2497_vlg_record_odo_element_tables at 2014, threw there). docs/CONFORMANCE.md D-WRT1 states the whole-area reading; StartTemporaryKeyAreaDriftTests names the one channel.
 
 **Goldens.** `14.9.51-WRITE/pb5217_write_beside_odo_record` (85 on: sequential, relative, indexed and RECORD VARYING
 DEPENDING files) and `XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/pb5217_debug_contents_odo_area`; expected values written
@@ -27,4 +27,4 @@ from the rules before the run. There is no edition below 1985 to refuse. No inve
 COMMIT save renders an item, not an area, and its ODO object must be committed with it, SR8), and LINE SEQUENTIAL (unchanged:
 `TransfersPastRecord` is false there).
 
-**Gate.** `build-local` at the branch head (its run directory and verdict line are in the wave report, w20262020d).
+**Gate.** `build-local` GREEN at 0f9280226a (run 000003-20261114T021230Z; Conformance and Characterization from run 000002). Run 000001 was red on the two reds above; run 000002 on an unrelated GrammarDiagramGeneratorDriftTests watcher buffer overflow.
