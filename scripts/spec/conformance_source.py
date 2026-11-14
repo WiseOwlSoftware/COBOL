@@ -9,7 +9,7 @@ gitignored VIEW (`conformance_doc.py`, `rendered_views.py`) that nothing reads b
 
 THE READER KNOWS THE DOCUMENT'S SECTIONS BY NUMBER (`## 7. …`, `### 3.2 …`), never by their title: a title is prose and is
 reworded, and a number is the key every citation of the document already uses. A section runs from its heading to the next
-heading of the same or a shallower level, so section 3 holds its subsections 3.1 to 3.11 and section 3.2 does not.
+heading of the same or a shallower level, so section 3 holds its subsections 3.1 to 3.12 and section 3.2 does not.
 
 THE DOCUMENT HAS ONE REGULAR SHAPE (step B1, kb/Work PB5429), the one the cut into one file per entry renders back: each
 section is of a kind (`KINDS`), its own text is a preamble, its keyed entries in natural key order, a table's row bodies
@@ -69,7 +69,7 @@ _FACILITY = re.compile(r"^[0-9]+\.\s+\*\*(.+?)\*\*", re.MULTILINE)
 # EPILOGUE after the marker line. A prose section has no entries: its whole text is its preamble. A key is unique in the
 # whole document (every key is an anchor), and the entries of every kind but BLOCKS stand in natural key order.
 
-#: A section of prose alone (sections 1, 3.3 to 3.11 and 6): its text is its preamble.
+#: A section of prose alone (sections 1, 3.3 to 3.12 and 6): its text is its preamble.
 PROSE = "prose"
 #: A section of determinations: top-level bullets, each opening `- **<D-KEY>` (sections 3 and 3.1).
 BULLETS = "bullets"

@@ -60,6 +60,10 @@
       "vcrRow": "7.69"
     },
     {
+      "id": "evaluate-refuses-literal-subject-literal-object",
+      "vcrRow": "7.75"
+    },
+    {
       "id": "file-sharing-facility",
       "vcrRow": "7.39"
     },

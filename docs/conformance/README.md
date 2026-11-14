@@ -22,7 +22,7 @@ key. Frontmatter values are JSON, one `<name>: <value>` a line.
 | `3/` | the behavior determinations | determination: `D-<KEY>.md`, the bullet as written |
 | `3.1/` | the Annex A.2 undefined cases | determination: `D-<KEY>.md` |
 | `3.2/` | the nonstandard extensions (§2023:4.2.10) | extension id: `cells:` |
-| `3.3/` to `3.11/`, `3.7.1/` | the COBOL-85 determinations | (prose only) |
+| `3.3/` to `3.12/`, `3.7.1/` | the COBOL-85 determinations | (prose only) |
 | `4/` | the documented non-support facilities and their determinations | block: `order:` (the place it stands), the block as written |
 | `5/` | Annex A.4, the optional modules | A.4 module: `cells:` |
 | `6/` | maintenance | (prose only) |
