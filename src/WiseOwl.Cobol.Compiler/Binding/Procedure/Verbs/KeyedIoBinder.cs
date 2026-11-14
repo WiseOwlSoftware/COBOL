@@ -70,6 +70,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // never silently rerouted. SR10/SR11 (the KEY phrase) are hard errors below and always were.
         ctx.Validation.CheckReadRandomAccessPhrases(file, contention?.readAdvancingOnLock() is not null,
             atEnd is not null, notAtEnd is not null, next, previous);
+        // §1985:VIII.4.5.3 SR3 / §1985:IX.4.5.3 SR5 — a dynamic file read sequentially at COBOL-85 writes NEXT (kb/Work PB5102);
+        // the READ still binds as the SR9-implied NEXT below, the refusal reported beside it.
+        ctx.Validation.CheckReadDynamicNextWritten(file, atEnd is not null, notAtEnd is not null, next);
         ReadKind kind = file.AccessMode switch
         {
             FileAccessMode.Random => ReadKind.Random,
