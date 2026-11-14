@@ -43,4 +43,7 @@ generators' `--out` reaches it through `write_rendered` (stamped at a view's pat
 package's copy stays plain), the diagnostics test writes its raw render to the file `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC`
 names and the script places it with `rendered_views.py diagnostics --write`, and `render_all` fails a generator that exits
 0 without a stamped view. Probe: the three generators run directly, then `rendered_views.py --check`: `rendered views OK —
-7 views … none edited after its render`; the self-test grew four arms (20/20).
+7 views … none edited after its render`; the self-test grew four arms (20/20). The first fix gate (run
+000001-20261114T171525Z) was RED at the INERT LANE audit: the C# test no longer names `docs/DIAGNOSTICS.md`, so its Markdown
+allowance in `source_reads.py` was dead and went. Gate: run 000002-20261114T171657Z at 5336079ba2, `=== BUILD-LOCAL GATE:
+GREEN — Conformance up to date … · Unit 40,766/40,766 ran · RepoDrift 177/177 ran · Characterization up to date … ===`.
