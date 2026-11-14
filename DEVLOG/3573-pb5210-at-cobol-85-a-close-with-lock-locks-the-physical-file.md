@@ -1,4 +1,4 @@
-## PB5210: at COBOL-85 a CLOSE WITH LOCK locks the physical file; from 2002 it locks the file connector
+## Entry 3573 — 2026-11-13 18:31 PST — PB5210: at COBOL-85 a CLOSE WITH LOCK locks the physical file; from 2002 it locks the file connector
 
 **The defect (kb/Work PB5210).** `FileRegistry.CloseWithLock` added the connector's name to `_locked`, and `SharedOpenAttempt`
 answered 38 only for that name. A second SELECT whose ASSIGN names the same physical file opened it with 00, read its
@@ -48,3 +48,4 @@ again"). R1-2: 1985-GR-IX.4.2.4-2 and 1985-GR-IX.4.4.4-5 still said that another
 physical-file sites and the 85 witness to IX.4.4.4-5, and added the new golden to 1985-GR-VII.4.2.4-3 and 1985-GR-VII.1.3.5-L2.3.
 A sweep of every inventory's notes for a connector-keyed lock found no other row. While merging main, this branch's behaviour
 member moved to value 18 and VCR row 7.68, because main's PB5186 had taken 17 and 7.67.
+
