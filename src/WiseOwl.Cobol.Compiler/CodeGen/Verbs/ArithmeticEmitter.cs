@@ -692,7 +692,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// flag is set by any per-receiver overflow (<c>TryStore</c> false — phase b, the other receivers still store,
     /// rule 2) or by a <c>CobolSizeError</c> raised during evaluation (e.g. a zero divisor — phase a, no receiver
     /// changes, rule 4); the ON / NOT ON SIZE ERROR imperative then runs once. With no phrase the stores run
-    /// unchecked (the plain <c>Store</c> path) — behavior unchanged — save at COBOL-85 (<paramref name="arithmeticStatement"/>).
+    /// unchecked (the plain <c>Store</c> path) — behavior unchanged — save in a COBOL-85 arithmetic statement (the overload below).
     /// </summary>
     public void EmitArith(SizeErrorPhrase? sizeErr, Action<bool> emitStores) => EmitArith(sizeErr, arithmeticStatement: true, emitStores);
 

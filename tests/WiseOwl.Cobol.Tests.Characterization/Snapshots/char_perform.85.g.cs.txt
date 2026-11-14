@@ -48,14 +48,36 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                     long __n1 = 3L;
                     for (long __i1 = 0; __i1 < __n1; __i1++)
                     {
-                        T = (long)(CobolNum.Store(((Int128)(T) + (1L)), 0, _P_1, CobolRounding.Truncation));
+                        bool __sizeErr0 = false;
+                        try
+                        {
+                            try
+                            {
+                                T = (long)(CobolNum.Store(((Int128)(T) + (1L)), 0, _P_1, CobolRounding.Truncation));
+                            }
+                            catch (CobolSizeError) { __sizeErr0 = true; }
+                            catch (global::System.OverflowException) { __sizeErr0 = true; }
+                        }
+                        catch (CobolSizeError) { __sizeErr0 = true; }
+                        catch (global::System.OverflowException) { __sizeErr0 = true; }
                         __pcont0: ;
                     }
                     __pexit0: ;
                     I = (long)(CobolNum.Store(1L, 0, _P_0, CobolRounding.Truncation));
                     while (!(I > 5L))
                     {
-                        T = (long)(CobolNum.Store(((Int128)(T) + (I)), 0, _P_1, CobolRounding.Truncation));
+                        bool __sizeErr1 = false;
+                        try
+                        {
+                            try
+                            {
+                                T = (long)(CobolNum.Store(((Int128)(T) + (I)), 0, _P_1, CobolRounding.Truncation));
+                            }
+                            catch (CobolSizeError) { __sizeErr1 = true; }
+                            catch (global::System.OverflowException) { __sizeErr1 = true; }
+                        }
+                        catch (CobolSizeError) { __sizeErr1 = true; }
+                        catch (global::System.OverflowException) { __sizeErr1 = true; }
                         __pcont2: ;
                         I = (long)(CobolNum.Store(((Int128)(I) + (1L)), 0, _P_0, CobolRounding.Truncation));
                     }
@@ -66,7 +88,18 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                 }
                 case 1:   // SUB-PARA
                 {
-                    T = (long)(CobolNum.Store(((Int128)(T) + (100L)), 0, _P_1, CobolRounding.Truncation));
+                    bool __sizeErr2 = false;
+                    try
+                    {
+                        try
+                        {
+                            T = (long)(CobolNum.Store(((Int128)(T) + (100L)), 0, _P_1, CobolRounding.Truncation));
+                        }
+                        catch (CobolSizeError) { __sizeErr2 = true; }
+                        catch (global::System.OverflowException) { __sizeErr2 = true; }
+                    }
+                    catch (CobolSizeError) { __sizeErr2 = true; }
+                    catch (global::System.OverflowException) { __sizeErr2 = true; }
                     __pc = 2;
                     break;
                 }
