@@ -194,6 +194,8 @@ internal static class BackendContract
             "Bound.IntoPhraseRules.ArmB1985", "Bound.IntoPhraseRules.ArmB2023",
             "Bound.IntoPhraseRules.EntryFace", "Bound.IntoPhraseRules.Statement",
             "Bound.IntoPhraseRules.StrongReceiverCite", "Bound.IntoPhraseRules.StrongReceiverCount",
+            // how a receiver names itself in the emitter's internal-error message (kb/Work PB5386)
+            "Bound.PropertyReceiverKey.Face", "Bound.ReceiverBracketKey.Face", "Bound.WrittenReceiverKey.Face",
             // a rule's citation and wording as each edition numbers it, for a diagnostic (kb/Work PB5352)
             "Model.EditionCite.At()", "Model.EditionCite.Iso2023", "Model.EditionCite.Sequential1985",
             "Model.EditionCite.Relative1985", "Model.EditionCite.Indexed1985",
