@@ -192,7 +192,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 // operation conflict condition arises, so the governed entry has to own the retrieval and decide
                 // BEFORE it, for EVERY connector — §2023:9.1.16's inaccessibility is not conditioned on the
                 // reading connector's own LOCK MODE clause (kb/Work PB669).
-                string keyImage = area is not null ? OperandText.RecordSendImage(area) : "\"\"";
+                string keyImage = SeqIo.RecordAreaSendImage(file) ?? "\"\"";   // the WHOLE area (kb/Work PB5217)
                 string? keyExtents = area is not null ? OperandText.RecordSendExtents(area) : null;
                 var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
                 w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, rd.KeyIndex, keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img, keyExtents)};");
@@ -382,7 +382,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         // GR3 — multi-01 FDs share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
         Place? area = places.RecordArea(file);
-        string image = area is not null ? OperandText.RecordSendImage(area) : "\"\"";
+        string image = SeqIo.RecordAreaSendImage(file) ?? "\"\"";   // the WHOLE area (kb/Work PB5217)
         string? areaExtents = area is not null ? OperandText.RecordSendExtents(area) : null;
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
@@ -496,8 +496,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             string len = sta.Length is { } le
                 ? StartLength(num.Landed(NumericRenderer.DeU(num.Render(le, ReceiverContext.None)), ReceiverContext.None), natBytes)
                 : RuntimeApi.StartKeyLengthWidth(sta.NamedKey?.ByteWidth ?? sta.Operand!.Item.ByteWidth);
-            string areaImage = places.RecordArea(file) is { } ar
-                ? OperandText.RecordSendImage(ar) : "\"\"";   // THE ONE record-area channel (kb/Work PB327)
+            string areaImage = SeqIo.RecordAreaSendImage(file) ?? "\"\"";   // THE ONE record-area channel, the WHOLE area (kb/Work PB327, PB5217)
             string? areaExtents = places.RecordArea(file) is { } extentArea
                 ? OperandText.RecordSendExtents(extentArea) : null;   // its extent table (D-FRA (v); kb/Work PB1053)
             w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), areaImage, len, areaExtents)};");
