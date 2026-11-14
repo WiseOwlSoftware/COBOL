@@ -2803,6 +2803,17 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The LOGICAL NOT of an abbreviated relation (<c>A &gt; B AND NOT &gt;= C</c>; §1985:VI.6.3.3 GRL2.2) — the
+        /// grammar's one <c>negatedAbbreviatedRelation</c> node, which only that reading produces. ISO 2002 prohibited the
+        /// word NOT before the relational operators meaning 'greater than or equal to' and 'less than or equal to'
+        /// (§2002:F.1 item 22), and from 2002 on NOT before a relational operator is part of it or not written at all
+        /// (§2023:8.8.4.12.2; kb/Work PB5123).</summary>
+        public override object? VisitNegatedAbbreviatedRelation(CobolParserCore.NegatedAbbreviatedRelationContext ctx)
+        {
+            _p.Check(Constructs.AbbreviatedNotLogicalRemoved2002, "NOT before the relational operator of an abbreviated relation");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The target-less <c>GO TO.</c> (ISO §2023:14.9.17; the ANSI-85 alterable GO TO, REMOVED by 2002) —
         /// the grammar's third <c>goToStatement</c> alternative, asked of the ONE format classifier rather than
         /// re-derived from optional children (kb/Work PB412). The condition used to be spelled

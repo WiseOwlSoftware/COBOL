@@ -130,6 +130,16 @@ public abstract class CobolParserCoreBase : Parser
     /// a predicate steers prediction rather than throwing (kb/Work PB829, the dynamic-length-structure-clause).</summary>
     protected bool wordAhead(string word) => Word(TokenStream.LT(1), word);
 
+    /// <summary>The NOT here is the LOGICAL operator of a negated abbreviated relation (kb/Work PB5123): §1985:VI.6.3.3
+    /// GRL2.1 makes NOT part of the relational operator when the word after it is GREATER, &gt;, LESS, &lt;, EQUAL or =,
+    /// and GRL2.2 makes it the logical operator otherwise. NOT after NOT is no reading at all, so it is excluded too.
+    /// The left-edge predicate of <c>succeedingCondition</c>'s <c>negatedAbbreviatedRelation</c> alternative; whether
+    /// an abbreviated relation actually follows is the grammar's question, not this one's.</summary>
+    protected bool logicalNotBeforeRelationalOperator()
+        => TokenStream.LA(1) == CobolParserCore.NOT
+           && TokenStream.LA(2) is not (CobolParserCore.GREATER or CobolParserCore.GT or CobolParserCore.LESS
+               or CobolParserCore.LT or CobolParserCore.EQUAL or CobolParserCore.EQUALS or CobolParserCore.NOT);
+
     /// <summary>The cd-names the communication sections parsed so far declare (kb/Work PB4677). A data division precedes its
     /// procedure division, and an action never runs during prediction, so a name is here by the time a statement can name it.</summary>
     private readonly HashSet<string> _communicationNames = new(StringComparer.Ordinal);

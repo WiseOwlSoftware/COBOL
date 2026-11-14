@@ -803,6 +803,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         Core.UnaryLogicalExpressionContext u => u.NOT() is not null
             ? new BoundNot(BindCondition(u.primaryCondition(), carry)) : BindCondition(u.primaryCondition(), carry),
         Core.AbbreviatedRelationContext ar => BindAbbreviatedRelation(ar, carry),
+        // §1985:VI.6.3.3 GRL2.2: the logical NOT of an abbreviated relation — the insertion happens inside, so the
+        // stated operator is the one carried on (kb/Work PB5123; refused from 2002 by VersionConformancePass).
+        Core.NegatedAbbreviatedRelationContext nar => new BoundNot(BindAbbreviatedRelation(nar.abbreviatedRelation(), carry)),
         Core.PrimaryConditionContext p => BindPrimary(p, carry),
         _ => Refused("unsupported condition form"),
     };
