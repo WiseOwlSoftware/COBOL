@@ -152,7 +152,8 @@ public static class ProgramRegistry
             programSpecifiers, siteSizeTruncationChecking);
 
     /// <inheritdoc cref="ProgramTable.Cancel"/>
-    public static void Cancel(string name, string? callerPath) => RunUnit.Current.Programs.Cancel(name, callerPath);
+    public static void Cancel(string name, string? callerPath, bool refusesEveryActiveProgram)
+        => RunUnit.Current.Programs.Cancel(name, callerPath, refusesEveryActiveProgram);
 
     /// <inheritdoc cref="ProgramTable.EntryOf"/>
     public static ProgramPointer EntryOf(string name, out bool notFound)

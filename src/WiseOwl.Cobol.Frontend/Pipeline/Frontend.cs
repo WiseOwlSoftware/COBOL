@@ -493,7 +493,8 @@ public sealed class Frontend
             tokens = new CommonTokenStream(lexer);
             var streamSourceLines = new List<IToken>();
             misplacedDebuggingLines.Clear();
-            if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines) is not { } sourceRegionLine)
+            if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines,
+                    debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002)) is not { } sourceRegionLine)
             {
                 sourceDebuggingLines.AddRange(streamSourceLines);
                 break;

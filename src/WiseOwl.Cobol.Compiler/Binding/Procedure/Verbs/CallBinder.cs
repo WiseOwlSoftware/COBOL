@@ -1329,7 +1329,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 if (computed is not BoundOperandError) targets.Add((null, computed));
             }
         }
-        return new BoundCancel(targets);
+        return new BoundCancel(targets,
+            DialectBehaviors.IsActive(DialectBehavior.CancelRefusesEveryActiveProgram, ctx.Edition.Edition.Year));
     }
 
     /// <summary>Bind <c>GOBACK [RETURNING x]</c> (ISO §2023:14.9.18). GOBACK itself was introduced by ISO/IEC

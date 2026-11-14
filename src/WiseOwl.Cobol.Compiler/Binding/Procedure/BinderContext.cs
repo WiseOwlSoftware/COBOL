@@ -122,7 +122,8 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     private readonly List<EnclosingFrame> _constructs = [];
 
     /// <summary>⛔ THE PLACEMENT-RULE PROBE. Recomputed per read from the live bind position, never cached.</summary>
-    public EnclosingContext Enclosing => new(SourceElement, _constructs, DeclarativeAtCursor());
+    public EnclosingContext Enclosing => new(SourceElement, _constructs, DeclarativeAtCursor(),
+        _table is not null && BindCursor >= 0 && _table.InDebuggingSection(BindCursor));
 
     /// <summary>The declarative section containing <see cref="BindCursor"/>, or null — ONE lookup, so a second
     /// placement rule cannot acquire a second, differently-guarded copy of it (it had exactly one asker, RESUME,

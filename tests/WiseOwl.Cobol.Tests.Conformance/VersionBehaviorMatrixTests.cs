@@ -91,5 +91,7 @@ public sealed class VersionBehaviorMatrixTests
             Assert.NotEmpty(v.Outputs);   // a confirmed variant must carry per-edition goldens
     }
 
-    private static string Normalize(string s) => s.ReplaceLineEndings("\n").TrimEnd('\n');
+    /// <summary>The host's newline as LF, trailing line ends dropped; a form feed, NEL, LS, PS or lone CR the program
+    /// printed is output and stays (kb/Work PB5460).</summary>
+    private static string Normalize(string s) => s.Replace("\r\n", "\n").TrimEnd('\n');
 }

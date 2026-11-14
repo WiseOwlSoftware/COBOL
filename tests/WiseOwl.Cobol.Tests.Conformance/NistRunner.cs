@@ -19,7 +19,7 @@ internal sealed record NistRunResult(bool Ok, string Report, string Detail, IRea
 
 /// <summary>Compiles a NIST CCVS program (with its X-card preprocessing) and runs it in an isolated temp directory,
 /// predecessors of its chain first, collecting EVERYTHING it wrote (kb/Work PB804).</summary>
-internal static class NistRunner
+internal static partial class NistRunner
 {
     /// <summary>Compile and run <paramref name="testName"/>; a program with chain predecessors in
     /// <c>tests/nist/corpus.tsv</c> runs them (in order) in the same directory first, so the consumer's TF### input
@@ -93,26 +93,41 @@ internal static class NistRunner
     private static NistRunResult Failed(string detail) =>
         new(false, "", detail, new Dictionary<string, byte[]>());
 
-    /// <summary>The NIST acceptance basis (exactly <c>scripts/guard-verdict.sh</c>'s <c>guard_normalize_into</c>): drop CR
-    /// together with the spaces before it, strip per-line trailing spaces, and mask the COMPUTED= operand (a value some
-    /// CCVS programs print that is not part of the pass/fail decision). Applied identically to the golden and the produced
-    /// output.
+    /// <summary>The NIST acceptance basis: lines end at LF; every CR goes with the spaces before it; the spaces before a
+    /// form feed go and the form feed stays; each line loses its trailing spaces; the COMPUTED= operand (a value some
+    /// CCVS programs print that is not part of the pass/fail decision) is masked; trailing empty lines and the final
+    /// line end go. Applied identically to the golden and the produced output. <c>scripts/guard-verdict.sh</c>'s
+    /// <c>guard_normalize_into</c> is the same rule in the shell, and both are held to every case of
+    /// <c>tests/nist/normalization-cases.json</c> (<see cref="NistWrittenFilesTests"/> this arm,
+    /// <c>scripts/guard-verify.sh --self-test</c> that one; kb/Work PB5460).
     /// <para>⛔ THE SPACES BEFORE A CR ARE TRAILING SPACES OF AN OVERPRINT SEGMENT (kb/Work PB2509). A record sequential
     /// print stream writes each record whole, so an overprinted line reads <c>marker␠␠␠\rtext</c>; the spaces after
     /// <c>marker</c> strike nothing, exactly the trailing spaces the per-line strip drops from a line that is not
-    /// overprinted, and the basis compares listing TEXT.</para>
-    /// <para>⛔ A LONE CR IS DROPPED, NOT TURNED INTO A LINE BREAK. <c>ReplaceLineEndings("\n")</c> — what this used
-    /// to call — maps a bare CR to LF, which silently ignored the basis above: a WRITE … ADVANCING 0 is an OVERPRINT
-    /// written as a carriage return (docs/CONFORMANCE.md "ADVANCING 0"; kb/Work PB1667), and the NIST print programs
-    /// (SQ101M, SQ207M) check that the overprinted line follows its marker on the same line. The basis exists to
-    /// compare listing TEXT, and a carriage return is not text.</para></summary>
+    /// overprinted, and the basis compares listing TEXT. A WRITE … ADVANCING 0 is an OVERPRINT written as a carriage
+    /// return (docs/CONFORMANCE.md "ADVANCING 0"; kb/Work PB1667), and the NIST print programs (SQ101M, SQ207M) check
+    /// that the overprinted line follows its marker on the same line, so a lone CR is dropped, never a line break.</para>
+    /// <para>⛔ A FORM FEED IS A PAGE EJECT, NOT A LINE BREAK (kb/Work PB5460). The padding of the whole record before
+    /// the page eject a WRITE … ADVANCING PAGE writes strikes nothing, as before a CR, so it goes; the form feed stays.
+    /// <c>String.ReplaceLineEndings</c>, which this used to call, reads a form feed (and NEL, LS and PS) as a line end,
+    /// so a runtime that wrote a line advance where a page eject is owed compared equal here.</para></summary>
     public static string Normalize(string s)
     {
-        var lines = System.Text.RegularExpressions.Regex.Replace(s.Replace("\r\n", "\n"), " *\r", "")
-            .ReplaceLineEndings("\n").Split('\n')
-            .Select(line => System.Text.RegularExpressions.Regex.Replace(line.TrimEnd(' '), "COMPUTED=  [0-9]*", "COMPUTED=  XXXXXXXXX"));
+        string text = PageEjectPadding().Replace(OverprintPadding().Replace(s, ""), "\f");
+        var lines = text.Split('\n').Select(line => ComputedOperand().Replace(line.TrimEnd(' '), "COMPUTED=  XXXXXXXXX"));
         return string.Join("\n", lines).TrimEnd('\n');
     }
+
+    /// <summary>A CR and the spaces before it (<see cref="Normalize"/>; the shell's <c>s/ *\r//g</c>).</summary>
+    [System.Text.RegularExpressions.GeneratedRegex(" *\r")]
+    private static partial System.Text.RegularExpressions.Regex OverprintPadding();
+
+    /// <summary>The spaces before a form feed (<see cref="Normalize"/>; the shell's <c>s/ *\f/\f/g</c>).</summary>
+    [System.Text.RegularExpressions.GeneratedRegex(" +\f")]
+    private static partial System.Text.RegularExpressions.Regex PageEjectPadding();
+
+    /// <summary>The COMPUTED= operand (<see cref="Normalize"/>; the shell's <c>s/COMPUTED=  [0-9]*/…/</c>).</summary>
+    [System.Text.RegularExpressions.GeneratedRegex("COMPUTED=  [0-9]*")]
+    private static partial System.Text.RegularExpressions.Regex ComputedOperand();
 }
 
 /// <summary>

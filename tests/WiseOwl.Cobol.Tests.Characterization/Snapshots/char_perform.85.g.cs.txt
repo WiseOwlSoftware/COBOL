@@ -93,7 +93,7 @@ public static class CHAR_PERFORM
         ProgramRegistry.CallProgram("CHAR-PERFORM", null, global::System.Array.Empty<CobolArg>(), null, siteArgMismatchChecking: true);
     }
     /// <summary>CANCEL CHAR-PERFORM (ISO §2023:14.9.5) in the current run unit.</summary>
-    public static void Cancel() => ProgramRegistry.Cancel("CHAR-PERFORM", null);
+    public static void Cancel() => ProgramRegistry.Cancel("CHAR-PERFORM", null, refusesEveryActiveProgram: true);
 }
 public static class __CobolModule
 {

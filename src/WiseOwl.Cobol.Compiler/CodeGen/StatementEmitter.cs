@@ -94,10 +94,10 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     /// when the enclosing statement's guard has run-time checking flags standing they run inside an all-off
     /// <see cref="EcEmitter.EnterCheckingBaseline"/> scope and set only what their own lines enable (§2023:7.3.25.4
     /// GR6; kb/Work PB891). Nothing is emitted around the call when no flag guard encloses it.</summary>
-    internal void EmitProcedureRange(PcRange range, string comment = "")
+    internal void EmitProcedureRange(PcRange range, string comment = "", string? lastUsedFlag = null)
     {
         using (_ecEmit.EnterCheckingBaseline())
-            _ctx.Writer.Line(_dispatchState.DispatchCall(range, comment));
+            _ctx.Writer.Line(_dispatchState.DispatchCall(range, comment, lastUsedFlag));
     }
 
     internal bool EmitStatementList(IReadOnlyList<BoundStatement> stmts)

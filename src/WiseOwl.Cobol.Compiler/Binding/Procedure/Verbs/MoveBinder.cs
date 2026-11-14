@@ -563,7 +563,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             // reference a numeric or numeric-edited item" — a group item does not satisfy. MOVE CORRESPONDING's
             // pairing filter already read it that way (kb/Work PB391); the written MOVE now agrees with it.
             if (MoveTable16.Validity(source, t) is not { } refusal) continue;
-            FrameMoveRefusal(refusal, source, Table16Operand.Of(t), t is RefModPlace, MoveTable16.OperandItem(t),
+            FrameMoveRefusal(refusal, source, Table16Operand.Of(t), t is RefModPlace, t.DescribedItem,
                              t.Item.CobolName, implicitOf);
         }
     }

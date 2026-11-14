@@ -72,7 +72,7 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
                 StoreArea(n, RuntimeApi.McsPurge(cd, format, image));
                 break;
             case CommunicationVerb.Send:
-                string text = n.Text is { } from ? OperandText.AsTransferString(from, num, "SEND FROM") : "null";
+                string text = n.Text is { } from ? SendingText(from) : "null";
                 string indicator = n.IndicatorItem is { } item
                     ? RuntimeApi.McsIndicatorOf(OperandText.AsTransferString(item, num, "SEND WITH"))
                     : RuntimeApi.CommunicationEnum(n.Indicator);
@@ -86,6 +86,25 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
         }
     }
 
+    /// <summary>⛔ THE TEXT OF SEND's identifier-1 (kb/Work PB5378). §1985:XIV.3.6.4 GR3 counts the text length against "the size of the data
+    /// item referenced by identifier-1", and "the size of an elementary data item or a group item is the number of characters in
+    /// standard data format of the item" (§1985:IV.4.3.4), so at --std 85 an elementary item and a group are measured, and
+    /// transferred, in the same characters: an elementary binary or packed item as its digits (<see cref="OperandText.AsTransferString"/>),
+    /// and a group with such an item as its storage image with each of them replaced by its digits
+    /// (<c>CobolStandardData.Image</c>), the size <see cref="ItemLength.StandardDataFormatCharacters"/> counts. From 2002 the CD's records
+    /// are measured in storage positions (<c>CommunicationSectionBinder.CheckRecords</c>) and a group is its storage image.</summary>
+    private string SendingText(BoundOperand from)
+    {
+        string text = OperandText.AsTransferString(from, num, "SEND FROM");
+        if (ctx.Data.DialectLevel >= 2002 || from is not BoundFieldOperand { Place: { } place } || place is RefModPlace) return text;
+        if (place.Item.IsGroup)
+            return ItemLength.StandardLayout(place.Item) is { } layout ? RuntimeApi.StandardDataImage(text, layout) : text;
+        // A signed binary or packed item's DISPLAY image has a leading minus, a character the size does not count (§1985:VI.5.9.4 GR8d).
+        return place.Item.Pic is { Signed: true } pic && ItemLength.IsStoredAsDigits(pic)
+            ? RuntimeApi.StandardDataCharacters(text, place.Item.ProfileName)
+            : text;
+    }
+
     private void StoreArea(BoundCommunicationStatement n, string call) => seqIo.EmitImageInto(n.Area, call, storesIntoOwnItem: false);
 
     /// <summary>A.2.5.3 GR3-GR5: the receipt fills the area and the receiving item, and its answer picks the phrase.</summary>
@@ -96,7 +115,7 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
         // before the MCS updates the CD (a subscript may read TEXT LENGTH), so the receipt lands in the place the statement identified (kb/Work PB5279).
         var into = PlaceIdentification.Freeze(n.Into!, PlaceIdentification.Hoister(ctx));
         string receipt = $"__receipt{ctx.Names.NextEc()}";
-        w.Line($"var {receipt} = {RuntimeApi.McsReceive(cd, format, image, n.Segment, OperandText.RecordAreaImage(into), n.NoData is not null)};");
+        w.Line($"var {receipt} = {RuntimeApi.McsReceive(cd, format, image, n.Segment, OperandText.RecordAreaImage(into, use: OperandText.AreaUse.Receiving), n.NoData is not null)};");
         seqIo.EmitImageInto(n.Area, $"{receipt}.Area", storesIntoOwnItem: false);
         // A reference-modified receiver is a window, whose write splices; the image store is for an item's whole storage.
         if (into is RefModPlace) w.Line(PlaceRenderer.Write(into, $"{receipt}.Into"));

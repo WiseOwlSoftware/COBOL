@@ -724,6 +724,16 @@ public sealed record PicInfo(
     /// (DESIGN-external-repository §6.1, §6.3; kb/Work PB2100).</summary>
     internal int? WrittenDigitPositions => _digitPositions;
 
+    /// <summary>⛔ DOES THE ITEM HOLD A SIGN? (the ONE answer, kb/Work PB5182): a numeric item holds one when its picture has
+    /// <c>S</c> (<see cref="Signed"/>); a fixed-point numeric-edited item when its mask carries a sign editing symbol
+    /// (<c>+</c>, <c>-</c>, <c>CR</c>, <c>DB</c>, §2023:13.18.40.5), and a format-2 (LOCALE) item, which has no mask, by the
+    /// picture's <c>+</c> (<see cref="Signed"/>, §2023:13.18.40.4 GR18). A floating-point numeric-edited item's sign is its
+    /// significand's, which <c>CobolEdit.FloatMask.SigSign</c> reads (its exponent <c>+</c> is not the value's sign).</summary>
+    public bool HoldsSign =>
+        this is { Category: PicCategory.NumericEdited, EditMask: { } mask, LocaleEdit: null }
+            ? mask.Any(c => c is '+' or '-') || WiseOwl.Cobol.Runtime.CobolNames.Contains(mask, "CR") || WiseOwl.Cobol.Runtime.CobolNames.Contains(mask, "DB")
+            : Signed;
+
     /// <summary>The ONE PicInfo-keyed receiver-scale rule (kb/Work PB64 T6 — it was written twice, in
     /// <c>MoveEmitter.SenderContext</c> and <c>ArithmeticEmitter.ScaleOf</c>, and both copies silently fell to
     /// <c>Scale</c> = 0 for a locale item, truncating a fractional sender; kb/Work PB1685 moved it HERE so the

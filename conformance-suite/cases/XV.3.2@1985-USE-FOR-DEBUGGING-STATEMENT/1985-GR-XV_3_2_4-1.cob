@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: 1985-GR-XV_3_2_4-1
-      *> rules: [1985-GR-XV.3.2.4-1]
+      *> rules: [1985-GR-XV.3.2.4-1, 1985-SR-XV.3.2.3-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
@@ -10,6 +10,14 @@
       *> exactly the lines its .out holds, the outcome the rule
       *> requires. Placed from the confirmation pass's redraft (WRONG
       *> original) by scripts/spec/place_witnesses.py (kb/Work PB4995).
+      *> It is also the legal form of §1985:XV.3.2.3 SR2: "Except in
+      *> the USE FOR DEBUGGING statement itself, there must be no
+      *> reference to any non-declarative procedure within the
+      *> debugging section." MAIN-PARA is named only in the USE FOR
+      *> DEBUGGING statement, and the section's PERFORM names ERR-PARA,
+      *> a declarative procedure (SR4 allows it with a PERFORM). WiseOwl
+      *> warns (COBOL2375) on a PERFORM MAIN-PARA in its place
+      *> (docs/CONFORMANCE.md D-DECLREF; kb/Work PB4995).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DBGGR1.
        ENVIRONMENT DIVISION.

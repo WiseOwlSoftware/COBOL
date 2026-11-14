@@ -46,7 +46,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         // identifier-1 is read as its character image whatever its SHAPE — a field, or (Format 1 only) a
         // function-identifier (PB10). AsString already dispatches on the operand kind, so admitting the function
         // case cost nothing here; it is the STORE below that the shape constrains.
-        string readImage = OperandText.AsString(ins.Target, num, deSign: true);
+        string readImage = OperandText.AsItemCharacters(ins.Target, num, deSign: true);
         w.Line($"string {img} = {readImage};");
         // ⛔ GR2 — a ZERO-LENGTH identifier-1 (a dynamic-length item at length 0, an occurs-depending group at count
         // 0, a function returning a zero-length value — §2023:8.5.4) leaves identifier-1 AND identifier-2 unchanged and
@@ -338,5 +338,5 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
     /// (§2023:8.3.3.6.4 GR6/GR7 — the same rule <c>OperandText.AsString</c>'s characterCategory answers for STRING and
     /// UNSTRING, kb/Work PB1185).</para></summary>
     private string OperandTextOf(BoundOperand? op, PicCategory? cat) =>
-        op is null ? "null" : OperandText.AsString(op, num, deSign: true, characterCategory: cat);
+        op is null ? "null" : OperandText.AsItemCharacters(op, num, deSign: true, characterCategory: cat);
 }

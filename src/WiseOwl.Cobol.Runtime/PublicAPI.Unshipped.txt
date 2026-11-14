@@ -1135,3 +1135,14 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.EndModeScope(string! name) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 WiseOwl.Cobol.Runtime.ModuleStack.RunningIsMain.get -> bool
+WiseOwl.Cobol.Runtime.DialectBehavior.CancelRefusesEveryActiveProgram = 16 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.ProgramTable.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
+static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath, bool refusesEveryActiveProgram) -> void
+WiseOwl.Cobol.Runtime.CobolStandardData
+static WiseOwl.Cobol.Runtime.CobolStandardData.Image(string! storage, WiseOwl.Cobol.Runtime.StandardDataPart![]! parts) -> string!
+WiseOwl.Cobol.Runtime.StandardDataPart
+WiseOwl.Cobol.Runtime.StandardDataPart.StandardDataPart(int offset, int width, WiseOwl.Cobol.Runtime.NumProfile? profile = null, int count = 1, WiseOwl.Cobol.Runtime.StandardDataPart![]? members = null) -> void
+static WiseOwl.Cobol.Runtime.CobolStandardData.Characters(string! displayImage, in WiseOwl.Cobol.Runtime.NumProfile profile) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.FormatStandardData(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> string!
+WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterRerunRecords(string! name, long every, string! device, string! file) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.RegisterRerunRecords(string! name, long every, string! device, string! file) -> void

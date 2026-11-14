@@ -1933,7 +1933,6 @@ WiseOwl.Cobol.Runtime.ProgramTable
 WiseOwl.Cobol.Runtime.ProgramTable.CallFunctionPointer(WiseOwl.Cobol.Runtime.FunctionPointer target, string! callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, bool siteArgMismatchChecking = false) -> void
 WiseOwl.Cobol.Runtime.ProgramTable.CallPointer(WiseOwl.Cobol.Runtime.ProgramPointer target, string! callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false) -> void
 WiseOwl.Cobol.Runtime.ProgramTable.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false) -> void
-WiseOwl.Cobol.Runtime.ProgramTable.Cancel(string! name, string? callerPath) -> void
 WiseOwl.Cobol.Runtime.ProgramTable.EntryOf(string! name, out bool notFound) -> WiseOwl.Cobol.Runtime.ProgramPointer
 WiseOwl.Cobol.Runtime.ProgramTable.FunctionAddressOf(string! name, out bool notFound) -> WiseOwl.Cobol.Runtime.FunctionPointer
 WiseOwl.Cobol.Runtime.ProgramTable.FunctionSignatureMatches(WiseOwl.Cobol.Runtime.FunctionPointer p, int expectedFormals) -> bool
@@ -3577,7 +3576,6 @@ static WiseOwl.Cobol.Runtime.ProgramPointer.operator ==(WiseOwl.Cobol.Runtime.Pr
 static WiseOwl.Cobol.Runtime.ProgramRegistry.CallFunctionPointer(WiseOwl.Cobol.Runtime.FunctionPointer target, string! callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, bool siteArgMismatchChecking = false) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.CallPointer(WiseOwl.Cobol.Runtime.ProgramPointer target, string! callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.CallProgram(string! name, string? callerPath, WiseOwl.Cobol.Runtime.CobolArg[]! args, WiseOwl.Cobol.Runtime.CobolArg? returning, string! notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false, string![]? programSpecifiers = null, bool siteSizeTruncationChecking = false) -> void
-static WiseOwl.Cobol.Runtime.ProgramRegistry.Cancel(string! name, string? callerPath) -> void
 static WiseOwl.Cobol.Runtime.ProgramRegistry.EntryOf(string! name, out bool notFound) -> WiseOwl.Cobol.Runtime.ProgramPointer
 static WiseOwl.Cobol.Runtime.ProgramRegistry.EntryOfArgument(string! name, bool checkNotFound) -> WiseOwl.Cobol.Runtime.ProgramPointer
 static WiseOwl.Cobol.Runtime.ProgramRegistry.EntryOfOperand(string! name, bool checkNotFound) -> WiseOwl.Cobol.Runtime.ProgramPointer

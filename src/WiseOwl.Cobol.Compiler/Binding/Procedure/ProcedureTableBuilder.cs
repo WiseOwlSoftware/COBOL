@@ -596,6 +596,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private bool _nonDebuggingDeclarativeSeen;
     private readonly List<BoundDebugSubject> _debugSubjects = [];
 
+    /// <summary>Whether <paramref name="pc"/> lies in a USE FOR DEBUGGING section (a declarative section with no <see cref="BoundDeclarative"/>): the
+    /// position fact the "not in the declaratives" placement rules ask through <see cref="EnclosingContext.InDeclarative"/> (kb/Work PB5275).</summary>
+    public bool InDebuggingSection(int pc) => _pendingDebug.Exists(p => pc >= p.Section.StartPc && pc <= p.Section.EndPc);
+
     /// <summary>The X3.23-1985 debug-facility trigger subjects (VCR Table 7 row 7.17) — each a nondeclarative
     /// procedure whose entry the emitter instruments to populate DEBUG-ITEM and run the debugging declarative;
     /// empty unless a procedure-subject USE FOR DEBUGGING was collected under WITH DEBUGGING MODE.</summary>
@@ -806,7 +810,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     {
         int pc = subject.StartPc;
         AddDebugSubject(new BoundDebugSubject(
-            pc, subject.Name, _paraLine[pc], debugging.StartPc, debugging.EndPc, IsSection: true));
+            pc, subject.Name, _paraLine[pc], debugging.StartPc, debugging.EndPc, IsSection: true, SubjectEndPc: subject.EndPc));
     }
 
     private void AddDebugSubject(BoundDebugSubject subject) => _debugSubjects.Add(subject);
