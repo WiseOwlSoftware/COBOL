@@ -136,6 +136,8 @@
         "@build": "the compiler, the runtime and the CLI it tests, and the sources its sweeps read (src/)",
         "tests/WiseOwl.Cobol.Tests.Unit/": "its own sources, project and data (Architecture/binder-member-readers.json, Store/, TestData/)",
         "specs/ISO_COBOL_2023.md": "the ORACLE the compiler's tables are derived from and checked against (SpecClauseText and ~40 table drift tests: Table12StatementNameDriftTests, PictureTable10DriftTests, ...)",
+        "specs/ISO_COBOL_2002.md": "the 2002 text a table's edition column is checked against (RecordClauseRuleDriftTests.EveryRowSince2002_IsInThe2002ClauseAndNotInThe1985RecordClause, kb/Work PB5196)",
+        "specs/ANSI_COBOL_1985.md": "the 1985 text a table's edition column is checked against (RecordClauseRuleDriftTests.EveryRowSince2002_IsInThe2002ClauseAndNotInThe1985RecordClause, kb/Work PB5196)",
         "data/unicode/": "the pinned UCD and CLDR tables the runtime's generated tables come from (CollationTableTests, CldrCollationSettingsTests, GraphemeBreakerTests)",
         "docs/rearchitecture/spec-rule-catalog.json": "the standard's rules as the catalog extracts them (EcRaiseSiteDriftTests)",
         "tests/version-matrix/reserved-words.json": "CobolWordsDriftTests, ReservedWordsDriftTests, InitializeLaneDriftTests, ...",
