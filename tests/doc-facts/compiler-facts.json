@@ -1180,6 +1180,10 @@
         {
           "name": "slots",
           "optional": true
+        },
+        {
+          "name": "rangeFailsStatement",
+          "optional": true
         }
       ]
     },
