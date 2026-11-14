@@ -80,6 +80,10 @@
       "vcrRow": "7.61"
     },
     {
+      "id": "negative-base-requires-integer-exponent",
+      "vcrRow": "7.67"
+    },
+    {
       "id": "numval-c-currency-content-rules",
       "vcrRow": "7.62"
     },

@@ -81,6 +81,9 @@ public static partial class CobolIntrinsics
     /// the positive number" — is NOT a screen: it is a selection rule, and it cannot arise here because
     /// <c>Math.Pow</c> and the exact wide power each yield a single value. Checked in this pass rather than left
     /// to be discovered as a fourth leg.</para>
+    /// <para>⛔ r6c IS THE RULE FROM COBOL-2002 (kb/Work PB5186): §1985:VI.6.2.3 GR5c refuses a negative base only when no real
+    /// number is the result, and that edition's power is <see cref="PowNativeReal(double, CobolExact)"/>, which asks this screen
+    /// for a non-negative base only.</para>
     /// </remarks>
     internal static void CheckPowRule6(double b, double e)
     {
@@ -95,23 +98,53 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>Native <c>**</c> on the FLOATING arm — the §2023:8.8.1.3 implementor-defined approximation, screened by
-    /// <see cref="CheckPowRule6"/> first so the two mandatory legs of rule 6 hold on this arm too (PB28).</summary>
+    /// <see cref="CheckPowRule6"/> first so the two mandatory legs of rule 6 hold on this arm too (PB28). From COBOL-2002; the COBOL-85
+    /// rule for a negative base is <see cref="PowNativeReal(double, CobolExact)"/>'s.</summary>
     public static double PowNativeReal(double b, double e)
     {
         CheckPowRule6(b, e);
         return Math.Pow(b, e);
     }
 
-    /// <summary><see cref="PowNativeReal"/> where a range condition's checking is ENABLED — the power is an operation on
+    /// <summary><see cref="PowNativeReal(double, double)"/> where a range condition's checking is ENABLED — the power is an operation on
     /// the binary64 intermediate, so its result's range is §2023:14.7.5 case 5 through the ONE check the other checked native
     /// operators use (<see cref="CobolFloat.InBinary64Range"/>, kb/Work PB1581): <c>C ** 2</c> over a COMP-2 holding
     /// 1.0E+300 is EC-SIZE-OVERFLOW, not +Infinity. A nonzero base's power is never zero. <paramref name="taken"/>: the
     /// conditions whose checking is enabled (kb/Work PB4092).</summary>
-    public static double PowNativeRealChecked(double b, double e, SizeChecks taken)
+    public static double PowNativeRealChecked(double b, double e, SizeChecks taken) =>
+        InExponentiationRange(PowNativeReal(b, e), b, e, taken);
+
+    /// <summary>⛔ NATIVE <c>**</c> AT COBOL-85, WHERE A NEGATIVE BASE IS REFUSED ONLY WHEN NO REAL RESULT EXISTS (kb/Work PB5186;
+    /// <c>DialectBehavior.NegativeBaseRequiresIntegerExponent</c>). §1985:VI.6.2.3 GR5c: "If no real number exists as the result of
+    /// the evaluation, the size error condition exists"; §2002:8.8.1.1 replaced it with the integer-exponent rule <see cref="CheckPowRule6"/>
+    /// screens (§2002:F.1 item 14 records the change). So at 85 <c>(-32) ** 0.2</c> is the real number −2, the fifth root of −32, and
+    /// <c>(-32) ** 0.4</c> is 4, while <c>(-4) ** 0.5</c> has no real result and is the size error. Whether a real result exists is a
+    /// property of the exponent's EXACT value, which a binary64 cannot carry (0.2 is not 1/5 in binary), so the exponent arrives as the
+    /// <see cref="CobolExact"/> the program wrote (<see cref="CobolExact.HasOddDenominator"/>). The zero-base rule (§1985:VI.6.2.3 GR5a)
+    /// is the one <see cref="CheckPowRule6"/> states, and a non-negative base is <see cref="PowNativeReal(double, double)"/> unchanged.
+    /// GR5b (the positive of two real results) needs no step: for an odd denominator the real root is unique, and <c>Math.Pow</c> of a
+    /// positive base returns the positive one.</summary>
+    public static double PowNativeReal(double b, CobolExact exponent)
     {
-        double r = PowNativeReal(b, e);
-        return double.IsFinite(b) && double.IsFinite(e) ? CobolFloat.InBinary64Range(r, nonzero: b != 0, "exponentiation", taken) : r;
+        double e = exponent.AsBinary64();
+        if (!(b < 0)) return PowNativeReal(b, e);
+        if (!exponent.HasOddDenominator(out bool oddNumerator))
+            throw new CobolSizeError(
+                $"exponentiation: no real number is the result of the negative base ({b}) raised to {e} "
+                + "(ISO §1985:VI.6.2.3 GR5c)", "EC-SIZE-EXPONENTIATION");
+        double magnitude = Math.Pow(-b, e);
+        return oddNumerator ? -magnitude : magnitude;
     }
+
+    /// <summary><see cref="PowNativeReal(double, CobolExact)"/> where a range condition's checking is ENABLED, through the one range
+    /// check <see cref="PowNativeRealChecked(double, double, SizeChecks)"/> applies.</summary>
+    public static double PowNativeRealChecked(double b, CobolExact exponent, SizeChecks taken) =>
+        InExponentiationRange(PowNativeReal(b, exponent), b, exponent.AsBinary64(), taken);
+
+    /// <summary>The §2023:14.7.5 case 5 range of a binary64 power <paramref name="r"/> of <paramref name="b"/> and <paramref name="e"/>
+    /// (kb/Work PB1581), for both checked entries.</summary>
+    private static double InExponentiationRange(double r, double b, double e, SizeChecks taken) =>
+        double.IsFinite(b) && double.IsFinite(e) ? CobolFloat.InBinary64Range(r, nonzero: b != 0, "exponentiation", taken) : r;
 
     /// <summary>§2023:15.7 ABS — the absolute value of a floating-point argument.</summary>
     public static double AbsReal(double v) => Math.Abs(v);

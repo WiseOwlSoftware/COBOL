@@ -218,6 +218,16 @@ public enum DialectBehavior
     /// <c>BoundCancel.RefusesEveryActiveProgram</c> for <c>CallEmitter.EmitCancel</c> and so for
     /// <c>ProgramTable.Cancel</c>.</summary>
     CancelRefusesEveryActiveProgram = 16,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:8.8.1.2 GR6c — "If the value of an expression to be raised to a power is less than zero, the
+    /// evaluation of the exponent shall result in an integer. Otherwise, the EC-SIZE-EXPONENTIATION exception condition is set to exist
+    /// and the size error condition is raised"; the 2002 text (§2002:8.8.1.1) words it the same, and §2002:F.1 item 14 records it as a
+    /// substantive change. §1985:VI.6.2.3 GR5c raises the size error condition only "If no real number exists as the result of the
+    /// evaluation", so at <c>--std 85</c> <c>(-32) ** 0.2</c> is −2, the real fifth root of −32, and <c>(-4) ** 0.5</c> is still a size
+    /// error (kb/Work PB5186; VCR row 7.67). Both editions are QUOTED. The consumer is <c>ExpressionBinder.BindPower</c>, which sets
+    /// <c>BoundPower.NegativeBaseRealRoots</c> for <c>NumericRenderer.Power</c> and so for
+    /// <c>CobolIntrinsics.PowNativeReal(double, CobolExact)</c> and <c>CobolExact.PowReal</c>.</summary>
+    NegativeBaseRequiresIntegerExponent = 17,
 }
 
 /// <summary>
@@ -316,6 +326,10 @@ public static class DialectBehaviors
             "a CANCEL naming any program in the active state, the run unit's main program included, raises "
             + "EC-PROGRAM-CANCEL-ACTIVE only from COBOL-2002; COBOL-85 forbids only a program that has been called and "
             + "has not exited, so a CANCEL of the main program, never called, takes no action"),
+        new(DialectBehavior.NegativeBaseRequiresIntegerExponent, "negative-base-requires-integer-exponent", 2002,
+            "7.67", "8.8.1.2 GR6c", "§1985:VI.6.2.3 GR5c",
+            "a negative base raised to a non-integer exponent raises EC-SIZE-EXPONENTIATION only from COBOL-2002; "
+            + "COBOL-85 raises the size error only when no real number is the result, so (-32) ** 0.2 is -2"),
     ];
 
     static DialectBehaviors()
