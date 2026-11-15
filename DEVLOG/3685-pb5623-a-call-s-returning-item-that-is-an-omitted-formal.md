@@ -1,4 +1,4 @@
-## PB5623: a CALL's RETURNING item that is an omitted formal raises EC-PROGRAM-ARG-OMITTED at the CALL; PB5621 retired
+## Entry 3685 — 2026-11-15 08:15 PST — PB5623: a CALL's RETURNING item that is an omitted formal raises EC-PROGRAM-ARG-OMITTED at the CALL; PB5621 retired
 
 **PB5623.** `CALL "Q25G" RETURNING RX`, with RX a formal whose argument was omitted, raised nothing at `--std 2002` (the
 repro ran Q25G and N stayed 02, where CALL identifier-1 raised). The formal's root carries its `OmittedFormalGuard`, but the
@@ -23,3 +23,4 @@ the one `OmittedFormal.Raise` the path guard uses; zero scaffolding without a >>
 a guarded RETURNING, none otherwise. Duplication: none, the guard is read from the access path, not recomputed from the item.
 
 Review round 1 (R1-1): `PlaceRenderer.RootGuard` had no arm for `RenamesPlace`, so `CALL ... RETURNING` a level-66 RENAMES alias of an omitted group formal still ran the activated program unraised. The arm now answers with the first guarded leaf; the golden gains a Q5623R leg (alias RETURNING, N=03, G2=12 on the supplied call). Sibling sweep: the other Place kinds (register, report counter, debug, exception-object places) are never formal storage.
+
