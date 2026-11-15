@@ -252,8 +252,16 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   2014 introduction edge is the pass's `arithmetic-standard-binary-2014` row (0900 below 2014; pending —
 >   no compiling cell).
 > - **Plain `ARITHMETIC IS STANDARD`** (the 2002 mode — the 2002 OPTIONS paragraph's NATIVE|STANDARD clause):
->   obsolete 2014, dropped by ISO 2023 (Annex E.2 item 21; §2023:8.8.1.2 names only the three). Implemented as the
->   same CobolDec SDIDI engine (the standard intermediate for its reachable operands IS the decimal form); the
+>   obsolete 2014, dropped by ISO 2023 (Annex E.2 item 21; §2023:8.8.1.2 names only the three). Implemented on the
+>   same CobolDec decimal carrier but NOT the SDIDI's model (kb/Work PB5575): its standard intermediate data item
+>   holds 32 digits in the range 10^-999 to 10^1000 - 10^968 (§2002:8.8.1.3.1.1, §2014:8.8.1.3.1.1), so the emitter
+>   runs the engine's operations at TRUNCATION and cuts every operation result with `CobolDec.ToSidi` (32 digits,
+>   EC-SIZE-OVERFLOW / EC-SIZE-UNDERFLOW outside the range; `NumericRenderer.StandardIntermediate`), rounds to 31
+>   digits with `CobolDec.ToSidiRounded` where §2002:8.8.1.3.1.3 says (a comparison and a sign condition, a move to a
+>   resultant without ROUNDED: `NumericRenderer.SidiRounded`, `SidiAtTransfer`) and the compile-time 2002 mode
+>   (`CompileTimeArithmetic.Standard2002`) calls the same `ToSidi`. Open: the rounding of a function argument with
+>   no equivalent arithmetic expression (§2002:8.8.1.3.1.3 situation 2) and the 32-digit limit of a function's returned
+>   value; the
 >   `arithmetic-standard-2002` dual-window row emits 0900 below 2002, the 0903 obsolete flag at 2014, and 0807
 >   at 2023 (error strict / warning permissive).
 > - **Edition gates:** the OPTIONS paragraph is 2002+ (COBOL0804, `options-paragraph-2002` — with ARITHMETIC

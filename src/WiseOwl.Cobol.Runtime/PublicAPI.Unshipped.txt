@@ -60,6 +60,10 @@ WiseOwl.Cobol.Runtime.CellPointer.Extent.get -> int?
 WiseOwl.Cobol.Runtime.CellPointer.Extent.init -> void
 WiseOwl.Cobol.Runtime.CobolDec.AdjustedExponent.get -> int
 WiseOwl.Cobol.Runtime.CobolDec.TruncateToSignificantDigits(int digits) -> WiseOwl.Cobol.Runtime.CobolDec
+WiseOwl.Cobol.Runtime.CobolDec.ToSidi(WiseOwl.Cobol.Runtime.CobolRounding intermediate = WiseOwl.Cobol.Runtime.CobolRounding.Truncation) -> WiseOwl.Cobol.Runtime.CobolDec
+WiseOwl.Cobol.Runtime.CobolDec.ToSidiRounded(WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
+const WiseOwl.Cobol.Runtime.CobolDec.SidiDigits = 32 -> int
+const WiseOwl.Cobol.Runtime.CobolDec.SidiRoundedDigits = 31 -> int
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision.CobolDecWithPrecision() -> void
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision.CobolDecWithPrecision(WiseOwl.Cobol.Runtime.CobolDec Value, int Precision) -> void
