@@ -1884,3 +1884,16 @@ state opens with a checked 2002 citation; the 107 values that begin `none` or `n
 --edition 2002 --dry-run` accepts all 204 (GAP 3,297 to 3,094). Of the 96 rows refused only for their evidence, `widen`
 finds 66 widenable and 30 that need a witness of their own. 1985, held to the same kinds: of 1,373 stored KEPT records,
 802 have a witness of the kind the rule needs at 85 for at least one target and 570 for every target; 571 have none.
+
+**Measured again on 2026-11-15** (branch records-2002-reads-2, on main 1d40b123ca, every slice `u-01`..`u-56` with its
+refute: 125 slices, 3,098 rules, the 1,528 unpaired ones all read): the import keeps 807 before the evidence check,
+refuses 69 `flag unanswered` and lists the work items `defect` 435, `needs-own-witness` 977, `own-verdict-from-pointer`
+571, `undecided` 224, `uninterpretable` 15 (the refuter read first: the operator's dry run on the old order had counted
+698 own verdicts, 133 of them OVERTURNED or DOUBTFUL). `widen` plans 266 rows (94 widenable: 21 KEPT, 73 own verdicts)
+and proves 75 of 100 candidate cases at 2002 (24 accepted cases FAIL there and one refusal test is accepted: leads).
+`own-verdict-batch` then writes 398 own verdicts (CONFORMS 334, DOCUMENTED-NON-SUPPORT 64) and refuses 148 (no own-edition
+witness 93, no register entry of its own 83, no 2002 licence 3, no code location 1; a row counted under each reason),
+with 25 recorded already; `record_verdicts.py --edition 2002` takes the 2002 GAP from 2,169 to 1,771. `change-batch` on
+the same run adds no record: its 669 KEPT records are all stored, and 35 of the first landing's stored records are among
+the 69 a flag now leaves unanswered (the screen gained a trigger since they were stored; `lineage_screen.py --check`
+lists them owed).

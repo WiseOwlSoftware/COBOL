@@ -35,11 +35,13 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   partition redesign (PB4146) and each fuzz night's triage. Neither lane plans what the other's dispatch holds
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
   nothing else on `docs/CONFORMANCE.md`.
-- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch golden-2002-2 on main
-  63ab0c4ece):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **2,172 GAP** (2,562 before the first 2002
-  golden-lane landing, 2,258 before the second), 433 adjudicated: CONFORMS 424, DIVERGES 8, PARTIAL 1. The 2002 golden lane
-  (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; 36 of its 85 input files are integrated
-  so far.
+- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch records-2002-reads-2 on
+  main 1d40b123ca):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **1,771 GAP** (2,169 before this
+  branch's 398 own verdicts from pointers; 2,562 before the first 2002 golden-lane landing), 834 adjudicated: CONFORMS 761,
+  DOCUMENTED-NON-SUPPORT 64, DIVERGES 8, PARTIAL 1, beside the 704 KEPT change records. The 2002 golden lane (gl2002, kb/Work
+  PB5597) gives each 2002 row a witness of its own at `--std 2002`; every one of the 1,528 unpaired 2002 rules is now read
+  (`tests/version-matrix/lineage-reads-2002/`, 125 slices), and an upheld SAME of one becomes its own verdict through
+  `audit_batch.py own-verdict-batch` (DESIGN-spec-conformance-review.md section 10.6).
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
   2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
   NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2. The 2026-11-12 method: code-read waves over rows whose witness exists
