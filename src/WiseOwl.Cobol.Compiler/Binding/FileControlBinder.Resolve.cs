@@ -274,14 +274,6 @@ public sealed partial class FileControlBinder
         return new KeySuppression(value, national);
     }
 
-    /// <summary>§1985:VII.3.7.3 SR1, which §2023:13.18.34.3 SR2 re-numbers (kb/Work PB5361): a refusal at <c>--std 85</c> cites
-    /// the rule that edition prints. <c>RecordClauseRuleDriftTests</c> re-derives it from the 1985 text.</summary>
-    internal static readonly Rule1985 LinageOperandRule = new("VII.3.7.3", 1,
-        "must reference elementary unsigned numeric integer data items");
-
-    /// <summary>§1985:VII.3.7.3 SR3, which §2023:13.18.34.3 SR3 re-numbers (kb/Work PB5361).</summary>
-    internal static readonly Rule1985 LinageFootingRule = new("VII.3.7.3", 3, "Integer-2 must not be greater than integer-1");
-
     /// <summary>Resolve the LINAGE clause's data-name operands and screen the clause's own syntax rules
     /// (ISO §2023:13.18.34.3) — the FD-clause twin of <see cref="ResolveFileCollating"/>, run post-build because an
     /// operand's OCCURS ancestry is unknown until the data forest is indexed.
@@ -322,7 +314,7 @@ public sealed partial class FileControlBinder
                 Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
                     $"LINAGE clause operand '{name}' is {fault}; data-name-1, data-name-2, data-name-3, and "
                     + "data-name-4 shall reference elementary unsigned numeric integer data items "
-                    + $"({LinageOperandRule.CitationAt(Edition, "ISO §2023:13.18.34.3 SR2")})");
+                    + $"({LinageClauseRules.Operand.CitationAt(Edition, "ISO §2023:13.18.34.3 SR2")})");
         }
         // SR3 — both operands are literals, so the relation is known now and is a syntax rule.
         if (lin.Body.Literal is int page && lin.Footing is { Literal: int footing } foot && footing > page)
@@ -330,7 +322,7 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(foot.At);
             Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
                 $"LINAGE clause: FOOTING AT {footing} is greater than the page size {page}; integer-2 shall not be "
-                + $"greater than integer-1 ({LinageFootingRule.CitationAt(Edition, "ISO §2023:13.18.34.3 SR3")})");
+                + $"greater than integer-1 ({LinageClauseRules.Footing.CitationAt(Edition, "ISO §2023:13.18.34.3 SR3")})");
         }
     }
 

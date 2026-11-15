@@ -231,7 +231,7 @@ public sealed class RecordClauseRuleDriftTests
         static string Bare(string l) => l.Replace("║", "").Trim();
         string text2023 = SpecClauseText.Norm(string.Join(' ', SpecClauseText.Lines()));
         var designations = RecordClauseRules.Catalog.Where(r => r.Of1985 is not null).Select(r => r.Of1985!.Value)
-            .Concat([FileControlBinder.LinageOperandRule, FileControlBinder.LinageFootingRule]).ToList();
+            .Concat([LinageClauseRules.Operand, LinageClauseRules.Footing]).ToList();
         Assert.True(designations.Count >= 9, $"only {designations.Count} 1985 designations — the table lost rules.");
         foreach (var rule in designations)
         {

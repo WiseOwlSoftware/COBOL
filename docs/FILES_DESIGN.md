@@ -1950,7 +1950,7 @@ few nanoseconds. The clause's source position is captured at bind time on `FileM
 
 **The citation is the edition's own (kb/Work PB5361).** A `RecordClauseRule` row carries `Of1985`, the same obligation under
 §1985:VII.3.8.3's numbering (`Rule1985`, the one type that chooses between a 1985 designation and a 2023 one, also used by
-`FileControlBinder`'s LINAGE operand rules, §1985:VII.3.7.3 SR1/SR3), and its `Message` is the body alone: `Render` appends the
+`LinageClauseRules` (the LINAGE operand rules, §1985:VII.3.7.3 SR1/SR3)), and its `Message` is the body alone: `Render` appends the
 citation `CitationAt(edition)` names, the 1985 rule below COBOL-2002 and the 2023 one above. A row 1985 does not print
 (`Since` above 85) has no `Of1985`, and `RecordClauseRuleDriftTests` re-derives every designation from `specs/ANSI_COBOL_1985.md`
 and refuses a row in force at 85 with none. A sum counter named by one of these clauses at COBOL-85 is the clause's data-name
