@@ -107,7 +107,7 @@ public sealed partial class FileControlBinder
                 clause.SuppressWhen = ReadSuppressWhen(clause);
                 if (KeyOf(clause.Name, clause.Qualifiers, clause.Source, "ALTERNATE RECORD KEY", clause.At,
                         item => clause.Item = item) is { } alt)
-                    file.AlternateKeys.Add((alt, clause.Duplicates, KeySuppressionOf(alt, clause.SuppressWhen)));
+                    file.AlternateKeys.Add((alt, clause.Duplicates, KeySuppressionOf(alt, clause.SuppressWhen), clause));
             }
             ResolveFileCollating(file);   // §2023:12.4.5.7 — per-key collating weights (needs the resolved keys)
             if (file.RelativeKeyName is { } rl)
