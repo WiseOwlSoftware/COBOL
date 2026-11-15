@@ -646,6 +646,14 @@ public sealed class CopyProcessor(
     /// <summary>The disposition of one resolved COPY statement.</summary>
     internal enum CopyOutcome { Found, NotFound, Circular }
 
+    /// <summary>The start of the one-line comment the compiler writes in place of a COPY statement that brought in no library
+    /// text (not found, circular, unreadable, unparsable). It is the compiler's own note, not source text: U+FDD2 is a Unicode
+    /// NONCHARACTER, reserved for process-internal use and never in interchanged text (as
+    /// <see cref="ReferenceFormatProcessor.DebugLineCarrier"/>'s U+FDD0 is), so no comment a programmer writes is mistaken for
+    /// it and <see cref="TextWordScanner"/> reads the line as the single space it is: a note spelled with the plain
+    /// <c>*&gt;</c> was a floating comment the COBOL-85 gate refused as the 2002 indicator (kb/Work PB5588).</summary>
+    internal static readonly string NotePrefix = CobolSourceText.CommentIndicator + (char)0xFDD2 + "COPY ";
+
     /// <summary>The result of resolving ONE COPY statement (non-recursive): the text to splice and, when
     /// <see cref="CopyOutcome.Found"/>, the copybook's path (so the caller removes it from the include set after
     /// recursing). <see cref="Text"/> is the copybook's NormalizeCopybook+ApplyReplacements text (Found) or the
@@ -676,7 +684,7 @@ public sealed class CopyProcessor(
         var statement = ParseCopyStatement(mapped, copyIdx);
         afterCopy = statement.End;
         if (statement.TextName is null)
-            return new OneCopyResult(CopyOutcome.NotFound, "*> COPY statement not processed — see its diagnostic", null);
+            return new OneCopyResult(CopyOutcome.NotFound, NotePrefix + "statement not processed — see its diagnostic", null);
         // §1985:IV.4.2.2.1.1: the names written as words are user-defined words of the program; the binder asks the rule of them.
         var copyOrigin = mapped.PointAt(copyIdx).Origin;
         if (statement.TextNameIsWord) _copyNames.Add(new CopyNameUse(statement.TextName, IsLibraryName: false, copyOrigin));
@@ -703,14 +711,14 @@ public sealed class CopyProcessor(
             // every path — never a silently omitted COPY (kb/Work PB1355).
             string named = statement.LibraryName is { } lib ? $"{libraryName} OF {lib}" : libraryName;
             Report(DiagnosticDescriptors.CBL3620, at, named, string.Join("; ", LibraryPlaces()));
-            return new OneCopyResult(CopyOutcome.NotFound, $"*> COPY {named} — library text not found", null);
+            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{named} — library text not found", null);
         }
         if (!alreadyIncluded.Add(copybookPath))
         {
             // ISO §2023:7.2.3.4 GR12: "The library text being copied shall not cause the processing of a COPY statement
             // that directly or indirectly copies itself."
             Report(DiagnosticDescriptors.CBL3621, at, libraryName);
-            return new OneCopyResult(CopyOutcome.Circular, $"*> COPY {libraryName} — circular include skipped", null);
+            return new OneCopyResult(CopyOutcome.Circular, $"{NotePrefix}{libraryName} — circular include skipped", null);
         }
 
         // Library text goes through the same §2023:6.5 logical conversion as the source text, starting in the format in
@@ -723,7 +731,7 @@ public sealed class CopyProcessor(
         if (_inputs.ReadSourceText(copybookPath, _diagnostics) is not { } libraryText)
         {
             alreadyIncluded.Remove(copybookPath);   // nothing was included, so a later COPY of it is no circular include
-            return new OneCopyResult(CopyOutcome.NotFound, $"*> COPY {libraryName} — library text malformed for its byte-order mark", null);
+            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{libraryName} — library text malformed for its byte-order mark", null);
         }
 
         var normalizedMapped = NormalizeCopybookMapped(libraryText, copybookPath, copyFixed, standsInIdentificationDivision);

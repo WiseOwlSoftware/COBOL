@@ -307,6 +307,35 @@ public sealed class DebuggingLineRewriterTests
         Assert.DoesNotContain("EXIT", words);
     }
 
+    private static int[] CommentLinesOf(string[] lines, bool sections)
+    {
+        var stream = new CommonTokenStream(new CobolLexer(new AntlrInputStream(string.Join("\n", lines) + "\n")));
+        var comment = new HashSet<int>();
+        DebuggingLineRewriter.Rewrite(stream, debuggingSectionsAreComments: sections, commentLines: comment);
+        return [.. comment.Order()];
+    }
+
+    /// <summary>kb/Work PB5588: the lines (of the text) the rewriter makes comment are what a reader of the text that skips comment
+    /// lines asks (§1985:XV.2.1.3 GR2, §1985:VI.4.3.4 GR5). The lexer skips a floating comment, so no token says it was there: a
+    /// debugging line is one line, a debugging section runs from its header to the line before the next header or END DECLARATIVES,
+    /// and a portion that holds only such sections is comment with its header and its END DECLARATIVES.</summary>
+    [Fact]
+    public void NoMode_TheCommentLinesAreTheDebuggingLinesAndTheDebuggingSections()
+    {
+        Assert.Equal([3], CommentLinesOf(["PROGRAM-ID. P.", "SOURCE-COMPUTER. IBM-PC.", D("DISPLAY NOCLAUSE."), "STOP RUN."], sections: false));
+        Assert.Equal([4, 5, 6, 7, 8, 9], CommentLinesOf(Unit("SOURCE-COMPUTER. X.",
+            "DECLARATIVES.", "DBG SECTION.", "USE FOR DEBUGGING ON ALL PROCEDURES.", "DBG-P.", "NOT COBOL.", "END DECLARATIVES."), sections: true));
+        Assert.Equal([9, 10, 11, 12], CommentLinesOf(Unit("SOURCE-COMPUTER. X.",
+            "DECLARATIVES.", "ERR SECTION.", "USE AFTER STANDARD ERROR PROCEDURE ON F.", "E1.", "EXIT.",
+            "DBG SECTION.", "USE FOR DEBUGGING ON ALL PROCEDURES.", "DBG-P.", "NOT COBOL TEXT.", "END DECLARATIVES."), sections: true));   // ERR's lines 5-8 are source, the portion's own lines too
+    }
+
+    [Fact]
+    public void WithMode_NoLineIsComment()
+    {
+        Assert.Empty(CommentLinesOf(["PROGRAM-ID. P.", "SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.", D("DISPLAY SRC."), "STOP RUN."], sections: false));
+    }
+
     /// <summary>The carrier the logical conversion writes IS the spelling of the lexer's marker rule — one value, two
     /// places (a grammar literal cannot reference a C# constant), held equal here.</summary>
     [Fact]

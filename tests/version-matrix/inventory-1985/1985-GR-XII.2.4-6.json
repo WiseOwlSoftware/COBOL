@@ -2,9 +2,9 @@
  "rule-id": "1985-GR-XII.2.4-6",
  "rule-digest": "a13246db693c",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/SurvivingFloatingComments.cs#SurvivingFloatingComments.Report; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner.HoldsComment",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner.HoldsComment; src/WiseOwl.Cobol.Frontend/Preprocessor/SurvivingFloatingComments.cs#SurvivingFloatingComments.Note",
  "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-GR-XII_2_4-6; conformance:cases/XII.2@1985-COPY-STATEMENT/pb5470-copy-star-greater-is-a-text-word; unit:ReferenceFormatLogicalConversionTests.SurvivingFloatingComment_IsTheOneIntroductionGate",
- "notes": "§1985:XII.2.4 GR6: 'the sequence of text words in the library text, if any, and in pseudo-text-1 is determined by the rules for reference format'; comment lines and blank lines are ignored for matching. Library text is converted by the same fixed-form walker as source text, so below 2002 a *> in it is a text-word (§1985:III) exactly as one in pseudo-text-1 is, and COPY ... REPLACING matches and removes it (kb/Work PB5470): the witness removes the text-words *> \"Z\" from library text and matches the four text-words DISPLAY \"1\" *> J.",
+ "notes": "§1985:XII.2.4 GR6: 'the sequence of text words in the library text, if any, and in pseudo-text-1 is determined by the rules for reference format'; comment lines and blank lines are ignored for matching. Library text is converted by the same fixed-form walker as source text, so below 2002 a *> in it is a text-word (§1985:III) exactly as one in pseudo-text-1 is, and COPY ... REPLACING matches and removes it (kb/Work PB5470): the witness removes the text-words *> \"Z\" from library text and matches the four text-words DISPLAY \"1\" *> J. retired-witness: src/WiseOwl.Cobol.Frontend/Preprocessor/SurvivingFloatingComments.cs#SurvivingFloatingComments.Report (the gate is two steps now (kb/Work PB5588): Note finds the text-word, ReferenceFormatDiagnostics.ReportSurvivingFloatingComments reports it after the debugging comment treatment; Note is the member that reads the text COPY and REPLACE read)",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
