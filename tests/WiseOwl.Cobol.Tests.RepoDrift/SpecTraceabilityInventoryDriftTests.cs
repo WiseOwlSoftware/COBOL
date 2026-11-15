@@ -1495,6 +1495,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // `unpopulatable-antecedent` (no device superimposes; no source listing is produced, DOC-A.1-117), each standing
             // on the UPHELD record of the orchestrator's cobol-refuter pass, tests/version-matrix/derivation-refutations/pb5373-class2.jsonl.
             "1985-GR-XIV.3.6.4-16", "1985-GR-VI.3.4.4-1",
+            // ⚙ Two more, added deliberately (records-85-held, the same signature): GR17 and GR18 restated on GR2 (no WiseOwl
+            // device is line-oriented, section 3.3), each on the UPHELD record of
+            // tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl.
+            "1985-GR-XIV.3.6.4-17", "1985-GR-XIV.3.6.4-18",
         ];
 
         var s = LoadSchema();
