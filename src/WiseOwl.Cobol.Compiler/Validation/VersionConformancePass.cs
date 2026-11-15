@@ -75,6 +75,10 @@ internal sealed class VersionConformancePass
     private readonly EditionInfo _edition;
     private readonly IDiagnosticSink _sink;
 
+    /// <summary>The group's programs a CALL reaches from an input or output procedure's range (<see cref="CalledFromRange"/>), read by
+    /// <see cref="GateReleaseReturnRange"/>; empty at COBOL-2002 and later, where that gate is not asked.</summary>
+    private Dictionary<BoundProgram, HashSet<(FileModel File, bool Release)>> _calledFromRange = [];
+
     private VersionConformancePass(EditionInfo edition, IDiagnosticSink sink)
     {
         _edition = edition;
@@ -109,6 +113,7 @@ internal sealed class VersionConformancePass
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
         //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
+        if (edition.Year < 2002) pass._calledFromRange = CalledFromRange(group.Units);
         foreach (var unit in group.Units)
         {
             pass.WalkProgram(unit.Bound);
@@ -160,40 +165,24 @@ internal sealed class VersionConformancePass
     /// GR10 for an output one), a run-time fact wherever an input (output) procedure for its file exists, so there it is not asked;
     /// where the program has NONE, the range is empty, no declarative can run inside it, and the statement is outside every range
     /// at compile time, so it is refused like any other (kb/Work PB5572). At COBOL-2002 and later the same misuse is the run-time exception EC-SORT-MERGE-RELEASE / EC-SORT-MERGE-RETURN
-    /// (kb/Work PB1036).</summary>
+    /// (kb/Work PB1036).
+    /// <para>⛔ THE RANGE CROSSES A CALL (kb/Work PB5628): "The range includes all statements that are executed as the result of a transfer of
+    /// control by CALL" (§1985:XI.4.4.4 GR7, GR10), so a RELEASE in a contained program a CALL in an input procedure's range activates is in that
+    /// range (the program names the SD's record through the record's own GLOBAL clause, §1985:X.4.6.3 SR1). That reach is a property of the
+    /// whole compilation group, not of one program: <see cref="CalledFromRange"/> computes it once per group before any program is walked.</para></summary>
     private void GateReleaseReturnRange(BoundProgram prog)
     {
-        var inputs = new List<(PcRange Range, FileModel File)>();
-        var outputs = new List<(PcRange Range, FileModel File)>();
-        var uses = new List<(BoundStatement Node, FileModel File, bool Release, int Pc)>();
-        void Collect(BoundStatement s, int pc)
-        {
-            switch (s)
-            {
-                case BoundSort so:
-                    if (so.InputProcedure is { } ip) inputs.Add((ip, so.File));
-                    if (so.OutputProcedure is { } op) outputs.Add((op, so.File));
-                    break;
-                case BoundMerge mg:
-                    if (mg.OutputProcedure is { } mop) outputs.Add((mop, mg.File));
-                    break;
-                case BoundRelease rl: uses.Add((rl, rl.File, true, pc)); break;
-                case BoundReturn rt: uses.Add((rt, rt.File, false, pc)); break;
-            }
-            foreach (var c in s.StatementChildren()) Collect(c, pc);
-        }
-        for (int i = 0; i < prog.Paragraphs.Count; i++)
-            foreach (var stmt in prog.Paragraphs[i].Statements) Collect(stmt, i);
-        if (uses.Count == 0) return;
+        var procedures = SortMergeProcedures.Of(prog);
+        if (procedures.Uses.Count == 0) return;
 
         var ranges = new Dictionary<(FileModel File, bool Release), Dictionary<int, FileModel>>();
-        foreach (var (node, file, release, pc) in uses)
+        foreach (var (node, file, release, pc) in procedures.Uses)
         {
             if (!ranges.TryGetValue((file, release), out var range))
-                ranges[(file, release)] = range = ProcedureReach.Closure(prog.Paragraphs,
-                    (release ? inputs : outputs).Where(p => ReferenceEquals(p.File, file)).Select(p => (p.Range, p.File)), followGoTo: true);
+                ranges[(file, release)] = range = procedures.Range(prog, file, release);
             if (range.ContainsKey(pc)) continue;
             if (pc < prog.EntryPc && range.Count > 0) continue;   // a declarative the range may execute: GR7/GR10's run-time fact
+            if (_calledFromRange.TryGetValue(prog, out var reached) && reached.Contains((file, release))) continue;   // a CALLed program's statements
             using var _ = _sink.At(node.At);
             string verb = release ? "RELEASE" : "RETURN";
             _sink.Report(new EditionDiagnostic(DiagnosticCatalog.ReleaseReturnPlacement.Code, EditionSeverity.Error,
@@ -207,6 +196,83 @@ internal sealed class VersionConformancePass
                         + "procedure associated with a SORT or MERGE statement for file-name-1.\")",
                 verb, release ? "§1985:XI.4.2.3 SR2" : "§1985:XI.4.3.3 SR3"));
         }
+    }
+
+    /// <summary>A program's SORT and MERGE procedures and its RELEASE and RETURN statements, each with the pc of its paragraph: what
+    /// <see cref="GateReleaseReturnRange"/> and <see cref="CalledFromRange"/> both read, collected by one walk.</summary>
+    private sealed record SortMergeProcedures(
+        List<(PcRange Range, FileModel File)> Inputs,
+        List<(PcRange Range, FileModel File)> Outputs,
+        List<(BoundStatement Node, FileModel File, bool Release, int Pc)> Uses)
+    {
+        public static SortMergeProcedures Of(BoundProgram prog)
+        {
+            var procedures = new SortMergeProcedures([], [], []);
+            void Collect(BoundStatement s, int pc)
+            {
+                switch (s)
+                {
+                    case BoundSort so:
+                        if (so.InputProcedure is { } ip) procedures.Inputs.Add((ip, so.File));
+                        if (so.OutputProcedure is { } op) procedures.Outputs.Add((op, so.File));
+                        break;
+                    case BoundMerge mg:
+                        if (mg.OutputProcedure is { } mop) procedures.Outputs.Add((mop, mg.File));
+                        break;
+                    case BoundRelease rl: procedures.Uses.Add((rl, rl.File, true, pc)); break;
+                    case BoundReturn rt: procedures.Uses.Add((rt, rt.File, false, pc)); break;
+                }
+                foreach (var c in s.StatementChildren()) Collect(c, pc);
+            }
+            for (int i = 0; i < prog.Paragraphs.Count; i++)
+                foreach (var stmt in prog.Paragraphs[i].Statements) Collect(stmt, i);
+            return procedures;
+        }
+
+        /// <summary>The pcs of the range of every input procedure (<paramref name="release"/>) or output procedure of a statement for
+        /// <paramref name="file"/>: the procedures and every paragraph they transfer to, a GO TO followed (§1985:XI.4.4.4 GR7, GR10).</summary>
+        public Dictionary<int, FileModel> Range(BoundProgram prog, FileModel file, bool release) =>
+            ProcedureReach.Closure(prog.Paragraphs,
+                (release ? Inputs : Outputs).Where(p => ReferenceEquals(p.File, file)).Select(p => (p.Range, p.File)), followGoTo: true);
+    }
+
+    /// <summary>The programs of the group a CALL activates from within the range of an input or output procedure, each with the (file, RELEASE)
+    /// pairs whose range reaches it (§1985:XI.4.4.4 GR7, GR10: "all statements that are executed as the result of a transfer of control by
+    /// CALL"; kb/Work PB5628). A called program runs whole, so every CALL in it extends the same ranges to its own callees. A CALL by literal
+    /// reaches the programs whose externalized name it is; a CALL by identifier names no program the compiler can know, so it reaches every
+    /// program of the group (a RELEASE it may activate is legal source and never refused here).</summary>
+    private static Dictionary<BoundProgram, HashSet<(FileModel File, bool Release)>> CalledFromRange(IReadOnlyList<BoundUnit> units)
+    {
+        var reached = new Dictionary<BoundProgram, HashSet<(FileModel File, bool Release)>>(ReferenceEqualityComparer.Instance);
+        var work = new Queue<(BoundUnit Callee, (FileModel File, bool Release) Key)>();
+        IEnumerable<BoundUnit> Targets(BoundCallProgram call) =>
+            call.LiteralName is { } name ? units.Where(u => CobolNames.Same(u.ExternalizedName, name)) : units;
+        static IEnumerable<BoundCallProgram> CallsIn(IEnumerable<BoundStatement> statements)
+        {
+            foreach (var s in statements)
+            {
+                if (s is BoundCallProgram call) yield return call;
+                foreach (var c in CallsIn(s.StatementChildren())) yield return c;
+            }
+        }
+        foreach (var unit in units)
+        {
+            var prog = unit.Bound;
+            var procedures = SortMergeProcedures.Of(prog);
+            foreach (var key in procedures.Inputs.Select(p => (p.File, true)).Concat(procedures.Outputs.Select(p => (p.File, false))).Distinct())
+                foreach (int pc in procedures.Range(prog, key.Item1, key.Item2).Keys)
+                    foreach (var call in CallsIn(prog.Paragraphs[pc].Statements))
+                        foreach (var callee in Targets(call)) work.Enqueue((callee, key));
+        }
+        while (work.TryDequeue(out var item))
+        {
+            var callee = item.Callee.Bound;
+            if (!reached.TryGetValue(callee, out var keys)) reached[callee] = keys = [];
+            if (!keys.Add(item.Key)) continue;
+            foreach (var call in CallsIn(callee.Paragraphs.SelectMany(p => p.Statements)))
+                foreach (var next in Targets(call)) work.Enqueue((next, item.Key));
+        }
+        return reached;
     }
 
     /// <summary>⛔ §1985:XIII.4.9.3 SR3, SECOND SENTENCE — "A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE,

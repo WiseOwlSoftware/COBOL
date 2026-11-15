@@ -714,6 +714,11 @@ internal sealed class StatementValidation(DataBinder data)
         if (FileWhoseRecordIs(record.Item) is { } owner) { file = owner; return true; }
         if (data.State.Inherited.ContainerLocalFiles.FirstOrDefault(f => f.Records.Contains(record.Item)) is { } hiddenFile)
         {
+            // The containing-program rule begins at 2002 (§2002:13.16.25.2 SR3). COBOL-85 has none: a global name "may be
+            // referenced" by every contained program "without describing it again" (§1985:X.4.6.4 GR2), the record-name
+            // statements ask only that record-name-1 be a logical record of the file (kb/Work PB5628), so the record
+            // resolves to the containing program's file and its one connector.
+            if (data.Edition.DialectLevel < 2002) { file = hiddenFile; return true; }
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                 $"{verb} '{refText}' — '{refText}' is a logical record of '{hiddenFile.CobolName}', which a containing "
                 + "program describes without the GLOBAL clause; the record's own GLOBAL clause (ISO §2023:13.18.27.3 SR1 b)) "
