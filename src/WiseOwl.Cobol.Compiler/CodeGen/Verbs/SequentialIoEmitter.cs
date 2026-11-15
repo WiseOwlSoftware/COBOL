@@ -1252,14 +1252,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             RuntimeApi.FileCurrentRecordExtents(name));
     }
 
-    /// <summary>⛔ THE CHARACTER-WINDOW RECORD a released OUT-OF-LINE record must reach for the shared character area to
+    /// <summary>⛔ THE CHARACTER-WINDOW RECORD a released OUT-OF-LINE (or FILE-phrase) record must reach for the shared character area to
     /// hold it, or null when none is needed: the released record is itself a character-window record (it IS the
     /// shared backing — the other character-window records of the area see it for free), or no file of the area
     /// has a character-window record. Among the area files' views it is the WIDEST, so the store spans the whole
     /// shared backing (§2023:13.18.33.4 GR3: every record of the area redefines the same storage).</summary>
     private Place? AreaCharacterViewFor(FileModel file, DataItem released)
     {
-        if (!FileModel.IsOutOfLineRecord(released)) return null;
+        // ⛔ A released record that is one of the area's own character-window records IS the shared backing. The FROM operand of a
+        // WRITE / REWRITE with the FILE phrase is not one (it is the implicit record, §2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9; kb/Work PB5579),
+        // so, like an out-of-line record, it has to be stored into the area for the files of a SAME RECORD AREA clause to see it.
+        if (!FileModel.IsOutOfLineRecord(released) && file.AreaFiles.Any(f => f.Records.Contains(released))) return null;
         Place? widest = null;
         int width = -1;
         foreach (var f in file.AreaFiles)

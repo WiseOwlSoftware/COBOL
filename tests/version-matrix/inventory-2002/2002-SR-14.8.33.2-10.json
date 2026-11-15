@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.33.2-10",
+ "rule-digest": "a027179e6f5e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFilePhraseRecord; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FilePhraseRequiresFrom; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FilePhraseOperand",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_rewrite_file_2002; conformance:cases/14.9.35-REWRITE/pb5579-rewrite-file-no-from; conformance:cases/14.9.35-REWRITE/pb5579-rewrite-file-figurative-literal",
+ "notes": "§2002:3.1.1 requires the FILE phrase (Annex A.4.13); kb/Work PB5579 implements it (SequentialIoBinder.BindFileFormat -> MoveBinder.BindFilePhraseRecord), at --std 2002 and from it, and gates it at 85 (COBOL0900). SR10: FROM required (COBOL7351), literal-1 never numeric or figurative (COBOL7352)."
+}

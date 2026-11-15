@@ -2689,12 +2689,29 @@ internal sealed class VersionConformancePass
         /// it (kb/Work PB5159).</summary>
         public override object? VisitRewriteStatement(CobolParserCore.RewriteStatementContext ctx)
         {
+            GateFilePhrase(ctx.FILE(), "REWRITE");
             if (ctx.RECORD() is { } record)
             {
                 using var _ = Sink.At(record.Symbol);
                 _p.Check(Constructs.RewriteRecordWord2002, "the word RECORD after the record-name of a REWRITE statement");
             }
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The <c>FILE file-name-1</c> alternative of a WRITE or REWRITE (§2023:14.9.51.2, §2023:14.9.35.2): the
+        /// 1985 formats print <c>record-name-1</c> alone (§1985:VII.4.7.2, §1985:VII.4.5.2), and the 2002 formats add FILE
+        /// (§2002:14.8.47.1, §2002:14.8.33.1). One gate for both statements (kb/Work PB5579).</summary>
+        public override object? VisitWriteStatement(CobolParserCore.WriteStatementContext ctx)
+        {
+            GateFilePhrase(ctx.FILE(), "WRITE");
+            return base.VisitChildren(ctx);
+        }
+
+        private void GateFilePhrase(Antlr4.Runtime.Tree.ITerminalNode? file, string verb)
+        {
+            if (file is null) return;
+            using var _ = Sink.At(file.Symbol);
+            _p.Check(Constructs.WriteRewriteFilePhrase2002, $"{verb} FILE file-name-1");
         }
 
         /// <summary>The <c>FROM { identifier-1 | literal-1 }</c> phrase of WRITE, REWRITE and RELEASE (ISO §2023:14.9.51.2,

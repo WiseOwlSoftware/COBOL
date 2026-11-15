@@ -416,9 +416,38 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         Positioned(at, () => Freeze(op, tag, use));
 
     /// <summary>The body of <see cref="Materialize"/>: the intermediate and its stores, appended.</summary>
-    private Place? Freeze(BoundOperand op, string tag, ValueUse use)
+    private Place? Freeze(BoundOperand op, string tag, ValueUse use) =>
+        Model(op, use) is { } model ? FreezeAs(op, model, tag) : null;
+
+    /// <summary>⛔ A NON-FIGURATIVE LITERAL HELD IN AN ITEM OF ITS OWN DESCRIPTION (kb/Work PB5579) — the implicit record
+    /// of <c>WRITE FILE file-name-1 FROM literal-1</c> and <c>REWRITE FILE …</c>, which §2023:14.9.51.4 GR8 c) and
+    /// §2023:14.9.35.4 GR9 c) (§2002:14.8.47.3 GR5 c), §2002:14.8.33.3 GR8 c)) describe "as though implicit-record-1 were a record
+    /// description entry … having the same class, category, usage, and length as literal-1". The returned place is the
+    /// item the literal is MOVEd into (a pre-op, ahead of the carrying statement) and whose image the statement releases.
+    /// <see cref="Materialize"/> leaves a literal alone, and rightly: its callers hold a VALUE against a later change, which
+    /// a literal's cannot suffer. A zero-length literal is held in a dynamic-length item (§2023:8.5.1.10) whose current length
+    /// is 0 — §2023:14.9.51.4 GR14 sizes the record from the literal's own length and a length-0 record is legal.
+    /// A boolean literal is <c>PIC 1(n)</c> with the USAGE DISPLAY a missing USAGE clause implies (§2023:13.18.24.4 GR2c,
+    /// §2023:13.18.60.3 SR13 b)): one character position per digit, never the packed USAGE BIT.</summary>
+    internal Place? MaterializeLiteral(BoundStringLiteral literal, string tag)
     {
-        if (Model(op, use) is not { } model) return null;
+        var (category, usage) = literal.Category switch
+        {
+            PicCategory.National => (PicCategory.National, Usage.National),
+            PicCategory.Boolean => (PicCategory.Boolean, Usage.Display),
+            _ => (PicCategory.Alphanumeric, Usage.Display),
+        };
+        var model = new DataItem
+        {
+            Level = 1, CobolName = "__LITERAL-MODEL", ClrName = "__literalModel",
+            Pic = new PicInfo(category, usage, Length: Math.Max(literal.Value.Length, 1), Digits: 0, Scale: 0, Signed: false),
+        };
+        return Positioned(null, () => FreezeAs(literal, new TempModel(model, DynLimit: literal.Value.Length == 0 ? 1 : 0), tag));
+    }
+
+    /// <summary>The body of <see cref="Freeze"/> once the intermediate's description is known.</summary>
+    private Place? FreezeAs(BoundOperand op, TempModel model, string tag)
+    {
         var temp = ctx.Data.Temps.Create(model.Item, "__SENDVAL-", "__sendval", tag);
         // ⛔ GR1's OTHER sentence, for a group whose extent is decided at run time: "The length of the data item
         // referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of

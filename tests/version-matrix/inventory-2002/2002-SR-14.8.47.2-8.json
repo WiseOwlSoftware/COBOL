@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-8",
+ "rule-digest": "ba7627afa254",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFilePhraseRecord; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FilePhraseOperand",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb5579-write-file-object-reference",
+ "notes": "§2002:3.1.1 requires the FILE phrase (Annex A.4.13); kb/Work PB5579 implements it (SequentialIoBinder.BindFileFormat -> MoveBinder.BindFilePhraseRecord), at --std 2002 and from it, and gates it at 85 (COBOL0900). SR8: a description holding a USAGE OBJECT REFERENCE item is refused (COBOL7352)."
+}

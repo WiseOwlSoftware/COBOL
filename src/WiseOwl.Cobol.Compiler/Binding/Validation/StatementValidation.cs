@@ -1671,8 +1671,8 @@ internal sealed class StatementValidation(DataBinder data)
     /// record-name, so without INTO the program could never see what it read.
     /// <para>SR3 b) — the WRITE/REWRITE half — has no screen of its own because none can be reached: the
     /// record-name-1 alternative names "a logical record in the file section" (§2023:14.9.51.3 SR5, §2023:14.9.35.3 SR1), which
-    /// a record-less entry does not have, and the <c>FILE file-name-1</c> alternative is Annex A.4.13, refused by
-    /// COBOL1706 (docs/CONFORMANCE.md §5, row A.4.13).</para>
+    /// a record-less entry does not have, so the <c>FILE file-name-1</c> alternative (Annex A.4.13, kb/Work PB5579) is the only
+    /// WRITE and REWRITE such a file can bind.</para>
     /// <para>A hard error at every edition: the source states a READ the standard gives no meaning, so there is no
     /// lenient corpus to protect and nothing for <c>--permissive</c> to keep. Returns true when the statement
     /// conforms; the caller still binds it, the compile having already failed.</para></summary>

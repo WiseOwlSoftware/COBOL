@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-10",
+ "rule-digest": "2c5e535c46ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFilePhraseRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#ScreenFromFunctionClass",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb5579-write-file-numeric-function; conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5579_write_file_sequential_2002",
+ "notes": "§2002:3.1.1 requires the FILE phrase (Annex A.4.13); kb/Work PB5579 implements it (SequentialIoBinder.BindFileFormat -> MoveBinder.BindFilePhraseRecord), at --std 2002 and from it, and gates it at 85 (COBOL0900). SR10: an alphanumeric function is written (UPPER-CASE), a numeric one refused (COBOL1914)."
+}
