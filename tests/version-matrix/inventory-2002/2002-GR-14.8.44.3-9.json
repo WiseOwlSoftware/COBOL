@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-9",
+ "rule-digest": "6f5e0c0e7853",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.8.44@2002-UNSTRING-STATEMENT/pb5621-unstring-any-length-variable-occurrence-2002",
+ "notes": "§2002:14.8.44.3 GR9: a zero-length delimiter identifier is ignored. The golden's DELIMITED BY L OR \";\" with L a zero-length ANY LENGTH formal (the BY CONTENT group at N=0) is delimited by the \";\" alone (AB, CD, P=06 T=2), and the same statement with L three or five characters long finds no delimiter in the sending item but the \";\". kb/Work PB5621."
+}
