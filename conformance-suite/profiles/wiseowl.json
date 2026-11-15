@@ -20,6 +20,7 @@
     "A.4.5": "docs/CONFORMANCE.md §5, A.4.5 DYNAMIC LENGTH elementary items: Partial",
     "A.4.6": "docs/CONFORMANCE.md §5, A.4.6 Extended letters: Claimed",
     "A.4.7": "docs/CONFORMANCE.md §5, A.4.7 File sharing and record locking: Claimed",
+    "A.4.8": "docs/CONFORMANCE.md §5, A.4.8 FORMAT and SELECT WHEN file handling: Partial",
     "A.4.9": "docs/CONFORMANCE.md §5, A.4.9 Locale support and related functions: Claimed",
     "A.4.10": "docs/CONFORMANCE.md §5, A.4.10 Object orientation optional items: Partial",
     "A.4.11": "docs/CONFORMANCE.md §5, A.4.11 Report Writer: Partial",
