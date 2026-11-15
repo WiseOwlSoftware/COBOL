@@ -216,13 +216,15 @@ public sealed class ClosedFormatReservedWordTests
     /// <c>FOO BAR</c> is an implementor-name clause's shape and <c>ASSIGN TO "f.dat" FOO</c> an ASSIGN operand list, so
     /// the clause keeps them (loop continuation, the lower alternative, as for a one-token literal) and the run opens at
     /// the sign-led literal, which is refused by name — never the bare parse error with a false missing period it drew
-    /// while the run could not hold a sign.</summary>
+    /// while the run could not hold a sign. ⚠ The ASSIGN list's operand is any literal-1 since kb/Work PB5587 (a numeric
+    /// literal is the 1985 sort-merge entry's, §1985:XI.2.3.3 having no SR3), so <c>+2</c> after <c>FOO</c> is the list's
+    /// third operand and is refused as a numeric literal-1 (COBOL2645), where SPECIAL-NAMES, with no list, refuses it as a clause.</summary>
     [Theory]
     [InlineData("special-names", "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           FOO BAR -1.\n",
         "COBOL1970: '-1' is not a clause of the SPECIAL-NAMES paragraph")]
     [InlineData("select", "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\" FOO +2.\n"
         + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n",
-        "COBOL1970: '+2' is not a clause of the file control entry for 'SF'")]
+        "COBOL2645: ASSIGN TO +2: literal-1 shall be an alphanumeric literal")]
     public void SignedLiteralAfterAWordTakingClause_IsRefusedByName(string name, string body, string refusal)
     {
         var errors = Compile(Head + body + Proc);
