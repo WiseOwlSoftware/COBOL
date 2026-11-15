@@ -265,7 +265,8 @@ public sealed class SameAsTests
             01 W1 SAME AS F OF G2.
             01 W2 SAME AS W1.
             01 W3 SAME AS G1 EXTERNAL.
-            01 W4 SAME AS G1 GLOBAL.
+            01 S1 PIC 9(2).
+            01 W4 SAME AS S1 GLOBAL.
             PROCEDURE DIVISION.
             MAIN-PARA.
                 MOVE "ABCD" TO W1.
