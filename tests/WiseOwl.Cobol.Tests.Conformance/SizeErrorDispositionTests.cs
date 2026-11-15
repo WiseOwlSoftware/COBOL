@@ -429,6 +429,36 @@ public sealed class SizeErrorDispositionTests
         Assert.Contains("EC-SIZE-ZERO-DIVIDE", stderr);
     }
 
+    /// <summary>kb/Work PB5554, the determination in DOC-A.1-70: at COBOL-85 a size error in a POSITION expression (a reference modifier's
+    /// leftmost-character-position or length; a 1985 subscript admits no arithmetic expression) ends the run unit naming its condition. §1985:VI.6.4.2 GR3 (and item 45, which restates it)
+    /// governs the resultant identifiers of an arithmetic statement, and a position has none; a position whose value could not be formed
+    /// cannot satisfy §1985:IV.4.3.8.4.4 GR4a ("must result in a positive nonzero integer") by any value the run could invent.</summary>
+    [Theory]
+    [InlineData("IF X (B / Z : 1) = \"A\" DISPLAY \"T\" ELSE DISPLAY \"F\".")]
+    [InlineData("MOVE X (1 : B / Z) TO Y.")]
+    public void Cobol85_SizeErrorInAPosition_EndsTheRunUnitNamingItsCondition(string body)
+    {
+        var (exit, stdout, stderr) = Run($$"""
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PB5554PS.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 B  PIC 9 VALUE 4.
+               01 Z  PIC 9 VALUE 0.
+               01 X  PIC X(4) VALUE "ABCD".
+               01 Y  PIC X(4).
+               PROCEDURE DIVISION.
+               MAIN-P.
+                   DISPLAY "BEFORE".
+                   {{body}}
+                   DISPLAY "AFTER".
+                   STOP RUN.
+        """, dialectLevel: 85);
+        Assert.Equal(1, exit);
+        Assert.Equal("BEFORE", stdout.Replace("\r\n", "\n").Trim());
+        Assert.Contains("EC-SIZE-ZERO-DIVIDE", stderr);
+    }
+
     private static string Prog85(string body) => $$"""
                IDENTIFICATION DIVISION.
                PROGRAM-ID. PB5484SZ.
