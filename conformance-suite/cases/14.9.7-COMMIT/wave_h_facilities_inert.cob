@@ -5,18 +5,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> Wave H — the ISO §2023:4.2.6 ¶3 recognize-and-name band. MCS (SEND/RECEIVE) and VALIDATE are
-      *> facilities WiseOwl COBOL does not implement: MCS is PROCESSOR-DEPENDENT (§2023:4.2.6, Annex A.3 item 4) and
-      *> VALIDATE is OPTIONAL (§2023:4.2.7, A.4.14) and, at 2023, also OBSOLETE (§2023:4.2.13, F.2 item 5). §2023:4.2.6 ¶3
-      *> nonetheless makes the compile-time WARNING MECHANISM mandatory, and §2023:14.6.13.1.1 licenses raising
-      *> no exception condition for them. COMMIT and ROLLBACK are PROVIDED since kb/Work PB3338; with no
-      *> APPLY COMMIT clause active each has "the same effect as a CONTINUE statement" (§2023:14.9.7.4 GR1,
-      *> §2023:14.9.36.4 GR1), so they draw no warning and the output is unchanged.
-      *> This golden pins the resulting posture: the program COMPILES, RUNS, and the statements are INERT —
-      *> the named warning COBOL1580 goes to the non-failing compile channel (not stdout), so the
-      *> observable behaviour is simply that the surrounding statements execute normally.
-      *> Before Wave H each of these was a GENERIC parse error, which satisfied neither the warning
-      *> obligation nor the project's never-a-silent-wrong-answer rule.
+      *> Wave H — facility statements that change nothing the program can see here. With no APPLY COMMIT clause
+      *> active COMMIT and ROLLBACK each have "the same effect as a CONTINUE statement" (§2023:14.9.7.4 GR1,
+      *> §2023:14.9.36.4 GR1); VALIDATE of an alphanumeric item has no stage to take part in (PICTURE X accepts any content,
+      *> §2023:14.9.50.4 GR6 a) and no exception checking is on, so it changes nothing (GR5); the messaging statements
+      *> are the 2023 facility (kb/Work PB4744). The surrounding statements execute normally.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. WAVEHINERT.
        DATA DIVISION.

@@ -420,7 +420,7 @@ openStatement
     ;
 
 openClause
-    : openMode (sharingPhrase)? ({is2002() || retryPhraseAhead()}? retryPhrase)? openFileSpec+   // both phrases superset-parsed, gated at BIND (BindOpen → Check(FileSharingClause2002) / GateRetryIntro → Check(RetryPhrase2002)). SHARING is unambiguous; RETRY sits in the openFileSpec+ name-list, so below 2002 (where RETRY is a legal §2023:8.9 user word) the forward-detect retryPhraseAhead() only enters the phrase on an UNAMBIGUOUS numeric tail (n TIMES | FOR? n SECONDS — an integer can never be a file name) with a file name still to follow; RETRY FOREVER / bare RETRY stay file names (fail-safe).
+    : openMode (sharingPhrase)? ({is2002() || retryPhraseAhead()}? retryPhrase)? openFileSpec+   // both phrases superset-parsed, gated in the VersionConformancePass parse arm (Check(FileSharingClause2002) / VisitRetryPhrase → Check(RetryPhrase2002)). SHARING is unambiguous; RETRY sits in the openFileSpec+ name-list, so below 2002 (where RETRY is a legal §2023:8.9 user word) the forward-detect retryPhraseAhead() only enters the phrase on an UNAMBIGUOUS numeric tail (n TIMES | FOR? n SECONDS — an integer can never be a file name) with a file name still to follow; RETRY FOREVER / bare RETRY stay file names (fail-safe).
     ;
 
 // COBOL-2002 OPEN SHARING phrase (ISO §2023:14.9.27) — overrides the file-control SHARING clause for this OPEN.
@@ -596,16 +596,39 @@ readKey
 // parse-arm gate VersionConformancePass.VisitWriteStatement (COBOL0900). Both printed formats — Format 1 (sequential) and
 // Format 2 (random) — carry the same `{ record-name-1 | FILE file-name-1 }` choice, so ONE alternative
 // serves both and the sequential/keyed reroute below inherits the one binding.
-
+//
+// ⛔ WHERE `[ retry-phrase ] [ WITH LOCK | WITH NO LOCK ]` STANDS IS AN EDITION FACT, SO THE RULE PARSES BOTH PLACES
+// (kb/Work PB5620). The 2014 and 2023 Format 1 print the pair BEFORE the END-OF-PAGE phrases (§2014:14.9.47.1,
+// §2023:14.9.51.2); the 2002 Format 1 prints it AFTER them (§2002:14.8.47.1, measured on the rendered PDF page 580:
+// ADVANCING, the AT/NOT AT END-OF-PAGE bracket, then `[ retry-phrase ]`, then WITH LOCK / WITH NO LOCK). Every
+// edition's Format 2 prints it before INVALID KEY. With only the leading place, `… AT END-OF-PAGE … WITH LOCK` — the one
+// spelling the 2002 text prints — was COBOL2269 at --std 2002. The two alternatives below are the two printed places of
+// ONE `retryLockPhrases`, so a WRITE writes the pair once, in one place, and splitting it around the phrases (RETRY
+// before END-OF-PAGE, WITH LOCK after) is printed by no edition and stays a syntax error. A WRITE with no conditional
+// phrase takes the first alternative (the two places are then adjacent). Which place the edition prints is asked in ONE
+// place, VersionConformancePass.ParseArm.GateRetryLockPlace, from the written order alone.
 writeStatement
     : WRITE (recordName | FILE fileName)
       recordFromPhrase?
       writeBeforeAfter?
-      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
-      (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
-      conditionalPhrases
+      ( retryLockPhrases conditionalPhrases     // 2014 / 2023 Format 1, and Format 2 at every edition
+      | conditionalPhrases retryLockPhrases?    // 2002 Format 1: after the END-OF-PAGE phrases
+      )
       END_WRITE?
 
+    ;
+
+// ⛔ `[ retry-phrase ] [ WITH LOCK | WITH NO LOCK ]` — two adjacent brackets that WRITE (§2023:14.9.51.2, both formats)
+// and REWRITE (§2023:14.9.35.2) print together, written ONCE so the two statements cannot drift apart and so WRITE can
+// place the pair in either of its edition's printed places as ONE element. Neither bracket is required, but the rule
+// writes at least one of them (its use sites make it optional), so an empty match never stands for "the pair was
+// written". RETRY is a COBOL-2002 phrase (§2023:14.7.9), introduction-gated in the VersionConformancePass parse arm
+// (VisitRetryPhrase → Check(RetryPhrase2002)); the retention phrase likewise (VisitRecordLockPhrase →
+// Check(RecordLockPhrase2002)). The file is already named before RETRY on both statements, so the phrase has none of
+// OPEN's name-list ambiguity.
+retryLockPhrases
+    : retryPhrase recordLockPhrase?
+    | recordLockPhrase
     ;
 
 // ⛔ THE `FROM { identifier-1 | literal-1 }` PHRASE OF WRITE, REWRITE AND RELEASE IS ONE RULE (kb/Work PB2650).
@@ -682,8 +705,7 @@ recordName
 rewriteStatement
     : REWRITE (recordName | FILE fileName) RECORD?
       recordFromPhrase?
-      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
-      (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
+      retryLockPhrases?   // §2023:14.9.35.2 — the pair WRITE prints too; REWRITE prints it before INVALID KEY at every edition (§2002:14.8.33.1)
       conditionalPhrases
       END_REWRITE?
 
@@ -695,7 +717,7 @@ rewriteStatement
 
 deleteStatement
     : DELETE fileName RECORD?
-      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated in the VersionConformancePass parse arm (VisitRetryPhrase → Check(RetryPhrase2002)). The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       conditionalPhrases
       END_DELETE?
 
@@ -712,7 +734,7 @@ deleteFileStatement
       // on cobolWord's keyword alternatives (kb/Work PB805) — this loop's follow set holds the RETRY / ON
       // EXCEPTION / END-DELETE phrases — never through the five-word hand predicate that stood here.
       fileName*
-      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated in the VersionConformancePass parse arm (VisitRetryPhrase → Check(RetryPhrase2002)). The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       conditionalPhrases
       END_DELETE?
 

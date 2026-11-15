@@ -8,11 +8,7 @@ optional-element dispositions are §5 (only Claimed/Partial rows there are claim
 implementation need not implement processor-dependent elements for which support is not claimed; per §2023:4.2.7, an
 optional element is implemented only when support is claimed. The **documented non-support facilities**
 (§4; the asynchronous messaging facility left them with kb/Work PB4744, which provides it) are recognized at compile time with a NAMED diagnostic.
-VALIDATE → **COBOL1580** is an ACCEPT-INERT WARNING, and it does NOT satisfy §2023:4.2.6 ¶3's MANDATORY warning mechanism —
-VALIDATE is Annex A.4.14 and appears nowhere in Annex A.3, so §2023:4.2.7 obliges only that its non-support be
-identified in this document, and warning rather than refusing is our documented choice (kb/Work PB709). The
-program compiles, runs, the facility is inert, and no
-associated exception condition is raised (§2023:14.6.13.1.1 licenses this). **SCREEN handling is a REFUSAL** —
+The VALIDATE facility is built in stages (§4 item 3; kb/Work PB5577): its statement runs and its clauses, until their stage lands, are refused by name (**COBOL1708**). **SCREEN handling is a REFUSAL** —
 **COBOL1560** (the data / environment surface) and **COBOL1707** (the procedure surface), both Errors,
 at every edition where the words are reserved — because Annex A.4.1 admits an optional element's syntax
 "only when support for that language element is claimed", which is a prohibition on ACCEPTING and not a

@@ -12,26 +12,20 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A DECLINED FACILITY'S STATEMENT STILL READS ITS IDENTIFIERS (kb/Work PB3568, CLAUDE.md rule 5).
-/// <para>The recognize-and-name arms (<c>StatementBinder.BindUnsupportedFacility</c>: VALIDATE) bind to a no-op, and for a long time they bound NOTHING else: an undefined name, a reference-modified
+/// ⛔ A FACILITY STATEMENT'S OPERANDS ARE ALL READ (kb/Work PB3568, CLAUDE.md rule 5).
+/// <para>While VALIDATE, SEND and RECEIVE were declined they bound to a no-op, and for a long time they bound NOTHING else: an undefined name, a reference-modified
 /// VALIDATE operand and a pointer operand compiled clean, and so did an undefined name in the statement list of a
-/// SEND's ON EXCEPTION phrase. Declining a facility licenses its BEHAVIOUR to be absent; §2023:4.2.6 ¶3 even leaves the syntax of an
-/// unsupported processor-dependent element undiagnosed ("not required to diagnose syntax errors within this unsupported syntax") and
-/// §2023:4.2.7 asks an unclaimed optional element only to be documented. Reading the operands is a QUALITY CHOICE, not a requirement: the statement's
-/// operands are identifiers all the same, and the general identifier rules and VALIDATE's §2023:14.9.50.3
-/// syntax rules apply to them. SEND and RECEIVE are no longer declined (kb/Work PB4700); this census still guards their
-/// operands. The shape that keeps the NEXT declined statement from repeating it: a declined
-/// statement is routed through a <c>BindDeclined…</c> method that reads its operands in
-/// <c>DeclinedFacilityBinder</c> first, and the operands the grammar gives each declined rule are a census that
-/// fails when a rule grows one.</para>
+/// SEND's ON EXCEPTION phrase. None of the three is declined now (SEND and RECEIVE: kb/Work PB4700; VALIDATE: kb/Work PB5577), but the census that
+/// found the defect still guards them: the operands the grammar gives each facility statement rule are a census that
+/// fails when a rule grows one, until the binder reads it or the roster says why it cannot.</para>
 /// </summary>
 public sealed class DeclinedFacilityOperandDriftTests
 {
     private static readonly string StatementBinderPath =
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Bound", "StatementBinder.cs");
 
-    private static readonly string DeclinedFacilityBinderPath =
-        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "DeclinedFacilityBinder.cs");
+    private static readonly string ValidateBinderPath =
+        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "ValidateBinder.cs");
 
     private static readonly string MessagingBinderPath =
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "MessagingBinder.cs");
@@ -40,7 +34,7 @@ public sealed class DeclinedFacilityOperandDriftTests
         TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar", "CobolParserCore.g4");
 
     /// <summary>The statement rules whose operands a binder reads for their identifier rules, each with the number of
-    /// <c>dataReference</c> operands the grammar gives it (<c>DeclinedFacilityBinder</c> for VALIDATE,
+    /// <c>dataReference</c> operands the grammar gives it (<c>ValidateBinder</c> for VALIDATE (kb/Work PB5577),
     /// <c>MessagingBinder</c> for SEND and RECEIVE, kb/Work PB4743). Adding an operand to a rule is an adjudication:
     /// the binder reads it and a refusal golden pins it (an undefined name in each RECEIVE and SEND operand:
     /// <c>conformance-suite/wiseowl/cases/14.9.31-RECEIVE</c> and <c>14.9.38-SEND</c>, kb/Work PB3594, PB4700), or the
@@ -102,57 +96,19 @@ public sealed class DeclinedFacilityOperandDriftTests
         return Regex.Replace(text, @"//[^\r\n]*", "");
     }
 
-    /// <summary>Every recognize-and-name call in the statement binder sits in a <c>BindDeclined…</c> method, which
-    /// reads the statement's operands (<c>DeclinedFacility.Bind…</c>) BEFORE naming the facility — so a declined
-    /// statement cannot be routed to the no-op without its identifiers being read.</summary>
-    [Fact]
-    public void EveryRecognizeAndNameCall_SitsInAMethodThatReadsTheOperandsFirst()
-    {
-        string code = CodeOf(StatementBinderPath);
-        var methodHeader = new Regex(@"^\s+(?:private|internal|public)\s+[\w<>\[\],? ]+?\s+(\w+)\s*(?:<[^>]+>)?\s*\(", RegexOptions.Multiline);
-        var sites = new List<string>();
-        string current = "";
-        foreach (string line in code.Split('\n'))
-        {
-            if (methodHeader.Match(line) is { Success: true } h) current = h.Groups[1].Value;
-            if (!line.Contains("BindUnsupportedFacility(", StringComparison.Ordinal) || current == "BindUnsupportedFacility") continue;
-            sites.Add(current);
-        }
-
-        Assert.True(sites.Count >= 1,
-            "the scan found no BindUnsupportedFacility call site — VALIDATE and the MCS SEND and RECEIVE route through it "
-            + "(BindDeclinedStatement); the guard would pass vacuously on a renamed method.");
-        var offenders = sites.Where(s => !s.StartsWith("BindDeclined", StringComparison.Ordinal)).Distinct().ToList();
-        Assert.True(offenders.Count == 0,
-            "BindUnsupportedFacility is called outside a BindDeclined… method (" + string.Join(", ", offenders)
-            + "): a declined facility's statement must read its identifiers in DeclinedFacilityBinder first "
-            + "(kb/Work PB3568).");
-
-        foreach (string method in sites.Distinct())
-        {
-            var declaration = Regex.Match(code, @"(?:private|internal|public)[^\n]*\b" + method + @"\b\s*[<(]");
-            Assert.True(declaration.Success, $"{method} is no longer declared in StatementBinder.cs.");
-            int start = declaration.Index;
-            int next = Regex.Match(code[(start + 1)..], @"\n    (public|internal|private) ").Index;
-            string body = next <= 0 ? code[start..] : code[start..(start + 1 + next)];
-            Assert.True(body.Contains("DeclinedFacility.Bind", StringComparison.Ordinal) || body.Contains("bindOperands(", StringComparison.Ordinal),
-                $"{method} names a declined facility without reading its operands through DeclinedFacilityBinder.");
-        }
-    }
-
-    /// <summary>The facility statement rules are the ones the statement binder routes to a <c>BindDeclined…</c> method (VALIDATE) or binds from their introduction (<c>BindIntroducedAt</c>: SEND and RECEIVE, kb/Work PB4744),
+    /// <summary>The facility statement rules are the ones the statement binder binds from their introduction (<c>BindIntroducedAt</c>: VALIDATE, kb/Work PB5577; SEND and RECEIVE, kb/Work PB4744),
     /// and the operands each gives <c>dataReference</c> match the roster — so a rule that grows an operand fails here
     /// until the binder reads it or the roster says why it cannot.</summary>
     [Fact]
     public void TheDeclinedStatementRules_AndTheirOperands_AreTheRoster()
     {
         string binderCode = CodeOf(StatementBinderPath);
-        var routed = Regex.Matches(binderCode, @"s\.(\w+)\(\) is \{ \} \w+ =>\s*(?:BindDeclined\w+|BindIntroducedAt)\(")
+        var routed = Regex.Matches(binderCode, @"s\.(\w+)\(\) is \{ \} \w+ =>\s*BindIntroducedAt\(")
             .Select(m => m.Groups[1].Value).OrderBy(x => x, StringComparer.Ordinal).ToList();
         Assert.Equal(Roster.Keys.OrderBy(x => x, StringComparer.Ordinal), routed);
 
         string grammar = CodeOf(GrammarPath);
-        string facility = CodeOf(DeclinedFacilityBinderPath) + CodeOf(MessagingBinderPath);
+        string facility = CodeOf(ValidateBinderPath) + CodeOf(MessagingBinderPath);
         foreach (var (rule, (inGrammar, reason)) in Roster)
         {
             var m = Regex.Match(grammar, @"^" + rule + @"\s*\r?\n\s*:(?<body>.*?)\r?\n\s*;", RegexOptions.Multiline | RegexOptions.Singleline);
@@ -160,13 +116,13 @@ public sealed class DeclinedFacilityOperandDriftTests
             int refs = Regex.Matches(m.Groups["body"].Value, @"\bdataReference\b").Count;
             Assert.True(refs == inGrammar,
                 $"{rule} gives {refs} dataReference operand(s) in the grammar, the roster expects {inGrammar} ({reason}). "
-                + "Read the new operand in DeclinedFacilityBinder or MessagingBinder, or record in the roster why it cannot be resolved.");
+                + "Read the new operand in ValidateBinder or MessagingBinder, or record in the roster why it cannot be resolved.");
         }
 
         // the binder half: each roster rule has its method over the generated context, so the roster cannot name a
         // rule the binder does not read.
         foreach (string context in new[] { "ValidateFacilityStatementContext", "MessagingReceiveStatementContext", "MessagingSendStatementContext" })
             Assert.True(facility.Contains(context, StringComparison.Ordinal),
-                $"neither DeclinedFacilityBinder nor MessagingBinder binds {context}.");
+                $"neither ValidateBinder nor MessagingBinder binds {context}.");
     }
 }

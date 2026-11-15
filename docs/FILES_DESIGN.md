@@ -1012,7 +1012,22 @@ runtime mirrors it: `FileRecordLock` is the retention bracket alone, `CobolFile.
 `advancingOnLock` and `ignoringLock` as their own arguments, and the Format-2 `ReadKeyedShared` takes
 `ignoringLock` (ADVANCING ON LOCK is not in the Format-2 general format — D17). WRITE and REWRITE reference
 `recordLockPhrase` only, because §2023:14.9.51.2 and §2023:14.9.35.2 print `[ retry-phrase ]` and
-`[ WITH LOCK | WITH NO LOCK ]` and no IGNORING LOCK at all.
+`[ WITH LOCK | WITH NO LOCK ]` and no IGNORING LOCK at all; they reach it through ONE rule for the two adjacent
+brackets, `CobolIO.g4#retryLockPhrases` (`retryPhrase recordLockPhrase? | recordLockPhrase`), so the pair is one
+element of the statement.
+
+**Where WRITE's pair stands is an edition fact (kb/Work PB5620).** The 2002 Format 1 (sequential) prints it AFTER
+the END-OF-PAGE phrases (§2002:14.8.47.1, rendered PDF page 580); the 2014 Format 1 moved it before them, the place
+Format 2, READ and REWRITE print it at every edition (§2014:14.9.47.1, §2023:14.9.51.2), and ISO/IEC 1989:2014
+Annex E.2 item 29 records the move ("Through an editorial error, the LOCK and RETRY phrases were placed in an
+incorrect location in the syntax diagram for the sequential format of the WRITE statement", §2014:E.2).
+`writeStatement` therefore parses `retryLockPhrases` in either place — `retryLockPhrases conditionalPhrases |
+conditionalPhrases retryLockPhrases?` — so a WRITE still writes the pair once and in one place, and splitting it
+around the phrases is a syntax error at every edition. Which place was written is asked once, from the written
+order, by `VersionConformancePass.ParseArm.GateRetryLockPlace`: after an END-OF-PAGE phrase is
+`write-lock-phrases-after-end-of-page-2002` (COBOL0902 from 2014), before one is
+`write-lock-phrases-before-end-of-page-2014` (COBOL0900 at 2002), and after INVALID KEY phrases is no edition's
+format (COBOL2987, §2023:5.2.1). The binders read the pair through `retryLockPhrases()` and never ask its place.
 
 **Why it is written as a decision (kb/Work PB331).** One rule, `recordLockPhrase : IGNORING LOCK | WITH? NO
 LOCK | WITH? LOCK`, reached through three free optionals, inverted BOTH cardinalities at once: what the printed
