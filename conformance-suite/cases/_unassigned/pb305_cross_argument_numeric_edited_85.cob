@@ -1,10 +1,13 @@
       *>--- conformance-case
       *> id: pb305_cross_argument_numeric_edited_85
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> kb/Work PB5108: accepted from 2002 only. Its statements put a numeric or integer function where an identifier stands
+      *> (a MOVE sender, a DISPLAY operand), which X3.23-1985 Amendment 1 admits only inside an arithmetic expression
+      *> (IV 4.3.8.3.3 SR4); 2002 Annex F.2 item 60 removed that restriction.
       *> kb/Work PB305 at the OLDEST edition. The rule under test is
       *> ISO 8.5.2.1 Table 2's class column - category numeric-edited
       *> (usage display) is class ALPHANUMERIC - and it is

@@ -29,6 +29,8 @@
       *> R3  the COBOL-85 SR4 BOUNDARY: 30 written characters exactly (10 groups of 'XXX'), which is legal.
       *> R4  X(30000) - four written characters, 30000 character positions: the two rules in one item.
       *> R5  9(1) - the smallest factor SR6 admits.
+      *> Each size is asked as a relation (kb/Work PB5108: at 85 a numeric function stands only in an arithmetic expression, so no
+      *> DISPLAY operand), and the line shows the expected size only when the relation holds.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB531RF.
        DATA DIVISION.
@@ -41,11 +43,31 @@
        PROCEDURE DIVISION.
            PB4305-LEAD.
            MOVE "ABC" TO R1.
-           DISPLAY "R1=[" R1 "] SIZE=" FUNCTION LENGTH(R1).
+           IF FUNCTION LENGTH(R1) = 20
+               DISPLAY "R1=[" R1 "] SIZE=20"
+           ELSE
+               DISPLAY "R1 SIZE WRONG"
+           END-IF.
            MOVE 12345.67 TO R2.
-           DISPLAY "R2=" R2 " SIZE=" FUNCTION LENGTH(R2).
-           DISPLAY "R3-SIZE=" FUNCTION LENGTH(R3).
-           DISPLAY "R4-SIZE=" FUNCTION LENGTH(R4).
+           IF FUNCTION LENGTH(R2) = 7
+               DISPLAY "R2=" R2 " SIZE=7"
+           ELSE
+               DISPLAY "R2 SIZE WRONG"
+           END-IF.
+           IF FUNCTION LENGTH(R3) = 30
+               DISPLAY "R3-SIZE=30"
+           ELSE
+               DISPLAY "R3-SIZE WRONG"
+           END-IF.
+           IF FUNCTION LENGTH(R4) = 30000
+               DISPLAY "R4-SIZE=30000"
+           ELSE
+               DISPLAY "R4-SIZE WRONG"
+           END-IF.
            MOVE 7 TO R5.
-           DISPLAY "R5=" R5 " SIZE=" FUNCTION LENGTH(R5).
+           IF FUNCTION LENGTH(R5) = 1
+               DISPLAY "R5=" R5 " SIZE=1"
+           ELSE
+               DISPLAY "R5 SIZE WRONG"
+           END-IF.
            STOP RUN.

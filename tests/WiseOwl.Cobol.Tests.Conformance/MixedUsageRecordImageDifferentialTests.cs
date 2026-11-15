@@ -473,7 +473,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
                05 G1R-TXT PIC X(2).
             01 L1 PIC 9(2).
             """, """
-                MOVE FUNCTION LENGTH(G1) TO L1.
+                COMPUTE L1 = FUNCTION LENGTH(G1).
                 DISPLAY L1.
                 IF G1R-TXT = "AB" DISPLAY "AT2" ELSE DISPLAY "SHIFTED" END-IF.
             """),

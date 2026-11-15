@@ -306,6 +306,11 @@ internal static class IntrinsicResultType
         BoundStringLiteral sl => sl.Category,
         BoundNumericLiteral => PicCategory.Numeric,
         BoundFieldOperand { Place: RefModPlace rmp } => rmp.Category,
+        // ⛔ A table(ALL) ARGUMENT IS ITS ELEMENT AS A STATIC CLASSIFIER SEES IT (TableAllPlace's own contract): `NE (ALL) (3:1)` is a
+        // TableAllPlace OVER the reference-modified element, and reading the decorator's Item answered the numeric item's category
+        // where §2023:8.4.3.3.4 GR6c makes the view alphanumeric — so `FUNCTION MAX (NE (ALL) (3:1))` typed NUMERIC while
+        // `MAX (NE (1) (3:1) NE (2) (3:1))` typed alphanumeric (kb/Work PB5108: the COBOL-85 placement screen asks the type).
+        BoundFieldOperand { Place: TableAllPlace all } => OperandCategory(new BoundFieldOperand(all.Element)),
         // D20/PB79 — THE ONE READER: a bit / national group answers its as-if picture's category (§2023:13.18.29.4
         // GR1a/GR2a), an alphanumeric group ALPHANUMERIC (§2023:8.5.2.1), an elementary item its own.
         // ⛔ THROUGH <c>DataItem.OperandPic</c>, NEVER <c>Pic</c> GUARDED BY <c>IsGroup</c> (kb/Work PB401). The
