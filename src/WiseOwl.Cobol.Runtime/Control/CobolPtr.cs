@@ -190,7 +190,12 @@ public static class CobolPtr
     public static ManagedPointer UpByAmountReal(ManagedPointer? p, double by, bool down) =>
         Displace(p, SetAmount.Land(by, out Int128 whole), whole, down);
 
-    /// <summary>Map <see cref="SetAmount"/>'s landing onto THIS format's two rules, ONCE for both lanes. An
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="UpByAmount"/> (kb/Work PB5619): GR19's integrality test runs on the
+    /// SDIDI's own exponent, and an integral amount past the carrier is GR20's.</summary>
+    public static ManagedPointer UpByAmountDec(ManagedPointer? p, CobolDec by, bool down) =>
+        Displace(p, SetAmount.Land(by, out Int128 whole), whole, down);
+
+    /// <summary>Map <see cref="SetAmount"/>'s landing onto THIS format's two rules, ONCE for every lane. An
     /// integral amount too large for the widest integer carrier (a huge double, or a trailing-P amount whose
     /// value is past <see cref="Int128"/>, kb/Work PB2697) is NOT GR19's case — it IS an integer — and no
     /// representable address can result from it, which is GR20's.</summary>

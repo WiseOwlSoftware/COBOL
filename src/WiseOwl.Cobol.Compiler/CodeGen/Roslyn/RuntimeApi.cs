@@ -1465,6 +1465,10 @@ internal static class RuntimeApi
     public static string PtrUpByAmount(string ptr, string scaled, string scale, bool down) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByAmount)}({ptr}, {scaled}, {scale}, {(down ? "true" : "false")})";
 
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="PtrUpByAmount"/> — <c>CobolPtr.UpByAmountDec</c> (kb/Work PB5619).</summary>
+    public static string PtrUpByAmountDec(string ptr, string dec, bool down) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByAmountDec)}({ptr}, {dec}, {(down ? "true" : "false")})";
+
     /// <summary>ALLOCATE — <c>CobolPtr.Allocate</c> over the FULL Int128 size (no emitter-side narrowing —
     /// the PB22 wrap family), with the GR6/GR8 fill character and the GR5 not-available out-flag.
     /// <paramref name="nullImageOffsets"/> are the based item's pointer-member positions, seeded with the NULL
@@ -1503,6 +1507,11 @@ internal static class RuntimeApi
     /// integrality test runs on the <c>double</c> itself (the <c>CobolPtr.UpByReal</c> shape, kb/Work PB151).</summary>
     public static string IndexTryAmountReal(string amountDouble, SetAmountRule rule, string detail, string outVar) =>
         $"{nameof(CobolIndex)}.{nameof(CobolIndex.TryAmountReal)}({amountDouble}, "
+        + $"{nameof(SetAmountRule)}.{rule}, {EmitText.CsLiteral(detail)}, out long {outVar})";
+
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="IndexTryAmount"/> — <c>CobolIndex.TryAmountDec</c> (kb/Work PB5619).</summary>
+    public static string IndexTryAmountDec(string dec, SetAmountRule rule, string detail, string outVar) =>
+        $"{nameof(CobolIndex)}.{nameof(CobolIndex.TryAmountDec)}({dec}, "
         + $"{nameof(SetAmountRule)}.{rule}, {EmitText.CsLiteral(detail)}, out long {outVar})";
 
     /// <summary>THE guarded index augment — <c>CobolIndex.Augment</c> (§2023:14.9.39.4 GR4 a): a result outside the
@@ -1966,6 +1975,10 @@ internal static class RuntimeApi
     /// integrality and range test sees the value the source computed.</summary>
     public static string StartKeyLengthScaled(string scaled, string scale, int unitWidth) =>
         $"{nameof(StartKeyLength)}.{nameof(StartKeyLength.OfScaled)}((global::System.Int128)({scaled}), {scale}, {unitWidth})";
+
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="StartKeyLengthScaled"/> — <c>StartKeyLength.OfDec</c> (kb/Work PB5619).</summary>
+    public static string StartKeyLengthDec(string dec, int unitWidth) =>
+        $"{nameof(StartKeyLength)}.{nameof(StartKeyLength.OfDec)}({dec}, {unitWidth})";
 
     /// <summary>The native-float lane of <see cref="StartKeyLengthScaled"/> — <c>StartKeyLength.OfReal</c>.</summary>
     public static string StartKeyLengthReal(string value, int unitWidth) =>

@@ -45,6 +45,11 @@ public readonly record struct StartKeyLength
     public static StartKeyLength OfReal(double value, int unitWidth) =>
         new(SetAmount.Land(value, out Int128 whole), whole, unitWidth);
 
+    /// <summary>arithmetic-expression-1 on the STANDARD-DECIMAL lane (kb/Work PB5619): the SDIDI value, integrality tested on
+    /// its own exponent.</summary>
+    public static StartKeyLength OfDec(CobolDec value, int unitWidth) =>
+        new(SetAmount.Land(value, out Int128 whole), whole, unitWidth);
+
     /// <summary>No LENGTH phrase: GR17 b)'s "or else the length of data-name-1", already a storage width.</summary>
     public static StartKeyLength OfWidth(int storageWidth) => new(SetAmountLanding.Integer, storageWidth, 1);
 

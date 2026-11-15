@@ -1722,6 +1722,20 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         return new NumX(RuntimeApi.DecToUnscaledIntermediate(dec, ws.ToString(), CobolRounding.Truncation), ws);
     }
 
+    /// <summary>⛔ THE LANDING OF A SET-FAMILY AMOUNT (kb/Work PB5619): the value on the carrier the integrality and range rules
+    /// need, never narrowed first. The same funnels as <see cref="Landed"/> (the unsigned-wide read, a float under a standard
+    /// mode converted in), but an SDIDI value STAYS an SDIDI (<see cref="NumXCarrier.Sdidi"/>): <see cref="Landed"/> lowers it
+    /// to <c>Int128</c> at a fixed working scale, which truncates a fraction the rule asks about (§2002:14.8.35.3 GR16:
+    /// "If arithmetic-expression-3 does not evaluate to an integer, the EC-SIZE-ADDRESS exception") and overflows on an
+    /// integer the range rule rejects (GR17). The consumers dispatch on <see cref="NumX.Carrier"/> and call the runtime's
+    /// <c>SetAmount.Land</c> overload for it: <c>SetEmitter.LandAmount</c>, <c>PtrEmitter.EmitSetPointerUpDown</c>,
+    /// <c>KeyedIoEmitter</c>'s START WITH LENGTH.</summary>
+    public NumX LandedAmount(NumX x)
+    {
+        x = DeU(x);
+        return SdidiOf(x) is { } dec ? new NumX(dec, 0, Dec: true) : x;
+    }
+
     /// <summary>⛔ THE ONE QUESTION "IS THIS RENDERED INTERMEDIATE AN SDIDI VALUE?" that <see cref="Landed"/> and a consumer
     /// which keeps the value's OWN exponent (the Format-1 CALL argument, <c>CallEmitter</c>'s expression arm, kb/Work PB3677)
     /// both ask: the C# expression of a <c>CobolDec</c> when <paramref name="x"/> IS an SDIDI value, or - under a STANDARD mode,

@@ -2602,7 +2602,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   is less than or equal to the length of the associated key, the I-O status value … is set to '23'"* — and 14.9.41.3
   has no rule confining the expression to an integer, so `WITH LENGTH 2.5` is legal source whose result is '23'.
   `KeyedIoEmitter.EmitStart` therefore renders a `StartKeyLength` (runtime `IO/StartKeyLength.cs`) from the exact
-  lane `SetEmitter.LandAmount` uses — the scaled `Int128` with its scale, or the native `double` — and
+  lane `SetEmitter.LandAmount` uses — the scaled `Int128` with its scale, the SDIDI `CobolDec` (`NumericRenderer.LandedAmount`, kb/Work PB5619), or the native `double` — and
   `IndexedConnector.Start` asks `TryCompareLength(keyLength, …)` exactly once: integrality through THE ONE
   carrier-neutral landing `SetAmount.Land`, then 1 ≤ count ≤ key length, then the GR13 national-position scaling on
   the bounded integer. The former int narrowing of `Align(expr, 0)` truncated 2.5 to 2 and wrapped 4294967297 to 1,

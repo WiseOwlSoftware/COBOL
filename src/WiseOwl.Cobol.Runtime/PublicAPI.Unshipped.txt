@@ -961,6 +961,7 @@ static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximation(double v, int scal
 static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximationIntermediate(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledApproximationUnchecked(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledIntermediate(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolIndex.TryAmountDec(WiseOwl.Cobol.Runtime.CobolDec v, WiseOwl.Cobol.Runtime.SetAmountRule rule, string! detail, out long value) -> bool
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AbsExact(WiseOwl.Cobol.Runtime.CobolExact v) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AbsWide(WiseOwl.Cobol.Runtime.CobolWide v) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AcosWide(WiseOwl.Cobol.Runtime.CobolWide? x, int scale) -> double
@@ -1048,6 +1049,7 @@ static WiseOwl.Cobol.Runtime.CobolNum.PositionOfWide(double value) -> System.Int
 static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> void
+static WiseOwl.Cobol.Runtime.CobolPtr.UpByAmountDec(WiseOwl.Cobol.Runtime.ManagedPointer? p, WiseOwl.Cobol.Runtime.CobolDec by, bool down) -> WiseOwl.Cobol.Runtime.ManagedPointer!
 static WiseOwl.Cobol.Runtime.CobolSizeError.FalseWhenRaised(System.Func<bool>! condition) -> bool
 static WiseOwl.Cobol.Runtime.CobolSizeError.ProhibitedInexact() -> WiseOwl.Cobol.Runtime.CobolSizeError!
 static WiseOwl.Cobol.Runtime.CobolStandardData.Characters(string! displayImage, in WiseOwl.Cobol.Runtime.NumProfile profile) -> string!
@@ -1160,6 +1162,7 @@ static WiseOwl.Cobol.Runtime.IO.KeySegment.operator !=(WiseOwl.Cobol.Runtime.IO.
 static WiseOwl.Cobol.Runtime.IO.KeySegment.operator ==(WiseOwl.Cobol.Runtime.IO.KeySegment left, WiseOwl.Cobol.Runtime.IO.KeySegment right) -> bool
 static WiseOwl.Cobol.Runtime.IO.RecordStep.operator !=(WiseOwl.Cobol.Runtime.IO.RecordStep left, WiseOwl.Cobol.Runtime.IO.RecordStep right) -> bool
 static WiseOwl.Cobol.Runtime.IO.RecordStep.operator ==(WiseOwl.Cobol.Runtime.IO.RecordStep left, WiseOwl.Cobol.Runtime.IO.RecordStep right) -> bool
+static WiseOwl.Cobol.Runtime.IO.StartKeyLength.OfDec(WiseOwl.Cobol.Runtime.CobolDec value, int unitWidth) -> WiseOwl.Cobol.Runtime.IO.StartKeyLength
 static WiseOwl.Cobol.Runtime.ManagedPointer<T>.OverStorage(System.Func<T>! get, System.Action<T, WiseOwl.Cobol.Runtime.ReceivingReferences?>! store) -> WiseOwl.Cobol.Runtime.ManagedPointer<T>!
 static WiseOwl.Cobol.Runtime.MessageOutcome.operator !=(WiseOwl.Cobol.Runtime.MessageOutcome left, WiseOwl.Cobol.Runtime.MessageOutcome right) -> bool
 static WiseOwl.Cobol.Runtime.MessageOutcome.operator ==(WiseOwl.Cobol.Runtime.MessageOutcome left, WiseOwl.Cobol.Runtime.MessageOutcome right) -> bool
@@ -1210,6 +1213,7 @@ static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.SkippedForSize(string!
 static WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.operator !=(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow left, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow right) -> bool
 static WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.operator ==(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow left, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow right) -> bool
 static WiseOwl.Cobol.Runtime.RuntimeAbi.CallAbi.get -> int
+static WiseOwl.Cobol.Runtime.SetAmount.Land(WiseOwl.Cobol.Runtime.CobolDec amount, out System.Int128 whole) -> WiseOwl.Cobol.Runtime.SetAmountLanding
 static WiseOwl.Cobol.Runtime.SwitchStore.IsVariableName(string! variableName) -> bool
 static WiseOwl.Cobol.Runtime.SwitchStore.Names.get -> System.Collections.Generic.IReadOnlyList<string!>!
 static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackFixed(object? box, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal, string! image, WiseOwl.Cobol.Runtime.ReceivingReferences? received) -> object!
