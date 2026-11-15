@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-3",
+ "rule-digest": "689a55eff511",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindWrite",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5579_write_file_indexed_relative_2002; conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_file_advancing_indexed_neg",
+ "notes": "§2002:14.8.47.2 SR3 \"If the organization of the write file is indexed or relative, format 2 shall be specified\": pb5579_write_file_indexed_relative_2002 (accept [2002]) writes Format 2 WRITE FILE on an indexed and a relative file; g2_write_file_advancing_indexed_neg (WRITE FILE IX FROM WX AFTER ADVANCING 1 LINE on an indexed file) is refused at --std 2002 with COBOL1720 at the WRITE (golden-2002-3 integrator, main 63ab0c4ece; the writers had deferred the row because their pinned build predated PB5579)."
+}
