@@ -501,11 +501,14 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         if (m.Accessor == '\0') return;
         var b = m.Binding!;
         bool get = m.Accessor == 'G';
+        // The ACTIVE-CLASS bans of SR6/SR7 are 2014 additions (2014 Annex E.2): §2002:11.6.2 SR6 asks only the USING/RETURNING
+        // shape and §2002:13.16.58.2 SR15 admits ACTIVE-CLASS in an instance definition and a method's linkage (kb/Work PB5598).
+        bool activeClassBanned = Edition.Edition.Has(2014);
         string? fault = get
             ? usingCount > 0 || !m.HasReturning
                 ? "a get property method shall have no USING phrase parameters specified in the procedure division "
                   + "header and shall have a single RETURNING phrase (ISO §2023:11.7.3 SR6)"
-              : IsActiveClassReference(b.Returning)
+              : activeClassBanned && IsActiveClassReference(b.Returning)
                 ? "the returning item of a get property method shall not be an object reference described with the "
                   + "ACTIVE-CLASS phrase (ISO §2023:11.7.3 SR6)"
               : null
@@ -513,7 +516,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                 ? "a set property method shall have a single USING parameter specified in the procedure division header "
                   + $"and no RETURNING phrase — this one has {usingCount} USING parameter(s)"
                   + (m.HasReturning ? " and a RETURNING phrase" : "") + " (ISO §2023:11.7.3 SR7)"
-              : b.Formals.Count == 1 && IsActiveClassReference(b.Formals[0].Item)
+              : activeClassBanned && b.Formals.Count == 1 && IsActiveClassReference(b.Formals[0].Item)
                 ? "the USING parameter of a set property method shall not be an object reference described with the "
                   + "ACTIVE-CLASS phrase (ISO §2023:11.7.3 SR7)"
               : null;
@@ -579,7 +582,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                       + "SET; if the PROPERTY clause is specified in a data item described with the CONSTANT RECORD "
                       + "clause, or in any data item subordinate to one, the SET phrase shall be specified "
                       + "(ISO §2023:13.18.42.3 SR5)"
-                : subject.Pic?.ObjectRef is { Kind: ObjectRefKind.ActiveClass }
+                : Edition.Edition.Has(2014) && subject.Pic?.ObjectRef is { Kind: ObjectRefKind.ActiveClass }   // 2014 addition: §2002:13.16.40.2 has no SR6 (kb/Work PB5598)
                     ? "it is an object reference described with the ACTIVE-CLASS phrase; the PROPERTY clause shall not "
                       + "be specified for data items of usage object reference described with an ACTIVE-CLASS phrase "
                       + "(ISO §2023:13.18.42.3 SR6)"
