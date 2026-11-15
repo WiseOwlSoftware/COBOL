@@ -53,10 +53,12 @@ another format is refused by name.
 A CD is a redefinition class, the FD's implicit record area applied to a new section (`CommunicationSectionBinder`):
 
 - `CommunicationDescription.Area` is the record A.1.2.3 prints as the "IMPLICIT DESCRIPTION", built from `CommunicationFormats`: an unnamed level 1 group of
-  elementary items, each named by its clause or by its place in the series, unnamed otherwise (`FILLER`). The output table is flat without a DESTINATION TABLE
+  elementary items, each named by its clause or by its place in the series, unnamed otherwise (`FILLER`), and each carrying the PICTURE of its A.1.2.3 description (`AddSlot`: `PICTURE 9(4)`, `XX`, `X(12)`), so the
+  §2002:14.7.1.2.1 conformance of a field passed BY REFERENCE or returned compares the same PICTURE a written entry has (kb/Work PB5617). The output table is flat without a DESTINATION TABLE
   OCCURS clause (A.1.2.2 SR11) and an `OCCURS` group with it (SR12, with its INDEXED BY names).
-- Every record written after the CD joins the class by `RedefinitionKind.ImplicitCommunicationRecord`. The class's anchor is the FIRST written record when there is
-  one, because "only the first redefinition may contain VALUE clauses" (SR5, SR9, SR14) and a class's seed is its anchor's.
+- Every record written after the CD that has a character window joins the class by `RedefinitionKind.ImplicitCommunicationRecord`. The class's anchor is the FIRST such record when there is
+  one, because "only the first redefinition may contain VALUE clauses" (SR5, SR9, SR14) and a class's seed is its anchor's. A pointer-class record (USAGE POINTER, PROGRAM-POINTER,
+  OBJECT REFERENCE), a dynamic-length record and a variable-length group are out of line (`FileModel.IsOutOfLineRecord`, D-FRA) and join no class, as in an FD (kb/Work PB5604).
 - The items are static like working-storage's (ISO/IEC 1989:2002 8.6.3), so they join `WorkingStorageRoots`, under `EntrySection.Communication`.
 - A cd-name is a user word of its own type (`UserWordKind.CdName`) and no data-name. It has no qualifier (nor has a report-name, whose second RD is refused the same way), so a second CD entry of one name in a source element is refused COBOL4250 at its declaration (`UserWordKinds.DeclaredUnqualifiable`, §1985:IV.4.3.8.1 SR1; kb/Work PB5307) and the first stands; `CommunicationSlice.Declare` no longer replaces it. The `cdName` rule does not ride `dataName`, whose FILLER is a reserved word (A.1.2.1, 8.3.1.1.1): a word
   §2023:8.9 reserves draws COBOL0901 through `reservedGatedWord` and `IsProvableUserWordPosition`, and FILLER or PROCEDURE draws COBOL5506. It qualifies an item of its entry (the file-cd-report-qualifier of 8.4.1.1.1), through the

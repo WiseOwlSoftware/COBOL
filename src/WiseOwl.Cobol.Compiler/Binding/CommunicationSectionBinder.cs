@@ -162,9 +162,12 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                     : "SR4: \"If neither option for specifying the interface area is used, a level 01 data description entry shall follow the CD entry.\""));
         var area = BuildArea(name, format, names, destinationTable, indexNames, rootNames);
         host.State.Forest.AddWorkingStorageRoots([area]);
-        DataItem anchor = written.Count > 0 ? written[0] : area;
-        foreach (var record in written.Skip(1).Append(area))
-            if (!ReferenceEquals(record, anchor) && record.RedefinesTarget is null)
+        // The records and the interface area share one area (§2002:A.1.2.2 SR9). A record with no character window, a pointer-class item or a
+        // dynamic-length or variable-length one (FileModel.IsOutOfLineRecord, D-FRA), is no implicit redefinition: it has no image to overlay, as in an FD.
+        var inLine = written.Append(area).Where(r => !FileModel.IsOutOfLineRecord(r)).ToList();
+        DataItem anchor = inLine[0];
+        foreach (var record in inLine.Skip(1))
+            if (record.RedefinesTarget is null)
                 record.SetRedefinition(anchor, RedefinitionKind.ImplicitCommunicationRecord);
         host.State.Communication.Declare(new CommunicationDescription(name, format, mode.INITIAL_() is not null, area, written));
     }
@@ -302,15 +305,17 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
     private void AddSlot(DataItem parent, int level, CommunicationFormats.Slot slot, Dictionary<CommunicationField, string> names)
     {
         string? name = names.GetValueOrDefault(slot.Field);
+        // The implicit description is a record description entry with a PICTURE (§2002:A.1.2.3 GR16 "02 data-name-2 PICTURE 9(4)"), so the field carries the
+        // PICTURE clause identity every conformance rule compares (§2002:14.7.1.2.1 same PICTURE, USAGE and SIGN), exactly as a written entry does.
+        string picture = slot.Size == 1 ? (slot.Numeric ? "9" : "X") : $"{(slot.Numeric ? '9' : 'X')}({slot.Size})";
         var item = new DataItem
         {
             Level = level,
             DeclaredAt = Edition.Cursor,
             CobolName = name,
             ClrName = name is null ? $"_filler{host.TakeFillerOrdinal()}" : DataItem.Sanitize(name),
-            Pic = slot.Numeric
-                ? new PicInfo(PicCategory.Numeric, Usage.Display, Length: slot.Size, Digits: slot.Size, Scale: 0, Signed: false)
-                : new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: slot.Size, Digits: 0, Scale: 0, Signed: false),
+            PictureText = picture,
+            Pic = PictureAnalyzer.Analyze(picture, Usage.Display, Edition, $"implicit description of the CD field '{name ?? slot.Field.ToString()}'"),
             Parent = parent,
         };
         item.Uid = host.TakeUid();
