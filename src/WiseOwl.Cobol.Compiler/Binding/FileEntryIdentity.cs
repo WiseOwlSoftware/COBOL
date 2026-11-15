@@ -12,6 +12,28 @@ namespace WiseOwl.Cobol.Binding;
 /// (kb/Work PB2403).</summary>
 internal static class FileEntryIdentity
 {
+    // §2023:12.4.5.3 GR1 j)/k) "The same data description entry for data-name-… as well as their relative location
+    // within the associated record": the key's name as written (part of its data description entry), its
+    // elementary/group shape and byte extent, its §2023:14.8 conformance description (category, usage, PICTURE clause
+    // identity, sign) and its byte offset within the record area (RecordLayout.OffsetOf, the same offset the
+    // connector registers the key window at).
+    private static string KeyEntry(string name, DataItem? item) => item is null ? CobolNames.UpperFold(name)
+        : $"{CobolNames.UpperFold(name)}@{RecordLayout.OffsetOf(item)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"}"
+          + $":{(item.IsGroup ? "G" : "E")}{item.ByteWidth}:"
+          + (ActivationDescriptions.Of(item, classes: null) is { } d ? $"{d.Category}/{d.Clauses}/{d.Positions}" : "-");
+    // j)/k) "each data-name-6" / "each data-name-3": a SOURCE-form key is its record-key-name and every operand's
+    // entry in the order specified, since that order IS the key (§2023:12.4.5.12.4 GR2).
+    private static string ClauseKey(string name, RecordKeySource? source, DataItem? item) => source is null
+        ? KeyEntry(name, item)
+        : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Name, o.Item)))}]";
+    // k) "the same SUPPRESS WHEN phrase" — the operand as the literal position read it (form, class, characters,
+    // figurative kind), so `SUPPRESS WHEN "XX"` and `SUPPRESS WHEN SPACE` differ and an absent phrase is empty.
+    private static string Suppress(SuppressWhenOperand? s) => s is null ? ""
+        : $"{s.Form}/{s.Class}/{s.FigurativeKind}/{s.Characters.Length}:{s.Characters}";
+
+    private static string AlternateEntry(AlternateKeyClause a) =>
+        $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}";
+
     /// <summary>⛔ THE ONE §2023:12.4.5.3 GR1 IDENTITY of an external file connector's file control entry — the string two
     /// describers' <c>ExternalStore.Describe</c> registrations compare for EC-EXTERNAL-FILE-MISMATCH (§2023:14.8.4.4: "the
     /// rules specified in 12.4.5, File control entry General rule 1 apply"). One segment per GR1 item that the entry
@@ -29,34 +51,16 @@ internal static class FileEntryIdentity
     /// cannot disagree on what "the same specification" is, and a segment added here is checked by both.</para></summary>
     public static IReadOnlyList<FileEntrySegment> Segments(FileModel f)
     {
-        // §2023:12.4.5.3 GR1 j)/k) "The same data description entry for data-name-… as well as their relative location
-        // within the associated record": the key's name as written (part of its data description entry), its
-        // elementary/group shape and byte extent, its §2023:14.8 conformance description (category, usage, PICTURE clause
-        // identity, sign) and its byte offset within the record area (RecordLayout.OffsetOf, the same offset the
-        // connector registers the key window at).
-        static string KeyEntry(string name, DataItem? item) => item is null ? CobolNames.UpperFold(name)
-            : $"{CobolNames.UpperFold(name)}@{RecordLayout.OffsetOf(item)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"}"
-              + $":{(item.IsGroup ? "G" : "E")}{item.ByteWidth}:"
-              + (ActivationDescriptions.Of(item, classes: null) is { } d ? $"{d.Category}/{d.Clauses}/{d.Positions}" : "-");
-        // j)/k) "each data-name-6" / "each data-name-3": a SOURCE-form key is its record-key-name and every operand's
-        // entry in the order specified, since that order IS the key (§2023:12.4.5.12.4 GR2).
-        static string ClauseKey(string name, RecordKeySource? source, DataItem? item) => source is null
-            ? KeyEntry(name, item)
-            : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Name, o.Item)))}]";
-        // k) "the same SUPPRESS WHEN phrase" — the operand as the literal position read it (form, class, characters,
-        // figurative kind), so `SUPPRESS WHEN "XX"` and `SUPPRESS WHEN SPACE` differ and an absent phrase is empty.
-        static string Suppress(SuppressWhenOperand? s) => s is null ? ""
-            : $"{s.Form}/{s.Class}/{s.FigurativeKind}/{s.Characters.Length}:{s.Characters}";
         // g) "The same specification of COLLATING SEQUENCE clauses": the file-level clause's alphabet-names, and each
-        // key-level clause's alphabet-name-3 against the KEY POSITION it names (P = the prime key, A<i> = the i-th
-        // alternate), so the rule compares what the clause says about the file's keys; sorted, because the clauses'
+        // key-level clause's alphabet-name-3 against the KEY POSITION it names (P = the prime key, A:<name> = the
+        // alternate that key names, never its place among the ALTERNATE RECORD KEY clauses: their order is not part of the specification), so the rule compares what the clause says about the file's keys; sorted, because the clauses'
         // order in the entry is not part of their specification.
         // The operand is matched by the key ITEM the binder resolved it to (kb/Work PB1075 — a qualified operand).
         string KeyPosition(CollatingKeyOperand k)
         {
             if (k.Key is not null && ReferenceEquals(f.PrimeKey, k.Key)) return "P";
             int i = k.Key is null ? -1 : f.AlternateKeys.FindIndex(a => ReferenceEquals(a.Key, k.Key));
-            return i >= 0 ? $"A{i}" : CobolNames.UpperFold(k.Name);
+            return i >= 0 ? $"A:{CobolNames.UpperFold(k.Key!.RecordKeyName ?? k.Key.Segments[0].CobolName ?? k.Name)}" : CobolNames.UpperFold(k.Name);
         }
         string fileColl = f.FileLevelCollating is { } fc ? $"{(fc.Alnum is { } an ? CobolNames.UpperFold(an) : null)}/{(fc.Nat is { } nn ? CobolNames.UpperFold(nn) : null)}" : "";
         string keyColl = string.Join(",", f.KeyLevelCollating
@@ -85,7 +89,9 @@ internal static class FileEntryIdentity
             new("COLL", "the COLLATING SEQUENCE clauses", $"{fileColl};{keyColl}"),
             new("KEY", "the RECORD KEY clause", f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item) : ""),
             new("ALT", "the ALTERNATE RECORD KEY clauses",
-                string.Join(",", f.AlternateKeyNames.Select(a => $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}"))),
+                // §2023:12.4.5.3 GR1 k) and §1985:IX.2.3.4 GR1 name the alternate keys' number, descriptions and DUPLICATES
+                // phrases, not their order, and §1985:IX.2.3.3 SR1 lets the clauses appear in any order: sorted like COLL.
+                string.Join(",", f.AlternateKeyNames.Select(AlternateEntry).Order(StringComparer.Ordinal))),
             new("SHARE", "the sharing mode", $"{f.Sharing}"),
             new("LOCK", "the lock mode", f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : ""),
             // §1985:VII.2.7.4 GR6 / §2002:12.3.4.3 GR1 h) "The same specification of the PADDING CHARACTER clause" (kb/Work
