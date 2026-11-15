@@ -1,4 +1,4 @@
-## WRITE FILE and REWRITE FILE work from COBOL-2002 (Annex A.4.13 claimed, COBOL1706 retired)
+## Entry 3676 — 2026-11-15 04:26 PST — WRITE FILE and REWRITE FILE work from COBOL-2002 (Annex A.4.13 claimed, COBOL1706 retired)
 
 PB5579 (wave 20262043, group E). The FILE alternative of `{ record-name-1 | FILE file-name-1 }` in WRITE and REWRITE was an optional element declined by COBOL1706; §2002:3.1.1 makes it required of a 2002 implementation, so the decline was a refusal of legal source at `--std 2002`.
 
@@ -19,3 +19,4 @@ PB5579 (wave 20262043, group E). The FILE alternative of `{ record-name-1 | FILE
 **Gate.** `=== BUILD-LOCAL GATE: GREEN` at e592a2400e (run 000004-20261115T114735Z): Conformance 25,284/25,284, Unit 40,799/40,799, RepoDrift 175/175, Characterization 37/37; the 60 `pb5579` results in Conformance.trx are all Passed. Two earlier reds were fixed on the way: CRLF line endings written by my own edit scripts, the edition-gate audit (the construct had to cite the rules that exist only for the FILE phrase) and a `PlaceDenotedItemDriftTests` hit (`is not RefModPlace` became `DenotedItem`). `semgrep verify` reports `VersionConformancePass.cs` and `IntrinsicArgumentRules.cs` unreadable by its C# grammar (the second is a file this change does not touch).
 
 Review round 1 (R1-1 to R1-3): a zero-length literal in the FILE phrase is held in a dynamic-length item of current length 0 (a length-0 record, §2023:14.9.51.4 GR14), and a boolean literal's implicit record is USAGE DISPLAY, one byte per position (§2023:13.18.24.4 GR2c), not the packed USAGE BIT. Goldens pb5579_write_file_exceptions and pb5579_rewrite_file_exceptions run the 44, 48, 23 and declarative paths.
+
