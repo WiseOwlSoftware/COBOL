@@ -28,13 +28,30 @@ public enum AreaPlacement
     WithinLineInAreaB,
 }
 
+/// <summary>The COBOL-85 area of a fixed-form position (<see cref="ReferenceFormatMap.AreaAt"/>; kb/Work PB5313).</summary>
+public enum FixedFormArea
+{
+    /// <summary>The position has no area: its line was read in free form (§2023:6.4.1), or no source line holds it.</summary>
+    None,
+
+    /// <summary>Area A, positions 8–11.</summary>
+    A,
+
+    /// <summary>Area B, position 12 to margin R.</summary>
+    B,
+}
+
 /// <summary>
-/// THE AREA OF A RESULTANT POSITION (kb/Work PB3147): the one composition of the compilation's resultant-line map with
-/// the reference-format map of every text it read. A token of the parsed text is located through
-/// <see cref="SourceLineMap.Locate"/> — the physical file, line and column the user wrote it at, through COPY, REPLACE
-/// and the fixed-form logical conversion alike — and that file's <see cref="ReferenceFormatMap.PlacementAt"/> says
-/// whether the token begins its fixed-form line in area A or area B. Built by the front end for the parse it returns
-/// (<see cref="Frontend.Areas"/>); the COBOL-85 area-placement rules are its consumer.
+/// THE AREA OF A RESULTANT POSITION (kb/Work PB3147, PB5313): the one composition of the compilation's resultant-line map
+/// with the reference-format map of every text it read. An item's place in the RESULTANT program decides it, because the
+/// syntactic correctness of the program "cannot be determined until all COPY and REPLACE statements have been completely
+/// processed" (§1985:XII.2.4 GR8): WHETHER a token begins its line is a fact of the resultant lines, which its asker reads
+/// from the token stream, and the AREA it begins in is that of the place it was laid out at
+/// (<see cref="OriginSpan.LaidOutAt"/>) — where the user wrote it, through COPY, REPLACE and the fixed-form logical
+/// conversion alike, except that a word of pseudo-text-2 a replacement places takes the area it was written in
+/// (§1985:XII.2.4 GR9: it "begins in the same area of the resultant program as it appears in pseudo-text-2") while
+/// identifier-2, literal-2 and word-2 take the area of the text they replace (the same rule). Built by the front end for
+/// the parse it returns (<see cref="Frontend.Areas"/>); the COBOL-85 area-placement rules are its consumer.
 /// </summary>
 public sealed class FixedFormAreas(SourceLineMap lineMap, IReadOnlyDictionary<string, ReferenceFormatMap> formats)
     : IMarginRCutLocator
@@ -43,11 +60,23 @@ public sealed class FixedFormAreas(SourceLineMap lineMap, IReadOnlyDictionary<st
     public static FixedFormAreas None { get; } = new(SourceLineMap.Identity("<source>", 0), new Dictionary<string, ReferenceFormatMap>());
 
     /// <summary>Where the text at 0-based resultant <paramref name="column"/> of 1-based resultant
-    /// <paramref name="line"/> (an ANTLR token's position) stands with respect to the areas of its physical line.</summary>
-    public AreaPlacement PlacementAt(int line, int column)
+    /// <paramref name="line"/> (an ANTLR token's position) stands with respect to COBOL-85's areas, given whether it
+    /// <paramref name="beginsLine"/> — is the first text of its resultant line. <paramref name="writtenElsewhere"/> is the
+    /// place the text was laid out at when that is not where it stands (<see cref="OriginSpan.Layout"/>), so a diagnostic
+    /// can name the place whose area it judged.</summary>
+    public AreaPlacement PlacementAt(int line, int column, bool beginsLine, out SourcePoint? writtenElsewhere)
     {
-        var at = lineMap.Locate(line, column, fallbackFile: "");
-        return formats.TryGetValue(at.FileName, out var map) ? map.PlacementAt(at.Line + 1, at.Column) : AreaPlacement.None;
+        writtenElsewhere = null;
+        if (lineMap.PointAt(line, column) is not { } span) return AreaPlacement.None;
+        var at = span.LaidOutAt;
+        if (!formats.TryGetValue(at.Origin.File, out var map)) return AreaPlacement.None;
+        writtenElsewhere = span.Layout;
+        return map.AreaAt(at.Origin.Line, at.Column) switch
+        {
+            FixedFormArea.None => AreaPlacement.None,
+            FixedFormArea.A => beginsLine ? AreaPlacement.BeginsLineInAreaA : AreaPlacement.WithinLineInAreaA,
+            _ => beginsLine ? AreaPlacement.BeginsLineInAreaB : AreaPlacement.WithinLineInAreaB,
+        };
     }
 
     /// <inheritdoc cref="IMarginRCutLocator.MarginRCutAt"/>

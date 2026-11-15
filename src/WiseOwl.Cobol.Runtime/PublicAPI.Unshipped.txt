@@ -979,6 +979,7 @@ static WiseOwl.Cobol.Runtime.CobolNum.PositionOfWide(double value) -> System.Int
 static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> void
+static WiseOwl.Cobol.Runtime.CobolSizeError.FalseWhenRaised(System.Func<bool>! condition) -> bool
 static WiseOwl.Cobol.Runtime.CobolSizeError.ProhibitedInexact() -> WiseOwl.Cobol.Runtime.CobolSizeError!
 static WiseOwl.Cobol.Runtime.CobolStandardData.Characters(string! displayImage, in WiseOwl.Cobol.Runtime.NumProfile profile) -> string!
 static WiseOwl.Cobol.Runtime.CobolStandardData.Image(string! storage, WiseOwl.Cobol.Runtime.StandardDataPart![]! parts) -> string!

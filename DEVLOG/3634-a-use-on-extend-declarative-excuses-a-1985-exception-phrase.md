@@ -1,0 +1,10 @@
+## Entry 3634 — 2026-11-14 18:10 PST — A USE ON EXTEND declarative excuses a 1985 exception phrase only for a file that can be opened EXTEND
+
+PB5413. At --std 85 `ExceptionPhraseRequirement.HasApplicableUse` counted every open-mode declarative for every file ("the file may be in any mode when a statement runs"). That is false for EXTEND: the procedure runs "for any file open in the extend mode" (§1985:VIII.4.8.4 GR5), and only a sequential-access file (§1985:VIII.4.4.3 SR1, §1985:IX.4.4.3 SR1) without LINAGE (§1985:VII.4.3.3 SR3) that is not on a multiple file reel (§1985:VII.4.3.3 SR2) is ever opened EXTEND. A program whose only declarative was USE ... ON EXTEND therefore compiled a READ, WRITE, REWRITE, DELETE or START of a dynamic- or random-access file with no phrase, and the invalid key went unhandled.
+
+Re-probe on a fresh Debug build: the note's `refute-rd-08/EXR.cob` (indexed READ with only USE ON EXTEND) compiled and ran before; after the fix it is refused COBOL6826. Fix shape: one new fact, `FileModel.CanOpenExtend`, and `HasApplicableUse` counts an EXTEND declarative only when it holds. INPUT, OUTPUT and I-O still cover every file (a DELETE, REWRITE or START of a file open in that mode raises its exception to that procedure; adjudicated in kb/Work PB5413's held-row addendum). `docs/FILES_DESIGN.md` D31(a) and `docs/conformance/3.5/index.md` corrected.
+
+Witnesses: `IoExceptionPhraseRequirementTests` (the old EXTEND arm of `UseDeclarativeForTheFileOrAMode_CoversEveryStatement` removed, 13 cases added: all five verbs on a dynamic indexed file, relative random/dynamic, LINAGE, the INPUT/OUTPUT arms kept, a sequential-access indexed file still covered); golden `pb5413_use_extend_covers_sequential_access_file` (all editions) and refusal `pb5413-use-extend-dynamic-read-85`.
+
+The ten 1985 rule rows stay held PARTIAL until kb/Work PB5094 admits 1985 ids in `closes_rows`.
+

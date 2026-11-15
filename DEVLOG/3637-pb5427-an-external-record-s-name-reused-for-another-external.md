@@ -1,0 +1,14 @@
+## Entry 3637 — 2026-11-14 18:55 PST — PB5427: an external record's name reused for another external data item is refused (COBOL7282)
+
+Wave 20262038 group F finished PB5427. At --std 85 and 2023, `01 EXR EXTERNAL PIC X` in one program and `01 OTHER-EXT EXTERNAL. 05 EXR` in a contained program compiled and ran, and the two EXRs were different external areas (the note's `u2` and `u5`; re-run on this branch before the fix, both compiled and ran at both editions).
+
+**Rule.** §2023:8.4.2.1 says "The same name shall not be used both as the name of an external record and as the name of any other external data item described in the run unit"; §1985:IV.4.3.8.1 SR4 bounds it to the programs "contained within or containing" the one that describes the record (both quotations checked with `cite.py`). Two descriptions of one external record share a name, so the pair refused is an external record's name reused for an item subordinate to an external record.
+
+**Fix.** The GLOBAL half is asked of one source element's forest (`CheckGlobalNameUniquenessPass`), and this half compares source elements, so it cannot live in that pass. `ExternalRecordNameRules.Check` runs at the end of the group bind beside `ExternalFileConnectorRules.Check` and reports `COBOL7282` at the subordinate item. The reach is the edition's: 85 compares a program with its containers and containees (and itself), 2002 and later compare the whole group, the class object and factory halves included. The design paragraph is in `docs/INTERPROGRAM_DESIGN.md` beside the other group-level name rules.
+
+**Goldens.** `pb5427-external-record-name-reused-nested` (refused at 85, 2002, 2014, 2023), `pb5427-external-record-name-shared-legal` (two programs describing one record; prints `Q` at 85), `pb5427-external-record-name-reused-sibling` (refused 2002 to 2023) and `-85` (the same programs accepted at 85).
+
+**Rows.** The 1985 row `1985-SR-IV.4.3.8.1-4` stays PARTIAL: its notes and witnesses now record the EXTERNAL half, and the reader's open question about names subordinate to a GLOBAL record is not claimed. `closes_rows` is empty with the reason written in the note. GAP 169 before and after.
+
+**Self-review.** Architecture: one group rule, and one test of the external attribute: `DataBinder.IsInExternalRecord` is now static, takes the file slice, and replaces the private copy in `OdoResolvePass` (`HasExternalAttribute`) as well, so the new rule adds no third copy. Performance: nothing runs when the group declares no external record. Citations: the first draft cited §2023:13.18.22.3 SR5 for "external record"; `cite.py` placed the quoted sentence in §2023:8.6.3 and the comment now cites that.
+

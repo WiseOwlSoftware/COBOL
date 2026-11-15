@@ -648,6 +648,15 @@ public sealed class FileModel
     /// <c>FileControlBinder.ResolveFiles</c> (the <see cref="VaryingDependingItem"/> pattern).</summary>
     public LinageInfo? Linage { get; set; }
 
+    /// <summary>Whether the file can ever be open in the extend mode: only a file in the sequential access mode
+    /// (§1985:VIII.4.4.3 SR1, §1985:IX.4.4.3 SR1), with no LINAGE clause (§1985:VII.4.3.3 SR3), that does not reside on a
+    /// multiple file reel (§1985:VII.4.3.3 SR2; a report file's OPEN is the Report Writer's, which restates only GR20 d) is
+    /// ever opened EXTEND. A USE ... ON EXTEND procedure runs for a file open in that mode (§1985:VII.4.6.4 GR5d), so for any
+    /// other file it is never applicable (kb/Work PB5413). <c>StatementValidation.CheckOpenModeForFile</c> refuses the OPEN
+    /// that would contradict it, one diagnostic per cause.</summary>
+    public bool CanOpenExtend => AccessMode is FileAccessMode.Sequential && Linage is null
+        && (IsReportFile || MultipleFileReels.Count == 0);
+
     /// <summary>⛔ THE ONE LIST OF THE DATA ITEMS THIS FILE'S OWN CLAUSES NAME OUTSIDE ITS RECORD AREA (kb/Work PB4454):
     /// the ASSIGN … USING item (ISO §2023:12.4.5.3), the FILE STATUS item (§2023:12.4.5.8), the RELATIVE KEY item (§2023:12.4.5.13), the
     /// RECORD VARYING … DEPENDING ON item (§2023:13.18.43) and the LINAGE operands' items (§2023:13.18.34). Each is an operand

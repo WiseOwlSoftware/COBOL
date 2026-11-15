@@ -960,13 +960,22 @@ compile-time screen stays fail-open (it can only refuse the provably non-integra
 run-time condition. `IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers` walks `NumXCarrier`.
 Goldens `pb1526_integer_argument_has_integral_value`, `pb638_unsigned_wide_item_as_integer_argument`.
 
-The compile-time screen's witness shapes are three, each a root shape with a valuation that is not an integer
+The compile-time screen's witness shapes are three, each with a valuation that is not an integer
 (`IntrinsicArgumentRules.NotAlwaysIntegral`): a quotient of a bare item by a literal, an additive spine with an uncancelled
-scaled item (or a non-integral constant), and a POWER over a bare numeric item whose exponent is a negative or non-integral
-literal or a different item that is signed, negated or scaled (`PowerWitness`, kb/Work PB5208: the item can hold 3 × 10^(−s),
-whose negative integer power is 10^(sk) / 3^k and whose non-integral power is irrational). The power half `ProvablyIntegral`
-admits (a non-negative integer literal exponent) is the complement; a literal base or an expression base fails open.
-Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`; complement `pb5208_power_integral_exponents`.
+scaled item (or a non-integral constant), and a POWER with a witness (`PowerWitness`, kb/Work PB5208, PB5345). A power is read
+wherever `CollectAdditive` meets it: at the root, under a negation, or as the ONE power term of a sum whose other terms are
+integral for every valuation. Its base is a bare numeric item (it can hold 3 × 10^(−s), whose negative integer power is
+10^(sk) / 3^k and whose non-integral power is irrational) or an integer literal c with |c| >= 2 (c ** −m is 1 / c^m, and
+c ** t for a positive t below 1 lies between 1 and c, an integer only when c is a perfect power of the matching degree,
+`IsPerfectPower`); its exponent is a negative or non-integral literal, or an item that is signed, negated or has fraction
+digits. One item as base and exponent is the tied case (v = 2 or −2 gives ±1/4; v = 10^(−s) gives a value between 0 and 1).
+The power half `ProvablyIntegral` admits (a non-negative integer literal exponent) is the complement. The FAIL-OPEN shapes are
+recorded and pinned: an expression base, a power under a product, a literal base below 2 in magnitude, a perfect-power literal
+base over a fraction exponent item, a sum of two powers or of a power and a non-integral constant, and a power sharing its item
+with another term of the sum. `IntrinsicTypeSixPowerShapesDriftTests` holds the table (each shape refused or admitted, with its
+reason) and forces a verdict for every `BoundExpr` node type, so a new node cannot fail open unchosen.
+Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`, `pb5345-power-literal-base`;
+complements `pb5208_power_integral_exponents`, `pb5345_power_failopen_shapes`.
 
 ### An argument rule that differs by edition is one edition arm, never a second copy (PB5130, PB5161, PB5162).
 
