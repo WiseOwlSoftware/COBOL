@@ -1315,7 +1315,7 @@
       "owner: 2026-10-08": "kb/Work PB1636 — the owner signed the 32 drafted derivations as one batch (answer 'Sign all 32')",
       "owner: 2026-10-23": "kb/Work PB3539 — the owner chose option (i), document a violation of §12.4.6.4.4 GR3 as undefined (answer 'Document as undefined'); kb/Work PB1636 — the owner signed the last drafted derivation, DRV-GR-12.4.5.9.4-2 (answer 'Sign it')",
       "claude: 2026-11-12": "kb/Work PB5373 — how a 1985 rule with no reachable witness closes: the rows of its classes 1 and 2",
-      "claude: 2026-11-14": "kb/Work PB5373 — its class 2 rows read after the orchestrator's cobol-refuter pass (adjudication/pb5373-class2/refute.jsonl), signed by the operator session (Claude Mythos 5.2): DRV-1985-GR-XIV.3.6.4-16 and DRV-1985-GR-VI.3.4.4-1, each on an UPHELD record"
+      "claude: 2026-11-14": "kb/Work PB5373 — its class 2 rows read after the orchestrator's cobol-refuter pass (tests/version-matrix/derivation-refutations/pb5373-class2.jsonl), signed by the operator session (Claude Mythos 5.2): DRV-1985-GR-XIV.3.6.4-16 and DRV-1985-GR-VI.3.4.4-1, each on an UPHELD record"
     },
     "undefined-list": "tests/version-matrix/annex-a2-undefined.json",
     "$refusals": [

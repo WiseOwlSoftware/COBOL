@@ -1493,7 +1493,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "1985-GR-XIV.2.2.4-7", "1985-GR-XIV.2.2.4-29", "1985-GR-XIV.3.6.4-5",
             // ⚙ The first ARGUED 1985 rows, added deliberately (kb/Work PB5373 class 2, signature `claude: 2026-11-14`):
             // `unpopulatable-antecedent` (no device superimposes; no source listing is produced, DOC-A.1-117), each standing
-            // on the UPHELD record of the orchestrator's cobol-refuter pass, adjudication/pb5373-class2/refute.jsonl.
+            // on the UPHELD record of the orchestrator's cobol-refuter pass, tests/version-matrix/derivation-refutations/pb5373-class2.jsonl.
             "1985-GR-XIV.3.6.4-16", "1985-GR-VI.3.4.4-1",
         ];
 
