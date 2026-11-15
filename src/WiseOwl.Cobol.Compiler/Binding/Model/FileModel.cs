@@ -553,6 +553,31 @@ public sealed class FileModel
     /// (kb/Work PB536). This property is the only thing that travels between the two.</para></summary>
     public bool? CodeSetRecordClass { get; set; }
 
+    /// <summary>The CODE-SET clause names both alphabet-name-1 and alphabet-name-2 (§2023:13.18.13.2); §2023:13.18.13.3 SR3 admits that only for a file
+    /// with no record description entry or with SELECT WHEN clauses (<see cref="HasSelectWhen"/>), which
+    /// <c>CheckCodeSetRecordItemsPass</c> asks once the entries are bound.</summary>
+    public bool CodeSetBothAlphabets { get; set; }
+
+    /// <summary>The kinds of data item the FD's FORMAT clause (ISO §2023:13.18.24; ISO/IEC 1989:2002 §13.16.22) selects for formatting
+    /// — BIT, CHARACTER and NUMERIC, any combination (§2023:5.2.6.4's choice indicators) — or null without the clause. The runtime's
+    /// <see cref="WiseOwl.Cobol.Runtime.IO.RecordFormat"/> performs the formatting; the emitter registers this beside the
+    /// record plans.</summary>
+    public WiseOwl.Cobol.Runtime.IO.RecordFormatKinds? Format { get; set; }
+
+    /// <summary>Where the FORMAT clause is written (the screens of its syntax rules report there).</summary>
+    public WiseOwl.Cobol.Editions.DiagnosticCursor FormatAt { get; set; }
+
+    /// <summary>Whether a record's medium form differs from its record-area form by the SELECTED record description entry: a FORMAT
+    /// clause (§2023:13.18.24.4 GR8, GR9), or SELECT WHEN clauses over a CODE-SET clause (§2023:13.18.13.4 GR4 — the alphabets then
+    /// convert item by item and not the record whole; §2023:13.18.51.4 GR1 — the clauses are evaluated "if the associated file
+    /// description entry also contains a CODE-SET clause or FORMAT clause"). Such a file registers a <c>RecordFormat</c> with a plan
+    /// for each record description entry, and its CODE-SET alphabet travels inside it.</summary>
+    public bool TranslatesByRecord => HasFd && !IsSortMerge && Format is not null || CodeSetRecordClass is not null && HasSelectWhen;
+
+    /// <summary>Whether any record description entry the program wrote carries a SELECT WHEN clause (§2023:13.18.51.3 SR2 makes it all
+    /// of them or none).</summary>
+    public bool HasSelectWhen => WrittenRecords.Any(r => r.SelectWhen is not null);
+
     /// <summary>The RELATIVE KEY data-name as written (ISO §2023:12.4.5.13), resolved post-build; the item lives OUTSIDE
     /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>
     public string? RelativeKeyName { get; set; }
@@ -1087,9 +1112,10 @@ public sealed class FileModel
     /// file (<i>"If the file referenced by file-name-3 contains only fixed-length records"</i>) and its MERGE twin
     /// (§2023:14.9.24.4 GR13 a) names file-name-4; the printed name is a slip of the standard, so the GIVING side reads the
     /// record descriptions of the GIVING file.</para>
-    /// <para>⚠ DETERMINATION — arm b) (several record descriptions WITH a SELECT WHEN clause, the clause choosing the
-    /// description) cannot arise: SELECT WHEN is Annex A.4.8's declined module (<c>COBOL1705</c>), refused at bind,
-    /// so a file with several record descriptions always takes c).</para></summary>
+    /// <para>⚠ arm b) (several record descriptions WITH a SELECT WHEN clause, the clause choosing the description) is decided at RUN time —
+    /// <c>RuntimeApi.ShortRecordFillNational</c> asks <c>CobolFile.SelectedRecordIsNational</c> of the record being transferred, because the
+    /// selected entry depends on the record (kb/Work PB5578; docs/conformance/3/D-SMF.md). This member answers every file that has no such
+    /// selection.</para></summary>
     public bool ShortRecordFillNational => Records is [{ } only] && IsNationalRecord(only);
 
     /// <summary>⛔ THE ONE ANSWER TO "IS THIS RECORD DESCRIPTION NATIONAL?" — the standard's own wording, "described as a

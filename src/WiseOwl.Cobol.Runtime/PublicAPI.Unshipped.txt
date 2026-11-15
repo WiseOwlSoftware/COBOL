@@ -7,6 +7,8 @@
 *REMOVED*WiseOwl.Cobol.Runtime.DebugItem.DebugItem() -> void
 *REMOVED*WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
+*REMOVED*WiseOwl.Cobol.Runtime.IO.FileRegistry.RewriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? extents = null, bool nationalRecord = false) -> string!
+*REMOVED*WiseOwl.Cobol.Runtime.IO.FileRegistry.WriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.IO.LinagePage? page, WiseOwl.Cobol.Runtime.IO.WriteAdvance advance = default(WiseOwl.Cobol.Runtime.IO.WriteAdvance), WiseOwl.Cobol.Runtime.RecordExtents? extents = null, bool nationalRecord = false) -> string!
 *REMOVED*WiseOwl.Cobol.Runtime.MoveSending.Binary64.get -> double
 *REMOVED*WiseOwl.Cobol.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null) -> void
@@ -36,6 +38,8 @@
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b) -> System.Int128
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b) -> System.Int128
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
+*REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.RewriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false) -> string!
+*REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.WriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.IO.LinagePage? page, WiseOwl.Cobol.Runtime.IO.WriteAdvance advance = default(WiseOwl.Cobol.Runtime.IO.WriteAdvance), WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false) -> string!
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, WiseOwl.Cobol.Runtime.RecordExtents? extents = null) -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.get -> string?
 WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.init -> void
@@ -164,6 +168,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter 
 WiseOwl.Cobol.Runtime.DialectBehavior.RecordContainsRangeBindsRecordSize = 13 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError = 14 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SearchIndexBelowTableUnsuccessful = 6 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.SelectWhenOnlyForFilePhraseStatements = 23 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SumSizeErrorBlanksPrintableItem = 8 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.TerminateDiscardsSavedNextGroup = 9 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.UnphrasedSizeErrorIsFatal = 20 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -218,8 +223,13 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.Commit() -> string?
 WiseOwl.Cobol.Runtime.IO.FileRegistry.EndModeScope(string! name) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterCommitControl(string! name) -> void
+WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterRecordFormat(string! name, WiseOwl.Cobol.Runtime.IO.RecordFormat! format) -> void
+WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterRecordSelector(string! name, System.Func<string!, int>! selector) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterRerunRecords(string! name, long every, string! device, string! file) -> void
+WiseOwl.Cobol.Runtime.IO.FileRegistry.RewriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? extents = null, bool nationalRecord = false, int namedEntry = -1) -> string!
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Rollback() -> string?
+WiseOwl.Cobol.Runtime.IO.FileRegistry.SelectedRecordIsNational(string! name, string! internalImage) -> bool
+WiseOwl.Cobol.Runtime.IO.FileRegistry.WriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.IO.LinagePage? page, WiseOwl.Cobol.Runtime.IO.WriteAdvance advance = default(WiseOwl.Cobol.Runtime.IO.WriteAdvance), WiseOwl.Cobol.Runtime.RecordExtents? extents = null, bool nationalRecord = false, int namedEntry = -1) -> string!
 WiseOwl.Cobol.Runtime.IO.KeySegment
 WiseOwl.Cobol.Runtime.IO.KeySegment.Deconstruct(out int Offset, out int Length, out WiseOwl.Cobol.Runtime.CobolContiguousLayout? Layout) -> void
 WiseOwl.Cobol.Runtime.IO.KeySegment.Equals(WiseOwl.Cobol.Runtime.IO.KeySegment other) -> bool
@@ -231,6 +241,53 @@ WiseOwl.Cobol.Runtime.IO.KeySegment.Length.get -> int
 WiseOwl.Cobol.Runtime.IO.KeySegment.Length.init -> void
 WiseOwl.Cobol.Runtime.IO.KeySegment.Offset.get -> int
 WiseOwl.Cobol.Runtime.IO.KeySegment.Offset.init -> void
+WiseOwl.Cobol.Runtime.IO.RecordFormat
+WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure
+WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure.CharacterWithoutImage = 2 -> WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure
+WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure.NoRecordSelected = 1 -> WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure
+WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure.None = 0 -> WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure
+WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure.NotRepresentable = 3 -> WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure
+WiseOwl.Cobol.Runtime.IO.RecordFormat.PadToWidth(string! external, int width, bool national) -> string!
+WiseOwl.Cobol.Runtime.IO.RecordFormat.RecordFormat(WiseOwl.Cobol.Runtime.IO.RecordFormatKinds kinds, WiseOwl.Cobol.Runtime.IO.RecordPlan![]! plans, int selectorOffset, char[]? codeSetToNative = null) -> void
+WiseOwl.Cobol.Runtime.IO.RecordFormat.Select.get -> System.Func<string!, int>?
+WiseOwl.Cobol.Runtime.IO.RecordFormat.Select.set -> void
+WiseOwl.Cobol.Runtime.IO.RecordFormat.SelectedIsNational(string! internalImage) -> bool
+WiseOwl.Cobol.Runtime.IO.RecordFormat.ToExternal(string! internalImage, out string! external, int namedEntry = -1) -> WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure
+WiseOwl.Cobol.Runtime.IO.RecordFormat.ToInternal(string! external, out string! internalImage) -> WiseOwl.Cobol.Runtime.IO.RecordFormat.Failure
+WiseOwl.Cobol.Runtime.IO.RecordFormatKinds
+WiseOwl.Cobol.Runtime.IO.RecordFormatKinds.Bit = 1 -> WiseOwl.Cobol.Runtime.IO.RecordFormatKinds
+WiseOwl.Cobol.Runtime.IO.RecordFormatKinds.Character = 2 -> WiseOwl.Cobol.Runtime.IO.RecordFormatKinds
+WiseOwl.Cobol.Runtime.IO.RecordFormatKinds.None = 0 -> WiseOwl.Cobol.Runtime.IO.RecordFormatKinds
+WiseOwl.Cobol.Runtime.IO.RecordFormatKinds.Numeric = 4 -> WiseOwl.Cobol.Runtime.IO.RecordFormatKinds
+WiseOwl.Cobol.Runtime.IO.RecordPlan
+WiseOwl.Cobol.Runtime.IO.RecordPlan.National.get -> bool
+WiseOwl.Cobol.Runtime.IO.RecordPlan.National.init -> void
+WiseOwl.Cobol.Runtime.IO.RecordPlan.RecordPlan(int width, params WiseOwl.Cobol.Runtime.IO.RecordStep[]! steps) -> void
+WiseOwl.Cobol.Runtime.IO.RecordPlan.Steps.get -> WiseOwl.Cobol.Runtime.IO.RecordStep[]!
+WiseOwl.Cobol.Runtime.IO.RecordPlan.Width.get -> int
+WiseOwl.Cobol.Runtime.IO.RecordStep
+WiseOwl.Cobol.Runtime.IO.RecordStep.Bits.get -> int[]?
+WiseOwl.Cobol.Runtime.IO.RecordStep.Bits.init -> void
+WiseOwl.Cobol.Runtime.IO.RecordStep.Deconstruct(out WiseOwl.Cobol.Runtime.IO.RecordStepKind Kind, out int Offset, out int Length, out WiseOwl.Cobol.Runtime.NumProfile Profile, out int[]? Bits) -> void
+WiseOwl.Cobol.Runtime.IO.RecordStep.Equals(WiseOwl.Cobol.Runtime.IO.RecordStep other) -> bool
+WiseOwl.Cobol.Runtime.IO.RecordStep.Kind.get -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
+WiseOwl.Cobol.Runtime.IO.RecordStep.Kind.init -> void
+WiseOwl.Cobol.Runtime.IO.RecordStep.Length.get -> int
+WiseOwl.Cobol.Runtime.IO.RecordStep.Length.init -> void
+WiseOwl.Cobol.Runtime.IO.RecordStep.Offset.get -> int
+WiseOwl.Cobol.Runtime.IO.RecordStep.Offset.init -> void
+WiseOwl.Cobol.Runtime.IO.RecordStep.Profile.get -> WiseOwl.Cobol.Runtime.NumProfile
+WiseOwl.Cobol.Runtime.IO.RecordStep.Profile.init -> void
+WiseOwl.Cobol.Runtime.IO.RecordStep.RecordStep() -> void
+WiseOwl.Cobol.Runtime.IO.RecordStep.RecordStep(WiseOwl.Cobol.Runtime.IO.RecordStepKind Kind, int Offset, int Length, WiseOwl.Cobol.Runtime.NumProfile Profile = default(WiseOwl.Cobol.Runtime.NumProfile), int[]? Bits = null) -> void
+WiseOwl.Cobol.Runtime.IO.RecordStepKind
+WiseOwl.Cobol.Runtime.IO.RecordStepKind.BitRun = 6 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
+WiseOwl.Cobol.Runtime.IO.RecordStepKind.Display = 1 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
+WiseOwl.Cobol.Runtime.IO.RecordStepKind.Float = 5 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
+WiseOwl.Cobol.Runtime.IO.RecordStepKind.NationalNumeric = 3 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
+WiseOwl.Cobol.Runtime.IO.RecordStepKind.Numeric = 4 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
+WiseOwl.Cobol.Runtime.IO.RecordStepKind.Raw = 0 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
+WiseOwl.Cobol.Runtime.IO.RecordStepKind.Zoned = 2 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
 WiseOwl.Cobol.Runtime.ManagedPointer<T>.Watch(WiseOwl.Cobol.Runtime.ManagedPointer! area) -> void
 WiseOwl.Cobol.Runtime.MessageOutcome
 WiseOwl.Cobol.Runtime.MessageOutcome.Deconstruct(out bool Successful, out WiseOwl.Cobol.Runtime.MessageTag Tag, out string? Image, out WiseOwl.Cobol.Runtime.RecordExtents? Extents, out WiseOwl.Cobol.Runtime.MessageSlot[]? Slots, out long? Length, out string? Raised, out bool RaisedFatal, out string? Detail) -> void
@@ -805,6 +862,9 @@ const WiseOwl.Cobol.Runtime.AsyncMessaging.UnboundedCapacity = 2147483647 -> int
 const WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MaxSubscriptLevels = 3 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth = 30 -> int
+const WiseOwl.Cobol.Runtime.IO.FileStatusCode.RecordIdentificationFailure = "45" -> string!
+const WiseOwl.Cobol.Runtime.IO.RecordFormat.BySelectWhen = -1 -> int
+const WiseOwl.Cobol.Runtime.IO.RecordFormat.NoSelection = -1 -> int
 const WiseOwl.Cobol.Runtime.Repository.CobolPrototypeDescriptionAttribute.ReturningItem = -1 -> int
 const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 2 -> int
 const WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.MaxUnits = 65536 -> int
@@ -812,6 +872,7 @@ const WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.MaxFileBytes = 26843545
 override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.IO.KeySegment.GetHashCode() -> int
+override WiseOwl.Cobol.Runtime.IO.RecordStep.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.MessageOutcome.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.MessageWait.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.GetHashCode() -> int
@@ -1070,12 +1131,17 @@ static WiseOwl.Cobol.Runtime.IO.CobolFile.BeginOpen(string! name, WiseOwl.Cobol.
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Commit() -> string?
 static WiseOwl.Cobol.Runtime.IO.CobolFile.EndModeScope(string! name) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.RegisterRecordFormat(string! name, WiseOwl.Cobol.Runtime.IO.RecordFormat! format) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.RegisterRecordSelector(string! name, System.Func<string!, int>! selector) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.RegisterRerunRecords(string! name, long every, string! device, string! file) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.RetireApplyCommit(object! owner) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.RewriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false, int namedEntry = -1) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Rollback() -> string?
 static WiseOwl.Cobol.Runtime.IO.CobolFile.RollbackDueOnFatal(string! name, bool checkingEnabled) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolFile.RollbackOnFatal() -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.SelectedRecordIsNational(string! name, string! internalImage) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolFile.TerminateOnRefusalWithoutStatusItem(string! name, string! statement) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.WriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.IO.LinagePage? page, WiseOwl.Cobol.Runtime.IO.WriteAdvance advance = default(WiseOwl.Cobol.Runtime.IO.WriteAdvance), WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false, int namedEntry = -1) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterActivationReturn() -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterUseProcedure(object! useScope, int action) -> int
 static WiseOwl.Cobol.Runtime.IO.CobolSort.RegisterFormat1Sort(string! name, object? useScope) -> void
@@ -1087,6 +1153,8 @@ static WiseOwl.Cobol.Runtime.IO.FileLockPosture.AdmitsAnotherRunUnit(System.IO.F
 static WiseOwl.Cobol.Runtime.IO.FileLockPosture.WhenOwedWritesAreAdmitted(WiseOwl.Cobol.Runtime.IO.FileSharing sharing) -> System.IO.FileShare
 static WiseOwl.Cobol.Runtime.IO.KeySegment.operator !=(WiseOwl.Cobol.Runtime.IO.KeySegment left, WiseOwl.Cobol.Runtime.IO.KeySegment right) -> bool
 static WiseOwl.Cobol.Runtime.IO.KeySegment.operator ==(WiseOwl.Cobol.Runtime.IO.KeySegment left, WiseOwl.Cobol.Runtime.IO.KeySegment right) -> bool
+static WiseOwl.Cobol.Runtime.IO.RecordStep.operator !=(WiseOwl.Cobol.Runtime.IO.RecordStep left, WiseOwl.Cobol.Runtime.IO.RecordStep right) -> bool
+static WiseOwl.Cobol.Runtime.IO.RecordStep.operator ==(WiseOwl.Cobol.Runtime.IO.RecordStep left, WiseOwl.Cobol.Runtime.IO.RecordStep right) -> bool
 static WiseOwl.Cobol.Runtime.ManagedPointer<T>.OverStorage(System.Func<T>! get, System.Action<T, WiseOwl.Cobol.Runtime.ReceivingReferences?>! store) -> WiseOwl.Cobol.Runtime.ManagedPointer<T>!
 static WiseOwl.Cobol.Runtime.MessageOutcome.operator !=(WiseOwl.Cobol.Runtime.MessageOutcome left, WiseOwl.Cobol.Runtime.MessageOutcome right) -> bool
 static WiseOwl.Cobol.Runtime.MessageOutcome.operator ==(WiseOwl.Cobol.Runtime.MessageOutcome left, WiseOwl.Cobol.Runtime.MessageOutcome right) -> bool
@@ -1148,6 +1216,8 @@ static readonly WiseOwl.Cobol.Runtime.MessageTag.Null -> WiseOwl.Cobol.Runtime.M
 ~override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.IO.KeySegment.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.IO.KeySegment.ToString() -> string
+~override WiseOwl.Cobol.Runtime.IO.RecordStep.Equals(object obj) -> bool
+~override WiseOwl.Cobol.Runtime.IO.RecordStep.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.MessageOutcome.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.MessageOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.MessageWait.Equals(object obj) -> bool

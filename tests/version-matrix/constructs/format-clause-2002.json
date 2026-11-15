@@ -1,0 +1,12 @@
+{
+ "id": "format-clause-2002",
+ "description": "The FD FORMAT clause (records written to the file are formatted to an external representation suitable for presentation or printing, and converted back on input), ISO/IEC 1989:2002 13.16.22 and 2023 13.18.24 - introduced 2002 (FORMAT is a 2002 reserved word per 8.9; at COBOL-85 it is a user-defined word). kb/Work PB5578.",
+ "display": "the FORMAT clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.24; ISO/IEC 1989:2002 §13.16.22",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FMT9CL.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F1 ASSIGN TO \"fmt9cl.dat\".\nDATA DIVISION.\nFILE SECTION.\nFD F1 RECORD IS VARYING IN SIZE FROM 1 TO 20 CHARACTERS\n    FORMAT CHARACTER DATA.\n01 R1.\n    05 R1-NUM PIC S9(4).\n    05 R1-TXT PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

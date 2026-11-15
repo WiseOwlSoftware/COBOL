@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.3.4.2-5",
+ "rule-digest": "365e911549ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRecordFormatPass.cs#Screen",
+ "test-ref": "conformance:wiseowl/cases/13.4.5-File-description/format_records_not_variable_length",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.3.4.2 SR5: refused (COBOL7342) when the RECORD clause does not say the records vary."
+}

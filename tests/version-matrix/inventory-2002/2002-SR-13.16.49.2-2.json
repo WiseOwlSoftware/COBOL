@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.49.2-2",
+ "rule-digest": "637ade0fa552",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRecordFormatPass.cs#Screen",
+ "test-ref": "conformance:wiseowl/cases/13.18.51-SELECT-WHEN-clause/select_when_sr2_all_or_none",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.49.2 SR2."
+}

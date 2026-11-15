@@ -2250,6 +2250,9 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundMove? FromMov
     /// on a sharing-active file WITH LOCK locks the record written (GR11), single locking releases the
     /// connector's prior lock (GR10).</summary>
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
+    /// <summary>Whether the statement is the <c>FILE file-name-1</c> alternative (Annex A.4.13): its record is the FROM operand's, not a record
+    /// description entry of the file, and a SELECT WHEN clause selects the entry it is formatted by (§2023:13.18.51.4 GR2).</summary>
+    public bool FilePhrase { get; init; }
     /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.51 GR16), or null.</summary>
     public RetrySpec? Retry { get; init; }
     // ⛔ `AfterAdvancing` LIVED HERE AND IS GONE (kb/Work PB712). It held the SECOND ADVANCING phrase of a
@@ -2318,6 +2321,8 @@ public sealed record BoundRewrite(FileModel File, Place Record, BoundMove? FromM
     /// <summary>The explicit record-lock phrase (ISO §2023:14.9.35 — WITH LOCK / WITH NO LOCK; the GR11/GR12 lock
     /// rules are ALL-FORMATS rules), or None.</summary>
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
+    /// <summary>Whether the statement is the <c>FILE file-name-1</c> alternative (Annex A.4.13), as <see cref="BoundWrite.FilePhrase"/>.</summary>
+    public bool FilePhrase { get; init; }
     /// <summary>The RETRY phrase (§2023:14.7.9 / §2023:14.9.35 GR11), or null.</summary>
     public RetrySpec? Retry { get; init; }
     /// <summary>The <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> pair, which ISO §2023:14.9.35.3 SR2's FIRST arm

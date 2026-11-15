@@ -354,6 +354,14 @@
   }
  },
  "behaviours": {
+  "select-when-only-for-file-phrase-statements": {
+   "sections": [
+    "13.16.49",
+    "14.8.33",
+    "14.8.47"
+   ],
+   "why": "the SELECT WHEN clause, §2002:13.16.49, evaluated for every WRITE and REWRITE (§2002:14.8.33, §2002:14.8.47) of a FORMAT or CODE-SET file"
+  },
   "compile-time-arithmetic-mode": {
    "sections": [
     "7.2",

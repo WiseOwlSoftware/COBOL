@@ -82,15 +82,9 @@ public sealed partial class FileControlBinder
                 else if (clause.blockContainsClause() is { } bcc)
                     BindBlockContainsClause(bcc, name, file);   // ISO §2023:13.18.10 — the integers are screened; the values are what the 1985 agreement rule compares
                 else if (clause.codeSetClause() is { } cs)
-                    BindCodeSetClause(cs, file, records);   // ISO §2023:13.18.13 (kb/Work PB110)
+                    BindCodeSetClause(cs, file);   // ISO §2023:13.18.13 (kb/Work PB110)
                 else if (clause.formatClause() is { } fmt)
-                    // FORMAT clause (ISO §2023:13.18.24) — Annex A.4.8 item 1), an OPTIONAL element this
-                    // implementation does not claim (docs/CONFORMANCE.md §5). Recognized so it can be REFUSED
-                    // BY NAME rather than parse-erroring or, worse, binding inert: §2023:13.18.24.4 GR1 makes the
-                    // clause change the on-medium representation, so an inert compile writes the wrong bytes.
-                    // Every occurrence reports (this loop runs per clause per FD).
-                    Edition.Declined(DiagnosticCatalog.FormatSelectWhenUnclaimed,
-                        $"the FORMAT clause on file description entry '{name}' ({DataBinder.Spelled(fmt)})");
+                    BindFormatClause(fmt, file);   // ISO §2023:13.18.24 / §2002:13.16.22 — the kinds travel on FileModel.Format; its rules are ResolveRecordFormatPass's
                 else if (clause.linageClause() is { } lc)
                     BindLinageClause(lc, file);   // LINAGE logical-page model → FileModel.Linage (ISO §2023:13.18.34)
                 else if (clause.dataRecordsClause() is { } drc)
@@ -505,6 +499,29 @@ public sealed partial class FileControlBinder
                 record.SetRedefinition(anchor, RedefinitionKind.ImplicitFileRecord);
     }
 
+    /// <summary>Bind an FD FORMAT clause (ISO §2023:13.18.24; ISO/IEC 1989:2002 §13.16.22). BIT, CHARACTER and NUMERIC sit inside choice
+    /// indicators, so any non-empty combination is legal in any order, each at most once (§2023:5.2.6.4 — the ONE reader,
+    /// <see cref="ChoiceIndicators"/>); DATA is an optional word. The clause's syntax rules ask about the entry's RECORD
+    /// descriptions (SR1 - SR3) and the RECORD clause (§2023:13.4.5.3 SR6), which are settled later, so they are
+    /// <c>ResolveRecordFormatPass</c>'s.</summary>
+    private void BindFormatClause(Core.FormatClauseContext fmt, FileModel file)
+    {
+        using var _ = Edition.At(fmt);
+        var kinds = WiseOwl.Cobol.Runtime.IO.RecordFormatKinds.None;
+        foreach (var (written, kind, word) in new[]
+        {
+            (fmt.BIT().Length, WiseOwl.Cobol.Runtime.IO.RecordFormatKinds.Bit, "BIT"),
+            (fmt.CHARACTER().Length, WiseOwl.Cobol.Runtime.IO.RecordFormatKinds.Character, "CHARACTER"),
+            (fmt.NUMERIC().Length, WiseOwl.Cobol.Runtime.IO.RecordFormatKinds.Numeric, "NUMERIC"),
+        })
+        {
+            ChoiceIndicators.AtMostOnce(Edition, written, $"file '{file.CobolName}' FORMAT", $"the {word} alternative", "13.18.24.2");
+            if (written > 0) kinds |= kind;
+        }
+        file.Format = kinds;
+        file.FormatAt = Edition.Cursor;
+    }
+
     /// <summary>Bind an FD CODE-SET clause (ISO §2023:13.18.13; kb/Work PB110 — it was parsed as the '85 one-name form
     /// and read by nothing): both formats — <c>IS alphabet-name-1 [alphabet-name-2]</c> and the FOR ALPHANUMERIC /
     /// FOR NATIONAL phrases (one or both, any order, each at most once — §2023:5.2.6.4). SR1/SR2: each name shall
@@ -522,7 +539,7 @@ public sealed partial class FileControlBinder
     /// alphabet's remapped ordinals; UTF-8 / UCS-4 as variable-width medium encodings) is the DOCUMENTED A.3
     /// item 27 non-support (COBOL1672 — "dependent upon a device capable of supporting the specified code";
     /// CONFORMANCE.md §2 row 27), never a silent identity.</summary>
-    private void BindCodeSetClause(Core.CodeSetClauseContext cs, FileModel file, IReadOnlyList<DataItem> records)
+    private void BindCodeSetClause(Core.CodeSetClauseContext cs, FileModel file)
     {
         using var _ = Edition.At(cs);
         var (alnumName, natName) = ChoiceIndicators.AlphabetPair(Edition, cs.codeSetForPhrase(),
@@ -547,11 +564,9 @@ public sealed partial class FileControlBinder
                 + "(ISO §2023:13.18.13.3 SR2)");
             return;
         }
-        // SR3 — record description entries and no SELECT WHEN (none exists in this grammar): one class only.
-        if (records.Count > 0 && alnumName is not null && natName is not null)
-            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, "CODE-SET: if any record description entries are "
-                + "associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or "
-                + "alphabet-name-2 may be specified, but not both (ISO §2023:13.18.13.3 SR3)");
+        // SR3 — "one class only" when record description entries are associated and no SELECT WHEN clause is specified: a fact about the
+        // entries' SELECT WHEN clauses, which this FD walk has not bound, so it is CheckCodeSetRecordItemsPass's (it reads CodeSetBothAlphabets).
+        file.CodeSetBothAlphabets = alnumName is not null && natName is not null;
         // GR2/GR6 — which conversion the set asks for. ONE question, asked of the SET (CodedCharacterSet.Medium)
         // rather than answered from a list of phrase names here: an identity correspondence over the whole
         // one-byte channel converts byte-for-byte and needs nothing; a single-byte code whose correspondence this
