@@ -789,27 +789,41 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 + "procedure division header has no USING phrase; §2023:14.8.2.1)");
         // §2023:8.4.3.4.3 SR4: "The data item referenced in the RETURNING phrase of the invoked method's procedure division
         // header shall not be described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase" — and §2023:16.2
-        // describes BOTH of BASE's returning items with ACTIVE-CLASS, so neither is inline-invocable.
-        if (site.ReturningImplicit)
+        // describes BOTH of BASE's returning items with ACTIVE-CLASS, so neither is inline-invocable at 2014 and later.
+        // §2002:8.4.2.4.2 SR4 bans ANY LENGTH alone (kb/Work PB5598), so below 2014 the inline form is legal and
+        // delivers into a temporary described as the result (below).
+        if (site.ReturningImplicit && ctx.Edition.Edition.Has(2014))
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InlineInvocationReturningShape,
                 $"the inline method invocation of \"{m.Name}\": the returning item of the standard class BASE's "
                 + $"{m.Name} ('{m.Binding!.Returning!.CobolName}') is described with the ACTIVE-CLASS phrase (ISO §2023:16.2; "
                 + "§2023:8.4.3.4.3 SR4) — use the INVOKE statement with a RETURNING identifier");
-        if (site.ReturningRef is not { } retRef)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeBaseClassMethodRule,
-                $"{verb} without RETURNING — the method {m.Name} of the standard class BASE returns an object "
-                + "reference, and the INVOKE shall specify RETURNING to receive it (ISO §2023:16.2; §2023:14.9.23.4 GR8)");
-        if (host.Expr.ResolveReceiving(retRef) is not { } ret)
-            return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
-        if (ret.Item.Pic is not { Category: PicCategory.ObjectReference } retPic)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeBaseClassMethodRule,
-                $"{verb} RETURNING '{DataBinder.WrittenText(retRef)}': the receiving item shall be a USAGE OBJECT REFERENCE data "
-                + "item (ISO §2023:14.9.23.4 GR8 / §2023:14.8.3.3)");
         var result = classView with { Factory = m.Standard is StandardMethod.FactoryObject };
-        if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(result), retPic)
-            is { } err)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeBaseClassMethodRule,
-                $"{verb} RETURNING '{DataBinder.WrittenText(retRef)}': {err} (ISO §2023:14.8.3.3 rule 1)");
+        Place ret;
+        if (site.ReturningImplicit)
+        {
+            if (ctx.Refs.Places.ResolveItem(ctx.Data.Temps.ForInvocationObject(result)) is not { } tempPlace)
+                return new BoundUnsupported($"the inline method invocation of \"{m.Name}\" (result temporary)");
+            site.ImplicitReturningPlace = tempPlace;
+            ret = tempPlace;
+        }
+        else
+        {
+            if (site.ReturningRef is not { } retRef)
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeBaseClassMethodRule,
+                    $"{verb} without RETURNING — the method {m.Name} of the standard class BASE returns an object "
+                    + "reference, and the INVOKE shall specify RETURNING to receive it (ISO §2023:16.2; §2023:14.9.23.4 GR8)");
+            if (host.Expr.ResolveReceiving(retRef) is not { } rp)
+                return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
+            if (rp.Item.Pic is not { Category: PicCategory.ObjectReference })
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeBaseClassMethodRule,
+                    $"{verb} RETURNING '{DataBinder.WrittenText(retRef)}': the receiving item shall be a USAGE OBJECT REFERENCE data "
+                    + "item (ISO §2023:14.9.23.4 GR8 / §2023:14.8.3.3)");
+            ret = rp;
+            if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(result), rp.Item.Pic)
+                is { } err)
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeBaseClassMethodRule,
+                    $"{verb} RETURNING '{DataBinder.WrittenText(retRef)}': {err} (ISO §2023:14.8.3.3 rule 1)");
+        }
         return m.Standard switch
         {
             // Every New form renders through the ONE runtime body (OoEmitter.EmitNew): the class-name form names
@@ -1005,13 +1019,15 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             }
             if (retModel.IsAnyLength)
             {
+                // §2002:8.4.2.4.2 SR4 bans ANY LENGTH alone; the ACTIVE-CLASS half is the 2014 addition (kb/Work PB5598).
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InlineInvocationReturningShape,
                     $"the inline method invocation of \"{m.Name}\": the data item referenced in the "
                     + "RETURNING phrase of the invoked method's procedure division header shall not be "
-                    + "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase "
-                    + "(ISO §2023:8.4.3.4.3 SR4)");
+                    + (ctx.Edition.Edition.Has(2014)
+                        ? "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase (ISO §2023:8.4.3.4.3 SR4)"
+                        : "described with the ANY LENGTH clause (ISO §2002:8.4.2.4.2 SR4)"));
             }
-            if (retModel.Pic is { Category: PicCategory.ObjectReference, ObjectRef: { Kind: ObjectRefKind.ActiveClass } })
+            if (ctx.Edition.Edition.Has(2014) && retModel.Pic is { Category: PicCategory.ObjectReference, ObjectRef: { Kind: ObjectRefKind.ActiveClass } })
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InlineInvocationReturningShape,
                     $"the inline method invocation of \"{m.Name}\": the invoked method's RETURNING item is "
