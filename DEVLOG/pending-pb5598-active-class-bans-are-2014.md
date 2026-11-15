@@ -17,3 +17,5 @@ ME OF A, SELFREF OF A and A :: "GETME") and its refused twin `pb5598-active-clas
 2023, `wiseowl/diagnostics/pb5598-active-class-property-refused.json`). Five 2002 rows recorded CONFORMS (2002 GAP 2575 to
 2570); seven rows stay claimed because the golden calls no set method and tests no FINAL, superclass property name or exception
 resumption.
+
+Four older refusals (pb1273-property-active-class, pb1503-get-property-active-class, pb1503-set-property-active-class, pb428-inline-invocation-returning-active-class) listed 2002 in refuse-at; they now name 2014 and 2023, where the bans are text. RefModCategoryDriftTests exempts a bare 8.4.2.4 preceded by the 2002 edition, since that clause is a real one in 2002. The first gate was RED on exactly these five cases.
