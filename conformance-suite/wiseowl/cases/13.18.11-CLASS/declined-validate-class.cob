@@ -16,7 +16,7 @@
 *> latter written WITHOUT the optional word IS (13.18.11.2: IS is not underlined). The keyword arm is the one
 *> that would regress if the operand alternation were inlined into the clause rule: the derived clause namer
 *> in DeclinedFacilityPass takes the leading TERMINAL run, so an inlined `CLASS IS NUMERIC` would report "the
-*> CLASS NUMERIC clause". Make it fail once: swap the expected code to COBOL1580 and it goes red.
+*> CLASS NUMERIC clause". Make it fail once: swap the expected code to another one and it goes red.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DCLCLASS.
        ENVIRONMENT DIVISION.

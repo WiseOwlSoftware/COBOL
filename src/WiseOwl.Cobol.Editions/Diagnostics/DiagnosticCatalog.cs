@@ -3691,15 +3691,8 @@ public static class DiagnosticCatalog
     //    (Annex A.3 item 4) was declined; kb/Work PB4744 built the exchange (DESIGN-message-control.md), so the statements run and the EC-MCS names are raised.
     // ⛔ COBOL1579 ("commit-rollback-unsupported") is RETIRED — NEVER REALLOCATE IT. It named COMMIT and ROLLBACK
     //    accepted inert while the facility was declined; kb/Work PB3338 built them on the keyed store engine.
-    public static readonly DiagnosticDescriptor ValidateFacilityUnsupported = new(
-        "COBOL1580", "validate-facility-unsupported", EditionSeverity.Warning,
-        "The VALIDATE facility (ISO §2023:14.9.50) is an OPTIONAL element (§2023:4.2.7; Annex A.4.14) and, at COBOL-2023, "
-        + "additionally OBSOLETE (§2023:4.2.13; Annex F.2 item 5) — it is not supported. The statement is accepted "
-        + "but performs no content validation, and no EC-VALIDATE-* condition is raised (§2023:14.6.13.1.1). Fires at "
-        + "2002/2014/2023 (the facility exists from 2002); at --std 85 VALIDATE is a user word, not a statement. "
-        + "See docs/CONFORMANCE.md §4.",
-        "ISO §2023:4.2.7 / Annex A.4.14 / §2023:4.2.13 / Annex F.2 item 5 / §2023:14.9.50", RecognizedNotImplemented,
-        Annex: DeclinedAnnex.A4);
+// ⛔ COBOL1580 ("validate-facility-unsupported") is RETIRED — NEVER REALLOCATE IT. It named the VALIDATE statement accepted inert while the
+    //    facility was declined; kb/Work PB5577 implements the facility in stages (docs/rearchitecture/DESIGN-validate-facility.md), so the statement runs.
 
     // ── The VALIDATE statement's OPERANDS are identifiers whether or not the facility is supported (kb/Work
     //    PB3568). COBOL1580 declines the FACILITY (the statement is accepted and inert); it never declined the
@@ -3860,18 +3853,9 @@ public static class DiagnosticCatalog
     // clause by name while commit and rollback covered the keyed organizations only; kb/Work PB3340's transaction journal
     // (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2) covers the sequential ones, so the operand is accepted and the
     // code is deleted. The id is retired, never reallocated.
-    public static readonly DiagnosticDescriptor DeclinedModuleExceptionName = new(
-        "COBOL1710", "declined-module-exception-name", EditionSeverity.Error,
-        "A written exception-name (>>TURN, RAISE, EXIT/GOBACK RAISING, a USE declarative, or an "
-        + "exception-checking PERFORM's WHEN phrase) belongs to an OPTIONAL module whose support WiseOwl COBOL does "
-        + "not claim, so no statement in this implementation can ever set that condition to exist. Annex A.4.1 "
-        + "makes the module's exception conditions optional WITH it (\"Any associated syntax rules, general "
-        + "rules, other rules, exception conditions, and I-O status values are also optional, even if not "
-        + "explicitly listed\"), and §2023:14.6.13.1.1 licenses raising nothing for an unimplemented optional "
-        + "element — but neither licenses accepting the NAME, which would let a program check, declare and "
-        + "match a condition that cannot occur. The message names the module.",
-        "ISO §2023:4.2.7 / Annex A.4.1 / §2023:14.6.13.1.1", DeclinedOptionalElement, PermissiveInert: true,
-        Annex: DeclinedAnnex.A4);
+// ⛔ COBOL1710 ("declined-module-exception-name") is RETIRED — NEVER REALLOCATE IT. It refused the EC-VALIDATE names (and, until kb/Work PB3338, the
+    //    EC-FLOW-COMMIT / -ROLLBACK names) because no statement could set them; kb/Work PB5577 builds the VALIDATE facility in stages, so the names resolve
+    //    and the statement raises them. EC-SCREEN's own descriptor (COBOL1707) still refuses the screen module's names through the same funnel.
     // ⛔ `StrongGroupOrderingSignedLeaf` ("strong-group-ordering-signed-leaf") LIVED HERE AND IS GONE (kb/Work
     // PB1469). It staged an ordering over strongly-typed groups with a SIGNED numeric leaf because the relation was
     // a whole-group image comparison; ISO §2023:8.8.4.2.12 is now implemented element by element
@@ -9818,6 +9802,20 @@ public static class DiagnosticCatalog
         + "have no fixed place in the record, or a file description entry with no record description entry, whose items would be those "
         + "of the READ INTO or WRITE FROM operand (§2023:13.18.24.4 GR2 c). The record must be described with a fixed layout.",
         "ISO §2023:13.18.24.4 GR3, GR2 c; ISO/IEC 1989:2002 §13.16.22.3");
+
+    /// <summary>COBOL7363 — a VALIDATE operand whose elements this stage of the VALIDATE facility does not yet validate (kb/Work PB5577,
+    /// docs/rearchitecture/DESIGN-validate-facility.md section 6): a group holding a table (an OCCURS clause below identifier-1,
+    /// §2023:14.9.50.4 GR7 b), or an element whose storage this implementation cannot reach to check. The statement is refused by name, never
+    /// accepted and skipped: a validation that silently covered only part of the operand would report a record valid that the standard
+    /// calls invalid. The refusal ends when the stage that builds the case lands (S4 for tables).</summary>
+    public static readonly DiagnosticDescriptor ValidateOperandUnbuilt = new(
+        "COBOL7363", "validate-operand-unbuilt", EditionSeverity.Error,
+        "A VALIDATE operand holds a table (an OCCURS clause subordinate to identifier-1, §2023:14.9.50.4 GR7 b: each occurrence is processed "
+        + "independently at all five stages) or an element this implementation cannot reach to check, and the VALIDATE facility is built in "
+        + "stages (docs/rearchitecture/DESIGN-validate-facility.md section 6): validating only the part of the operand that is built would "
+        + "report as valid a record the standard calls invalid, so the statement is refused. Subscript the operand to one occurrence (GR7 a) "
+        + "or validate the elements one by one.",
+        "ISO §2023:14.9.50.4 GR7; ISO/IEC 1989:2002 §14.8.46.3 GR7");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

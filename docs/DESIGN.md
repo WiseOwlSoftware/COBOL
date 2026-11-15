@@ -2262,8 +2262,8 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     lenient clamping dialect is a later option.
 16. **Exception model default.** EC checking OFF by default (NIST-faithful, fast — §2023:7.3.25.4 GR1), enabled only by
     `>>TURN`/phrases; an unhandled **fatal** EC terminates the run unit with a diagnostic + nonzero exit.
-17. **VALIDATE.** Declined (Annex A.4.14; docs/CONFORMANCE.md §4 item 3): the statement compiles inert with the
-    COBOL1580 warning, no EC-VALIDATE condition is raised, and it is marked obsolete (2023 Table 13).
+17. **VALIDATE.** Implemented in stages (docs/rearchitecture/DESIGN-validate-facility.md; docs/CONFORMANCE.md §4 item 3): the statement validates and raises
+    EC-VALIDATE-FORMAT; the clauses no stage builds yet are refused by name (COBOL1708); it is marked obsolete (2023 Table 13).
 18. **OO multiple inheritance.** Single inheritance in v1 (covers the whole current corpus); a multi-base program
     triggers an owner decision then (linearize one C# base + `IMPLEMENTS` interfaces with forwarding).
 19. **Intrinsic internals.** Never `decimal` — exact via unscaled `long`/`Int128`, float via `double` (extends the

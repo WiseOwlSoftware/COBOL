@@ -233,6 +233,9 @@ internal sealed partial class EcBinder
         // (BoundCommitRollback.ForeignFiles, kb/Work PB3554); a refused file of ANOTHER element's clause this element cannot
         // name has no FileModel here, so its EC-I-O-PERMANENT-ERROR (the one condition a refusal raises, '30') is declared
         // with no file, and only a directive naming no file enables it (review finding w1154a R1-3).
+        // VALIDATE (kb/Work PB5577). PRECISE: stage five's raise sites are ValidateEmitter's — EC-VALIDATE-FORMAT when an element's internal indicator is
+        // invalid on format (§2023:14.9.50.4 GR6 e). Stages three and four (EC-VALIDATE-CONTENT, EC-VALIDATE-RELATION) join as they are built.
+        new(s => s is BoundValidate, ["EC-VALIDATE-FORMAT"]),
         new(s => s is BoundCommitRollback { IsCommit: true }, ["EC-FLOW-COMMIT", "EC-I-O-PERMANENT-ERROR"]),
         new(s => s is BoundCommitRollback { IsCommit: false }, ["EC-FLOW-ROLLBACK", "EC-I-O-PERMANENT-ERROR"]),
         // §2023:14.6.13.1.3 item 8's ROLLBACK (kb/Work PB3544): a fatal status on a file under commit control executes "a

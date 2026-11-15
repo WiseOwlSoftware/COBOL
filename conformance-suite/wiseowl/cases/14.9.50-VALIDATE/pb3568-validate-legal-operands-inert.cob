@@ -6,11 +6,10 @@
       *> portable: unverified
       *>---
       *> The control for the pb3568-validate-* refusals (kb/Work PB3568): every legal shape of identifier-1 still
-      *> compiles with the COBOL1580 facility warning and nothing else - a group, a qualified elementary item, a
-      *> subscripted table element - and the statement is inert (docs/CONFORMANCE.md section 4 item 3): control
-      *> passes through it and no item changes. The .out pins INERTNESS ONLY; the warning is the decline half
-      *> (DocumentedNonSupportWitnessTests). ISO §2023:14.9.50.3 SR1 admits a data item described in the working-storage
-      *> section, referenced without reference modification.
+      *> compiles clean - a group holding a table, a qualified elementary item, a subscripted table element - and the
+      *> statement changes no item (§2023:14.9.50.4 GR5: "the content of the invalid data item does not change"; here every
+      *> item is valid, and no exception checking is on). ISO §2023:14.9.50.3 SR1 admits a data item described in the
+      *> working-storage section, referenced without reference modification.
       *>   cite.py: OK  §2023:14.9.50.3 1)  (Syntax rules)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3568OK.
