@@ -1,4 +1,4 @@
-## The shard weights regenerated, and the spread report now says STALE when the population outgrows them (kb/Work PB5552)
+## Entry 3631 — 2026-11-14 17:30 PST — The shard weights regenerated, and the spread report now says STALE when the population outgrows them (kb/Work PB5552)
 
 The nightly of 2026-11-14 went red on `shard-spread` at 1.54x (run 43603799163, Linux shard 2 at 445 s against a mean
 of 288 s). PB5468 had predicted it. I downloaded the eight runs the report read and read every trx per class. A port
@@ -16,3 +16,4 @@ name, over the mean shard's class seconds, with the heaviest such class named. A
 exits 1. The eight runs read 0.18 to 0.25 against the old file and 0.00 against the new one. A run from 2026-11-07
 already read 0.17 and 0.32, a week before the spread went red. The self-test plants the STALE arms, and two mutations
 each fail them.
+
