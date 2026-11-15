@@ -1841,3 +1841,238 @@ state opens with a checked 2002 citation; the 107 values that begin `none` or `n
 --edition 2002 --dry-run` accepts all 204 (GAP 3,297 to 3,094). Of the 96 rows refused only for their evidence, `widen`
 finds 66 widenable and 30 that need a witness of their own. 1985, held to the same kinds: of 1,373 stored KEPT records,
 802 have a witness of the kind the rule needs at 85 for at least one target and 570 for every target; 571 have none.
+
+### 10.7 Lineage runs forward: the line, the successor's record and the neighbour pair (kb/Work PB5679; STAGED)
+
+**What this section replaces.** When its stages land, this section replaces, in section 10.2, the paragraphs "Change is
+recorded once, between ADJACENT editions only" (with its table), "The two rules are compared on the programs the OLDER
+edition admits" (its rule for KEPT and `to`; the comparison rule itself stays), "A rule of the newer edition that no older
+row's `to` names is NEW", "A verdict is held once per chain", "The band at an older edition is the chains'", the reading
+of NEW, CHANGED and REMOVED in "The edition gates rest on the lineage's edges", and "A missing edition is bridged,
+provisionally"; in section 10.4, "The lineage seed"; and in sections 10.5 and 10.6, every sentence that makes a read
+decision a KEPT record with a `to` list on the older row. Sections 10.1 and 10.3 stay. Until each stage lands, sections
+10.2 to 10.6 describe the compiler's tooling as it is; this section describes the target and says, for each part, what
+exists today.
+
+**The owner's model** (2026-11-15): "Conceptually, each version's rules, syntax, and semantics are independent. However,
+as the language designers needed to maintain some level of compatibility, unless explicitly decides not, later version
+rules can be thought of as including a prior version's construct as is, including with additions, deletions, and
+alterations, explicitly removing the prior version construct, or adding an entirely new construct." And, on the
+direction: "A newer version can inherit an older versions construct as the newer version didn't remove or change it."
+So the later edition is the one that acts: it includes a construct as is, alters it, removes it or adds a new one. The
+record of that act belongs to the later edition.
+
+**What today's record gets wrong.** Today the record sits on the OLDER row (`next`, kind KEPT, `to` the 2023 rules) and
+names the newest held edition, skipping every edition between: on the stored records, all 2,260 1985 records and all
+704 2002 records name 2023 with `bridge: true`. That shape exists because 2023 was adjudicated first. The endpoint
+comparison it rests on was wrong for 16 of 100 word-identical 2002/2023 pairs in the first blind sample and 13 of 100
+(plus 3 doubtful) in the second (section 10.5), and of the 1,720 rules the 2002 reads decided, 300 came out SAME with
+the refuter upholding them before the evidence check (section 10.6). Kb/Work PB5597 and PB5675 repair the EVIDENCE half: a row closes only on a witness that runs at its own edition.
+This section repairs the RELATION half.
+
+#### 10.7.1 The model
+
+1. **A row's closure never reads another edition's state through a pointer** (L1). A row closes on a verdict and on a
+   witness of the kind its rule needs that runs at the row's own edition: the row's own spec-derived `test-ref`
+   (kb/Work PB5675, mechanism B). This holds whatever the lineage says.
+2. **The unit of lineage is the LINE** (L2): one construct's rule carried AS IS through consecutive catalogued editions,
+   one member rule per edition it spans. Its hops are the owner's first relation, "as is". The other three relations are
+   where lines begin and end: a rule the successor edition ALTERED (additions, deletions, alterations: the record says
+   which) starts a new line at the successor and names the predecessor rule or rules it altered; a NEW rule starts a line
+   with no predecessor; a predecessor rule the successor REMOVED ends its line. The compiler's construct windows
+   (`tests/version-matrix/constructs/`, rendered as `ConstructRegistry`: `introducedIn`, `removedIn`, `obsoleteIn`) are
+   the same idea at the grain of a construct, not of a rule (section 10.7.4 says how the two meet).
+3. **The record lives on the SUCCESSOR and names the PREDECESSOR** (L3). A rule of an edition that is not the earliest
+   carries `from`: the rule or rules of the edition before it that it continues or alters, the relation, and the basis.
+   A removal is derived: a predecessor rule that no successor rule names, backed by an item of the successor's change
+   list. No record on an older row names a newer row, and no tool or document says that an older row takes anything from
+   a newer one.
+4. **The successor's own change list is the first authority for a relation, and a read checks it** (L4). "As is" is what
+   the standard's authors state for what their list does not name. A relation other than as-is cites the successor's
+   change-list item (the 2002 text's Annex F, `§2002:F.1` and `§2002:F.2`; the 2014 text's Annex E, `§2014:E.2` and
+   `§2014:E.3`; the 2023 text's Annex E, `§2023:E.2` and `§2023:E.3`) or quotes the difference in the successor's text.
+   The lists are not complete (the 2002 read found scope differences no item names, and kb/Work PB4608 found a 2023
+   change Annex E omits), so an as-is hop is recorded only from a read of both rules, each in its own edition's terms,
+   attacked by a refuter: the pipeline of section 10.6, aimed at a neighbour pair.
+5. **One adjudication per line, held where it was made; every member needs its own witness** (L5). Whether the code
+   satisfies a requirement is decided once for a line, by a member adjudicated on its own text (its HOLDER). A member
+   closes when the line's verdict is OK and the member has its own witness at its own edition (point 1). Two holders of
+   one line whose verdicts disagree are red. New work adjudicates the earliest member (1985 first); an adjudication that
+   already exists on a later member (all of 2023, adjudicated first) stays where it is, and the line reads it there. The
+   words for this are "the line's verdict".
+6. **1985 is the earliest edition: every 1985 row carries its own verdict** (L6). No new KEPT record is written at 1985.
+   The 1,373 stored 1985 KEPT records are legacy: each is replaced by an own-verdict record when its rule is read in
+   1985's own terms (its 2023 targets serve as pointers to code and to candidate cases), and the views show how many are
+   still unread.
+7. **Neighbour to neighbour, one mechanism** (L7). Candidates, screen, read and import take a (predecessor, successor)
+   pair: 1985 to 2002, 2002 to 2014, 2014 to 2023. A hop that skips an edition with no catalog (2002 to 2023 over 2014
+   today) is recorded as exactly that, a skipping hop naming the skipped edition, and is split when that edition's pair
+   is complete. The 2002 work of kb/Work PB5574 stands as skipping hops.
+8. **Migration changes no row's state silently** (L8). Section 10.7.6.
+
+#### 10.7.2 The record
+
+**Where it lives.** The schema's `from` (`tests/version-matrix/inventory-schema.json`, beside today's `next`, which the
+last stage deletes) is the shape of the record, read as one typed object in Python (`inventory_schema.Lineage`, the
+successor of `ChangeRecord`) and in C# (`TraceabilityInventory.From`). Every held edition but the earliest names `from`
+among its `adjudicated` fields, the newest included (the 2023 store gains the field; its rows keep their verdicts). Its
+keys:
+
+- `relation`: `as-is`, `altered` or `new`. Each relation's flags are data, as `next.kinds` are today: how many
+  predecessor rules it names (as-is exactly one, altered one or more, new none), whether it must state `change`, and
+  whether the row may close through its line (as-is alone);
+- `edition`: the predecessor edition, the nearest earlier edition that has a catalog;
+- `skips`: the editions between `edition` and the row's own edition whose pair is not yet complete (below), in order,
+  empty for a neighbour hop;
+- `rules`: the predecessor rule ids;
+- `digests`: each predecessor rule's `rule-digest` when the record was decided (the row's own `rule-digest` already
+  covers the successor side, kb/Work PB698), so a change to either text makes the record STALE by name, as
+  `lineage.stale_targets` does today;
+- `change`: for `altered`, what the successor did, in the owner's words: additions, deletions or alterations, the
+  differing words, and `split` or `merge` when the predecessor rule's requirement is now stated by several successor
+  rules or several predecessor rules' by one;
+- `basis`: the change-list item's citation (`cite.py --check` on the successor's text) or a quoted difference, for a
+  relation other than as-is; `source`: the read record that decided it (`lineage-reads-<pred>-<succ>/<slice>.json`),
+  required for as-is, whose read must be SAME and its refuter's UPHELD; `answers`: the screen's flags answered for their
+  detail, as `next.answers` are today (section 10.5).
+
+**Removal, derived.** A predecessor rule that no successor rule's `from.rules` names is REMOVED when an item of the
+successor's change list removes it, and UNCLASSIFIED otherwise. The change list is data, one file per successor edition
+(`docs/rearchitecture/spec-change-list-<year>.json`): each item of that edition's own list, by its citation, with the
+predecessor rules it removes. A removal no item names (the lists are incomplete) is an entry of the same file that quotes
+the successor text showing the construct is gone and names the read that found it. The file holds the standard's items
+and the rules they touch, nothing else; it is not a list of work. `docs/VERSION_CHANGE_REFERENCE.md` stays the compiler's
+gating reference and cites the items; it does not key a row to an item or a rule today (section 10.7.4).
+
+**A pair is COMPLETE** when every successor rule carries `from` and every predecessor rule is continued (named by some
+`from.rules`) or removed. A complete pair is LINKED: this replaces the schema's `linked` flag, `Edition.next_held` and
+`bridge`, which the forward stage deletes. Facts derived from absence (a NEW rule, a REMOVED rule, an edge of an edition
+gate, a band position) are computed only from a complete pair. Until a pair is complete the view prints how many rules
+of each side it has classified, and every derived reader takes those facts from the legacy records (section 10.7.6).
+
+**The line's state function** (`lineage.state_of`, and its C# twin `StateAt`, held to each other by
+`EveryOlderEditionsRuleState_AgreesWithThePythonView`, which then covers every held edition):
+- a row with verdict fields of its own is judged on them (`Schema.state_for`), as every 2023 row is today;
+- a row whose `from.relation` is as-is and which holds no verdict is OK exactly when (a) its line has a holder, (b) every
+  holder of the line is OK at its own edition, (c) every hop between the row and each holder is as-is, read-backed and not
+  STALE, and (d) the row has its own spec-derived `test-ref` (`Schema.has_spec_derived_test`, the predicate kb/Work
+  PB5675 uses); otherwise GAP;
+- every other row (altered, new, earliest edition, or no `from` yet) is judged on its own fields.
+
+The line is computed by the view, once per call, by walking `from` from each row to the predecessor it names, never
+stored. The view prints, per edition, how many rows are closed by their own verdict and how many through a line whose
+holder is a LATER member, so what rests on a later adjudication is a figure, not a fact hidden in the state.
+
+**The audit** (the INVENTORY VIEW and LINEAGE READS gate audits, one function each, both languages for the state):
+`from` has its relation's shape; `edition` is the nearest catalogued predecessor and `skips` names exactly the editions
+between whose pairs are incomplete; every named rule exists in its catalog and every digest is current; an as-is hop is
+one to one (a predecessor rule two as-is successors name is a split, and the audit refuses it until it is recorded
+`altered`); an as-is `source` is an imported read whose decision is that hop (SAME, refuter UPHELD), and no read record
+of the pair holds a later UPHELD decision that the two rules differ; an `altered` or `new` basis checks against the
+successor's text; two holders of one line disagree; an older row carries any field that names a newer row (after the
+last stage); a skipping hop over an edition whose pairs are now complete is listed OWED a split, never red (section
+10.7.5).
+
+#### 10.7.3 Splits, merges and a definition that changed
+
+An as-is hop is one to one by definition. When the successor states one predecessor requirement in two rules, each
+successor rule is `altered` with `change: split` and names the predecessor rule; when it states two predecessor
+requirements in one rule, that rule is `altered` with `change: merge` and names both. Each such rule starts a line and
+carries its own verdict, so no member closes through a split or merge. The stored records show why this matters: of the
+1,373 1985 KEPT records, 451 carry into two or more 2023 rules (one into 14), and 437 of the 1,180 2023 rules they reach
+receive two or more 1985 records; no line can carry those as is. The 704 2002 KEPT records are one to one (704 records,
+704 distinct 2023 rules, one each), because they come from word-identical pairs.
+
+A rule whose words are unchanged while a term it uses was redefined, or while the clause around it governs more, is not
+as is: the read compares each rule in its own edition's terms (the definitions and the governing clause), and the
+screen's `definitions` and `pending-clause` triggers put the question to the read by name (section 10.5). A read that
+finds the difference records `altered` with the redefined term as its `change`.
+
+**When a later read finds a difference.** A hop's record is bound to the read that decided it and to both rules' digests.
+A later read of the same pair that the refuter UPHOLDS as DIFFERENT turns the hop's record red in the LINEAGE READS
+audit until `record_verdicts.py` rewrites it `altered`; the rewrite breaks the line at that hop, every member below it
+loses the line's verdict (its state goes to GAP), and the landing that writes it states each edition's GAP before and
+after. A text correction under either rule makes the record STALE by its digest, with the same result. Nothing reopens
+silently: the state changes only in the landing that writes the record, and that landing names the rows.
+
+#### 10.7.4 What exists today, and how the construct windows meet the lines
+
+- **The records** sit on the older rows: `next` in the schema (`keys`, `kinds`, `verdict-fields`), read by
+  `lineage.next_errors`, `lineage.state_of`, `lineage.chain_bands`, `lineage.band_drift`, `inventory_view.join` and
+  `check`, `edition_gates.pair_of` and its `newer_change`/`older_change`, `place_witnesses.py`, `audit_batch.change_records`
+  (the one writer, through `record_verdicts.py --edition <older>`), `lineage_reads.kept_problems` and `stored_errors`, and
+  in C# `TraceabilityInventory.ChangeRecord` with `SpecTraceabilityInventoryDriftTests.StateAt`. The pair is fixed by
+  `Edition.next_held` and `bridged`, computed from the schema's order and the `linked` flag (2002: `linked: false`).
+- **The tools are keyed by the older edition alone.** `lineage.py --candidates` pairs a held edition with its next
+  linked edition (`spec-lineage-candidates-1985.json` and `-2002.json`, both against 2023: 0 of 2,274 1985 rules paired,
+  1,770 of 3,298 2002 rules). The screen's triggers, its committed screen and the reads are per older year
+  (`lineage-screen-triggers-2002.json`, `spec-lineage-screen-2002.json`, `tests/version-matrix/lineage-reads-2002/`, 69
+  slices). `audit_batch.py` names its target edition in 37 places as `rules_2023`. Each takes the pair in the forward
+  stage, the files named by both years.
+- **The change lists** are transcribed: 2002's Annex F (40 items in F.1, 149 in F.2), 2014's Annex E (29 in E.2, 39 in
+  E.3) and 2023's. `docs/VERSION_CHANGE_REFERENCE.md` catalogues 2023's in Tables 1 to 3 (37, 6 and 45 rows, every one
+  2014 to 2023) and the earlier deltas in Table 7 (80 rows); no row names a catalog rule id, and Table 7 does not key a row
+  to an Annex F item. The change-list files of section 10.7.2 are therefore new data, read from the annexes.
+- **The construct windows** are 342 rows keyed by a construct name with an `introducedIn`, `removedIn` and `obsoleteIn`
+  edition, tied to rules only through the free text of their `citation`, which the EDITION GATES audit resolves to rules
+  (`edition_gates.cited_rules`). A line cannot be keyed by a construct: a construct names many rules in several editions,
+  and most rules belong to no window (a window exists only where an edge does). The two meet where they meet today, at
+  an edge: a window's start rests on a rule whose `from.relation` is `new` (or a predecessor rule removed, for a
+  restriction lifted), its end on a removal or an alteration, each read from a complete neighbour pair. Today all 312
+  proven gates rest on the 1985-to-2023 records (198 on a 2023 rule NEW against 1985, derived over the bridge; 38 on a
+  1985 CHANGED or REMOVED record), so a window that starts at 2002 is proven by a rule 1985 lacks and 2023 has.
+
+#### 10.7.5 The neighbour pair through candidates, screen, read and import
+
+Each step takes `--pair <predecessor>:<successor>`, and each artifact is named by both years
+(`spec-lineage-candidates-<pred>-<succ>.json`, `lineage-screen-triggers-<pred>-<succ>.json`,
+`lineage-reads-<pred>-<succ>/`); `record_verdicts.py --edition <successor>` writes the `from` records.
+
+- **Candidates**, strongest first: the word-identical pairing (`lineage.candidates`, unchanged); then COMPOSITION through
+  a later edition's records: a predecessor rule and a successor rule whose records name the same later rule (for 1985
+  to 2002, the 1985 KEPT records and the 2002 candidate pairing meet on 864 1985 rules and 648 2002 rules, 1,100 pairs;
+  724 of those 1985 rules meet exactly one 2002 rule); then the route and wording signals of `audit_batch.candidates`.
+  Composition is a candidate, never a record.
+- **Screen**: the triggers table is per pair; its mechanisms (`MECHANISMS`) are unchanged. The pending-clause diff and
+  the definitions map compare the pair's two texts.
+- **Read**: the reader states what each rule governs in its own edition's text and decides as-is, altered (with
+  `change`) or no counterpart; the refuter attacks every as-is. The brief's fields name the pair's editions
+  (`scope-<year>`, `evidence-<year>`), as `scope-2002` does today.
+- **Import**: `audit_batch.py import-reads --pair` writes the read records and an audit run; its writer emits `from`
+  records on the successor's rows. The own-edition evidence rule (kb/Work PB5675) applies to the successor row that
+  closes through its line.
+
+A skipping hop is split when the skipped edition's two pairs are complete: the read decides predecessor to middle and
+middle to successor. When both are as-is, the hop becomes two; when either is not, the line breaks there, and the
+landing lists the rows whose state moves. A skipping hop that cannot be split because the middle edition has no
+counterpart for the rule (a construct removed in 2014 and restored in 2023) is no line at all: the successor rule is
+`new` against 2014, and the 2002 rule is removed at 2014.
+
+#### 10.7.6 The migration and its proof obligations
+
+- **The 704 stored 2002 KEPT records** become 704 `from` records on the 2023 rows they name: `as-is`, `edition: 2002`,
+  `skips: [2014]`, `rules` the 2002 rule, `digests` the 2002 rule's current `rule-digest`, `source` and `answers` copied
+  from the 2002 record, which is then deleted. Each is migrated only when the 2023 rule's current `rule-digest` equals
+  the digest the 2002 record stamped for it and the hop is one to one; any other is listed and keeps its 2002 record,
+  never guessed. The 2002 rows' state before (the chain's: the target OK and its band naming 2002) and after (the line's
+  verdict and the row's own `test-ref`) is computed for every row in the landing, and any row whose state differs is
+  listed with its reason.
+- **The 1,373 stored 1985 KEPT records** are legacy (point 6). ⚠ DRAFTER MARK: L8 decides only the KEPT records; the
+  564 CHANGED and 323 REMOVED 1985 records also name 2023 rules from an older row, they carry their own verdicts, and the
+  EDITION GATES audit rests on them (section 10.7.4). None of them can become a hop: each skips 2002, which has a
+  catalog. So the forward stage leaves all 2,260 1985 records in their present `next` form, read by the present code
+  for 1985 alone, and the writer refuses any new `next` record at every edition; the 1985 stage drains them to zero and
+  deletes `next` and every reader of it in that landing (kb/Work PB5683).
+- **Every landing of a migration step** states each held edition's GAP before and after (`inventory_view.py
+  --summary`), the count of records migrated, refused and left legacy, and lists every row whose state moved. A row
+  closed at the base and open at the head with no listed reason fails the WITNESS LOSS audit's state axis (kb/Work
+  PB5675, outcome 5) at every held edition.
+
+#### 10.7.7 The stages
+
+Each stage is a kb/Work note under decision PB5679, in its `blocked_by` order: PB5675 (in flight: the own-edition
+witness on the row); PB5680 (the 1985 read sample: the false-covered rate of the 570 witnessed KEPT rows); PB5681 (the
+2014 catalog and store; the 2014 text is already transcribed and reconciled, kb/Work PB5268 and PB5331); PB5682 (the
+forward record, the line's state in both languages, the neighbour pair in every tool and the 2002 migration); PB5683 (the
+1985 own verdicts, the 1985 to 2002 pair and the end of `next`); PB5684 (2014 closed through lines). Each note states what
+its landing proves.
