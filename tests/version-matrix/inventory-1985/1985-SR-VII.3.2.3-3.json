@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VII.3.2.3-3",
  "rule-digest": "c6c7c72580e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FileDescriptionRecordRequired",
+ "test-ref": "conformance:cases/VII.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-SR-VII_3_2_3-3",
+ "notes": "§1985:VII.3.2.3 SR3: \"One or more record description entries must follow the file description entry.\" BindFileSection calls MaterializeImpliedRecord when an FD binds no level-01 record; below DialectLevel 2002 it reports COBOL1837 (FileDescriptionRecordRequired) citing the organization's module (VII sequential) before the 2002 implied-record permission is asked, and a report file is exempted first (§1985:XIII.3.2.3 SR4). Witness: a sequential FD with RECORD CONTAINS 10 and no record is refused at 85 (accepted at 2023). Probes at 85: (b) bare record-less FD, record-less FD then a second FD with a record, FD with only a 66 RENAMES, FD with only a 77 (COBOL1746), FD with a 2002 CONSTANT entry only (COBOL1837 + COBOL0900) all refused; (a) RECORD VARYING DEPENDING ON with no record refused, with an ODO record ran and printed '05 03XYZ'; (e) EXTERNAL record-less FD refused, indexed/relative cite IX/VIII; report file FD with REPORT IS and no record ran 'DONE'; an ordinary FD+01 wrote/read 'ABCDE'; (c) at 2002 the same FD with RECORD CONTAINS is accepted and without it gets COBOL1836. Read 6 (2026-11-14, records-read6): the row had no verdict and no test-ref although its witness existed; the reader read CONFORMS and an independent refuter UPHELD it (op-20261114/out-read6/rd-NN.json and rd-NN-refute.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

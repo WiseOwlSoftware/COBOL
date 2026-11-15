@@ -18,10 +18,14 @@ public sealed partial class DataBinder
     /// sentence, §1985:IV.4.3.8.1). It states the rule on two items both written GLOBAL too, which §1985:X.4.6.3 SR2 repeats:
     /// "In the same Data Division, the data description entries for any two data items for which the same data-name is
     /// specified must not include the GLOBAL clause."
-    /// <para>The GLOBAL item is the entry that CARRIES the clause — a record the clause (or its file description's) makes
-    /// global. The data-names subordinate to it possess the attribute too (§2023:13.18.27.4 GR1), but §2023:8.4.6.2.1 3) b) 1.
-    /// leaves two such subordinates of one element a name to be qualified, never a declaration to refuse
-    /// (conformance:pb1047-two-globals-one-element-ambiguous), so the screen names the entries that write the clause. A
+    /// <para>The GLOBAL items are the records the clause (or their file description's) makes global AND every data-name
+    /// subordinate to one: "All data-names subordinate to a global name are global names" (§2023:13.18.27.4 GR1), so a
+    /// subordinate "possess[es] the global attribute" and its name may not be the name of any other data item of the source
+    /// element either. The note PB5150 adjudicated this against the pb1047 golden: §2023:8.4.6.2.1 3) b) 1. ("The item in
+    /// source element A if the name is declared in source element A") picks the nearest declaring element for a name
+    /// duplicated ACROSS nested source elements; it permits no reading under which one element declares a global name
+    /// twice, which §2023:8.4.2.1 forbids, so two same-named subordinates of GLOBAL records are refused at the declaration
+    /// (conformance:pb1047-two-globals-one-element-ambiguous, COBOL6862 in place of the reference-time COBOL1639). A
     /// description a TYPE or SAME AS clause copied in IS a data item of the source element: "as though the type description
     /// had been coded in place" (§2023:13.18.57.4 GR1; SAME AS, §2023:13.18.49.4 GR1), so the screen runs on the COMPOSED
     /// forest (<see cref="Passes.CheckGlobalNameUniquenessPass"/>, after ExpandTypes) and counts the copies. A GLOBAL name a
@@ -38,7 +42,7 @@ public sealed partial class DataBinder
             {
                 var item = items[i];
                 if (State.Forest.DeclaringDepth(item) != 0) continue;
-                bool global = item.Parent is null && IsGlobalRecord(item);
+                bool global = IsGlobalRecord(item.Root);
                 bool another = i > 0 && items.Take(i).Any(p => State.Forest.DeclaringDepth(p) == 0);
                 if (another && (global || firstGlobal is not null))
                 {

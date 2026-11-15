@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb966_move_corresponding_through_alias
       *> rules: [GR-14.7.6-1, SR-14.9.25.3-12]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -14,6 +14,9 @@
       *> data-name-3". So a THROUGH alias IS a group data item and SR12 admits it on either side; this
       *> program used to be refused COBOL1757 "described with level-number 66, so it is not a group
       *> data item". SR12 names no level number (ADD/SUBTRACT SR6 do; they still refuse it).
+      *> COBOL-85 is not accepted: its §1985:VI.6.4.3 GR3 forbids level-number 66 in the description
+      *> of D1 and D2 for all three CORRESPONDING statements (kb/Work PB5105;
+      *> conformance-suite/cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_3-3.cob).
       *>
       *> DETERMINATION (docs/CONFORMANCE.md section 7): 14.7.6 rule 1 pairs items with "the same data-name
       *> and the same qualifiers, if any, up to, but not including, D1 and D2". An alias includes the
