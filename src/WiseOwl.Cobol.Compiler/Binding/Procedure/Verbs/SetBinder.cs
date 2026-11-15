@@ -1545,8 +1545,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Whether <paramref name="amount"/> is one of the 1985 operands <see cref="GateCobol85IndexAmount"/> names: an
-    /// integer literal with the sign its position admits, or a data reference to an index-name, an index data item or an
-    /// elementary numeric integer (an item the reference does not resolve, or one of another class, is refused by its own
+    /// integer literal with the sign its position admits, or a data reference to an elementary numeric integer — and, for
+    /// Format 1's identifier-2 only, an index-name or an index data item (an item the reference does not resolve, or one of another class, is refused by its own
     /// rule and is not asked here).</summary>
     private bool IsCobol85IndexAmount(Core.ArithmeticExpressionContext amount, bool upDown)
     {
@@ -1554,6 +1554,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             || term.powerExpression() is not [var power] || power.unaryExpression() is not [var unary]) return false;
         if (unary.primaryExpression()?.dataReference() is not { } dref)
             return Cobol85OperandForms.IsInteger(unary, upDown ? Cobol85IntegerSign.Any : Cobol85IntegerSign.Positive);
+        // §1985:VI.6.23.3 SR3 — "Identifier-3 must reference an elementary numeric integer": an index-name and an index
+        // data item are neither (kb/Work PB5421). Format 1's identifier-2 DOES admit both (SR2), so only the UP/DOWN amount asks.
+        if (upDown && _fmt.KindOf(dref) is SetOperandKind.IndexName or SetOperandKind.IndexDataItem) return false;
         return ctx.Refs.ProbeDeclaration(dref) is not { Pic: { Category: PicCategory.Numeric, Scale: > 0 } };
     }
 
