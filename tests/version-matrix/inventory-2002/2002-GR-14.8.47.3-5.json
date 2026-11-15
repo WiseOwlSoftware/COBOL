@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-5",
+ "rule-digest": "93e6c04ec0f1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFilePhraseRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#MaterializeLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ResolveWriteRecord",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5579_write_file_sequential_2002; conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5579_write_file_indexed_relative_2002",
+ "notes": "§2002:3.1.1 requires the FILE phrase (Annex A.4.13); kb/Work PB5579 implements it (SequentialIoBinder.BindFileFormat -> MoveBinder.BindFilePhraseRecord), at --std 2002 and from it, and gates it at 85 (COBOL0900). GR5: the released record is the operand's image under its own description, for a record-less sequential file, an indexed and a relative file."
+}

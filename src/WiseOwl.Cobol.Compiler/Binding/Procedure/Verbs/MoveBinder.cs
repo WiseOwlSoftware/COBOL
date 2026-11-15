@@ -514,6 +514,16 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 + "shall not be a figurative constant (§2023:14.9.51.3 SR7 b), §2023:14.9.35.3 SR10 b))");
             return null;
         }
+        // identifier-1 "shall not contain a data item described with a USAGE OBJECT REFERENCE clause" (SR8, SR12): asked before
+        // the class check below, which would refuse an object-class item as no MOVE sender and so name the other rule.
+        if (source is BoundFieldOperand { Place: var described } && HoldsObjectReference(described.Item))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.FilePhraseOperand,
+                $"{rules.Statement} {DataBinder.WrittenText(send)}: the description of identifier-1, including its subordinate data "
+                + "items, shall not contain a data item described with a USAGE OBJECT REFERENCE clause (§2023:14.9.51.3 SR8, "
+                + "§2023:14.9.35.3 SR12)");
+            return null;
+        }
         if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed,
@@ -522,14 +532,6 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         }
         if (source is BoundFieldOperand { Place: var sender })
         {
-            if (HoldsObjectReference(sender.Item))
-            {
-                ctx.Edition.Error(DiagnosticCatalog.FilePhraseOperand,
-                    $"{rules.Statement} {DataBinder.WrittenText(send)}: the description of identifier-1, including its subordinate data "
-                    + "items, shall not contain a data item described with a USAGE OBJECT REFERENCE clause (§2023:14.9.51.3 SR8, "
-                    + "§2023:14.9.35.3 SR12)");
-                return null;
-            }
             if (BitLayout.IsBitItem(sender.Item))
                 host.Params.ScreenBitAlignment(sender, DiagnosticCatalog.FilePhraseBitAlignment, rules.Statement,
                     "§2023:14.9.51.3 SR9, §2023:14.9.35.3 SR7");

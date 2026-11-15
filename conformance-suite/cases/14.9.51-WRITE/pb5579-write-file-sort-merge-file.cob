@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5579-write-file-sort-merge-file
-      *> rules: [SR-14.9.51.3-12]
+      *> rules: [SR-14.9.51.3-12, 2002-SR-13.3.5.2-3, 2002-SR-13.3.5.2-4]
       *> source-format: fixed
       *> portable: unverified
       *>---

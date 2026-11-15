@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5579-write-file-numeric-function
-      *> rules: [SR-14.9.51.3-10]
+      *> rules: [SR-14.9.51.3-10, 2002-SR-14.8.47.2-10]
       *> source-format: fixed
       *> portable: unverified
       *>---

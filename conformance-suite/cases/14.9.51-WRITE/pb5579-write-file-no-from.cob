@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5579-write-file-no-from
-      *> rules: [SR-14.9.51.3-7]
+      *> rules: [SR-14.9.51.3-7, 2002-SR-14.8.47.2-7]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-8",
+ "rule-digest": "072943bef03b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFilePhraseRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ResolveRewriteRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#MaterializeLiteral",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_rewrite_file_2002",
+ "notes": "§2002:3.1.1 requires the FILE phrase (Annex A.4.13); kb/Work PB5579 implements it (SequentialIoBinder.BindFileFormat -> MoveBinder.BindFilePhraseRecord), at --std 2002 and from it, and gates it at 85 (COBOL0900). GR8: sequential and indexed REWRITE FILE replace the record with the operand's image."
+}

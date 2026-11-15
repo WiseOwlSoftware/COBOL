@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5579-rewrite-file-bit-misaligned
-      *> rules: [SR-14.9.35.3-7]
+      *> rules: [SR-14.9.35.3-7, 2002-SR-14.8.33.2-7]
       *> source-format: fixed
       *> portable: unverified
       *>---

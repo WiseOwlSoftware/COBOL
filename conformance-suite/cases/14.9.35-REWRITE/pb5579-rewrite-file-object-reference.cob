@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5579-rewrite-file-object-reference
-      *> rules: [SR-14.9.35.3-12]
+      *> rules: [SR-14.9.35.3-12, 2002-SR-14.8.33.2-12]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -18,12 +18,10 @@
        01 R PIC X(10).
        WORKING-STORAGE SECTION.
        01 W10 PIC X(10) VALUE "EXACT-TEN!".
-       01 GRP.
-          05 OBJ USAGE OBJECT REFERENCE.
-          05 XX PIC X(2).
+       01 OBJ USAGE OBJECT REFERENCE.
        PROCEDURE DIVISION.
        MAIN.
            OPEN I-O F.
-           REWRITE FILE F FROM GRP.
+           REWRITE FILE F FROM OBJ.
            CLOSE F.
            STOP RUN.

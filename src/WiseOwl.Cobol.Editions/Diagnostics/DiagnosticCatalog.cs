@@ -4175,7 +4175,7 @@ public static class DiagnosticCatalog
     /// area the program can never name; the standard gives that READ no meaning, because §2023:14.9.30.4 GR6 defines the
     /// implied record only for the INTO form. SR3 b), the WRITE/REWRITE half, needs no code of its own: the
     /// record-name-1 alternative cannot name a record-less file (§2023:14.9.51.3 SR5, §2023:14.9.35.3 SR1), and the
-    /// <c>FILE file-name-1</c> alternative is Annex A.4.13, declined by COBOL1706.</summary>
+    /// <c>FILE file-name-1</c> alternative (Annex A.4.13, claimed from 2002: kb/Work PB5579) is the one form such a file binds.</summary>
     public static readonly DiagnosticDescriptor RecordLessFdReadWithoutInto = new(
         "COBOL3983", "record-less-fd-read-without-into", EditionSeverity.Error,
         "ISO §2023:13.4.5.3 syntax rule 3 c): \"When no record description entries are specified: … c) an INTO phrase "
@@ -4360,8 +4360,8 @@ public static class DiagnosticCatalog
         + "DIFFERS: ISO §2023:14.9.32.3 syntax rule 2 (RELEASE) and §2023:14.9.51.3 syntax rule 4 (WRITE) each say \"If "
         + "identifier-1 is a function-identifier, it shall reference an alphanumeric or national function\", "
         + "while §2023:14.9.35.3 syntax rule 9 (REWRITE, the FILE phrase not specified) admits \"an alphanumeric, "
-        + "boolean, or national function\". The FILE-phrase readings (§2023:14.9.51.3 SR10, §2023:14.9.35.3 SR8) are not "
-        + "reachable: the FILE arm is Annex A.4.13 item 2 and is declined earlier, COBOL1706. The class is "
+        + "boolean, or national function\". The FILE-phrase readings (§2023:14.9.51.3 SR10, §2023:14.9.35.3 SR8) have the "
+        + "narrower set of an alphanumeric or national function for both verbs (kb/Work PB5579). The class is "
         + "the function's §2023:15.2 TYPE, so an integer function such as FUNCTION LENGTH is refused in every one of "
         + "these positions even though its value would move.",
         "ISO §2023:14.9.32.3 SR2 / §2023:14.9.51.3 SR4 / §2023:14.9.35.3 SR9");

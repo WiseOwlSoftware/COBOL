@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5579-write-file-object-reference
-      *> rules: [SR-14.9.51.3-8]
+      *> rules: [SR-14.9.51.3-8, 2002-SR-14.8.47.2-8]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -18,12 +18,10 @@
        01 R PIC X(10).
        WORKING-STORAGE SECTION.
        01 W10 PIC X(10) VALUE "EXACT-TEN!".
-       01 GRP.
-          05 OBJ USAGE OBJECT REFERENCE.
-          05 XX PIC X(2).
+       01 OBJ USAGE OBJECT REFERENCE.
        PROCEDURE DIVISION.
        MAIN.
            OPEN OUTPUT F.
-           WRITE FILE F FROM GRP.
+           WRITE FILE F FROM OBJ.
            CLOSE F.
            STOP RUN.

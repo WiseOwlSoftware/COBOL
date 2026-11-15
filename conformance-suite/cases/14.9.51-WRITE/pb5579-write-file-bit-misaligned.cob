@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5579-write-file-bit-misaligned
-      *> rules: [SR-14.9.51.3-9]
+      *> rules: [SR-14.9.51.3-9, 2002-SR-14.8.47.2-9]
       *> source-format: fixed
       *> portable: unverified
       *>---

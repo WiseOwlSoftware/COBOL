@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5579-rewrite-file-sort-merge-file
-      *> rules: [SR-14.9.35.3-11]
+      *> rules: [SR-14.9.35.3-11, 2002-SR-14.8.33.2-11]
       *> source-format: fixed
       *> portable: unverified
       *>---

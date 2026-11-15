@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5579-rewrite-file-numeric-function
-      *> rules: [SR-14.9.35.3-8]
+      *> rules: [SR-14.9.35.3-8, 2002-SR-14.8.33.2-8]
       *> source-format: fixed
       *> portable: unverified
       *>---

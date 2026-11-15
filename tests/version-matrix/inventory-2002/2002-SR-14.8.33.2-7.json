@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.33.2-7",
+ "rule-digest": "26ba18dbf9c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFilePhraseRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#ScreenBitAlignment; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FilePhraseBitAlignment",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/pb5579-rewrite-file-bit-misaligned",
+ "notes": "§2002:3.1.1 requires the FILE phrase (Annex A.4.13); kb/Work PB5579 implements it (SequentialIoBinder.BindFileFormat -> MoveBinder.BindFilePhraseRecord), at --std 2002 and from it, and gates it at 85 (COBOL0900). SR7: a misaligned bit item is refused (COBOL7353)."
+}

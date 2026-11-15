@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.33.2-8",
+ "rule-digest": "2c5e535c46ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFilePhraseRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#ScreenFromFunctionClass",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/pb5579-rewrite-file-numeric-function",
+ "notes": "§2002:3.1.1 requires the FILE phrase (Annex A.4.13); kb/Work PB5579 implements it (SequentialIoBinder.BindFileFormat -> MoveBinder.BindFilePhraseRecord), at --std 2002 and from it, and gates it at 85 (COBOL0900). SR8: a numeric function is refused (COBOL1914)."
+}

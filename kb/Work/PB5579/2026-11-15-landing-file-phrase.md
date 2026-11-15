@@ -1,0 +1,12 @@
+**2026-11-15, wave 20262043 group E: the FILE phrase of WRITE and REWRITE lands (the mechanism of this note is done; 18 general rows stay claimed).**
+
+What landed (branch of the wave; gate and head in the DEVLOG entry `pending-pb5579-write-rewrite-file-phrase`):
+
+- `WRITE FILE file-name-1 FROM ...` and `REWRITE FILE file-name-1 [RECORD] FROM ...` bind and run at `--std 2002`, `2014` and `2023` for the sequential, relative and indexed organizations, and at `--std 85` are refused COBOL0900 (construct `write-rewrite-file-phrase-2002`). The decline COBOL1706 and its site `DeclinedFilePhrase` are deleted; the module is Claimed in `docs/conformance/5/A.4.13.md` and `conformance-suite/profiles/wiseowl.json`.
+- The model is §2002:14.8.47.3 GR5 / §2002:14.8.33.3 GR8 (§2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9): the record released is the FROM operand under its own description, so `MoveBinder.BindFilePhraseRecord` returns the operand's own place (a function value or a reference-modified item through `SendingValueTemp.Materialize`, a literal through `SendingValueTemp.MaterializeLiteral`) and binds no MOVE; every emitter sends `OperandText.RecordSendImage` of it.
+- New diagnostics COBOL7351 (FROM missing), COBOL7352 (numeric or figurative literal-1; USAGE OBJECT REFERENCE in the description), COBOL7353 (bit item not byte-aligned); a numeric function is COBOL1914, a report file COBOL2577, a sort-merge file COBOL1692.
+- Re-probe of the note's own repros (`p/wfile-plain.cob` class): `WRITE FILE F FROM W` exit 65 COBOL1706 before, status 00 and the operand's bytes on the file after.
+
+Rows: the 13 closed (2002-SR-14.8.33.2-7, -8, -10, -11, -12, 2002-SR-14.8.47.2-7 to -10, 2002-SR-13.3.5.2-3, -4, 2002-GR-14.8.47.3-5, 2002-GR-14.8.33.3-8) are recorded CONFORMS with witnesses under `conformance-suite/cases/14.8.47@2002-WRITE-STATEMENT`, `14.8.33@2002-REWRITE-STATEMENT` and the `pb5579-*` refusals.
+
+Rows that stay claimed here, none of them about the FILE phrase (each is a rule of plain WRITE or REWRITE whose 2002 twin test and adjudication the 2002 read of PB5574 owns): 2002-SR-14.8.33.2-3, 2002-GR-14.8.33.3-2, -19, -20, -21, -22, -24, 2002-GR-14.8.29.3-23, 2002-SR-14.8.47.2-1, -2, -16, 2002-GR-14.8.47.3-4, -7, -9, -14, -33, -34, -35. The existing 2023 witnesses of their twins (l1_write_from_space, the l1c25 and l1c26 REWRITE files, the l1c37 WRITE files) are in the 2023 band, so a 2002 row needs its own test at accept [2002].
