@@ -1,4 +1,4 @@
-## PB5675: one own-edition evidence rule for every older edition; 1985 from 32 GAP to 835, the count becoming true
+## Entry 3705 — 2026-11-15 15:05 PST — PB5675: one own-edition evidence rule for every older edition; 1985 from 32 GAP to 835, the count becoming true
 
 **The decision.** The owner, 2026-11-14: "2002 spec covers 2002 rules"; 2026-11-15: "the same argument for the 2002
 rules applies equally to the 1985 rules." kb/Work PB5597 had put the own-edition rule behind a 2002-only schema switch,
@@ -42,3 +42,4 @@ counted as unwitnessed, and that a unit test-ref on a KEPT row is refused. It al
 is red by name, a row with no witness is no error, the stored pairing is not asked, and the writer refuses at 1985.
 `test_audit_batch.py` checks the written test-ref and the change-batch refusal at 1985. `audit_witness_loss.py
 --self-test` loses an older row's own witness and the audit goes red. `gen_ledger.py` names the causes.
+
