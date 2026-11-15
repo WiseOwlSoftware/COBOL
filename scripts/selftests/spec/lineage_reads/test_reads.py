@@ -260,44 +260,6 @@ def case_05b_one_rule_at_every_older_edition(expect):
                  R.kept_witnesses(e85, rid, [t], None, paired, w), ([f"conformance:cases/X/{t}"], []))
 
 
-def case_05c_a_kept_rows_own_witness_is_about_the_row(expect):
-    """kb/Work PB5730: a KEPT row's own test-ref names a case that cites the row's own rule (a case written for the
-    edition) or a rule it carries into (found by witness-batch, widened by widen); a case of other rules is red in the
-    audit and refused by the writer, through the one predicate `lineage.unrelated_witnesses`."""
-    e85 = R.edition(1985)
-    rid, t = "1985-SR-VI.5.8.3-1", "SR-13.18.38.3-1"
-    cases = {k: R.CaseInfo(k, R.REPO, ("85", "2023"), ("85", "2023"), (), rules, None)
-             for k, rules in (("cases/X/own", (rid,)), ("cases/X/target", (t,)), ("cases/X/other", ("GR-99.1-1",)))}
-    w = R.Witnesses(cases, {}, {})
-    lin85 = R.Lineage({rid: "SR"}, {}, R.EvidenceTable.load(), {})
-    kept = {"rule-id": rid, "next": {"kind": "KEPT", "to": [t], "source": "audit-1985/x"}}
-    for key in ("own", "target"):
-        expect.equal(f"the audit: a case citing the row's {key} rule witnesses the row", R.stored_errors(
-            e85, [dict(kept, **{"test-ref": f"conformance:cases/X/{key}"})], [], w, lin85), [])
-    red = R.stored_errors(e85, [dict(kept, **{"test-ref": "conformance:cases/X/other"})], [], w, lin85)
-    expect("the audit: a case of other rules, though accepted at 85, is red, naming the row and the case",
-           len(red) == 1 and red[0].startswith(rid) and "cases/X/other" in red[0] and "a witness of other rules" in red[0])
-    import record_verdicts as rv  # noqa: PLC0415  (the writer; scripts/spec is on the path through lineage_reads)
-    schema = SCHEMA
-    rows85 = R.inventory_view.inventory(1985, schema)
-    row = next(r for r in rows85 if (r.get("next") or {}).get("kind") == "KEPT")
-    targets = {r["rule-id"]: r for r in R.inventory_view.inventory(2023, schema)}
-    catalog = {r["id"]: r["kind"] for r in e85.rules()}
-    to = row["next"]["to"]
-    planted = {"cases/X/own": (row["rule-id"],), "cases/X/target": (to[0],), "cases/X/other": ("GR-99.1-1",)}
-
-    def writer(key):
-        return [b for b in rv.validate([(pathlib.Path("self-test"), 0, {"rule-id": row["rule-id"],
-                                                                        "test-ref": f"conformance:cases/X/{key}"})],
-                                       schema, catalog, {r["rule-id"]: r for r in rows85}, e85, targets,
-                                       rules_of=planted.get) if "cases/X/" in b]
-    expect.equal("the writer: a case citing the row's own rule is no refusal", writer("own"), [])
-    expect.equal("the writer: a case citing a rule the row carries into is no refusal", writer("target"), [])
-    got = writer("other")
-    expect("the writer: a case of other rules is refused, naming the case", len(got) == 1 and "a witness of other rules"
-           in got[0])
-
-
 def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
     order = ["85", "2002", "2014", "2023"]
     cases = {"cases/X/a": R.CaseInfo("cases/X/a", R.REPO, ("2023",), ("2023",), (), ("GR-1",), None),

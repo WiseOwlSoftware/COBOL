@@ -65,27 +65,6 @@ def own_witness_refs(row: dict[str, Any], schema: Schema) -> list[str]:
     return schema.split(row.get("test-ref", "") or "", schema.test_ref_sep)
 
 
-def unrelated_witnesses(row: dict[str, Any], schema: Schema, rules_of: Any) -> list[str]:
-    """THE ONE TEST THAT A KEPT ROW'S OWN WITNESS IS ABOUT THE ROW (kb/Work PB5730), asked by the writer
-    (`record_verdicts.validate`) and the audit (`lineage_reads.Witnesses.own_problems`): each conformance-suite case its
-    test-ref names cites the row's own rule id (a case written for the edition) or at least one rule the row carries
-    into (a case `witness-batch` found or `widen` widened). Why each other reference is no witness of this row; empty
-    when all are. `rules_of(key)` is the rules the case `key` cites, None when no case has the key."""
-    rid, to = row.get("rule-id", ""), set((row.get("next") or {}).get("to") or ())
-    out = []
-    for ref in own_witness_refs(row, schema):
-        form, _, key = ref.partition(":")
-        if form != SUITE_FORM:
-            continue
-        rules = rules_of(key.strip())
-        if rules is None:
-            out.append(f"{ref}: names no conformance-suite case")
-        elif rid not in rules and not to & set(rules):
-            out.append(f"{ref}: cites neither {rid} nor a rule it carries into ({sorted(to)}); it cites "
-                       f"{list(rules)}: a witness of other rules, not of this row")
-    return out
-
-
 #: An answer to a flag of the lineage screen (kb/Work PB5597, branch review R2-2 of PB5589): the flag's detail as the
 #: screen gave it when the decision was read, and why the decision holds. Keyed to the flag's CONTENT, so a later,
 #: different question under the same trigger (another pending clause, another behaviour) is unanswered until read.

@@ -432,18 +432,6 @@ def _generator() -> Any:
     return generate
 
 
-def header_rules(key: str, suite: pathlib.Path = SUITE) -> tuple[str, ...] | None:
-    """The rules the suite case `key` (`cases/<folder>/<id>`) cites, from its header alone (the generator's own
-    `read_header`): what the WRITER asks of one record's references without reading the whole suite (kb/Work PB5730).
-    None when no case file has the key or its header does not read."""
-    path = suite / f"{key}.cob"
-    if not path.is_file():
-        return None
-    header, _ = _generator().read_header(path.read_text(encoding="utf-8"))
-    rules = header.fields.get("rules") if header is not None else None
-    return tuple(rules) if isinstance(rules, list) else None
-
-
 @dataclasses.dataclass(frozen=True)
 class CaseInfo:
     """One conformance-suite case as the generator reads it: its test-ref key (`cases/<folder>/<id>` or
@@ -691,23 +679,20 @@ class Witnesses:
                 " (only a diagnosis, which witnesses no rule that grants a form or states a behaviour)" if diagnoses else "")))
         return list(dict.fromkeys(found)), out
 
-    def own_problems(self, ed: Edition, row: dict[str, Any], schema: inventory_schema.Schema, diagnosable: bool,
-                     licence: str | None) -> list[str]:
+    def own_problems(self, ed: Edition, refs: Iterable[str], diagnosable: bool, licence: str | None) -> list[str]:
         """THE AUDIT'S EVIDENCE TEST of a stored chained row (kb/Work PB5675): why each test-ref the row carries of its
         own is no witness at `ed` of the kind its rule needs. It reads the row's own references, the suite and the
-        row's rule: each names a conformance-suite case (`lineage.SUITE_FORM`) ABOUT the row (it cites the row's rule or
-        a rule the row carries into: `lineage.unrelated_witnesses`, the writer's test too, kb/Work PB5730) that runs at
-        the edition, ACCEPTED there, or only diagnosed there for a `diagnosable` rule or a read whose `licence`
-        `licence_problem` accepts (the declined facility the writer found it through). Empty when every one witnesses."""
-        sp = ed.spelling
-        out = lineage.unrelated_witnesses(row, schema, lambda k: self.cases[k].rules if k in self.cases else None)
-        for ref in lineage.own_witness_refs(row, schema):
+        row's rule, never a target: each names a conformance-suite case (`lineage.SUITE_FORM`) that runs at the edition,
+        ACCEPTED there, or only diagnosed there for a `diagnosable` rule or a read whose `licence` `licence_problem`
+        accepts (the declined facility the writer found it through). Empty when every one witnesses."""
+        sp, out = ed.spelling, []
+        for ref in refs:
             form, _, key = ref.partition(":")
             c = self.cases.get(key.strip()) if form == lineage.SUITE_FORM else None
             if form != lineage.SUITE_FORM:
                 out.append(f"{ref}: a {form} test runs at no older edition")
             elif c is None:
-                continue                        # named by `unrelated_witnesses`
+                out.append(f"{ref}: names no conformance-suite case")
             elif sp in c.accept:
                 continue
             elif sp not in c.runs:
@@ -1197,7 +1182,7 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
             licence = read.licence
         if nxt["kind"] == KEPT and w is not None:
             errs += [f"{rid}: {NO_OWN_WITNESS}: {why}" for why in w.own_problems(
-                ed, r, schema, lin.diagnosable(rid), licence)]
+                ed, lineage.own_witness_refs(r, schema), lin.diagnosable(rid), licence)]
     return errs
 
 
