@@ -23,6 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// asserts the traceability inventory and the table name the same set of rules, so a rule screened here without a
 /// row (or a row claimed there without an implementation) is red.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class FileControlKeyRuleDriftTests
 {
     // ⛔ THE SPEC READER IS SHARED, NOT COPIED (kb/Work PB721). These three operations — normalize, take a
@@ -348,6 +349,42 @@ public sealed class FileControlKeyRuleDriftTests
             if (rule.ScreenedOn == own) continue;
             Assert.Equal(FileKinds.None, rule.ScreenedOn & own);
             Assert.Equal("12.4.5.2", rule.Clause);
+        }
+    }
+
+    /// <summary>⛔ THE 1985 ROWS ARE RE-DERIVED FROM <c>specs/ANSI_COBOL_1985.md</c> (kb/Work PB5445), as the 2023 rows are
+    /// from the 2023 text: each row's quoted sentence is the NUMBERED syntax rule its id names, inside the "Syntax Rules"
+    /// subsection its clause names (<c>2.7.3</c> of <c>IX.2.7.3</c>), and the message ships its own citation. The sentence is
+    /// also absent from the 2023 text, so a 1985 row cannot be a 2023 rule leaked down an edition. (The 1985 subsection
+    /// numbers repeat across chapters, so the check is that SOME such subsection holds the rule, and the sentence itself is
+    /// what names the clause's subject.)</summary>
+    [Fact]
+    public void Every1985Row_QuotesItsOwnNumberedRuleOfTheClauseItCites()
+    {
+        var lines = File.ReadAllLines(TestRepo.Specs("ANSI_COBOL_1985.md"));
+        static string Bare(string l) => l.Replace("║", "").Trim();
+        string text2023 = Norm(string.Join(' ', SpecLines()));
+        Assert.NotEmpty(FileControlKeyRules.Catalog1985);
+        foreach (var rule in FileControlKeyRules.Catalog1985)
+        {
+            var m = Regex.Match(rule.RuleId, @"^1985-SR-(?<clause>[IVX]+\.[0-9.]+)-(?<n>\d+)$");
+            Assert.True(m.Success, $"rule-id '{rule.RuleId}' is not the 1985 inventory's 1985-SR-<clause>-<n> shape.");
+            Assert.Equal(rule.Clause, m.Groups["clause"].Value);
+            string subsection = "### " + rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " Syntax Rules";
+            string numbered = $"({m.Groups["n"].Value}) ";
+            bool found = false;
+            for (int i = 0; i < lines.Length && !found; i++)
+            {
+                if (Bare(lines[i]) != subsection) continue;
+                for (int j = i + 1; j < lines.Length && !Bare(lines[j]).StartsWith('#'); j++)
+                    if (Bare(lines[j]).StartsWith(numbered, StringComparison.Ordinal) && Norm(lines[j]).Contains(Norm(rule.RuleText)))
+                        found = true;
+            }
+            Assert.True(found, $"§1985:{rule.Clause} has no numbered syntax rule {m.Groups["n"].Value} containing \"{rule.RuleText}\".");
+            Assert.DoesNotContain(Norm(rule.RuleText), text2023);
+            var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
+            var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
+            Assert.Contains(rule.Citation, rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default)));
         }
     }
 

@@ -256,7 +256,9 @@ internal sealed record FileControlKeyRule(
 /// from <c>specs/ISO_COBOL_2023.md</c> so a row can neither carry an inherited clause number nor go stale.</para>
 /// <para>EDITIONS. Every rule here is present in all four supported editions (85 · 2002 · 2014 · 2023) — the
 /// RECORD KEY, ALTERNATE RECORD KEY and RELATIVE KEY clauses and their syntax rules all predate COBOL-85 — so
-/// the table needs no edition column and the negatives reject at every edition. A rule that arrived with a later
+/// the table needs no edition column and the negatives reject at every edition. A rule COBOL-85 states DIFFERENTLY is
+/// a row of its own in <see cref="Rules1985"/>, in force below COBOL-2002 only (§1985:IX.2.7.3 SR3 and §1985:IX.2.5.3 SR3:
+/// a group holding an OCCURS DEPENDING ON table, kb/Work PB5445). A rule that arrived with a later
 /// edition would add one, and its gate would ride <c>EditionContext</c> exactly as every other introduction does.
 /// The one edition arm is the SORT-MERGE entry's: below COBOL-2002 it is SELECT and ASSIGN only (§1985:XI.2.3.3 SR2),
 /// one rule that answers every clause the SD rows would, so <see cref="Screen"/> asks it instead of them there
@@ -770,6 +772,40 @@ internal static class FileControlKeyRules
 
     private static bool SpecifiesSequentialFormat(FileModel f) => SequentialFormatMarker(f) is not null;
 
+    /// <summary>⛔ THE 1985 READING OF THE VARIABLE-LENGTH KEY RULE (kb/Work PB5445). §2023:12.4.5.12.3 SR3 and
+    /// §2023:12.4.5.6.3 SR3 say "Data-name-1 and data-name-2 shall not reference a variable-length data item" (a dynamic-length
+    /// elementary item or a dynamic-capacity table), which <see cref="Rules"/> screens; COBOL-85 says something else — "Data-name-1
+    /// must not reference a group item that contains a variable occurrence data item" (§1985:IX.2.7.3 SR3 for the RECORD KEY,
+    /// §1985:IX.2.5.3 SR3 for the ALTERNATE RECORD KEY) — a group holding an OCCURS DEPENDING ON table, which the 2023 rules do
+    /// NOT forbid. A different rule, so its own rows, in force below COBOL-2002 only (<see cref="Screen"/> adds them there) and
+    /// re-derived from <c>specs/ANSI_COBOL_1985.md</c> by <c>FileControlKeyRuleDriftTests</c>. The 1985 SOURCE phrase does not
+    /// exist, so every operand is a data-name-1.</summary>
+    private static readonly FileControlKeyRule[] Rules1985 =
+    [
+        new("1985-SR-IX.2.7.3-3", "IX.2.7.3", "ANSI §1985:IX.2.7.3 SR3",
+            "must not reference a group item that contains a variable occurrence data item",
+            FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            _ => true,
+            (_, op) => op.Item is { IsGroup: true } g && DataItem.HasOdoBeneath(g),
+            (_, op) => $"{op.ClauseFace} {op.Written} is a group item that contains a variable occurrence data item "
+                + "(a table with OCCURS DEPENDING ON); it must not be (ANSI §1985:IX.2.7.3 SR3)"),
+        new("1985-SR-IX.2.5.3-3", "IX.2.5.3", "ANSI §1985:IX.2.5.3 SR3",
+            "must not reference a group item that contains a variable occurrence data item",
+            FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            _ => true,
+            (_, op) => op.Item is { IsGroup: true } g && DataItem.HasOdoBeneath(g),
+            (_, op) => $"{op.ClauseFace} {op.Written} is a group item that contains a variable occurrence data item "
+                + "(a table with OCCURS DEPENDING ON); it must not be (ANSI §1985:IX.2.5.3 SR3)"),
+    ];
+
+    /// <summary>The COBOL-85 rows, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
+    internal static IReadOnlyList<FileControlKeyRule> Catalog1985 => Rules1985;
+
+    /// <summary>The rows in force at <paramref name="edition"/>: the 2023 table everywhere, plus the 1985 rows below COBOL-2002.</summary>
+    private static FileControlKeyRule[] RulesFor(EditionContext edition) => edition.DialectLevel < 2002 ? Rules85 : Rules;
+
+    private static readonly FileControlKeyRule[] Rules85 = [.. Rules, .. Rules1985];
+
     /// <summary>The table, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
     internal static IReadOnlyList<EntryClause> EntryClauseCatalog => EntryClauses;
 
@@ -796,6 +832,7 @@ internal static class FileControlKeyRules
         // now, so a global veto here would silence exactly the two rows written for the case (kb/Work PB742).
         // The kind is computed ONCE per entry; every row's set is tested against it.
         var kind = KindOf(file);
+        var rules = RulesFor(edition);
         // ⛔ THE 1985 SORT-MERGE ENTRY IS SELECT AND ASSIGN ONLY (kb/Work PB5071). §1985:XI.2.3.2 prints
         // `SELECT file-name-1 ASSIGN TO {implementor-name-1 | literal-1} …` and §1985:XI.2.3.3 SR2 says "Since
         // file-name-1 represents a sort or merge file, only the ASSIGN clause is permitted to follow file-name-1 in
@@ -829,11 +866,11 @@ internal static class FileControlKeyRules
         // costs one iterator per role rather than one per rule.
         foreach (var role in Roles)
         {
-            if (!HasApplicableRule(file, kind, role)) continue;   // a relative entry never enumerates a RECORD KEY
+            if (!HasApplicableRule(rules, file, kind, role)) continue;   // a relative entry never enumerates a RECORD KEY
             foreach (var op in Operands(file, role))
             {
                 if (op is { Item: null, Name: { } refused } && refusedOperands?.Contains(refused) == true) continue;
-                foreach (var rule in Rules)
+                foreach (var rule in rules)
                 {
                     if (rule.Role != role || (rule.ScreenedOn & kind) == 0 || sortMerge1985
                         || !rule.Applies(file) || !rule.Violated(file, op)) continue;
@@ -853,9 +890,9 @@ internal static class FileControlKeyRules
 
     /// <summary>Whether any rule of <paramref name="role"/> is in force for this entry — the file's kind and the
     /// entry-level precondition, both cheap, tested before an operand is materialized.</summary>
-    private static bool HasApplicableRule(FileModel file, FileKinds kind, FileKeyRole role)
+    private static bool HasApplicableRule(FileControlKeyRule[] rules, FileModel file, FileKinds kind, FileKeyRole role)
     {
-        foreach (var rule in Rules)
+        foreach (var rule in rules)
             if (rule.Role == role && (rule.ScreenedOn & kind) != 0 && rule.Applies(file)) return true;
         return false;
     }
