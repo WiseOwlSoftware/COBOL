@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.53.3-1",
+ "rule-digest": "75d909683821",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-195; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
+ "test-ref": "conformance:cases/13.16.53@2002-SYNCHRONIZED-CLAUSE/g2syn01_sync_cd_ws_ls_file_layout",
+ "notes": "§2002:13.16.53.3 GR1 with the documented one-byte natural boundaries (DOC-A.1-197): no unused bytes, so the input-CD record is 87 (§2002:A.1.2.2 SR5), a REDEFINES of a SYNC item is 2 bytes and no item overlaps. The --std 2002 run of g2syn01 matched."
+}

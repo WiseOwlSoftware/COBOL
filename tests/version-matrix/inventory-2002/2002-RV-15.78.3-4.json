@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.78.3-4",
+ "rule-digest": "22fd6dc13b36",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase",
+ "test-ref": "conformance:cases/15.78@2002-UPPER-CASE-FUNCTION/g2upr01-no-correspondence-unchanged",
+ "notes": "§2002:15.78.3 RV4 with WiseOwl's documented Unicode simple correspondence (D-CASE-MAPPING, PB5625 reading D): U+0138 and U+00DF are returned unchanged with no locale and under CHARACTER CLASSIFICATION IS TR TR, while x->X and Turkish i->U+0130 show the mapping in effect (ORD 313, 224, 89 / 313, 224, 305). Pinned build at --std 2002 matched."
+}

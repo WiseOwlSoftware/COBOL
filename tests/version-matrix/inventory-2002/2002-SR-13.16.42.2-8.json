@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-8",
+ "rule-digest": "e0566b3629a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TemplateItems; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-entry-rules; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-of-redefinition",
+ "notes": "§2002:13.16.42.2 SR8: every redefinition names the original entry. In a CD record at --std 2002 three redefinitions of C1 compile and share it (C1=0013, C1S2=13) and a redefinition of the redefinition C2 is refused COBOL1656 at line 26; both matched the derivation."
+}

@@ -38,11 +38,11 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   partition redesign (PB4146) and each fuzz night's triage. Neither lane plans what the other's dispatch holds
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
   nothing else on `docs/CONFORMANCE.md`.
-- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch golden-2002-3 with
-  golden-2002-2's landing and main b929de103f merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **2,081 GAP** (2,562
-  before the first 2002 golden-lane landing), 527 adjudicated: CONFORMS 514, DIVERGES 11, PARTIAL 1,
-  DOCUMENTED-NON-SUPPORT 1. The 2002 golden lane (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at
-  `--std 2002`; 50 of its 85 input files are integrated so far.
+- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch golden-2002-5 on main
+  20cad156a4):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **1,983 GAP** (2,562 before the first
+  2002 golden-lane landing), 625 adjudicated: CONFORMS 610, DIVERGES 11, DOCUMENTED-NON-SUPPORT 3, PARTIAL 1. The 2002
+  golden lane (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; the fifth landing
+  integrates 17 more of its 85 input files and the 12 rows kb/Work PB5625's adjudication decided.
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
   2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
   NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded for the GAP count by the PB5675 line below). The 2026-11-12 method: code-read waves over rows whose witness exists

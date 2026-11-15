@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.38.3-1",
+ "rule-digest": "16b32ca7908c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Align; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Truncate; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#TruncateReal; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#CobolDec; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#Binary64ResultIsApproximation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/FunctionValueLane.cs#Of; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
+ "test-ref": "conformance:cases/15.38@2002-INTEGER-PART-FUNCTION/g2-integer-part-standard-arithmetic",
+ "notes": "§2002:15.38.3 RV1 with §2002:15.3.1: under ARITHMETIC IS STANDARD INTEGER-PART equals SIGN(arg)*INTEGER(ABS(arg)) (the five NOTE values, -4.75->-4, a 31-digit argument exact, the relation true); the pinned --std 2002 run matched all 9 derived lines."
+}

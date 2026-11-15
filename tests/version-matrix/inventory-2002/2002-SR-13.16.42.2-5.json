@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-5",
+ "rule-digest": "d91a7f22766e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TemplateItems; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-entry-rules; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-lower-level-between",
+ "notes": "§2002:13.16.42.2 SR5: no lower-level entry between data-name-2 and the subject. In a CD record at --std 2002, higher-level subordinates between Q and QR are accepted (QR=ABCD) and a level-05 redefinition (G2 REDEFINES G1, no new storage, so SR11 is not also broken) between two level-10 items is refused COBOL1654 at line 30; both matched the derivation."
+}

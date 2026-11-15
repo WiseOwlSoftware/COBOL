@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.41.2-5",
+ "rule-digest": "d95f25db99d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles",
+ "test-ref": "conformance:cases/13.16.41@2002-RECORD-CLAUSE/g2-record-contains-odo-maximum; conformance:cases/13.16.41@2002-RECORD-CLAUSE/g2-record-depending-cd-text-length; conformance:cases/13.16.41@2002-RECORD-CLAUSE/g2-record-depending-cd-record-item",
+ "notes": "§2002:13.16.41.2 SR5: data-name-1 in working-storage, local-storage or linkage; at --std 2002 g2-record-contains-odo-maximum (WL in working-storage) prints 'G=00 WL=0005 [HELLO]', and DEPENDING ON a CD's TEXT LENGTH item or a CD record item is refused COBOL2922."
+}

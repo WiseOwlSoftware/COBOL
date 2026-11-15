@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.1.3-8",
+ "rule-digest": "7a8319c49c31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#VarGroup; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#CallStringWrite; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Text; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#CallStringRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#IsImageCarriedNumeric; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Num; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#ValueImage; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageCollectionPass.cs#Collect; src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs#ComputePromotedSet; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageCollectionPass.cs#Run; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#MethodNumericContent; src/WiseOwl.Cobol.Runtime/Values/CobolVarGroup.cs#OverlayImage; src/WiseOwl.Cobol.Runtime/Values/CobolVarGroup.cs#OverlaidImage; src/WiseOwl.Cobol.Runtime/Values/CobolVarGroup.cs#FromImage; src/WiseOwl.Cobol.Runtime/Values/CobolVarGroup.cs#ToImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#FixedArgumentShapes; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#VarPlaceShapes",
+ "test-ref": "conformance:cases/14.1@2002-PROCEDURE-DIVISION-STRUCTURE/g2-pd-byref-same-storage",
+ "notes": "§2002:14.1.3 GR8: each argument passed BY REFERENCE twice gives two formals of one storage area; stores are seen through the twin formal and by the caller for a working-storage CALL argument, a communication-section CD record item (admitted by §2002:14.8.4.2 SR3; CDIN-REC redefines the CD area, §2002:A.1.2.2 SR5, so IN-QUEUE also changes) and an INVOKE argument; the eight derived lines matched at --std 2002."
+}
