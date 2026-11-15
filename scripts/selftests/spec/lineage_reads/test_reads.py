@@ -456,7 +456,8 @@ def case_12_an_own_verdict_from_a_pointer_is_written_and_audited_like_a_kept_rec
                     verdicts={t: "CONFORMS" for t in [*twins, "GR-8.1-1", "GR-8.1-2", F.twin(ids["refusal"]),
                                                       F.twin(ids["late"])]}
                     | {F.twin(ids["declined"]): "DOCUMENTED-NON-SUPPORT", "GR-8.1-3": "DOCUMENTED-NON-SUPPORT"})
-    w.locations = {t: ["src/A.cs#M"] for t in w.verdicts} | {F.twin(ids["ok"]): ["src/A.cs#M", "docs/CONFORMANCE.md#GR-4.1.3-1"]}
+    register = next(iter(R._schema().anchored_files))   # the register file: a location there is a determination
+    w.locations = {t: ["src/A.cs#M"] for t in w.verdicts} | {F.twin(ids["ok"]): ["src/A.cs#M", f"{register}#planted"]}
     lin = F.lineage(ids.values(), unpaired=tuple(ids.values()))
     got = {next(n for n, r in ids.items() if r == d.rule_id): d for d in R.decide(ED, [s], None, w, lin)}
     expect("an unpaired SAME its refuter UPHELD, its pointer accepted at 2002, is an own verdict with nothing blocking it",
