@@ -260,14 +260,25 @@ three, so the shards partition the population; discovery never sees the variable
 population. A malformed value, or a shard variable beside the local gate's leg handshake, refuses every case (an
 execution error, never a silent whole run). The weights are each class's median seconds in the merge group, per run and
 OS the sum over that run's trx (INV-1's re-run of a NIST class included, since it runs in its class's shard), written by
-`python scripts/shard_weights.py generate` from the newest three successful merge-group runs (1,088 classes on
-2026-11-01, dealing 5 and 7 shards within 1 % of the mean). A stale weight costs the balance, never a case: `ci-gate`
+`python scripts/shard_weights.py generate` from the newest three successful merge-group runs (1,163 classes on
+2026-11-14, dealing 5 and 7 shards within 0.1 % of the mean). A stale weight costs the balance, never a case: `ci-gate`
 downloads every `test-results-<OS>-shard-<k>` artifact and runs `test_population.py check` per OS and assembly, the
 shards' trx against the one listing shard 1 made, and INV-1's five trx against the Conformance listing's
 `NistProgram_MatchesGolden` cases (`--method`), so a case dealt to no shard or two is a named NEVER RAN or RAN TWICE.
 `WISEOWL_COBOL_SHARD` is a scrubbed variable (`test_population.is_scrubbed`), so no local caller of `dotnet test` can run
 a part of an assembly through it, and `audit-callers` allows a workflow to set it only where the same workflow runs the
-check. The nightly's `shard-spread` job (§1.4a) is the regeneration trigger.
+check. The nightly's `shard-spread` job (§1.4a) is the regeneration trigger, and it has two arms because the weights go
+stale in two ways. A named class's cost drifts, which only the spread shows. And the population grows: every class
+added since the file was written is dealt blind at `default_seconds`, after every named class, so one heavy new class
+lands whole on whichever shard the ordinal order reaches (on 2026-11-14 `CommunicationCcvsTests`, 92 s dealt as 0.1 s,
+was most of the 150 s of unweighted work shard 2 of Linux carried in every run, and the spread reached 1.54x; kb/Work
+PB5552). The report measures that blindness directly, from the class seconds `generate` reads, as the work of classes
+the file does not name over the mean shard's, and calls the file STALE above `UNWEIGHTED_LIMIT` (0.10). That share
+grows with every landing that adds a class, while the spread is the wall clock of shared runners (one deal measured
+1.10x to 1.54x across eight runs), so the STALE arm reddens on cause, days before the spread does on effect: the run of
+2026-11-07, three days after a regeneration, already measured 0.17 on Linux and 0.32 on Windows at a spread of 1.32x.
+The regeneration stays a change that lands by hand: the weights file is read by every test host, so it lands through
+the code lane's gate like any other change, which a scheduled job cannot produce.
 
 **⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
 results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
@@ -318,7 +329,7 @@ is the ref a scheduled run reads:
 | `guard` | the NIST corpus through the `cobol` CLI (`scripts/guard-fast.sh`, Linux, about 12 minutes at JOBS=4) | the guard is not ALL GREEN (a REGRESSION, DIFF, FAIL*, audit finding, build warning, or its own instrument self-tests) |
 | `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused), then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
 | `differential` (Windows) | the GnuCOBOL differential: `scripts/battery.sh` with `SKIP_TESTS=1 SKIP_GUARD=1`, so the citation audits, the corpus fetch, the solution build and phase 3, the battery's one definition and never a copy | a per-case verdict flip against the committed baseline, or a case with no compiler verdict. Windows, because the baseline was measured there and `gnucobol_differential.py` defaults to the `cobol.exe` apphost |
-| `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-shard-<k>` shard's wall (the sum of its trx `<Times>`) over the mean shard wall, measured only for an OS whose shards together ran every assembly the weights file deals: `TestWeights.Deal` balances the sum over all of them in one pass, so a Windows leg that ran only the targets with no published pass (PB5235) runs a subset whose spread no regeneration changes, and is PARTIAL, left out and named in the line (PB5468) | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating, `shard_weights.py generate`), or a download, a trx or the weights file cannot be read, or the weights file deals an assembly no shard of the window ran, or shard runs were read and no (run, OS) was measured (every one partial or of one shard), or a run's shard artifacts hold no trx (exit 2, UNMEASURED). NOT MEASURED and green only on a day with no matrix run. Live while `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (the weighted shards, PB4329), since regenerating that file is its remedy |
+| `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-shard-<k>` shard's wall (the sum of its trx `<Times>`) over the mean shard wall, measured only for an OS whose shards together ran every assembly the weights file deals: `TestWeights.Deal` balances the sum over all of them in one pass, so a Windows leg that ran only the targets with no published pass (PB5235) runs a subset whose spread no regeneration changes, and is PARTIAL, left out and named in the line (PB5468); beside it, the worst UNWEIGHTED work of those (run, OS), the seconds of the classes the weights file does not name over the mean shard's class seconds, with the heaviest such class named (PB5552) | the worst spread exceeds 1.5, or the unweighted work exceeds 0.10 (STALE) (exit 1 either way; the weights file wants regenerating, `shard_weights.py generate`), or a download, a trx or the weights file cannot be read, or the weights file deals an assembly no shard of the window ran, or shard runs were read and no (run, OS) was measured (every one partial or of one shard), or a run's shard artifacts hold no trx (exit 2, UNMEASURED). NOT MEASURED and green only on a day with no matrix run. Live while `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (the weighted shards, PB4329), since regenerating that file is its remedy |
 | `latest` | `toolchain.py latest`: is `toolchain.env` at every publisher's newest release (§1.4) | the manifest is behind a tool, or a publisher cannot be read |
 | `images` (both OSes) | `toolchain.py check --scope image`: each runner image's own git against `toolchain.env` and the image's newest release (§1.4) | the image's git differs from the manifest's, unless the manifest names the newest release's git and the job ran on another image (a ROLLOUT warning); or that release cannot be read |
 
