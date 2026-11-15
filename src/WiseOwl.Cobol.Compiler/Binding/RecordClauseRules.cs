@@ -63,7 +63,10 @@ internal readonly record struct RecordClauseSubject(DataItem? Record, int MinByt
 /// (§2002:13.16.41.2 SR8), and §1985:VII.3.8 states none for Format 3, so a program written to 1985 may give both
 /// integers one value (kb/Work PB5196).</param>
 /// <param name="Violated">Whether this subject breaks the rule.</param>
-/// <param name="Message">The diagnostic body — what was written, then the rule, then the citation.</param>
+/// <param name="Message">The diagnostic body — what was written, then the rule. NOT the citation: <see cref="Render"/> appends the
+/// one the targeted edition's text carries (<see cref="Citation"/>, or <see cref="Of1985"/> below COBOL-2002), so a row cannot
+/// name a rule of an edition the program is not written to. It is given the edition because a rule's own words may differ by edition
+/// (§1985:VII.3.8.3 SR4 names two sections where §2023:13.18.43.3 SR6 names three).</param>
 /// <param name="Code">The diagnostic this row reports under: the clause's own integers and a record
 /// description's size are different subjects with different remedies, so they carry different codes.</param>
 internal sealed record RecordClauseRule(
@@ -75,9 +78,24 @@ internal sealed record RecordClauseRule(
     RecordRuleSubject Subject,
     int Since,
     Func<RecordClauseFacts, RecordClauseSubject, bool> Violated,
-    Func<FileModel, RecordClauseFacts, RecordClauseSubject, string> Message,
+    Func<FileModel, RecordClauseFacts, RecordClauseSubject, EditionContext, string> Message,
     DiagnosticDescriptor Code)
 {
+    /// <summary>⛔ THE COBOL-85 RULE THIS ROW IS, where §1985:VII.3.8.3 prints one (kb/Work PB5361): the same obligation under
+    /// the 1985 numbering and wording, so a refusal at <c>--std 85</c> cites the rule that edition's text carries rather than the
+    /// 2023 clause. Null for a rule 1985 does not print (<see cref="Since"/> above 85). <c>RecordClauseRuleDriftTests</c>
+    /// re-derives every one from <c>specs/ANSI_COBOL_1985.md</c>.</summary>
+    internal Rule1985? Of1985 { get; init; }
+
+    /// <summary>The citation as the diagnostic prints it at <paramref name="edition"/>: the 1985 one below COBOL-2002 where the
+    /// row has it, the 2023 one otherwise.</summary>
+    internal string CitationAt(EditionContext edition) =>
+        Of1985 is { } r ? r.CitationAt(edition, Citation) : Citation;
+
+    /// <summary>The diagnostic text: <see cref="Message"/>'s body, then the citation of the edition's own rule.</summary>
+    internal string Render(FileModel file, RecordClauseFacts clause, RecordClauseSubject subject, EditionContext edition) =>
+        $"{Message(file, clause, subject, edition)} ({CitationAt(edition)})";
+
     /// <summary>Whether this row screens a <paramref name="subject"/> of a clause written in <paramref name="clause"/>'s
     /// format at the targeted edition: the format and subject match and the edition has the rule (<see cref="Since"/>).</summary>
     internal bool AppliesAt(RecordClauseFacts clause, EditionContext edition, RecordRuleSubject subject) =>
@@ -153,13 +171,13 @@ internal static class RecordClauseRules
     private const string Sr4Sentence =
         "record descriptions for the file shall describe neither records that contain a lesser number of "
         + "bytes than that specified by integer-2 nor records that contain a greater number of bytes than "
-        + "that specified by integer-3 (ISO §2023:13.18.43.3 SR4)";
+        + "that specified by integer-3";
 
     /// <summary>The whole of §2023:13.18.43.3 SR6, shipped by its three rows for the reason <see cref="Sr4Sentence"/>
     /// is shipped by SR4's two.</summary>
-    private const string Sr6Sentence =
-        "data-name-1 shall describe an elementary unsigned integer in the working-storage, local-storage, or "
-        + "linkage section (ISO §2023:13.18.43.3 SR6)";
+    private static string Sr6Sentence(EditionContext edition) =>
+        "data-name-1 shall describe an elementary unsigned integer in the "
+        + (edition.DialectLevel < 2002 ? "working-storage or linkage section" : "working-storage, local-storage, or linkage section");
 
     private static readonly RecordClauseRule[] Rules =
     [
@@ -171,10 +189,11 @@ internal static class RecordClauseRules
             "No record description entry for the file may specify a number of bytes greater than integer-1",
             RecordClauseFormat.Fixed, RecordRuleSubject.RecordDescription, 85,
             (c, s) => c.Upper is { } n && s.MaxBytes > n,
-            (f, c, s) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, but the RECORD "
+            (f, c, s, _) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, but the RECORD "
                 + $"clause states {c.UpperName} = {c.Upper}; no record description entry for the file may specify "
-                + "a number of bytes greater than integer-1 (ISO §2023:13.18.43.3 SR3)",
-            DiagnosticCatalog.RecordClauseDescriptionSize),
+                + "a number of bytes greater than integer-1",
+            DiagnosticCatalog.RecordClauseDescriptionSize)
+            { Of1985 = new("VII.3.8.3", 1, "No record description entry for the file may specify a number of character positions greater than integer-1") },
 
         // ── FORMAT 2 (variable-length) ───────────────────────────────────────────────────────────────────────
         // SR5 first, so a program with BOTH an inverted range and records outside it hears the clause's own
@@ -183,10 +202,10 @@ internal static class RecordClauseRules
             "Integer-3 shall be greater than integer-2",
             RecordClauseFormat.Varying, RecordRuleSubject.Clause, 85,
             (c, _) => c is { Lower: { } lo, Upper: { } hi } && hi <= lo,
-            (f, c, _) => $"{f.EntryFace} '{f.CobolName}': the RECORD IS VARYING IN SIZE clause states "
-                + $"FROM {c.Lower} TO {c.Upper}; {c.UpperName} shall be greater than {c.LowerName} "
-                + "(ISO §2023:13.18.43.3 SR5)",
-            DiagnosticCatalog.FileClauseSizeRange),
+            (f, c, _, _) => $"{f.EntryFace} '{f.CobolName}': the RECORD IS VARYING IN SIZE clause states "
+                + $"FROM {c.Lower} TO {c.Upper}; {c.UpperName} shall be greater than {c.LowerName}",
+            DiagnosticCatalog.FileClauseSizeRange)
+            { Of1985 = new("VII.3.8.3", 3, "Integer-3 must be greater than integer-2") },
 
         // SR4, arm 1 of 2 — "neither records that contain a LESSER number of bytes than that specified by
         // integer-2". A record description's SMALLEST size is GR8 a)'s: every occurs-depending table at its
@@ -195,10 +214,11 @@ internal static class RecordClauseRules
             "shall describe neither records that contain a lesser number of bytes than that specified by integer-2",
             RecordClauseFormat.Varying, RecordRuleSubject.RecordDescription, 85,
             (c, s) => c.Lower is { } lo && s.MinBytes < lo,
-            (f, c, s) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is fewer "
+            (f, c, s, _) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is fewer "
                 + $"than the {c.LowerName} = {c.Lower} its RECORD IS VARYING IN SIZE clause states; "
                 + Sr4Sentence,
-            DiagnosticCatalog.RecordClauseDescriptionSize),
+            DiagnosticCatalog.RecordClauseDescriptionSize)
+            { Of1985 = new("VII.3.8.3", 2, "must not describe records which contain a lesser number of character positions than that specified by integer-2") },
 
         // SR4, arm 2 of 2 — "nor records that contain a GREATER number of bytes than that specified by
         // integer-3", against GR8 b)'s maximum.
@@ -206,10 +226,11 @@ internal static class RecordClauseRules
             "nor records that contain a greater number of bytes than that specified by integer-3",
             RecordClauseFormat.Varying, RecordRuleSubject.RecordDescription, 85,
             (c, s) => c.Upper is { } hi && s.MaxBytes > hi,
-            (f, c, s) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is more "
+            (f, c, s, _) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is more "
                 + $"than the {c.UpperName} = {c.Upper} its RECORD IS VARYING IN SIZE clause states; "
                 + Sr4Sentence,
-            DiagnosticCatalog.RecordClauseDescriptionSize),
+            DiagnosticCatalog.RecordClauseDescriptionSize)
+            { Of1985 = new("VII.3.8.3", 2, "nor records which contain a greater number of character positions than that specified by integer-3") },
 
         // SR6 — "Data-name-1 shall describe an elementary unsigned integer in the working-storage, local-storage, or
         // linkage section" (kb/Work PB858). ⛔ THREE OBLIGATIONS, THREE ROWS, for the reason SR4 is two: a rule read
@@ -223,27 +244,30 @@ internal static class RecordClauseRules
             "Data-name-1 shall describe an elementary",
             RecordClauseFormat.Varying, RecordRuleSubject.DependingOperand, 85,
             (_, s) => s.Depending is { IsElementary: false },
-            (f, _, s) => $"{f.EntryFace} '{f.CobolName}': the RECORD clause's DEPENDING ON '{s.Depending?.CobolName}' "
-                + $"is a group item; {Sr6Sentence}",
-            DiagnosticCatalog.RecordDependingOperand),
+            (f, _, s, ed) => $"{f.EntryFace} '{f.CobolName}': the RECORD clause's DEPENDING ON '{s.Depending?.CobolName}' "
+                + $"is a group item; {Sr6Sentence(ed)}",
+            DiagnosticCatalog.RecordDependingOperand)
+            { Of1985 = new("VII.3.8.3", 4, "Data-name-1 must describe an elementary") },
 
         new("SR-13.18.43.3-6", "13.18.43.3", "ISO §2023:13.18.43.3 SR6",
             "elementary unsigned integer",
             RecordClauseFormat.Varying, RecordRuleSubject.DependingOperand, 85,
             (_, s) => s.Depending is { IsElementary: true } d && d.Pic is not { IsIntegerDescription: true, Signed: false },
-            (f, _, s) => $"{f.EntryFace} '{f.CobolName}': the RECORD clause's DEPENDING ON '{s.Depending?.CobolName}' "
-                + $"is not an unsigned integer; {Sr6Sentence}",
-            DiagnosticCatalog.RecordDependingOperand),
+            (f, _, s, ed) => $"{f.EntryFace} '{f.CobolName}': the RECORD clause's DEPENDING ON '{s.Depending?.CobolName}' "
+                + $"is not an unsigned integer; {Sr6Sentence(ed)}",
+            DiagnosticCatalog.RecordDependingOperand)
+            { Of1985 = new("VII.3.8.3", 4, "must describe an elementary unsigned integer") },
 
         new("SR-13.18.43.3-6", "13.18.43.3", "ISO §2023:13.18.43.3 SR6",
             "in the working-storage, local-storage, or linkage section",
             RecordClauseFormat.Varying, RecordRuleSubject.DependingOperand, 85,
             (_, s) => s.Depending?.Section is { } sec
                 && sec is not (EntrySection.WorkingStorage or EntrySection.LocalStorage or EntrySection.Linkage),
-            (f, _, s) => $"{f.EntryFace} '{f.CobolName}': the RECORD clause's DEPENDING ON '{s.Depending?.CobolName}' "
+            (f, _, s, ed) => $"{f.EntryFace} '{f.CobolName}': the RECORD clause's DEPENDING ON '{s.Depending?.CobolName}' "
                 + $"is described in the {(s.Depending?.Section is { } sec ? DataBinder.SectionWords(sec) : "file section")}; "
-                + Sr6Sentence,
-            DiagnosticCatalog.RecordDependingOperand),
+                + Sr6Sentence(ed),
+            DiagnosticCatalog.RecordDependingOperand)
+            { Of1985 = new("VII.3.8.3", 4, "in the Working-Storage or Linkage Section") },
 
         // ── FORMAT 3 (fixed-or-variable-length) ──────────────────────────────────────────────────────────────
         // ⛔ Since 2002 (kb/Work PB5196): §2002:13.16.41.2 SR8 is the first text to order integer-4 and integer-5;
@@ -256,9 +280,8 @@ internal static class RecordClauseRules
             "Integer-5 shall be greater than integer-4",
             RecordClauseFormat.FixedOrVariable, RecordRuleSubject.Clause, 2002,
             (c, _) => c is { Lower: { } lo, Upper: { } hi } && hi <= lo,
-            (f, c, _) => $"{f.EntryFace} '{f.CobolName}': the RECORD CONTAINS clause states "
-                + $"{c.Lower} TO {c.Upper}; {c.UpperName} shall be greater than {c.LowerName} "
-                + "(ISO §2023:13.18.43.3 SR9)",
+            (f, c, _, _) => $"{f.EntryFace} '{f.CobolName}': the RECORD CONTAINS clause states "
+                + $"{c.Lower} TO {c.Upper}; {c.UpperName} shall be greater than {c.LowerName}",
             DiagnosticCatalog.FileClauseSizeRange),
     ];
 
@@ -283,7 +306,7 @@ internal static class RecordClauseRules
         {
             if (!rule.AppliesAt(clause, edition, RecordRuleSubject.Clause)) continue;
             var subject = default(RecordClauseSubject);
-            if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Message(file, clause, subject));
+            if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Render(file, clause, subject, edition));
         }
         // data-name-1 of the DEPENDING phrase, RESOLVED by FileControlBinder.ResolveFiles before this screen runs (null when
         // the phrase is absent or its resolution failed and was reported there), reported at the phrase.
@@ -294,7 +317,7 @@ internal static class RecordClauseRules
             foreach (var rule in Rules)
             {
                 if (!rule.AppliesAt(clause, edition, RecordRuleSubject.DependingOperand)) continue;
-                if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Message(file, clause, subject));
+                if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Render(file, clause, subject, edition));
             }
         }
         if (!Rules.Any(r => r.AppliesAt(clause, edition, RecordRuleSubject.RecordDescription))) return;
@@ -313,7 +336,7 @@ internal static class RecordClauseRules
             foreach (var rule in Rules)
             {
                 if (!rule.AppliesAt(clause, edition, RecordRuleSubject.RecordDescription)) continue;
-                if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Message(file, clause, subject));
+                if (rule.Violated(clause, subject)) edition.Error(rule.Code, rule.Render(file, clause, subject, edition));
             }
         }
     }
