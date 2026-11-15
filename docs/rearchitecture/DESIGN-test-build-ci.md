@@ -1550,7 +1550,7 @@ a Passed result and no Failed one; a failed case, a harness non-observation and 
 lists that assembly's population first (about 2 s), writes the listed names the carried passes do not cover to
 `<run>/only-<assembly>.txt` and hands the path to its host as `WISEOWL_COBOL_GATE_ONLY` (`host_env`, the one place a host's
 environment is made); an assembly with nothing left has no host, and one whose host was red for a reason its cases do not
-explain (`_red_explained`) runs whole. The test framework's `GateOnly` (tests/_shared/GateLegs.cs, beside `GateShard`) runs
+explain (`red_explained`) runs whole. The test framework's `GateOnly` (tests/_shared/GateLegs.cs, beside `GateShard`) runs
 exactly the discovered cases whose display names the file holds, and refuses the run when the file is unreadable or names
 none; discovery never sees it, so `--list-tests` is still the whole population. The population check composes the same way:
 `test_population.check(..., carried=)` counts a carried pass as ran only when this run did not repeat that name and the
