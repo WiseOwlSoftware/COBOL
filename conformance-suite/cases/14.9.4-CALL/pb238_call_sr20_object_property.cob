@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb238_call_sr20_object_property
 *> rules: [SR-14.9.4.3-17, SR-14.9.4.3-20]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

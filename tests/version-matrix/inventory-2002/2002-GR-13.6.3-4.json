@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-13.6.3-4",
+ "rule-digest": "7cb64de820dd",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.7.4-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 'method: A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes the same entity in 9.3.4 instead of its definitions clause. GR4 governs the linkage section of every method definition; the set is the same."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "§2002:9.3.5 binds a method by name only (\"if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound\"); 2023 9.3.6 adds signature matching (overloading). GR4 is about access to formals and the returning item once a method is executing, not about which method is bound; the method witnesses pass at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-09.json",
+  "digests": {
+   "GR-13.7.4-4": "7cb64de820dd"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-15",
+ "rule-digest": "3ce1cdb33d22",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.4.3-17"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
+    "answer": "The screen matched 8.8.1.1, 8.8.1.3.1 and 8.8.1.3.6 on 'arithmetic' in arithmetic-expression-1. The rule only classifies identifier-4 and the identifiers inside the expression as sending operands, which no arithmetic mode affects; how the expression's value is computed is 8.8.1 (§2002:8.8.1.1 'The following rules apply regardless of the mode of arithmetic that is in effect'), and standard arithmetic, where the 32-digit/31-digit PB5575 difference lives, applies only under ARITHMETIC IS STANDARD (§2002:8.8.1.2: native arithmetic is in effect when 'no ARITHMETIC clause is specified'). The witness's observable (the caller's IN-LEN unchanged, W-N + 1 = 0013) is a four-digit value no mode alters. No dependence; no change."
+   },
+   "band-formats": {
+    "flag": "band-formats [3] against [[2]]",
+    "answer": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split."
+   }
+  },
+  "source": "lineage-reads-2002/q-24.json",
+  "digests": {
+   "SR-14.9.4.3-17": "3ce1cdb33d22"
+  }
+ }
+}

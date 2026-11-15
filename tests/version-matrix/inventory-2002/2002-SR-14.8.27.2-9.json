@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-14.8.27.2-9",
+ "rule-digest": "b3c280e37035",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.28.3-11"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "§2002:4 (4.150) procedure: 'One or more successive paragraphs or sections in the procedure division'; 2023 adds 'paragraph, section' and 'that include the executable code'. Procedure-names are paragraph or section names in both (SR11/SR12), so the governed ranges are the same."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Triggered by 'declarative'. SR9 is a compile-time constraint on where a PERFORM range's procedure-names lie; it does not rest on how exception conditions are processed (§2002:14.5.12.1.2/1.3) or on incompatible data (§2002:14.5.12.2). All three cases are shown at --std 2002 (pb433 and the two COBOL2186 probes)."
+   },
+   "band-formats": {
+    "flag": "band-formats None against [[1]]",
+    "answer": "2002 SR9 names procedure-name-1 and procedure-name-2, which exist only in the out-of-line format (§2002:14.8.27.1 Format 1), the 2023 format 1 that SR-14.9.28.3-11 is banded to. Same reach."
+   }
+  },
+  "source": "lineage-reads-2002/q-29.json",
+  "digests": {
+   "SR-14.9.28.3-11": "b3c280e37035"
+  }
+ }
+}

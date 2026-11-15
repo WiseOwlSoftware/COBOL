@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-14",
+ "rule-digest": "a0760a259b2d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.39.4-17"
+  ],
+  "bridge": true,
+  "answers": {
+   "band-formats": {
+    "flag": "band-formats [8] against [[9]]",
+    "answer": "2002 Format 8 (program-pointer-assignment) is 2023 Format 9, both 'SET { identifier-7 } … TO identifier-8' (§2002:14.8.35.1, §2023:14.9.39.2); 2023's new Format 8 is the function-pointer format on identifier-12/identifier-13, which this rule does not name, and §2002:14.8.35.2 SR20 equals §2023:14.9.39.3 SR21. Same format reached; no change."
+   }
+  },
+  "source": "lineage-reads-2002/p-05.json",
+  "digests": {
+   "GR-14.9.39.4-17": "a0760a259b2d"
+  }
+ }
+}

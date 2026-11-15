@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-22",
+ "rule-digest": "cf0d2effc8a1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-23"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "2002 defines character as a code value of a coded character set, a COBOL character, a screen-item graphic character or 'A single code value of a coded character set' (§2002:4); 2023 drops these entries but uses the word the same way. In INSPECT the character is one character of identifier-1's category (§2002:14.8.21.3 GR3a): one alphanumeric or one national character, so the rule governs the same data. National case shown at --std 2002 by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-nat-char.cob (C1 ABC***, C2 XZCXZC) with negative control inspect-nat-char-neg.cob (N\"**\" with CHARACTERS refused COBOL0846)."
+   },
+   "behaviour-switch": {
+    "flag": "inspect-before-from-first-eligible-position",
+    "answer": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). The first-occurrence rule is independent of the region; pb5120_before_after_intersection, run at --std 2002 this session: output MATCHes its 2002 .out (CROSSED 00, REPLACED AYAAXAA, CONVERTED AYAAXAA, CHARACTERS 00), the 2002 leftmost rule on formats 1, 2 and 4."
+   }
+  },
+  "source": "lineage-reads-2002/q-27.json",
+  "digests": {
+   "GR-14.9.22.4-23": "cf0d2effc8a1"
+  }
+ }
+}

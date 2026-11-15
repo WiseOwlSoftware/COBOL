@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-24",
+ "rule-digest": "0141878b947c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.38.3-27"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "2002 defines report as 'A printed output described in the report section and generated from those data descriptions' (§2002:4); 2023 drops the definition and describes reports through the RD and REPORT clause (13.18.46), with the same meaning. The rule is confined to report group description entries of the report section in both editions, so the set of entries it governs is unchanged. Witness re-run now at 2002: pb565_report_repeating_entry PASS (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt)."
+   },
+   "communication-reach": {
+    "flag": "clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "SR24 governs 'A report group description entry that contains an OCCURS clause with a DEPENDING phrase' (§2002:13.16.36.2 SR24); a CD record's ODO is governed by format 2's SR20 instead. No CD reach."
+   }
+  },
+  "source": "lineage-reads-2002/q-17.json",
+  "digests": {
+   "SR-13.18.38.3-27": "0141878b947c"
+  }
+ }
+}

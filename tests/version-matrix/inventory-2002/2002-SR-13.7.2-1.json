@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-13.7.2-1",
+ "rule-digest": "77f2790105b1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.8.3-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item; interface | of an object",
+    "answer": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. The rule places the report section by source-element kind (class, factory, instance, method, interface definition); none of the kinds rests on the interface-of-an-object definition."
+   },
+   "definition-dropped": {
+    "flag": "class definition | in object orientation (newer: undefined); method (newer: 9.3.4); report (newer: 13.18.46.2)",
+    "answer": "§2002:4 (4.36) 'A compilation unit that defines a class of objects' is word for word 2023 3.35 (the screen's 'newer: undefined' is a miss: 2023 still defines it), so the class definitions the rule reaches are the same. §2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements. §2002:4 (4.163) report 'A printed output described in the report section ...'; 2023 describes it through the RD and REPORT clause; the rule names the report section, the same construct."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "Read §2002:9.3.5: 2002 binds an invocation by method-name alone (2023 9.3.6 adds signature matching); this rule is a placement or structure rule triggered by the word 'method' and involves no invocation or binding, so it does not rest on the changed text."
+   }
+  },
+  "source": "lineage-reads-2002/q-09.json",
+  "digests": {
+   "SR-13.8.3-1": "77f2790105b1"
+  }
+ }
+}

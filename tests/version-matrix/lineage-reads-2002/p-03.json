@@ -1,0 +1,1409 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-03 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-03",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-13.16.32.3-2",
+   "2002-GR-13.16.32.3-3",
+   "2002-GR-13.16.32.3-4",
+   "2002-GR-13.16.32.3-5",
+   "2002-GR-13.16.35.3-1",
+   "2002-GR-13.16.36.3-1",
+   "2002-GR-13.16.36.3-4",
+   "2002-GR-13.16.36.3-9",
+   "2002-GR-13.16.37.3-3",
+   "2002-GR-13.16.38.3-15",
+   "2002-GR-13.16.38.3-4",
+   "2002-GR-13.16.38.3-5",
+   "2002-GR-13.16.38.3-8",
+   "2002-GR-13.16.38.3-9",
+   "2002-GR-13.16.38.4-10",
+   "2002-GR-13.16.38.4-12",
+   "2002-GR-13.16.38.4-13",
+   "2002-GR-13.16.38.4-8",
+   "2002-GR-13.16.41.3-10",
+   "2002-GR-13.16.41.3-11",
+   "2002-GR-13.16.41.3-12",
+   "2002-GR-13.16.41.3-15",
+   "2002-GR-13.16.41.3-17",
+   "2002-GR-13.16.41.3-6",
+   "2002-GR-13.16.41.3-7"
+  ]
+ },
+ "read": {
+  "slice": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\in\\p-03.json",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.32.3-2",
+    "to": [
+     "GR-13.18.34.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.32 LINAGE clause",
+    "clause-2023": "13.18.34 LINAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR2",
+      "quote": "specifies the number of lines that may be written or spaced on the logical page",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR2",
+      "quote": "specifies the number of lines that may be written or spaced on the logical page",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.32.2 SR1",
+      "quote": "may be qualified and shall reference elementary unsigned numeric integer data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.3 SR1",
+      "quote": "shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR5",
+      "quote": "Each table element reference shall be subscripted except when such reference appears",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical (LINAGE data-name-1/integer-1 LINES, FOOTING, TOP, BOTTOM); GR1-GR8 identical (GR6 only respells 'LINAGE -COUNTER special register'). 2023 adds SR1 (data-names not subject to OCCURS) and drops 'may be qualified'; neither changes the 2002 operand set: a data-name cannot be subscripted and 2002 8.4.1.2.2 SR5 already forbids an unsubscripted table-element reference here, and qualification is general in both. LINAGE is an FD clause and governs no CD entry; data-name-1 may name a communication-section item in 2002, but the rule only reads its value, which does not depend on where the item is stored. Page size and page body are defined by this rule in both.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.32.3-3",
+    "to": [
+     "GR-13.18.34.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.32 LINAGE clause",
+    "clause-2023": "13.18.34 LINAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR3",
+      "quote": "specifies the line number within the page body at which the footing area begins",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR3",
+      "quote": "specifies the line number within the page body at which the footing area begins",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and rules as GR2; the footing-start constraint and the footing-area definition are word-identical, and the GR6 run-time check (EC-I-O-LINAGE, same name and handling) is identical. FD-only clause: no CD reach, no removed phrase.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.32.3-4",
+    "to": [
+     "GR-13.18.34.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.32 LINAGE clause",
+    "clause-2023": "13.18.34 LINAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR4",
+      "quote": "specifies the number of lines in the top margin on the logical page",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR4",
+      "quote": "specifies the number of lines in the top margin on the logical page",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.32.2 SR3",
+      "quote": "Integer-3, integer-4 may be zero",
+      "check": "OK"
+     }
+    ],
+    "reason": "LINES AT TOP phrase identical; 'Integer-3, integer-4 may be zero' identical (2002 SR3 = 2023 SR4); the GR1 default of zero when omitted is identical. FD-only, no CD reach.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.32.3-5",
+    "to": [
+     "GR-13.18.34.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.32 LINAGE clause",
+    "clause-2023": "13.18.34 LINAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR5",
+      "quote": "specifies the number of lines in the bottom margin on the logical page",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR5",
+      "quote": "specifies the number of lines in the bottom margin on the logical page",
+      "check": "OK"
+     }
+    ],
+    "reason": "LINES AT BOTTOM phrase identical; same SR and GR1 default as GR4. FD-only, no CD reach.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-1",
+    "to": [
+     "GR-13.18.37.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR1",
+      "quote": "has no effect when it is specified in a control footing that is at a level other than the highest level",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR1",
+      "quote": "has no effect when it is specified in a control footing that is at a level other than the highest level",
+      "check": "OK"
+     }
+    ],
+    "reason": "NEXT GROUP general format identical (integer-1 | PLUS/+ integer-2 | NEXT PAGE [WITH RESET]); SR1-SR7 and GR1-GR6 identical apart from cross-reference numbers. Control-break levels come from the CONTROL clause, whose 2023 changes are syntax restrictions on data-name-1 (not subject to OCCURS, no variable-length group), not the level hierarchy. Report-section clause: no CD reach, no removed form.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-1",
+    "to": [
+     "GR-13.18.38.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36 OCCURS clause",
+    "clause-2023": "13.18.38 OCCURS clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR1",
+      "quote": "all data description clauses associated with an item whose description includes an OCCURS clause apply to each occurrence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR1",
+      "quote": "all data description clauses associated with an item whose description includes an OCCURS clause apply to each occurrence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. The rule sits under FORMATS 1 AND 2 in 2002 and FORMATS 1, 2 AND 4 in 2023 (widened by the dynamic-capacity table); formats 1 and 2 are identical (format 2 renamed occurs-depending-table). Probe: T1 PIC X(2) OCCURS 3 TIMES in a CD record holds PIC X(2) in each occurrence, T1=[PQRSTU]. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": "2023 FORMAT 4 (dynamic-capacity table) is also covered.",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-4",
+    "to": [
+     "GR-13.18.38.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36 OCCURS clause",
+    "clause-2023": "13.18.38 OCCURS clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR4",
+      "quote": "The value of integer-2 represents the fixed number of occurrences of the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR4",
+      "quote": "The value of integer-2 represents the fixed number of occurrences of the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. FORMAT 1 band in both; Format 1 (fixed-table) identical. Probe: OCCURS 3 TIMES in a CD record gives three occurrences. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-9",
+    "to": [
+     "GR-13.18.38.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36 OCCURS clause",
+    "clause-2023": "13.18.38 OCCURS clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR9",
+      "quote": "the associated file description or sort-merge description entry contains the VARYING phrase of the RECORD clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR9",
+      "quote": "the associated file description or sort-merge description entry contains the VARYING phrase of the RECORD clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "FORMAT 2 band in both; Format 2 identical (renamed occurs-depending-table). The rule's own text confines it to a record description entry of an FD or SD whose RECORD clause has VARYING, so it does not reach CD records (a CD entry has no RECORD clause). RECORD format 2 (VARYING ... DEPENDING ON data-name-1) is identical except the 2023 BYTES synonym; RELEASE, REWRITE and WRITE exist unchanged.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "communication-reach: clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)": "A CD record can hold a format 2 OCCURS (probe cdodo.cob at 2002: accepted, LENGTH 5 with N=3), but GR9 applies only when 'the associated file description or sort-merge description entry contains the VARYING phrase of the RECORD clause' (§2002:13.16.36.3 GR9); a CD entry has no RECORD clause, so the rule never applies to a CD record. Scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR9",
+      "quote": "the associated file description or sort-merge description entry contains the VARYING phrase of the RECORD clause",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\cdodo.cob (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\cdodo-2002.out)",
+    "from-slice": "p-03"
+   },
+   {
+    "rule-id": "2002-GR-13.16.37.3-3",
+    "to": [
+     "GR-13.18.39.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.37 PAGE clause",
+    "clause-2023": "13.18.39 PAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.37.3 GR3",
+      "quote": "a default value for the associated integer is supplied as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.39.4 GR3",
+      "quote": "a default value for the associated integer is supplied as follows",
+      "check": "OK"
+     }
+    ],
+    "reason": "PAGE clause general format identical (LIMIT/LIMITS, integer-1 LINES, integer-2 COLUMNS, HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, FOOTING with the same synonyms); SR1-SR6 and GR1-GR5 word-identical, so the a)-e) defaults rest on the same integers. RD-only clause: no CD reach, no removed phrase.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-15",
+    "to": [
+     "GR-13.18.40.4-16"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38 PICTURE clause",
+    "clause-2023": "13.18.40 PICTURE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR15",
+      "quote": "Format 2 of the PICTURE clause defines the item to be fixed-point numeric-edited",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR16",
+      "quote": "Format 2 of the PICTURE clause defines the item to be fixed-point numeric-edited",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. Format 2 (locale) is identical in both; 2023 only adds SR32 (not under CONSTANT RECORD) and SR35. Probe: L1 PIC +ZZZ9.99 LOCALE SIZE IS 14 in a CD record edits -1234.5 as '     -1,234.50', as in working-storage. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-4",
+    "to": [
+     "GR-13.18.40.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38 PICTURE clause",
+    "clause-2023": "13.18.40 PICTURE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR4",
+      "quote": "is determined by the number of symbols in character-string-1 that represent either boolean positions or character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR4",
+      "quote": "is determined by the number of symbols in character-string-1 that represent either boolean positions or character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. Taken alone the 2023 rule is wider (EDITING phrase, character-1 sizes, 63-character string). Probe: FUNCTION LENGTH of CD record items PIC AAA, PIC 111, PIC NN gives 3, 3, 2, as in working-storage. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": "2023 EDITING phrase (character-1 positions) and the 63-character limit.",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-5",
+    "to": [
+     "GR-13.18.40.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38 PICTURE clause",
+    "clause-2023": "13.18.40 PICTURE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR5",
+      "quote": "To define an item as alphabetic, character-string-1 shall contain only one or more occurrences of the symbol 'A'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR5",
+      "quote": "To define an item as alphabetic, character-string-1 shall contain only one or more occurrences of the symbol 'A'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. Format 1 is a superset in 2023 (EDITING phrase). Probe: A1 PIC AAA in a CD record. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-8",
+    "to": [
+     "GR-13.18.40.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38 PICTURE clause",
+    "clause-2023": "13.18.40 PICTURE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR8",
+      "quote": "To define an item as boolean, character-string-1 shall contain only one or more occurrences of the symbol '1'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR8",
+      "quote": "To define an item as boolean, character-string-1 shall contain only one or more occurrences of the symbol '1'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. An output CD's records have no size restriction (A.1.2.2 SR9), so a boolean item may appear. Probe: B1 PIC 111 in a CD record receives B\"101\". In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-9",
+    "to": [
+     "GR-13.18.40.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38 PICTURE clause",
+    "clause-2023": "13.18.40 PICTURE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR9",
+      "quote": "To define an item as national, character-string-1 shall contain only one or more occurrences of the symbol 'N'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR9",
+      "quote": "To define an item as national, character-string-1 shall contain only one or more occurrences of the symbol 'N'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. Probe: N1 PIC NN in an output CD record receives N\"XY\", length 2. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-10",
+    "to": [
+     "GR-13.18.40.5-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38 PICTURE clause",
+    "clause-2023": "13.18.40 PICTURE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR10",
+      "quote": "A BLANK WHEN ZERO clause takes precedence over locale editing",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR10",
+      "quote": "A BLANK WHEN ZERO clause takes precedence over locale editing",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. Format 2 editing rules 9-15 identical; the BLANK WHEN ZERO clause is unchanged except a 2023 GR3 for an all-spaces sending item. Probe: L2 PIC ZZZ9.99 LOCALE SIZE IS 12 BLANK WHEN ZERO in a CD record gives 12 spaces for 0. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-12",
+    "to": [
+     "GR-13.18.40.5-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38 PICTURE clause",
+    "clause-2023": "13.18.40 PICTURE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR12",
+      "quote": "the number of digits in a group are determined from the locale category LC_MONETARY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR12",
+      "quote": "the number of digits in a group are determined from the locale category LC_MONETARY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. Format 2 editing rules identical. Probe: L1 in a CD record is grouped '-1,234.50', as in working-storage. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-13",
+    "to": [
+     "GR-13.18.40.5-13"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38 PICTURE clause",
+    "clause-2023": "13.18.40 PICTURE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR13",
+      "quote": "the manner of representing positive and negative numbers is determined from the locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR13",
+      "quote": "the manner of representing positive and negative numbers is determined from the locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. Format 2 editing rules identical. Probe: L1 PIC +ZZZ9.99 LOCALE in a CD record shows the locale's negative sign. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-8",
+    "to": [
+     "GR-13.18.40.5-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38 PICTURE clause",
+    "clause-2023": "13.18.40 PICTURE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR8",
+      "quote": "the sign of the significand, if present, shall be positive; and the sign of the exponent shall be positive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR8",
+      "quote": "the sign of the significand, if present, shall be positive; and the sign of the exponent shall be positive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "CAUSE: communication-section reach. FORMAT 1 editing rule in both; 2023 widens the exponent to '+9999'/'+9(4)'. Probe: F1 PIC -9.99E+99 in a CD record given 0 shows ' 0.00E+00'. In 2002 Annex A places record description entries, built from the ordinary data description entry (A.1.1.2 refers them to 13.14), under each CD entry, so this rule also governs those CD record items; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The clause is on the plan's T5 list (13.16.36, 13.16.38) and the rule text does not confine it to another section.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob",
+    "widening": "2023 four-digit exponents ('+9999', '+9(4)').",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record entry case (cd-pic.cob covers it)",
+    "compiler-at-2002": "correct: cd-pic.cob at --std 2002 compiles (warning COBOL0903, obsolete) and prints the same lines as ws-pic.cob (the same items in working-storage) prints at 2002 and 2023; at --std 2023 cd-pic.cob is rejected with COBOL0902. Probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-03\\cd-pic.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-10",
+    "to": [
+     "GR-13.18.43.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.41 RECORD clause",
+    "clause-2023": "13.18.43 RECORD clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR10",
+      "quote": "the maximum number of bytes to be contained in any record of the file is equal to the greatest number of bytes described",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR10",
+      "quote": "the maximum number of bytes to be contained in any record of the file is equal to the greatest number of bytes described",
+      "check": "OK"
+     }
+    ],
+    "reason": "FORMAT 2 band in both; formats identical except the 2023 BYTES synonym of CHARACTERS (SR2, a widening). The size computation it rests on (2002 GR8 = 2023 GR8) is identical. RECORD is an FD/SD clause: no CD reach.",
+    "probe": null,
+    "widening": "2023 BYTES synonym of CHARACTERS."
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-11",
+    "to": [
+     "GR-13.18.43.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.41 RECORD clause",
+    "clause-2023": "13.18.43 RECORD clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR11",
+      "quote": "the number of bytes in the record shall be placed into the data item referenced by data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR11",
+      "quote": "the number of bytes in the record shall be placed into the data item referenced by data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.2 SR5",
+      "quote": "Data-name-1 shall describe an elementary unsigned integer in the working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "FORMAT 2 DEPENDING ON data-name-1 identical; data-name-1 is confined to working-storage, local-storage or linkage in both (2002 SR5 = 2023 SR6), so no communication-section operand. RELEASE, REWRITE and WRITE exist unchanged.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-12",
+    "to": [
+     "GR-13.18.43.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.41 RECORD clause",
+    "clause-2023": "13.18.43 RECORD clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR12",
+      "quote": "does not alter the content of the data item referenced by data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR12",
+      "quote": "does not alter the content of the data item referenced by data-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and data-name-1 constraint as GR11; DELETE, RELEASE, REWRITE, START, WRITE, READ and RETURN exist in both. FD/SD only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-15",
+    "to": [
+     "GR-13.18.43.4-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.41 RECORD clause",
+    "clause-2023": "13.18.43 RECORD clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR15",
+      "quote": "will indicate the number of bytes in the record just read",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR15",
+      "quote": "will indicate the number of bytes in the record just read",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and data-name-1 constraint as GR11; READ and RETURN exist in both. FD/SD only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-17",
+    "to": [
+     "GR-13.18.43.4-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.41 RECORD clause",
+    "clause-2023": "13.18.43 RECORD clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR17",
+      "quote": "It is implementor defined whether format 3 of the RECORD clause produces fixed-length records or variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR17",
+      "quote": "It is implementor defined whether format 3 of the RECORD clause produces fixed-length records or variable-length records",
+      "check": "OK"
+     }
+    ],
+    "reason": "FORMAT 3 (CONTAINS integer-4 TO integer-5) identical except the BYTES synonym; the same implementor-defined choice in both, so one documented choice serves both editions. FD/SD only.",
+    "probe": null,
+    "widening": "2023 BYTES synonym of CHARACTERS."
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-6",
+    "to": [
+     "GR-13.18.43.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.41 RECORD clause",
+    "clause-2023": "13.18.43 RECORD clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR6",
+      "quote": "Format 1 is used to specify fixed-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR6",
+      "quote": "Format 1 is used to specify fixed-length records",
+      "check": "OK"
+     }
+    ],
+    "reason": "FORMAT 1 band in both; Format 1 (CONTAINS integer-1) identical except the BYTES synonym; GR1 (integers are byte sizes) identical. FD/SD only.",
+    "probe": null,
+    "widening": "2023 BYTES synonym of CHARACTERS."
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-7",
+    "to": [
+     "GR-13.18.43.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.41 RECORD clause",
+    "clause-2023": "13.18.43 RECORD clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR7",
+      "quote": "Format 2 is used to specify variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR7",
+      "quote": "Format 2 is used to specify variable-length records",
+      "check": "OK"
+     }
+    ],
+    "reason": "FORMAT 2 band in both; FROM integer-2 / TO integer-3 identical, and the SRs (integer-3 > integer-2, integer-2 >= 0) identical. FD/SD only.",
+    "probe": null,
+    "widening": "2023 BYTES synonym of CHARACTERS."
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-03",
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.32.3-2",
+    "verdict": "UPHELD",
+    "reason": "LINAGE general format identical phrase by phrase (data-name-1/integer-1 LINES, FOOTING, TOP, BOTTOM); GR1-GR8 word-identical apart from 'LINAGE -COUNTER special register' in GR6. 2002 SR1 'may be qualified' vs 2023 SR1 'not subject to any OCCURS': 2002 already forbids an unsubscripted table-element reference outside the 8.4.1.2.2 SR5 list (LINAGE is not on it), so the 2002 operand set is not wider. LINAGE is an FD clause, so it governs no CD entry. Attack tried: data-name-1 naming a data item of a 2002 CD entry (MESSAGE COUNT IS MC). That is an operand reference, not a CD entry the rule governs, and the rule's requirement (the item's value is the page size) does not depend on where the item is stored. Probe: the same LINAGE program with data-name-1 in working-storage (both editions) and with data-name-1 = a CD MESSAGE COUNT item (2002) writes byte-identical files. 2023 Annex E (vs 2014) and 2014 Annex E (vs 2002) list no LINAGE change except LINAGE-COUNTER qualification (GR7b, not this rule).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR2",
+      "quote": "This number is called the page size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR2",
+      "quote": "This number is called the page size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.32.2 SR1",
+      "quote": "may be qualified and shall reference elementary unsigned numeric integer data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.3 SR1",
+      "quote": "shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR5",
+      "quote": "Each table element reference shall be subscripted except when such reference appears",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\linage-ws.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\linage-cd2.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.32.3-3",
+    "verdict": "UPHELD",
+    "reason": "Same format and operand analysis as GR2. The footing-start rule and the footing-area definition are word-identical, and the GR6 run-time check it leans on (EC-I-O-LINAGE, same handling) is identical. The FOOTING AT 2 probe produced identical output at --std 2002 and --std 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR3",
+      "quote": "The footing area is the area of the page body between the footing start and the page size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR3",
+      "quote": "The footing area is the area of the page body between the footing start and the page size",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\linage-ws.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.32.3-4",
+    "verdict": "UPHELD",
+    "reason": "The LINES AT TOP phrase is identical in both. 'Integer-3, integer-4 may be zero' is identical (2002 SR3 = 2023 SR4), and so is the GR1 zero default. FD-only, so no CD entry is reached. The data-name-3 operand analysis is the same as GR2.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR4",
+      "quote": "This number is called the top margin",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR4",
+      "quote": "This number is called the top margin",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.32.2 SR3",
+      "quote": "Integer-3, integer-4 may be zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.3 SR4",
+      "quote": "Integer-3, integer-4 may be zero",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\linage-ws.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.32.3-5",
+    "verdict": "UPHELD",
+    "reason": "The LINES AT BOTTOM phrase is identical, and so are the same SR and the GR1 default as GR4. FD-only.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR5",
+      "quote": "This number is called the bottom margin",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR5",
+      "quote": "This number is called the bottom margin",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\linage-ws.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-1",
+    "verdict": "UPHELD",
+    "reason": "The NEXT GROUP format is identical, and SR1-SR7 and GR1-GR6 are word-identical. The rule leans on the control hierarchy and on control-break detection. The CONTROL clause format and GR1-GR6 are identical in both editions, and so is the TYPE clause format 2 (CF ON data-name-2|FINAL). 2023 CONTROL adds only restrictions on data-name-1 (SR3 OCCURS; SR7 variable-length group). Those reject a program before NEXT GROUP applies, and they belong to CONTROL's rows. Report Writer became optional in 2014, which does not change the rule where it is implemented. No CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR1",
+      "quote": "has no effect when it is specified in a control footing that is at a level other than the highest level",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR1",
+      "quote": "has no effect when it is specified in a control footing that is at a level other than the highest level",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.3 GR3",
+      "quote": "in order major to minor, for equality with the corresponding prior control",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.4 GR3",
+      "quote": "in order major to minor, for equality with the corresponding prior control",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-9",
+    "verdict": "UPHELD",
+    "reason": "Format 2 is identical in both editions (2023 renames it occurs-depending-table and adds format 4, DYNAMIC, a widening). The transcription defect p328-1 in the format 2 diagram has been repaired. The rule's own condition confines it to a record of an FD or SD whose RECORD clause has VARYING. A record under a CD has no RECORD clause, so the rule cannot reach it. RECORD format 2 is identical apart from the BYTES synonym. Probe: an ODO record in a VARYING file with no DEPENDING ON writes and reads back identically at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR9",
+      "quote": "the associated file description or sort-merge description entry contains the VARYING phrase of the RECORD clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR9",
+      "quote": "the associated file description or sort-merge description entry contains the VARYING phrase of the RECORD clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\recvar.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.37.3-3",
+    "verdict": "UPHELD",
+    "reason": "The PAGE format, SR1-SR6 and GR1-GR5 are word-identical, so the a)-e) defaults rest on the same integers and phrases. RD-only clause, so no CD reach and no removed phrase. The Annexes record no PAGE clause change.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.37.3 GR3",
+      "quote": "If HEADING is omitted, integer-3 will be 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.39.4 GR3",
+      "quote": "If HEADING is omitted, integer-3 will be 1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-10",
+    "verdict": "UPHELD",
+    "reason": "The format 2 band is the same in both, and the format is identical apart from the BYTES synonym (2023 SR2, a widening). The rule leans on the GR8 byte count, which is word-identical. GR3's 'variable-length data item' (2002) became 'occurs-depending table' (2023), the same ODO concept (2002 OCCURS GR8 defines it). FD/SD clause only: no CD reach. Probe: the maximum record without TO integer-3 behaves alike at both editions.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR10",
+      "quote": "equal to the greatest number of bytes described for a record in that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR10",
+      "quote": "equal to the greatest number of bytes described for a record in that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR8",
+      "quote": "The maximum number of table elements described in the record is used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR8",
+      "quote": "The maximum number of table elements described in the record is used",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\recvar.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-11",
+    "verdict": "UPHELD",
+    "reason": "DEPENDING ON data-name-1 is identical in both. Data-name-1 is confined to working-storage, local-storage or linkage in both editions (2002 SR5 = 2023 SR6), so it can never be a CD item. The RELEASE, REWRITE and WRITE statements are unchanged. Probe: lengths 5, 12 and 2 are written and read back identically at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR11",
+      "quote": "the number of bytes in the record shall be placed into the data item referenced by data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR11",
+      "quote": "the number of bytes in the record shall be placed into the data item referenced by data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.2 SR5",
+      "quote": "elementary unsigned integer in the working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.3 SR6",
+      "quote": "elementary unsigned integer in the working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\recvar.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-12",
+    "verdict": "UPHELD",
+    "reason": "Same format and data-name-1 constraint as GR11. The listed statements exist in both editions; 2023's DELETE FILE is an addition. Probe: an unsuccessful READ (AT END) leaves RL unchanged (0002) at both editions.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR12",
+      "quote": "the unsuccessful execution of a READ or RETURN statement does not alter the content",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR12",
+      "quote": "the unsuccessful execution of a READ or RETURN statement does not alter the content",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\recvar.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-15",
+    "verdict": "UPHELD",
+    "reason": "Same format and data-name-1 constraint as GR11. Attack tried: 'successful execution of a READ' defers to the I-O status 0x conditions, and the 04 wording changed. 2002 says the length 'does not conform to the fixed file attributes'; 2023 says shorter or longer than the minimum or maximum length of the fixed file attributes. The record length in the fixed file attributes is exactly that minimum/maximum, so the same READs are successful in both editions. 2023's 06 and 09 apply to line sequential files only, an addition. Probe: after successful READs RL holds 5, 12 and 2 at both editions.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR15",
+      "quote": "will indicate the number of bytes in the record just read",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR15",
+      "quote": "will indicate the number of bytes in the record just read",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "A READ statement is successfully executed but the length of the record being processed does not conform",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.2",
+      "quote": "A READ statement is successfully executed but the physical record from the file is shorter than or longer than",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\recvar.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-17",
+    "verdict": "UPHELD",
+    "reason": "Format 3 is identical apart from the BYTES synonym. Both editions leave the same choice to the implementor, so one documented choice serves both. FD/SD only.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR17",
+      "quote": "It is implementor defined whether format 3 of the RECORD clause produces fixed-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR17",
+      "quote": "It is implementor defined whether format 3 of the RECORD clause produces fixed-length records",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-6",
+    "verdict": "UPHELD",
+    "reason": "Format 1 is identical apart from 2023's BYTES alternative to the optional word CHARACTERS (SR2, a widening), and GR1 is identical. FD/SD only. 2014 removed the PADDING CHARACTER clause, but that affects physical storage (GR2), not the logical record size this rule defines.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR6",
+      "quote": "Integer-1 specifies the number of bytes contained in each record in the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR6",
+      "quote": "Integer-1 specifies the number of bytes contained in each record in the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.3 SR2",
+      "quote": "The words BYTES and CHARACTERS are synonymous",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-7",
+    "verdict": "UPHELD",
+    "reason": "In format 2, FROM integer-2 and TO integer-3 are identical, and so are the SRs (integer-3 > integer-2, integer-2 >= 0). The only addition is the BYTES synonym. FD/SD only. Probe: FROM 2 TO 12 behaves alike at both editions.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR7",
+      "quote": "Integer-2 specifies the minimum number of bytes to be contained in any record of the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR7",
+      "quote": "Integer-2 specifies the minimum number of bytes to be contained in any record of the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.2 SR4",
+      "quote": "Integer-3 shall be greater than integer-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.3 SR5",
+      "quote": "Integer-3 shall be greater than integer-2",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-03\\recvar.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "e67774595317095677d1d712b80fbe596dd062dbac7e260c3c3cd020c491da54",
+  "read": "dc2e8f35b108fef9ac071a83905d5f820f8354d5702ab3e31bfc81d390873829",
+  "refute": "4989b64281f2b3a3f4054e6d6a31b3c1f91244c32458e32f70a455de5cc784ed"
+ }
+}

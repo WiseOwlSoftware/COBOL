@@ -1,0 +1,1589 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-11 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-11",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-13.16.31.2-5",
+   "2002-SR-13.16.32.2-2",
+   "2002-SR-13.16.32.2-3",
+   "2002-SR-13.16.33.2-1",
+   "2002-SR-13.16.35.2-2",
+   "2002-SR-13.16.36.2-15",
+   "2002-SR-13.16.36.2-16",
+   "2002-SR-13.16.36.2-18",
+   "2002-SR-13.16.36.2-19",
+   "2002-SR-13.16.36.2-21",
+   "2002-SR-13.16.36.2-22",
+   "2002-SR-13.16.36.2-3",
+   "2002-SR-13.16.36.2-5",
+   "2002-SR-13.16.36.2-6",
+   "2002-SR-13.16.36.2-9",
+   "2002-SR-13.16.37.2-2",
+   "2002-SR-13.16.37.2-3",
+   "2002-SR-13.16.37.2-5",
+   "2002-SR-13.16.38.2-1",
+   "2002-SR-13.16.38.2-12",
+   "2002-SR-13.16.38.2-13",
+   "2002-SR-13.16.38.2-14",
+   "2002-SR-13.16.38.2-15",
+   "2002-SR-13.16.38.2-16",
+   "2002-SR-13.16.38.2-17"
+  ]
+ },
+ "read": {
+  "slice": "p-11",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.31.2-5",
+    "to": [
+     "SR-13.18.33.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.31",
+    "clause-2023": "13.18.33",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data description entries of the working-storage section",
+     "of the local-storage section",
+     "of the linkage section"
+    ],
+    "evidence-2002": {
+     "working-storage": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/lvl-50-ws.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/lvl-99-ws.cob (COBOL1746) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/lvl-ok.cob",
+     "local-storage": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/lvl-50-ls.cob and lvl-ok.cob",
+     "linkage": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/lvl-50-lk.cob and lvl-ok.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.31.2 SR5",
+      "quote": "Data description entries in the working-storage section, local-storage section, and linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.3 SR5",
+      "quote": "Data description entries in the working-storage section, local-storage section, and linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule names its three sections, so it never reaches CD, FD, SD, RD or screen entries (SR2, SR4, SR6 govern those; SR2 is the one that names the CD in 2002 only). Level-number has no general format beyond the word. The 66/77/88 special entries are the same in GR2 a)-c). At --std 2002: level 50 refused in WS, LS and linkage, 99 refused; 1-49, 66, 77 and 88 accepted and run in all three sections, identically at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/lvl-50-ws.cob",
+    "widening": null,
+    "flags-answered": {
+     "communication-reach: clause 13.16.31 is reached by the 2002 communication section (Annex A, the CD entry)": "Level-number does reach CD records, but through SR2, which names the CD (§2002:13.16.31.2 SR2); SR5 names only the working-storage, local-storage and linkage sections (§2002:13.16.31.2 SR5), so this rule governs no CD entry."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.2 SR5",
+      "quote": "Data description entries in the working-storage section, local-storage section, and linkage section",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-11"
+   },
+   {
+    "rule-id": "2002-SR-13.16.32.2-2",
+    "to": [
+     "SR-13.18.34.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.32",
+    "clause-2023": "13.18.34",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the LINAGE clause of a file description entry (FOOTING integer-2 against LINAGE integer-1)"
+    ],
+    "evidence-2002": {
+     "FD LINAGE": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/linage-sr2-neg.cob (FOOTING 4 > 3 refused COBOL2025 at 2002 and 2023) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/linage-ok.cob (FOOTING 3 accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.2 SR2",
+      "quote": "Integer-2 shall not be greater than integer-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.3 SR3",
+      "quote": "Integer-2 shall not be greater than integer-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical phrase by phrase. FD-only clause, so no CD or debugging reach. 2023 adds SR1 (data-names not subject to OCCURS) and drops \"may be qualified\"; neither touches integer-1 or integer-2. Identical refusal and identical run output at both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/linage-sr2-neg.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.32.2-3",
+    "to": [
+     "SR-13.18.34.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.32",
+    "clause-2023": "13.18.34",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "LINES AT TOP integer-3 and LINES AT BOTTOM integer-4 of a file description entry LINAGE clause"
+    ],
+    "evidence-2002": {
+     "FD LINAGE TOP/BOTTOM 0": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/linage-ok.cob (TOP 0 BOTTOM 0 accepted and run, same LINAGE-COUNTER trace at 2002 and 2023) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/linage-tb1.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.2 SR3",
+      "quote": "Integer-3, integer-4 may be zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.3 SR4",
+      "quote": "Integer-3, integer-4 may be zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.32.3 GR1",
+      "quote": "If the LINES AT TOP or LINES AT BOTTOM phrases are not specified, the values of these items are zero",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and the same GR1 zero default in both. FD-only. A permission rule: accepted at --std 2002 with the same run output as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/linage-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.33.2-1",
+    "to": [
+     "SR-13.18.35.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33",
+    "clause-2023": "13.18.35",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 (report-writer) LINE clause: LINE PLUS/+ integer-2",
+     "format 2 (screen) LINE clause: LINE PLUS/+ identifier-1 or integer-3"
+    ],
+    "evidence-2002": {
+     "report LINE + / PLUS": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/rw-plus-sym.cob and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/rw-plus-word.cob (byte-identical report files, at 2002 and 2023)",
+     "screen LINE + / PLUS": "declined: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/scr-plus.cob refused by name (COBOL1560) at 2002 as at 2023; in 2002 the screen section is processor-dependent (B.3 item 1), and 3.1.5 lets the implementor not claim it"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.2 SR1",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.3 SR1",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "Both formats are identical in both editions (ALL FORMATS band in both). Report leg: LINE + 1 and LINE PLUS 1 produce byte-identical reports at both editions. Screen leg: declined in both editions, as an optional module in 2023 and as a processor-dependent element in 2002 (B.3 item 1, 3.1.5), refused by name at --std 2002. Note: the COBOL1560 text cites only the 2023 license (A.4.2); the 2002 license is B.3 item 1 with 3.1.5. Not a defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/rw-plus-sym.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-2",
+    "to": [
+     "SR-13.18.37.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35",
+    "clause-2023": "13.18.37",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "NEXT GROUP PLUS/+ integer-2 in a report group description entry"
+    ],
+    "evidence-2002": {
+     "NEXT GROUP + / PLUS": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/rw-plus-sym.cob vs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/rw-plus-word.cob (NEXT GROUP + 2 and PLUS 2: identical reports, two blank lines before ROW 2, at 2002 and 2023)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR2",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR2",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical (integer-1 | PLUS/+ integer-2 | NEXT PAGE [WITH RESET]); SR1-SR7 and GR1-GR6 identical. Report-section only, so no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/rw-plus-sym.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-15",
+    "to": [
+     "SR-13.18.38.3-16"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 OCCURS in file/WS/LS/linkage records",
+     "format 3 OCCURS in report group entries",
+     "format 2 OCCURS in a record under an output CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr15-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr15-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR15",
+      "quote": "Integer-1 shall be greater than or equal to zero and integer-2 shall be greater than integer-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR16",
+      "quote": "Integer-1 shall be greater than or equal to zero and integer-2 shall be greater than integer-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs an OCCURS integer-1 TO integer-2 DEPENDING table (OCCURS 5 TO 3 and 3 TO 3 refused COBOL0850, 0 TO 4 accepted, occ-ok-zero-cd.cob) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr15-neg-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (occ-sr15-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr15-neg-cd.cob at --std 2002 gives the same verdict as occ-sr15-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-16",
+    "to": [
+     "SR-13.18.38.3-17"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 DEPENDING ON data-name-1 in file/WS/LS/linkage records",
+     "format 3 DEPENDING ON in report groups",
+     "a table in a record under an output CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr16-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr16-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR16",
+      "quote": "Data-name-1 shall describe an integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR17",
+      "quote": "Data-name-1 shall describe an integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs the DEPENDING ON operand of a table (PIC 9V9 refused COBOL0852; the integer CNT accepted, occ-ok-cd.cob) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr16-neg-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (occ-sr16-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr16-neg-cd.cob at --std 2002 gives the same verdict as occ-sr16-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-18",
+    "to": [
+     "SR-13.18.38.3-20"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 tables in file/WS/LS/linkage records",
+     "format 2 tables in a record under an output CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr18-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr18-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR18",
+      "quote": "shall not occupy a byte position within the range of the first byte position defined by the data description entry containing the OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR20",
+      "quote": "shall not occupy a byte position within the range of the first byte position defined by the data description entry containing the OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs the position of data-name-1 relative to a format 2 table (data-name-1 inside the table refused COBOL0857; data-name-1 ahead of the table in the same CD record accepted, occ-ok-cd.cob) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr18-neg-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (occ-sr18-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr18-neg-cd.cob at --std 2002 gives the same verdict as occ-sr18-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-19",
+    "to": [
+     "SR-13.18.38.3-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 tables in a working-storage record description entry that contains the EXTERNAL clause"
+    ],
+    "evidence-2002": {
+     "WS EXTERNAL record": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr19-neg.cob (non-external data-name-1 refused COBOL2788 at 2002 and 2023) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr19-ok.cob (external data-name-1 accepted, LEN 2)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR19",
+      "quote": "data-name-1 shall reference a data item possessing the external attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR21",
+      "quote": "data-name-1 shall reference a data item possessing the external attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries, in level 1 data description entries in the working-storage section, and in level 1 type declarations",
+      "check": "OK"
+     }
+    ],
+    "reason": "The condition \"record description entry containing the EXTERNAL clause\" confines the rule to working-storage records (2002 EXTERNAL SR1); a CD record cannot carry EXTERNAL, so there is no communication reach. Format 2 identical. 2023 extends EXTERNAL to level 1 type declarations, a widening.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr19-neg.cob",
+    "widening": "2023 EXTERNAL also admits level 1 type declarations; the rule then reaches more entries in 2023.",
+    "flags-answered": {
+     "communication-reach: clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)": "SR19 applies only to an OCCURS 'in a data description entry included in a record description entry containing the EXTERNAL clause' (§2002:13.16.36.2 SR19), and EXTERNAL 'may be specified only in file description entries or in record description entries in the working-storage section' (§2002:13.16.20.2 SR1). Probe cdrec-ext.cob at 2002: a CD record with EXTERNAL is refused (COBOL2404), so no CD record meets SR19's condition."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR19",
+      "quote": "If the OCCURS clause is specified in a data description entry included in a record description entry containing the EXTERNAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\cdrec-ext.cob (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\cdrec-ext-2002.out)",
+    "from-slice": "p-11"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-21",
+    "to": [
+     "SR-13.18.38.3-24"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 3 (report-writer) OCCURS in report group description entries"
+    ],
+    "evidence-2002": {
+     "report OCCURS TO/DEPENDING": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr21-to-neg.cob and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr21-dep-neg.cob (refused COBOL2021 at 2002 and 2023) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr21-ok.cob (both present: accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR21",
+      "quote": "The TO and DEPENDING phrases shall either be both absent or both present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR24",
+      "quote": "The TO and DEPENDING phrases shall either be both absent or both present",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 3 identical in both editions. FORMAT 3 band in both; format 3 is the report-writer format, so no CD reach. 2023 adds SR23 (no DEPENDING under CONSTANT RECORD), which does not touch this rule.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr21-to-neg.cob",
+    "widening": null,
+    "flags-answered": {
+     "communication-reach: clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)": "SR21 sits under FORMAT 3, the report-writer format, which exists only in report group description entries (§2002:13.16.36.2 SR21); a CD record uses formats 1 and 2. No CD reach."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR21",
+      "quote": "The TO and DEPENDING phrases shall either be both absent or both present",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-11"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-22",
+    "to": [
+     "SR-13.18.38.3-25"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 3 OCCURS in report group entries with absolute LINE (a, b) or absolute COLUMN (c, d)"
+    ],
+    "evidence-2002": {
+     "cases a-d": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr22a-neg.cob, occ-sr22b-neg.cob, occ-sr22c-neg.cob, occ-sr22d-neg.cob (each refused COBOL2021 at 2002 and 2023); E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr22a-ok.cob (STEP 1) and occ-sr22-rel-ok.cob (relative only) accepted"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR22",
+      "quote": "The STEP phrase shall be specified if the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR25",
+      "quote": "The STEP phrase shall be specified if the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.14.2 SR2",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR2",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 3 identical. The terms \"absolute LINE clause\" and \"absolute COLUMN clause\" rest on LINE and COLUMN clause format 1, word-identical in both editions (COLUMN 13.16.14 vs 13.18.14 differ only in the typography of the MINUS synonym). Report-only, so no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr22a-neg.cob",
+    "widening": null,
+    "flags-answered": {
+     "communication-reach: clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)": "SR22 sits under FORMAT 3, the report-writer format, which exists only in report group description entries (§2002:13.16.36.2 SR22); a CD record uses formats 1 and 2. No CD reach."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR22",
+      "quote": "The STEP phrase shall be specified if the entry",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-11"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-3",
+    "to": [
+     "SR-13.18.38.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "KEY phrase of format 1 and format 2 tables in file/WS/LS/linkage records",
+     "KEY phrase of tables in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr3-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr3-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR3",
+      "quote": "The first specification of data-name-2 shall be the name of either the entry containing the OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR3",
+      "quote": "The first specification of data-name-2 shall be the name of either the entry containing the OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs the ASCENDING/DESCENDING KEY phrase of a table (a sibling key refused COBOL2353; a subordinate key accepted and SEARCH ALL finds B, occ-ok-cd.cob) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr3-neg-cd.cob",
+    "widening": "the 2023 band adds format 4 (dynamic-capacity tables).",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (occ-sr3-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr3-neg-cd.cob at --std 2002 gives the same verdict as occ-sr3-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-5",
+    "to": [
+     "SR-13.18.38.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "KEY data-name-2 of format 1 and 2 tables in file/WS/LS/linkage records",
+     "the same in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr5-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr5-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR5",
+      "quote": "Data-name-2 shall be specified without the subscripting normally required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR5",
+      "quote": "Data-name-2 shall be specified without the subscripting normally required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs the KEY data-name-2 of a table (KEY IS K1(1) refused COBOL2024) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr5-neg-cd.cob",
+    "widening": "the 2023 band adds format 4 (dynamic-capacity tables).",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (occ-sr5-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr5-neg-cd.cob at --std 2002 gives the same verdict as occ-sr5-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-6",
+    "to": [
+     "SR-13.18.38.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "KEY data-name-2 of format 1 and 2 tables in file/WS/LS/linkage records",
+     "the same in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr6-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr6-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR6",
+      "quote": "shall not contain an OCCURS clause except when data-name-2 is the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR6",
+      "quote": "shall not contain an OCCURS clause except when data-name-2 is the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs the KEY data-name-2 of a table (a key that itself has OCCURS refused COBOL2787) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr6-neg-cd.cob",
+    "widening": "the 2023 band adds format 4 (dynamic-capacity tables).",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (occ-sr6-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-sr6-neg-cd.cob at --std 2002 gives the same verdict as occ-sr6-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-9",
+    "to": [
+     "SR-13.18.38.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36",
+    "clause-2023": "13.18.38",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 nested tables in file/WS/LS/linkage records",
+     "format 3 nested OCCURS in report groups",
+     "format 1 tables in screen entries (processor-dependent, declined)",
+     "format 1 nested tables in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-n7-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-n7-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR9",
+      "quote": "as long as the number of subscripts required does not exceed seven",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR10",
+      "quote": "as long as the number of subscripts required does not exceed seven",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs nested fixed tables (seven levels accepted and A7(2 2 2 2 2 2 2) assigned, occ-ok-n7-cd.cob; eight refused COBOL2646) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-n7-neg-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (occ-n7-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/occ-n7-neg-cd.cob at --std 2002 gives the same verdict as occ-n7-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.37.2-2",
+    "to": [
+     "SR-13.18.39.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.37",
+    "clause-2023": "13.18.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the PAGE clause of a report description entry"
+    ],
+    "evidence-2002": {
+     "RD PAGE": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr2-none.cob (neither: refused), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr2-cols-only.cob (integer-2 alone: accepted), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr5-ok.cob (integer-1 alone: accepted), same at 2002 and 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.37.2 SR2",
+      "quote": "Either integer-1 or integer-2 or both shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.39.3 SR2",
+      "quote": "Either integer-1 or integer-2 or both shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "PAGE general format, SR1-SR6 and GR1-GR5 are word-identical. RD-only clause: no CD reach and no removed phrase.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr2-cols-only.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.37.2-3",
+    "to": [
+     "SR-13.18.39.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.37",
+    "clause-2023": "13.18.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, FOOTING phrases of an RD PAGE clause"
+    ],
+    "evidence-2002": {
+     "RD PAGE phrases": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr3-neg.cob (HEADING) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr3-neg2.cob (FIRST DETAIL) refused COBOL2709 at 2002 and 2023; rw-plus-sym.cob (all with integer-1) accepted"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.37.2 SR3",
+      "quote": "may be specified only if integer-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.39.3 SR3",
+      "quote": "may be specified only if integer-1 is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and the same five phrases with the same synonyms (SR1). RD-only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr3-neg.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.37.2-5",
+    "to": [
+     "SR-13.18.39.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.37",
+    "clause-2023": "13.18.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "integer-1 of an RD PAGE clause"
+    ],
+    "evidence-2002": {
+     "RD PAGE integer-1": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr5-neg.cob (10000 refused COBOL2744) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr5-ok.cob (9999 accepted), same at 2002 and 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.37.2 SR5",
+      "quote": "Integer-1 shall not exceed 9999",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.39.3 SR5",
+      "quote": "Integer-1 shall not exceed 9999",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and rule; RD-only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/page-sr5-neg.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-1",
+    "to": [
+     "SR-13.18.40.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38",
+    "clause-2023": "13.18.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data description entries of the file, working-storage, local-storage and linkage sections",
+     "report group and screen description entries",
+     "record description entries under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr1-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr1-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR1",
+      "quote": "The PICTURE clause may be specified only at the elementary level",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR1",
+      "quote": "The PICTURE clause may be specified only at the elementary level",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs a PICTURE on a group (refused COBOL2191) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr1-neg-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (pic-sr1-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr1-neg-cd.cob at --std 2002 gives the same verdict as pic-sr1-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-12",
+    "to": [
+     "SR-13.18.40.3-16"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38",
+    "clause-2023": "13.18.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 character-string-1 in file/WS/LS/linkage, report and screen entries",
+     "format 1 character-string-1 in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr12-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr12-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR12",
+      "quote": "may appear only as a continuous string of 'P's in the leftmost or rightmost digit positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR16",
+      "quote": "may appear only as a continuous string of 'P's in the leftmost or rightmost digit positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs a format 1 PICTURE character-string (9P9 refused COBOL1934; the legal strings of pic-ok-cd.cob accepted and edit as in working-storage) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr12-neg-cd.cob",
+    "widening": "the 2023 format 1 adds the EDITING phrase; the rule then reaches more character-strings in 2023.",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (pic-sr12-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr12-neg-cd.cob at --std 2002 gives the same verdict as pic-sr12-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-13",
+    "to": [
+     "SR-13.18.40.3-17"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38",
+    "clause-2023": "13.18.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 character-string-1 in file/WS/LS/linkage, report and screen entries",
+     "format 1 character-string-1 in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr13-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr13-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR13",
+      "quote": "The symbol 'P' and the symbol '.' are mutually exclusive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR17",
+      "quote": "The symbol 'P' and the symbol '.' are mutually exclusive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs a format 1 PICTURE character-string (PP9.9 refused COBOL1934; the legal strings of pic-ok-cd.cob accepted and edit as in working-storage) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr13-neg-cd.cob",
+    "widening": "the 2023 format 1 adds the EDITING phrase; the rule then reaches more character-strings in 2023.",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (pic-sr13-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr13-neg-cd.cob at --std 2002 gives the same verdict as pic-sr13-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-14",
+    "to": [
+     "SR-13.18.40.3-18"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38",
+    "clause-2023": "13.18.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 character-string-1 in file/WS/LS/linkage, report and screen entries",
+     "format 1 character-string-1 in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr14-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr14-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR14",
+      "quote": "The symbol 'S', if present, shall be the first symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR18",
+      "quote": "The symbol 'S', if present, shall be the first symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs a format 1 PICTURE character-string (9S9 refused COBOL1934; the legal strings of pic-ok-cd.cob accepted and edit as in working-storage) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr14-neg-cd.cob",
+    "widening": "the 2023 format 1 adds the EDITING phrase; the rule then reaches more character-strings in 2023.",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (pic-sr14-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr14-neg-cd.cob at --std 2002 gives the same verdict as pic-sr14-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-15",
+    "to": [
+     "SR-13.18.40.3-19"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38",
+    "clause-2023": "13.18.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 character-string-1 in file/WS/LS/linkage, report and screen entries",
+     "format 1 character-string-1 in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr15-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr15-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR15",
+      "quote": "the symbol 'V' shall either immediately precede the first symbol 'P' or immediately follow the last symbol 'P'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR19",
+      "quote": "the symbol 'V' shall either immediately precede the first symbol 'P' or immediately follow the last symbol 'P'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs a format 1 PICTURE character-string (9V9PP refused COBOL1934; the legal strings of pic-ok-cd.cob accepted and edit as in working-storage) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr15-neg-cd.cob",
+    "widening": "the 2023 format 1 adds the EDITING phrase; the rule then reaches more character-strings in 2023.",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (pic-sr15-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr15-neg-cd.cob at --std 2002 gives the same verdict as pic-sr15-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-16",
+    "to": [
+     "SR-13.18.40.3-20"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38",
+    "clause-2023": "13.18.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 character-string-1 in file/WS/LS/linkage, report and screen entries",
+     "format 1 character-string-1 in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr16-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr16-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR16",
+      "quote": "The symbol 'V' and the symbol '.' are mutually exclusive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR20",
+      "quote": "The symbol 'V' and the symbol '.' are mutually exclusive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs a format 1 PICTURE character-string (9V9.9 refused COBOL1934; the legal strings of pic-ok-cd.cob accepted and edit as in working-storage) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr16-neg-cd.cob",
+    "widening": "the 2023 format 1 adds the EDITING phrase; the rule then reaches more character-strings in 2023.",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (pic-sr16-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr16-neg-cd.cob at --std 2002 gives the same verdict as pic-sr16-neg-ws.cob in working-storage"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-17",
+    "to": [
+     "SR-13.18.40.3-21"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38",
+    "clause-2023": "13.18.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 character-string-1 in file/WS/LS/linkage, report and screen entries",
+     "format 1 character-string-1 in a record under a CD"
+    ],
+    "evidence-2002": {
+     "file / working-storage / local-storage / linkage record entries": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr17-neg-ws.cob (same verdict at --std 2002 as at 2023, run-rest.txt)",
+     "record description entries under a CD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr17-neg-cd.cob at --std 2002 (run-cd-2002.txt); not shown by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR17",
+      "quote": "The symbol 'Z' and the symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR21",
+      "quote": "The symbol 'Z' and the symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, band and the general format of the clause are the same in both editions. In 2002 the rule also governs a format 1 PICTURE character-string (Z*9 refused COBOL1934; the legal strings of pic-ok-cd.cob accepted and edit as in working-storage) in a record description entry written after a CD entry: A.1.1.2 makes those records ordinary 13.14 data description entries, and no rule of the communication section excludes this clause. 2023 has no communication section, so the 2023 row and its witnesses cannot show the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr17-neg-cd.cob",
+    "widening": "the 2023 format 1 adds the EDITING phrase; the rule then reaches more character-strings in 2023.",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (pic-sr17-neg-cd.cob shows it)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-11/pic-sr17-neg-cd.cob at --std 2002 gives the same verdict as pic-sr17-neg-ws.cob in working-storage"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-11",
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.31.2-5",
+    "verdict": "UPHELD",
+    "reason": "Words identical; the level-number format is the bare word in both. The rule names working-storage, local-storage and linkage only; CD/FD/SD subordinates are SR2 (the CD reach lives there, not here), RD is SR4, screen SR6. 2002 has no other section holding data description entries. Sampled the reader's lvl-50-ls (refused COBOL1746 at 2002 and 2023) and added lvl-77-66-ls (77 in WS and LS, 66 RENAMES and 88 in LS: accepted and run identically, 12AB / C3, at both editions).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.31.2 SR5",
+      "quote": "shall have level-numbers 66, 77, 88, or 1 through 49",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.3 SR5",
+      "quote": "shall have level-numbers 66, 77, 88, or 1 through 49",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-11/lvl-77-66-ls.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.32.2-2",
+    "verdict": "UPHELD",
+    "reason": "LINAGE general format identical phrase by phrase (data-name-1/integer-1, FOOTING, TOP, BOTTOM). FD-only; no CD, report or debugging reach. 2023's renumbering (new SR1, no OCCURS on data-names) and loss of 'may be qualified' do not touch integer-1/integer-2. Sampled linage-sr2-neg: FOOTING 4 > 3 refused COBOL2025 at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.2 SR2",
+      "quote": "Integer-2 shall not be greater than integer-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.3 SR3",
+      "quote": "Integer-2 shall not be greater than integer-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-11/linage-sr2-neg.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.32.2-3",
+    "verdict": "UPHELD",
+    "reason": "Same format, same GR1 zero default for omitted TOP/BOTTOM, same GR6 value rules in both. Permission rule over FD LINAGE only. Reader's linage-ok (TOP 0 BOTTOM 0 accepted, same trace at both) stands; no form in 2002 that 2023 lacks.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.2 SR3",
+      "quote": "Integer-3, integer-4 may be zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.3 SR4",
+      "quote": "Integer-3, integer-4 may be zero",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.33.2-1",
+    "verdict": "UPHELD",
+    "reason": "Both LINE formats are identical in both editions, and SR1 sits under ALL FORMATS in both. The report leg is mandatory in 2002 (report writer is no optional module there) and the compiler implements it identically (reader's byte-identical reports). The screen leg reaches the 2002 screen section, which 2002 B.3 item 1 makes processor-dependent; 3.1.5 lets the implementor not claim it provided it warns at compile time, and the compiler refuses screen syntax by name at 2002. So no part of the 2002 scope lacks evidence or a license. Residual: the refusal text cites only the 2023 licence, a message issue, not this rule.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.2 SR1",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.3 SR1",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-2",
+    "verdict": "UPHELD",
+    "reason": "NEXT GROUP format (integer-1 | PLUS/+ integer-2 | NEXT PAGE [WITH RESET]) and SR1-SR7 identical in both editions; report-section only, so no CD or removed-form reach. Reader's rw-plus-sym/rw-plus-word identical reports at both editions stand.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR2",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR2",
+      "quote": "PLUS and + are synonyms",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-19",
+    "verdict": "UPHELD",
+    "reason": "Format 2 identical. The trigger is a record description entry containing EXTERNAL; 2002 EXTERNAL SR1 confines that to WS records (and FDs, whose records do not themselves contain the clause), so a CD record cannot meet the condition and the communication reach that sank SR15/16/18 does not apply. 2002 also forbids EXTERNAL with TYPEDEF, so 2023's type-declaration extension is a pure widening. Sampled occ-sr19-neg (non-external DEPENDING item refused COBOL2788 at 2002 and 2023) and occ-sr19-ok (accepted, LEN 2, at both).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR19",
+      "quote": "data-name-1 shall reference a data item possessing the external attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR21",
+      "quote": "data-name-1 shall reference a data item possessing the external attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "only in file description entries or in record description entries in the working-storage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR5",
+      "quote": "The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES, TYPEDEF, or BASED clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-11/occ-sr19-neg.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-21",
+    "verdict": "UPHELD",
+    "reason": "Format 3 (report-writer) identical: OCCURS [integer-1 TO] integer-2 TIMES [DEPENDING ON data-name-1] [STEP integer-3]. Report-only, no CD reach. 2023's added SR23 (CONSTANT RECORD) is a 2023-only restriction that does not touch the TO/DEPENDING pairing. Sampled occ-sr21-dep-neg: refused COBOL2021 at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR21",
+      "quote": "The TO and DEPENDING phrases shall either be both absent or both present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR24",
+      "quote": "The TO and DEPENDING phrases shall either be both absent or both present",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-11/occ-sr21-dep-neg.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-22",
+    "verdict": "UPHELD",
+    "reason": "Format 3 identical; the terms 'absolute LINE clause' and 'absolute COLUMN clause' rest on LINE format 1 and COLUMN format 1, which I compared: identical in both editions (COLUMN NUMBER(S)/COLUMNS/COL/COLS, LEFT/CENTER/RIGHT, integer-1 | PLUS/+ integer-2; SR1-SR9 same). Report-only. Sampled occ-sr22d-neg: refused COBOL2021 at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR22",
+      "quote": "The STEP phrase shall be specified if the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR25",
+      "quote": "The STEP phrase shall be specified if the entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-11/occ-sr22d-neg.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.37.2-2",
+    "verdict": "UPHELD",
+    "reason": "PAGE general format (LIMIT(S), integer-1 [LINE(S)], integer-2 COLS/COLUMNS, HEADING, FIRST DETAIL/DE, LAST CONTROL HEADING/CH, LAST DETAIL/DE, FOOTING) and SR1-SR6, GR1-GR5 word-identical. RD-only. Reader's probes (neither refused, integer-2 alone accepted) stand.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.37.2 SR2",
+      "quote": "Either integer-1 or integer-2 or both shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.39.3 SR2",
+      "quote": "Either integer-1 or integer-2 or both shall be specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.37.2-3",
+    "verdict": "UPHELD",
+    "reason": "Same five phrases and synonyms in both formats; RD-only. Sampled page-sr3-neg: HEADING without integer-1 refused COBOL2709 at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.37.2 SR3",
+      "quote": "may be specified only if integer-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.39.3 SR3",
+      "quote": "may be specified only if integer-1 is specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-11/page-sr3-neg.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.37.2-5",
+    "verdict": "UPHELD",
+    "reason": "Same format and rule; RD-only, no other context reaches integer-1. Sampled page-sr5-neg: 10000 refused COBOL2744 at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.37.2 SR5",
+      "quote": "Integer-1 shall not exceed 9999",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.39.3 SR5",
+      "quote": "Integer-1 shall not exceed 9999",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-11/page-sr5-neg.cob"
+   }
+  ],
+  "disputed-different": [],
+  "probe-log": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-11/run-refute.txt"
+ },
+ "imported": {
+  "asked": "a7ae788c7616da02af622e4cb88dccf00ae565528dcbce9c2cafb178a3833b6c",
+  "read": "3eec377c589280e29b00e6fc24c3880491300d00fed7773361522f23af362497",
+  "refute": "a4b8c263cfbbe411907dce4d0755872263302c1abc3f1b29d42907f127507b9b"
+ }
+}

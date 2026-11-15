@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb704_sort_duplicates_gr3_arms
 *> rules: [GR-14.9.40.4-3]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

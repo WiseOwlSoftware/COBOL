@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb362_declaratives_reference_boundary
       *> rules: [SR-14.9.49.3-4]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

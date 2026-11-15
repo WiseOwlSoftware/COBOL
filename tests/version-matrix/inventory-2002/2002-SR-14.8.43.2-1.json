@@ -1,0 +1,16 @@
+{
+ "rule-id": "2002-SR-14.8.43.2-1",
+ "rule-digest": "771213ccf9c1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.47.3-1"
+  ],
+  "bridge": true,
+  "source": "lineage-reads-2002/p-17.json",
+  "digests": {
+   "SR-14.9.47.3-1": "771213ccf9c1"
+  }
+ }
+}

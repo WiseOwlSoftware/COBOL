@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c31_suppress_inhibits_advance_nextgroup_lc
       *> rules: [GR-14.9.45.4-3]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

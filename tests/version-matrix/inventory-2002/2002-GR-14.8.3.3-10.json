@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.3.3-10",
+ "rule-digest": "39f8a5f00ffc",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.3.4-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "run unit",
+    "answer": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; storage persists to run unit termination in both."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The rule's end point is §2002:14.5.10 item 3 (ALLOCATE storage released), word-identical to 2023 14.6.11 item 3; the items that differ (MCS purge, COMMIT, dynamic tables) are not this rule's, and 14.5.2.1.2.1 item 4 (based address null) is about initial state. No change; the reader's allocate_2002.cob stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-24.json",
+  "digests": {
+   "GR-14.9.3.4-10": "39f8a5f00ffc"
+  }
+ }
+}

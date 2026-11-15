@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.15.3-2",
+ "rule-digest": "5c30de9c4b4d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so a summary report is the same output of the same report; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Matched on the word TERMINATE (the report writer statement bounding the GENERATEs of a summary report), not on run unit termination (§2002:14.5.10), the initial state (§2002:14.5.2.1.2.1) or transfers of control (§2002:14.5.3); the rule rests on none of those clauses. l1c12_generate_detail_and_summary re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "GR-14.9.16.4-2": "5c30de9c4b4d"
+  }
+ }
+}

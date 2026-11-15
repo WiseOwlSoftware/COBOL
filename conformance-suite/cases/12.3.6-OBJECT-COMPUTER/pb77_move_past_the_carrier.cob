@@ -2,7 +2,7 @@
 *> id: pb77_move_past_the_carrier
 *> rules: [GR-12.3.6.4-4, GR-14.6.8.2-1, GR-14.6.8.2-2, GR-14.6.8.2-4,
 *>    GR-14.6.13.1.3-8, DOC-A.1-70]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-14.1.2-10",
+ "rule-digest": "27e6c6d39e5a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.2.2-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "program prototype definition",
+    "answer": "§2002:4 (4.153) 'expected to be received by a particular subprogram' vs §2023:3.148 'a particular called program': the same PROGRAM-ID ... IS PROTOTYPE element; the source elements that admit formats 1 and 2 are unchanged."
+   },
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 (4.121) 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 drops the entry and describes methods in 9.3.4. The rule names the method definition (a source element), the same element in both; the element kinds that admit formats 1 and 2 are unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "Read §2002:9.3.5: 2002 binds a method by name only (no method resolution signature or overloading, which 2023 9.3.6 adds). The rule says which source elements may use procedure division formats 1 and 2; it does not rest on method binding. No dependence."
+   }
+  },
+  "source": "lineage-reads-2002/q-23.json",
+  "digests": {
+   "SR-14.2.2-10": "27e6c6d39e5a"
+  }
+ }
+}

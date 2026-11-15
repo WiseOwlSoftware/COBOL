@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_linage_zero_margins
       *> rules: [SR-13.18.34.3-4]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

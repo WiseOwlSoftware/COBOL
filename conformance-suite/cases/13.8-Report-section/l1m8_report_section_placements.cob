@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1m8_report_section_placements
 *> rules: [SR-13.8.3-1]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

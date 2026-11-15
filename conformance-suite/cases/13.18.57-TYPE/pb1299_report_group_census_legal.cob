@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1299_report_group_census_legal
       *> rules: [SR-13.18.57.3-13, SR-13.18.57.3-14, SR-13.18.57.3-15]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

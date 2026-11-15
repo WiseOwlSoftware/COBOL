@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-20",
+ "rule-digest": "b017efc722cd",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.51.3-21"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "relative-write-key-out-of-range-permanent-error",
+    "answer": "The switch (DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, RelativeConnector.Write) decides only the status of a relative WRITE whose key is outside the file, 24 at 2002 (§2002:14.8.47.3 GR29b); this rule governs the GLOBAL clause on a containing program's FD and never meets it. The switch's 2002 arm itself holds: pb5125_relative_write_key_range_pre2014 run at --std 2002 this session MATCHes its .out (ABOVE=24 INVALID HIGH, ZERO=24 INVALID ZERO)."
+   }
+  },
+  "source": "lineage-reads-2002/q-35.json",
+  "digests": {
+   "SR-14.9.51.3-21": "b017efc722cd"
+  }
+ }
+}

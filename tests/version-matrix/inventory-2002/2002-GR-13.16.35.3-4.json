@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-13.16.35.3-4",
+ "rule-digest": "ccdbe2fd25e1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.37.4-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so the body groups of the report and its LINE-COUNTER are the same; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Matched on the word TERMINATE (the report writer statement, after which a pending NEXT GROUP has no effect), not on run unit termination (§2002:14.5.10), the initial state (§2002:14.5.2.1.2.1) or transfers of control (§2002:14.5.3); the rule rests on none of those clauses. pb957_next_group_forms, pb957_next_group_control and pb1001_line_next_page re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+   }
+  },
+  "source": "lineage-reads-2002/q-16.json",
+  "digests": {
+   "GR-13.18.37.4-4": "ccdbe2fd25e1"
+  }
+ }
+}

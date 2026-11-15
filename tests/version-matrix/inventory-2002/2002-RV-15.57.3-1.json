@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-RV-15.57.3-1",
+ "rule-digest": "041fe403c311",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.70.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "RV1 governs an argument of class alphabetic or alphanumeric; those are the same Table 3 rows in both. The open 2002 reading of a numeric/boolean USAGE NATIONAL item (§2002:8.5.2.7 item 3 vs §2002:8.5.2.9; PB5625 Reading 2) places such an item in class numeric/boolean or national, never alphabetic/alphanumeric, so it never reaches RV1. Scope unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "ORD is an integer function; under standard arithmetic its value is held in a standard intermediate data item (§2002:15.3.1), and an ordinal position (at most the size of the character set) is exact in 31 or 34 digits, so §2002:8.8.1.x and PB5575 cannot change it. §2002:15/15.1 differ only in function-type text about returned lengths, which an integer function does not have. No dependence."
+   }
+  },
+  "source": "lineage-reads-2002/q-41.json",
+  "digests": {
+   "RV-15.70.4-1": "041fe403c311"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.13.3-6",
+ "rule-digest": "2da9f48c543c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.13.4-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. In GR6, 'coded character' is a code value of the alphabet's or the native coded character set (4.26/4.29/4.40). The term picks out the same characters in both, so the scope and the evidence do not change."
+   }
+  },
+  "source": "lineage-reads-2002/p-02.json",
+  "digests": {
+   "GR-13.18.13.4-6": "2da9f48c543c"
+  }
+ }
+}

@@ -2,7 +2,7 @@
 *> id: pb1129_rd_code_identifier
 *> rules: [SR-13.18.12.3-2, GR-13.18.12.4-1, GR-13.18.12.4-3,
 *>    GR-14.9.16.4-6, FMT-13.14.2, FMT-13.18.12.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

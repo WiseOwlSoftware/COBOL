@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-10",
+ "rule-digest": "7fc0689f69d1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-11"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "indexed-read-previous-after-open-at-end",
+    "answer": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord) decides only which record §2002:14.8.29.3 GR18 selects for a READ PREVIOUS that is the first operation after OPEN on an indexed file. GR10's four lock actions apply to the READ and to a 'successfully accessed record' (§2002:14.8.29.3 GR10c); whether a READ PREVIOUS after OPEN succeeds is GR18's selection, not this rule. The lock actions are the same words in 2002 and 2023, and none of the four cases cited (pb338, pb755, l1_read_lock_mode_governs, l1c17) reads PREVIOUS after OPEN (checked by grep), so the evidence holds. Lead, not this row: at --std 2002 the switch returns the lowest record (probe prev-open-ix.cob: P1=K002|00) where §2002:14.8.26.3 GR12 (FPI = lowest-ordinal characters) with §2002:14.8.29.3 GR18c2 (key less than or equal to the FPI) find no record, so '10' and at end; that is a GR18 defect."
+   }
+  },
+  "source": "lineage-reads-2002/q-29.json",
+  "digests": {
+   "GR-14.9.30.4-11": "7fc0689f69d1"
+  }
+ }
+}

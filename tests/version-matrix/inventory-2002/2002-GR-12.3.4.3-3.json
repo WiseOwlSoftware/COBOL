@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-12.3.4.3-3",
+ "rule-digest": "d86ef8cd8f63",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.3-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "runtime element; source unit",
+    "answer": "runtime element: §2002:4 (4.167) and §2023:3.159 name the same executable programs. Source unit: §2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. The ASSIGN association at OPEN, SORT and MERGE does not depend on either term's wording. The scope and the evidence do not change."
+   }
+  },
+  "source": "lineage-reads-2002/q-08.json",
+  "digests": {
+   "GR-12.4.5.3-3": "d86ef8cd8f63"
+  }
+ }
+}

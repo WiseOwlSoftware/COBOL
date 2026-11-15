@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_use_mixed_org_format3
 *> rules: [SR-14.9.49.3-5]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

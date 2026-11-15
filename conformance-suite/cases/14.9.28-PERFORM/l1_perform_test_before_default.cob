@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_perform_test_before_default
       *> rules: [SR-14.9.28.3-1]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

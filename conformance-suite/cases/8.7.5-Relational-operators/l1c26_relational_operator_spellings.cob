@@ -2,7 +2,7 @@
       *> id: l1c26_relational_operator_spellings
       *> rules: [SR-8.7.5.2-1, SR-8.7.5.2-3, SR-8.7.5.2-5, SR-8.7.5.2-7,
       *>    SR-8.7.5.2-8, SR-8.7.5.2-10]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

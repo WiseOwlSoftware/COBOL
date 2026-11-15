@@ -2,7 +2,7 @@
       *> id: pb1292_source_forms_85
       *> rules: [SR-13.18.53.3-4, GR-13.18.53.4-1, GR-13.18.54.4-5,
       *>    FMT-13.18.53.2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

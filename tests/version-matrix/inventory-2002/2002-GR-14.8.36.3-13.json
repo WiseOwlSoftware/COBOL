@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-13",
+ "rule-digest": "9a5d0b50d892",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-14"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('output procedure') names the same units in 2002; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The rule rests on §2002:14.5.3 items 1 and 2; 'last paragraph in the range' and 2023's 'last procedure' end at the same statement of an output procedure, so the return mechanism sits at the same point. Shown at 2002 by the reader's witnesses-2002.txt (pb3511, pb440)."
+   }
+  },
+  "source": "lineage-reads-2002/q-31.json",
+  "digests": {
+   "GR-14.9.40.4-14": "9a5d0b50d892"
+  }
+ }
+}

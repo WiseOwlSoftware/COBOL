@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1098_organization_permanence_85
 *> rules: [GR-12.4.5.10.3-1, GR-12.4.5.10.3-4, GR-12.4.5.10.3-5]
-*> accept: [85]
+*> accept: [85, 2002]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-8.3.1.2.5.3-1",
+ "rule-digest": "16d4efec5a1c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.6.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined); national character (newer: undefined)",
+    "answer": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. GR1 ('represents a national character value') uses these terms in that sense. 'national character' (§2002:4: \"A character in a national character set\") is the same notion 2023 uses with its kept 'national character set' entry (§2023:3.125); this compiler's national set is UTF-16 in both editions. The alphanumeric and national representation cases are unchanged and covered at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-04.json",
+  "digests": {
+   "GR-8.3.3.6.4-1": "16d4efec5a1c"
+  }
+ }
+}

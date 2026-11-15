@@ -1,0 +1,1589 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-01 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-01",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-11.2.3-3",
+   "2002-GR-11.5.3-3",
+   "2002-GR-11.9.3-4",
+   "2002-GR-11.9.3-6",
+   "2002-GR-12.2.5.3-13",
+   "2002-GR-12.2.5.3-2",
+   "2002-GR-12.2.5.3-3",
+   "2002-GR-12.2.5.3-9",
+   "2002-GR-12.2.6.3-12",
+   "2002-GR-12.2.6.3-3",
+   "2002-GR-12.2.6.3-5",
+   "2002-GR-12.2.6.3-8",
+   "2002-GR-12.2.6.3-9",
+   "2002-GR-12.2.7.3-9",
+   "2002-GR-12.3.4.12.3-3",
+   "2002-GR-12.3.4.12.3-4",
+   "2002-GR-12.3.4.3-4",
+   "2002-GR-12.3.4.3-5",
+   "2002-GR-12.3.4.3-7",
+   "2002-GR-12.3.4.3-8",
+   "2002-GR-12.3.4.3-9",
+   "2002-GR-12.3.4.5.3-1",
+   "2002-GR-12.3.4.5.3-2",
+   "2002-GR-12.3.4.5.3-3",
+   "2002-GR-12.3.4.6.3-4"
+  ]
+ },
+ "read": {
+  "slice": "p-01",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-11.2.3-3",
+    "to": [
+     "GR-11.3.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.2 CLASS-ID",
+    "clause-2023": "11.3 CLASS-ID",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.2.3 GR3",
+      "quote": "the class shall not be the superclass for any other class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.4 GR3",
+      "quote": "the class shall not be the superclass for any other class",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general formats match (CLASS-ID name [AS] [IS FINAL] [INHERITS] [USING]); 2023 only renames class-name to object-class-name. SR5 (no inheriting from a FINAL class) matches. 2002 SR4's extra clause about parameterized expansion is a separate rule. The rule cannot reach a CD entry, a debugging line or a removed form.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "The rule's 'class' is the object-orientation sense (§2002:4 4.33, word-identical to §2023:3.32), not class of a data item; the changed data-item definition does not reach it."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The entity that defines common behavior and implementation for zero, one, or more objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.32",
+      "quote": "entity that defines common behavior and implementation for zero, one, or more objects",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-11.5.3-3",
+    "to": [
+     "GR-11.6.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.5 INTERFACE-ID",
+    "clause-2023": "11.6 INTERFACE-ID",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.5.3 GR3",
+      "quote": "specifies that this is a parameterized interface",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.6.4 GR3",
+      "quote": "specifies that this is a parameterized interface",
+      "check": "OK"
+     }
+    ],
+    "reason": "The formats match. 2023 adds SR6/SR7 (no duplicate INHERITS or USING names) and bans zero-length literals. Those restrict new or separate syntax, not this descriptive rule.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-11.9.3-4",
+    "to": [
+     "GR-11.10.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.9 PROGRAM-ID",
+    "clause-2023": "11.10 PROGRAM-ID",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.9.3 GR4",
+      "quote": "the program shall not be called while it is active",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.4 GR4",
+      "quote": "the program shall not be called while it is active",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.6.5",
+      "quote": "Functions and methods are always recursive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.6.6",
+      "quote": "Functions and methods are always recursive",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 matches (COMMON/INITIAL/RECURSIVE). 'Implied' recursion is defined in the referenced 8.6.5 (2002) and 8.6.6 (2023), which say the same thing: functions and methods are always recursive. EC-PROGRAM-RECURSIVE-CALL is Fatal in both editions' exception tables.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-11.9.3-6",
+    "to": [
+     "GR-11.10.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.9 PROGRAM-ID",
+    "clause-2023": "11.10 PROGRAM-ID",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.9.3 GR6",
+      "quote": "Program-prototype-name-1 identifies the program prototype",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.4 GR6",
+      "quote": "Program-prototype-name-1 identifies the program prototype",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 (PROTOTYPE) matches in both editions. The literal-1 rules differ only by 2023's zero-length literal ban, and zero-length literals exist only in 2023.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-13",
+    "to": [
+     "GR-12.3.6.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR13",
+      "quote": "are applied to alphanumeric and national sort or merge keys",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR13",
+      "quote": "are applied to alphanumeric and national sort or merge keys",
+      "check": "OK"
+     }
+    ],
+    "reason": "The formats match (computer-name-1, CHARACTER CLASSIFICATION, PROGRAM COLLATING SEQUENCE). The SORT and MERGE COLLATING SEQUENCE phrases the rule names match too (2002 14.8.36/14.8.23, 2023 14.9.40/14.9.24). Neither edition's SET has a collating-sequence format (the only SET route is SET LOCALE), so 'a SET statement' refers to the same thing in both.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-2",
+    "to": [
+     "GR-12.3.6.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR2",
+      "quote": "computer-name-1 and its implied configuration are specified by each implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR2",
+      "quote": "computer-name-1 and its implied configuration are specified by each implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Implementor-defined. Computer-name-1 is the same operand, and the formats match. The 2002 format has no 2002-only form (MEMORY SIZE and SEGMENT-LIMIT were 1985).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-3",
+    "to": [
+     "GR-12.3.6.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR3",
+      "quote": "the object computer is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR3",
+      "quote": "the object computer is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Implementor-defined default; the formats match.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-9",
+    "to": [
+     "GR-12.3.6.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR9",
+      "quote": "the initial alphanumeric program collating sequence is the native alphanumeric collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR9",
+      "quote": "the initial alphanumeric program collating sequence is the native alphanumeric collating sequence",
+      "check": "OK"
+     }
+    ],
+    "reason": "The PROGRAM COLLATING SEQUENCE phrase, the alphabet-name SR1/SR2 and the ALPHABET clause's operand list all match. Probe: with a literal-phrase alphabet as the program collating sequence, LOW-VALUE and HIGH-VALUE come out the same at 2002 and 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-01/hvclass.cbl",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-12",
+    "to": [
+     "GR-12.3.7.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES",
+    "clause-2023": "12.3.7 SPECIAL-NAMES",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR12",
+      "quote": "define the exclusive set of characters of which class-name-1 consists",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR12",
+      "quote": "define the exclusive set of characters of which class-name-1 consists",
+      "check": "OK"
+     }
+    ],
+    "reason": "The CLASS clause format and SR17 match. 2023 SR11 also bans zero-length literals, which exist only in 2023. Probe: a CLASS with a multi-character literal and a descending THRU gives the same results at 2002 and 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-01/hvclass.cbl",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "The rule's 'class' is the class-name of the CLASS clause (a set of data values tested by a class condition), not class of a data item; the 2002 and 2023 rule texts are word-identical. Scope unchanged.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 4.26 'A code value that constitutes the coded representation of a letter, digit, symbol...' and 4.29 'A single code value of a coded character set' are the senses the rule uses ('the actual character within the relevant native character set'); 2023 has no 'character' entry but uses the same meaning. The reader's probe hvclass.cbl (multi-character literal, descending THRU) gives the same result at 2002 and 2023. No change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-3",
+    "to": [
+     "GR-12.3.7.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES",
+    "clause-2023": "12.3.7 SPECIAL-NAMES",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR3",
+      "quote": "The implementor defines which external switches may be referenced by the SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR3",
+      "quote": "The implementor defines which external switches may be referenced by the SET statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "The switch-name entry matches. SET Format 3 (switch-setting) matches (2002 14.8.35, 2023 14.9.39), and so does SR5 (mnemonic-name-1 only in SET). The SEND/WRITE change concerns mnemonic-name-2 (feature-name, SR6), not switches.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-5",
+    "to": [
+     "GR-12.3.7.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES",
+    "clause-2023": "12.3.7 SPECIAL-NAMES",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR5",
+      "quote": "locale-name-1 references a locale identified by external-locale-name-1 or the value of literal-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR5",
+      "quote": "locale-name-1 references a locale identified by external-locale-name-1 or the value of literal-4",
+      "check": "OK"
+     }
+    ],
+    "reason": "The LOCALE clause format and SR10 match; the content is implementor-defined.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-8",
+    "to": [
+     "GR-12.3.7.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES",
+    "clause-2023": "12.3.7 SPECIAL-NAMES",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR8",
+      "quote": "the last character specified is associated with the figurative constant HIGH-VALUE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR8",
+      "quote": "the last character specified is associated with the figurative constant HIGH-VALUE",
+      "check": "OK"
+     }
+    ],
+    "reason": "The high-value figurative constant rules have the same words in both editions (2002 FORMAT 3 GR5, 2023 GR6), including the locale and national cases. The ALPHABET literal-phrase matches. Probe: under a literal-phrase alphabet, HIGH-VALUE is not the last listed character at either edition, as GR k3 of the ALPHABET clause requires.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-01/hvclass.cbl",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. In GR8, 'character' is a member of the program collating sequence, a code value of the alphanumeric or national coded character set (4.26/4.29). The term picks out the same characters in both, so the scope and the evidence do not change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR8",
+      "quote": "If more than one character has the highest position in the program collating sequence, the last character specified is associated with the figurative constant HIGH-VALUE",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-9",
+    "to": [
+     "GR-12.3.7.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES",
+    "clause-2023": "12.3.7 SPECIAL-NAMES",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR9",
+      "quote": "the first character specified is associated with the figurative constant LOW-VALUE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR9",
+      "quote": "the first character specified is associated with the figurative constant LOW-VALUE",
+      "check": "OK"
+     }
+    ],
+    "reason": "As GR8, for LOW-VALUE: the low-value format rules match. Probe: LOW-VALUE is 'Z' (the first character of ALPHABET REV IS \"Z\" \"B\" \"A\") at both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-01/hvclass.cbl",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. In GR9, 'character' is a member of the program collating sequence (4.26/4.29). The term picks out the same characters in both, so the scope and the evidence do not change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR9",
+      "quote": "the first character specified is associated with the figurative constant LOW-VALUE",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-9",
+    "to": [
+     "GR-12.3.8.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.7 REPOSITORY",
+    "clause-2023": "12.3.8 REPOSITORY",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR9",
+      "quote": "the information specified for interface-name-2 together with the external repository",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR9",
+      "quote": "the information specified for interface-name-2 together with the external repository",
+      "check": "OK"
+     }
+    ],
+    "reason": "The interface-specifier matches (class-name-4 is renamed object-class-name-4), and SR7-SR9 are equivalent. 2023 splits the function-specifier into intrinsic- and user-defined-function-specifiers without removing a form. Implementor-defined.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.12.3-3",
+    "to": [
+     "GR-12.4.5.12.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.12 RECORD KEY",
+    "clause-2023": "12.4.5.12 RECORD KEY",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.3 GR3",
+      "quote": "shall be the same as that used when the file was created",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.4 GR3",
+      "quote": "shall be the same as that used when the file was created",
+      "check": "OK"
+     }
+    ],
+    "reason": "The formats match. 2023 SR1 ('not subject to any OCCURS clauses') replaces 2002 SR1 ('may be qualified'). In 2002 a table element reference had to be subscripted (8.4.1 subscript SR5 lists no exception for key clauses), and the data-name format admits no subscript, so 2023 removes no case 2002 allowed. 2023 still allows qualification under its general rules.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.12.3-4",
+    "to": [
+     "GR-12.4.5.12.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.12 RECORD KEY",
+    "clause-2023": "12.4.5.12 RECORD KEY",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.3 GR4",
+      "quote": "are implicitly referenced as keys for all other record description entries of that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.4 GR4",
+      "quote": "are implicitly referenced as keys for all other record description entries of that file",
+      "check": "OK"
+     }
+    ],
+    "reason": "As GR3. The byte-position rules are the same for alphanumeric and national keys (SR2 matches).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-4",
+    "to": [
+     "GR-12.4.5.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4 File control entry",
+    "clause-2023": "12.4.5 File control entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR4",
+      "quote": "the meaning and rules for the allowable content of the data item referenced by data-name-1 are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR4",
+      "quote": "the meaning and rules for the allowable content of the data item referenced by data-name-1 are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The ASSIGN ... USING data-name-1 phrase matches in all four formats of both editions; the content is implementor-defined. 2023 drops 2002 SR8 (qualification), but its general rules still allow it. 2023 also removed PADDING CHARACTER from Format 3 (see GR8), which does not interact with this rule on USING content.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-5",
+    "to": [
+     "GR-12.4.5.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4 File control entry",
+    "clause-2023": "12.4.5 File control entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR5",
+      "quote": "The indexed format defines a file connector for an indexed file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR5",
+      "quote": "The indexed format defines a file connector for an indexed file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.4 GR6",
+      "quote": "Literal-1 establishes the key suppression value for this alternate record key",
+      "check": "OK"
+     }
+    ],
+    "reason": "Every phrase of the 2002 Format 1 (indexed) is in the 2023 Format 1; 2023 only adds SUPPRESS WHEN to ALTERNATE RECORD KEY.",
+    "probe": null,
+    "widening": "The 2023 indexed format adds ALTERNATE RECORD KEY ... SUPPRESS WHEN literal-1."
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-7",
+    "to": [
+     "GR-12.4.5.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4 File control entry",
+    "clause-2023": "12.4.5 File control entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR7",
+      "quote": "The relative format defines a file connector for a relative file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR7",
+      "quote": "The relative format defines a file connector for a relative file",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 (relative) matches phrase for phrase in both editions.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-8",
+    "to": [
+     "GR-12.4.5.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4 File control entry",
+    "clause-2023": "12.4.5 File control entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR8",
+      "quote": "The sequential format defines a file connector for a sequential file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR8",
+      "quote": "The sequential format defines a file connector for a sequential file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10",
+      "quote": "The PADDING CHARACTER clause is an obsolete element in this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.3 GR1h",
+      "quote": "The same specification of the PADDING CHARACTER clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR1h",
+      "quote": "The same specification of the RELATIVE KEY clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.2 SR12",
+      "quote": "Format 3 shall be specified only for a sequential file or a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR11",
+      "quote": "Format 3 shall be specified only for a sequential file or a report file",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 Format 3 (sequential) includes [PADDING CHARACTER IS {data-name-8|literal-2}] (12.3.4.10, obsolete in 2002). The 2023 Format 3 has no PADDING CHARACTER (it adds LINE/RECORD SEQUENTIAL instead). 2002 GR1h names PADDING CHARACTER in the external-connector consistency list; 2023 GR1h is RELATIVE KEY. So 'the sequential format' in 2002 covers a file control entry with PADDING CHARACTER, and the 2023 rule says nothing about that entry. Probe: --std 2002 accepts the entry with an obsolete warning (COBOL0903), defines a sequential connector, writes and reads back 'HELLO'. --std 2023 rejects it (COBOL0902).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-01/padchar.cbl",
+    "widening": "The 2023 Format 3 also adds [ORGANIZATION IS] {LINE|RECORD} SEQUENTIAL, which 2002 lacks.",
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 a sequential-format file control entry with PADDING CHARACTER IS \"*\" is accepted with an obsolete-element warning (COBOL0903), defines a sequential file connector, and the program writes and reads 'HELLO' (a 2002 witness for that case)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-01/padchar.cbl)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-9",
+    "to": [
+     "GR-12.4.5.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4 File control entry",
+    "clause-2023": "12.4.5 File control entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR9",
+      "quote": "The sort-merge format defines a file connector for a sort-merge file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR9",
+      "quote": "The sort-merge format defines a file connector for a sort-merge file",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 4 (sort-merge) matches in both editions: SELECT [OPTIONAL], ASSIGN, [ORGANIZATION IS SEQUENTIAL]. SR13 matches.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.5.3-1",
+    "to": [
+     "GR-12.4.5.6.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.5 ALTERNATE RECORD KEY",
+    "clause-2023": "12.4.5.6 ALTERNATE RECORD KEY",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.3 GR1",
+      "quote": "specifies an alternate record key for the file with which this clause is associated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.4 GR1",
+      "quote": "specifies an alternate record key for the file with which this clause is associated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.4 GR6",
+      "quote": "Literal-1 establishes the key suppression value for this alternate record key",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 format is a subset of the 2023 format, and SR2-SR6 match. The OCCURS point is the same as for RECORD KEY.",
+    "probe": null,
+    "widening": "2023 adds SUPPRESS WHEN literal-1 (SR7, GR6)."
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.5.3-2",
+    "to": [
+     "GR-12.4.5.6.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.5 ALTERNATE RECORD KEY",
+    "clause-2023": "12.4.5.6 ALTERNATE RECORD KEY",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.3 GR2",
+      "quote": "defines a record key consisting of the concatenation of all occurrences of data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.4 GR2",
+      "quote": "defines a record key consisting of the concatenation of all occurrences of data-name-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "The SOURCE phrase and SR6 match.",
+    "probe": null,
+    "widening": "2023 adds SUPPRESS WHEN, which does not affect key concatenation."
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.5.3-3",
+    "to": [
+     "GR-12.4.5.6.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.5 ALTERNATE RECORD KEY",
+    "clause-2023": "12.4.5.6 ALTERNATE RECORD KEY",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.3 GR3",
+      "quote": "The number of alternate record keys for the file shall also be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.4 GR3",
+      "quote": "The number of alternate record keys for the file shall also be the same",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rules match. 2023 GR1k also requires the same SUPPRESS WHEN phrase for external connectors, but that phrase exists only in 2023.",
+    "probe": null,
+    "widening": "SUPPRESS WHEN exists only in 2023."
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.6.3-4",
+    "to": [
+     "GR-12.4.5.7.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.6 COLLATING SEQUENCE",
+    "clause-2023": "12.4.5.7 COLLATING SEQUENCE",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.3 GR4",
+      "quote": "the native alphanumeric collating sequence applies to any record keys of class alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.4 GR4",
+      "quote": "the native alphanumeric collating sequence applies to any record keys of class alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "reason": "Formats 1 and 2 match. 2023 SR6 (key-level names not subscripted) is already implied in 2002 by the data-name format. File control entry GR6 (the native sequences by default) matches.",
+    "probe": null,
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-01",
+  "cases": [
+   {
+    "rule-id": "2002-GR-11.2.3-3",
+    "verdict": "UPHELD",
+    "reason": "CLASS-ID formats match (class-name renamed object-class-name). The FINAL rule leans on 'superclass' and INHERITS, which are unchanged. The 2023 additions (SR9: no duplicate USING names) and the 2002-only SR4 second sentence and SR7 do not touch FINAL. No CD or removed-form reach.",
+    "citations": [
+     {
+      "cite": "§2002:11.2.3 GR3",
+      "quote": "the class shall not be the superclass for any other class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.4 GR3",
+      "quote": "the class shall not be the superclass for any other class",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-11.5.3-3",
+    "verdict": "DOUBTFUL",
+    "reason": "GR3's subject is the USING clause itself. 2023 adds SR7, which forbids a parameter-name repeated in USING; 2002's INTERFACE-ID syntax rules have no such rule (2002 SR4 only requires each name to be in a REPOSITORY specifier; 2014 Annex E lists no such change). So 'INTERFACE-ID. I USING P P.' is not rejected by any 2002 rule I can find, and GR3 would make it a parameterized interface; the 2023 verdict says nothing about it. Settle: decide whether 2002's scope-of-names rules (8.4.1.1, 8.4.5) already make a repeated formal parameter invalid (then UPHELD), or the row needs a 2002 witness for the repeated-name case. Same question for CLASS-ID (2023 11.3.3 SR9).",
+    "citations": [
+     {
+      "cite": "§2023:11.6.3 SR7",
+      "quote": "A given parameter-name shall not appear more than once in a USING clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.5.2 SR4",
+      "quote": "Parameter-name-1 shall be a name specified in a class-specifier or an interface-specifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.5.3 GR3",
+      "quote": "The USING clause specifies that this is a parameterized interface",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.6.4 GR3",
+      "quote": "The USING clause specifies that this is a parameterized interface",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-11.9.3-4",
+    "verdict": "DOUBTFUL",
+    "reason": "PROGRAM-ID format, 8.6.5/8.6.6 and the EC-PROGRAM-RECURSIVE-CALL table entry are the same. But 'shall not be called while it is active' reaches, in 2002, a call made with CALL ... ON OVERFLOW, a form 2023 removed; 2002 CALL GR3g1 sends the EC-PROGRAM-RECURSIVE-CALL case to the ON OVERFLOW imperative statement. The removed form lives in the CALL clause, not in PROGRAM-ID, so whether it counts for this row is a policy question. Probe: at --std 2002 a non-recursive RCA called again from RCB via CALL \"RCA\" ON OVERFLOW prints 'OVERFLOW TAKEN' and continues (correct per 2002 CALL GR3e/GR3g1); --std 2023 rejects ON OVERFLOW (COBOL0882). Settle: if the ON OVERFLOW path must be witnessed per rule, this probe is the 2002 witness; otherwise UPHELD.",
+    "citations": [
+     {
+      "cite": "§2002:11.9.3 GR4",
+      "quote": "the program shall not be called while it is active",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.4 GR4",
+      "quote": "the program shall not be called while it is active",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3g1",
+      "quote": "an ON OVERFLOW or ON EXCEPTION phrase is specified in the CALL statement",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/reccall.cbl"
+   },
+   {
+    "rule-id": "2002-GR-11.9.3-6",
+    "verdict": "UPHELD",
+    "reason": "Format 2 (PROTOTYPE) is the same in both; the only change is 2023's zero-length-literal ban, and zero-length literals do not exist in 2002.",
+    "citations": [
+     {
+      "cite": "§2002:11.9.3 GR6",
+      "quote": "Program-prototype-name-1 identifies the program prototype",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.4 GR6",
+      "quote": "Program-prototype-name-1 identifies the program prototype",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-13",
+    "verdict": "UPHELD",
+    "reason": "OBJECT-COMPUTER format and GR1-GR13 are word-identical. The 'SET statement' route is SET LOCALE (LC_COLLATE) in both (2002 14.8.35 Format 10, 2023 Format 11); there is no collating-sequence SET format in either.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR13",
+      "quote": "are applied to alphanumeric and national sort or merge keys",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR13",
+      "quote": "are applied to alphanumeric and national sort or merge keys",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-2",
+    "verdict": "UPHELD",
+    "reason": "Implementor-defined; the operand and format are the same.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR2",
+      "quote": "computer-name-1 and its implied configuration are specified by each implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR2",
+      "quote": "computer-name-1 and its implied configuration are specified by each implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-3",
+    "verdict": "UPHELD",
+    "reason": "An implementor-defined default; the format is the same.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR3",
+      "quote": "the object computer is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR3",
+      "quote": "the object computer is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-9",
+    "verdict": "UPHELD",
+    "reason": "The PROGRAM COLLATING SEQUENCE phrase and the ALPHABET clause (operands, Table 7, GR7 a-k) are the same; the UCS-4/UTF wording changes concern national coded character sets, not this default.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR9",
+      "quote": "the initial alphanumeric program collating sequence is the native alphanumeric collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR9",
+      "quote": "the initial alphanumeric program collating sequence is the native alphanumeric collating sequence",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-12",
+    "verdict": "UPHELD",
+    "reason": "The CLASS clause format, SR17 a-d and the GR12 text are the same; the only change is the zero-length-literal ban in SR11.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR12",
+      "quote": "define the exclusive set of characters of which class-name-1 consists",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR12",
+      "quote": "define the exclusive set of characters of which class-name-1 consists",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-3",
+    "verdict": "UPHELD",
+    "reason": "The switch-name entry is the same and so is SR5 (mnemonic-name-1 only in SET). The SEND removal concerns mnemonic-name-2 (SR6), not switches.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR3",
+      "quote": "The implementor defines which external switches may be referenced by the SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR3",
+      "quote": "The implementor defines which external switches may be referenced by the SET statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-5",
+    "verdict": "UPHELD",
+    "reason": "The LOCALE clause format and SR10 are the same; the content is implementor-defined.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR5",
+      "quote": "locale-name-1 references a locale identified by external-locale-name-1 or the value of literal-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR5",
+      "quote": "locale-name-1 references a locale identified by external-locale-name-1 or the value of literal-4",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-8",
+    "verdict": "UPHELD",
+    "reason": "GR8, GR10, the literal-phrase rules (GR7k) and SR11/SR14 are the same apart from the zero-length-literal ban. The program collating sequence the rule rests on is unchanged.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR8",
+      "quote": "the last character specified is associated with the figurative constant HIGH-VALUE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR8",
+      "quote": "the last character specified is associated with the figurative constant HIGH-VALUE",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-9",
+    "verdict": "UPHELD",
+    "reason": "The same as GR8, for LOW-VALUE.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR9",
+      "quote": "the first character specified is associated with the figurative constant LOW-VALUE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR9",
+      "quote": "the first character specified is associated with the figurative constant LOW-VALUE",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-9",
+    "verdict": "DOUBTFUL",
+    "reason": "GR9 decides which interface interface-name-2 denotes. That rests on 9.3.13, which changed. In 2002 a new interface instance is created whenever 'a parameterized interface is specified in the REPOSITORY paragraph'; in 2023 only when it is 'specified as the parameterized interface in an EXPANDS phrase'. 2023 GR7 also adds that a USING-described interface may be specified only in the REPOSITORY paragraph. So for an interface-specifier naming a parameterized interface without EXPANDS, 2002 GR9 may resolve an expanded instance that 2023 never creates. Settle: decide whether the 2002 9.3.13 wording admits a non-EXPANDS instance (then OVERTURNED, class deferral) or is the same rule that 2023 only clarified (then UPHELD).",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR9",
+      "quote": "the information specified for interface-name-2 together with the external repository",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR9",
+      "quote": "the information specified for interface-name-2 together with the external repository",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.13",
+      "quote": "When a parameterized interface is specified in the REPOSITORY paragraph, a new interface",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.13",
+      "quote": "When an interface is specified as the parameterized interface in an EXPANDS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR7",
+      "quote": "may be specified only in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.12.3-3",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002, data-name-1/data-name-2 is a user-defined word 'including qualification and subscription if needed' (5.1.3), and a table element reference shall be subscripted (8.4.1.2.2 SR5). So RECORD KEY IS K(2), for K in an OCCURS, is legal 2002, and 2002 SR1 only adds 'may be qualified'. 2023 SR1 says data-name-1 and data-name-2 'shall not be subject to any OCCURS clauses'. The 2014 Annex E.2 item 25 says this restriction was added after 2002, which allowed subscripting by default. The reader's premise that the 2002 data-name admits no subscript is wrong. GR3 governs the 2002 subscripted key, and the 2023 verdict says nothing about it. Probe: both --std 2002 and --std 2023 reject RECORD KEY IS K(2) (COBOL2024, citing §2023:8.4.2.2.2), so the compiler at 2002 rejects legal 2002 source.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR5",
+      "quote": "Each table element reference shall be subscripted except when such reference appears",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.12.3 GR3",
+      "quote": "shall be the same as that used when the file was created",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/reckey.cbl"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.12.3-4",
+    "verdict": "OVERTURNED",
+    "reason": "The same as GR3. A 2002 RECORD KEY that is a subscripted table element (legal by 5.1.3 and 8.4.1.2.2 SR5) is removed by 2023 SR1. GR4's 'identical byte positions' rule for such a key across record descriptions has no 2023 counterpart. Probe reckey.cbl: rejected at --std 2002 (COBOL2024).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.3 GR4",
+      "quote": "are implicitly referenced as keys for all other record description entries of that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/reckey.cbl"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-4",
+    "verdict": "UPHELD",
+    "reason": "ASSIGN ... USING data-name-1 is the same in all four formats, and SR7 is the same; 2023 adds no OCCURS restriction on data-name-1. The content is implementor-defined. PADDING CHARACTER (removed) does not bear on USING content.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR4",
+      "quote": "the meaning and rules for the allowable content of the data item referenced by data-name-1 are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR4",
+      "quote": "the meaning and rules for the allowable content of the data item referenced by data-name-1 are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-5",
+    "verdict": "OVERTURNED",
+    "reason": "The indexed format's operands FILE STATUS data-name-4, RECORD KEY data-name-5/6 and ALTERNATE RECORD KEY data-name-2/3 admit a subscripted table-element reference in 2002 (5.1.3; 2014 E.2 item 25). 2023 removes that case: FILE STATUS SR1, RECORD KEY SR1 and ALTERNATE RECORD KEY SR1 each say 'shall not be subject to any OCCURS clauses'. So 'the indexed format' covers 2002 entries that 2023 rejects, the same mechanism as the reader's GR8 DIFFERENT. Probe reckey.cbl: --std 2002 rejects RECORD KEY K(2), ALTERNATE A(1) and FILE STATUS FS(1).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR5",
+      "quote": "The indexed format defines a file connector for an indexed file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.7.2 SR1",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.8.3 SR1",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/reckey.cbl"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-7",
+    "verdict": "OVERTURNED",
+    "reason": "The relative format's RELATIVE KEY data-name-7 and FILE STATUS data-name-4 may be subscripted table elements in 2002 (12.3.4.13.2 SR1 says only 'may be qualified'; 5.1.3). 2023 RELATIVE KEY SR1 and FILE STATUS SR1 forbid any OCCURS. Probe relkey.cbl: RELATIVE KEY IS RK(2) is rejected at --std 2002 and 2023 (COBOL2024).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR7",
+      "quote": "The relative format defines a file connector for a relative file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.13.2 SR1",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.3 SR1",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.8.3 SR1",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/relkey.cbl"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-9",
+    "verdict": "UPHELD",
+    "reason": "Format 4 holds only SELECT [OPTIONAL], ASSIGN (TO/USING data-name-1) and [ORGANIZATION IS] SEQUENTIAL in both editions. Data-name-1 carries no new OCCURS restriction in 2023 (SR7 is the same).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR9",
+      "quote": "The sort-merge format defines a file connector for a sort-merge file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR9",
+      "quote": "The sort-merge format defines a file connector for a sort-merge file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.5.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "2002 SR1 says only 'may be qualified', and data-name-1/2 may be subscripted (5.1.3; 2014 E.2 item 25). 2023 SR1 forbids any OCCURS. An ALTERNATE RECORD KEY IS A(1) that is legal in 2002 is outside the 2023 rule. Probe reckey.cbl: rejected at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.5.3 GR1",
+      "quote": "specifies an alternate record key for the file with which this clause is associated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/reckey.cbl"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.5.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "The same as GR1. Data-name-2 in SOURCE may be a subscripted table element in 2002, and 2023 SR1 forbids it. A 2002 concatenated key built from subscripted SOURCE items has no 2023 counterpart.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.3 GR2",
+      "quote": "defines a record key consisting of the concatenation of all occurrences of data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/reckey.cbl"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.5.3-3",
+    "verdict": "OVERTURNED",
+    "reason": "The same as GR1. The fixed-attribute rule covers 2002 alternate keys that are subscripted table elements, which 2023 SR1 removes.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.3 GR3",
+      "quote": "The number of alternate record keys for the file shall also be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/reckey.cbl"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.6.3-4",
+    "verdict": "OVERTURNED",
+    "reason": "GR4 leans on two things: the set of record keys, and the keys 'specified in a key-level format'. In 2002 both may be subscripted table elements: key-level SR4 only requires the name used in a (ALTERNATE) RECORD KEY clause, and nothing forbids a subscript (5.1.3). 2023 adds key-level SR6 ('shall not be subscripted') and the RECORD KEY and ALTERNATE RECORD KEY SR1 OCCURS bans. So GR4's enumeration covers 2002 keys that 2023 lacks.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.3 GR4",
+      "quote": "not specified in a key-level format of another COLLATING SEQUENCE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.4 GR4",
+      "quote": "not specified in a key-level format of another COLLATING SEQUENCE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.6.2 SR4",
+      "quote": "Data-name-1 shall be a name specified as the data-name in an ALTERNATE RECORD KEY clause or in a RECORD KEY clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR6",
+      "quote": "Data-name-1 and record-key-name-1 shall not be subscripted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/reckey.cbl"
+   }
+  ],
+  "disputed-different": [],
+  "notes": "The fifth cause: 2002 lets data-name-n in a general format be subscripted by default (§2002:5.1.3; §2014:E.2 item 25 says so and says 2014 added the bans). 2023 forbids OCCURS for FILE STATUS, RECORD KEY, ALTERNATE RECORD KEY and RELATIVE KEY, and subscripts for key-level COLLATING SEQUENCE. Any word-identical rule on those clauses, or on the formats that hold them, is wider in 2002. The pinned compiler rejects these subscripts at --std 2002 with 2023 citations (COBOL2024), so it rejects legal 2002 source. Sweep the other 500 KEPT candidates for the same clauses and for 2023's other 'not subject to any OCCURS' rules (e.g. 13.18 at 2023 lines 16140, 17002, 18918, 19064, 25112, 27965, 28182)."
+ },
+ "imported": {
+  "asked": "967f4ab033f9631ce68c555edf0456185a849e82c5d5c6989bff36c8c5239538",
+  "read": "d34e7cc96bb87fdd49c62e33dc110251c41713889bcada3d641b5799cc19004a",
+  "refute": "e8e4609bc50326b8565158680fdf54b990fd2f06dc664f39b28ca572ce939614"
+ }
+}

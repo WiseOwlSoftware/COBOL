@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-11.2.3-5",
+ "rule-digest": "fb5823973c5d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-11.3.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "The rule's 'class' is the object-orientation class (§2002:4: 'The entity that defines common behavior and implementation for zero, one, or more objects'). The class-of-a-data-item definition does not reach it."
+   },
+   "cross-reference": {
+    "flag": "9.3.12",
+    "answer": "I read §2002:9.3.12. 'An expansion of a parameterized class is treated in all respects the same as if it were a class that is not a parameterized class' is identical. The diff shows only class-name against object-class-name, and 2002's 'specified in the REPOSITORY paragraph' against 2023's 'in an EXPANDS phrase'; the 2002 REPOSITORY class-specifier is where EXPANDS ... USING is written. The behaviour is the same, and pb759 runs at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "GR-11.3.4-5": "fb5823973c5d"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-8.4.2.6.2-1",
+ "rule-digest": "946343b58122",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.6.3-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "held": {
+    "flag": "S1 (adopt-2002): its witness was refused at 2002 for the exception-object user word, which the rule names",
+    "answer": "The S1 record shows the refused witness is pb922_exception_object_user_word_85, an 85 program using EXCEPTION-OBJECT as a user word, widened to 2002 and refused there (COBOL2196/COBOL1694). That refusal is right: 2002 makes EXCEPTION-OBJECT a predefined object reference (§2002:8.4.2.6) and a reserved word (§2002:8.9), so that program is not 2002 source. The rule's own witnesses hold at 2002: pb922_exception_object_reference passes (S1 class pass) and pb922-exception-object-receiving draws COBOL2196 (SR1's words) at --std 2002 (reader's refusals.log). Hold answered; no change."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "SR-8.4.3.6.3-1": "946343b58122"
+  }
+ }
+}

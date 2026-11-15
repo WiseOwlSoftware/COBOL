@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-DOC-B.1-59",
+ "rule-digest": "daceb9949177",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "DOC-A.1-78"
+  ],
+  "bridge": true,
+  "answers": {
+   "cross-reference": {
+    "flag": "9.1.6",
+    "answer": "I read §2002:9.1.6. A word diff with §2023:9.1.6 shows only the list of OTHER fixed attributes: 2002 has 'the padding character', and 2023 drops it and adds 'SUPPRESS WHEN attribute'. The sentence the item rests on ('The implementor shall specify whether the ability to share a physical file is a fixed file attribute') is identical, so the scope is unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-44.json",
+  "digests": {
+   "DOC-A.1-78": "daceb9949177"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-13.16.39.3-2",
+ "rule-digest": "58bdcbf352e2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.41.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so the report group whose entries carry PRESENT WHEN is the same; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "Matched on the word 'corresponding' (the corresponding data item of a PRESENT WHEN entry), not on the CORRESPONDING phrase, the size error condition or the arithmetic statements of §2002:14.6.4 and 14.6.6; the rule does not rest on them. pb1272_present_when_snapshot and pb4031_report_overflow_checking re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+   }
+  },
+  "source": "lineage-reads-2002/q-17.json",
+  "digests": {
+   "GR-13.18.41.4-2": "58bdcbf352e2"
+  }
+ }
+}

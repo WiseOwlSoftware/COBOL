@@ -1,0 +1,2491 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-14 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-14",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-13.16.21.2-2",
+   "2002-GR-13.16.21.3-1",
+   "2002-GR-13.16.21.3-3",
+   "2002-GR-13.16.21.3-4",
+   "2002-SR-13.16.22.2-1",
+   "2002-SR-13.16.22.2-2",
+   "2002-GR-13.16.22.3-1",
+   "2002-GR-13.16.22.3-10",
+   "2002-GR-13.16.22.3-11",
+   "2002-GR-13.16.22.3-12",
+   "2002-GR-13.16.22.3-3",
+   "2002-GR-13.16.22.3-4",
+   "2002-GR-13.16.22.3-5",
+   "2002-GR-13.16.22.3-6",
+   "2002-GR-13.16.22.3-7",
+   "2002-GR-13.16.22.3-8",
+   "2002-GR-13.16.22.3-9",
+   "2002-SR-13.16.23.2-1",
+   "2002-SR-13.16.23.2-2",
+   "2002-GR-13.16.23.3-1",
+   "2002-GR-13.16.24.2-1",
+   "2002-GR-13.16.24.2-2",
+   "2002-GR-13.16.24.2-3",
+   "2002-GR-13.16.24.2-4",
+   "2002-GR-13.16.24.2-5"
+  ],
+  "flags": {
+   "2002-SR-13.16.21.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.21.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.21.3-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.21.3-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.22.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.22.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.22.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "changed-definition-term": "runtime module"
+   },
+   "2002-GR-13.16.22.3-10": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.22.3-11": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.22.3-12": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "changed-definition-term": "run unit"
+   },
+   "2002-GR-13.16.22.3-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.22.3-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "normalized": "normalized"
+   },
+   "2002-GR-13.16.22.3-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.22.3-6": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.22.3-7": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.22.3-8": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.22.3-9": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.23.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.23.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.23.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.24.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.24.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.24.2-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "changed-definition-term": "digit position"
+   },
+   "2002-GR-13.16.24.2-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.24.2-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-14",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.21.2-2",
+    "to": [
+     "SR-13.18.23.3-2"
+    ],
+    "clause-2002": "§2002:13.16.21.2",
+    "clause-2023": "§2023:13.18.23.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FOREGROUND-COLOR clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FOREGROUND-COLOR appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FOREGROUND-COLOR clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-foreground-color.cob (diagnostics/a42-screen-foreground-color.json refuse-at includes 2002, expect 'COBOL1560: the FOREGROUND-COLOR clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FOREGROUND-COLOR clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.21.2 SR2",
+      "quote": "Integer-1 shall have a value in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.3 SR2",
+      "quote": "Integer-1 shall have a value in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FOREGROUND-COLOR clause are word-identical in §2002:13.16.21 and §2023:13.18.23 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.21.3-1",
+    "to": [
+     "GR-13.18.23.4-1"
+    ],
+    "clause-2002": "§2002:13.16.21.3",
+    "clause-2023": "§2023:13.18.23.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FOREGROUND-COLOR clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FOREGROUND-COLOR appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FOREGROUND-COLOR clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-foreground-color.cob (diagnostics/a42-screen-foreground-color.json refuse-at includes 2002, expect 'COBOL1560: the FOREGROUND-COLOR clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FOREGROUND-COLOR clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.21.3 GR1",
+      "quote": "When an ACCEPT screen statement or a DISPLAY screen statement referencing the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.4 GR1",
+      "quote": "When an ACCEPT screen statement or a DISPLAY screen statement referencing the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FOREGROUND-COLOR clause are word-identical in §2002:13.16.21 and §2023:13.18.23 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.21.3-3",
+    "to": [
+     "GR-13.18.23.4-3"
+    ],
+    "clause-2002": "§2002:13.16.21.3",
+    "clause-2023": "§2023:13.18.23.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FOREGROUND-COLOR clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FOREGROUND-COLOR appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FOREGROUND-COLOR clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-foreground-color.cob (diagnostics/a42-screen-foreground-color.json refuse-at includes 2002, expect 'COBOL1560: the FOREGROUND-COLOR clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FOREGROUND-COLOR clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.21.3 GR3",
+      "quote": "A FOREGROUND-COLOR clause specified at the group level applies to each elementary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.4 GR3",
+      "quote": "A FOREGROUND-COLOR clause specified at the group level applies to each elementary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FOREGROUND-COLOR clause are word-identical in §2002:13.16.21 and §2023:13.18.23 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.21.3-4",
+    "to": [
+     "GR-13.18.23.4-4"
+    ],
+    "clause-2002": "§2002:13.16.21.3",
+    "clause-2023": "§2023:13.18.23.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FOREGROUND-COLOR clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FOREGROUND-COLOR appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FOREGROUND-COLOR clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-foreground-color.cob (diagnostics/a42-screen-foreground-color.json refuse-at includes 2002, expect 'COBOL1560: the FOREGROUND-COLOR clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FOREGROUND-COLOR clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.21.3 GR4",
+      "quote": "When a FOREGROUND-COLOR clause is not specified or the value is not",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.4 GR4",
+      "quote": "When a FOREGROUND-COLOR clause is not specified or the value is not",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FOREGROUND-COLOR clause are word-identical in §2002:13.16.21 and §2023:13.18.23 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.22.2-1",
+    "to": [
+     "SR-13.18.24.3-1"
+    ],
+    "clause-2002": "§2002:13.16.22.2",
+    "clause-2023": "§2023:13.18.24.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.2 SR1",
+      "quote": "If more than one record description entry is associated with a file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.3 SR1",
+      "quote": "If more than one record description entry is associated with a file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.22.2-2",
+    "to": [
+     "SR-13.18.24.3-2"
+    ],
+    "clause-2002": "§2002:13.16.22.2",
+    "clause-2023": "§2023:13.18.24.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.2 SR2",
+      "quote": "The REDEFINES clause and the RENAMES clause shall not be specified in",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.3 SR2",
+      "quote": "The REDEFINES clause and the RENAMES clause shall not be specified in",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-1",
+    "to": [
+     "GR-13.18.24.4-1"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR1",
+      "quote": "The FORMAT clause specifies that external media format is to be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR1",
+      "quote": "The FORMAT clause specifies that external media format is to be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect.",
+     "changed-definition-term: runtime module: §2002:4 (item 4.168) 'The result of compiling a compilation unit' vs §2023:3.160 'runtime element consisting of one or more runtime elements', reworded; the GR1 NOTE uses it only to say the record area holds internal representation, scope unchanged in 2002."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-10",
+    "to": [
+     "GR-13.18.24.4-10"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR10",
+      "quote": "The implementor shall specify the representation produced as a result of processing",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR10",
+      "quote": "The implementor shall specify the representation produced as a result of processing",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-11",
+    "to": [
+     "GR-13.18.24.4-11"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR11",
+      "quote": "Data items selected for formatting are restored to the same internal representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR11",
+      "quote": "Data items selected for formatting are restored to the same internal representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-12",
+    "to": [
+     "GR-13.18.24.4-12"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR12",
+      "quote": "If the associated file connector is an external file connector, all file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR12",
+      "quote": "If the associated file connector is an external file connector, all file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect.",
+     "changed-definition-term: run unit: §2002:4 (item 4.166) 'One or more runtime modules that interact with one another' vs §2023:3.158 'runtime entity consisting of one or more runtime modules', reworded; GR12 governs every FD of the 2002 run unit sharing an external file connector, scope unchanged; evidence is still absent because the clause is refused."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-3",
+    "to": [
+     "GR-13.18.24.4-3"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR3",
+      "quote": "Elementary data description entries of the selected record description entry are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR3",
+      "quote": "Elementary data description entries of the selected record description entry are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-4",
+    "to": [
+     "GR-13.18.24.4-4"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR4",
+      "quote": "If CHARACTER is specified, data items described with the following characteristics are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR4",
+      "quote": "If CHARACTER is specified, data items described with the following characteristics are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect.",
+     "normalized: the 2002 and 2023 GR4 texts differ only in the transcription's line-break backslashes after each dash item; the six-item list (alphabetic, alphanumeric, boolean display, national, numeric display, numeric national) is identical; GR-13.18.24.4-4 is the pointer."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-5",
+    "to": [
+     "GR-13.18.24.4-5"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR5",
+      "quote": "If BIT is specified, data items described with class boolean and usage",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR5",
+      "quote": "If BIT is specified, data items described with class boolean and usage",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-6",
+    "to": [
+     "GR-13.18.24.4-6"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR6",
+      "quote": "If NUMERIC is specified, data items described with class numeric and a",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR6",
+      "quote": "If NUMERIC is specified, data items described with class numeric and a",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-7",
+    "to": [
+     "GR-13.18.24.4-7"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR7",
+      "quote": "If a data item is not selected for formatting, it is transferred",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR7",
+      "quote": "If a data item is not selected for formatting, it is transferred",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-8",
+    "to": [
+     "GR-13.18.24.4-8"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR8",
+      "quote": "For a WRITE or REWRITE statement, each selected data item is formatted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR8",
+      "quote": "For a WRITE or REWRITE statement, each selected data item is formatted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.22.3-9",
+    "to": [
+     "GR-13.18.24.4-9"
+    ],
+    "clause-2002": "§2002:13.16.22.3",
+    "clause-2023": "§2023:13.18.24.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "scope-2002": [
+     "file description entries with a FORMAT clause (BIT / CHARACTER / NUMERIC, any combination, optional DATA) in the 2002 file section, their record description entries and the FROM/INTO identifiers of READ, WRITE and REWRITE on such files (§2002:13.16.22)"
+    ],
+    "evidence-2002": [
+     "FORMAT clause: not shown. The 2023 row's witness (negative/a48-format-clause-declined, refuse-at includes 2002) shows only that the compiler REFUSES the clause; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out): --std 2002 gives error COBOL1705 on 'FD F ... FORMAT CHARACTER DATA'."
+    ],
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (§2002:3.1, §2002:3.1.1; not in §2002:B.3; §2002:B.1 item 64 required); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out) (COBOL1705 Error at --std 2002 and 2023)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob: sequential FD F RECORD VARYING FROM 1 TO 20 CHARACTERS FORMAT CHARACTER DATA, 01 R with PIC X(5) and PIC S9(3), OPEN OUTPUT / WRITE R / CLOSE",
+     "expected": "accepted and run at --std 2002, the selected items written in external media format (§2002:13.16.22.3 GR1, GR4, GR8; GR10 lets the representation equal internal representation but GR8 still presents signs as SIGN IS LEADING SEPARATE); the 2002 text licenses no refusal (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; only Annex A is optional)",
+     "observed": "fmt.cob(9,8): error COBOL1705: the FORMAT clause on file description entry 'F' (FORMAT CHARACTER DATA): ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition",
+     "sibling": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/sw.cob (sw-2002.out): the SELECT WHEN clause (§2002:13.16.49) is refused by the same COBOL1705 path at --std 2002 and is equally required in 2002; the a48-* witnesses pin the refusal at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.22.3 GR9",
+      "quote": "For a READ statement, each selected data item is formatted as necessary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR9",
+      "quote": "For a READ statement, each selected data item is formatted as necessary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, general format (FORMAT {BIT|CHARACTER|NUMERIC} choice indicators, DATA optional) and the clause's rules match §2023:13.18.24, but the 2023 row's DOCUMENTED-NON-SUPPORT rests on §2023:4.2.7/A.4.8, which has no 2002 counterpart: in 2002 the FORMAT clause is a required standard element. So the 2023 verdict carries nothing to 2002 and no 2002 witness exists; the compiler's refusal at --std 2002 contradicts §2002:3.1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/fmt.cob (outputs fmt-2002.out, fmt-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/Annex A.4.8 (FORMAT and SELECT WHEN optional). 2002 gives NO licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; the FORMAT clause is not in the §2002:B.3 processor-dependent list, and §2002:B.1 item 64 makes its representation a REQUIRED implementor-defined item. licence-2002: none. The compiler refuses FORMAT at --std 2002 with COBOL1705 (probe): a defect."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.23.2-1",
+    "to": [
+     "SR-13.18.25.3-1"
+    ],
+    "clause-2002": "§2002:13.16.23.2",
+    "clause-2023": "§2023:13.18.25.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FROM clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FROM appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FROM clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-from.cob (diagnostics/a42-screen-from.json refuse-at includes 2002, expect 'COBOL1560: the FROM clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FROM clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.23.2 SR1",
+      "quote": "Identifier-1 shall be defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.25.3 SR1",
+      "quote": "Identifier-1 shall be defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FROM clause are word-identical in §2002:13.16.23 and §2023:13.18.25 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.23.2-2",
+    "to": [
+     "SR-13.18.25.3-2"
+    ],
+    "clause-2002": "§2002:13.16.23.2",
+    "clause-2023": "§2023:13.18.25.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FROM clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FROM appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FROM clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-from.cob (diagnostics/a42-screen-from.json refuse-at includes 2002, expect 'COBOL1560: the FROM clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FROM clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.23.2 SR2",
+      "quote": "The category of identifier-1 and literal-1 shall be a permissible category as",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.25.3 SR2",
+      "quote": "The category of identifier-1 and literal-1 shall be a permissible category as",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FROM clause are word-identical in §2002:13.16.23 and §2023:13.18.25 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.23.3-1",
+    "to": [
+     "GR-13.18.25.4-1"
+    ],
+    "clause-2002": "§2002:13.16.23.3",
+    "clause-2023": "§2023:13.18.25.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FROM clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FROM appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FROM clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-from.cob (diagnostics/a42-screen-from.json refuse-at includes 2002, expect 'COBOL1560: the FROM clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FROM clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.23.3 GR1",
+      "quote": "The subject of the entry is an output screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.25.4 GR1",
+      "quote": "The subject of the entry is an output screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FROM clause are word-identical in §2002:13.16.23 and §2023:13.18.25 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-1",
+    "to": [
+     "GR-13.18.26.3-1"
+    ],
+    "clause-2002": "§2002:13.16.24.2",
+    "clause-2023": "§2023:13.18.26.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FULL clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FULL appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FULL clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-full.cob (diagnostics/a42-screen-full.json refuse-at includes 2002, expect 'COBOL1560: the FULL clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FULL clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24.2 GR1",
+      "quote": "If a FULL clause is specified at the group level, it applies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR1",
+      "quote": "If a FULL clause is specified at the group level, it applies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FULL clause are word-identical in §2002:13.16.24 and §2023:13.18.26 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-2",
+    "to": [
+     "GR-13.18.26.3-2"
+    ],
+    "clause-2002": "§2002:13.16.24.2",
+    "clause-2023": "§2023:13.18.26.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FULL clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FULL appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FULL clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-full.cob (diagnostics/a42-screen-full.json refuse-at includes 2002, expect 'COBOL1560: the FULL clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FULL clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24.2 GR2",
+      "quote": "The FULL clause is effective during the execution of any ACCEPT screen",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR2",
+      "quote": "The FULL clause is effective during the execution of any ACCEPT screen",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FULL clause are word-identical in §2002:13.16.24 and §2023:13.18.26 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-3",
+    "to": [
+     "GR-13.18.26.3-3"
+    ],
+    "clause-2002": "§2002:13.16.24.2",
+    "clause-2023": "§2023:13.18.26.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FULL clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FULL appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FULL clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-full.cob (diagnostics/a42-screen-full.json refuse-at includes 2002, expect 'COBOL1560: the FULL clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FULL clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24.2 GR3",
+      "quote": "The effect of the FULL clause is to reject the normal termination",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR3",
+      "quote": "The effect of the FULL clause is to reject the normal termination",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FULL clause are word-identical in §2002:13.16.24 and §2023:13.18.26 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered-reader": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged.",
+     "changed-definition-term: digit position: §2002:4 (item 4.63) has the single storage/presentation sense; 2023 adds a second sense §2023:3.61 'location within a numeric data item of a digit' (location within a numeric item). GR3 c) concerns presentation of a numeric(-edited) screen item, the 2002 sense; scope unchanged, and the whole screen section is unclaimed, so the evidence is the refusal."
+    ],
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 14218 writes 'nonspace' for 2002's 'non-space': spelling only. Re-read §2002:13.16.24.2 GR3: unchanged.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); digit position (newer: undefined)": "§2002:4 4.27 'character (in a screen item)' and 4.63 digit position (storage/presentation sense) are the senses this screen rule uses; 2023 drops the character senses and adds a location sense of digit position. No program's scope changes: the FULL clause is a screen-section element, licensed non-support at 2002 and refused there (COBOL1560).",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Matched on 'normal termination key', the key that ends ACCEPT screen input, not run unit termination, initial state or transfer of control (§2002:14.5.2.1.2.1, 14.5.3, 14.5.10). The rule does not rest on those clauses."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.24.2 GR3",
+      "quote": "The effect of the FULL clause is to reject the normal termination key unless that clause is satisfied",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The amount of physical storage required to store, or presentation space required to print or display, a single digit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-14"
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-4",
+    "to": [
+     "GR-13.18.26.3-4"
+    ],
+    "clause-2002": "§2002:13.16.24.2",
+    "clause-2023": "§2023:13.18.26.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FULL clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FULL appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FULL clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-full.cob (diagnostics/a42-screen-full.json refuse-at includes 2002, expect 'COBOL1560: the FULL clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FULL clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24.2 GR4",
+      "quote": "For fields that are both input and output, the FULL clause may",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR4",
+      "quote": "For fields that are both input and output, the FULL clause may",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FULL clause are word-identical in §2002:13.16.24 and §2023:13.18.26 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-5",
+    "to": [
+     "GR-13.18.26.3-5"
+    ],
+    "clause-2002": "§2002:13.16.24.2",
+    "clause-2023": "§2023:13.18.26.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "the FULL clause of a screen description entry in the screen section (§2002:13.16.21-24 apply only to screen items; FULL appears nowhere else in 2002)",
+     "ACCEPT screen / DISPLAY screen statements that reference that screen item"
+    ],
+    "evidence-2002": [
+     "screen section FULL clause: covered by conformance-suite/wiseowl/cases/*/a42-screen-full.cob (diagnostics/a42-screen-full.json refuse-at includes 2002, expect 'COBOL1560: the FULL clause') and by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1560 'the FULL clause'",
+     "DISPLAY screen statement: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out): --std 2002 gives error COBOL1707 (screen format 2 refused); a42-display-screen-minimal / a42-accept-screen-minimal refuse-at includes 2002"
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24.2 GR5",
+      "quote": "The FULL clause shall not be effective if a function key is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR5",
+      "quote": "The FULL clause shall not be effective if a function key is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format and this rule of the FULL clause are word-identical in §2002:13.16.24 and §2023:13.18.26 (2023 FROM adds SR4 variable-length group and SR5 zero-length literal, constructs with no 2002 counterpart in a screen item, which do not touch the paired rules); every term the rule leans on (screen item, ACCEPT/DISPLAY screen statement) is a screen-section term. The 2023 verdict is a declined optional module; the 2002 text licenses the same decline through the processor-dependent provisions (§2002:3.1.5, B.3 item 1), and the compiler declines it at --std 2002 with a named error. Nit, not a defect: the COBOL1560/1707 messages at --std 2002 cite only the 2023 licence (§2023:4.2.7, Annex A.4.2); the 2002 licence is §2002:3.1.5/B.3 item 1, and docs/conformance/4/SCREEN.md documents the absence only in 2023 terms.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-14/scr.cob (outputs scr-2002.out, scr-2023.out)",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "The flag fires on the word 'terminate'/'termination' (the table's invokes pattern 'run unit|initial state|terminat|transfer of control'); here it means the end of one ACCEPT screen statement (function key or normal termination key), not run unit termination (§2002:14.5.10), initial state (§2002:14.5.2.1.2.1) or the flow-of-control mechanism (§2002:14.5.3), whose differing text (communication-section initialization, MCS purge, paragraph vs procedure wording, declaratives vs exception procedures) the rule does not rest on. The construct is the declined screen ACCEPT, refused at --std 2002 with no code produced (§2002:3.1.5), so scope and evidence are unchanged."
+    },
+    "flags-answered-earlier": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023:4.2.7/A.4.2. 2002 has no optional-element list (its only optional module is Annex A, communications, §2002:3.1), but §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets an implementor not claim it, warn, and produce no code. So 2002 licenses the same non-support; the compiler refuses it at --std 2002 with COBOL1560 (probe). Scope unchanged."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.24.2 GR5",
+      "quote": "used to terminate the execution of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "When normal run unit termination occurs, the runtime system performs the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-14"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-14",
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.21.2-2",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FOREGROUND-COLOR clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FOREGROUND-COLOR drew 'COBOL1560: the FOREGROUND-COLOR clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-foreground-color.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.21",
+      "quote": "The FOREGROUND clause specifies the foreground color for the screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.21.2 SR2",
+      "quote": "Integer-1 shall have a value in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.3 SR2",
+      "quote": "Integer-1 shall have a value in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.21.3-1",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FOREGROUND-COLOR clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FOREGROUND-COLOR drew 'COBOL1560: the FOREGROUND-COLOR clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-foreground-color.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.21",
+      "quote": "The FOREGROUND clause specifies the foreground color for the screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.21.3 GR1",
+      "quote": "When an ACCEPT screen statement or a DISPLAY screen statement referencing the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.4 GR1",
+      "quote": "When an ACCEPT screen statement or a DISPLAY screen statement referencing the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.21.3-3",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FOREGROUND-COLOR clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FOREGROUND-COLOR drew 'COBOL1560: the FOREGROUND-COLOR clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-foreground-color.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.21",
+      "quote": "The FOREGROUND clause specifies the foreground color for the screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.21.3 GR3",
+      "quote": "A FOREGROUND-COLOR clause specified at the group level applies to each elementary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.4 GR3",
+      "quote": "A FOREGROUND-COLOR clause specified at the group level applies to each elementary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.21.3-4",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FOREGROUND-COLOR clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FOREGROUND-COLOR drew 'COBOL1560: the FOREGROUND-COLOR clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-foreground-color.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.21",
+      "quote": "The FOREGROUND clause specifies the foreground color for the screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.21.3 GR4",
+      "quote": "When a FOREGROUND-COLOR clause is not specified or the value is not",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.4 GR4",
+      "quote": "When a FOREGROUND-COLOR clause is not specified or the value is not",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.23.2-1",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FROM clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FROM drew 'COBOL1560: the FROM clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-from.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.23",
+      "quote": "The FROM clause specifies the source of data for an ACCEPT screen statement and a DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.23.2 SR1",
+      "quote": "Identifier-1 shall be defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.25.3 SR1",
+      "quote": "Identifier-1 shall be defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.23.2-2",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FROM clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FROM drew 'COBOL1560: the FROM clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-from.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.23",
+      "quote": "The FROM clause specifies the source of data for an ACCEPT screen statement and a DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.23.2 SR2",
+      "quote": "The category of identifier-1 and literal-1 shall be a permissible category as",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.25.3 SR2",
+      "quote": "The category of identifier-1 and literal-1 shall be a permissible category as",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.23.3-1",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FROM clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FROM drew 'COBOL1560: the FROM clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-from.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.23",
+      "quote": "The FROM clause specifies the source of data for an ACCEPT screen statement and a DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.23.3 GR1",
+      "quote": "The subject of the entry is an output screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.25.4 GR1",
+      "quote": "The subject of the entry is an output screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-1",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FULL clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FULL drew 'COBOL1560: the FULL clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-full.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24",
+      "quote": "The FULL clause specifies that the operator shall either leave the screen item completely empty or fill it entirely with data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.24.2 GR1",
+      "quote": "If a FULL clause is specified at the group level, it applies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR1",
+      "quote": "If a FULL clause is specified at the group level, it applies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-2",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FULL clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FULL drew 'COBOL1560: the FULL clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-full.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24",
+      "quote": "The FULL clause specifies that the operator shall either leave the screen item completely empty or fill it entirely with data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.24.2 GR2",
+      "quote": "The FULL clause is effective during the execution of any ACCEPT screen",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR2",
+      "quote": "The FULL clause is effective during the execution of any ACCEPT screen",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-3",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FULL clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FULL drew 'COBOL1560: the FULL clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-full.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24",
+      "quote": "The FULL clause specifies that the operator shall either leave the screen item completely empty or fill it entirely with data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.24.2 GR3",
+      "quote": "The effect of the FULL clause is to reject the normal termination",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR3",
+      "quote": "The effect of the FULL clause is to reject the normal termination",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-4",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FULL clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FULL drew 'COBOL1560: the FULL clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-full.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24",
+      "quote": "The FULL clause specifies that the operator shall either leave the screen item completely empty or fill it entirely with data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.24.2 GR4",
+      "quote": "For fields that are both input and output, the FULL clause may",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR4",
+      "quote": "For fields that are both input and output, the FULL clause may",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.24.2-5",
+    "verdict": "UPHELD",
+    "reason": "Scope in 2002 is screen-only: the FULL clause appears in 2002 only in the screen description entry (§2002:13.16 clause/entry table lists it as 'screen description entry'; grep finds no other 2002 context, no CD record, no report-writer or debugging-line use, and its identifier operand is limited to file/working-storage/local-storage/linkage, so no cd reach). Attack on the licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 and §2002:3.1.5 separately release processor-dependent elements for which support is not claimed, and §2002:B.3 item 1 lists the screen section and the screen ACCEPT/DISPLAY formats with no 'shall accept the syntax' proviso (contrast item 8). 3.1.5's conditions are a compile-time indication of use (the named Error COBOL1560 for the clause, COBOL1707 for the statement, meets it; executable code is not required) and documentation of the absence (docs/conformance/4/SCREEN.md and 5/A.4.2.md state the refusal at every edition, in 2023 terms only: a nit, not a gap). Probe re-run independently at --std 2002 and 2023: FULL drew 'COBOL1560: the FULL clause' at both, exit 65, also with an out-of-range FOREGROUND-COLOR 8 and FULL on a numeric-edited USING item; the twin's witness diagnostics/a42-screen-full.json has refuse-at 2002. No 2002 form, operand or enumeration case escapes the refusal, so the 2023 row's evidence covers the whole 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.24",
+      "quote": "The FULL clause specifies that the operator shall either leave the screen item completely empty or fill it entirely with data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.24.2 GR5",
+      "quote": "The FULL clause shall not be effective if a function key is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.26.3 GR5",
+      "quote": "The FULL clause shall not be effective if a function key is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-14/full.cob (full-2002.out, full-2023.out; also re-ran ../probes-q-14/scr.cob -> refute-q-14/scr-2002.out)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "c6c232b21dc17b1ffbf8bc4dc2073970d5c6349ce36d8654f018581231952ead",
+  "read": "06fc266ad823ab8cbde0510e4de7c3630639a2152ca96f973f5a13a415fdc9b0",
+  "refute": "ed0095fb14c71912b6620bd6863bcedf54ffa542b038842cc363e70e6137a1fb"
+ }
+}

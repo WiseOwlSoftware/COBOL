@@ -1,0 +1,2057 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-05 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-05",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-8.4.2.6.2-1",
+   "2002-SR-8.4.2.6.2-2",
+   "2002-GR-8.4.2.6.3-1",
+   "2002-GR-8.4.2.6.3-2",
+   "2002-SR-8.4.2.8.2-1",
+   "2002-SR-8.4.2.8.2-3",
+   "2002-SR-8.4.2.8.2-7",
+   "2002-GR-8.4.2.8.3-1",
+   "2002-SR-8.4.2.9.2-2",
+   "2002-SR-8.4.2.9.2-5",
+   "2002-SR-8.4.2.9.2-7",
+   "2002-GR-8.4.2.9.3-1",
+   "2002-GR-8.4.2.9.3-2",
+   "2002-SR-8.4.2.11.2-2",
+   "2002-SR-8.4.2.11.2-3",
+   "2002-GR-8.4.2.12.3-4",
+   "2002-SR-8.4.2.13.2-1",
+   "2002-SR-8.4.2.14.2-1",
+   "2002-GR-8.4.2.14.3-1",
+   "2002-GR-8.4.2.14.3-2",
+   "2002-GR-8.4.2.14.3-3",
+   "2002-GR-8.4.2.14.3-4",
+   "2002-GR-8.4.2.14.3-5",
+   "2002-SR-8.7.5.2-5",
+   "2002-SR-8.7.5.2-8"
+  ],
+  "flags": {
+   "2002-SR-8.4.2.6.2-2": {
+    "changed-definition-term": "external data"
+   },
+   "2002-GR-8.4.2.6.3-1": {
+    "changed-definition-term": "null"
+   },
+   "2002-GR-8.4.2.6.3-2": {
+    "changed-definition-term": "run unit"
+   },
+   "2002-SR-8.4.2.9.2-2": {
+    "changed-definition-term": "null"
+   },
+   "2002-GR-8.4.2.12.3-4": {
+    "changed-definition-term": "null"
+   },
+   "2002-SR-8.4.2.13.2-1": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-SR-8.4.2.14.2-1": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-SR-8.7.5.2-5": {
+    "normalized": "normalized"
+   },
+   "2002-SR-8.7.5.2-8": {
+    "normalized": "normalized"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-05",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-8.4.2.6.2-1",
+    "to": [
+     "SR-8.4.3.6.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.6",
+    "clause-2023": "8.4.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.6.2 SR1",
+      "quote": "EXCEPTION-OBJECT shall not be specified as a receiving operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.6.3 SR1",
+      "quote": "EXCEPTION-OBJECT shall not be specified as a receiving operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format (bare EXCEPTION-OBJECT) and rule identical. The only 2002-only receiving context is RECEIVE ... INTO identifier-1 (Annex A communications), whose own SR2 requires category alphanumeric, so EXCEPTION-OBJECT there is refused by that rule as well; nothing else in 2002 adds a receiving operand.",
+    "scope-2002": [
+     "every receiving operand of a 2002 procedure division statement (incl. RECEIVE INTO, already excluded by A.2.5.2 SR2)"
+    ],
+    "evidence-2002": {
+     "receiving operand refused": "covered by wiseowl/diagnostics pb922-exception-object-receiving (refuse-at includes 2002; re-run now, COBOL2196 at --std 2002: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/refusals.log)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/refusals.log",
+    "widening": null,
+    "flags-answered": {
+     "held: S1 (adopt-2002): its witness was refused at 2002 for the exception-object user word, which the rule names": "The S1 record shows the refused witness is pb922_exception_object_user_word_85, an 85 program using EXCEPTION-OBJECT as a user word, widened to 2002 and refused there (COBOL2196/COBOL1694). That refusal is right: 2002 makes EXCEPTION-OBJECT a predefined object reference (§2002:8.4.2.6) and a reserved word (§2002:8.9), so that program is not 2002 source. The rule's own witnesses hold at 2002: pb922_exception_object_reference passes (S1 class pass) and pb922-exception-object-receiving draws COBOL2196 (SR1's words) at --std 2002 (reader's refusals.log). Hold answered; no change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.4.2.6",
+      "quote": "EXCEPTION-OBJECT is a predefined object reference that is used in a declarative procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.9",
+      "quote": "BLANK | DECLARATIVES | EXCEPTION-OBJECT",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.6.2 SR1",
+      "quote": "EXCEPTION-OBJECT shall not be specified as a receiving operand",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-05"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.6.2-2",
+    "to": [
+     "SR-8.4.3.6.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.6",
+    "clause-2023": "8.4.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.6.2 SR2",
+      "quote": "EXCEPTION-OBJECT is implicitly described as class object and category object reference, as an external data item, and as a universal object reference.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.6.3 SR2",
+      "quote": "EXCEPTION-OBJECT is implicitly described as class object and category object reference, as an external data item, and as a universal object reference.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical implicit description. 'external data' is defined in 2002 4.81 as data that belongs to the run unit and may be accessed by any runtime element in which it is described; 2023 3.79 rewords the same meaning.",
+    "scope-2002": [
+     "the implicit description of EXCEPTION-OBJECT wherever it is referenced"
+    ],
+    "evidence-2002": {
+     "implicit description": "covered by pb922_exception_object_reference (S1 run at 2002: pass)"
+    },
+    "probe": null,
+    "widening": null,
+    "flags-answered-reader": {
+     "changed-definition-term: external data": "2002 4.81 vs 2023 3.79 differ only in wording (may/can); scope and evidence unchanged"
+    },
+    "flags-answered": {
+     "definition-changed: class | of a data item; external data": "Class object / category object-reference is the same Table 3 row in both (§2002:8.5.2.11 'An elementary data item explicitly or implicitly described as usage object-reference is of category object-reference'); the PB5625 usage-national question cannot reach a predefined object reference. 'external data' §2002:4 (4.81) 'Data that belongs to the run unit and may be accessed by any runtime element in which it is described' differs from 2023 3.79 only in 'may'/'can'. Scope unchanged.",
+     "definition-dropped: object reference (newer: 9.3.2)": "§2002:4 (4.141) 'object reference: An explicitly- or implicitly-defined data item that contains a reference to an object'; 2023 moved the meaning to §2023:9.3.2 ('An object reference is an implicitly- or explicitly-defined data item containing an object reference value'), which adds uniqueness but names the same items. SR2 states EXCEPTION-OBJECT's implicit description; nothing in it depends on the wording. Scope unchanged.",
+     "held: S1 (adopt-2002): its witness was refused at 2002 for the exception-object user word, which the rule names": "The refused witness is pb922_exception_object_user_word_85 (accept [85]): it uses EXCEPTION-OBJECT as an ordinary 1985 user word, which 2002 reserves as this predefined object reference (§2002:8.4.2.6), so its refusal at 2002 (COBOL2196/COBOL1694) is the 2002 behaviour, not evidence against SR2. SR2's 2002 witness is pb922_exception_object_reference (accept [2002]), which S1 ran at 2002: pass (adopt-2002/s1-run-classified.json)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.5.2.11",
+      "quote": "An elementary data item explicitly or implicitly described as usage object-reference is of category object-reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "Data that belongs to the run unit and may be accessed by any runtime element in which it is described",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "object reference: An explicitly- or implicitly-defined data item that contains a reference to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.2",
+      "quote": "An object reference is an implicitly- or explicitly-defined data item containing an object reference value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.6",
+      "quote": "EXCEPTION-OBJECT is a predefined object reference that is used in a declarative procedure to reference the current exception object",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.6.3-1",
+    "to": [
+     "GR-8.4.3.6.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.6",
+    "clause-2023": "8.4.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.6.3 GR1",
+      "quote": "EXCEPTION-OBJECT references the current exception object.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.6.4 GR1",
+      "quote": "EXCEPTION-OBJECT references the current exception object.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.3 GR3",
+      "quote": "the object referenced by identifier-1 becomes the current exception object in the activating runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.2 SR8",
+      "quote": "An EXIT METHOD statement may be specified only in a method procedure division.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.2 SR9",
+      "quote": "An EXIT FUNCTION statement may be specified only in a function procedure division.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words, but in 2002 the current exception object can also be made current by EXIT METHOD RAISING identifier-1 and EXIT FUNCTION RAISING identifier-1 (2002 14.8.13 formats 3 and 4, GR3b). 2023's EXIT statement has no method or function format, so the 2023 row (witness gl2m2, RAISE only) says nothing about EXCEPTION-OBJECT after those two forms.",
+    "scope-2002": [
+     "exception object raised by RAISE",
+     "by EXIT PROGRAM / GOBACK RAISING",
+     "by EXIT METHOD RAISING identifier-1",
+     "by EXIT FUNCTION RAISING identifier-1",
+     "set to null when a non-object exception is raised"
+    ],
+    "evidence-2002": {
+     "RAISE / null": "covered by gl2m2_exception_object_identity (S1 run at 2002: pass)",
+     "GOBACK RAISING": "covered by probe p/gobackm.cob (2002 and 2023: DECL-OBJECT, AFTER-OBJECT)",
+     "EXIT METHOD RAISING": "covered by probe p/exitm.cob (2002: DECL-OBJECT, AFTER-OBJECT; 2023 refuses COBOL0902)",
+     "EXIT FUNCTION RAISING": "covered by probe p/exitf.cob (2002: DECL-OBJECT, V=7, AFTER-OBJECT; 2023 refuses COBOL0902)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/exitm.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/exitf.cob",
+    "widening": null,
+    "flags-answered": {
+     "changed-definition-term: null": "2002 4.136 'null' (pointer or object reference containing no reference) vs 2023 3.132 object-reference sense: same for EXCEPTION-OBJECT; no change of scope"
+    },
+    "class": "removed-form",
+    "needs": "a 2002 witness for EXCEPTION-OBJECT after EXIT METHOD RAISING and EXIT FUNCTION RAISING (probes exitm.cob/exitf.cob show it)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.6.3-2",
+    "to": [
+     "GR-8.4.3.6.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.6",
+    "clause-2023": "8.4.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.6.3 GR2",
+      "quote": "There is one instance of EXCEPTION-OBJECT in a run unit.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.6.4 GR2",
+      "quote": "There is one instance of EXCEPTION-OBJECT in a run unit.",
+      "check": "OK"
+     }
+    ],
+    "reason": "One instance per run unit; 'run unit' 2002 4.166 and 2023 3.158 define the same entity. The method/function runtime elements that can set it exist in both editions; probes exitm/exitf also show the activating element sees the instance a method or function set.",
+    "scope-2002": [
+     "the single EXCEPTION-OBJECT instance across programs, methods and functions of the run unit"
+    ],
+    "evidence-2002": {
+     "one instance": "covered by gl2m2_exception_object_identity (S1 run at 2002: pass); method/function propagation seen in probes p/exitm.cob, p/exitf.cob"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/exitm.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: run unit": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; one EXCEPTION-OBJECT per run unit means the same.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The rule matched only on 'run unit'; one instance of EXCEPTION-OBJECT does not rest on initial state, transfer of control or termination. No change; gl2m2_exception_object_identity at 2002 stands."
+    },
+    "reader-flags-answered": {
+     "changed-definition-term: run unit": "2002 4.166 vs 2023 3.158: reworded, same entity; no change of scope"
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "The first time the function, method, or program in which it is described is activated in a run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "Any storage obtained with an ALLOCATE statement and not yet released by a FREE statement is released",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-1",
+    "to": [
+     "SR-8.4.3.8.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.8",
+    "clause-2023": "8.4.3.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR1",
+      "quote": "This identifier format may be specified only in a method definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.3 SR1",
+      "quote": "This identifier format may be specified only in a method definition.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical (2002 class-name-1, 2023 object-class-name-1: a renaming of the metavariable); 'method definition' unchanged.",
+    "scope-2002": [
+     "SELF / [class-name-1 OF] SUPER outside a method definition"
+    ],
+    "evidence-2002": {
+     "refusal outside a method": "covered by pb388-set-object-ref-self-outside-method (re-run now at --std 2002: COBOL0867, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/refusals.log)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/refusals.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 defines method as 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 drops the entry and describes methods at §2023:9.3.4, whose text is word for word §2002:9.3.4. SR1 confines SELF/SUPER to a method definition; that element is the same in 2002, so the refused contexts are unchanged.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 (Method invocation) binds an invocation by method-name up the inheritance hierarchy at runtime; 2023 renumbers it 9.3.6 and adds parametric polymorphism (signature resolution, 2023 9.3.5). §2002:9.3.5 points to 8.4.2.8 for SUPER's restricted search, a general-rule behaviour; SR1 is only the placement restriction and does not depend on it, so the 2002 refusal (COBOL0867) is the evidence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.4",
+      "quote": "The procedural code in an object is placed in methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.4",
+      "quote": "The procedural code in an object is placed in methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "The method implementation that is bound to the invocation depends on the class, at runtime, of the object on which the method is invoked",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-3",
+    "to": [
+     "SR-8.4.3.8.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.8",
+    "clause-2023": "8.4.3.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR3",
+      "quote": "SUPER may be specified only as the object in an object-property identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.3 SR3",
+      "quote": "SUPER may be specified only as the object in an object-property identifier",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same three permitted contexts (object-property object, INVOKE object, inline method invocation object), each present in both editions.",
+    "scope-2002": [
+     "SUPER as object-property object",
+     "SUPER in INVOKE",
+     "SUPER in inline method invocation",
+     "SUPER anywhere else refused"
+    ],
+    "evidence-2002": {
+     "refusal": "covered by pb1425-super-operand (re-run at 2002: COBOL2900)",
+     "permitted forms": "covered by pb1425_qualified_super and pb1425_object_property_identifier (S1 run at 2002: pass)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/refusals.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: invocation": "§2002:4 (entry 4.123) 'The request to execute a named method on a given object' and §2023:3.121 are the same words; 2002's 4.113 entry is only a cross-reference to it. The term names the same act in both editions, so the rule's scope is unchanged. SR3's 'invoke a method with the INVOKE statement or an inline invocation of a method' therefore names the same constructs.",
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 (entry 4.121) defines method as a procedural entity of a class definition; 2023 drops the entry and relies on 9.3.4, whose text is word for word §2002:9.3.4. The same source elements are methods in both editions, so the rule governs the same programs.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 differs from §2023:9.3.6 only in method RESOLUTION: 2023 adds signature matching and overload steps, 2002 binds by method-name alone. This rule restricts where a name may be written at compile time and does not rest on how an invocation is resolved; scope and evidence unchanged. §2002:9.3.5 itself sends SUPER's restricted search to 8.4.2.8, the clause this rule is in; the three permitted contexts are the ones 9.3.5 lists (INVOKE, inline invocation, object property)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The request to execute a named method on a given object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.121",
+      "quote": "request to execute a named method on a given object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.4",
+      "quote": "The procedural code in an object is placed in methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.4",
+      "quote": "The procedural code in an object is placed in methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if an invocation specifies the object using SUPER, the invocation will resolve to a method by using a restricted search",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.6",
+      "quote": "that method is an exact match between the method invocation and the method resolution signature",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-7",
+    "to": [
+     "SR-8.4.3.8.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.8",
+    "clause-2023": "8.4.3.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR7",
+      "quote": "SELF and SUPER are both implicitly described as class object and category object reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.3 SR7",
+      "quote": "SELF and SUPER are both implicitly described as class object and category object reference",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical implicit description; no 2002-only context.",
+    "scope-2002": [
+     "implicit description of SELF and SUPER"
+    ],
+    "evidence-2002": {
+     "description": "covered by pb389-only-receiver-self-sender (re-run at 2002: COBOL0867) and pb1425_predefined_object_operands (S1 at 2002: pass)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/refusals.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class object / category object reference is the same pair. Scope unchanged.",
+     "definition-dropped: object reference (newer: 9.3.2)": "2002 4.141 object reference 'An explicitly- or implicitly-defined data item that contains a reference to an object'; 2023 9.3.2 says the same (implicitly-defined includes the predefined references). SELF and SUPER are implicit object references in both. No change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "An explicitly- or implicitly-defined data item that contains a reference to an object",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.8.3-1",
+    "to": [
+     "GR-8.4.3.8.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.8",
+    "clause-2023": "8.4.3.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.3 GR1",
+      "quote": "SELF and SUPER both reference the object that was used to invoke the method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.4 GR1",
+      "quote": "SELF and SUPER both reference the object that was used to invoke the method",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; GR3 of the clause differs between editions (2023 adds runtime-class wording) but GR1 does not depend on it.",
+    "scope-2002": [
+     "SELF/SUPER reference the invoking object"
+    ],
+    "evidence-2002": {
+     "identity": "covered by l1c28_self_super_invoking_object (S1 run at 2002: pass)"
+    },
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 'method: A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes the same entity in 9.3.4 instead of its definitions clause. SELF and SUPER are used inside such methods; unchanged.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 binds a method by name only (\"if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound\"); 2023 9.3.6 adds signature matching (overloading). Both editions send SUPER through the restricted search of the SELF/SUPER clause (§2002:9.3.5 \"the invocation will resolve to a method by using a restricted search, as specified in 8.4.2.8, SELF and SUPER\"); GR1's identity (both reference the invoking object) does not depend on resolution; l1c28_self_super_invoking_object passes at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "method: A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "the invocation will resolve to a method by using a restricted search, as specified in 8.4.2.8, SELF and SUPER",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-05"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-2",
+    "to": [
+     "SR-8.4.3.9.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.9",
+    "clause-2023": "8.4.3.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR2",
+      "quote": "Identifier-1 shall be an object reference; neither a universal object reference nor the predefined object reference NULL shall be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR2",
+      "quote": "Identifier-1 shall be an object reference; neither a universal object reference nor the predefined object reference NULL shall be specified.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and rule; predefined object reference NULL is 2002 8.4.2.7, identical to 2023 8.4.3.7.",
+    "scope-2002": [
+     "identifier-1 universal or NULL refused"
+    ],
+    "evidence-2002": {
+     "universal": "covered by l1c20-property-of-universal-reference (re-run at 2002: COBOL2918)",
+     "NULL": "covered by pb1425-property-object-null (re-run at 2002: COBOL2918)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/refusals.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: null (newer: 8.4.3.7.1); object reference (newer: 9.3.2)": "§2002:8.4.2.7 'NULL is a predefined object reference that contains the null object reference value' is word for word §2023:8.4.3.7.1, and the §2002:4 object reference ('explicitly- or implicitly-defined data item that contains a reference to an object') matches §2023:9.3.2. So what the rule excludes (universal object references, NULL) is the same in 2002, and the reader's 2002 probes stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.4.2.7",
+      "quote": "NULL is a predefined object reference that contains the null object reference value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.7.1",
+      "quote": "NULL is a predefined object reference that contains the null object reference value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "An explicitly- or implicitly-defined data item that contains a reference to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.2",
+      "quote": "An object reference is an implicitly- or explicitly-defined data item containing an object reference value",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-5",
+    "to": [
+     "SR-8.4.3.9.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.9",
+    "clause-2023": "8.4.3.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR5",
+      "quote": "The description of an object property used as a sending item is the same as the description of the returning item of the get property method.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR5",
+      "quote": "The description of an object property used as a sending item is the same as the description of the returning item of the get property method.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR6",
+      "quote": "If the GET phrase is specified, then the method shall have no USING phrase parameters specified in the procedure division header and shall have a single RETURNING phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR7",
+      "quote": "If the SET phrase is specified, then the method shall have a single USING parameter specified in the procedure division header and no RETURNING phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.40.2 SR1",
+      "quote": "The PROPERTY clause may be specified only in the working-storage section of a factory definition or an instance definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "Use of an object reference described with the ACTIVE-CLASS phrase is now prohibited for returning items of get property methods, parameters of set property methods, and returning items for inline method invocations.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR6",
+      "quote": "The returning item shall not be an object reference described with the ACTIVE-CLASS phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR7",
+      "quote": "The USING parameter shall not be an object reference described with the ACTIVE-CLASS phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.3 SR6",
+      "quote": "The PROPERTY clause shall not be specified for data items of usage object reference described with an ACTIVE-CLASS phrase.",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 a get or set property method may have an ACTIVE-CLASS returning item / USING parameter (2002 11.6.2 SR6/SR7 have no such restriction; 13.16.58.2 SR15 admits ACTIVE-CLASS in an instance definition and in method linkage; 13.16.40.2 SR1-SR4 admit PROPERTY on it). 2014 E.2 item 1 prohibited exactly this, and 2023 carries it (11.7.3 SR6/SR7, 13.18.42.3 SR6). So the 2002 rule also governs object properties described as ACTIVE-CLASS object references, a domain the 2023 rule cannot reach. At --std 2002 the compiler refuses both forms citing the 2023-only rules: a defect.",
+    "scope-2002": [
+     "sending object property of any description, incl. an ACTIVE-CLASS object reference returned by the get property method"
+    ],
+    "evidence-2002": {
+     "non-ACTIVE-CLASS properties": "covered by pb1275_property_set_formats, oo_property_explicit_ref (S1 at 2002: pass)",
+     "ACTIVE-CLASS property": "not shown; probe shows the compiler refuses it at 2002 (defect)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop.cob (PROPERTY on ACTIVE-CLASS: COBOL2563 at 2002); E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop2.cob (explicit GET PROPERTY returning ACTIVE-CLASS: COBOL2790 at 2002)",
+    "widening": null,
+    "class": "removed-form",
+    "compiler-at-2002": "wrong",
+    "needs": "its own verdict: at --std 2002 the compiler refuses an ACTIVE-CLASS object property (COBOL2790 for an explicit get/set property method, COBOL2563 for the PROPERTY clause), which 2002 permits; after the fix, a 2002 witness for an ACTIVE-CLASS property",
+    "defect": "program p/acprop2.cob: instance method 'METHOD-ID. GET PROPERTY ME' with 'LINKAGE ... 01 LK-ME USAGE OBJECT REFERENCE ACTIVE-CLASS' and 'PROCEDURE DIVISION RETURNING LK-ME'; main does 'SET B TO ME OF A'. Expected at --std 2002: accepted (2002 11.6.2 SR6 only requires no USING and a single RETURNING). Observed: 'error COBOL2790: ... the returning item of a get property method shall not be an object reference described with the ACTIVE-CLASS phrase (ISO §2023:11.7.3 SR6)'. Program p/acprop.cob: '01 ME USAGE OBJECT REFERENCE ACTIVE-CLASS PROPERTY WITH NO SET.' in the OBJECT working-storage: 'error COBOL2563 ... (ISO §2023:13.18.42.3 SR6)' at --std 2002, where 13.16.40.2 has no such rule."
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-7",
+    "to": [
+     "SR-8.4.3.9.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.9",
+    "clause-2023": "8.4.3.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR7",
+      "quote": "The data description of the item specified in the RETURNING phrase of the get property method shall be the same as the data description of the item specified as the USING parameter of the set property method.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR7",
+      "quote": "The data description of the item specified in the RETURNING phrase of the get property method shall be the same as the data description of the item specified as the USING parameter of the set property method.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR6",
+      "quote": "If the GET phrase is specified, then the method shall have no USING phrase parameters specified in the procedure division header and shall have a single RETURNING phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR7",
+      "quote": "If the SET phrase is specified, then the method shall have a single USING parameter specified in the procedure division header and no RETURNING phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.40.2 SR1",
+      "quote": "The PROPERTY clause may be specified only in the working-storage section of a factory definition or an instance definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "Use of an object reference described with the ACTIVE-CLASS phrase is now prohibited for returning items of get property methods, parameters of set property methods, and returning items for inline method invocations.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR6",
+      "quote": "The returning item shall not be an object reference described with the ACTIVE-CLASS phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR7",
+      "quote": "The USING parameter shall not be an object reference described with the ACTIVE-CLASS phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.3 SR6",
+      "quote": "The PROPERTY clause shall not be specified for data items of usage object reference described with an ACTIVE-CLASS phrase.",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 a get or set property method may have an ACTIVE-CLASS returning item / USING parameter (2002 11.6.2 SR6/SR7 have no such restriction; 13.16.58.2 SR15 admits ACTIVE-CLASS in an instance definition and in method linkage; 13.16.40.2 SR1-SR4 admit PROPERTY on it). 2014 E.2 item 1 prohibited exactly this, and 2023 carries it (11.7.3 SR6/SR7, 13.18.42.3 SR6). So the 2002 rule also governs object properties described as ACTIVE-CLASS object references, a domain the 2023 rule cannot reach. At --std 2002 the compiler refuses both forms citing the 2023-only rules: a defect.",
+    "scope-2002": [
+     "get/set pair descriptions, incl. a pair whose items are ACTIVE-CLASS object references (explicit or PROPERTY-generated)"
+    ],
+    "evidence-2002": {
+     "non-ACTIVE-CLASS pairs": "covered by pb1450-property-accessor-descriptions-differ, pb1450-property-accessors-split-across-inheritance (re-run at 2002: COBOL2727) and oo_property_explicit_ref",
+     "ACTIVE-CLASS pair": "not shown; refused at 2002 (defect)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop.cob (PROPERTY on ACTIVE-CLASS: COBOL2563 at 2002); E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop2.cob (explicit GET PROPERTY returning ACTIVE-CLASS: COBOL2790 at 2002)",
+    "widening": null,
+    "class": "removed-form",
+    "compiler-at-2002": "wrong",
+    "needs": "its own verdict: at --std 2002 the compiler refuses an ACTIVE-CLASS object property (COBOL2790 for an explicit get/set property method, COBOL2563 for the PROPERTY clause), which 2002 permits; after the fix, a 2002 witness for an ACTIVE-CLASS property",
+    "defect": "program p/acprop2.cob: instance method 'METHOD-ID. GET PROPERTY ME' with 'LINKAGE ... 01 LK-ME USAGE OBJECT REFERENCE ACTIVE-CLASS' and 'PROCEDURE DIVISION RETURNING LK-ME'; main does 'SET B TO ME OF A'. Expected at --std 2002: accepted (2002 11.6.2 SR6 only requires no USING and a single RETURNING). Observed: 'error COBOL2790: ... the returning item of a get property method shall not be an object reference described with the ACTIVE-CLASS phrase (ISO §2023:11.7.3 SR6)'. Program p/acprop.cob: '01 ME USAGE OBJECT REFERENCE ACTIVE-CLASS PROPERTY WITH NO SET.' in the OBJECT working-storage: 'error COBOL2563 ... (ISO §2023:13.18.42.3 SR6)' at --std 2002, where 13.16.40.2 has no such rule."
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.9.3-1",
+    "to": [
+     "GR-8.4.3.9.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.9",
+    "clause-2023": "8.4.3.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.3 GR1",
+      "quote": "When an object property is used only as a sending item, a conceptual temporary data item, temp-1, is used in its place.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.4 GR1",
+      "quote": "When an object property is used only as a sending item, a conceptual temporary data item, temp-1, is used in its place.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR6",
+      "quote": "If the GET phrase is specified, then the method shall have no USING phrase parameters specified in the procedure division header and shall have a single RETURNING phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR7",
+      "quote": "If the SET phrase is specified, then the method shall have a single USING parameter specified in the procedure division header and no RETURNING phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.40.2 SR1",
+      "quote": "The PROPERTY clause may be specified only in the working-storage section of a factory definition or an instance definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "Use of an object reference described with the ACTIVE-CLASS phrase is now prohibited for returning items of get property methods, parameters of set property methods, and returning items for inline method invocations.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR6",
+      "quote": "The returning item shall not be an object reference described with the ACTIVE-CLASS phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR7",
+      "quote": "The USING parameter shall not be an object reference described with the ACTIVE-CLASS phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.3 SR6",
+      "quote": "The PROPERTY clause shall not be specified for data items of usage object reference described with an ACTIVE-CLASS phrase.",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 a get or set property method may have an ACTIVE-CLASS returning item / USING parameter (2002 11.6.2 SR6/SR7 have no such restriction; 13.16.58.2 SR15 admits ACTIVE-CLASS in an instance definition and in method linkage; 13.16.40.2 SR1-SR4 admit PROPERTY on it). 2014 E.2 item 1 prohibited exactly this, and 2023 carries it (11.7.3 SR6/SR7, 13.18.42.3 SR6). So the 2002 rule also governs object properties described as ACTIVE-CLASS object references, a domain the 2023 rule cannot reach. At --std 2002 the compiler refuses both forms citing the 2023-only rules: a defect. INVOKE rules referenced by GR1: 2002 14.7 returning-item conformance explicitly covers an ACTIVE-CLASS returning item.",
+    "scope-2002": [
+     "sending property via temp-1, incl. temp-1 described as an ACTIVE-CLASS object reference"
+    ],
+    "evidence-2002": {
+     "non-ACTIVE-CLASS": "covered by pb1448_group_valued_property (S1 at 2002: pass)",
+     "ACTIVE-CLASS temp-1": "not shown; refused at 2002 (defect, probe p/acprop2.cob)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop.cob (PROPERTY on ACTIVE-CLASS: COBOL2563 at 2002); E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop2.cob (explicit GET PROPERTY returning ACTIVE-CLASS: COBOL2790 at 2002)",
+    "widening": null,
+    "class": "removed-form",
+    "compiler-at-2002": "wrong",
+    "needs": "its own verdict: at --std 2002 the compiler refuses an ACTIVE-CLASS object property (COBOL2790 for an explicit get/set property method, COBOL2563 for the PROPERTY clause), which 2002 permits; after the fix, a 2002 witness for an ACTIVE-CLASS property",
+    "defect": "program p/acprop2.cob: instance method 'METHOD-ID. GET PROPERTY ME' with 'LINKAGE ... 01 LK-ME USAGE OBJECT REFERENCE ACTIVE-CLASS' and 'PROCEDURE DIVISION RETURNING LK-ME'; main does 'SET B TO ME OF A'. Expected at --std 2002: accepted (2002 11.6.2 SR6 only requires no USING and a single RETURNING). Observed: 'error COBOL2790: ... the returning item of a get property method shall not be an object reference described with the ACTIVE-CLASS phrase (ISO §2023:11.7.3 SR6)'. Program p/acprop.cob: '01 ME USAGE OBJECT REFERENCE ACTIVE-CLASS PROPERTY WITH NO SET.' in the OBJECT working-storage: 'error COBOL2563 ... (ISO §2023:13.18.42.3 SR6)' at --std 2002, where 13.16.40.2 has no such rule."
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.9.3-2",
+    "to": [
+     "GR-8.4.3.9.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.9",
+    "clause-2023": "8.4.3.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.3 GR2",
+      "quote": "When an object property is used only as a receiving item, a conceptual temporary data item, temp-2, is used in its place.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.4 GR2",
+      "quote": "When an object property is used only as a receiving item, a conceptual temporary data item, temp-2, is used in its place.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR6",
+      "quote": "If the GET phrase is specified, then the method shall have no USING phrase parameters specified in the procedure division header and shall have a single RETURNING phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR7",
+      "quote": "If the SET phrase is specified, then the method shall have a single USING parameter specified in the procedure division header and no RETURNING phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.40.2 SR1",
+      "quote": "The PROPERTY clause may be specified only in the working-storage section of a factory definition or an instance definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "Use of an object reference described with the ACTIVE-CLASS phrase is now prohibited for returning items of get property methods, parameters of set property methods, and returning items for inline method invocations.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR6",
+      "quote": "The returning item shall not be an object reference described with the ACTIVE-CLASS phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR7",
+      "quote": "The USING parameter shall not be an object reference described with the ACTIVE-CLASS phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.3 SR6",
+      "quote": "The PROPERTY clause shall not be specified for data items of usage object reference described with an ACTIVE-CLASS phrase.",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 a get or set property method may have an ACTIVE-CLASS returning item / USING parameter (2002 11.6.2 SR6/SR7 have no such restriction; 13.16.58.2 SR15 admits ACTIVE-CLASS in an instance definition and in method linkage; 13.16.40.2 SR1-SR4 admit PROPERTY on it). 2014 E.2 item 1 prohibited exactly this, and 2023 carries it (11.7.3 SR6/SR7, 13.18.42.3 SR6). So the 2002 rule also governs object properties described as ACTIVE-CLASS object references, a domain the 2023 rule cannot reach. At --std 2002 the compiler refuses both forms citing the 2023-only rules: a defect.",
+    "scope-2002": [
+     "receiving property via temp-2, incl. a set property method whose USING parameter is ACTIVE-CLASS (e.g. SET ME OF SELF TO SELF)"
+    ],
+    "evidence-2002": {
+     "non-ACTIVE-CLASS": "covered by pb1448_group_valued_property (S1 at 2002: pass)",
+     "ACTIVE-CLASS temp-2": "not shown; PROPERTY on ACTIVE-CLASS refused at 2002 (p/acprop3.cob, COBOL2563; set-method form governed by the same COBOL2790 check citing §2023:11.7.3 SR7)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop3.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop.cob (PROPERTY on ACTIVE-CLASS: COBOL2563 at 2002); E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop2.cob (explicit GET PROPERTY returning ACTIVE-CLASS: COBOL2790 at 2002)",
+    "widening": null,
+    "class": "removed-form",
+    "compiler-at-2002": "wrong",
+    "needs": "its own verdict: at --std 2002 the compiler refuses an ACTIVE-CLASS object property (COBOL2790 for an explicit get/set property method, COBOL2563 for the PROPERTY clause), which 2002 permits; after the fix, a 2002 witness for an ACTIVE-CLASS property",
+    "defect": "program p/acprop2.cob: instance method 'METHOD-ID. GET PROPERTY ME' with 'LINKAGE ... 01 LK-ME USAGE OBJECT REFERENCE ACTIVE-CLASS' and 'PROCEDURE DIVISION RETURNING LK-ME'; main does 'SET B TO ME OF A'. Expected at --std 2002: accepted (2002 11.6.2 SR6 only requires no USING and a single RETURNING). Observed: 'error COBOL2790: ... the returning item of a get property method shall not be an object reference described with the ACTIVE-CLASS phrase (ISO §2023:11.7.3 SR6)'. Program p/acprop.cob: '01 ME USAGE OBJECT REFERENCE ACTIVE-CLASS PROPERTY WITH NO SET.' in the OBJECT working-storage: 'error COBOL2563 ... (ISO §2023:13.18.42.3 SR6)' at --std 2002, where 13.16.40.2 has no such rule."
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.11.2-2",
+    "to": [
+     "SR-8.4.3.11.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.11",
+    "clause-2023": "8.4.3.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.2 SR2",
+      "quote": "Identifier-1 shall not reference an object reference or an elementary item subordinate to a strongly-typed group item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.11.3 SR2",
+      "quote": "Identifier-1 shall not reference an object reference or an elementary item subordinate to a strongly-typed group item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.11.2 SR1",
+      "quote": "Identifier-1 shall reference a data item defined in the file section, working-storage section, local-storage section, or linkage section.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format ADDRESS OF identifier-1; SR1 confines identifier-1 to file, working-storage, local-storage and linkage in both, so no communication-section reach. 2023 adds SR3 (CONSTANT RECORD) and SR6 (dynamic items), which narrow other cases, not this one.",
+    "scope-2002": [
+     "object reference operand refused",
+     "elementary item under a strongly-typed group refused"
+    ],
+    "evidence-2002": {
+     "both": "covered by pb1407-address-of-object-reference-and-strong-leaf (re-run at 2002: COBOL2785) and pb665_restricted_pointer_conforming (S1 at 2002: pass)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/refusals.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: object reference (newer: 9.3.2)": "The §2002:4 object reference includes implicitly-defined items as §2023:9.3.2 does, but SR1 limits identifier-1 to items of the file, working-storage, local-storage and linkage sections, so only USAGE OBJECT REFERENCE items are reached, identically in both. The 2002 refusal (COBOL2785) stands."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "An explicitly- or implicitly-defined data item that contains a reference to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.2",
+      "quote": "An object reference is an implicitly- or explicitly-defined data item containing an object reference value",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.11.2-3",
+    "to": [
+     "SR-8.4.3.11.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.11",
+    "clause-2023": "8.4.3.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.2 SR3",
+      "quote": "If identifier-1 is a bit data item, identifier-1 shall be described such that",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.11.3 SR4",
+      "quote": "If identifier-1 is a bit data item, identifier-1 shall be described such that",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical a)/b) list; bit data items (USAGE BIT) exist in both editions; renumbered only.",
+    "scope-2002": [
+     "bit operand: literal-only subscripts/refmods without exponentiation",
+     "byte alignment"
+    ],
+    "evidence-2002": {
+     "alignment": "covered by pb1407-address-of-bit-alignment (re-run at 2002: COBOL2786)",
+     "refmod": "covered by pb1407_address_of_reference_modified (S1 at 2002: pass)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/refusals.log",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.8 (removed)": "Item b) (byte alignment) matches 14.5.8; §2002:14.5.8 notes a usage-bit item need not sit on a byte boundary, which is exactly what b) then requires of ADDRESS OF, so 2002 means the same as 2023 (refused at 2002, COBOL2786). Item a) matches 8.8.1.x: it bars exponentiation outright, so 8.8.1.3.6 cannot reach it, and the shape requirement (literals only) does not depend on 2002's 32-digit standard intermediate (PB5575); a value difference there is PB5575's, not this rule's. 8.5.3/8.5.4 match on words only. Scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "When an item is of usage bit, the item is not necessarily aligned on a byte boundary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.11.2 SR3",
+      "quote": "the exponentiation operator is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-05"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.12.3-4",
+    "to": [
+     "GR-8.4.3.13.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.12",
+    "clause-2023": "8.4.3.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.12.3 GR4",
+      "quote": "If the runtime system cannot locate the program, the EC-PROGRAM-NOT-FOUND exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.4 GR4",
+      "quote": "If the runtime system cannot locate the program, the EC-PROGRAM-NOT-FOUND exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same three operand forms. EC-PROGRAM-NOT-FOUND is Fatal in both exception tables (2002 Table 14, 2023 table) and checking is off by default in both (2002 14.5.12.1, 2023 14.6.13.1). Predefined address NULL for a program-pointer: 2002 8.4.2.10 GR2 = 2023 8.4.3.10 GR3.",
+    "scope-2002": [
+     "not-found via identifier-1",
+     "via literal-1",
+     "via program-prototype-name-1",
+     "checking enabled (fatal) and not enabled (implementor-defined)"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb239_call_address_identifier, pb239_call_program_address_not_found, pb1453_program_address_operand_not_found, pb1549_set_program_address_fatal_resume (S1 at 2002: pass)"
+    },
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "changed-definition-term: null": "the rule names 'the predefined address NULL' for a program-pointer, 2002 8.4.2.10 GR2, same text as 2023 8.4.3.10 GR3; 2023's function-pointer/message-tag senses are not reached"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.13.2-1",
+    "to": [
+     "SR-8.4.3.14.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.13",
+    "clause-2023": "8.4.3.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.13.2 SR1",
+      "quote": "LINAGE-COUNTER may be referenced only in procedure division statements.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.14.3 SR1",
+      "quote": "LINAGE-COUNTER may be referenced only in procedure division statements.",
+      "check": "OK"
+     }
+    ],
+    "reason": "A restriction to procedure division statements; 2002's communication statements are procedure division statements (not restricted by it) and no CD entry can reference an identifier. Probe confirms LINAGE-COUNTER in SEND ... AFTER ADVANCING is accepted and runs at 2002.",
+    "scope-2002": [
+     "refused in data division (report SOURCE/SUM/PRESENT WHEN, LINAGE operands, screen section)",
+     "admitted in procedure division statements incl. Annex A SEND"
+    ],
+    "evidence-2002": {
+     "report section": "covered by pb1431-linage-counter-report-* (re-run at 2002: COBOL2904)",
+     "LINAGE operand": "covered by pb489-linage-operand-is-linage-counter (COBOL2024)",
+     "SEND": "covered by probe p/lcsend.cob (DONE)",
+     "screen section": "not applicable: the optional screen module is declined at both editions (p/lcscr.cob, COBOL1560)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/lcsend.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "The rule uses 'procedure division' (the division), never the defined term 'procedure'; §2002:4 (entry 4.150) 'One or more successive paragraphs or sections in the procedure division' vs §2023:3.145 does not touch what the division is. Scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.14.2-1",
+    "to": [
+     "SR-8.4.3.15.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.14",
+    "clause-2023": "8.4.3.15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.2 SR1",
+      "quote": "In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may appear.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.15.3 SR1",
+      "quote": "In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may appear.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR4",
+      "quote": "Identifier-3 shall reference an integer data item.",
+      "check": "OK"
+     }
+    ],
+    "reason": "The second sentence permits the counters in any procedure division context where an integer data item may appear; in 2002 that includes SEND ... BEFORE/AFTER ADVANCING identifier-3 LINES (Annex A.2.6, identifier-3 an integer data item), a communication-statement operand 2023 does not have. The report-section half is the same (report group entry format identical).",
+    "scope-2002": [
+     "report section: only SOURCE",
+     "procedure division: every integer context, incl. SEND ADVANCING identifier-3"
+    ],
+    "evidence-2002": {
+     "report section": "covered by pb429-counter-outside-source-clause (re-run at 2002: COBOL2144) and probe p/pcpw.cob (PRESENT WHEN, COBOL1559)",
+     "procedure division": "covered by pb429_page_counter_receiving (S1 at 2002: pass)",
+     "SEND ADVANCING": "covered by probe p/pcsend.cob (accepted, runs: PC=01, DONE)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/pcsend.cob",
+    "widening": null,
+    "flags-answered": {
+     "changed-definition-term: procedure": "the rule uses 'procedure division'; the defined term 'procedure' does not change its scope; the communication reach is the real difference"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for PAGE-COUNTER/LINE-COUNTER as SEND ... ADVANCING identifier-3 (probe p/pcsend.cob shows it)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-1",
+    "to": [
+     "GR-8.4.3.15.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.14",
+    "clause-2023": "8.4.3.15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.3 GR1",
+      "quote": "PAGE-COUNTER and LINE-COUNTER reference temporary unsigned integer data items of class and category numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.15.4 GR1",
+      "quote": "PAGE-COUNTER and LINE-COUNTER reference temporary unsigned integer data items of class and category numeric",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; RD and report group formats identical in both editions.",
+    "scope-2002": [
+     "counter class/category per report"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb1153_counter_register_byte_length, pb1153_counter_register_character_image (S1 at 2002: pass)"
+    },
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class and category numeric are the same; the rule describes implicit items. Scope unchanged.",
+     "definition-dropped: report (newer: 13.18.46.2)": "2002 4.163 report 'A printed output described in the report section'; 2023 defines a report through the RD/REPORT clause (13.18.46). Same entity: one counter pair per RD. No change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-2",
+    "to": [
+     "GR-8.4.3.15.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.14",
+    "clause-2023": "8.4.3.15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.3 GR2",
+      "quote": "It is reset to 1 when a report group that contains a NEXT GROUP clause with a RESET phrase is printed.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.15.4 GR2",
+      "quote": "It is reset to 1 when a report group that contains a NEXT GROUP clause with a RESET phrase is printed.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.35.3 GR6",
+      "quote": "If the WITH RESET phrase is present, the value of PAGE-COUNTER for the report is set to 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; NEXT GROUP format (incl. NEXT PAGE WITH RESET) and its GR6 identical in 2002 13.16.35 and 2023 13.18.37.",
+    "scope-2002": [
+     "INITIATE sets 1; +1 per page advance; RESET"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb957_next_group_forms (S1 at 2002: pass)"
+    },
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so PAGE-COUNTER is kept per report as in 2023; scope and evidence unchanged.",
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Matched on the word 'corresponding' (the corresponding report of an INITIATE), not on the CORRESPONDING phrase, the size error condition or the arithmetic statements of §2002:14.6.4 and 14.6.6; the rule does not rest on them. pb957_next_group_forms re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-3",
+    "to": [
+     "GR-8.4.3.15.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.14",
+    "clause-2023": "8.4.3.15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.3 GR3",
+      "quote": "The initial value of LINE-COUNTER is set to zero by execution of an INITIATE statement for the corresponding report.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.15.4 GR3",
+      "quote": "The initial value of LINE-COUNTER is set to zero by execution of an INITIATE statement for the corresponding report.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical.",
+    "scope-2002": [
+     "INITIATE sets 0; reset on page advance"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb1001_line_next_page (S1 at 2002: pass)"
+    },
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so LINE-COUNTER is kept per report as in 2023; scope and evidence unchanged.",
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Matched on the word 'corresponding' (the corresponding report of an INITIATE), not on the CORRESPONDING phrase, the size error condition or the arithmetic statements of §2002:14.6.4 and 14.6.6; the rule does not rest on them. pb1001_line_next_page re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-4",
+    "to": [
+     "GR-8.4.3.15.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.14",
+    "clause-2023": "8.4.3.15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.3 GR4",
+      "quote": "in which case the final value of LINE-COUNTER is defined by the general rules for the NEXT GROUP clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.15.4 GR4",
+      "quote": "in which case the final value of LINE-COUNTER is defined by the general rules for the NEXT GROUP clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; the deferral to the NEXT GROUP general rules is to text identical in both (2002 13.16.35.3 GR1-GR6 = 2023 13.18.37.4 GR1-GR6).",
+    "scope-2002": [
+     "LINE-COUNTER at print and after group, NEXT GROUP effect"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb957_next_group_forms, pb1247_line_placement_unpaged_85 (S1 at 2002: pass)"
+    },
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). LINE-COUNTER exists per report in both editions, and the report is the RD-described one either way; the dropped definition does not change the counters or reports the rule governs."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-5",
+    "to": [
+     "GR-8.4.3.15.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.14",
+    "clause-2023": "8.4.3.15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.3 GR5",
+      "quote": "The values of PAGE-COUNTER and LINE-COUNTER are not affected by the processing of a dummy report group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.15.4 GR5",
+      "quote": "The values of PAGE-COUNTER and LINE-COUNTER are not affected by the processing of a dummy report group",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; dummy report group and SUPPRESS statement exist in both.",
+    "scope-2002": [
+     "dummy group",
+     "SUPPRESS"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1m8_counters_dummy_suppressed (S1 at 2002: pass)"
+    },
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). PAGE-COUNTER and LINE-COUNTER belong to each RD-described report in both editions; the dropped definition does not change the dummy-group or SUPPRESS cases the rule governs."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.7.5.2-5",
+    "to": [
+     "SR-8.7.5.2-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.7.5",
+    "clause-2023": "8.7.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.7.5.2 SR5",
+      "quote": "is an abbreviation for LESS THAN.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR5",
+      "quote": "< is an abbreviation for LESS THAN.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.7.5.2 SR1",
+      "quote": "When specified, NOT creates one relational operator that defines the comparison to be executed for truth value.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR6",
+      "quote": "NOT < is an abbreviation for NOT LESS THAN.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Format 1 is 'IS [NOT] <': the '<' this rule abbreviates also occurs in IS NOT < (NOT forming one operator by SR1). 2023 moves NOT < to Format 2 and abbreviates it by its own SR6, so the 2002 rule's scope is covered by two 2023 rules. Witness l1c26 has no NOT < case.",
+    "scope-2002": [
+     "IS <",
+     "IS NOT < (format 1 with NOT)"
+    ],
+    "evidence-2002": {
+     "IS <": "covered by l1c26_relational_operator_spellings (S1 at 2002: pass) and probe p/relop.cob",
+     "IS NOT <": "covered by probe p/relop.cob (2002 = 2023: FFTT/FFTT/TTFF correct for 5 vs 3,5,7)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/relop.cob",
+    "widening": null,
+    "flags-answered": {
+     "normalized": "2002 transcription writes '&lt;' for '<'; the exact 2002 words are '< is an abbreviation for LESS THAN.'; SR-8.7.5.2-5 is the right pointer for IS <, SR-8.7.5.2-6 for IS NOT <"
+    },
+    "class": "split-rule",
+    "second-targets": [
+     "SR-8.7.5.2-6"
+    ],
+    "needs": "KEPT to both targets (SR-8.7.5.2-5, SR-8.7.5.2-6) with a 2002 witness for IS NOT < (probe p/relop.cob)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-8.7.5.2-8",
+    "to": [
+     "SR-8.7.5.2-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.7.5",
+    "clause-2023": "8.7.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.7.5.2 SR8",
+      "quote": "is an abbreviation for LESS THAN OR EQUAL TO.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR10",
+      "quote": "<= is an abbreviation for LESS THAN OR EQUAL TO.",
+      "check": "OK"
+     }
+    ],
+    "reason": "<= is a Format 2 operator without NOT in both editions; 2023 Format 2 adds other operators (NOT <, NOT >, <> ...) governed by other rules. Widening only.",
+    "scope-2002": [
+     "IS <="
+    ],
+    "evidence-2002": {
+     "IS <=": "covered by l1c26_relational_operator_spellings (S1 at 2002: pass) and probe p/relop.cob"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/relop.cob",
+    "widening": "2023 Format 2 also lists NOT >, NOT GREATER THAN etc.; not this rule",
+    "flags-answered": {
+     "normalized: normalized": "Exact words compared: 2002's '&lt;=' is the transcription's HTML escape of '<='; the rule is SR-8.7.5.2-10's ('<= is an abbreviation for LESS THAN OR EQUAL TO.'), the right pointer; no change."
+    },
+    "flags-answered-earlier": {
+     "normalized": "'&lt;=' in the 2002 transcription is '<='; SR-8.7.5.2-10 is the right pointer"
+    },
+    "answer-citations": [],
+    "from-slice": "q-05"
+   }
+  ],
+  "defects": [
+   {
+    "site": "COBOL2790 (get/set property method item ACTIVE-CLASS)",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop2.cob",
+    "expected": "accepted at --std 2002 (§2002:11.6.2 SR6, SR7 carry no ACTIVE-CLASS restriction; §2014:E.2 introduced it)",
+    "observed": "error COBOL2790 ... (ISO §2023:11.7.3 SR6) at --std 2002"
+   },
+   {
+    "site": "COBOL2563 (PROPERTY clause on ACTIVE-CLASS item)",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acprop.cob",
+    "expected": "accepted at --std 2002 (§2002:13.16.40.2 SR1-SR4; §2002:13.16.58.2 SR15)",
+    "observed": "error COBOL2563 ... (ISO §2023:13.18.42.3 SR6) at --std 2002"
+   },
+   {
+    "site": "COBOL2140 (inline method invocation returning ACTIVE-CLASS) - sibling outside the slice",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-05/p/acinline.cob",
+    "expected": "accepted at --std 2002 (§2002:8.4.2.4.2 SR4 forbids only ANY LENGTH)",
+    "observed": "error COBOL2140 ... (ISO §2023:8.4.3.4.3 SR4) at --std 2002; INVOKE ... RETURNING form (p/acinvoke.cob) works: SAME-OBJECT"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-05",
+  "cases": [
+   {
+    "rule-id": "2002-SR-8.4.2.6.2-1",
+    "verdict": "UPHELD",
+    "reason": "Format is bare EXCEPTION-OBJECT in both. The one 2002-only receiving context, RECEIVE ... INTO identifier-1 (Annex A), is refused at --std 2002 by this very rule: probe eorecv.cob gives COBOL2196 at --std 2002. No other 2002-only receiving operand admits an object reference.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.6.2 SR1",
+      "quote": "EXCEPTION-OBJECT shall not be specified as a receiving operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.6.3 SR1",
+      "quote": "EXCEPTION-OBJECT shall not be specified as a receiving operand.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-05/eorecv.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.6.2-2",
+    "verdict": "UPHELD",
+    "reason": "Same implicit description. 'External data' differs only in wording between 2002 4.81 and 2023 3.79. No 2002-only context reaches it.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.6.2 SR2",
+      "quote": "EXCEPTION-OBJECT is implicitly described as class object and category object reference, as an external data item, and as a universal object reference.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.6.3-2",
+    "verdict": "UPHELD",
+    "reason": "Run-unit singleton. The 2002-only EXIT METHOD/FUNCTION RAISING forms feed GR1, which the reader already ruled DIFFERENT, and do not change how many instances exist. The reader's probes exitm/exitf at --std 2002 show the same instance seen across a method or function.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.6.3 GR2",
+      "quote": "There is one instance of EXCEPTION-OBJECT in a run unit.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-1",
+    "verdict": "UPHELD",
+    "reason": "Same format; class-name-1 was renamed object-class-name-1. 'Method definition' is unchanged.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR1",
+      "quote": "This identifier format may be specified only in a method definition.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-3",
+    "verdict": "UPHELD",
+    "reason": "The three permitted contexts (object-property object, INVOKE, inline invocation) exist in both editions with the same shape.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR3",
+      "quote": "SUPER may be specified only as the object in an object-property identifier",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-7",
+    "verdict": "UPHELD",
+    "reason": "Same implicit description; no 2002-only context.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR7",
+      "quote": "SELF and SUPER are both implicitly described as class object and category object reference",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.8.3-1",
+    "verdict": "UPHELD",
+    "reason": "Same text. The ways a method is invoked in 2002 (INVOKE, inline, property get/set) also exist in 2023. The 2002 ACTIVE-CLASS property allowance changes a returning item, not the invoking object. GR3's 2023 rewording is a different rule.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.3 GR1",
+      "quote": "SELF and SUPER both reference the object that was used to invoke the method",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-2",
+    "verdict": "UPHELD",
+    "reason": "A refusal of universal and NULL identifier-1, and both refusals are re-run at --std 2002 (COBOL2918). A 2002-only ACTIVE-CLASS-returning property or inline invocation used as identifier-1 is still a non-universal object reference, so this rule does not refuse it. Whether it is accepted is governed by 8.4.2.4 and 11.6.2; the reader already reported those as defects.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR2",
+      "quote": "Identifier-1 shall be an object reference; neither a universal object reference nor the predefined object reference NULL shall be specified.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.11.2-2",
+    "verdict": "UPHELD",
+    "reason": "SR1 confines identifier-1 to the file, working-storage, local-storage and linkage sections, so it cannot reach the communication, report or screen section. The terms are the same.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.2 SR2",
+      "quote": "Identifier-1 shall not reference an object reference or an elementary item subordinate to a strongly-typed group item.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.11.2-3",
+    "verdict": "UPHELD",
+    "reason": "The 'bit data item' definition (2002 4.18 = 2023 3.19), the ALIGNED clause and the bit alignment rules (2002 8.5.1.5.3 = 2023 8.5.1.6.3) are word-identical.",
+    "citations": [
+     {
+      "cite": "§2002:8.5.1.5.3",
+      "quote": "Alignment of elementary bit data items of level 1 or level 77 and a level 1 bit group are at the first bit of a byte.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.6.3",
+      "quote": "Alignment of elementary bit data items of level 1 or level 77 and a level 1 bit group are at the first bit of a byte.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.12.3-4",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002, identifier-1 of ADDRESS OF PROGRAM also admits an ALPHABETIC data item. SR1 permits category alphanumeric, and 2002 8.5.2.1 lets an alphabetic item stand wherever an elementary alphanumeric operand is permitted. 2023 has no such rule (2023 8.5.2.2), and 2014 E.2 item 2 records the withdrawal. So the 2002 GR4 also governs the not-found case reached through an alphabetic identifier-1, which the 2023 row and its witnesses cannot show. Probe padalpha.cob: at --std 2002 the compiler refuses 'SET PP TO ADDRESS OF PROGRAM NM' with NM PIC A(8), error COBOL2157 citing §2023:8.4.3.13.3 SR1 ('NM' is of category alphabetic), the same as at 2023. That is a compiler defect at 2002, rooted in the 2002 SR1 operand domain; GR4's alphabetic case cannot be shown until it is fixed. The CALL-CONVENTION and name-mapping text GR1 defers to (2002 8.3.1.1.1) is the same in 2023, so the other three scope items stand.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.12.3 GR4",
+      "quote": "If the runtime system cannot locate the program, the EC-PROGRAM-NOT-FOUND exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.4 GR4",
+      "quote": "If the runtime system cannot locate the program, the EC-PROGRAM-NOT-FOUND exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.12.2 SR1",
+      "quote": "Identifier-1 shall be of category alphanumeric or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.1",
+      "quote": "An alphabetic data item may be specified wherever an elementary alphanumeric data item is permitted as an operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.3 SR1",
+      "quote": "Identifier-1 shall be of category alphanumeric or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "Data items of class and category alphabetic may be used only where rules explicitly allow them.",
+      "check": "OK"
+     }
+    ],
+    "class": "other (operand domain: 2002 8.5.2.1 admits an alphabetic item wherever an elementary alphanumeric operand is permitted; 2023 has no such rule, so the 2002 identifier-1 admits more)",
+    "needs": "its own verdict: at --std 2002 the compiler refuses an alphabetic identifier-1 (COBOL2157), which 2002 permits; after the fix, a 2002 witness for EC-PROGRAM-NOT-FOUND and NULL through an alphabetic identifier-1",
+    "compiler-at-2002": "wrong",
+    "defect": "program refute-q-05/padalpha.cob: '01 NM PIC A(8) VALUE \"NOSUCHPG\".' and 'SET PP TO ADDRESS OF PROGRAM NM.'. Expected at --std 2002: accepted (§2002:8.5.2.1 with §2002:8.4.2.12.2 SR1), then EC-PROGRAM-NOT-FOUND and PP = NULL. Observed: 'error COBOL2157: SET 'PP' TO ADDRESS OF PROGRAM NM: identifier-1 shall be of category alphanumeric or national (ISO §2023:8.4.3.13.3 SR1) - 'NM' is of category alphabetic'. Sweep: every 2002 rule that names an alphanumeric operand inherits this, a fifth cause the screen does not test.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-05/padalpha.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.13.2-1",
+    "verdict": "UPHELD",
+    "reason": "A restriction to procedure division statements. 2002's communication statements are procedure division statements, and the reader's probe lcsend shows LINAGE-COUNTER accepted there. The data-division refusals are re-run at --std 2002. The 2014 E.2 item 15 change (qualification) belongs to SR3, not SR1. The compiler declines the screen section at 2002, which still refuses the program, so SR1's refusal holds there; whether 2002 licenses declining the screen section is a separate question.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.13.2 SR1",
+      "quote": "LINAGE-COUNTER may be referenced only in procedure division statements.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-1",
+    "verdict": "UPHELD",
+    "reason": "Same text. The GENERATE page-advance and INITIATE texts that maintain the counters are word-identical (I compared the 2002 transcription's GENERATE steps d/e with 2023's, and INITIATE's LINE-COUNTER zero and PAGE-COUNTER 1).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.3 GR1",
+      "quote": "PAGE-COUNTER and LINE-COUNTER reference temporary unsigned integer data items of class and category numeric",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-2",
+    "verdict": "UPHELD",
+    "reason": "The NEXT GROUP format (incl. NEXT PAGE WITH RESET) and its GR6 are identical. The 2014 TERMINATE/VARYING change touches EC-REPORT-VARYING, not the counters.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR6",
+      "quote": "If the WITH RESET phrase is present, the value of PAGE-COUNTER for the report is set to 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR6",
+      "quote": "If the WITH RESET phrase is present, the value of PAGE-COUNTER for the report is set to 1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-3",
+    "verdict": "UPHELD",
+    "reason": "Identical; INITIATE and page-advance text identical.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.3 GR3",
+      "quote": "The initial value of LINE-COUNTER is set to zero by execution of an INITIATE statement for the corresponding report.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-4",
+    "verdict": "UPHELD",
+    "reason": "Defers to the NEXT GROUP general rules. I compared 2002 13.16.35.3 GR2-GR6 with 2023 13.18.37.4 GR2-GR6, and they are word-identical.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.3 GR4",
+      "quote": "in which case the final value of LINE-COUNTER is defined by the general rules for the NEXT GROUP clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.14.3-5",
+    "verdict": "UPHELD",
+    "reason": "Dummy group and SUPPRESS exist in both editions with the same effect.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.3 GR5",
+      "quote": "The values of PAGE-COUNTER and LINE-COUNTER are not affected by the processing of a dummy report group",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.7.5.2-8",
+    "verdict": "UPHELD",
+    "reason": "In 2002, <= appears only in Format 2, which has no [NOT], so the split that affected '<' (IS NOT <) does not arise. 2023 only adds operators governed by other rules.",
+    "citations": [
+     {
+      "cite": "§2002:8.7.5.2 SR8",
+      "quote": "is an abbreviation for LESS THAN OR EQUAL TO.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "53c34be64907fdd47f56cf623c9ca38ba17b3dbaa01d1003f0c589a62ecaffd4",
+  "read": "737d769ea8880dff44158e1a4dbc764389599b5ec1246b2cf48738b7a576018d",
+  "refute": "ab8af48111d990e81532a044c4691f2559261502ff5cd8c0656d9288bd856edf"
+ }
+}

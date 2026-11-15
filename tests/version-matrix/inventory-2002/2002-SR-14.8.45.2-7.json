@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.8.45.2-7",
+ "rule-digest": "1e513aa6367f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.49.3-7"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule uses only the compound 'procedure division', not the defined term 'procedure' (§2002:4 4.150); no change of scope or evidence."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Read §2002:14.5.12.1.2, 14.5.12.1.3 and 14.5.12.2 (fatal and non-fatal processing, incompatible data); the 2023 text adds the PERFORM WHEN arm, the SORT/MERGE and I-O status arms and APPLY COMMIT, none writable in 2002. The rule limits each Format 1 open-mode phrase to once per declaratives; Format 1 USE is file I-O error handling, not the 14.5.12 dispatch. No dependence; evidence unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-34.json",
+  "digests": {
+   "SR-14.9.49.3-7": "1e513aa6367f"
+  }
+ }
+}

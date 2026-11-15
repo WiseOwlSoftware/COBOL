@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-12.2.7.2-9",
+ "rule-digest": "2d40132cd085",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.8.3-9"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "interface | of an object",
+    "answer": "§2002:4 (4.110) interface of an object lists the methods with their parameters, returned value and exceptions, word for word 2023 3.109 apart from 'may'/'can'; the rule names an interface as the language construct (§2002:4 4.111 'A grouping of method prototypes'), defined alike in 2023 3.110, so scope is unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/p-09.json",
+  "digests": {
+   "SR-12.3.8.3-9": "2d40132cd085"
+  }
+ }
+}

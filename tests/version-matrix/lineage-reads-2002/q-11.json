@@ -1,0 +1,2516 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-11 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-11",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-13.15.3-1",
+   "2002-GR-13.15.3-2",
+   "2002-SR-13.16.1.2-1",
+   "2002-GR-13.16.1.3-2",
+   "2002-SR-13.16.2.2-3",
+   "2002-GR-13.16.2.3-1",
+   "2002-GR-13.16.3.2-1",
+   "2002-GR-13.16.3.2-2",
+   "2002-GR-13.16.3.2-3",
+   "2002-GR-13.16.3.2-4",
+   "2002-GR-13.16.3.2-5",
+   "2002-SR-13.16.4.2-1",
+   "2002-SR-13.16.4.2-2",
+   "2002-GR-13.16.4.3-1",
+   "2002-GR-13.16.4.3-3",
+   "2002-GR-13.16.4.3-4",
+   "2002-GR-13.16.5.3-3",
+   "2002-GR-13.16.5.3-4",
+   "2002-GR-13.16.6.2-1",
+   "2002-GR-13.16.6.2-2",
+   "2002-GR-13.16.7.2-1",
+   "2002-GR-13.16.7.2-2",
+   "2002-GR-13.16.7.2-3",
+   "2002-GR-13.16.7.2-4",
+   "2002-GR-13.16.7.2-5"
+  ],
+  "flags": {
+   "2002-GR-13.15.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.15.3-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.2.2-3": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-13.16.2.3-1": {
+    "changed-definition-term": "runtime element, zero-length item"
+   },
+   "2002-GR-13.16.3.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.3.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.3.2-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.3.2-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.3.2-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.4.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.4.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.4.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.4.3-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.4.3-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.5.3-3": {
+    "changed-definition-term": "null"
+   },
+   "2002-GR-13.16.5.3-4": {
+    "changed-definition-term": "null"
+   },
+   "2002-GR-13.16.6.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.6.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.7.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.7.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.7.2-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.7.2-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.7.2-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-11",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.15.3-1",
+    "to": [
+     "GR-13.17.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.3",
+    "clause-2023": "13.17.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.3 GR1",
+      "quote": "the clause that appears at the lowest level of the hierarchy is the one that takes effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.4 GR1",
+      "quote": "the clause that appears at the lowest level of the hierarchy is the one that takes effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "clause precedence in a screen item hierarchy (screen section only)"
+    ],
+    "evidence-2002": {
+     "clause precedence in a screen item hierarchy (screen section only)": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-section.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-section.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-section-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.15.3-2",
+    "to": [
+     "GR-13.17.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.3",
+    "clause-2023": "13.17.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.3 GR2",
+      "quote": "If the HIGHLIGHT and LOWLIGHT clauses are both specified in the hierarchy of a screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.4 GR2",
+      "quote": "If the HIGHLIGHT and LOWLIGHT clauses are both specified in the hierarchy of a screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "HIGHLIGHT/LOWLIGHT precedence in a screen item hierarchy (a42-screen-lowlight also refused COBOL1560 at 2002)"
+    ],
+    "evidence-2002": {
+     "HIGHLIGHT/LOWLIGHT precedence in a screen item hierarchy (a42-screen-lowlight also refused COBOL1560 at 2002)": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-highlight.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-highlight.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-highlight-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.1.2-1",
+    "to": [
+     "SR-13.18.1.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.1.2",
+    "clause-2023": "13.18.1.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.1.2 SR1",
+      "quote": "The ALIGNED clause may be specified only for a bit group item or an elementary bit data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.1.3 SR1",
+      "quote": "The ALIGNED clause may be specified only for a bit group item or an elementary bit data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The structure of a record description and the elements allowed in a record description entry are explained in",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "data description entries in the file, working-storage, local-storage and linkage sections (bit group / elementary bit items)",
+     "record description entries following a CD entry in the communication section (§2002:A.1.1.2: they are data description entries of 13.14)"
+    ],
+    "evidence-2002": {
+     "data description entries in the file, working-storage, local-storage and linkage sections (bit group / elementary bit items)": "covered by conformance:cases/13.18.1-ALIGNED/pb487-aligned-non-bit-subject (run now at --std 2002: COBOL1942) and pb487-aligned-co-clause-rules (refuse-at includes 2002)",
+     "record description entries following a CD entry in the communication section (§2002:A.1.1.2: they are data description entries of 13.14)": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/aligned_cd_nonbit.cob: --std 2002 refuses 01 OUT-REC ALIGNED under CD OUT-CD FOR OUTPUT with COBOL1942"
+    },
+    "reason": "The format and the definition of a bit data item are the same in both editions (§2002:4 4.18 matches 2023). In 2002 the rule also governs the record description entries written after a CD entry, which are ordinary data description entries (§2002:A.1.1.2). The 2023 row cannot witness that case. A class (a) case the screen missed.",
+    "needs": "a 2002 witness for an ALIGNED clause in a record description entry following a CD entry (probe aligned_cd_nonbit.cob can be adopted)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/aligned_cd_nonbit.cob: exit 65, COBOL1942)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/aligned_cd_nonbit.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.1.3-2",
+    "to": [
+     "GR-13.18.1.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.1.3",
+    "clause-2023": "13.18.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.1.3 GR2",
+      "quote": "An ALIGNED clause specified for a multiple-occurrence data item applies to each occurrence of that item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.1.4 GR2",
+      "quote": "An ALIGNED clause specified for a multiple-occurrence data item applies to each occurrence of that item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "data description entries in the file, working-storage, local-storage and linkage sections (bit group / elementary bit items)",
+     "record description entries following a CD entry in the communication section (§2002:A.1.1.2: they are data description entries of 13.14)"
+    ],
+    "evidence-2002": {
+     "data description entries in the file, working-storage, local-storage and linkage sections (bit group / elementary bit items)": "covered by conformance:cases/13.18.1-ALIGNED/pb487_aligned_bit_layout (accept [2002]; run now at --std 2002, output equals the golden)",
+     "record description entries following a CD entry in the communication section (§2002:A.1.1.2: they are data description entries of 13.14)": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/aligned_cd_bit.cob at --std 2002: ALIGNED=2 TABLE=3 NOTABLE=2, B1=1100 B2=0011, T=1000/0100/0010 (the golden's derivation)"
+    },
+    "reason": "Same sentence; the alignment text it rests on is the same (8.5.1.5.3 in 2002, 8.5.1.6.3 in 2023). In 2002 an ALIGNED table can also sit in a record that redefines a CD record area, and the 2023 row says nothing about that case.",
+    "needs": "a 2002 witness for an ALIGNED multiple-occurrence bit item in a record following a CD entry (probe aligned_cd_bit.cob can be adopted)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/aligned_cd_bit.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/aligned_cd_bit.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.2.2-3",
+    "to": [
+     "SR-13.18.2.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.2.2",
+    "clause-2023": "13.18.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.2.2 SR3",
+      "quote": "the subject of the entry shall be referenced in its procedure division header as a formal parameter with the BY REFERENCE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.2.3 SR4",
+      "quote": "the subject of the entry shall be referenced in its procedure division header as a formal parameter with the BY REFERENCE phrase",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the level-1 linkage-section ANY LENGTH entry of a user-defined function, which must be a BY REFERENCE formal parameter (linkage only, SR1: no CD or debugging reach)"
+    ],
+    "evidence-2002": {
+     "used only as RETURNING, or unreferenced: refused": "covered by l1-any-length-function-returning and l1-any-length-function-unreferenced, run now at --std 2002: COBOL5979",
+     "BY VALUE formal: refused": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/anylen_func_byvalue.cob: COBOL5979 at 2002",
+     "BY REFERENCE: accepted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/anylen_func_byref.cob at 2002: LEN5=0005 LEN7=0007"
+    },
+    "flags-answered": {
+     "definition-changed: procedure": "The rule uses 'procedure division' (the division), never the defined term 'procedure'; §2002:4 (entry 4.150) 'One or more successive paragraphs or sections in the procedure division' vs §2023:3.145 does not touch what the division is. Scope and evidence unchanged."
+    },
+    "reason": "Same format (ANY LENGTH), same SR1 placement rule and same function header. The twin's refusal witnesses run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/anylen_func_byref.cob",
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.2.3-1",
+    "to": [
+     "GR-13.18.2.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.2.3",
+    "clause-2023": "13.18.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.2.3 GR1a",
+      "quote": "a zero-length item when the corresponding argument or returning item of the activating runtime element is a zero-length item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.2.4 GR1a",
+      "quote": "a zero-length item when the corresponding argument or returning item of the activating runtime element is a zero-length item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.4",
+      "quote": "A data item defined with the DYNAMIC LENGTH clause that is a zero-length item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.7.1.1",
+      "quote": "For a variable-occurrence data item passed by content, the length of the argument is determined by the rules of the OCCURS clause for a sending data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.7.1.1",
+      "quote": "For an argument or formal parameter that is described as a variable-occurrence data item passed by reference, the maximum length is used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR10",
+      "quote": "Identifier-2, identifier-3, and identifier-4 shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "argument leg b): n = argument length",
+     "argument leg a): a zero-length argument of a 2002 kind (§2002:8.5.4 items 1-5: a variable-occurrence group with zero occurrences passed BY CONTENT, a zero-length record, a zero-length intrinsic value)",
+     "returning leg b)",
+     "returning leg a): a zero-length returning item in the activator"
+    ],
+    "evidence-2002": {
+     "argument leg b)": "covered by conformance:cases/13.18.2-ANY-LENGTH/any_length_contained (accept [2002]; run now, equals the golden)",
+     "argument leg a)": "not shown by the 2023 row: its zero-length witness pb1167_any_length_returning_zero_length writes a zero-length literal (2014 and later) and is refused at 2002 (S1-lists B, COBOL0900). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/anylen_zero_bycontent.cob at 2002: ARGLEN=000000000 [] then 000000003 [ABC], correct",
+     "returning leg b)": "covered by pb1167_any_length_returning (accept [2002]; run now, equals the golden), but some of its legs are illegal 2002 source (see the defect)",
+     "returning leg a)": "not shown at 2002 by a conformance case. The unit test ReturningSeedTests.Zero_Length_Receiver_Gives_A_Zero_Length_Item covers the runtime with no edition. In 2002 the caller's returning item cannot be ANY LENGTH (SR10), and a variable-occurrence group counts at its maximum length (§2002:14.7.2.1)"
+    },
+    "flags-answered": [
+     "changed-definition-term 'zero-length item': 2002 lists five kinds (§2002:8.5.4) and 2023 nine (it adds DYNAMIC LENGTH items, dynamic-capacity tables, the zero-length literal and REF-MOD-ZERO-LENGTH). The 2002 scope is a subset, but the 2023 row's only zero-length witness uses a kind 2002 lacks, so the 2002 kinds need their own witness",
+     "changed-definition-term 'runtime element': it plays the same role in both editions (the activating program, method or function); no scope change"
+    ],
+    "reason": "Same sentence, but case a) rests on the list of zero-length items, which is narrower in 2002, and the twin proves case a) only with a kind 2002 does not have. A BY REFERENCE variable-occurrence argument counts at its maximum length in 2002 (§2002:14.7.1.1), so in 2002 a zero-length argument has to be passed BY CONTENT. Probe anylen_zero_odo_arg.cob passes one BY REFERENCE at 2002 and gets length 5, which conforms.",
+    "needs": "a 2002 witness for a zero-length argument of a 2002 kind. Its own verdict: at --std 2002 the compiler gives length 0 for a BY CONTENT variable-occurrence group with zero occurrences, which is correct (probe anylen_zero_bycontent.cob)",
+    "compiler-at-2002": "correct for this rule (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/anylen_zero_bycontent.cob). A separate defect turned up along the way: §2002:14.8.4.2 SR10 is not enforced for the program-prototype format (probes call_nested_returning_anylength_2002.cob and call_nested_using_anylength_2002.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/anylen_zero_bycontent.cob",
+    "widening": "2023 adds four kinds of zero-length item, which the same sentence also covers"
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-1",
+    "to": [
+     "GR-13.18.3.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.3.2",
+    "clause-2023": "13.18.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR1",
+      "quote": "An AUTO clause specified at the group level applies to each input screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.3.3 GR1",
+      "quote": "An AUTO clause specified at the group level applies to each input screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement"
+    ],
+    "evidence-2002": {
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-auto.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-auto.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-auto-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-2",
+    "to": [
+     "GR-13.18.3.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.3.2",
+    "clause-2023": "13.18.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR2",
+      "quote": "The AUTO clause is ignored for a field that is not an input field",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.3.3 GR2",
+      "quote": "The AUTO clause is ignored for a field that is not an input field",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement"
+    ],
+    "evidence-2002": {
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-auto.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-auto.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-auto-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-3",
+    "to": [
+     "GR-13.18.3.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.3.2",
+    "clause-2023": "13.18.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR3",
+      "quote": "The AUTO clause takes effect during the execution of an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.3.3 GR3",
+      "quote": "The AUTO clause takes effect during the execution of an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement"
+    ],
+    "evidence-2002": {
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-auto.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-auto.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-auto-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-4",
+    "to": [
+     "GR-13.18.3.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.3.2",
+    "clause-2023": "13.18.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR4",
+      "quote": "causes the cursor to be automatically moved to the next input field",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.3.3 GR4",
+      "quote": "causes the cursor to be automatically moved to the next input field",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement"
+    ],
+    "evidence-2002": {
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-auto.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-auto.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. In GR4, 'the last character of the input field' is a character in a screen item (4.27 'A graphic character'). The screen section is processor-dependent in 2002 (§2002:3.1.5 with B.3), and the compiler refuses it at --std 2002 with COBOL1560 (the reader's probe), so the evidence is unaffected. The term picks out the same characters in both, so the scope and the evidence do not change."
+    },
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-auto-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null,
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.3.2 GR4",
+      "quote": "when the last character of the input field whose definition contains this clause has data entered into it",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-5",
+    "to": [
+     "GR-13.18.3.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.3.2",
+    "clause-2023": "13.18.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR5",
+      "quote": "successful completion with normal termination of the ACCEPT statement results",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.3.3 GR5",
+      "quote": "successful completion with normal termination of the ACCEPT statement results",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement"
+    ],
+    "evidence-2002": {
+     "the AUTO clause of a screen description entry, in an ACCEPT screen statement": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-auto.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-auto.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-auto-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null,
+    "flags-answered-prior": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The 'last character' of a screen input field is the screen-item sense (4.27, graphic character), which §2023:3.93 keeps as graphic character; the screen section is declined at both editions.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "§2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination) are flagged by the word 'termination': GR5 speaks of normal termination of the ACCEPT screen statement (§2002:13.16.3.2 GR5), not run unit termination or a transfer of control, so it rests on none of the three clauses; the screen section is declined at 2002 in any case."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.3.2 GR5",
+      "quote": "successful completion with normal termination of the ACCEPT statement results",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "Normal run unit termination",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-11",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null,
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-13.16.4.2-1",
+    "to": [
+     "SR-13.18.4.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.4.2",
+    "clause-2023": "13.18.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.2 SR1",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.4.3 SR1",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)"
+    ],
+    "evidence-2002": {
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-background-color.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-background-color.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-background-color-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.4.2-2",
+    "to": [
+     "SR-13.18.4.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.4.2",
+    "clause-2023": "13.18.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.2 SR2",
+      "quote": "Integer-1 shall have a value in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.4.3 SR2",
+      "quote": "Integer-1 shall have a value in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)"
+    ],
+    "evidence-2002": {
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-background-color.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-background-color.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-background-color-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.4.3-1",
+    "to": [
+     "GR-13.18.4.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.4.3",
+    "clause-2023": "13.18.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.3 GR1",
+      "quote": "the content of the data item referenced by identifier-1 shall be in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.4.4 GR1",
+      "quote": "the content of the data item referenced by identifier-1 shall be in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)"
+    ],
+    "evidence-2002": {
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-background-color.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-background-color.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-background-color-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.4.3-3",
+    "to": [
+     "GR-13.18.4.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.4.3",
+    "clause-2023": "13.18.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.3 GR3",
+      "quote": "A BACKGROUND-COLOR clause specified at the group level applies to each elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.4.4 GR3",
+      "quote": "A BACKGROUND-COLOR clause specified at the group level applies to each elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)"
+    ],
+    "evidence-2002": {
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-background-color.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-background-color.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-background-color-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.4.3-4",
+    "to": [
+     "GR-13.18.4.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.4.3",
+    "clause-2023": "13.18.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.3 GR4",
+      "quote": "the background color is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.4.4 GR4",
+      "quote": "the background color is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)"
+    ],
+    "evidence-2002": {
+     "the BACKGROUND-COLOR clause of a screen description entry (in both editions identifier-1 cannot be in the communication section)": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-background-color.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-background-color.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-background-color-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.5.3-3",
+    "to": [
+     "GR-13.18.5.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.5.3",
+    "clause-2023": "13.18.5.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.3 GR3",
+      "quote": "while its address is NULL, the EC-DATA-PTR-NULL exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.5.4 GR3",
+      "quote": "while its address is NULL, the EC-DATA-PTR-NULL exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a based entry (level 1 or 77 in working-storage, local-storage or linkage: §2002:13.14 SR15, so no CD reach), or an item subordinate to it, referenced while its address is NULL: EC-DATA-PTR-NULL, Fatal in both editions' tables"
+    ],
+    "evidence-2002": {
+     "subject referenced while NULL, checking on, USE + RESUME": "covered by conformance:cases/13.18.5-BASED/ec_data_ptr_null, which the suite runs only at 2023 (accept [2023]); run now at --std 2002, its output equals the golden (HANDLED=EC-DATA-PTR-NULL, AFTER). RESUME exists in 2002 (14.8.31)",
+     "subordinate referenced while NULL, declarative completes normally": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/based_null_sub_2002.cob at 2002: HANDLED=EC-DATA-PTR-NULL, then abnormal run-unit termination with exit 1, as §2002:14.5.12.1.2 rule 2 requires"
+    },
+    "flags-answered": [
+     "changed-definition-term 'null': 2002 4.136 defines null as the state of a pointer that holds no address; 2023 splits the definition by kind of item, but the address-pointer sense this rule uses is the same; no scope change"
+    ],
+    "reason": "Same format (BASED), same placement rule, and EC-DATA-PTR-NULL is fatal in both tables. The twin's witness runs clean at 2002 but the suite does not run it there; adding 2002 to its accept list would keep that evidence.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/based_null_sub_2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.5.3-4",
+    "to": [
+     "GR-13.18.5.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.5.3",
+    "clause-2023": "13.18.5.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.3 GR4",
+      "quote": "while its address is not NULL and not a valid address of storage, the EC-BOUND-PTR exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.5.4 GR4",
+      "quote": "while its address is not NULL and not a valid address of storage, the EC-BOUND-PTR exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a based entry referenced through an address that is not NULL and is not valid storage (its lifetime ended through FREE, activation exit or CANCEL): EC-BOUND-PTR, Fatal in both tables"
+    ],
+    "evidence-2002": {
+     "invalid address": "covered by conformance:cases/13.18.5-BASED/pb1216_ls_and_cancel_pointer_lifetime, pb1216_recursive_initial_pointer_lifetime and pb1216_method_pointer_lifetime (accept [2002]); run now at --std 2002, each equals its golden apart from trailing spaces"
+    },
+    "flags-answered": [
+     "changed-definition-term 'null': the address-pointer sense is the same in both editions; no scope change"
+    ],
+    "reason": "Same text, same exception and fatality, and the twin's witnesses run at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.6.2-1",
+    "to": [
+     "GR-13.18.6.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.6.2",
+    "clause-2023": "13.18.6.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.6.2 GR1",
+      "quote": "The audio tone sounds once at the start of the execution of the DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.6.3 GR1",
+      "quote": "The audio tone sounds once at the start of the execution of the DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BELL clause of a screen description entry, in a DISPLAY screen statement"
+    ],
+    "evidence-2002": {
+     "the BELL clause of a screen description entry, in a DISPLAY screen statement": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-bell.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-bell.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-bell-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.6.2-2",
+    "to": [
+     "GR-13.18.6.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.6.2",
+    "clause-2023": "13.18.6.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.6.2 GR2",
+      "quote": "A BELL clause specified at the group level applies to each elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.6.3 GR2",
+      "quote": "A BELL clause specified at the group level applies to each elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BELL clause of a screen description entry, in a DISPLAY screen statement"
+    ],
+    "evidence-2002": {
+     "the BELL clause of a screen description entry, in a DISPLAY screen statement": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-bell.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-bell.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-bell-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-1",
+    "to": [
+     "GR-13.18.7.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.7.2",
+    "clause-2023": "13.18.7.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR1",
+      "quote": "the entire line specified for the screen item that is the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.7.3 GR1",
+      "quote": "the entire line specified for the screen item that is the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry"
+    ],
+    "evidence-2002": {
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-blank.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-blank.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-blank-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-2",
+    "to": [
+     "GR-13.18.7.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.7.2",
+    "clause-2023": "13.18.7.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR2",
+      "quote": "the screen is cleared and the cursor is placed at line 1, column 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.7.3 GR2",
+      "quote": "the screen is cleared and the cursor is placed at line 1, column 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry"
+    ],
+    "evidence-2002": {
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-blank.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-blank.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-blank-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-3",
+    "to": [
+     "GR-13.18.7.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.7.2",
+    "clause-2023": "13.18.7.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR3",
+      "quote": "establishes the default background color to be used until the same combination is encountered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.7.3 GR3",
+      "quote": "establishes the default background color to be used until the same combination is encountered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry"
+    ],
+    "evidence-2002": {
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-blank.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-blank.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-blank-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-4",
+    "to": [
+     "GR-13.18.7.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.7.2",
+    "clause-2023": "13.18.7.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR4",
+      "quote": "establishes the default foreground color to be used until the same combination is encountered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.7.3 GR4",
+      "quote": "establishes the default foreground color to be used until the same combination is encountered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry"
+    ],
+    "evidence-2002": {
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-blank.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-blank.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-blank-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-5",
+    "to": [
+     "GR-13.18.7.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.7.2",
+    "clause-2023": "13.18.7.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR5",
+      "quote": "The BLANK clause is ignored during all phases of the execution of an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.7.3 GR5",
+      "quote": "The BLANK clause is ignored during all phases of the execution of an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry"
+    ],
+    "evidence-2002": {
+     "the BLANK LINE / BLANK SCREEN clause of a screen description entry": "covered by conformance-suite/wiseowl/cases/<clause>/a42-screen-blank.cob, run now with cobol.exe --std 2002 --source-format free: exit 65, COBOL1560 naming the SCREEN SECTION and the clause (refuse-at in wiseowl/diagnostics/a42-screen-blank.json includes 2002)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (in 2002 the screen section is a processor-dependent element; support is not claimed and the absence is documented in docs/CONFORMANCE.md §5)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2 (optional). 2002 has no optional screen module (§2002:3.1 names only Annex A, communications, as optional) but makes the whole screen section processor-dependent (§2002:B.3 item 1; item 2 also lists the color/BELL renditions), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented and need not produce executable code. Same non-support, different licence. The compiler refuses at --std 2002 with COBOL1560. Its message cites the 2023 basis (§2023:4.2.7, A.4.2) even at --std 2002: the wording is wrong for 2002, but the form of messages is not specified (§2002:1), so this is not a conformance defect."
+    ],
+    "reason": "Same words, same format (no operands, or the same identifier-1/integer-1 choice), same screen-section context in both editions. No communication or debugging reach: screen description entries exist only in the screen section. Non-support is licensed in 2002 as processor-dependent, and the compiler declines it with a named error at --std 2002 (run this session).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/a42-screen-blank-2002.dll (output path of the --std 2002 compile of the a42 witness; refused, exit 65)",
+    "widening": null
+   }
+  ],
+  "defects": [
+   {
+    "title": "§2002:14.8.4.2 SR10 is not enforced for the program-prototype CALL at --std 2002",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/call_nested_returning_anylength_2002.cob (CALL \"NRET\" AS NESTED RETURNING AL, AL ANY LENGTH); E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-11/call_nested_using_anylength_2002.cob (CALL \"NIN\" AS NESTED USING BY REFERENCE AL)",
+    "expected": "refused: §2002:14.8.4.2 SR10, under ALL FORMATS: 'Identifier-2, identifier-3, and identifier-4 shall not be described with the ANY LENGTH clause' (cite.py OK). 2023 narrowed this to Format 1 (§2023:14.9.4.3 SR11) plus SR18 for identifier-4 (cite.py OK)",
+    "observed": "--std 2002: both compile and run (exit 0; AL1=000000000 and NINLEN=000000003), exactly as at --std 2023",
+    "code-site": "E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs: anyLengthBanned = !formatTwo || (!isReturning && mode is Content or Value), which has no edition gate; the 2002 rule bans identifier-2, -3 and -4 in Format 3 as well",
+    "reach": "the conformance case pb1167_any_length_returning runs at 2002 (accept [2002]) through its CALL ... AS NESTED RETURNING AL legs, which are illegal 2002 source"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-11",
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.15.3-1",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds screen description entries only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-section at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.3 GR1",
+      "quote": "the clause that appears at the lowest level of the hierarchy is the one that takes effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-section-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.15.3-2",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds HIGHLIGHT/LOWLIGHT only in the screen description entry and the SET attribute statement, whose operand is screen-name-1 (so also screen-section only); screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-highlight at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.3 GR2",
+      "quote": "If the HIGHLIGHT and LOWLIGHT clauses are both specified in the hierarchy of a screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-highlight-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.2.2-3",
+    "verdict": "UPHELD",
+    "reason": "Compared 2002 13.16.2 with 2023 13.18.2 whole: the format (ANY LENGTH), the placement rule (2002 SR1 = 2023 SR2: linkage of a function, contained program or non-property method), the program/method rule (SR2 = SR3) and this function rule (SR3 = SR4) are word for word the same; 2023 only moved the PICTURE rule from SR4 to SR1. The subject is a linkage level-1 entry, so no CD record, no communication-statement operand and no debugging reach, and a function's procedure division header is the same in 2002. The reader's refusal witnesses run at 2002 (COBOL5979) and its BY REFERENCE probe runs. No 2002-only form found.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.2.2 SR3",
+      "quote": "the subject of the entry shall be referenced in its procedure division header as a formal parameter with the BY REFERENCE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.2.3 SR4",
+      "quote": "the subject of the entry shall be referenced in its procedure division header as a formal parameter with the BY REFERENCE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.2.2 SR1",
+      "quote": "may be specified only in an elementary level 1 entry in the linkage section of a function",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-1",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds AUTO only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-auto at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR1",
+      "quote": "An AUTO clause specified at the group level applies to each input screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-auto-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-2",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds AUTO only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-auto at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR2",
+      "quote": "The AUTO clause is ignored for a field that is not an input field",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-auto-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-3",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds AUTO only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-auto at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR3",
+      "quote": "The AUTO clause takes effect during the execution of an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-auto-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-4",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds AUTO only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-auto at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR4",
+      "quote": "causes the cursor to be automatically moved to the next input field",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-auto-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.3.2-5",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds AUTO only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-auto at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.3.2 GR5",
+      "quote": "successful completion with normal termination of the ACCEPT statement results",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-auto-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.4.2-1",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BACKGROUND-COLOR only in the screen description entry (identifier-1 itself is kept out of the communication section by this very rule); screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-background-color at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.2 SR1",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-background-color-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.4.2-2",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BACKGROUND-COLOR only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-background-color at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.2 SR2",
+      "quote": "Integer-1 shall have a value in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-background-color-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.4.3-1",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BACKGROUND-COLOR only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-background-color at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.3 GR1",
+      "quote": "the content of the data item referenced by identifier-1 shall be in the range of 0 to 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-background-color-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.4.3-3",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BACKGROUND-COLOR only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-background-color at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.3 GR3",
+      "quote": "A BACKGROUND-COLOR clause specified at the group level applies to each elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-background-color-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.4.3-4",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BACKGROUND-COLOR only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-background-color at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.3 GR4",
+      "quote": "the background color is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-background-color-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.5.3-3",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The rule governs every direct or indirect reference to a based item while its address is NULL. In 2002 that includes identifier-1 of the communication facility's SEND cd-name FROM identifier-1 (A.2.6, any alphanumeric data item) and RECEIVE cd-name INTO identifier-1 (A.2.5): a based PIC X item is a legal operand of both. Those statement forms do not exist in 2023 (its SEND/RECEIVE are the message-server statements, another format), so the 2023 row's CONFORMS verdict and its witnesses (DISPLAY, MOVE) say nothing about them. The compiler claims the 2002 communication facility (it compiles and runs the probes, with obsolete-element warning COBOL0903), so this is a claimed 2002 scope item. Placement (§2002:13.14.2 SR15) and the Fatal table entry are the same, so the communication-statement operand is the only gap. Not a cd-name operand: the operand is the message area of a communication statement. Probes at --std 2002: SEND OUT-CD FROM B WITH EMI and RECEIVE IN-CD MESSAGE INTO B, B BASED and NULL, each print HANDLED=EC-DATA-PTR-NULL and continue after RESUME AT NEXT STATEMENT: correct. Needs: a 2002 witness for a NULL based item as a SEND FROM / RECEIVE INTO operand (the probes can be adopted).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.3 GR3",
+      "quote": "referenced directly or indirectly while its address is NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.5.4 GR3",
+      "quote": "referenced directly or indirectly while its address is NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.3 GR3",
+      "quote": "transferred to the receiving character positions of the area referenced by identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.38.1",
+      "quote": "sends a message to a message server run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.31.1",
+      "quote": "receives a message from a requestor or a message server run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/based_null_send_2002.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/based_null_receive_2002.cob (compiler-at-2002: correct)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.5.3-4",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "Same reach as GR3: in 2002 a based item whose address is not NULL and no longer valid storage can be referenced as identifier-1 of SEND cd-name FROM (A.2.6) or RECEIVE cd-name INTO (A.2.5), statement forms absent from 2023. The 2023 row's witnesses (pb1216_*: MOVE B TO W4) do not reach them. Probe at --std 2002: B is pointed at a returned LOCAL-STORAGE item whose activation ended; SEND OUT-CD FROM B and RECEIVE IN-CD MESSAGE INTO B each print HANDLED EC-BOUND-PTR and continue after RESUME: correct. Needs: a 2002 witness for an invalid-address based item as a SEND FROM / RECEIVE INTO operand (the probe can be adopted).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.3 GR4",
+      "quote": "while its address is not NULL and not a valid address of storage",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.5.4 GR4",
+      "quote": "while its address is not NULL and not a valid address of storage",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.3 GR3",
+      "quote": "transferred to the receiving character positions of the area referenced by identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.38.1",
+      "quote": "sends a message to a message server run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.31.1",
+      "quote": "receives a message from a requestor or a message server run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/based_bound_send_2002.cob (compiler-at-2002: correct)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.6.2-1",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BELL only in the screen description entry and the SET attribute statement, whose operand is screen-name-1 (so also screen-section only); screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-bell at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.6.2 GR1",
+      "quote": "The audio tone sounds once at the start of the execution of the DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-bell-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.6.2-2",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BELL only in the screen description entry and the SET attribute statement, whose operand is screen-name-1 (so also screen-section only); screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-bell at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.6.2 GR2",
+      "quote": "A BELL clause specified at the group level applies to each elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-bell-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-1",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BLANK LINE/SCREEN only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-blank at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR1",
+      "quote": "the entire line specified for the screen item that is the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-blank-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-2",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BLANK LINE/SCREEN only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-blank at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR2",
+      "quote": "the screen is cleared and the cursor is placed at line 1, column 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-blank-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-3",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BLANK LINE/SCREEN only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-blank at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR3",
+      "quote": "establishes the default background color to be used until the same combination is encountered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-blank-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-4",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BLANK LINE/SCREEN only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-blank at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR4",
+      "quote": "establishes the default foreground color to be used until the same combination is encountered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-blank-2002.dll (compile refused, exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.7.2-5",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence and the reach. Licence: §2002:3.1 makes only Annex A optional, but §2002:3.1.1 obliges only processor-dependent elements 'for which support is claimed', §2002:3.1.5 releases unclaimed ones (documented absence, compile-time warning, no executable code required) and §2002:B.3 item 1 names the screen section and the screen ACCEPT/DISPLAY formats with no accept-the-syntax proviso (contrast item 8). Reach: grep of the 2002 text finds BLANK LINE/SCREEN only in the screen description entry; screen items are not CD records and cannot be operands of SEND/RECEIVE, and there is no debugging-line reach. The clause format is the same in both editions. Probe re-run this session: a42-screen-blank at --std 2002 exits 65 with COBOL1560 naming the screen construct, so the whole 2002 scope is declined with a diagnostic; docs/CONFORMANCE.md records the screen refusal.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.7.2 GR5",
+      "quote": "The BLANK clause is ignored during all phases of the execution of an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-11/a42-screen-blank-2002.dll (compile refused, exit 65)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "a4d51ff5cd602b82031f984ac01e271a4d4c6911c9ea8ef0ec2aa7e6db9c44ee",
+  "read": "a909f59f7ee1647001973b9bd8141c8ceb6e98aa28c5226ace483b631283b6ee",
+  "refute": "c0064254e246d1c67c848f455e3fea474a0fa29fa409a2572776b786864238b4"
+ }
+}

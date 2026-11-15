@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-8.1.2.1-2",
+ "rule-digest": "4d3f702a3823",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.1.3.2-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); cobol character (newer: undefined)",
+    "answer": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The rule maps COBOL characters (4.28) to code values of coded character sets (4.26); 2023 says the same through §2023:3.37 and the coded-character-set terms, so the governed source texts are the same. The added 'cobol character' entry is 2002's alias 4.38 for 4.28, covered by §2023:3.37."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "The flag came from 'other methods' in GR2 (§2002:8.1.2.1 GR2: the implementor specifies the control functions or other methods for distinguishing encodings); this is a documentation mechanism, not method invocation, so §2002:9.3.5 does not govern the rule."
+   }
+  },
+  "source": "lineage-reads-2002/q-04.json",
+  "digests": {
+   "GR-8.1.3.2-2": "4d3f702a3823"
+  }
+ }
+}

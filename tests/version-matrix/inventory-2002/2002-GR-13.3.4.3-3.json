@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.3.4.3-3",
+ "rule-digest": "b92add9fa69e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.4.5.4-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "external data",
+    "answer": "§2002:4 (4.81) 'Data that belongs to the run unit and may be accessed by any runtime element in which it is described' is 2023 3.79 with may/can; LINAGE-COUNTER of an EXTERNAL file is external data in the same sense; no change."
+   }
+  },
+  "source": "lineage-reads-2002/q-09.json",
+  "digests": {
+   "GR-13.4.5.4-3": "b92add9fa69e"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-19",
+ "rule-digest": "61e7dc1f00f7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.38.3-21"
+  ],
+  "bridge": true,
+  "answers": {
+   "communication-reach": {
+    "flag": "clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "SR19 applies only to an OCCURS 'in a data description entry included in a record description entry containing the EXTERNAL clause' (§2002:13.16.36.2 SR19), and EXTERNAL 'may be specified only in file description entries or in record description entries in the working-storage section' (§2002:13.16.20.2 SR1). Probe cdrec-ext.cob at 2002: a CD record with EXTERNAL is refused (COBOL2404), so no CD record meets SR19's condition."
+   }
+  },
+  "source": "lineage-reads-2002/p-11.json",
+  "digests": {
+   "SR-13.18.38.3-21": "61e7dc1f00f7"
+  }
+ }
+}

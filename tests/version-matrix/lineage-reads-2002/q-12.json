@@ -1,0 +1,2089 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-12 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-12",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-13.16.9.2-1",
+   "2002-SR-13.16.11.2-1",
+   "2002-GR-13.16.11.3-1",
+   "2002-SR-13.16.12.2-3",
+   "2002-GR-13.16.12.3-1",
+   "2002-GR-13.16.12.3-2",
+   "2002-SR-13.16.13.2-1",
+   "2002-SR-13.16.13.2-2",
+   "2002-GR-13.16.13.3-1",
+   "2002-GR-13.16.13.3-2",
+   "2002-GR-13.16.13.3-5",
+   "2002-SR-13.16.14.2-12",
+   "2002-SR-13.16.14.2-13",
+   "2002-SR-13.16.14.2-7",
+   "2002-SR-13.16.14.2-8",
+   "2002-GR-13.16.14.3-11",
+   "2002-GR-13.16.14.3-14",
+   "2002-GR-13.16.14.3-15",
+   "2002-GR-13.16.14.3-16",
+   "2002-GR-13.16.14.3-17",
+   "2002-GR-13.16.14.3-18",
+   "2002-GR-13.16.14.3-2",
+   "2002-GR-13.16.14.3-4",
+   "2002-GR-13.16.14.3-5",
+   "2002-GR-13.16.14.3-7"
+  ],
+  "flags": {
+   "2002-GR-13.16.9.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.11.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.11.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.13.3-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.14.2-12": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.14.2-13": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.14.3-14": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.14.3-15": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.14.3-16": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.14.3-17": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "not-in-2014": "normalized text not found in specs/ISO_COBOL_2014.md"
+   },
+   "2002-GR-13.16.14.3-18": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-12",
+  "seed": null,
+  "probe-root": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12",
+  "probe-runner": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\run.sh (compiles a source at --std N with E:\\COBOL-wt\\coderead85-tree-d cobol.exe; output in run\\<name>-<std>\\stdout.txt)",
+  "common": {
+   "licence-screen-2002": [
+    {
+     "cite": "§2002:B.3",
+     "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+     "check": "OK"
+    },
+    {
+     "cite": "§2002:3.1.5",
+     "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+     "check": "OK"
+    }
+   ],
+   "no-licence-2002": [
+    {
+     "cite": "§2002:3.1",
+     "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+     "check": "OK"
+    },
+    {
+     "cite": "§2002:3.1.1",
+     "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+     "check": "OK"
+    }
+   ],
+   "note": "In 2002 the only optional module is Annex A (communications, §2002:3.1); everything else is required unless B.3 lists it as processor-dependent. B.3 lists the screen section (item 1) and CODE-SET (item 11) but NOT the VALIDATE statement, the CLASS clause or the FORMAT clause. The 2023 licences the compiler's diagnostics cite (Annex A.4.2, A.4.8, A.4.14) have no 2002 counterpart except the screen one."
+  },
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.9.2-1",
+    "to": [
+     "GR-13.18.9.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.9",
+    "clause-2023": "13.18.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.9.2 GR1",
+      "quote": "A BLINK clause specified at the group level applies to each elementary screen item in that group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.9.3 GR1",
+      "quote": "A BLINK clause specified at the group level applies to each elementary screen item in that group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "BLINK in a group screen description entry of the screen section"
+    ],
+    "evidence-2002": [
+     "group BLINK in the screen section: covered by wiseowl/cases/13.18.9-BLINK/a42-screen-blink run at --std 2002 (COBOL1560 on the SCREEN SECTION and on BLINK, exit 65; run\\a42-screen-blink-2002) and probe src\\screen-col0.cob (01 SR BLINK group: COBOL1560 at 2002)"
+    ],
+    "licence-2002": "§2002:B.3 (item 1: the screen section is processor-dependent; item 2 names BLINK) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time warning is required, the compiler gives an error)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: 2023 twin is DOCUMENTED-NON-SUPPORT under A.4.2; 2002 licenses the same non-support through B.3 item 1 and 3.1.5, and the compiler declines it at --std 2002 by name (COBOL1560). Scope and evidence unchanged."
+    ],
+    "reason": "Clause text and general format (bare BLINK) identical; the screen section is processor-dependent in 2002 and declined by name at 2002 exactly as at 2023. The diagnostic text cites §2023 A.4.2 rather than §2002 B.3 (documentation wording only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.11.2-1",
+    "to": [
+     "SR-13.18.11.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.11",
+    "clause-2023": "13.18.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.11.2 SR1",
+      "quote": "The subject of the entry shall be of class alphabetic, alphanumeric, or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.11.3 SR1",
+      "quote": "The subject of the entry shall be of class alphabetic, alphanumeric, or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.46.3 GR4c",
+      "quote": "Content validation: the CLASS clause and the VALUE clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CLASS clause in a data description entry (file, working-storage, local-storage, linkage; also a record under a CD, Annex A) whose subject is alphabetic, alphanumeric or national: accepted",
+     "CLASS clause on a subject of another class: diagnosed"
+    ],
+    "evidence-2002": [
+     "legal CLASS clause accepted: not shown; contradicted by probe src\\class-ok.cob (05 X PIC X(3) CLASS IS ALPHABETIC refused COBOL1708 at --std 2002)",
+     "illegal subject diagnosed: probe src\\class-bad.cob gets COBOL1708 at 2002, but that is the facility decline, not SR1"
+    ],
+    "licence-2002": "none",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin rests on Annex A.4.14 / A.4.1 (VALIDATE optional) and owner decision PB375; 2002 has no such licence: VALIDATE is not in §2002:B.3 and the only optional module is Annex A communications (§2002:3.1). The 2023 verdict says nothing about 2002."
+    ],
+    "reason": "Rule words, clause and format identical, but in 2002 the CLASS clause and the VALIDATE statement are required standard elements; the compiler refuses every CLASS clause at --std 2002 (COBOL1708), so a conforming 2002 program is rejected.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\class-ok.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires the CLASS clause (and VALIDATE, §2002:14.8.46); the compiler declines it",
+    "compiler-at-2002": "wrong: probe src\\class-ok.cob (01 G. 05 X PIC X(3) CLASS IS ALPHABETIC. ... VALIDATE G) at --std 2002: error COBOL1708 'the CLASS clause of the §2023:13.16.2 validation-clauses group ... VALIDATE facility' and warning COBOL1580 calling VALIDATE 'an OPTIONAL element (§2023:4.2.7; Annex A.4.14)', exit 65 (run\\class-ok-2002\\stdout.txt). Expected: accepted (§2002:3.1.1; §2002:13.16.11.2 SR1 satisfied)."
+   },
+   {
+    "rule-id": "2002-GR-13.16.11.3-1",
+    "to": [
+     "GR-13.18.11.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.11",
+    "clause-2023": "13.18.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.11.3 GR1",
+      "quote": "The CLASS clause takes effect during the content validation stage of the execution of a VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.11.4 GR1",
+      "quote": "The CLASS clause takes effect during the content validation stage of the execution of a VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.46.3 GR4c",
+      "quote": "Content validation: the CLASS clause and the VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CLASS clause effect in the content validation stage of VALIDATE",
+     "CLASS clause ignored by every other statement"
+    ],
+    "evidence-2002": [
+     "content validation stage: not shown (CLASS refused COBOL1708; VALIDATE accepted inert with COBOL1580, probe src\\validate-only.cob runs and prints DONE)",
+     "ignored elsewhere: not shown (program refused)"
+    ],
+    "licence-2002": "none",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: as for 2002-SR-13.16.11.2-1: no 2002 licence for declining VALIDATE or CLASS."
+    ],
+    "reason": "Same words; in 2002 the clause and the VALIDATE statement are required, and the compiler refuses the clause and makes VALIDATE inert at --std 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\class-ok.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires the CLASS clause's content validation in VALIDATE; the compiler declines it",
+    "compiler-at-2002": "wrong: same probe as 2002-SR-13.16.11.2-1 (COBOL1708, exit 65); and src\\validate-only.cob shows VALIDATE accepted inert at 2002 (COBOL1580 warning, runs). Expected: X='AB1' with CLASS ALPHABETIC is set invalid on content by VALIDATE (§2002:13.16.11.3 GR3)."
+   },
+   {
+    "rule-id": "2002-SR-13.16.12.2-3",
+    "to": [
+     "SR-13.18.12.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.12",
+    "clause-2023": "13.18.12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.2 SR3",
+      "quote": "If the CODE clause is specified for any report, it shall be specified for each report associated with the same report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.3 SR3",
+      "quote": "If the CODE clause is specified for any report, it shall be specified for each report associated with the same report file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RD entries of reports sharing one report file: CODE on all or none"
+    ],
+    "evidence-2002": [
+     "covered by cases/13.18.12-CODE/pb1129-code-not-on-every-report at --std 2002 (COBOL2713, exit 65, same as 2023; run\\pb1129-code-not-on-every-report-2002) and pb1050_reports_share_file (output equal to golden modulo a trailing newline, identical to the 2023 run)"
+    ],
+    "reason": "Format (CODE IS literal-1|identifier-1) identical; RD only; no CD reach.",
+    "probe": null,
+    "widening": "2023 SR2 widens identifier-1's exclusions (dynamic-length, ODO group); not this rule",
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule ties CODE across reports of one report file; report and report file mean the same in both editions (§2002:13.7 = §2023:13.8.1; §2002:9.1.19 = §2023:9.1.22), so the RD set it governs is unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.19",
+      "quote": "A report file is an output file having sequential organization whose file description entry contains a REPORT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.22",
+      "quote": "A report file is an output file having sequential organization whose file description entry contains a REPORT clause",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.12.3-1",
+    "to": [
+     "GR-13.18.12.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.12",
+    "clause-2023": "13.18.12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.3 GR1",
+      "quote": "literal-1 or identifier-1 is automatically placed in the first characters of each logical record written to the report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.4 GR1",
+      "quote": "literal-1 or identifier-1 is automatically placed in the first characters of each logical record written to the report file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CODE literal-1 in each record of the report",
+     "CODE identifier-1 in each record of the report"
+    ],
+    "evidence-2002": [
+     "literal: covered by cases/13.18.12-CODE/pb1129_rd_code_literal (PASS at 2002)",
+     "identifier: covered by pb1129_rd_code_identifier (PASS at 2002); pb1050_reports_share_file content-equal at 2002"
+    ],
+    "reason": "Identical clause and format; witnesses pass at --std 2002.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (CODE in each record written to the report file) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.12.3-2",
+    "to": [
+     "GR-13.18.12.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.12",
+    "clause-2023": "13.18.12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.3 GR2",
+      "quote": "are not included in the descriptions of the lines in the report, but are included in the logical record size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.4 GR2",
+      "quote": "are not included in the descriptions of the lines in the report, but are included in the logical record size",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CODE characters outside the line description, inside the record size"
+    ],
+    "evidence-2002": [
+     "covered by cases/13.18.12-CODE/pb1129_rd_code_literal (PASS at 2002: RECORD CONTAINS 10 with CODE 'A1' truncates past column 8)"
+    ],
+    "reason": "Identical; witness passes at 2002.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (CODE characters outside the report's line descriptions) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.13.2-1",
+    "to": [
+     "SR-13.18.13.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.13",
+    "clause-2023": "13.18.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.2 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.3 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CODE-SET IS / FOR ALPHANUMERIC alphabet-name-1 in an FD: LOCALE alphabet (no coded character set, 2002 Table 7) refused",
+     "national alphabet in that slot refused",
+     "alphanumeric alphabet accepted"
+    ],
+    "evidence-2002": [
+     "LOCALE arm: covered by cases/13.18.13-CODE-SET/pb110-code-set-locale-alphabet at 2002 (COBOL1669)",
+     "national-in-slot: probe src\\cs-alnum-bad.cob (COBOL1672 at 2002 and 2023)",
+     "accepted: probe src\\cs-std1-ok.cob (STANDARD-1, runs, ABCD written and read) and pb793_code_set_ebcdic PASS at 2002"
+    ],
+    "reason": "Format identical; 2002 Table 7 (Relationship of alphabet-name to coded character set) is row for row the 2023 Table 6; 2002 ALPHABET clause has the same LOCALE/NATIVE/STANDARD/code-name/literal operands. pb110_code_set_identity does not run at 2002 (ORGANIZATION LINE SEQUENTIAL, not a 2002 construct), replaced by the probe.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\cs-alnum-bad.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: alphanumeric coded character set": "§2002:4 defines it as 'A coded character set that the implementor has designated for representation of data items of usage display and alphanumeric literals', the same words as §2023:3.10, which only lays out the synonym 'alphanumeric character set' differently. The governed alphabets do not change.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)": "§2002:4 defines the four senses of character (for example 'A code value that constitutes the coded representation of a letter') and coded character set ('A set of unambiguous rules that establishes a character set', after ISO/IEC 10646-1); 2023 uses the same notions without defining them. Which alphabets define an alphanumeric coded character set is fixed by the ALPHABET clause and 2002 Table 7, which the reader compared row for row with 2023 Table 6. The dropped definitions do not change which programs the rule governs."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.13.2 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A coded character set that the implementor has designated for representation of data items of usage display and alphanumeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.13.2-2",
+    "to": [
+     "SR-13.18.13.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.13",
+    "clause-2023": "13.18.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.2 SR2",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.3 SR2",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national coded character set",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "alphabet-name-2 (IS a1 a2 / FOR NATIONAL) shall be a national coded character set"
+    ],
+    "evidence-2002": [
+     "alphanumeric alphabet in the slot: probe src\\cs-nat-bad.cob (COBOL1672 'alphabet-name-2 shall reference ... NATIONAL' at 2002)",
+     "LOCALE arm: pb110-code-set-locale-alphabet at 2002 (COBOL1669)",
+     "legal national: probe src\\cs-nat-ok.cob (FOR NATIONAL IS UTF-16, PIC N(4) round-trips WXYZ at 2002)"
+    ],
+    "reason": "Identical rule, format and Table 7/6.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\cs-nat-bad.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: national coded character set": "§2002:4 (entry 4.128) and §2023:3.125 define national coded character set in the same words. Which alphabets define one is fixed by §2002:12.2.6.3 (Table 7), whose rows equal the 2023 Table 6; the rule governs the same alphabet-names. Scope and evidence unchanged.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)": "2002 defines 'character' in four senses (4.26-4.29) and 'coded character set' (4.40, after ISO/IEC 10646-1); 2023 leaves them undefined. The rule names an alphabet that defines a national coded character set, a property Table 7 assigns per ALPHABET operand (§2002:12.2.6.3); no sense of 'character' changes which alphabet qualifies."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A coded character set that the implementor has designated for representation of data items described as usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.125",
+      "quote": "coded character set that the implementor has designated for representation of data items described as usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A set of unambiguous rules that establishes a character set and the relationship between the characters of the set and their coded representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3",
+      "quote": "indicates for each operand of the ALPHABET clause whether the alphabet-name references a coded character set",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-1",
+    "to": [
+     "GR-13.18.13.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.13",
+    "clause-2023": "13.18.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR1",
+      "quote": "The CODE-SET clause identifies alphabets to be used for converting data from a coded character set on the storage medium",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR1",
+      "quote": "The CODE-SET clause identifies alphabets to be used for converting data from a coded character set on the storage medium",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CODE-SET clause is dependent upon a device capable of supporting the specified code",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "conversion medium-to-native on input and native-to-medium on output for an FD's CODE-SET"
+    ],
+    "evidence-2002": [
+     "translated set: covered by cases/13.18.13-CODE-SET/pb793_code_set_ebcdic (PASS at 2002)",
+     "identity sets: probes src\\cs-std1-ok.cob and src\\cs-nat-ok.cob at 2002",
+     "literal-phrase sets declined (COBOL1672, pb110-code-set-nonidentity at 2002): the same posture under §2002:B.3 item 11 as under 2023 A.3 item 27"
+    ],
+    "reason": "Identical; the processor dependence the 2023 verdict relies on is present word for word in 2002 B.3 item 11.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\cs-std1-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-2",
+    "to": [
+     "GR-13.18.13.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.13",
+    "clause-2023": "13.18.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR2",
+      "quote": "Upon successful processing of an OPEN statement for the file referenced in this file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR2",
+      "quote": "Upon successful processing of an OPEN statement for the file referenced in this file description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "after OPEN: alphanumeric data on the medium in alphabet-name-1's set",
+     "national data in alphabet-name-2's set"
+    ],
+    "evidence-2002": [
+     "alphanumeric: covered by pb793_code_set_ebcdic (PASS at 2002)",
+     "national: probe src\\cs-nat-ok.cob (UTF-16 identity at 2002)"
+    ],
+    "reason": "Identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\cs-nat-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-5",
+    "to": [
+     "GR-13.18.13.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.13",
+    "clause-2023": "13.18.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR5",
+      "quote": "If a FORMAT clause is also specified for the file, the logical order of processing for each data item is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR5",
+      "quote": "If a FORMAT clause is also specified for the file, the logical order of processing for each data item is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR1",
+      "quote": "The FORMAT clause specifies that external media format is to be used for records written to the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR10",
+      "quote": "This representation may be the same as internal representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FD with both CODE-SET and FORMAT: format then convert on output, convert then format on input"
+    ],
+    "evidence-2002": [
+     "not shown: the FORMAT clause is refused at --std 2002 (COBOL1705, probe src\\format-ok.cob and wiseowl/cases/13.4.5-File-description/a48-format-clause-declined at 2002)"
+    ],
+    "licence-2002": "none",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin rests on Annex A.4.8 (FORMAT/SELECT WHEN optional); 2002 has no counterpart: FORMAT (§2002:13.16.22) is not in B.3 and only Annex A is optional (§2002:3.1). §2002:13.16.22.3 GR10 even lets the external representation equal the internal one, so no device dependence excuses it."
+    ],
+    "reason": "Same words; in 2002 the FORMAT clause this rule combines with CODE-SET is a required element, and the compiler refuses it at --std 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\format-ok.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires the FORMAT clause (§2002:13.16.22) and its ordering with CODE-SET; the compiler declines it",
+    "compiler-at-2002": "wrong: probe src\\format-ok.cob (FD F CODE-SET IS A1 FORMAT CHARACTER DATA RECORD IS VARYING IN SIZE FROM 1 TO 4 CHARACTERS) at --std 2002: error COBOL1705 'the FORMAT clause (ISO §2023:13.18.24) ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7)', exit 65 (run\\format-ok-2002\\stdout.txt). Expected: accepted (§2002:3.1.1), records formatted then code-set converted (§2002:13.16.13.3 GR5)."
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-12",
+    "to": [
+     "SR-13.18.14.3-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR12",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an elementary unsigned integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR12",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an elementary unsigned integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 2 COLUMN PLUS/MINUS identifier-1 in a screen description entry (the list excludes the communication section and the screen section in 2002)"
+    ],
+    "evidence-2002": [
+     "screen section declined: probe src\\screen-col0.cob (COLUMN PLUS W: COBOL1560 at 2002) and wiseowl/cases/13.18.14-COLUMN/a42-screen-column at 2002 (COBOL1560)"
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: 2002 licenses the screen-section non-support (B.3 item 1, 3.1.5); declined by name at 2002."
+    ],
+    "reason": "Format 2 identical; the section list's exclusion of a CD item is moot because the whole screen section is declined under the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-13",
+    "to": [
+     "SR-13.18.14.3-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR13",
+      "quote": "Neither the PLUS phrase nor the MINUS phrase shall be specified for the first elementary item in a screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR13",
+      "quote": "Neither the PLUS phrase nor the MINUS phrase shall be specified for the first elementary item in a screen record",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 2 COLUMN on the first elementary screen item"
+    ],
+    "evidence-2002": [
+     "screen section declined: a42-screen-column at 2002 (COBOL1560)"
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: licensed in 2002; declined at 2002."
+    ],
+    "reason": "Identical; licensed non-support.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-7",
+    "to": [
+     "SR-13.18.14.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR7",
+      "quote": "any two or more absolute items defined using column numbers that are not in increasing numerical order shall be subject to a different PRESENT WHEN clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR7",
+      "quote": "any two or more absolute items defined using column numbers that are not in increasing numerical order shall be subject to a different PRESENT WHEN clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "absolute report items out of column order without different PRESENT WHEN: diagnosed",
+     "with different PRESENT WHEN: accepted"
+    ],
+    "evidence-2002": [
+     "diagnosed: cases/13.18.14-COLUMN/pb1222-column-out-of-order at 2002 (COBOL2745)",
+     "accepted: cases/13.15-Report-group-description/pb1222_report_arrangement_present_when (PASS at 2002)"
+    ],
+    "reason": "Format 1 identical; 2002 PRESENT WHEN (13.16.39, formats 1 and 2) matches 2023 13.18.41.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule governs absolute COLUMN items within report groups; the report concept is the same report-section description, so the dropped definition changes neither scope nor evidence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-8",
+    "to": [
+     "SR-13.18.14.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR8",
+      "quote": "The set of printable items within a given report line is subject to the following rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR8",
+      "quote": "The set of printable items within a given report line is subject to the following rules",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) overlap",
+     "b) absolute item past page width",
+     "c) relative tail past page width, and the largest-of rule"
+    ],
+    "evidence-2002": [
+     "a): pb1222-column-overlap at 2002 (COBOL2745)",
+     "b): pb1222-column-past-page-width at 2002 (COBOL2745)",
+     "c): pb1222-relative-tail-past-page-width and pb1222-relative-tail-largest-past-page-width at 2002 (COBOL2745); pb1059_page_columns_width content-equal at 2002"
+    ],
+    "reason": "Identical items a-c.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 13651 has the same rule split by '## Page 336' before c): page break only. Re-read §2002:13.16.14.2 SR8 (FORMAT 1): unchanged.",
+     "definition-dropped: report (newer: 13.18.46.2)": "The definition's drop does not change which entries the rule governs: report lines of report groups in the report section, as in 2023; a)-c) are shown at 2002 (pb1222 refusals, pb1059)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR8",
+      "quote": "The rightmost column positions of all absolute items shall not exceed the page width",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-12"
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-11",
+    "to": [
+     "GR-13.18.14.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR11",
+      "quote": "If an entry containing a LINE clause has no subordinate entry defining a printable item, the resultant report line will be blank",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR11",
+      "quote": "If an entry containing a LINE clause has no subordinate entry defining a printable item, the resultant report line will be blank",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a report LINE entry with no printable subordinate prints a blank line"
+    ],
+    "evidence-2002": [
+     "covered by cases/13.18.14-COLUMN/l1c03_report_column_absent_not_printed (PASS at 2002)"
+    ],
+    "reason": "Identical.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (blank report lines) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-14",
+    "to": [
+     "GR-13.18.14.4-14"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR14",
+      "quote": "If the COLUMN clause does not specify PLUS or MINUS, the clause gives the column number relative to the first column of the screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR14",
+      "quote": "If the COLUMN clause does not specify PLUS or MINUS, the clause gives the column number relative to the first column of the screen record",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "absolute format 2 COLUMN in a screen record"
+    ],
+    "evidence-2002": [
+     "declined: a42-screen-column at 2002 (COBOL1560 on COLUMN NUMBER IS 5)"
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: licensed in 2002; declined at 2002."
+    ],
+    "reason": "Identical; licensed non-support.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-15",
+    "to": [
+     "GR-13.18.14.4-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR15",
+      "quote": "the column number is relative to the end of the preceding screen item in the same screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR15",
+      "quote": "the column number is relative to the end of the preceding screen item in the same screen record",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 2 COLUMN PLUS/MINUS identifier-1 or integer-3"
+    ],
+    "evidence-2002": [
+     "declined: probe src\\screen-col0.cob (COLUMN PLUS W: COBOL1560 at 2002)"
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: licensed in 2002; declined at 2002."
+    ],
+    "reason": "Identical; licensed non-support.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-16",
+    "to": [
+     "GR-13.18.14.4-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR16",
+      "quote": "A setting of COLUMN 1 is assumed for screen descriptions that specify the LINE clause but omit the COLUMN clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR16",
+      "quote": "A setting of COLUMN 1 is assumed for screen descriptions that specify the LINE clause but omit the COLUMN clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "screen entry with LINE and no COLUMN"
+    ],
+    "evidence-2002": [
+     "declined: probe src\\screen-col0.cob (S3 LINE 2: COBOL1560 at 2002)"
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: licensed in 2002; declined at 2002."
+    ],
+    "reason": "Identical; licensed non-support.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-17",
+    "to": [
+     "GR-13.18.14.4-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR17",
+      "quote": "If both the LINE clause and the COLUMN clause are omitted, the following apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR17",
+      "quote": "If both the LINE clause and the COLUMN clause are omitted, the following apply",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) first screen item with neither clause: LINE 1 COLUMN 1",
+     "b) later item: previous line, COLUMN PLUS 1"
+    ],
+    "evidence-2002": [
+     "declined: probe src\\screen-col0.cob (S4 with neither clause: SCREEN SECTION refused COBOL1560 at 2002)"
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "reason": "Identical items a) and b); licensed non-support.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob",
+    "widening": null,
+    "flags-answered-reader": [
+     "target-not-CONFORMS-OK: licensed in 2002; declined at 2002.",
+     "not-in-2014: specs/ISO_COBOL_2014.md line 13735 has the same rule, split by a '## Page 338' marker between a) and b); a transcription page break, not a textual change; no effect on 2002 scope."
+    ],
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 has the same rule word for word (specs/ISO_COBOL_2014.md line 13735), split by a '## Page 338' marker between a) and b); a transcription page break. Re-read against §2002:13.16.14.3 GR17 (FORMAT 2, screen items): the 2002 scope is the screen item default position, licensed non-support at 2002 and declined there (COBOL1560), so scope and evidence are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR17",
+      "quote": "if no previous screen item has been defined, LINE 1 COLUMN 1 of the screen is assumed",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-12"
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-18",
+    "to": [
+     "GR-13.18.14.4-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR18",
+      "quote": "If a column number of zero is specified, the EC-SCREEN-STARTING-COLUMN exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR18",
+      "quote": "If a column number of zero is specified, the EC-SCREEN-STARTING-COLUMN exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "COLUMN 0 in a screen item",
+     "the exception-name EC-SCREEN-STARTING-COLUMN (NF in the 2002 table as in 2023)"
+    ],
+    "evidence-2002": [
+     "COLUMN 0: probe src\\screen-col0.cob (COBOL1560 at 2002)",
+     "exception name: probe src\\ec-screen-col.cob (RAISE EXCEPTION EC-SCREEN-STARTING-COLUMN: COBOL1707 at 2002 and 2023)"
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5 (the EC-SCREEN names pertain to the screen element)",
+    "flags-answered": {
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "EC-SCREEN-STARTING-COLUMN is NF in the 2002 table, so §2002:14.5.12.1.3 would govern it (ignored unless checked; then declarative and continue), as in 2023 apart from 2023's PERFORM WHEN path. The screen section is processor-dependent and declined at --std 2002 (§2002:3.1.5; COBOL1560/COBOL1707), so no runtime path is reached at either edition; scope and evidence unchanged."
+    },
+    "reason": "Identical; EC-SCREEN-STARTING-COLUMN is non-fatal in both editions' tables; licensed non-support.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\ec-screen-col.cob",
+    "widening": null,
+    "flags-answered-earlier": [
+     "target-not-CONFORMS-OK: licensed in 2002; both the clause and the exception name are declined at 2002."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-SCREEN-STARTING-COLUMN | NF | Screen item starting column exceeds line size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If there are no specific rules, the exception condition is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is within imperative-statement-1 of a PERFORM statement that contains a WHEN phrase",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-12"
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-2",
+    "to": [
+     "GR-13.18.14.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR2",
+      "quote": "There is a fixed correspondence, specified by the implementor, between a column and a character in a national character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR2",
+      "quote": "There is a fixed correspondence, specified by the implementor, between a column and a character in a national character set",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report printable national items: one implementor-specified column correspondence (2002 B.1 item 127, required and documented)"
+    ],
+    "evidence-2002": [
+     "covered by cases/13.18.14-COLUMN/pb541_report_national_item (PASS at 2002); documented as docs/CONFORMANCE DOC-A.1-160 (2023 numbering of the same item)"
+    ],
+    "reason": "Identical; the implementor-defined item is 2002 B.1 item 127 = 2023 A.1 item 160.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); national character (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. GR2's 'character in a national character set' is that sense. 'national character' (§2002:4: \"A character in a national character set\") is the same notion 2023 uses with its kept 'national character set' entry (§2023:3.125); this compiler's national set is UTF-16 in both editions. The report national-item scope is unchanged; pb541_report_national_item passes at 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:2",
+      "quote": "Information technology — Universal Coded Character Set (UCS)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "national character: A character in a national character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.125",
+      "quote": "coded character set that the implementor has designated for representation of data items described as usage national",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-12"
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-4",
+    "to": [
+     "GR-13.18.14.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR4",
+      "quote": "If this rule is violated the EC-REPORT-COLUMN-OVERLAP exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR4",
+      "quote": "If this rule is violated the EC-REPORT-COLUMN-OVERLAP exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "runtime column overlap sets EC-REPORT-COLUMN-OVERLAP (NF in both tables)"
+    ],
+    "evidence-2002": [
+     "covered by cases/13.18.14-COLUMN/pb1188_report_nonfatal_raise (PASS at 2002)"
+    ],
+    "reason": "Identical; exception is NF in both editions.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so report lines with column overlap are the same lines; scope and evidence unchanged.",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:14.5.12.1.3: EC-REPORT-COLUMN-OVERLAP is NF in the 2002 table (§2002:14.5.12.1.5); unchecked it is ignored ('processing proceeds as indicated for the statement'), checked a USE declarative runs and execution continues, as §2023:14.6.13.1.4 says apart from 2023's PERFORM WHEN path, which neither the rule nor its witness uses; GENERATE/TERMINATE resume per §2002:14.8.15.3 GR8 and §2002:14.8.42.3 GR5. pb1188_report_nonfatal_raise (accept [2002], checking ON) re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If it is not enabled, processing proceeds as indicated for the statement in which the exception condition was set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If execution of the declarative completes normally, execution continues as specified in the statement for normal execution",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.4",
+      "quote": "If checking is not enabled, execution continues as if the exception did not occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-REPORT-COLUMN-OVERLAP | NF | Overlapping report items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.15.3 GR8",
+      "quote": "execution resumes at the next report item, line, or report group, whichever follows in logical order",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-5",
+    "to": [
+     "GR-13.18.14.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR5",
+      "quote": "If this rule is violated the EC-REPORT-PAGE-WIDTH exception condition is set to exist, the report line is truncated, and the report line is printed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR5",
+      "quote": "If this rule is violated the EC-REPORT-PAGE-WIDTH exception condition is set to exist, the report line is truncated, and the report line is printed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "line past page width: EC-REPORT-PAGE-WIDTH (NF), truncate, print"
+    ],
+    "evidence-2002": [
+     "covered by pb1188_report_nonfatal_raise (PASS at 2002); pb1059_page_columns_width and pb1059_page_width_only at 2002 equal to the golden modulo trailing blanks and byte-identical to their 2023 runs"
+    ],
+    "reason": "Identical.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so report lines past the page width are the same lines; scope and evidence unchanged.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:14.5.12.1.3: EC-REPORT-PAGE-WIDTH is NF in the 2002 table (§2002:14.5.12.1.5); unchecked it is ignored ('processing proceeds as indicated for the statement'), checked a USE declarative runs and execution continues, as §2023:14.6.13.1.4 says apart from 2023's PERFORM WHEN path, which neither the rule nor its witness uses; GENERATE/TERMINATE resume per §2002:14.8.15.3 GR8 and §2002:14.8.42.3 GR5. pb1188_report_nonfatal_raise (accept [2002], checking ON) re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt). The 8.8.1.x match is 'truncated' (the report line cut at the page width), not arithmetic truncation; the rule does not rest on standard arithmetic (§2002:8.8.1.1)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If it is not enabled, processing proceeds as indicated for the statement in which the exception condition was set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If execution of the declarative completes normally, execution continues as specified in the statement for normal execution",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.4",
+      "quote": "If checking is not enabled, execution continues as if the exception did not occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-REPORT-PAGE-WIDTH | NF | Page width exceeded",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-7",
+    "to": [
+     "GR-13.18.14.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR7",
+      "quote": "a horizontal counter, representing the rightmost occupied column, is maintained and updated by each printable item in the line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR7",
+      "quote": "a horizontal counter, representing the rightmost occupied column, is maintained and updated by each printable item in the line",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "per-line horizontal counter, zero at line start, absolute and relative (PLUS/+) format 1 items"
+    ],
+    "evidence-2002": [
+     "covered by cases/13.18.14-COLUMN/pb951_relative_sign_synonyms (accept: [2002], PASS at 2002)"
+    ],
+    "reason": "Format 1 identical in both editions.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (the per-line horizontal counter of report items) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-12",
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.9.2-1",
+    "verdict": "UPHELD",
+    "reason": "BLINK format and rule identical; the screen section is processor-dependent in 2002 (§2002:B.3 item 1; BLINK also item 2) and §2002:3.1.5 lets an unclaimed element go unimplemented given a compile-time indication, which COBOL1560 at --std 2002 gives (probes-q-12/run/screen-col0-2002). The diagnostic's §2023 A.4.2 wording is documentation only.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.9.2 GR1",
+      "quote": "A BLINK clause specified at the group level applies to each elementary screen item in that group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.9.3 GR1",
+      "quote": "A BLINK clause specified at the group level applies to each elementary screen item in that group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.12.2-3",
+    "verdict": "UPHELD",
+    "reason": "CODE clause format and SR3 identical; RD only, no CD reach; nothing the rule leans on changed.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.2 SR3",
+      "quote": "If the CODE clause is specified for any report, it shall be specified for each report associated with the same report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.3 SR3",
+      "quote": "If the CODE clause is specified for any report, it shall be specified for each report associated with the same report file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.12.3-1",
+    "verdict": "UPHELD",
+    "reason": "Identical. 2002 SR2 excludes a 'variable-length data item', which in 2002 includes an ODO group (§2002:13.16.36.3 GR8), so 2023 SR2's longer list removes no 2002 identifier-1 case.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.3 GR1",
+      "quote": "literal-1 or identifier-1 is automatically placed in the first characters of each logical record written to the report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.4 GR1",
+      "quote": "literal-1 or identifier-1 is automatically placed in the first characters of each logical record written to the report file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.12.3-2",
+    "verdict": "UPHELD",
+    "reason": "Identical; no dependency changed.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.3 GR2",
+      "quote": "are not included in the descriptions of the lines in the report, but are included in the logical record size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.4 GR2",
+      "quote": "are not included in the descriptions of the lines in the report, but are included in the logical record size",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.13.2-1",
+    "verdict": "UPHELD",
+    "reason": "A restriction on the alphabet named, enforced at --std 2002 independently of the declined SELECT WHEN / WRITE FILE routes (COBOL1669/COBOL1672 on the alphabet); the reader's probes stand.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.2 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.3 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\cs-alnum-bad.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.13.2-2",
+    "verdict": "UPHELD",
+    "reason": "As SR1, for alphabet-name-2; enforced at --std 2002 regardless of the declined routes.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.2 SR2",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.3 SR2",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national coded character set",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\cs-nat-bad.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "GR1 governs conversion with the file's alphabets (plural) on every input and output operation of a CODE-SET file. In 2002 those operations include READ/WRITE/REWRITE of an FD whose records carry SELECT WHEN (§2002:13.16.49.3 GR1: SELECT WHEN is evaluated exactly when CODE-SET is specified) and WRITE FILE/REWRITE FILE of an FD with no record description entries (§2002:13.3.4.2 SR3, §2002:13.16.13.3 GR4); both are required in 2002 and both are refused at --std 2002 (COBOL1705, COBOL1706). The reader's evidence (pb793_code_set_ebcdic and single-alphabet identity probes) covers only plain-record, single-alphabet files. §2002:B.3 item 11 does not license the gap: support for CODE-SET is claimed, and §2002:3.1.5 then requires all its functionality. Probes at --std 2002 (identical at 2023): cs-both-selwhen.cob (FD F CODE-SET FOR ALPHANUMERIC IS A1 FOR NATIONAL IS N1, two 01 records with SELECT WHEN IS-A / SELECT WHEN OTHER) -> COBOL1705 on each SELECT WHEN citing §2023 Annex A.4.8, then a cascading COBOL1672 'no SELECT WHEN clauses are specified ... not both' (misleading: they are written), exit 65; cs-both-norec.cob (same CODE-SET, no record description entries, RECORD CONTAINS 8, WRITE FILE F FROM W, READ F INTO W2) -> COBOL1706 citing §2023 Annex A.4.13, exit 65. Both are conforming 2002 programs (§2002:3.1, 3.1.1: only Annex A communications is optional in 2002; SELECT WHEN and WRITE/REWRITE FILE are required 2002 elements).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR1",
+      "quote": "The CODE-SET clause identifies alphabets to be used for converting data from a coded character set on the storage medium to the native character set during input operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR1",
+      "quote": "The CODE-SET clause identifies alphabets to be used for converting data from a coded character set on the storage medium to the native character set during input operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.13.2 SR3",
+      "quote": "If there are record description entries associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or alphabet-name-2 may be specified, but not both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.13.3 GR4",
+      "quote": "If there are no record description entries associated with the file, the record description used for conversion is the description of the identifier or literal specified in the FROM phrase of a WRITE or REWRITE statement specifying the FILE option",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.49.3 GR1",
+      "quote": "are evaluated for READ, REWRITE, and WRITE statements associated with that file when a CODE-SET clause or FORMAT clause is specified for the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.3.4.2 SR3",
+      "quote": "a FILE phrase specifying file-name-1 and the FROM phrase shall be specified on all WRITE and REWRITE statements associated with the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "When standard-conforming support is claimed for a specific processor-dependent language element, all associated syntax and functionality required for that language element shall be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "REWRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: as for GR2: the scope reaches SELECT WHEN and WRITE/REWRITE FILE, required in 2002 and declined at --std 2002 under 2023-only licences",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/src/cs-both-selwhen.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/src/cs-both-norec.cob (outputs in E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/run/)",
+    "needs": "its own verdict: at --std 2002 the compiler refuses every program that reaches this rule's two-alphabet / SELECT WHEN / WRITE FILE cases (COBOL1705, COBOL1706); a 2002 witness needs SELECT WHEN and WRITE/REWRITE FILE at --std 2002, or a 2002 licence (none found)",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/src/cs-both-selwhen.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/src/cs-both-norec.cob (outputs in E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/run/)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "GR2 fixes the storage-medium sets for alphanumeric AND national data of one file together. 2002 lets one FD name both alphabet-name-1 and alphabet-name-2 only when its records carry SELECT WHEN or it has no record description entries (§2002:13.16.13.2 SR3, GR4), i.e. only with SELECT WHEN (§2002:13.16.49) or WRITE/REWRITE FILE (§2002:13.3.4.2 SR3), both required 2002 elements. The compiler refuses both routes at --std 2002 under 2023 optional-element licences (A.4.8, A.4.13) that 2002 does not have, so the two-alphabet half of GR2's 2002 scope has no evidence and no compilable program; the reader's evidence covers single-alphabet files only. The 2023 CONFORMS verdict leans on those 2023 licences and says nothing about 2002. Probes at --std 2002 (identical at 2023): cs-both-selwhen.cob (FD F CODE-SET FOR ALPHANUMERIC IS A1 FOR NATIONAL IS N1, two 01 records with SELECT WHEN IS-A / SELECT WHEN OTHER) -> COBOL1705 on each SELECT WHEN citing §2023 Annex A.4.8, then a cascading COBOL1672 'no SELECT WHEN clauses are specified ... not both' (misleading: they are written), exit 65; cs-both-norec.cob (same CODE-SET, no record description entries, RECORD CONTAINS 8, WRITE FILE F FROM W, READ F INTO W2) -> COBOL1706 citing §2023 Annex A.4.13, exit 65. Both are conforming 2002 programs (§2002:3.1, 3.1.1: only Annex A communications is optional in 2002; SELECT WHEN and WRITE/REWRITE FILE are required 2002 elements).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR2",
+      "quote": "the coded character set used to represent national data on the storage medium is the one referenced by alphabet-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR2",
+      "quote": "the coded character set used to represent national data on the storage medium is the one referenced by alphabet-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.13.2 SR3",
+      "quote": "If there are record description entries associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or alphabet-name-2 may be specified, but not both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.13.3 GR4",
+      "quote": "If there are no record description entries associated with the file, the record description used for conversion is the description of the identifier or literal specified in the FROM phrase of a WRITE or REWRITE statement specifying the FILE option",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.49.3 GR1",
+      "quote": "are evaluated for READ, REWRITE, and WRITE statements associated with that file when a CODE-SET clause or FORMAT clause is specified for the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.3.4.2 SR3",
+      "quote": "a FILE phrase specifying file-name-1 and the FROM phrase shall be specified on all WRITE and REWRITE statements associated with the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "When standard-conforming support is claimed for a specific processor-dependent language element, all associated syntax and functionality required for that language element shall be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "REWRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: the rule's 2002 scope reaches required 2002 elements (SELECT WHEN, WRITE/REWRITE FILE) that the compiler declines at --std 2002 under 2023 Annex A.4.8/A.4.13 licences with no 2002 counterpart (the family of the reader's own GR5 DIFFERENT)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/src/cs-both-selwhen.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/src/cs-both-norec.cob (outputs in E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/run/)",
+    "needs": "its own verdict: at --std 2002 the compiler refuses every program that reaches this rule's two-alphabet / SELECT WHEN / WRITE FILE cases (COBOL1705, COBOL1706); a 2002 witness needs SELECT WHEN and WRITE/REWRITE FILE at --std 2002, or a 2002 licence (none found)",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/src/cs-both-selwhen.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/src/cs-both-norec.cob (outputs in E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-12/run/)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-12",
+    "verdict": "UPHELD",
+    "reason": "Format 2 identical; screen section licensed in 2002 (B.3 item 1, 3.1.5); the identifier-1 section list excludes the communication section in both.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR12",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an elementary unsigned integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR12",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an elementary unsigned integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-13",
+    "verdict": "UPHELD",
+    "reason": "Identical; screen section licensed in 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR13",
+      "quote": "Neither the PLUS phrase nor the MINUS phrase shall be specified for the first elementary item in a screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR13",
+      "quote": "Neither the PLUS phrase nor the MINUS phrase shall be specified for the first elementary item in a screen record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-7",
+    "verdict": "UPHELD",
+    "reason": "Format 1 identical; 2002 PRESENT WHEN (13.16.39) compared line by line with 2023 13.18.41: identical formats and GR3 a) to g).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR7",
+      "quote": "any two or more absolute items defined using column numbers that are not in increasing numerical order shall be subject to a different PRESENT WHEN clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR7",
+      "quote": "any two or more absolute items defined using column numbers that are not in increasing numerical order shall be subject to a different PRESENT WHEN clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-8",
+    "verdict": "UPHELD",
+    "reason": "Identical; the page width comes from the PAGE clause, and 2002 13.16.37 is identical to 2023 13.18.39, including the GR5 default of 999.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR8",
+      "quote": "The set of printable items within a given report line is subject to the following rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR8",
+      "quote": "The set of printable items within a given report line is subject to the following rules",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-11",
+    "verdict": "UPHELD",
+    "reason": "Identical; the LINE/COLUMN interplay is unchanged.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR11",
+      "quote": "If an entry containing a LINE clause has no subordinate entry defining a printable item, the resultant report line will be blank",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR11",
+      "quote": "If an entry containing a LINE clause has no subordinate entry defining a printable item, the resultant report line will be blank",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-14",
+    "verdict": "UPHELD",
+    "reason": "Screen format 2; licensed in 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR14",
+      "quote": "If the COLUMN clause does not specify PLUS or MINUS, the clause gives the column number relative to the first column of the screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR14",
+      "quote": "If the COLUMN clause does not specify PLUS or MINUS, the clause gives the column number relative to the first column of the screen record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-15",
+    "verdict": "UPHELD",
+    "reason": "Screen format 2; licensed in 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR15",
+      "quote": "the column number is relative to the end of the preceding screen item in the same screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR15",
+      "quote": "the column number is relative to the end of the preceding screen item in the same screen record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-16",
+    "verdict": "UPHELD",
+    "reason": "Screen format 2; licensed in 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR16",
+      "quote": "A setting of COLUMN 1 is assumed for screen descriptions that specify the LINE clause but omit the COLUMN clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR16",
+      "quote": "A setting of COLUMN 1 is assumed for screen descriptions that specify the LINE clause but omit the COLUMN clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-17",
+    "verdict": "UPHELD",
+    "reason": "Screen format 2; licensed in 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR17",
+      "quote": "If both the LINE clause and the COLUMN clause are omitted, the following apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR17",
+      "quote": "If both the LINE clause and the COLUMN clause are omitted, the following apply",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\screen-col0.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-18",
+    "verdict": "UPHELD",
+    "reason": "Screen; licensed in 2002; EC-SCREEN-STARTING-COLUMN is NF in the 2002 table as in 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR18",
+      "quote": "If a column number of zero is specified, the EC-SCREEN-STARTING-COLUMN exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR18",
+      "quote": "If a column number of zero is specified, the EC-SCREEN-STARTING-COLUMN exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-12\\src\\ec-screen-col.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-2",
+    "verdict": "UPHELD",
+    "reason": "Identical implementor-defined correspondence, documented.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR2",
+      "quote": "There is a fixed correspondence, specified by the implementor, between a column and a character in a national character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR2",
+      "quote": "There is a fixed correspondence, specified by the implementor, between a column and a character in a national character set",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-4",
+    "verdict": "UPHELD",
+    "reason": "Identical; EC-REPORT-COLUMN-OVERLAP is NF in both editions' tables.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR4",
+      "quote": "If this rule is violated the EC-REPORT-COLUMN-OVERLAP exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR4",
+      "quote": "If this rule is violated the EC-REPORT-COLUMN-OVERLAP exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-5",
+    "verdict": "UPHELD",
+    "reason": "Identical; EC-REPORT-PAGE-WIDTH is NF in both; the page width default is identical.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR5",
+      "quote": "If this rule is violated the EC-REPORT-PAGE-WIDTH exception condition is set to exist, the report line is truncated, and the report line is printed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR5",
+      "quote": "If this rule is violated the EC-REPORT-PAGE-WIDTH exception condition is set to exist, the report line is truncated, and the report line is printed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-7",
+    "verdict": "UPHELD",
+    "reason": "Format 1 identical (LEFT/CENTER/RIGHT and PLUS/+ are present in 2002 too).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR7",
+      "quote": "a horizontal counter, representing the rightmost occupied column, is maintained and updated by each printable item in the line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR7",
+      "quote": "a horizontal counter, representing the rightmost occupied column, is maintained and updated by each printable item in the line",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": [],
+  "side-finding": "cs-both-selwhen at --std 2002 and 2023: after COBOL1705 refuses SELECT WHEN, COBOL1672 reports 'no SELECT WHEN clauses are specified' and SR3 b) on every item, a misleading cascade (the clauses are written)."
+ },
+ "imported": {
+  "asked": "2ae0a1d15c50ec9babe86334021cd7e9d2c9bb05375616144c6c0a4c37318b1e",
+  "read": "b51927dc3063883ea72e78ec8f867ae7092d57feb0ba0fe769190aa983b315dc",
+  "refute": "0eb7f3d31ea3a0ec109ca8cc36ac7ce1b501ae8a2299b47b048283bac5cef345"
+ }
+}

@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_cancel_external_unchanged
 *> rules: [GR-13.18.22.4-1, GR-14.9.5.4-8]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

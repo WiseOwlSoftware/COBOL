@@ -1,0 +1,2006 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-24 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-24",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.1.3-8",
+   "2002-SR-14.8.1.2-4",
+   "2002-SR-14.8.1.2-5",
+   "2002-GR-14.8.1.3-12",
+   "2002-GR-14.8.1.3-14",
+   "2002-GR-14.8.1.3-15",
+   "2002-GR-14.8.1.3-16",
+   "2002-GR-14.8.1.3-17",
+   "2002-GR-14.8.1.3-19",
+   "2002-GR-14.8.1.3-20",
+   "2002-GR-14.8.1.3-23",
+   "2002-GR-14.8.1.3-6",
+   "2002-SR-14.8.2.2-5",
+   "2002-GR-14.8.2.3-4",
+   "2002-SR-14.8.3.2-4",
+   "2002-SR-14.8.3.2-5",
+   "2002-GR-14.8.3.3-1",
+   "2002-GR-14.8.3.3-10",
+   "2002-GR-14.8.3.3-2",
+   "2002-GR-14.8.3.3-5",
+   "2002-GR-14.8.3.3-6",
+   "2002-SR-14.8.4.2-15",
+   "2002-SR-14.8.4.2-18",
+   "2002-SR-14.8.4.2-19",
+   "2002-SR-14.8.4.2-20"
+  ],
+  "flags": {
+   "2002-GR-14.1.3-8": {
+    "changed-definition-term": "runtime element"
+   },
+   "2002-SR-14.8.1.2-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-14.8.1.2-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.1.3-12": {
+    "normalized": "normalized"
+   },
+   "2002-GR-14.8.1.3-14": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.1.3-15": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.1.3-16": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.1.3-17": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.1.3-19": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.1.3-20": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.1.3-23": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.1.3-6": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-GR-14.8.3.3-10": {
+    "changed-definition-term": "run unit"
+   },
+   "2002-GR-14.8.3.3-2": {
+    "changed-definition-term": "null"
+   },
+   "2002-GR-14.8.3.3-5": {
+    "changed-definition-term": "null"
+   },
+   "2002-SR-14.8.4.2-18": {
+    "changed-definition-term": "procedure"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-24",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.1.3-8",
+    "to": [
+     "GR-14.2.3-8"
+    ],
+    "clause-2002": "14.1.3",
+    "clause-2023": "14.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR8",
+      "quote": "If the argument is passed by reference, the activated runtime element operates as if the formal parameter occupies the same storage area as the argument",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR8",
+      "quote": "If the argument is passed by reference, the activated runtime element operates as if the formal parameter occupies the same storage area as the argument",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR3",
+      "quote": "a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR3",
+      "quote": "a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR7",
+      "quote": "Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     }
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "scope-2002": [
+     "BY REFERENCE arguments of CALL formats 1, 2 and 3 (on-overflow, on-exception, program-prototype)",
+     "BY REFERENCE arguments of INVOKE and inline method invocation, function references, the SET property method",
+     "arguments defined in the file, working-storage, local-storage, linkage AND COMMUNICATION section (§2002:14.8.4.2 SR3 names it; §2023:14.9.4.3 SR3 does not)"
+    ],
+    "evidence-2002": [
+     "CALL by reference of working-storage items, aliasing seen in the callee: covered by probe byref_cd.cob (2002: correct)",
+     "CALL by reference of a communication-section CD record item, and its overlap with the CD's implicit area: covered by probe byref_cd.cob (2002: correct)",
+     "INVOKE by reference: covered by probes byref_oo.cob and byref_num.cob (the PB1064 shape: the method stores spaces into a numeric formal, the caller sees [   ]) (2002: correct)",
+     "the 2023 row's conformance witnesses (pb965_*, pb2690_*) do NOT run at 2002: refused COBOL0900 (OCCURS DYNAMIC / DYNAMIC LENGTH, 2014 features), see twins/pb2690_fixed_group_vlg_element_tables_call_2002.txt",
+     "function reference by reference: not shown (a function's formal parameter cannot be a receiving operand, so the aliasing cannot be observed from the callee)"
+    ],
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for BY REFERENCE arguments, including a communication-section CD record item passed by CALL (2002 SR3), is correct (probes byref_cd.cob, byref_oo.cob, byref_num.cob); a 2002 witness for the CD-record argument, since every conformance witness of the twin is 2014-only",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\byref_cd.cob, byref_oo.cob, byref_num.cob)",
+    "flags-answered": [
+     "changed-definition-term 'runtime element': 2002 'the executable unit resulting from compiling a source element' vs 2023 'element consisting of code and data produced by the compilation of a source element': a rewording; the activated runtime element is the same program, method or function in both; it does not change the scope"
+    ],
+    "reason": "Same sentence in the same clause, but in 2002 the arguments it governs include data items of the communication section (2002 CALL SR3 and SR7 admit them; 2023 SR3 lists only file, working-storage, local-storage and linkage), so the 2023 row cannot witness that case; also every conformance witness of the 2023 row is refused at --std 2002. Probes at 2002 show the by-reference storage identity for working-storage, CD-record and INVOKE arguments.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\byref_cd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.1.2-4",
+    "to": [
+     "SR-14.9.1.3-4"
+    ],
+    "clause-2002": "14.8.1.2",
+    "clause-2023": "14.9.1.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.2 SR4",
+      "quote": "Screen-name-1 may reference a group item containing screen items with FROM or VALUE clauses only if the group also contains screen items with TO or USING clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.3 SR4",
+      "quote": "Screen-name-1 may reference a group item containing screen items with FROM or VALUE clauses only if the group also contains screen items with TO or USING clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "screen-name-1 of ACCEPT format 3: a group screen item with FROM/VALUE items",
+     "ACCEPT format 3 (screen) only; its general format is identical in both editions (AT LINE/COLUMN with identifier-3/4 or integer-1/2, ON/NOT ON EXCEPTION, END-ACCEPT)"
+    ],
+    "evidence-2002": [
+     "declined with error diagnostics at --std 2002: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob and the twin witnesses conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob and a42-accept-screen-positioned.cob compiled at 2002 (COBOL1560 + COBOL1707)"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (the screen section, the screen format of ACCEPT and DISPLAY, and the CURSOR / CRT STATUS clauses are processor-dependent)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under the 2023 optional-module licence (Annex A.4.2). 2002 gives its own licence: screen handling is a PROCESSOR-DEPENDENT element (§2002:B.3 item 1, licensed by §2002:3.1.5: need not be implemented, a compile-time warning mechanism is required, no executable code is required). The compiler at --std 2002 refuses every screen construct with an error (COBOL1560 for the screen section and CURSOR clause, COBOL1707 for the ACCEPT screen format), which meets the warning requirement: probe screen1.cob and the twin witnesses a42-accept-screen-minimal / -positioned compiled at 2002. The scope is not changed; the licence is a different clause."
+    ],
+    "reason": "Identical general format of ACCEPT format 3 and identical rule; the 2002 text licenses non-support of the screen format as a processor-dependent element, and the compiler declines it at --std 2002 with an error at each construct. Note (not a conformance defect): the diagnostic at --std 2002 names the 2023 licence (Annex A.4.2, §2023:4.2.7), not the 2002 one (§2002:3.1.5, B.3 item 1); the KEPT record should cite the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.1.2-5",
+    "to": [
+     "SR-14.9.1.3-5"
+    ],
+    "clause-2002": "14.8.1.2",
+    "clause-2023": "14.9.1.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.2 SR5",
+      "quote": "Identifier-3 and identifier-4 shall be unsigned integer data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.3 SR5",
+      "quote": "Identifier-3 and identifier-4 shall be unsigned integer data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "identifier-3 / identifier-4 of the AT LINE / COLUMN phrase of ACCEPT format 3 (they occur in no other format)",
+     "ACCEPT format 3 (screen) only; its general format is identical in both editions (AT LINE/COLUMN with identifier-3/4 or integer-1/2, ON/NOT ON EXCEPTION, END-ACCEPT)"
+    ],
+    "evidence-2002": [
+     "declined with error diagnostics at --std 2002: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob and the twin witnesses conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob and a42-accept-screen-positioned.cob compiled at 2002 (COBOL1560 + COBOL1707)"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (the screen section, the screen format of ACCEPT and DISPLAY, and the CURSOR / CRT STATUS clauses are processor-dependent)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under the 2023 optional-module licence (Annex A.4.2). 2002 gives its own licence: screen handling is a PROCESSOR-DEPENDENT element (§2002:B.3 item 1, licensed by §2002:3.1.5: need not be implemented, a compile-time warning mechanism is required, no executable code is required). The compiler at --std 2002 refuses every screen construct with an error (COBOL1560 for the screen section and CURSOR clause, COBOL1707 for the ACCEPT screen format), which meets the warning requirement: probe screen1.cob and the twin witnesses a42-accept-screen-minimal / -positioned compiled at 2002. The scope is not changed; the licence is a different clause."
+    ],
+    "reason": "Identical general format of ACCEPT format 3 and identical rule; the 2002 text licenses non-support of the screen format as a processor-dependent element, and the compiler declines it at --std 2002 with an error at each construct. Note (not a conformance defect): the diagnostic at --std 2002 names the 2023 licence (Annex A.4.2, §2023:4.2.7), not the 2002 one (§2002:3.1.5, B.3 item 1); the KEPT record should cite the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-12",
+    "to": [
+     "GR-14.9.1.4-12"
+    ],
+    "clause-2002": "14.8.1.3",
+    "clause-2023": "14.9.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR12",
+      "quote": "DAY-OF-WEEK behaves as if it had been described as an unsigned elementary numeric integer data item one digit in length and of usage display",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR12",
+      "quote": "DAY-OF-WEEK behaves as if it had been described as an unsigned elementary numeric integer data item one digit in length and of usage display",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "ACCEPT identifier-2 FROM DAY-OF-WEEK (format 2) into any receiver SR3 permits (not alphabetic, boolean, index, object, pointer), a CD-record item included"
+    ],
+    "evidence-2002": [
+     "1 = Monday .. 7 = Sunday, and the 1-digit unsigned display item moved by the MOVE rules into X(3), 99, 9V9, ZZ9.99, S9(3) SIGN TRAILING SEPARATE and a CD-record item: covered by probe accept_dow.cob at 2002 (6 on Saturday 2026-11-14, agreeing with FUNCTION INTEGER-OF-DATE)",
+     "the 2023 row's witness conformance-test AcceptDifferentialTests.DayOfWeek_MondayIs1_SundayIs7 runs at dialect 85 with a pinned clock; the runtime path AcceptSource.DayOfWeek does not depend on the edition"
+    ],
+    "flags-answered": {
+     "normalized: normalized": "Exact words compared: the only difference is the ellipsis ('...' in 2002, '…' in 2023) in the list of day values; the requirement is identical and GR-14.9.1.4-12 is the one right pointer."
+    },
+    "reason": "Format 2 general format identical; the rule is self-contained and its list of days is identical. A CD-record receiver exists only in 2002, but the rule's behaviour does not depend on where the receiver is described; probed at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\accept_dow.cob",
+    "widening": null,
+    "flags-answered-earlier": [
+     "normalized: the only difference is the ellipsis glyph ('...' in 2002, '…' in 2023) in the list of day values; the words are otherwise identical, and GR-14.9.1.4-12 is the one pointer to code and tests"
+    ],
+    "answer-citations": [],
+    "from-slice": "q-24"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-14",
+    "to": [
+     "GR-14.9.1.4-14"
+    ],
+    "clause-2002": "14.8.1.3",
+    "clause-2023": "14.9.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR14",
+      "quote": "Any conversion of data required between the hardware device and the data items referenced in screen-name-1 is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR14",
+      "quote": "Any conversion of data required between the hardware device and the data items referenced in screen-name-1 is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "data conversion between the terminal and the screen items of screen-name-1 (implementor-defined)",
+     "ACCEPT format 3 (screen) only; its general format is identical in both editions (AT LINE/COLUMN with identifier-3/4 or integer-1/2, ON/NOT ON EXCEPTION, END-ACCEPT)"
+    ],
+    "evidence-2002": [
+     "declined with error diagnostics at --std 2002: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob and the twin witnesses conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob and a42-accept-screen-positioned.cob compiled at 2002 (COBOL1560 + COBOL1707)"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (the screen section, the screen format of ACCEPT and DISPLAY, and the CURSOR / CRT STATUS clauses are processor-dependent)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under the 2023 optional-module licence (Annex A.4.2). 2002 gives its own licence: screen handling is a PROCESSOR-DEPENDENT element (§2002:B.3 item 1, licensed by §2002:3.1.5: need not be implemented, a compile-time warning mechanism is required, no executable code is required). The compiler at --std 2002 refuses every screen construct with an error (COBOL1560 for the screen section and CURSOR clause, COBOL1707 for the ACCEPT screen format), which meets the warning requirement: probe screen1.cob and the twin witnesses a42-accept-screen-minimal / -positioned compiled at 2002. The scope is not changed; the licence is a different clause."
+    ],
+    "reason": "Identical general format of ACCEPT format 3 and identical rule; the 2002 text licenses non-support of the screen format as a processor-dependent element, and the compiler declines it at --std 2002 with an error at each construct. Note (not a conformance defect): the diagnostic at --std 2002 names the 2023 licence (Annex A.4.2, §2023:4.2.7), not the 2002 one (§2002:3.1.5, B.3 item 1); the KEPT record should cite the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-15",
+    "to": [
+     "GR-14.9.1.4-15"
+    ],
+    "clause-2002": "14.8.1.3",
+    "clause-2023": "14.9.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR15",
+      "quote": "The LINE and COLUMN phrases give the position on the terminal display screen at which the screen record associated with screen-name-1 is to start",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR15",
+      "quote": "The LINE and COLUMN phrases give the position on the terminal display screen at which the screen record associated with screen-name-1 is to start",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "positioning by AT LINE / COLUMN in ACCEPT format 3",
+     "ACCEPT format 3 (screen) only; its general format is identical in both editions (AT LINE/COLUMN with identifier-3/4 or integer-1/2, ON/NOT ON EXCEPTION, END-ACCEPT)"
+    ],
+    "evidence-2002": [
+     "declined with error diagnostics at --std 2002: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob and the twin witnesses conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob and a42-accept-screen-positioned.cob compiled at 2002 (COBOL1560 + COBOL1707)"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (the screen section, the screen format of ACCEPT and DISPLAY, and the CURSOR / CRT STATUS clauses are processor-dependent)",
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. GR15 positions the screen in 'alphanumeric character positions' (4.31). Screen ACCEPT is processor-dependent in 2002 (§2002:3.1.5, B.3), and the compiler refuses it at --std 2002 (COBOL1560/COBOL1707, the reader's screen1.cob), so the evidence is unaffected. The term picks out the same characters in both, so the scope and the evidence do not change."
+    },
+    "reason": "Identical general format of ACCEPT format 3 and identical rule; the 2002 text licenses non-support of the screen format as a processor-dependent element, and the compiler declines it at --std 2002 with an error at each construct. Note (not a conformance defect): the diagnostic at --std 2002 names the 2023 licence (Annex A.4.2, §2023:4.2.7), not the 2002 one (§2002:3.1.5, B.3 item 1); the KEPT record should cite the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob",
+    "widening": null,
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under the 2023 optional-module licence (Annex A.4.2). 2002 gives its own licence: screen handling is a PROCESSOR-DEPENDENT element (§2002:B.3 item 1, licensed by §2002:3.1.5: need not be implemented, a compile-time warning mechanism is required, no executable code is required). The compiler at --std 2002 refuses every screen construct with an error (COBOL1560 for the screen section and CURSOR clause, COBOL1707 for the ACCEPT screen format), which meets the warning requirement: probe screen1.cob and the twin witnesses a42-accept-screen-minimal / -positioned compiled at 2002. The scope is not changed; the licence is a different clause."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "a single character -- either an alphanumeric character or a national character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.3 GR15",
+      "quote": "Column and line number positions are specified in terms of alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-16",
+    "to": [
+     "GR-14.9.1.4-16"
+    ],
+    "clause-2002": "14.8.1.3",
+    "clause-2023": "14.9.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR16",
+      "quote": "If the LINE phrase is not specified, the screen record starts on line 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR16",
+      "quote": "If the LINE phrase is not specified, the screen record starts on line 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "default line of ACCEPT format 3",
+     "ACCEPT format 3 (screen) only; its general format is identical in both editions (AT LINE/COLUMN with identifier-3/4 or integer-1/2, ON/NOT ON EXCEPTION, END-ACCEPT)"
+    ],
+    "evidence-2002": [
+     "declined with error diagnostics at --std 2002: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob and the twin witnesses conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob and a42-accept-screen-positioned.cob compiled at 2002 (COBOL1560 + COBOL1707)"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (the screen section, the screen format of ACCEPT and DISPLAY, and the CURSOR / CRT STATUS clauses are processor-dependent)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under the 2023 optional-module licence (Annex A.4.2). 2002 gives its own licence: screen handling is a PROCESSOR-DEPENDENT element (§2002:B.3 item 1, licensed by §2002:3.1.5: need not be implemented, a compile-time warning mechanism is required, no executable code is required). The compiler at --std 2002 refuses every screen construct with an error (COBOL1560 for the screen section and CURSOR clause, COBOL1707 for the ACCEPT screen format), which meets the warning requirement: probe screen1.cob and the twin witnesses a42-accept-screen-minimal / -positioned compiled at 2002. The scope is not changed; the licence is a different clause."
+    ],
+    "reason": "Identical general format of ACCEPT format 3 and identical rule; the 2002 text licenses non-support of the screen format as a processor-dependent element, and the compiler declines it at --std 2002 with an error at each construct. Note (not a conformance defect): the diagnostic at --std 2002 names the 2023 licence (Annex A.4.2, §2023:4.2.7), not the 2002 one (§2002:3.1.5, B.3 item 1); the KEPT record should cite the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-17",
+    "to": [
+     "GR-14.9.1.4-17"
+    ],
+    "clause-2002": "14.8.1.3",
+    "clause-2023": "14.9.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR17",
+      "quote": "If the COLUMN phrase is not specified, the screen record starts in column 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR17",
+      "quote": "If the COLUMN phrase is not specified, the screen record starts in column 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "default column of ACCEPT format 3",
+     "ACCEPT format 3 (screen) only; its general format is identical in both editions (AT LINE/COLUMN with identifier-3/4 or integer-1/2, ON/NOT ON EXCEPTION, END-ACCEPT)"
+    ],
+    "evidence-2002": [
+     "declined with error diagnostics at --std 2002: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob and the twin witnesses conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob and a42-accept-screen-positioned.cob compiled at 2002 (COBOL1560 + COBOL1707)"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (the screen section, the screen format of ACCEPT and DISPLAY, and the CURSOR / CRT STATUS clauses are processor-dependent)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under the 2023 optional-module licence (Annex A.4.2). 2002 gives its own licence: screen handling is a PROCESSOR-DEPENDENT element (§2002:B.3 item 1, licensed by §2002:3.1.5: need not be implemented, a compile-time warning mechanism is required, no executable code is required). The compiler at --std 2002 refuses every screen construct with an error (COBOL1560 for the screen section and CURSOR clause, COBOL1707 for the ACCEPT screen format), which meets the warning requirement: probe screen1.cob and the twin witnesses a42-accept-screen-minimal / -positioned compiled at 2002. The scope is not changed; the licence is a different clause."
+    ],
+    "reason": "Identical general format of ACCEPT format 3 and identical rule; the 2002 text licenses non-support of the screen format as a processor-dependent element, and the compiler declines it at --std 2002 with an error at each construct. Note (not a conformance defect): the diagnostic at --std 2002 names the 2023 licence (Annex A.4.2, §2023:4.2.7), not the 2002 one (§2002:3.1.5, B.3 item 1); the KEPT record should cite the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-19",
+    "to": [
+     "GR-14.9.1.4-19"
+    ],
+    "clause-2002": "14.8.1.3",
+    "clause-2023": "14.9.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR19",
+      "quote": "During the period while the operator is able to modify each elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR19",
+      "quote": "During the period while the operator is able to modify each elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "display of screen items during ACCEPT format 3",
+     "ACCEPT format 3 (screen) only; its general format is identical in both editions (AT LINE/COLUMN with identifier-3/4 or integer-1/2, ON/NOT ON EXCEPTION, END-ACCEPT)"
+    ],
+    "evidence-2002": [
+     "declined with error diagnostics at --std 2002: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob and the twin witnesses conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob and a42-accept-screen-positioned.cob compiled at 2002 (COBOL1560 + COBOL1707)"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (the screen section, the screen format of ACCEPT and DISPLAY, and the CURSOR / CRT STATUS clauses are processor-dependent)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under the 2023 optional-module licence (Annex A.4.2). 2002 gives its own licence: screen handling is a PROCESSOR-DEPENDENT element (§2002:B.3 item 1, licensed by §2002:3.1.5: need not be implemented, a compile-time warning mechanism is required, no executable code is required). The compiler at --std 2002 refuses every screen construct with an error (COBOL1560 for the screen section and CURSOR clause, COBOL1707 for the ACCEPT screen format), which meets the warning requirement: probe screen1.cob and the twin witnesses a42-accept-screen-minimal / -positioned compiled at 2002. The scope is not changed; the licence is a different clause."
+    ],
+    "reason": "Identical general format of ACCEPT format 3 and identical rule; the 2002 text licenses non-support of the screen format as a processor-dependent element, and the compiler declines it at --std 2002 with an error at each construct. Note (not a conformance defect): the diagnostic at --std 2002 names the 2023 licence (Annex A.4.2, §2023:4.2.7), not the 2002 one (§2002:3.1.5, B.3 item 1); the KEPT record should cite the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-20",
+    "to": [
+     "GR-14.9.1.4-20"
+    ],
+    "clause-2002": "14.8.1.3",
+    "clause-2023": "14.9.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR20",
+      "quote": "Data entered by the terminal operator in the current screen item shall be consistent with the PICTURE clause of that item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR20",
+      "quote": "Data entered by the terminal operator in the current screen item shall be consistent with the PICTURE clause of that item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "validation of operator input in ACCEPT format 3 (NUMVAL / NUMVAL-C, EC-DATA-INCOMPATIBLE, implementor-defined timing)",
+     "ACCEPT format 3 (screen) only; its general format is identical in both editions (AT LINE/COLUMN with identifier-3/4 or integer-1/2, ON/NOT ON EXCEPTION, END-ACCEPT)"
+    ],
+    "evidence-2002": [
+     "declined with error diagnostics at --std 2002: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob and the twin witnesses conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob and a42-accept-screen-positioned.cob compiled at 2002 (COBOL1560 + COBOL1707)"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (the screen section, the screen format of ACCEPT and DISPLAY, and the CURSOR / CRT STATUS clauses are processor-dependent)",
+    "flags-answered": {
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Two triggers: 'terminated' (end of the ACCEPT statement, not run unit termination §2002:14.5.10, initial state or transfer of control) and 'EC-' (EC-DATA-INCOMPATIBLE). The rule leaves the choice implementor-defined; 2002 processes the condition under §2002:14.5.12.1.2/14.5.12.1.3 and §2002:14.5.12.2, whose text differs from 2023, but that difference is only observable when executable code for the screen ACCEPT exists. The screen ACCEPT is declined at --std 2002 (COBOL1707) and §2002:3.1.5 lets the implementor produce no code, so no exception path is reached; scope and evidence unchanged."
+    },
+    "reason": "Identical general format of ACCEPT format 3 and identical rule; the 2002 text licenses non-support of the screen format as a processor-dependent element, and the compiler declines it at --std 2002 with an error at each construct. Note (not a conformance defect): the diagnostic at --std 2002 names the 2023 licence (Annex A.4.2, §2023:4.2.7), not the 2002 one (§2002:3.1.5, B.3 item 1); the KEPT record should cite the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob",
+    "widening": null,
+    "flags-answered-earlier": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under the 2023 optional-module licence (Annex A.4.2). 2002 gives its own licence: screen handling is a PROCESSOR-DEPENDENT element (§2002:B.3 item 1, licensed by §2002:3.1.5: need not be implemented, a compile-time warning mechanism is required, no executable code is required). The compiler at --std 2002 refuses every screen construct with an error (COBOL1560 for the screen section and CURSOR clause, COBOL1707 for the ACCEPT screen format), which meets the warning requirement: probe screen1.cob and the twin witnesses a42-accept-screen-minimal / -positioned compiled at 2002. The scope is not changed; the licence is a different clause."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR20",
+      "quote": "It is implementor-defined whether inconsistent data causes the EC-DATA-INCOMPATIBLE exception condition to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid only in the following cases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "processing depends on whether or not checking for that exception condition is enabled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-24"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-23",
+    "to": [
+     "GR-14.9.1.4-23"
+    ],
+    "clause-2002": "14.8.1.3",
+    "clause-2023": "14.9.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR23",
+      "quote": "If the CURSOR clause is specified in the special-names paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR23",
+      "quote": "If the CURSOR clause is specified in the special-names paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "update of the SPECIAL-NAMES CURSOR item by ACCEPT format 3 (the CURSOR clause is itself processor-dependent, §2002:B.3 item 1)",
+     "ACCEPT format 3 (screen) only; its general format is identical in both editions (AT LINE/COLUMN with identifier-3/4 or integer-1/2, ON/NOT ON EXCEPTION, END-ACCEPT)"
+    ],
+    "evidence-2002": [
+     "declined with error diagnostics at --std 2002: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob and the twin witnesses conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob and a42-accept-screen-positioned.cob compiled at 2002 (COBOL1560 + COBOL1707)"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (the screen section, the screen format of ACCEPT and DISPLAY, and the CURSOR / CRT STATUS clauses are processor-dependent)",
+    "flags-answered": {
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "The flag fires on the word 'terminates' ('when the ACCEPT terminates') (the table's invokes pattern 'run unit|initial state|terminat|transfer of control'); here it means the end of one ACCEPT screen statement (function key or normal termination key), not run unit termination (§2002:14.5.10), initial state (§2002:14.5.2.1.2.1) or the flow-of-control mechanism (§2002:14.5.3), whose differing text (communication-section initialization, MCS purge, paragraph vs procedure wording, declaratives vs exception procedures) the rule does not rest on. The construct is the declined screen ACCEPT, refused at --std 2002 with no code produced (§2002:3.1.5), so scope and evidence are unchanged."
+    },
+    "reason": "Identical general format of ACCEPT format 3 and identical rule; the 2002 text licenses non-support of the screen format as a processor-dependent element, and the compiler declines it at --std 2002 with an error at each construct. Note (not a conformance defect): the diagnostic at --std 2002 names the 2023 licence (Annex A.4.2, §2023:4.2.7), not the 2002 one (§2002:3.1.5, B.3 item 1); the KEPT record should cite the 2002 licence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\screen1.cob",
+    "widening": null,
+    "flags-answered-earlier": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under the 2023 optional-module licence (Annex A.4.2). 2002 gives its own licence: screen handling is a PROCESSOR-DEPENDENT element (§2002:B.3 item 1, licensed by §2002:3.1.5: need not be implemented, a compile-time warning mechanism is required, no executable code is required). The compiler at --std 2002 refuses every screen construct with an error (COBOL1560 for the screen section and CURSOR clause, COBOL1707 for the ACCEPT screen format), which meets the warning requirement: probe screen1.cob and the twin witnesses a42-accept-screen-minimal / -positioned compiled at 2002. The scope is not changed; the licence is a different clause."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR23",
+      "quote": "the line and column position of the cursor when the ACCEPT terminates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "When normal run unit termination occurs, the runtime system performs the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "The flow of control mechanism transfers control from statement to statement in the sequence in which they were written",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-24"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-6",
+    "to": [
+     "GR-14.9.1.4-6"
+    ],
+    "clause-2002": "14.8.1.3",
+    "clause-2023": "14.9.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR6",
+      "quote": "The ACCEPT statement causes the information requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR6",
+      "quote": "The ACCEPT statement causes the information requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.2 SR3",
+      "quote": "Identifier-2 shall not reference a data item of class alphabetic, boolean, index, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "ACCEPT format 2 with DATE [YYYYMMDD], DAY [YYYYDDD], DAY-OF-WEEK, TIME (general format identical in both editions)",
+     "receiver identifier-2 of any class SR3 permits, a data item of a CD record included (2002 only)",
+     "transfer by the 2002 MOVE rules"
+    ],
+    "evidence-2002": [
+     "MOVE-rule transfer into alphanumeric, numeric, scaled, edited, signed-separate and CD-record receivers: covered by probe accept_dow.cob at 2002",
+     "MOVE-rule refusal of an alphabetic receiver: covered by twin witness conformance-suite/cases/14.9.1-ACCEPT/pb139-accept-alphabetic-temporal.cob at 2002 (COBOL0818, as at 2023)"
+    ],
+    "flags-answered": [
+     "changed-definition-term 'source unit': both editions define it as the statements from an identification division to an end marker including any contained source units (2023 moves the containment into a note); the conceptual items are 'not described in the COBOL source unit' in both; it does not change the scope"
+    ],
+    "reason": "General format, the list of temporal sources and the rule are identical; the MOVE rules it defers to are wider in 2023 (dynamic-length receivers) but every 2002 receiver class is one 2023 also has. A CD-record receiver is a 2002-only place for identifier-2, but the rule does not depend on where the receiver is described; probed at 2002 (correct).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\accept_dow.cob",
+    "widening": "the 2023 MOVE rules also cover receivers 2002 lacks (dynamic-length items); not a 2002 case"
+   },
+   {
+    "rule-id": "2002-SR-14.8.2.2-5",
+    "to": [
+     "SR-14.9.2.3-5"
+    ],
+    "clause-2002": "14.8.2.2",
+    "clause-2023": "14.9.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.2 SR5",
+      "quote": "The words CORR and CORRESPONDING are equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.3 SR5",
+      "quote": "The words CORR and CORRESPONDING are equivalent",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "ADD format 3 (corresponding): ADD CORR / ADD CORRESPONDING, with the plain 2002 ROUNDED phrase (no MODE)"
+    ],
+    "evidence-2002": [
+     "CORR and CORRESPONDING give identical results: covered by probe add_corr_native.cob at 2002",
+     "the 2023 row's only witness conformance-suite/cases/14.9.2-ADD/corresponding_rounded_mode.cob does NOT run at 2002 (COBOL0803: ROUNDED MODE IS requires 2014), so a KEPT record must cite a 2002 witness, not that one"
+    ],
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Here the flag is apt in kind: ADD CORRESPONDING is an arithmetic statement (§2002:14.6.6) and can raise size error (§2002:14.6.4), and both clauses changed (2023 adds standard-binary/decimal modes, floating-point operands, a near-zero size error). But this rule only makes the two spellings equivalent; whatever 2002 arithmetic and size-error processing does to ADD CORR, it does identically to ADD CORRESPONDING, and the pairing itself is §2002:14.6.5, not these clauses. The 2002 witness compares the two spellings (add_corr_native.cob), which holds regardless of the arithmetic mode; scope and evidence unchanged."
+    },
+    "reason": "Identical rule; the 2023 format writes [rounded-phrase] where 2002 writes [ROUNDED], which does not touch the CORR/CORRESPONDING equivalence. The requirement is the same; the evidence at 2002 is the probe, because the twin's witness uses a 2014 phrase.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\add_corr_native.cob",
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.2.2 SR5",
+      "quote": "The words CORR and CORRESPONDING are equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-24"
+   },
+   {
+    "rule-id": "2002-GR-14.8.2.3-4",
+    "to": [
+     "GR-14.9.2.4-4"
+    ],
+    "clause-2002": "14.8.2.3",
+    "clause-2023": "14.9.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.3 GR4",
+      "quote": "When native arithmetic is in effect and none of the operands is described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.4 GR4",
+      "quote": "When native arithmetic is in effect and none of the operands is described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "ADD formats 1-3 under native arithmetic (the 2002 default), with operands of usages other than the seven named"
+    ],
+    "evidence-2002": [
+     "covered by twin witness conformance-suite/cases/14.9.2-ADD/ca6_binary_operand_composite.cob (accept [2002]; its output matches at --std 2002)",
+     "an 18-digit three-operand sum into 9(20), a size error on 9(18) and a mixed-scale sum: covered by probe add_corr_native.cob at 2002"
+    ],
+    "flags-answered": [
+     "held back without a flag: it rests on the uncatalogued 2002 arithmetic clauses (native or standard arithmetic). The rule applies only under NATIVE arithmetic, so the known 2002 standard-arithmetic 32-digit defect does not reach it; probed under the default (native) at 2002"
+    ],
+    "reason": "Identical rule and identical list of seven usages, all of which exist in 2002; 2023 adds standard-binary and standard-decimal arithmetic around it, but the native-arithmetic case is the same.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\add_corr_native.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.3.2-4",
+    "to": [
+     "SR-14.9.3.3-4"
+    ],
+    "clause-2002": "14.8.3.2",
+    "clause-2023": "14.9.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.2 SR4",
+      "quote": "If data-name-2 references a restricted data-pointer, data-name-1 shall be specified and shall reference a typed data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.3 SR4",
+      "quote": "If data-name-2 references a restricted data-pointer, data-name-1 shall be specified and shall reference a typed data item",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "ALLOCATE ... RETURNING a restricted data-pointer (USAGE POINTER TO type-name)"
+    ],
+    "evidence-2002": [
+     "covered by twin witnesses conformance-suite/cases/14.9.3-ALLOCATE/pb153-allocate-restricted-returning-untyped.cob (COBOL0869 at 2002, as at 2023) and conformance-suite/cases/13.18.60-USAGE/pb153_restricted_pointer.cob (accept [2002,2014,2023]; matches at 2002)"
+    ],
+    "flags-answered": [],
+    "reason": "General format of ALLOCATE identical in both editions; the rule is identical and what it refers to (BASED, data-pointer, restricted data-pointer, predefined address NULL, FREE, EC-STORAGE-NOT-AVAIL, nonfatal in both exception tables) is unchanged.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.3.2-5",
+    "to": [
+     "SR-14.9.3.3-5"
+    ],
+    "clause-2002": "14.8.3.2",
+    "clause-2023": "14.9.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.2 SR5",
+      "quote": "If both data-name-1 and data-name-2 are specified and data-name-1 references a strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.3 SR5",
+      "quote": "If both data-name-1 and data-name-2 are specified and data-name-1 references a strongly-typed group item",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "ALLOCATE a based strongly-typed group RETURNING a data-pointer"
+    ],
+    "evidence-2002": [
+     "covered by twin witness conformance-suite/cases/14.9.3-ALLOCATE/pb153-allocate-strong-group-unrestricted-returning.cob (COBOL0869 at 2002, as at 2023)"
+    ],
+    "flags-answered": [],
+    "reason": "General format of ALLOCATE identical in both editions; the rule is identical and what it refers to (BASED, data-pointer, restricted data-pointer, predefined address NULL, FREE, EC-STORAGE-NOT-AVAIL, nonfatal in both exception tables) is unchanged.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-1",
+    "to": [
+     "GR-14.9.3.4-1"
+    ],
+    "clause-2002": "14.8.3.3",
+    "clause-2023": "14.9.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR1",
+      "quote": "Arithmetic-expression-1 specifies a number of bytes of storage to be allocated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.4 GR1",
+      "quote": "Arithmetic-expression-1 specifies a number of bytes of storage to be allocated",
+      "check": "OK"
+     }
+    ],
+    "verdict": "DIFFERENT",
+    "scope-2002": [
+     "ALLOCATE arithmetic-expression-1 CHARACTERS with integer and non-integer values"
+    ],
+    "evidence-2002": [
+     "covered by twin witness conformance-suite/cases/14.9.3-ALLOCATE/pb151_allocate.cob (its output matches at --std 2002)",
+     "FLOAT-LONG 2.5 and the expression 1.2 * 2 rounded up to 3 bytes: covered by probe allocate_2002.cob"
+    ],
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). Yes: whether arithmetic-expression-1 'does not evaluate to an integer' (§2002:14.8.3.3 GR1) is decided by its evaluation, which under ARITHMETIC IS STANDARD follows §2002:8.8.1.3.2; the reader's evidence is native only. Probe alloc.cob (ARITHMETIC IS STANDARD, B = 10**30): ALLOCATE (B*100 + 0.5) - B*100 CHARACTERS evaluates to 0 in 2002 (10**32 + 0.5 truncated to 32 digits is 10**32), so GR2 gives NULL; the compiler sees 0.5, rounds it up by GR1 and allocates (NOT NULL): PB5575."
+    },
+    "reason": "General format of ALLOCATE identical in both editions; the rule is identical and what it refers to (BASED, data-pointer, restricted data-pointer, predefined address NULL, FREE, EC-STORAGE-NOT-AVAIL, nonfatal in both exception tables) is unchanged.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\allocate_2002.cob",
+    "widening": null,
+    "class": "other",
+    "class-detail": "the value GR1 tests is produced by 2002 standard arithmetic (32 significant digits per operation), which the compiler implements with 34 digits at --std 2002",
+    "needs": "PB5575",
+    "compiler-at-2002": "wrong: program: E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-21/src/alloc.cob; expected: under ARITHMETIC IS STANDARD, (B*100 + 0.5) - B*100 with B = 10**30 is 0: the sum is 'truncated to 32 significant digits' (§2002:8.8.1.3.2), and 'If arithmetic-expression-1 evaluates to 0 or a negative value' the pointer is NULL (§2002:14.8.3.3 GR2) instead of a GR1 round-up; observed: ALLOC NOT NULL (out-2002/alloc.txt): the compiler evaluated 0.5 with 34 digits and rounded it up to one byte",
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.3.3 GR1",
+      "quote": "If arithmetic-expression-1 does not evaluate to an integer, the result is rounded up to the next whole number",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.3.3 GR2",
+      "quote": "If arithmetic-expression-1 evaluates to 0 or a negative value, the data item referenced by data-name-2 is set to the predefined address NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-10",
+    "to": [
+     "GR-14.9.3.4-10"
+    ],
+    "clause-2002": "14.8.3.3",
+    "clause-2023": "14.9.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR10",
+      "quote": "The allocated storage persists until explicitly released with a FREE statement or the run unit is terminated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.4 GR10",
+      "quote": "The allocated storage persists until explicitly released with a FREE statement or the run unit is terminated",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "storage obtained by either form of ALLOCATE, until FREE or the end of the run unit"
+    ],
+    "evidence-2002": [
+     "covered by twin witness conformance-suite/cases/14.9.3-ALLOCATE/allocate_initialized.cob (accept [2002]; matches at 2002)",
+     "persistence across a PERFORMed paragraph, then FREE: covered by probe allocate_2002.cob"
+    ],
+    "flags-answered": {
+     "definition-changed: run unit": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; storage persists to run unit termination in both.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The rule's end point is §2002:14.5.10 item 3 (ALLOCATE storage released), word-identical to 2023 14.6.11 item 3; the items that differ (MCS purge, COMMIT, dynamic tables) are not this rule's, and 14.5.2.1.2.1 item 4 (based address null) is about initial state. No change; the reader's allocate_2002.cob stands."
+    },
+    "reason": "General format of ALLOCATE identical in both editions; the rule is identical and what it refers to (BASED, data-pointer, restricted data-pointer, predefined address NULL, FREE, EC-STORAGE-NOT-AVAIL, nonfatal in both exception tables) is unchanged.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\allocate_2002.cob",
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'run unit': 2002 'one or more runtime modules that interact with one another and that function at execution time as an entity'; 2023 adds 'runtime entity' and 'independent': the same run unit; it does not change the scope"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "Any storage obtained with an ALLOCATE statement and not yet released by a FREE statement is released",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "The first time the function, method, or program in which it is described is activated in a run unit",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-2",
+    "to": [
+     "GR-14.9.3.4-2"
+    ],
+    "clause-2002": "14.8.3.3",
+    "clause-2023": "14.9.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR2",
+      "quote": "If arithmetic-expression-1 evaluates to 0 or a negative value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.4 GR2",
+      "quote": "If arithmetic-expression-1 evaluates to 0 or a negative value",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "ALLOCATE arithmetic-expression-1 CHARACTERS RETURNING data-name-2 with a value of 0 or a negative value"
+    ],
+    "evidence-2002": [
+     "zero: covered by twin witness pb151_allocate.cob at 2002",
+     "negative (-5) and zero: covered by probe allocate_2002.cob at 2002 (NULL, no exception)"
+    ],
+    "flags-answered": [
+     "changed-definition-term 'null': 2002 defines null in clause 4 ('the state of a pointer indicating that it contains no address'); 2023 has no definitions entry, but the 'predefined address NULL' is the same NULL in both; it does not change the scope"
+    ],
+    "reason": "General format of ALLOCATE identical in both editions; the rule is identical and what it refers to (BASED, data-pointer, restricted data-pointer, predefined address NULL, FREE, EC-STORAGE-NOT-AVAIL, nonfatal in both exception tables) is unchanged.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\allocate_2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-5",
+    "to": [
+     "GR-14.9.3.4-5"
+    ],
+    "clause-2002": "14.8.3.3",
+    "clause-2023": "14.9.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR5",
+      "quote": "If the specified amount of storage is not available for allocation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.4 GR5",
+      "quote": "If the specified amount of storage is not available for allocation",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "a) RETURNING data-name-2 set to NULL",
+     "b) the address of based data-name-1 set to NULL",
+     "c) EC-STORAGE-NOT-AVAIL (NF in the 2002 exception table, as in 2023)"
+    ],
+    "evidence-2002": [
+     "a) and c): covered by twin witness pb151_allocate.cob at 2002 and probe allocate_2002.cob (HUGE=NULL EC-STORAGE-NOT-AVAIL, execution continues)",
+     "b): not shown at either edition (no witness of the 2023 row shows a based item for which storage is unavailable; the same gap the 2023 row has)"
+    ],
+    "flags-answered": [
+     "changed-definition-term 'null': as for GR2, the predefined address NULL is the same in both editions; it does not change the scope"
+    ],
+    "reason": "General format of ALLOCATE identical in both editions; the rule is identical and what it refers to (BASED, data-pointer, restricted data-pointer, predefined address NULL, FREE, EC-STORAGE-NOT-AVAIL, nonfatal in both exception tables) is unchanged.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\allocate_2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-6",
+    "to": [
+     "GR-14.9.3.4-6"
+    ],
+    "clause-2002": "14.8.3.3",
+    "clause-2023": "14.9.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR6",
+      "quote": "If both the INITIALIZED phrase and arithmetic-expression-1 are specified, all bytes of the allocated storage are initialized to binary zeros",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.4 GR6",
+      "quote": "If both the INITIALIZED phrase and arithmetic-expression-1 are specified, all bytes of the allocated storage are initialized to binary zeros",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "ALLOCATE arithmetic-expression-1 CHARACTERS INITIALIZED"
+    ],
+    "evidence-2002": [
+     "covered by twin witness allocate_initialized.cob (accept [2002]; matches at 2002)",
+     "covered by probe allocate_2002.cob (INIT=LOW-VALUES)"
+    ],
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). GR6 governs only the content of the storage (binary zeros) when INITIALIZED and arithmetic-expression-1 are both written (§2002:14.8.3.3 GR6); how many bytes is GR1's question, and the zeroing does not depend on the arithmetic mode."
+    },
+    "reason": "Identical rule and format. 2023 changed GR8 and GR9 (the OPTIONS paragraph INITIALIZE clause) for the case without INITIALIZED only; GR6 is untouched.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\allocate_2002.cob",
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.3.3 GR6",
+      "quote": "all bytes of the allocated storage are initialized to binary zeros",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-15",
+    "to": [
+     "SR-14.9.4.3-17"
+    ],
+    "clause-2002": "14.8.4.2",
+    "clause-2023": "14.9.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR15",
+      "quote": "Identifier-4 and any identifier specified in arithmetic-expression-1 or boolean-expression-1 is a sending operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR17",
+      "quote": "Identifier-4 and any identifier specified in arithmetic-expression-1 or boolean-expression-1 is a sending operand",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "identifier-4 and the identifiers of arithmetic-expression-1 / boolean-expression-1 in CALL format 3 (BY CONTENT / BY VALUE)"
+    ],
+    "evidence-2002": [
+     "covered by twin witness conformance-suite/cases/14.9.4-CALL/pb238_call_format2_operands.cob (its output matches at --std 2002)",
+     "a CD-record identifier-4 and an expression argument by value: covered by probe call_value_cd.cob at 2002 (the caller's IN-LEN is unchanged after the callee stores into its formal)"
+    ],
+    "flags-answered": {
+     "band-formats: band-formats [3] against [[2]]": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "The screen matched 8.8.1.1, 8.8.1.3.1 and 8.8.1.3.6 on 'arithmetic' in arithmetic-expression-1. The rule only classifies identifier-4 and the identifiers inside the expression as sending operands, which no arithmetic mode affects; how the expression's value is computed is 8.8.1 (§2002:8.8.1.1 'The following rules apply regardless of the mode of arithmetic that is in effect'), and standard arithmetic, where the 32-digit/31-digit PB5575 difference lives, applies only under ARITHMETIC IS STANDARD (§2002:8.8.1.2: native arithmetic is in effect when 'no ARITHMETIC clause is specified'). The witness's observable (the caller's IN-LEN unchanged, W-N + 1 = 0013) is a four-digit value no mode alters. No dependence; no change."
+    },
+    "reason": "The 2002 CALL format 3 (program-prototype) is the 2023 format 2, phrase for phrase (NESTED, AS, BY REFERENCE / CONTENT / VALUE, OMITTED, arithmetic- and boolean-expression arguments, RETURNING, ON / NOT ON EXCEPTION); the rule is identical and is stated of that format only. In 2002 identifier-4 may be a CD-record item (neither edition limits identifier-4 by section), which does not change the rule; probed at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\call_value_cd.cob",
+    "widening": null,
+    "answer-evidence-2002": "re-run this session at --std 2002: call_value_cd.cob prints 'S1 0042 0007 0013' and 'IN-LEN AFTER [0042]' (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/call_value_cd-2002.txt); pb238_call_format2_operands matches its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/wit/)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR15",
+      "quote": "Identifier-4 and any identifier specified in arithmetic-expression-1 or boolean-expression-1 is a sending operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR17",
+      "quote": "Identifier-4 and any identifier specified in arithmetic-expression-1 or boolean-expression-1 is a sending operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.2",
+      "quote": "Native arithmetic is in effect when the ARITHMETIC IS NATIVE clause is specified in the OPTIONS paragraph or no ARITHMETIC clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is a standard method of evaluating an arithmetic expression",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-18",
+    "to": [
+     "SR-14.9.4.3-21"
+    ],
+    "clause-2002": "14.8.4.2",
+    "clause-2023": "14.9.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR18",
+      "quote": "If the BY VALUE phrase is specified for an argument, the BY VALUE phrase shall be specified for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR21",
+      "quote": "If the BY VALUE phrase is specified for an argument, the BY VALUE phrase shall be specified for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "a CALL format 3 argument written BY VALUE, against the callee's procedure division header"
+    ],
+    "evidence-2002": [
+     "covered by twin witness conformance-suite/cases/14.9.4-CALL/pb133-arg-mode-value.cob (COBOL1687 at 2002, as at 2023)"
+    ],
+    "flags-answered": {
+     "band-formats: band-formats [3] against [[2]]": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split.",
+     "definition-changed: procedure": "§2002:4 defines procedure as 'One or more successive paragraphs or sections in the procedure division' and §2023:3.145 as 'paragraph, section, or one or more successive paragraphs or sections that include the executable code'; the rule uses the word only inside the fixed term 'procedure division header', which neither definition governs, so the programs the rule reaches are unchanged.",
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The screen matched these clauses on the word 'corresponding' (14.6.4 size error and 14.6.6 arithmetic statements, whose trigger includes the CORRESPONDING phrase); here the word is only 'the corresponding formal parameter' of the procedure division header. The rule rests on nothing in §2002:14.6.4 or 14.6.6: no arithmetic statement, size error or CORRESPONDING phrase is involved, so no change of scope or evidence."
+    },
+    "reason": "The 2002 CALL format 3 (program-prototype) is the 2023 format 2, phrase for phrase (NESTED, AS, BY REFERENCE / CONTENT / VALUE, OMITTED, arithmetic- and boolean-expression arguments, RETURNING, ON / NOT ON EXCEPTION); the rule is identical and is stated of that format only. In 2002 identifier-4 may be a CD-record item (neither edition limits identifier-4 by section), which does not change the rule; probed at 2002.",
+    "probe": null,
+    "widening": null,
+    "answer-evidence-2002": "re-run this session at --std 2002: pb133-arg-mode-value refused COBOL1687 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/wit/pb133-arg-mode-value-2002.txt)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR18",
+      "quote": "If the BY VALUE phrase is specified for an argument, the BY VALUE phrase shall be specified for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR21",
+      "quote": "If the BY VALUE phrase is specified for an argument, the BY VALUE phrase shall be specified for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-19",
+    "to": [
+     "SR-14.9.4.3-22"
+    ],
+    "clause-2002": "14.8.4.2",
+    "clause-2023": "14.9.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR19",
+      "quote": "If identifier-4 or its corresponding formal parameter is specified with a BY VALUE phrase, identifier-4 shall be of class numeric, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR22",
+      "quote": "If identifier-4 or its corresponding formal parameter is specified with a BY VALUE phrase, identifier-4 shall be of class numeric, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR9b",
+      "quote": "When the BY VALUE phrase is specified or implied for the corresponding formal parameter, BY VALUE is assumed",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "identifier-4 of CALL format 3 passed BY VALUE, written or taken from the formal parameter (GR9b)"
+    ],
+    "evidence-2002": [
+     "refusal of an alphanumeric BY VALUE argument: covered by twin witness pb132-call-byvalue-implied-class.cob (COBOL1628 at 2002, as at 2023) and probe call_value_cd_neg.cob",
+     "a numeric CD-record item by value, and an implied BY VALUE: covered by probe call_value_cd.cob at 2002"
+    ],
+    "flags-answered": [],
+    "reason": "The 2002 CALL format 3 (program-prototype) is the 2023 format 2, phrase for phrase (NESTED, AS, BY REFERENCE / CONTENT / VALUE, OMITTED, arithmetic- and boolean-expression arguments, RETURNING, ON / NOT ON EXCEPTION); the rule is identical and is stated of that format only. In 2002 identifier-4 may be a CD-record item (neither edition limits identifier-4 by section), which does not change the rule; probed at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\call_value_cd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-20",
+    "to": [
+     "SR-14.9.4.3-23"
+    ],
+    "clause-2002": "14.8.4.2",
+    "clause-2023": "14.9.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR20",
+      "quote": "If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase, literal-2 shall be a numeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR23",
+      "quote": "If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase, literal-2 shall be a numeric literal",
+      "check": "OK"
+     }
+    ],
+    "verdict": "SAME",
+    "scope-2002": [
+     "literal-2 of CALL format 3 passed BY VALUE"
+    ],
+    "evidence-2002": [
+     "covered by twin witnesses pb238-by-value-nonnumeric-literal.cob and pb238-by-value-formal-derived-literal.cob (COBOL1762 at 2002, as at 2023), pb238_call_format2_operands.cob (matches at 2002), and probe call_value_cd_neg.cob"
+    ],
+    "flags-answered": {
+     "band-formats: band-formats [3] against [[2]]": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split.",
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The screen matched these clauses on the word 'corresponding' (14.6.4 size error and 14.6.6 arithmetic statements, whose trigger includes the CORRESPONDING phrase); here the word is only 'the corresponding formal parameter' of the procedure division header. The rule rests on nothing in §2002:14.6.4 or 14.6.6: no arithmetic statement, size error or CORRESPONDING phrase is involved, so no change of scope or evidence."
+    },
+    "reason": "The 2002 CALL format 3 (program-prototype) is the 2023 format 2, phrase for phrase (NESTED, AS, BY REFERENCE / CONTENT / VALUE, OMITTED, arithmetic- and boolean-expression arguments, RETURNING, ON / NOT ON EXCEPTION); the rule is identical and is stated of that format only. In 2002 identifier-4 may be a CD-record item (neither edition limits identifier-4 by section), which does not change the rule; probed at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-24\\call_value_cd_neg.cob",
+    "widening": null,
+    "answer-evidence-2002": "re-run this session at --std 2002: pb238-by-value-nonnumeric-literal and pb238-by-value-formal-derived-literal refused COBOL1762 (with COBOL1688), call_value_cd_neg refused COBOL1762, pb238_call_format2_operands matches its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/wit/, E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/call_value_cd_neg-2002.txt)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR20",
+      "quote": "If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase, literal-2 shall be a numeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR23",
+      "quote": "If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase, literal-2 shall be a numeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     }
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-24",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.1.2-4",
+    "verdict": "UPHELD",
+    "reason": "ACCEPT format 3 is the same phrase for phrase in both editions, and so is the rule. 2002 makes the screen format of ACCEPT processor-dependent (B.3 item 1), so support need not be claimed, provided a compile-time warning mechanism exists (3.1.5). Re-probed at --std 2002: every screen construct is refused by name (COBOL1560, COBOL1707). Communication reach does not matter here, because the compiler declines the whole format at 2002. Note for the KEPT record: the diagnostic cites the 2023 licence, not 2002 3.1.5 / B.3.",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/screen1.cob (screen1.out-2002.txt)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.1.2-5",
+    "verdict": "UPHELD",
+    "reason": "Same as SR4. ACCEPT format 3 only, and the 2002 licence holds (B.3 item 1, 3.1.5). The compiler refuses the screen format at 2002 (COBOL1707).",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/screen1.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-12",
+    "verdict": "UPHELD",
+    "reason": "GR12 describes only the conceptual sender DAY-OF-WEEK: a one-digit unsigned integer, 1 = Monday ... 7 = Sunday. Format 2 and its list of four sources are the same. The receiver, including a 2002 CD item, is GR6's subject (overturned above), not this rule's. This matches the p-04 refuter's upholds of GR9 and GR10. The ellipsis glyph is the only textual difference.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-14",
+    "verdict": "UPHELD",
+    "reason": "Screen format, licensed processor-dependent in 2002 (B.3 item 1). The compiler declines it at 2002 with a diagnostic.",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/screen1.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-15",
+    "verdict": "UPHELD",
+    "reason": "Screen format AT LINE/COLUMN, the same format and text in both editions, licensed processor-dependent in 2002. The compiler declines it at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/screen1.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-16",
+    "verdict": "UPHELD",
+    "reason": "Screen-format default line, licensed processor-dependent in 2002. The compiler declines it at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/screen1.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-17",
+    "verdict": "UPHELD",
+    "reason": "Screen-format default column, licensed processor-dependent in 2002. The compiler declines it at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/screen1.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-19",
+    "verdict": "UPHELD",
+    "reason": "Screen-format display attributes, licensed processor-dependent in 2002 (B.3 items 1 and 2). The compiler declines it at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/screen1.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-20",
+    "verdict": "UPHELD",
+    "reason": "Screen-format input validation, licensed processor-dependent in 2002. The compiler declines it at 2002. No exception behaviour is reachable without the format.",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/screen1.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-23",
+    "verdict": "UPHELD",
+    "reason": "The CURSOR clause and the screen ACCEPT are both on 2002's processor-dependent list (B.3 item 1). At 2002 the compiler refuses the CURSOR clause (COBOL1560) and the screen ACCEPT (COBOL1707).",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/screen1.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-6",
+    "verdict": "OVERTURNED",
+    "reason": "GR6 governs the transfer INTO identifier-2 by the MOVE rules. In 2002 identifier-2 may be an implicit CD data-name, whose description comes only from Annex A. MESSAGE DATE is an unsigned 6-digit integer and STATUS KEY is a 2-character alphanumeric item, and both pass SR3. Items of a record under a CD also qualify (A.1.1.2). The receiver's description drives the MOVE, and the 2023 row (no communication section) cannot witness that case. This is the reach the reader itself used to call 14.1.3 GR8 DIFFERENT. The p-04 upholds of GR9 and GR10 do not apply, because those rules describe only the sender. Probe at --std 2002 (correct): ACCEPT IN-MDATE FROM DATE equals ACCEPT YMD FROM DATE, and ACCEPT IN-STATUS FROM DAY-OF-WEEK gives '7 ' (alphanumeric MOVE, left-justified). needs: a 2002 witness for implicit-CD-name and CD-record receivers. compiler-at-2002: correct.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR6",
+      "quote": "transferred to the data item specified by identifier-2 according to the rules for the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR6",
+      "quote": "transferred to the data item specified by identifier-2 according to the rules for the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2e",
+      "quote": "The MESSAGE DATE clause defines data-name-5 as the name of a data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2j",
+      "quote": "The STATUS KEY clause defines data-name-10 as the name of an elementary alphanumeric data item of 2 characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/accept_cd.cob (accept_cd.out-2002.txt)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.2.2-5",
+    "verdict": "UPHELD",
+    "reason": "A keyword-equivalence rule. It names no operand, list or deferral. ROUNDED becoming rounded-phrase does not touch it. The reader's 2002 probe of ADD CORR stands.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.2.3-4",
+    "verdict": "OVERTURNED",
+    "reason": "The rule's condition reads the USAGE of every operand ('none of the operands is described with usage binary-char ...'). In 2002 an operand of ADD may be an implicit CD data-name, and only Annex A gives its description: TEXT LENGTH is an unsigned 4-digit integer and MESSAGE COUNT an unsigned 6-digit integer, both numeric, so SR2 admits them. The 2023 row cannot witness how the rule applies to them. This is the same reach that p-14 and p-18 overturned for the arithmetic statements' category rules. Probe at --std 2002 (correct): ADD IN-LEN IN-COUNT TO W gives 133555; ADD 0.25 IN-LEN GIVING R gives 9999.25; ADD 1 TO IN-LEN (9999) raises SIZE ERROR and leaves 9999. needs: a 2002 witness for CD-item operands. compiler-at-2002: correct.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.3 GR4",
+      "quote": "none of the operands is described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.4 GR4",
+      "quote": "none of the operands is described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.2.2 SR2",
+      "quote": "Identifier-1 and identifier-2 shall reference a numeric data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2h",
+      "quote": "The TEXT LENGTH clause defines data-name-8 as the name of an elementary data item whose implicit description is that of an integer of 4 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2k",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/add_cd.cob (add_cd.out-2002.txt)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.3.2-4",
+    "verdict": "OVERTURNED",
+    "reason": "SR4 tests whether data-name-2 is a restricted data-pointer. In 2002 data-name-2 may be a level-01 pointer record under an output CD: A.1.2.2 SR9 puts no restriction on output-CD records, and USAGE SR13 asks only for level 1. The reader of p-16 already ruled this reach DIFFERENT for SR3 of this clause. A restricted pointer there (01 CP TYPE PT, with PT a TYPEDEF of USAGE POINTER TO T) is a 2002 case that the 2023 row cannot show. Probe at --std 2002: the working-storage form works (WP SET), but the CD record is refused at its declaration with COBOL0899 ('a shared record area of that shape is recognized but not yet implemented'). That is the defect p-16 already reported (cdptr.cob), so it is not new. needs: its own verdict; at --std 2002 the CD case is refused COBOL0899. compiler-at-2002: wrong (known p-16 defect).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.2 SR4",
+      "quote": "If data-name-2 references a restricted data-pointer, data-name-1 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.3.2 SR3",
+      "quote": "Data-name-2 shall reference a data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/alloc_cd_typed.cob (alloc_cd_typed.out-2002.txt; control alloc_ws_typed.out-2002.txt)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.3.2-5",
+    "verdict": "OVERTURNED",
+    "reason": "This is the same reach as SR4. With data-name-1 a based strongly-typed group, SR5 requires data-name-2 to be restricted to that type, and in 2002 data-name-2 may be a CD-record pointer (01 CP TYPE PT under an output CD). The 2023 row cannot witness that case. Probe: ALLOCATE B RETURNING CP at --std 2002 never reaches SR5, because the CD record is refused COBOL0899 at its declaration (the known p-16 defect). The working-storage form passes. compiler-at-2002: wrong (known p-16 defect).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.2 SR5",
+      "quote": "the data item referenced by data-name-2 shall be restricted to the type of data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/alloc_cd_typed.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-10",
+    "verdict": "UPHELD",
+    "reason": "Storage lifetime until FREE or the end of the run unit. It names no operand that could reach the communication section, and the FREE statement is unchanged. 'Run unit' is reworded in 2023, but it is the same entity.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "GR2 WRITES data-name-2 (sets it to NULL), and in 2002 data-name-2 may be a level-01 pointer record under an output CD (A.1.2.2 SR9; the p-16 reader ruled ALLOCATE SR3 DIFFERENT for this reach). The 2023 row cannot witness that case. Probe at --std 2002: ALLOCATE N CHARACTERS RETURNING CP, with N = 0 and CP under an output CD, is refused at the declaration COBOL0899 (the known p-16 defect), so GR2 is unshown for that case. compiler-at-2002: wrong (known p-16 defect).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR2",
+      "quote": "the data item referenced by data-name-2 is set to the predefined address NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/alloc_cd.cob (alloc_cd.out-2002.txt)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-5",
+    "verdict": "OVERTURNED",
+    "reason": "Item a) sets the RETURNING data-name-2 to NULL when storage is unavailable, so the CD-record data-name-2 reach is the same as for GR2. Items b) and c) are the same in both editions (BASED is confined to WS, LS and linkage; EC-STORAGE-NOT-AVAIL is nonfatal in both). Item a) for a CD pointer is unshown: the declaration is refused COBOL0899 at 2002 (the known p-16 defect). compiler-at-2002: wrong for the CD case (known p-16 defect).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR5a",
+      "quote": "if the RETURNING phrase is specified, the data item referenced by data-name-2 is set to the predefined address NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/alloc_cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-6",
+    "verdict": "UPHELD",
+    "reason": "Binary-zero initialization of the CHARACTERS form with INITIALIZED. The text is the same, and the 2023 changes (OPTIONS INITIALIZE) are confined to GR8 and GR9, which cover the case without INITIALIZED. The rule writes the allocated storage, not data-name-2, so the CD reach does not touch it.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-15",
+    "verdict": "UPHELD",
+    "reason": "This is a pure classification: identifier-4 and the identifiers in an expression are sending operands. It reads no property of the operand's description, so a CD-item identifier-4 is classified the same way. The reader's 2002 probe (IN-LEN passed BY VALUE, unchanged) stands. This matches the p-17 uphold of SR17. Format 3 of 2002 is format 2 of 2023, phrase for phrase.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-18",
+    "verdict": "UPHELD",
+    "reason": "It pairs a BY VALUE argument with a BY VALUE formal parameter. It reads nothing of the argument's description, and the program-prototype format is the same in both editions.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-19",
+    "verdict": "OVERTURNED",
+    "reason": "SR19 is a class test on identifier-4. In 2002 identifier-4 has no section limit and may be an implicit CD data-name whose class comes only from Annex A: TEXT LENGTH is numeric (legal BY VALUE), STATUS KEY is alphanumeric (illegal). This is the same reach that p-14 and p-18 overturned for class and category tests. The reader probed only the legal IN-LEN case and a working-storage negative. Probe at --std 2002 (correct): CALL 'S2' AS NESTED USING BY VALUE IN-STATUS is refused with COBOL1628 and COBOL1688. The message cites §2023:14.9.4.3 SR22; it should cite §2002:14.8.4.2 SR19 at --std 2002, a citation nit only. needs: a 2002 witness for implicit CD data-names as identifier-4. compiler-at-2002: correct.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR19",
+      "quote": "identifier-4 shall be of class numeric, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR22",
+      "quote": "identifier-4 shall be of class numeric, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2j",
+      "quote": "The STATUS KEY clause defines data-name-10 as the name of an elementary alphanumeric data item of 2 characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2h",
+      "quote": "The TEXT LENGTH clause defines data-name-8 as the name of an elementary data item whose implicit description is that of an integer of 4 digits",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-24/call_val_cd.cob (call_val_cd.out-2002.txt)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-20",
+    "verdict": "UPHELD",
+    "reason": "This tests literal-2 only. A literal cannot be a CD item, the literal kinds are the same, and the program-prototype format is the same.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "fafe8e49da25eba9c76bde8e83dfdbc6a239fb73eeaae6ccb9729a0aecc67ff1",
+  "read": "fea478d16c6c5c0d21939ebdff1f0fddfcc266065bf32684a97264d34747ba00",
+  "refute": "8fc3a6433ce608f7f478f534c4d75684e70963685eb319cabf5df13c05aefca2"
+ }
+}

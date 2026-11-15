@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.16.3-2",
+ "rule-digest": "2ad89c3e3a07",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.17.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "normalized": {
+    "flag": "normalized",
+    "answer": "Exact words compared: '1, 2, ... , n' (2002) against '1, 2, … , n' (2023), twice; typography only, GR-14.9.17.4-2 is the pointer."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "The rule rests on §2002:14.5.12.2 (identifier-1 is a numeric sending operand: 'When the content of a boolean or numeric sending operand is referenced' ... false in the class test sets EC-DATA-INCOMPATIBLE; 2023 only splits out floating-point items, which an integer identifier-1 is not) and on §2002:14.5.12.1.2 (EC-DATA-INCOMPATIBLE is Fatal in the 2002 table). 2023's fatal and nonfatal processing differs from §2002:14.5.12.1.2/1.3 only by additions with no 2002 counterpart (the PERFORM WHEN path, §2023:14.6.13.1.3; SORT/MERGE and fatal EC-I-O steps; APPLY COMMIT rollback); the 2002 sequence (conditional phrase, declarative, PROPAGATE, abnormal termination, implementor-defined when unchecked) is 2023's without them, and §2002:14.5.12.2 differs only by 2023's floating-point arms. The checked path is shown at --std 2002 by pb395_goto_depending_incompatible (MATCH), the unchecked one by goto-dep.cob."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "GR-14.9.17.4-2": "e4067afb4728"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-18",
+ "rule-digest": "dbcfeed779c3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-19"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "inspect-before-from-first-eligible-position",
+    "answer": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-ba-f3.cob at --std 2002: TALLYING and REPLACING with the same crossed operand over AYAAXAA gives 05 AYAAXAA (2023: 07 AYAAXZZ): both halves of the format 3 equivalence take the 2002 region."
+   }
+  },
+  "source": "lineage-reads-2002/q-27.json",
+  "digests": {
+   "GR-14.9.22.4-19": "dbcfeed779c3"
+  }
+ }
+}

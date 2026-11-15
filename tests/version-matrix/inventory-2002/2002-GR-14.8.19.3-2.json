@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.19.3-2",
+ "rule-digest": "11fca55694bb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.20.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "§2002:4 defines class of a data item as 'A designation for a set of data items having common attributes or a common range of values', set by PICTURE/USAGE. 2023 says the same and moves the clause list into a note. The rule names categories in any case ('Use of the name of a data class or data category in the rules of COBOL refers to the category unless class is specifically indicated', §2002:8.5.2), so the governed items do not change."
+   },
+   "cross-reference": {
+    "flag": "8.5.2",
+    "answer": "§2002:8.5.2 Table 3 lists the categories alphabetic, alphanumeric, alphanumeric-edited, numeric-edited, boolean, index, national, national-edited, numeric, object-reference, data-pointer and program-pointer. Each of the eleven 2002 category-name keywords names one of them, and index has no keyword in either edition. So ALL means exactly those eleven, which the pb415 cases and the init-cd probe show at --std 2002. Scope and evidence are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "GR-14.9.20.4-2": "11fca55694bb"
+  }
+ }
+}

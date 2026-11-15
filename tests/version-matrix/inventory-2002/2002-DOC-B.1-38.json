@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-DOC-B.1-38",
+ "rule-digest": "ac4305287372",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "DOC-A.1-46"
+  ],
+  "bridge": true,
+  "answers": {
+   "normalized": {
+    "flag": "normalized",
+    "answer": "The curly apostrophe in the 2002 'implementor’s' is the only difference. The words are otherwise exact, and DOC-A.1-46 is the pointer."
+   },
+   "cross-reference": {
+    "flag": "8.5.1",
+    "answer": "I read §2002:8.5.1: 'Each implementor shall provide a complete specification of the possible representations', with no exception for representations defined by other standards (2023 adds that exception). The 2002 requirement is therefore at least as strict, and the DOC-A.1-46 page specifies every 2002 usage directly, so the evidence covers it and the scope is unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-44.json",
+  "digests": {
+   "DOC-A.1-46": "9dbe91a4dafd"
+  }
+ }
+}

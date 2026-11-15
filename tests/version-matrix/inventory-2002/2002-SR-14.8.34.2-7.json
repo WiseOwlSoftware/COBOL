@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.8.34.2-7",
+ "rule-digest": "be9870a5d426",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.37.3-9"
+  ],
+  "bridge": true,
+  "answers": {
+   "normalized": {
+    "flag": "normalized",
+    "answer": "2002 writes 'The index-name subscript shall not be followed by a '+' or a '–'' with an en dash; 2023 SR9 uses a hyphen. Both are the minus sign of relative indexing, so the requirement is the same. SR-14.9.37.3-9 is the right pointer (2023 renumbered SR7 to SR9)."
+   },
+   "definition-changed": {
+    "flag": "subscript",
+    "answer": "§2002:4 (4.179) and §2023:3.170 differ only in 'the subscript 'ALL'' versus 'the value 'ALL''. The index-name and other subscripts SR7 requires on a condition-name are the same."
+   }
+  },
+  "source": "lineage-reads-2002/q-31.json",
+  "digests": {
+   "SR-14.9.37.3-9": "5a6401654ebb"
+  }
+ }
+}

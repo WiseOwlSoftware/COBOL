@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.8.35.2-3",
+ "rule-digest": "026b3ac9a17d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.39.3-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item; index",
+    "answer": "§2002:4 (4.34) gives class by PICTURE/USAGE and (4.102) index as 'A storage area or a register' where 2023 says 'conceptual data item'; a data item of class index in 2002 is still a USAGE INDEX item (an index function, §2002:15.1 item 6, cannot be the receiving identifier-1), so the set of receivers §2002:14.8.35.2 SR3 restricts is unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
+    "answer": "Triggered by 'arithmetic-expression-1'. §2002:14.8.35.2 SR3 forbids specifying the expression for an index-class receiver; nothing is evaluated, so standard arithmetic (§2002:8.8.1.x, PB5575) cannot change the result; the refusal witness at 2002 stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-31.json",
+  "digests": {
+   "SR-14.9.39.3-3": "026b3ac9a17d"
+  }
+ }
+}

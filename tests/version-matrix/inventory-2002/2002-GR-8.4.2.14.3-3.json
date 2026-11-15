@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-8.4.2.14.3-3",
+ "rule-digest": "b939257bb3d9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so LINE-COUNTER is kept per report as in 2023; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "Matched on the word 'corresponding' (the corresponding report of an INITIATE), not on the CORRESPONDING phrase, the size error condition or the arithmetic statements of §2002:14.6.4 and 14.6.6; the rule does not rest on them. pb1001_line_next_page re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "GR-8.4.3.15.4-3": "b939257bb3d9"
+  }
+ }
+}

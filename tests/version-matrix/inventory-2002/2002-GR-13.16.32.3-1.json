@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.32.3-1",
+ "rule-digest": "5d37c2b0e9cd",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.34.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "removed-element": {
+    "flag": "overflow",
+    "answer": "The screen matched the word 'overflow' (its removed-element pattern aims at CALL ... ON OVERFLOW, §2002:G.1 item 4). Here the word is 'the page overflow condition' of a LINAGE file, an element present in both editions (§2002:13.16.32.3 GR1 = §2023:13.18.34.4 GR1, same words), not CALL ON OVERFLOW; no obsolete or archaic element is named. The reader's row had no 2002 evidence, so I ran it: pb523_linage_margins_on_the_medium_85 (logical page = sum of the phrases, zero margins) matches its .out at --std 2002 in fixed format, and probe linage_nofoot (LINAGE 3, no FOOTING) at --std 2002 raises END-OF-PAGE only at the overflowing third WRITE, not when line 3 is reached (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/linage_nofoot.cob (output linage_nofoot.2002.txt) and E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log)."
+   }
+  },
+  "source": "lineage-reads-2002/p-02.json",
+  "digests": {
+   "GR-13.18.34.4-1": "5d37c2b0e9cd"
+  }
+ }
+}

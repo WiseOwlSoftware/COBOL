@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb489_linage_qualified_operands
       *> rules: [GR-13.18.34.4-2, FMT-13.18.34.2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-10.5.2-2",
+ "rule-digest": "e8afa6234c9e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-10.6.2-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "program prototype definition",
+    "answer": "§2002:4 (4.153) 'expected to be received by a particular subprogram' vs §2023:3.148 'a particular called program': the same PROGRAM-ID ... IS PROTOTYPE element; the rule's scope (a program definition and a program prototype definition of the same externalized name, signatures per §2002:8.13) does not change and the reader's 2002 evidence stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "SR-10.6.2-2": "e8afa6234c9e"
+  }
+ }
+}

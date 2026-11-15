@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-RV-15.81.3-1",
+ "rule-digest": "f3a36bac0daa",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.100.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "Read §2002:8.8.1.1 (evaluation order and the exponentiation exceptions, mode-independent), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 (32-digit standard intermediate) and §2002:8.8.1.3.1.3 (rounding to 31 digits on compare, on a function argument with no equivalent expression, on a store without ROUNDED), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (the same six function types; 2002 15.1 says the definition gives an alphanumeric/national function's character positions). maximum-year = argument-2 + argument-3 sums 4-digit integers, far inside 31 digits, so neither the 32-digit rules nor PB5575 can move it. Under ARITHMETIC IS STANDARD at --std 2002 YEAR-TO-YYYY(5 N1 * 50 2002) = 2005 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/stdfn23.cob (output stdfn23.2002.txt))."
+   }
+  },
+  "source": "lineage-reads-2002/q-44.json",
+  "digests": {
+   "RV-15.100.4-1": "f3a36bac0daa"
+  }
+ }
+}

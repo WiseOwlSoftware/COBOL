@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.21.2-6",
+ "rule-digest": "97162f64a6a7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.22.3-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "inspect-before-from-first-eligible-position",
+    "answer": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). This syntax rule is decided at compile time and the switch changes only the run-time region (InspectBinder.BindPhrases into BoundInspect.BeforeFromLeftmost); it refuses nothing at any edition (VERSION_CHANGE_REFERENCE row 7.65), so the rule's 2002 behaviour is the evidence-2002 the read names, unchanged by the switch."
+   }
+  },
+  "source": "lineage-reads-2002/q-27.json",
+  "digests": {
+   "SR-14.9.22.3-6": "97162f64a6a7"
+  }
+ }
+}

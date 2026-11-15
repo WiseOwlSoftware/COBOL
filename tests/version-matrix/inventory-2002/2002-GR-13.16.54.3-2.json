@@ -1,0 +1,16 @@
+{
+ "rule-id": "2002-GR-13.16.54.3-2",
+ "rule-digest": "bf13b445dd24",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.56.4-2"
+  ],
+  "bridge": true,
+  "source": "lineage-reads-2002/q-20.json",
+  "digests": {
+   "GR-13.18.56.4-2": "bf13b445dd24"
+  }
+ }
+}

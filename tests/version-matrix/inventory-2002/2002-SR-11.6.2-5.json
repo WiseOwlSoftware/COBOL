@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-11.6.2-5",
+ "rule-digest": "d7c04f4fd481",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-11.7.3-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "property",
+    "answer": "§2002:4 (4.140) 'A name that may be used to qualify an object reference to get a value from or pass a value to an object' vs §2023:3.137 'can be used': editorial, the same object properties; the rule (no PROPERTY clause on a data-name that is property-name-1 of a GET/SET PROPERTY method) has the same scope; the reader's probe prop.cob stands."
+   }
+  },
+  "source": "lineage-reads-2002/p-08.json",
+  "digests": {
+   "SR-11.7.3-5": "d7c04f4fd481"
+  }
+ }
+}

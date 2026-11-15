@@ -2,7 +2,7 @@
       *> id: open_fixed_attribute_conflict
       *> rules: [GR-9.1.13.6-7, GR-12.4.5.10.3-1, GR-14.9.27.4-10,
       *>    DOC-A.1-129]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

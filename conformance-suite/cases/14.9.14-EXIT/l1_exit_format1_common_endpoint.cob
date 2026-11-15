@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_exit_format1_common_endpoint
       *> rules: [GR-14.9.14.4-1]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_release_same_record_area
 *> rules: [GR-14.9.32.4-3]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.42.3-6",
+ "rule-digest": "08b8d0342275",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.46.4-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "The flag fires on 'TERMINATE' (the report-writer statement). The rule is about that statement leaving the report file open; it does not rest on §2002:14.5.10 run unit termination, whose implicit CLOSE of open files (item 1) is word-equivalent to 2023's (2023 adds only an implicit COMMIT and dynamic-storage freeing), nor on initial state or transfers of control. Scope and the l1c33_terminate_multi_order_no_close evidence at 2002 are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "GR-14.9.46.4-6": "08b8d0342275"
+  }
+ }
+}

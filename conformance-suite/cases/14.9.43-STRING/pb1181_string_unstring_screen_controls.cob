@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1181_string_unstring_screen_controls
       *> rules: [SR-14.9.43.3-8, SR-14.9.48.3-1, SR-14.9.48.3-4]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

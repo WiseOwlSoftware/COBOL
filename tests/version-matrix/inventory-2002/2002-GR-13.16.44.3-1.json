@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.44.3-1",
+ "rule-digest": "49e5634f6c6d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.46.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). This rule's reports are the report-name-1 operands, each an RD of the report section in both editions (§2002:13.16.44 = §2023:13.18.46.1), so the files and reports it governs at 2002 are the same and pb1050_reports_share_file stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-18.json",
+  "digests": {
+   "GR-13.18.46.4-1": "49e5634f6c6d"
+  }
+ }
+}

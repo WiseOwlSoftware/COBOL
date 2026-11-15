@@ -1,0 +1,2375 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-32 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-32",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.36.3-15",
+   "2002-GR-14.8.36.3-16",
+   "2002-GR-14.8.36.3-18",
+   "2002-GR-14.8.36.3-3",
+   "2002-GR-14.8.36.3-4",
+   "2002-GR-14.8.36.3-5",
+   "2002-GR-14.8.36.3-6",
+   "2002-GR-14.8.36.3-7",
+   "2002-GR-14.8.36.3-8",
+   "2002-SR-14.8.37.2-6",
+   "2002-SR-14.8.37.2-8",
+   "2002-GR-14.8.37.3-11",
+   "2002-GR-14.8.37.3-12",
+   "2002-GR-14.8.37.3-13",
+   "2002-GR-14.8.37.3-18",
+   "2002-GR-14.8.37.3-19",
+   "2002-GR-14.8.37.3-20",
+   "2002-GR-14.8.37.3-21",
+   "2002-GR-14.8.37.3-5",
+   "2002-GR-14.8.38.3-2",
+   "2002-GR-14.8.38.3-3",
+   "2002-GR-14.8.38.3-4",
+   "2002-GR-14.8.38.3-6",
+   "2002-GR-14.8.39.3-2",
+   "2002-GR-14.8.39.3-3"
+  ],
+  "flags": {
+   "2002-GR-14.8.36.3-15": {
+    "changed-definition-term": "character position"
+   },
+   "2002-GR-14.8.36.3-16": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.36.3-3": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.36.3-6": {
+    "changed-definition-term": "character position"
+   },
+   "2002-GR-14.8.36.3-8": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-SR-14.8.37.2-6": {
+    "changed-definition-term": "character position"
+   },
+   "2002-GR-14.8.38.3-2": {
+    "changed-definition-term": "run unit"
+   },
+   "2002-GR-14.8.38.3-3": {
+    "changed-definition-term": "run unit"
+   },
+   "2002-GR-14.8.38.3-4": {
+    "changed-definition-term": "run unit"
+   },
+   "2002-GR-14.8.38.3-6": {
+    "changed-definition-term": "run unit"
+   },
+   "2002-GR-14.8.39.3-3": {
+    "changed-definition-term": "zero-length item"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-32",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.36.3-15",
+    "to": [
+     "GR-14.9.40.4-16"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "§2002:14.8.36 SORT statement",
+    "clause-2023": "§2023:14.9.40 SORT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SORT format 1 GIVING: short record returned to fixed-length file-name-3; arm a) one record description national or usage-national numeric/numeric-edited/boolean -> national space",
+     "arm b) several record descriptions with SELECT WHEN -> description selected by SELECT WHEN",
+     "arm c) otherwise alphanumeric space"
+    ],
+    "evidence-2002": [
+     "a): covered by conformance:cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill (PASS at --std 2002, runs\\pb1140_sort_merge_short_record_fill@2002) and probe src\\sortgiv.cob (numeric-edited and boolean usage-national GIVING records filled 00 20, run\\sortgiv-2002\\result.txt)",
+     "b): not shown: SELECT WHEN refused at --std 2002 (probe src\\sortsw.cob, COBOL1705)",
+     "c): covered by pb1140 G3/G4 at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR15",
+      "quote": "when that record is returned to the file referenced by file-name-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR16",
+      "quote": "when that record is returned to the file referenced by file-name-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.3 GR15b",
+      "quote": "the rules of the SELECT WHEN clause are applied to the record to select its description",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The following is a list of the COBOL language elements within this International Standard that depend on specific devices",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.49.2 SR1",
+      "quote": "A SELECT WHEN clause may be specified only at the 01 level of a record description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "4.31 character position: The amount of physical storage required to store",
+      "check": "OK"
+     }
+    ],
+    "reason": "Fifth cause: the 2023 row's CONFORMS rests on arm b) being vacuous under the Annex A.4.8 licence (SELECT WHEN optional in 2023); 2002 has no optional-element list and B.3 does not name SELECT WHEN, so in 2002 arm b) is required behaviour that the 2023 evidence never shows. Format, terms and enumeration a)-c) otherwise identical; no CD reach.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\sortsw.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\sortgiv.cob",
+    "widening": null,
+    "flags-answered": [
+     "changed-definition-term 'character position': §2002:4 (4.31) defines only the storage sense; 2023 adds a second entry (location within an item). 'fewer character positions' and 'first character position after the last character' read in the storage sense, which 2002 defines. The rule's scope in 2002 is unchanged."
+    ],
+    "class": "other",
+    "needs": "its own verdict: arms a) and c) are shown at --std 2002 (pb1140 PASS at 2002, probes); arm b) needs a 2002 witness of SORT GIVING (GR15 b) through a file whose record descriptions carry SELECT WHEN, which the compiler refuses at --std 2002 (COBOL1705); the SELECT WHEN refusal at 2002 is the defect q-14/q-19 already reported, this rule is one more row it reaches",
+    "compiler-at-2002": "wrong: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\sortsw.cob (run\\sortsw-2002\\compile.txt): SORT SW ON ASCENDING KEY SK USING FM GIVING FM, FD FM with two 01 entries carrying SELECT WHEN IS-NAT / IS-ALN; expected: accepted (SELECT WHEN is a required 2002 element, §2002:3.1.1; it is absent from §2002:B.3; §2002:13.16.49.2 SR1) and arm b) applied; observed: error COBOL1705 'the SELECT WHEN clause ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition', exit 65",
+    "second-targets": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-16",
+    "to": [
+     "GR-14.9.40.4-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.36 SORT statement",
+    "clause-2023": "§2023:14.9.40 SORT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "any USE procedure (file-exception, BEFORE REPORTING, exception-name, exception-object formats, identical in 2002 and 2023) invoked while a format 1 SORT is active that does not complete normally: the SORT is terminated"
+    ],
+    "evidence-2002": [
+     "covered by pb367b_sort_use_not_normal, pb1177_sort_procedure_use_not_normal, pb1177_method_sort_use_not_normal, pb1177_sort_called_use_not_normal, pb1177_invoke_sort_use_not_normal, pb1177_sort_called_goback_ec_free, pb3246_sort_terminated_after_raising_pickup: all PASS at --std 2002 (runs\\<id>@2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR16",
+      "quote": "If a USE procedure invoked while a format 1 SORT statement is active does not complete normally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR17",
+      "quote": "If a USE procedure invoked while a format 1 SORT statement is active does not complete normally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "4.150 procedure: One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; USE formats identical in both editions; 'procedure' covers the same sections. SORT formats 1 and 2 are phrase-for-phrase identical in both editions (KEY, DUPLICATES, COLLATING SEQUENCE with FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE, USING/GIVING); 2002 SR1 allows a format 1 SORT anywhere but the declaratives where 2023 SR3 also bars input/output procedures and exception-checking PERFORM (not a rule of this slice; 2002 GR9/GR12 still give EC-SORT-MERGE-ACTIVE at run time). No CD reach (SORT operands are files and tables). USE formats 1-4 identical in both editions.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": [
+     "changed-definition-term 'procedure': §2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds a single paragraph or section explicitly. Same set of procedures (a USE procedure / input-output procedure is a section or sections in both); scope and evidence unchanged."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-18",
+    "to": [
+     "GR-14.9.40.4-19"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.36 SORT statement",
+    "clause-2023": "§2023:14.9.40 SORT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 (table) SORT: key comparison by relation-condition rules; ASCENDING lower value lower occurrence, DESCENDING higher value lower occurrence, ties to next key"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys (PASS at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR18",
+      "quote": "To determine the relative order in which the table elements are stored after sorting",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR19",
+      "quote": "To determine the relative order in which the table elements are stored after sorting",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule and format 2; 2023 widens the table to dynamic-capacity tables (2023-only data). SORT formats 1 and 2 are phrase-for-phrase identical in both editions (KEY, DUPLICATES, COLLATING SEQUENCE with FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE, USING/GIVING); 2002 SR1 allows a format 1 SORT anywhere but the declaratives where 2023 SR3 also bars input/output procedures and exception-checking PERFORM (not a rule of this slice; 2002 GR9/GR12 still give EC-SORT-MERGE-ACTIVE at run time). No CD reach (SORT operands are files and tables). USE formats 1-4 identical in both editions.",
+    "probe": null,
+    "widening": "2023 also covers dynamic-capacity tables (absent in 2002)",
+    "flags-answered": {
+     "deferral: the rules for ": "'compared according to the rules for comparison of operands in a relation condition'. 2002 key data items 'shall not be of the class boolean, object, or pointer' (§2002:14.8.36.2 SR6c), so the deferred rules are the numeric, alphanumeric and national comparisons of §2002:8.8.4.1.1. The alphanumeric and national ones (standard and locale-based) say the same as 2023's. pb846_sort_table_occurs_keys passes at --std 2002.",
+     "pending-clause: §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed), §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Only §2002:8.8.4.1.1's numeric comparison differs from 2023. Under ARITHMETIC IS STANDARD the operands become standard intermediates rounded to 31 digits for comparison (§2002:8.8.1.3.1.3). But a 2002 numeric key holds at most 31 digit positions (§2002:13.16.38.2 SR6), so the conversion and the rounding are exact and the key order is unchanged. Binary-* and float-* keys use native arithmetic in both editions. So PB5575 cannot change this rule's result. §2002:8.8.2 and §2002:8.8.4.2.4 do not apply to a key comparison, and 14.5.2.1.2.1/14.5.3/14.5.10/14.6.4/14.6.6 were matched by words ('comparison', 'transfer') that this rule does not rest on. Scope and evidence are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR18",
+      "quote": "compared according to the rules for comparison of operands in a relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR6c",
+      "quote": "Key data items shall not be of the class boolean, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.3",
+      "quote": "When standard arithmetic is used, the number of digits of the standard intermediate data item used and whether there is rounding shall be as specified in 8.8.1.3.1.3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.3",
+      "quote": "When one or both of the operands is an operand for which native arithmetic applies, the comparison proceeds by the rules of native arithmetic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.2 SR6",
+      "quote": "the number of digit positions described by character-string-1 shall range from 1 through 31",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-3",
+    "to": [
+     "GR-14.9.40.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.36 SORT statement",
+    "clause-2023": "§2023:14.9.40 SORT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "WITH DUPLICATES: a) USING files in order then access order, b) input-procedure release order, c) table elements in prior relative order"
+    ],
+    "evidence-2002": [
+     "covered by pb704_sort_duplicates_in_order_2023, pb704_sort_duplicates_in_order_85, pb704_sort_duplicates_gr3_arms (all PASS at --std 2002); probe src\\sortkeys.cob (release order kept among equal keys, run\\sortkeys-2002\\result.txt)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR3",
+      "quote": "the order of return of these records or the relative order of the contents of these table elements is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR3",
+      "quote": "the order of return of these records or the relative order of the contents of these table elements is",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; the enumeration a)-c) identical. SORT formats 1 and 2 are phrase-for-phrase identical in both editions (KEY, DUPLICATES, COLLATING SEQUENCE with FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE, USING/GIVING); 2002 SR1 allows a format 1 SORT anywhere but the declaratives where 2023 SR3 also bars input/output procedures and exception-checking PERFORM (not a rule of this slice; 2002 GR9/GR12 still give EC-SORT-MERGE-ACTIVE at run time). No CD reach (SORT operands are files and tables). USE formats 1-4 identical in both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\sortkeys.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('input procedure') names the same units in 2002; scope and evidence unchanged.",
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Read §2002:14.6.4 and 14.6.6 (size error, arithmetic statements; 31-digit composite, standard arithmetic). The rule matched only on 'corresponding key data items'; record order among equal keys under DUPLICATES involves no size error or arithmetic statement. No dependence; evidence unchanged."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'procedure': §2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds a single paragraph or section explicitly. Same set of procedures (a USE procedure / input-output procedure is a section or sections in both); scope and evidence unchanged. (input procedure)"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-4",
+    "to": [
+     "GR-14.9.40.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.36 SORT statement",
+    "clause-2023": "§2023:14.9.40 SORT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "no DUPLICATES: order of equal-key records / table elements undefined (no observable requirement)"
+    ],
+    "evidence-2002": [
+     "covered by the derivation docs/CONFORMANCE.md#DRV-GR-14.9.40.4-4 (any order conforms; edition-independent); nothing to run"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR4",
+      "quote": "the relative order of the contents of these table elements is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR4",
+      "quote": "the relative order of the contents of these table elements is undefined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; an undefined result places no requirement at either edition. SORT formats 1 and 2 are phrase-for-phrase identical in both editions (KEY, DUPLICATES, COLLATING SEQUENCE with FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE, USING/GIVING); 2002 SR1 allows a format 1 SORT anywhere but the declaratives where 2023 SR3 also bars input/output procedures and exception-checking PERFORM (not a rule of this slice; 2002 GR9/GR12 still give EC-SORT-MERGE-ACTIVE at run time). No CD reach (SORT operands are files and tables). USE formats 1-4 identical in both editions.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The flag fires on the word 'corresponding' (invokes pattern 'size error|arithmetic statement|corresponding'). Here it is plain English ('the corresponding key data items' of other SORT records), not the CORRESPONDING phrase (§2002:14.6.5) and not an arithmetic statement or size error (§2002:14.6.6, §2002:14.6.4), so the changed arithmetic and size-error text (standard-binary/decimal modes, floating-point operands, near-zero size error) cannot reach this rule; scope and evidence unchanged. The rule sets no requirement (undefined order), as in 2023."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR4",
+      "quote": "equal to the contents of the corresponding key data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-32"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-5",
+    "to": [
+     "GR-14.9.40.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.36 SORT statement",
+    "clause-2023": "§2023:14.9.40 SORT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "alphanumeric sequence for alphabetic/alphanumeric keys and national sequence for national keys: a) the SORT COLLATING SEQUENCE phrase (IS or FOR forms), b) the program collating sequences"
+    ],
+    "evidence-2002": [
+     "covered by pb678_sort_national_key_collating, pb678_table_sort_key_class (PASS at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR5",
+      "quote": "Second, the collating sequences established as the program collating sequences",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR5",
+      "quote": "Second, the collating sequences established as the program collating sequences",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule and two-item precedence list; 2023 GR6 adds a pointer to file control entry rules (2023-only), which does not change the 2002 list. SORT formats 1 and 2 are phrase-for-phrase identical in both editions (KEY, DUPLICATES, COLLATING SEQUENCE with FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE, USING/GIVING); 2002 SR1 allows a format 1 SORT anywhere but the declaratives where 2023 SR3 also bars input/output procedures and exception-checking PERFORM (not a rule of this slice; 2002 GR9/GR12 still give EC-SORT-MERGE-ACTIVE at run time). No CD reach (SORT operands are files and tables). USE formats 1-4 identical in both editions.",
+    "probe": null,
+    "widening": "2023 GR6 adds further rules from the file control entry (12.4.5 GR3, GR4)",
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 23984 has the same rule split by '## Page 612': page break only. Re-read §2002:14.8.36.3 GR5: unchanged.",
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; 2023 3.33 says 'the specific clauses' with the same note. GR5 governs keys of class alphabetic, alphanumeric and national, and those classes are formed the same way in 2002, so the governed keys do not change.",
+     "pending-clause: §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)": "GR5 fixes only which collating sequence applies; the comparison itself is §2002:8.8.4.1.1.6/8.8.4.1.1.8 (standard or locale-based on the program collating sequence), the same in substance as 2023. Numeric keys and boolean expressions are not touched by GR5, so the 2002 arithmetic differences do not reach it."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR5",
+      "quote": "Second, the collating sequences established as the program collating sequences",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A designation for a set of data items having common attributes or a common range of values, defined by the PICTURE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.6",
+      "quote": "Locale-based comparison is used when the alphanumeric program collating sequence in effect is locale based",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-32"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-6",
+    "to": [
+     "GR-14.9.40.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "§2002:14.8.36 SORT statement",
+    "clause-2023": "§2023:14.9.40 SORT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SORT format 1 USING: short record of file-name-2 released to fixed-length file-name-1; arm a) one record description national or usage-national numeric/numeric-edited/boolean -> national space",
+     "arm b) several record descriptions with SELECT WHEN -> description selected by SELECT WHEN",
+     "arm c) otherwise alphanumeric space"
+    ],
+    "evidence-2002": [
+     "a): covered by pb1140_sort_merge_short_record_fill U1 (PASS at --std 2002) and probe src\\sortfill.cob (numeric-edited and boolean usage-national USING records filled 00 20, run\\sortfill-2002\\result.txt)",
+     "b): not shown: SELECT WHEN refused at --std 2002 (probe src\\sortsw.cob, COBOL1705)",
+     "c): covered by pb1140 U2 at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR6",
+      "quote": "when that record is released to the file referenced by file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR7",
+      "quote": "when that record is released to the file referenced by file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.3 GR6b",
+      "quote": "the rules of the SELECT WHEN clause are applied to the record to select its description",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The following is a list of the COBOL language elements within this International Standard that depend on specific devices",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.49.2 SR1",
+      "quote": "A SELECT WHEN clause may be specified only at the 01 level of a record description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same cause as GR15: arm b) is required in 2002 (no licence) and vacuous in the 2023 row (A.4.8). Rest identical; no CD reach.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\sortsw.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\sortfill.cob",
+    "widening": null,
+    "flags-answered": [
+     "changed-definition-term 'character position': §2002:4 (4.31) defines only the storage sense; 2023 adds a second entry (location within an item). Storage sense, as in GR15. The rule's scope in 2002 is unchanged."
+    ],
+    "class": "other",
+    "needs": "its own verdict: arms a) and c) are shown at --std 2002 (pb1140 PASS at 2002, probes); arm b) needs a 2002 witness of SORT USING (GR6 b) through a file whose record descriptions carry SELECT WHEN, which the compiler refuses at --std 2002 (COBOL1705); the SELECT WHEN refusal at 2002 is the defect q-14/q-19 already reported, this rule is one more row it reaches",
+    "compiler-at-2002": "wrong: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\sortsw.cob (run\\sortsw-2002\\compile.txt): SORT SW ON ASCENDING KEY SK USING FM GIVING FM, FD FM with two 01 entries carrying SELECT WHEN IS-NAT / IS-ALN; expected: accepted (SELECT WHEN is a required 2002 element, §2002:3.1.1; it is absent from §2002:B.3; §2002:13.16.49.2 SR1) and arm b) applied; observed: error COBOL1705 'the SELECT WHEN clause ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) ... Refused at EVERY edition', exit 65",
+    "second-targets": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-7",
+    "to": [
+     "GR-14.9.40.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.36 SORT statement",
+    "clause-2023": "§2023:14.9.40 SORT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 SORT: records returned by key comparison (relation-condition rules); ASCENDING lower first, DESCENDING higher first, ties to next key"
+    ],
+    "evidence-2002": [
+     "covered by probe src\\sortkeys.cob at --std 2002 (ASCENDING K1, DESCENDING signed K2: A+1a A+1c A+1f A-3d B+5e B-2b, run\\sortkeys-2002\\result.txt); file sorts in pb704/pb1140 PASS at 2002; the twin's conformance-test SortMergeDifferentialTests was not run at 2002 here"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR7",
+      "quote": "the contents of corresponding key data items are compared according to the rules for comparison of operands in a relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR8",
+      "quote": "the contents of corresponding key data items are compared according to the rules for comparison of operands in a relation condition",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule and a)-c). SORT formats 1 and 2 are phrase-for-phrase identical in both editions (KEY, DUPLICATES, COLLATING SEQUENCE with FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE, USING/GIVING); 2002 SR1 allows a format 1 SORT anywhere but the declaratives where 2023 SR3 also bars input/output procedures and exception-checking PERFORM (not a rule of this slice; 2002 GR9/GR12 still give EC-SORT-MERGE-ACTIVE at run time). No CD reach (SORT operands are files and tables). USE formats 1-4 identical in both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\sortkeys.cob",
+    "widening": null,
+    "flags-answered": {
+     "deferral: the rules for ": "'compared according to the rules for comparison of operands in a relation condition'. 2002 key data items 'shall not be of the class boolean, object, or pointer' (§2002:14.8.36.2 SR6c), so the deferred rules are the numeric, alphanumeric and national comparisons of §2002:8.8.4.1.1. The alphanumeric and national ones (standard and locale-based) say the same as 2023's. The reader's sortkeys.cob probe (ASCENDING alphanumeric and DESCENDING signed numeric) is correct at --std 2002.",
+     "pending-clause: §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed), §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Only §2002:8.8.4.1.1's numeric comparison differs from 2023. Under ARITHMETIC IS STANDARD the operands become standard intermediates rounded to 31 digits for comparison (§2002:8.8.1.3.1.3). But a 2002 numeric key holds at most 31 digit positions (§2002:13.16.38.2 SR6), so the conversion and the rounding are exact and the key order is unchanged. Binary-* and float-* keys use native arithmetic in both editions. So PB5575 cannot change this rule's result. §2002:8.8.2 and §2002:8.8.4.2.4 do not apply to a key comparison, and 14.5.2.1.2.1/14.5.3/14.5.10/14.6.4/14.6.6 were matched by words ('comparison', 'transfer') that this rule does not rest on. Scope and evidence are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR7",
+      "quote": "compared according to the rules for comparison of operands in a relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR6c",
+      "quote": "Key data items shall not be of the class boolean, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.3",
+      "quote": "When standard arithmetic is used, the number of digits of the standard intermediate data item used and whether there is rounding shall be as specified in 8.8.1.3.1.3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.2 SR6",
+      "quote": "the number of digit positions described by character-string-1 shall range from 1 through 31",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-8",
+    "to": [
+     "GR-14.9.40.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.36 SORT statement",
+    "clause-2023": "§2023:14.9.40 SORT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "three phases: a) records made available (RELEASE / implicit READ and RELEASE), EC-SORT-MERGE-FILE-OPEN if file-name-2 is open; b) sequencing; c) records written to file-name-3 or RETURNed, EC-SORT-MERGE-FILE-OPEN if file-name-3 is open"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec (PASS at --std 2002: EC-SORT-MERGE-FILE-OPEN); USING/GIVING and procedure phases by pb1140, pb704_*, pb1177_* (PASS at 2002); the twin's pb837_sort_implicit_io_status is refused at 2002 for ORGANIZATION LINE SEQUENTIAL (a 2023 construct, outside this rule's 2002 scope)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR8",
+      "quote": "The execution of the SORT statement consists of three distinct phases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR9",
+      "quote": "The execution of the SORT statement consists of three distinct phases",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; EC-SORT-MERGE-FILE-OPEN is Fatal in both exception tables. SORT formats 1 and 2 are phrase-for-phrase identical in both editions (KEY, DUPLICATES, COLLATING SEQUENCE with FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE, USING/GIVING); 2002 SR1 allows a format 1 SORT anywhere but the declaratives where 2023 SR3 also bars input/output procedures and exception-checking PERFORM (not a rule of this slice; 2002 GR9/GR12 still give EC-SORT-MERGE-ACTIVE at run time). No CD reach (SORT operands are files and tables). USE formats 1-4 identical in both editions.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": [
+     "changed-definition-term 'procedure': §2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds a single paragraph or section explicitly. Same set of procedures (a USE procedure / input-output procedure is a section or sections in both); scope and evidence unchanged. (input/output procedure)"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.37.2-6",
+    "to": [
+     "SR-14.9.41.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "indexed START data-name-1: a) a prime/alternate record key, or b) an item at a key's leftmost position (key without SOURCE), same class/category/usage, not longer"
+    ],
+    "evidence-2002": [
+     "covered by pb354_start_generic_key_ok (PASS at --std 2002) and the refusals pb354-start-operand-outside-record, pb354-start-operand-class-mismatch, pb354-start-operand-too-long, pb850-start-operand-alphanumeric-edited (each refused at --std 2002 with COBOL0862, runs\\<id>; their refuse-at includes 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.2 SR6",
+      "quote": "Its leftmost character position within a record of the file corresponds to the leftmost character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.3 SR6",
+      "quote": "Its leftmost character position within a record of the file corresponds to the leftmost character position",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so 'the same class, category, and usage as that record key' compares the same attributes in 2002. Scope unchanged.",
+     "definition-dropped: character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 4.31 defines character position only in the storage sense ('either an alphanumeric character or a national character'); 2023 splits it into 3.29 (storage) and 3.30 (location). The rule's 'leftmost character position within a record' is the location sense, which 2002 uses with the same meaning throughout clause 13; 'character' occurs only inside that term. No change in which data-name-1 qualifies."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'character position': §2002:4 (4.31) defines only the storage sense; 2023 adds a second entry (location within an item). Here 'leftmost character position within a record' is the location sense 2023 lists separately; 2002 uses the same words with the same meaning throughout its clause 13. The rule's scope in 2002 is unchanged."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "either an alphanumeric character or a national character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.30",
+      "quote": "location within an alphanumeric or national data item of a corresponding alphanumeric or national character",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.37.2-8",
+    "to": [
+     "SR-14.9.41.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "START WITH LENGTH only on an indexed file"
+    ],
+    "evidence-2002": [
+     "covered by pb352-start-length-non-indexed (refused at --std 2002 with COBOL0862 'the LENGTH phrase requires indexed organization', runs\\pb352-start-length-non-indexed)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.2 SR8",
+      "quote": "If the LENGTH phrase is specified, file-name-1 shall reference a file with indexed organization",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.3 SR8",
+      "quote": "If the LENGTH phrase is specified, file-name-1 shall reference a file with indexed organization",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: indexed organization (newer: D.2.2.3)": "§2002:4 'indexed organization: The permanent logical file structure in which each record is identified by the value of one or more keys within that record'; 2023 describes it in D.2.2.3 and 12.4.5.10 GR5 in the same terms. SR8 restricts START WITH LENGTH to such files; 2002's organizations are sequential, relative and indexed, so the refused set is the same; pb352-start-length-non-indexed refuses at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "indexed organization: The permanent logical file structure in which each record is identified by the value of one or more keys within that record",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-32"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-11",
+    "to": [
+     "GR-14.9.41.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "relative file START FIRST: the first existing record; empty file -> invalid key, unsuccessful"
+    ],
+    "evidence-2002": [
+     "covered by l1_start_first_last_relative, pb870_start_first_last_relative_exceptions, pb870_start_first_last_relative_ecio_checked, pb870_start_first_last_relative_nofs_nouse (all PASS at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR11",
+      "quote": "the file position indicator is set to the relative record number of the first existing logical record in the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR11",
+      "quote": "the file position indicator is set to the relative record number of the first existing logical record in the file",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. The START outcome is only 'the invalid key condition exists' (empty file / file not present), whose status 23 and transfer of control (§2002:14.8.37.3 GR6 -> 9.1.13) are unchanged. Re-run now at --std 2002, each matching its .out: l1_start_first_last_relative, pb870_start_first_last_relative_exceptions (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "The input-output statement is successfully executed and no further information is available concerning the input-output operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "When the invalid key condition occurs, execution of the input-output statement that recognized the condition is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "The exception-name for successful completion with an I-O status value that is not '00' is EC-I-O-WARNING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.37.3 GR6",
+      "quote": "as specified in 9.1.13, Invalid key condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START or random READ statement is attempted on a file described as optional and the physical file is not present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START statement is attempted on a sequential file that has no records",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-12",
+    "to": [
+     "GR-14.9.41.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "relative file START LAST: the last existing record; empty file -> invalid key, unsuccessful"
+    ],
+    "evidence-2002": [
+     "covered by l1_start_first_last_relative, pb870_start_first_last_relative_exceptions, pb870_start_first_last_relative_ecio_checked, pb870_start_first_last_relative_nofs_nouse (all PASS at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR12",
+      "quote": "the file position indicator is set to the relative record number of the last existing logical record in the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR12",
+      "quote": "the file position indicator is set to the relative record number of the last existing logical record in the file",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. The START outcome is only 'the invalid key condition exists' (empty file / file not present), whose status 23 and transfer of control (§2002:14.8.37.3 GR6 -> 9.1.13) are unchanged. Re-run now at --std 2002, each matching its .out: l1_start_first_last_relative, pb870_start_first_last_relative_exceptions (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "The input-output statement is successfully executed and no further information is available concerning the input-output operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "When the invalid key condition occurs, execution of the input-output statement that recognized the condition is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "The exception-name for successful completion with an I-O status value that is not '00' is EC-I-O-WARNING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.37.3 GR6",
+      "quote": "as specified in 9.1.13, Invalid key condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START or random READ statement is attempted on a file described as optional and the physical file is not present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START statement is attempted on a sequential file that has no records",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-13",
+    "to": [
+     "GR-14.9.41.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "indexed START WITH LENGTH: the count is alphanumeric character positions for an alphanumeric key, national character positions for a national key"
+    ],
+    "evidence-2002": [
+     "covered by pb355_start_length_past_operand, pb355_start_length_national_past_operand, pb357_start_length_not_integer, pb1099_record_key_source_national, pb1099_record_key_source (all PASS at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR13",
+      "quote": "arithmetic-expression-1 is the number of national character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR13",
+      "quote": "arithmetic-expression-1 is the number of national character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so 'of class alphanumeric' / 'of class national' select the same 2002 keys. Scope unchanged.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); national character (newer: undefined)": "2002 4.125 national character 'A character in a national character set', 4.26/4.29 character as a code value; 2023 drops these entries but the rule's counts (alphanumeric / national character positions) mean the same; pb355 national cases pass at --std 2002. No change.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Invoked by 'arithmetic-expression-1'. The rule fixes the unit of the count (alphanumeric vs national positions), not how the expression is evaluated, and §2002:8.8.1.1 precedence rules apply 'regardless of the mode of arithmetic'; a 31- vs 34-digit difference (PB5575) cannot change a key-length integer. No dependence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A character in a national character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "either an alphanumeric character or a national character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-18",
+    "to": [
+     "GR-14.9.41.4-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "indexed START FIRST: prime key of the first record, key of reference = prime key; empty file -> '23', invalid key"
+    ],
+    "evidence-2002": [
+     "covered by pb356_start_first_last_indexed (PASS at --std 2002); the twin's pb356_start_first_last_suppressed is refused at 2002 for SUPPRESS WHEN, a 2023 construct outside the 2002 scope"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR18",
+      "quote": "the value of the primary key of the first existing logical record in the physical file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR18",
+      "quote": "the value of the primary key of the first existing logical record in the physical file",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. The START outcome is only 'the invalid key condition exists' (empty file / file not present), whose status 23 and transfer of control (§2002:14.8.37.3 GR6 -> 9.1.13) are unchanged. Re-run now at --std 2002, each matching its .out: pb356_start_first_last_indexed (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "The input-output statement is successfully executed and no further information is available concerning the input-output operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "When the invalid key condition occurs, execution of the input-output statement that recognized the condition is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "The exception-name for successful completion with an I-O status value that is not '00' is EC-I-O-WARNING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.37.3 GR6",
+      "quote": "as specified in 9.1.13, Invalid key condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START or random READ statement is attempted on a file described as optional and the physical file is not present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START statement is attempted on a sequential file that has no records",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-19",
+    "to": [
+     "GR-14.9.41.4-19"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "indexed START LAST: prime key of the last record, key of reference = prime key; empty file -> '23', invalid key"
+    ],
+    "evidence-2002": [
+     "covered by pb356_start_first_last_indexed (PASS at --std 2002); the twin's pb356_start_first_last_suppressed is refused at 2002 for SUPPRESS WHEN, a 2023 construct outside the 2002 scope"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR19",
+      "quote": "the value of the primary key of the last existing logical record in the physical file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR19",
+      "quote": "the value of the primary key of the last existing logical record in the physical file",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. The START outcome is only 'the invalid key condition exists' (empty file / file not present), whose status 23 and transfer of control (§2002:14.8.37.3 GR6 -> 9.1.13) are unchanged. Re-run now at --std 2002, each matching its .out: pb356_start_first_last_indexed (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "The input-output statement is successfully executed and no further information is available concerning the input-output operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "When the invalid key condition occurs, execution of the input-output statement that recognized the condition is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "The exception-name for successful completion with an I-O status value that is not '00' is EC-I-O-WARNING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.37.3 GR6",
+      "quote": "as specified in 9.1.13, Invalid key condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START or random READ statement is attempted on a file described as optional and the physical file is not present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START statement is attempted on a sequential file that has no records",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-20",
+    "to": [
+     "GR-14.9.41.4-20"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "sequential START FIRST (2002 sequential files are all record sequential): position, or '23' and invalid key"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last (PASS at --std 2002); pb352_start_sequential_first_last_line is a LINE SEQUENTIAL (2023-only) case outside the 2002 scope"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR20",
+      "quote": "If FIRST is specified, the file position indicator is set to 1 if records exist in the physical file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR20",
+      "quote": "If FIRST is specified, the file position indicator is set to 1 if records exist in the physical file",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": "2023 sequential organization also has line-sequential files",
+    "flags-answered": {
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. The START outcome is only 'the invalid key condition exists' (empty file / file not present), whose status 23 and transfer of control (§2002:14.8.37.3 GR6 -> 9.1.13) are unchanged. Re-run now at --std 2002, each matching its .out: pb352_start_sequential_first_last, whose empty-file case is §2002:9.1.12.4 item 3d (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "The input-output statement is successfully executed and no further information is available concerning the input-output operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "When the invalid key condition occurs, execution of the input-output statement that recognized the condition is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "The exception-name for successful completion with an I-O status value that is not '00' is EC-I-O-WARNING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.37.3 GR6",
+      "quote": "as specified in 9.1.13, Invalid key condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START or random READ statement is attempted on a file described as optional and the physical file is not present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START statement is attempted on a sequential file that has no records",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-21",
+    "to": [
+     "GR-14.9.41.4-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "sequential START LAST (2002 sequential files are all record sequential): position, or '23' and invalid key"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last (PASS at --std 2002); pb352_start_sequential_first_last_line is a LINE SEQUENTIAL (2023-only) case outside the 2002 scope"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR21",
+      "quote": "If LAST is specified, the file position indicator is set to the record number of the last existing logical record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR21",
+      "quote": "If LAST is specified, the file position indicator is set to the record number of the last existing logical record",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": "2023 sequential organization also has line-sequential files",
+    "flags-answered": {
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. The START outcome is only 'the invalid key condition exists' (empty file / file not present), whose status 23 and transfer of control (§2002:14.8.37.3 GR6 -> 9.1.13) are unchanged. Re-run now at --std 2002, each matching its .out: pb352_start_sequential_first_last, whose empty-file case is §2002:9.1.12.4 item 3d (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "The input-output statement is successfully executed and no further information is available concerning the input-output operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "When the invalid key condition occurs, execution of the input-output statement that recognized the condition is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "The exception-name for successful completion with an I-O status value that is not '00' is EC-I-O-WARNING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.37.3 GR6",
+      "quote": "as specified in 9.1.13, Invalid key condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START or random READ statement is attempted on a file described as optional and the physical file is not present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START statement is attempted on a sequential file that has no records",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-5",
+    "to": [
+     "GR-14.9.41.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.37 START statement",
+    "clause-2023": "§2023:14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "START on an optional input file not present: invalid key, unsuccessful (every organization)"
+    ],
+    "evidence-2002": [
+     "covered by pb352_start_sequential_first_last and pb870_start_first_last_relative_exceptions (PASS at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR5",
+      "quote": "the file position indicator indicates that an optional input file is not present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR5",
+      "quote": "the file position indicator indicates that an optional input file is not present",
+      "check": "OK"
+     }
+    ],
+    "reason": "START format identical in both editions (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START); 2002 file organizations sequential, relative, indexed; SUPPRESS WHEN (2023 GR17e) does not exist in 2002, so the 2002 rule has no suppressed-record reach. No CD reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. The START outcome is only 'the invalid key condition exists' (empty file / file not present), whose status 23 and transfer of control (§2002:14.8.37.3 GR6 -> 9.1.13) are unchanged. Re-run now at --std 2002, each matching its .out: pb352_start_sequential_first_last and pb870_start_first_last_relative_exceptions, the optional-file-not-present case being §2002:9.1.12.4 item 3b (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "The input-output statement is successfully executed and no further information is available concerning the input-output operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "When the invalid key condition occurs, execution of the input-output statement that recognized the condition is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "The exception-name for successful completion with an I-O status value that is not '00' is EC-I-O-WARNING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.37.3 GR6",
+      "quote": "as specified in 9.1.13, Invalid key condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START or random READ statement is attempted on a file described as optional and the physical file is not present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "a START statement is attempted on a sequential file that has no records",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.38.3-2",
+    "to": [
+     "GR-14.9.42.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.38 STOP statement",
+    "clause-2023": "§2023:14.9.42 STOP statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "STOP RUN WITH ERROR [STATUS]: error termination indicated"
+    ],
+    "evidence-2002": [
+     "probe src\\stopst.cob at --std 2002: WITH ERROR exit 1, WITH ERROR STATUS 7 exit 7 (run\\stopst-2002\\result.txt); the twin's StopGobackExitCodeTests was not run at 2002 here"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR2",
+      "quote": "If the ERROR phrase is specified, the operating system will indicate an error termination of the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.42.4 GR2",
+      "quote": "If the ERROR phrase is specified, the operating system will indicate an error termination of the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "4.166 run unit: One or more runtime modules that interact with one another",
+      "check": "OK"
+     }
+    ],
+    "reason": "STOP format identical (STOP RUN [WITH ERROR|NORMAL [STATUS identifier-1|literal-1]]); 2002 has no STOP literal format either. 2002 SR1 (last in a consecutive sequence) vs 2023 SR1 (last in a discrete block) is a syntax-rule difference outside this slice.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\stopst.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: run unit": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; the ERROR indication to the operating system is unaffected.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. This rule only says what the operating system is told; the operations of 14.5.10 are STOP GR1's (§2002:14.8.38.3 GR1), not this rule's, and 14.5.3/14.5.2.1.2.1 are not involved. No change; the reader's stopst.cob at 2002 stands."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'run unit': §2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; 2023 rewords it. Same entity; the termination indication is unaffected; the probe shows the behaviour at --std 2002."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "An implicit CLOSE statement without any phrases is executed for each file that is in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "then an implied transfer of control occurs from the last statement in the paragraph to the control mechanism of the last executed controlling statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.38.3-3",
+    "to": [
+     "GR-14.9.42.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.38 STOP statement",
+    "clause-2023": "§2023:14.9.42 STOP statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "STOP RUN WITH NORMAL: normal termination indicated"
+    ],
+    "evidence-2002": [
+     "probe src\\stopst.cob at --std 2002: WITH NORMAL exit 0 (run\\stopst-2002\\result.txt)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR3",
+      "quote": "If the NORMAL phrase is specified, the operating system will indicate a normal termination of the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.42.4 GR3",
+      "quote": "If the NORMAL phrase is specified, the operating system will indicate a normal termination of the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "4.166 run unit: One or more runtime modules that interact with one another",
+      "check": "OK"
+     }
+    ],
+    "reason": "STOP format identical (STOP RUN [WITH ERROR|NORMAL [STATUS identifier-1|literal-1]]); 2002 has no STOP literal format either. 2002 SR1 (last in a consecutive sequence) vs 2023 SR1 (last in a discrete block) is a syntax-rule difference outside this slice.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\stopst.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: run unit": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; the NORMAL indication to the operating system is unaffected.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. This rule only says what the operating system is told; the operations of 14.5.10 are STOP GR1's (§2002:14.8.38.3 GR1), not this rule's, and 14.5.3/14.5.2.1.2.1 are not involved. No change; the reader's stopst.cob at 2002 stands."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'run unit': §2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; 2023 rewords it. Same entity; the termination indication is unaffected; the probe shows the behaviour at --std 2002."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "An implicit CLOSE statement without any phrases is executed for each file that is in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "then an implied transfer of control occurs from the last statement in the paragraph to the control mechanism of the last executed controlling statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.38.3-4",
+    "to": [
+     "GR-14.9.42.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.38 STOP statement",
+    "clause-2023": "§2023:14.9.42 STOP statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "plain STOP RUN: normal termination unless an implementor-defined error indication"
+    ],
+    "evidence-2002": [
+     "probe src\\stopst.cob at --std 2002: plain STOP RUN exit 0 (run\\stopst-2002\\result.txt)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR4",
+      "quote": "unless error termination has been indicated by an implementor-defined mechanism",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.42.4 GR4",
+      "quote": "unless error termination has been indicated by an implementor-defined mechanism",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "4.166 run unit: One or more runtime modules that interact with one another",
+      "check": "OK"
+     }
+    ],
+    "reason": "STOP format identical (STOP RUN [WITH ERROR|NORMAL [STATUS identifier-1|literal-1]]); 2002 has no STOP literal format either. 2002 SR1 (last in a consecutive sequence) vs 2023 SR1 (last in a discrete block) is a syntax-rule difference outside this slice.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\stopst.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: run unit": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; the default indication to the operating system is unaffected.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. This rule only says what the operating system is told; the operations of 14.5.10 are STOP GR1's (§2002:14.8.38.3 GR1), not this rule's, and 14.5.3/14.5.2.1.2.1 are not involved. No change; the reader's stopst.cob at 2002 stands."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'run unit': §2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; 2023 rewords it. Same entity; the termination indication is unaffected; the probe shows the behaviour at --std 2002."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "An implicit CLOSE statement without any phrases is executed for each file that is in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "then an implied transfer of control occurs from the last statement in the paragraph to the control mechanism of the last executed controlling statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.38.3-6",
+    "to": [
+     "GR-14.9.42.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.38 STOP statement",
+    "clause-2023": "§2023:14.9.42 STOP statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every STOP RUN, in a main or a called program: the run unit ends"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.42-STOP/l1c30_stop_run_from_called_program (PASS at --std 2002) and probe src\\stopst.cob ('NOT REACHED' never displayed)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR6",
+      "quote": "Execution of the run unit terminates and control is transferred to the operating system",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.42.4 GR6",
+      "quote": "Execution of the run unit terminates and control is transferred to the operating system",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "4.166 run unit: One or more runtime modules that interact with one another",
+      "check": "OK"
+     }
+    ],
+    "reason": "STOP format identical (STOP RUN [WITH ERROR|NORMAL [STATUS identifier-1|literal-1]]); 2002 has no STOP literal format either. 2002 SR1 (last in a consecutive sequence) vs 2023 SR1 (last in a discrete block) is a syntax-rule difference outside this slice.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\stopst.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: run unit": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; the run unit that ends is the same.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. GR6 says the run unit ends and control goes to the operating system; the 14.5.10 operations, where 2002 differs (MCS purge), belong to STOP GR1, and no next executable statement (14.5.3) follows in either edition. No change; l1c30_stop_run_from_called_program at 2002 stands."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'run unit': §2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; 2023 rewords it. Same entity; the termination indication is unaffected; the probe shows the behaviour at --std 2002."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.38.3 GR6",
+      "quote": "Execution of the run unit terminates and control is transferred to the operating system",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "An implicit CLOSE statement without any phrases is executed for each file that is in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "then an implied transfer of control occurs from the last statement in the paragraph to the control mechanism of the last executed controlling statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-2",
+    "to": [
+     "GR-14.9.43.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:14.8.39 STRING statement",
+    "clause-2023": "§2023:14.9.43 STRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "figurative constant as literal-1 or literal-2: one character of identifier-3's usage, display or national"
+    ],
+    "evidence-2002": [
+     "national: covered by pb1179_string_into_national_receiver leg F (PASS at --std 2002); display: probe src\\strodo.cob F1 (QUOTE ZERO -> '\\\"0', run\\strodo-2002\\result.txt)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR2",
+      "quote": "it refers to an implicit one character data item whose usage shall be the same as the usage of identifier-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR2",
+      "quote": "it refers to an implicit one character data item whose usage shall be the same as the usage of identifier-3",
+      "check": "OK"
+     }
+    ],
+    "reason": "STRING format identical in both editions; 2023 adds SR3 (zero-length literal-2), SR11 (no variable-length group: §2023:8.5.1.12.1 defines it by dynamic-length/dynamic-capacity subordinates, so ODO groups stay legal in both) and GR1's dynamic-length sentence: 2023-only data, none removing a 2002 case.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-32\\src\\strodo.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. 'One character data item' is one character position of identifier-3's usage (4.29/4.31), display or national, the same unit 2023 uses.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "The flag comes from the words 'as literal-1' matching the pattern for the AS literal of a constant entry; GR2 (§2002:14.8.39.3 GR2) concerns a figurative constant in STRING and involves no arithmetic, so §2002:8.8.1.1/8.8.1.3.1/8.8.1.3.6 do not govern it."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.39.3 GR2",
+      "quote": "When a figurative constant is specified as literal-1 or literal-2",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-32",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null,
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-3",
+    "to": [
+     "GR-14.9.43.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "§2002:14.8.39 STRING statement",
+    "clause-2023": "§2023:14.9.43 STRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) transfer by alphanumeric or national MOVE rules without space fill; zero-length identifier-1 ignored (in 2002 only an ODO group at count 0 can be zero-length)",
+     "b) delimiter literal-2 or non-zero-length identifier-2 stops the transfer",
+     "c) SIZE or zero-length identifier-2: whole sender transferred",
+     "the statement on a 2002 debugging line (WITH DEBUGGING MODE)",
+     "a) an identifier-1 that is an ANY LENGTH formal (contained program, function or method) bound to a zero-length argument is ignored (§2002:8.5.4 item 3, §2002:13.16.2.3 GR1)",
+     "c) such a formal as identifier-2: whole sender transferred",
+     "a) a zero-length logical record (§2002:8.5.4 item 4) as identifier-1: not probed"
+    ],
+    "evidence-2002": [
+     "a) national: pb1179_string_into_national_receiver (PASS at --std 2002); a) alphanumeric and zero-length ODO sender: probe src\\strodo.cob Z1 '<AB-C>..' at 2002",
+     "b): probe Z3 'XYAB-C..' and pb1179 leg B at 2002",
+     "c) zero-length ODO delimiter: probe Z2 'AB-C|...' at 2002",
+     "debugging line: probe src\\dbgstr.cob at --std 2002 'R[ABCD..]'"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR3a",
+      "quote": "If an identifier-1 references a zero-length item, that sending operand is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR3a",
+      "quote": "If an identifier-1 references a zero-length item, that sending operand is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "4.188 zero-length item: An item whose minimum permitted length is zero and whose length at execution time is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR8",
+      "quote": "is a variable-length data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.12.1",
+      "quote": "A variable-length group is a group item whose data description has at least one dynamic-length elementary item or dynamic-capacity table",
+      "check": "OK"
+     }
+    ],
+    "reason": "STRING format identical in both editions; 2023 adds SR3 (zero-length literal-2), SR11 (no variable-length group: §2023:8.5.1.12.1 defines it by dynamic-length/dynamic-capacity subordinates, so ODO groups stay legal in both) and GR1's dynamic-length sentence: 2023-only data, none removing a 2002 case. The twin's pb1179_string_receiver_arms and pb871 are refused at 2002 for DYNAMIC LENGTH (2023-only), so the 2002 zero-length cases were probed through ODO groups.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-10/strzl.cob",
+    "widening": "2023 zero-length items also arise from dynamic-length items",
+    "flags-answered": {
+     "definition-changed: class | of a data item; zero-length item": "§2002:4 (4.34) class formation by PICTURE/USAGE does not change which senders are alphanumeric or national. §2002:4 (4.188) zero-length item matches 2023 3.177, but WHICH items are zero-length is §2002:8.5.4's list, and the reader's scope ('in 2002 only an ODO group at count 0 can be zero-length') is wrong: see the 8.5.4 answer.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 (4.26-4.29) define 'character' in four senses that 2023 leaves undefined; GR3 transfers characters of the sender's content by the MOVE rules, the computer-storage sense, the same in both; no change.",
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)": "It depends. §2002:8.5.4 lists the 2002 zero-length items: an ODO group at count 0 (item 1), a group of only such items (2), an ANY LENGTH item bound to a zero-length argument (3), a zero-length variable record (4) and a zero-length intrinsic result (5). Probe strzl.cob at 2002: the ANY LENGTH sender bound to a zero-length ODO group is NOT ignored, STRING moves 3 spaces (A0[<   AB-C], expected [<AB-C>..]): PB5621. 8.5.3 (types) and 14.5.8 (alignment) are not reached."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'zero-length item': §2002:4 (4.188) and §2023:3.177 define it alike (minimum permitted length zero, length zero at execution); in 2002 the only zero-length identifier is a group with OCCURS 0 TO n DEPENDING ON at count 0 (a variable-length data item, §2002:13.16.36.3 GR8, which 2023's SR11 'variable-length group' does not bar). Probed at --std 2002: correct."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "An item whose minimum permitted length is zero and whose length at execution time is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A data item defined with the ANY LENGTH clause corresponding to an argument or returning item that is a zero-length item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "An intrinsic function that returns a zero-length value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.2.3 GR1",
+      "quote": "a zero-length item when the corresponding argument or returning item of the activating runtime element is a zero-length item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.2.2 SR1",
+      "quote": "may be specified only in an elementary level 1 entry in the linkage section of a function, of a contained program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.39.3 GR3a",
+      "quote": "If an identifier-1 references a zero-length item, that sending operand is ignored",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-32",
+    "class": "other",
+    "class-detail": "the 2002 zero-length set (§2002:8.5.4) includes an ANY LENGTH formal bound to a zero-length argument; the reader's scope named only ODO groups, and at --std 2002 that case is wrong",
+    "needs": "PB5621 (add this row to its inventory_rows): the ANY LENGTH formal must take the argument's current length, zero for a zero-length ODO group; then a 2002 witness for the ANY LENGTH sender (candidate probe strzl.cob, expected A0[<AB-C>..])",
+    "compiler-at-2002": "wrong: program: E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-10/strzl.cob (sender arm A0); length witness E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-10/allen.cob; expected: A0[<AB-C>..]: P is a zero-length item because its argument G (OCCURS 0 TO 3 DEPENDING ON N, N=0) is one (§2002:8.5.4 item 1 and item 3; §2002:13.16.2.3 GR1), so STRING ignores it (§2002:14.8.39.3 GR3a); observed: --std 2002 (and 2023): A0[<   AB-C] (P moved as 3 spaces); allen.cob: CALLER LEN=000000000, SUB LEN=000000003 P=[   ], and with N=2 SUB LEN=000000003 P=[XY ]. The ODO sender arm from the reader's probe (Z1) is correct; A1 (P as delimiter) prints AB-C|... and does not discriminate; results: E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-10/strzl-2002.txt; E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-10/allen-2002.txt (2023: *-2023.txt, same); code-site: E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs:201 (RuntimeApi.ArgAdaptText intake, IsAnyLength) with the CallEmitter.cs argument side, as PB5621 names; known: PB5621 (open, filed 2026-11-15 for UNSTRING rows); this STRING row is a sibling observable of the same defect; note: the intrinsic-function arms F0/F1 of strzl.cob (UPPER-CASE/REVERSE of a zero-length group) print the expected text but are not legal witnesses: those arguments shall be at least one character (PB5622)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-32",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.36.3-16",
+    "verdict": "OVERTURNED",
+    "reason": "The rule defers to 'does not complete normally', defined by an enumeration that changed. 2002 14.5.12.1.1 item 1 lists EXIT FUNCTION and EXIT METHOD among the statements that make a declarative not complete normally; 2023 14.6.13.1.2 item 1 lists only EXIT PROGRAM, GOBACK, RESUME, STOP (plus a fatal exception, a 2023 widening). EXIT METHOD and EXIT FUNCTION exist in 2002 (14.8.13) and not in 2023 (the compiler refuses EXIT METHOD at --std 2023, COBOL0902). So in 2002 the rule also governs a USE procedure that ends in EXIT METHOD / EXIT FUNCTION while a format 1 SORT is active; none of the twin's witnesses (pb367b, pb1177_*, pb3246) exercises it (pb1177_method ends its USE procedure in RESUME). Probes at --std 2002 show the compiler CORRECT: exitmeth.cob prints M-USE=35 / MAIN-AFTER-1 / M-USE=35 / MAIN-AFTER-2 (the second SORT runs, so the first was terminated) and exitfunc.cob prints F-USE=35 / MAIN-1 V=1 twice.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR16",
+      "quote": "If a USE procedure invoked while a format 1 SORT statement is active does not complete normally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR17",
+      "quote": "If a USE procedure invoked while a format 1 SORT statement is active does not complete normally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.1",
+      "quote": "An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.2",
+      "quote": "An EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13",
+      "quote": "The EXIT METHOD statement marks the logical end of an invoked method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13",
+      "quote": "The EXIT FUNCTION statement marks the logical end of the execution of a function",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-32\\src\\exitmeth.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-32\\src\\exitfunc.cob (runs under E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-32\\run\\exitmeth-2002, exitmeth-2023, exitfunc-2002)",
+    "needs": "a 2002 witness for a USE procedure ending in EXIT METHOD and in EXIT FUNCTION while a format 1 SORT is active (the two probes are candidates)",
+    "compiler-at-2002": "correct (probes exitmeth-2002, exitfunc-2002)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-18",
+    "verdict": "UPHELD",
+    "reason": "Format 2 identical; the 2002 table subject with rightmost subscript ALL (8.4.1.2.2 SR5) is also a 2023 form (8.4.2.3.3 SR5e, SR6), so no table form is lost; excluded key classes identical (boolean, object, pointer); comparison of like key items under the relation-condition rules is the same. Sampled re-run of pb846_sort_table_occurs_keys at --std 2002: PASS.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR18",
+      "quote": "the table element containing the key data item with the lower value has the lower occurrence number",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR5",
+      "quote": "subscripting may be specified with the rightmost subscript being the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR6",
+      "quote": "as the rightmost or only subscript of a table in the table format of a SORT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-3",
+    "verdict": "UPHELD",
+    "reason": "Enumeration a)-c) identical; 2002 SR1 permitting a SORT written inside an input procedure reaches GR9 (EC-SORT-MERGE-ACTIVE), not the duplicate-order arms. SORT formats 1/2 compared phrase by phrase (KEY, DUPLICATES, COLLATING SEQUENCE IS/FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE THRU, USING/GIVING): identical; no CD reach (operands are sort/USING/GIVING files and tables).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR3",
+      "quote": "The order in which these records are released by an input procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR1",
+      "quote": "a format 1 SORT statement shall not appear in the declarative portion",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-4",
+    "verdict": "UPHELD",
+    "reason": "Undefined order: no observable requirement in either edition. SORT formats 1/2 compared phrase by phrase (KEY, DUPLICATES, COLLATING SEQUENCE IS/FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE THRU, USING/GIVING): identical; no CD reach (operands are sort/USING/GIVING files and tables).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR4",
+      "quote": "the relative order of the contents of these table elements is undefined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-5",
+    "verdict": "UPHELD",
+    "reason": "Precedence list a)-b) identical; 2023's new GR6 points at 12.4.5 GR3/GR4, which govern ASSIGN association (not collating), so it neither adds a precedence step nor removes a 2002 one. Sampled re-run of pb678_sort_national_key_collating at --std 2002: PASS.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR5",
+      "quote": "the collating sequences established as the program collating sequences",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR6",
+      "quote": "Additional rules affecting the execution of the SORT statement are given in 12.4.5",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-7",
+    "verdict": "UPHELD",
+    "reason": "Key comparison by relation-condition rules on like key items; excluded key classes identical in both (2023 adds message-tag, 2023-only data); arms a)-c) identical. SORT formats 1/2 compared phrase by phrase (KEY, DUPLICATES, COLLATING SEQUENCE IS/FOR ALPHANUMERIC/FOR NATIONAL, INPUT/OUTPUT PROCEDURE THRU, USING/GIVING): identical; no CD reach (operands are sort/USING/GIVING files and tables).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR7",
+      "quote": "compared according to the rules for comparison of operands in a relation condition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-8",
+    "verdict": "OVERTURNED",
+    "reason": "The rule's EC-SORT-MERGE-FILE-OPEN is Fatal in both tables, but what a fatal exception set during a SORT DOES is decided by the fatal-exception clause, which changed. 2023 14.6.13.1.3 item 2 routes it to the statement's own rules ('If the executed statement is a MERGE or SORT statement, then the rules for those statements apply'); 2002 14.5.12.1.2 has no such item, so with checking enabled the 2002 requirement is: the applicable declarative runs and, if it completes normally, the run unit is terminated abnormally (item 2); with no declarative, the run unit is terminated abnormally (item 4). The twin's witness pb1036_sort_merge_statement_ec expects the run unit to continue (test A: SM=EC-SORT-MERGE-FILE-OPEN then 'A GS=00'), which is the 2023 reading. Probe sortopen.cob at --std 2002 (>>TURN EC-SORT-MERGE-FILE-OPEN CHECKING ON, SORT GIVING a file the program holds open, a USE AFTER EC EC-SORT-MERGE-FILE-OPEN that completes normally): observed 'DECL=EC-SORT-MERGE-FILE-OPEN' then 'AFTER-SORT GS=00', exit 0; expected under 2002: abnormal run unit termination after DECL, AFTER-SORT never displayed, a non-zero (abnormal) exit. sortopen-nodecl.cob (no declarative): observed 'AFTER-SORT GS=00', exit 0; expected: abnormal termination (item 4). The same clause difference reaches every 2002 SORT/MERGE fatal exception rule (EC-SORT-MERGE-ACTIVE, -RELEASE, -SEQUENCE), outside this slice.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR8a",
+      "quote": "the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the results of the execution of the SORT statement are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR9a",
+      "quote": "the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the results of the execution of the SORT statement are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "processing of the statement is interrupted and one of the following occurs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3 GR2",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-32\\src\\sortopen.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-32\\src\\sortopen-nodecl.cob (runs under E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-32\\run\\sortopen-2002, sortopen-2023, sortopen-nodecl-2002)",
+    "needs": "its own verdict: at --std 2002 a checked fatal EC-SORT-MERGE-FILE-OPEN must end the run unit abnormally (after a normally-completing declarative, or with none); the compiler continues the run unit",
+    "compiler-at-2002": "wrong: probes sortopen-2002 (DECL=EC-SORT-MERGE-FILE-OPEN / AFTER-SORT GS=00, exit 0) and sortopen-nodecl-2002 (AFTER-SORT GS=00, exit 0); expected abnormal termination per §2002:14.5.12.1.2 items 2 and 4"
+   },
+   {
+    "rule-id": "2002-SR-14.8.37.2-6",
+    "verdict": "DOUBTFUL",
+    "reason": "The answerer enumerated 2002 class national as 'national, national-edited, numeric-edited usage national, national group items' and said the 2002 table equals 2023's; but 2002's national category (§2002:8.5.2.7 item 3) also lists 'An elementary data item explicitly or implicitly described as usage national', which 2023 §2023:8.5.2.10 (and 2014) dropped. Read literally, PIC 9(n) USAGE NATIONAL and PIC 1(n) USAGE NATIONAL are category, hence class, national in 2002, a datum the 2023 evidence never shows. Other 2002 text (§2002:13.16.22.3 GR4 'class numeric with usage national', §2002:14.8.23.3 GR2a) contradicts that reading, so it is not decisive either way; the flag answer did not address it. For THIS rule: under the literal reading a RECORD KEY PIC 9(3) USAGE NATIONAL is category national, so §2002:12.3.4.12.2 SR2 admits it and this rule then governs it as a record key of class national. The compiler refuses such a key at 2002 (COBOL0863 'category-numeric item'), so the 2023 evidence never shows this rule applied to it. Settle with one ruling (a docs/conformance entry or kb/Work decision): whether §2002:8.5.2.7 item 3, absent from 2014 and 2023, is inoperative for an elementary item whose PICTURE gives category numeric, numeric-edited or boolean (as §2002:13.16.22.3 GR4, §2002:14.8.23.3 GR2a and Table 3 presuppose), or makes such an item (also) category and class national at --std 2002. If inoperative: UPHELD. If operative: DIFFERENT, compiler-at-2002 wrong.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.2 SR6",
+      "quote": "It has the same class, category, and usage as that record key",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.12.2 SR2",
+      "quote": "shall reference a data item of category alphanumeric or category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.7",
+      "quote": "An elementary data item explicitly or implicitly described as usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.2.10",
+      "quote": "A group item explicitly or implicitly described with a GROUP-USAGE clause with the NATIONAL phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.9",
+      "quote": "An elementary data item described as numeric by its PICTURE character-string and not described with a BLANK WHEN ZERO clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR4",
+      "quote": "class numeric with usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR2a",
+      "quote": "elementary data item of usage national and of category numeric, numeric-edited, or boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "Numeric-edited (if usage is national)",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/refute-a-08/startnatnum.cob",
+    "compiler-at-2002": "RECORD KEY PIC 9(3) USAGE NATIONAL refused COBOL0863 at 2002 and 2023 (startnatnum.2002.txt)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.37.2-8",
+    "verdict": "UPHELD",
+    "reason": "Identical; organizations in 2002 are a subset of 2023's. START format compared phrase by phrase (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START): identical; 2002 organizations are sequential, relative, indexed (no LINE SEQUENTIAL, no SUPPRESS WHEN in the 2002 text: 0 occurrences); no CD reach; the invalid key condition and I-O status '23' are non-fatal paths, untouched by the fatal-exception difference found under GR8.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.2 SR8",
+      "quote": "file-name-1 shall reference a file with indexed organization",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-11",
+    "verdict": "UPHELD",
+    "reason": "Identical relative-file rule. Sampled re-run of l1_start_first_last_relative at --std 2002: PASS. START format compared phrase by phrase (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START): identical; 2002 organizations are sequential, relative, indexed (no LINE SEQUENTIAL, no SUPPRESS WHEN in the 2002 text: 0 occurrences); no CD reach; the invalid key condition and I-O status '23' are non-fatal paths, untouched by the fatal-exception difference found under GR8.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR11",
+      "quote": "set to the relative record number of the first existing logical record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-12",
+    "verdict": "UPHELD",
+    "reason": "Identical relative-file rule. START format compared phrase by phrase (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START): identical; 2002 organizations are sequential, relative, indexed (no LINE SEQUENTIAL, no SUPPRESS WHEN in the 2002 text: 0 occurrences); no CD reach; the invalid key condition and I-O status '23' are non-fatal paths, untouched by the fatal-exception difference found under GR8.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR12",
+      "quote": "set to the relative record number of the last existing logical record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-13",
+    "verdict": "DOUBTFUL",
+    "reason": "The answerer enumerated 2002 class national as 'national, national-edited, numeric-edited usage national, national group items' and said the 2002 table equals 2023's; but 2002's national category (§2002:8.5.2.7 item 3) also lists 'An elementary data item explicitly or implicitly described as usage national', which 2023 §2023:8.5.2.10 (and 2014) dropped. Read literally, PIC 9(n) USAGE NATIONAL and PIC 1(n) USAGE NATIONAL are category, hence class, national in 2002, a datum the 2023 evidence never shows. Other 2002 text (§2002:13.16.22.3 GR4 'class numeric with usage national', §2002:14.8.23.3 GR2a) contradicts that reading, so it is not decisive either way; the flag answer did not address it. For THIS rule: under the literal reading a RECORD KEY PIC 9(3) USAGE NATIONAL is category national, so §2002:12.3.4.12.2 SR2 admits it and this rule then governs it as a record key of class national. The compiler refuses such a key at 2002 (COBOL0863 'category-numeric item'), so the 2023 evidence never shows this rule applied to it. Settle with one ruling (a docs/conformance entry or kb/Work decision): whether §2002:8.5.2.7 item 3, absent from 2014 and 2023, is inoperative for an elementary item whose PICTURE gives category numeric, numeric-edited or boolean (as §2002:13.16.22.3 GR4, §2002:14.8.23.3 GR2a and Table 3 presuppose), or makes such an item (also) category and class national at --std 2002. If inoperative: UPHELD. If operative: DIFFERENT, compiler-at-2002 wrong.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR13",
+      "quote": "if data-name-1 or record-key-name-1 is of class national, arithmetic-expression-1 is the number of national character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.12.2 SR2",
+      "quote": "shall reference a data item of category alphanumeric or category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.7",
+      "quote": "An elementary data item explicitly or implicitly described as usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.2.10",
+      "quote": "A group item explicitly or implicitly described with a GROUP-USAGE clause with the NATIONAL phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.9",
+      "quote": "An elementary data item described as numeric by its PICTURE character-string and not described with a BLANK WHEN ZERO clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR4",
+      "quote": "class numeric with usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR2a",
+      "quote": "elementary data item of usage national and of category numeric, numeric-edited, or boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "Numeric-edited (if usage is national)",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/refute-a-08/startnatnum.cob",
+    "compiler-at-2002": "RECORD KEY PIC 9(3) USAGE NATIONAL refused COBOL0863 at 2002 and 2023 (startnatnum.2002.txt)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-18",
+    "verdict": "UPHELD",
+    "reason": "Identical; FIRST uses the prime key, so 2023's SUPPRESS WHEN (absent in 2002) is not reached. Sampled re-run of pb356_start_first_last_indexed at --std 2002: PASS. START format compared phrase by phrase (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START): identical; 2002 organizations are sequential, relative, indexed (no LINE SEQUENTIAL, no SUPPRESS WHEN in the 2002 text: 0 occurrences); no CD reach; the invalid key condition and I-O status '23' are non-fatal paths, untouched by the fatal-exception difference found under GR8.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR18",
+      "quote": "the key of reference is set to the primary key",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-19",
+    "verdict": "UPHELD",
+    "reason": "Identical, as GR18. START format compared phrase by phrase (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START): identical; 2002 organizations are sequential, relative, indexed (no LINE SEQUENTIAL, no SUPPRESS WHEN in the 2002 text: 0 occurrences); no CD reach; the invalid key condition and I-O status '23' are non-fatal paths, untouched by the fatal-exception difference found under GR8.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR19",
+      "quote": "the value of the primary key of the last existing logical record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-20",
+    "verdict": "UPHELD",
+    "reason": "Identical; 2002 sequential files are a subset (no LINE SEQUENTIAL). Sampled re-run of pb352_start_sequential_first_last at --std 2002: PASS. START format compared phrase by phrase (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START): identical; 2002 organizations are sequential, relative, indexed (no LINE SEQUENTIAL, no SUPPRESS WHEN in the 2002 text: 0 occurrences); no CD reach; the invalid key condition and I-O status '23' are non-fatal paths, untouched by the fatal-exception difference found under GR8.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR20",
+      "quote": "the file position indicator is set to 1 if records exist in the physical file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-21",
+    "verdict": "UPHELD",
+    "reason": "Identical, as GR20. START format compared phrase by phrase (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START): identical; 2002 organizations are sequential, relative, indexed (no LINE SEQUENTIAL, no SUPPRESS WHEN in the 2002 text: 0 occurrences); no CD reach; the invalid key condition and I-O status '23' are non-fatal paths, untouched by the fatal-exception difference found under GR8.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR21",
+      "quote": "the physical file does not support the ability to position at the last record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-5",
+    "verdict": "UPHELD",
+    "reason": "Identical; the invalid key condition is non-fatal. START format compared phrase by phrase (FIRST / KEY relational-operator data-name-1|record-key-name-1 [WITH LENGTH] / LAST, INVALID KEY, NOT INVALID KEY, END-START): identical; 2002 organizations are sequential, relative, indexed (no LINE SEQUENTIAL, no SUPPRESS WHEN in the 2002 text: 0 occurrences); no CD reach; the invalid key condition and I-O status '23' are non-fatal paths, untouched by the fatal-exception difference found under GR8.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR5",
+      "quote": "indicates that an optional input file is not present",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.38.3-2",
+    "verdict": "UPHELD",
+    "reason": "Identical. STOP format identical (STOP RUN [WITH ERROR|NORMAL STATUS [identifier-1|literal-1]]); 2002 has no STOP literal format; the 2002 MCS purge of 14.5.10 item 2 belongs to GR1, not to these rules.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR2",
+      "quote": "indicate an error termination of the run unit",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.38.3-3",
+    "verdict": "UPHELD",
+    "reason": "Identical. STOP format identical (STOP RUN [WITH ERROR|NORMAL STATUS [identifier-1|literal-1]]); 2002 has no STOP literal format; the 2002 MCS purge of 14.5.10 item 2 belongs to GR1, not to these rules.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR3",
+      "quote": "indicate a normal termination of the run unit",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.38.3-4",
+    "verdict": "UPHELD",
+    "reason": "Identical; the implementor-defined error indication is the same latitude. STOP format identical (STOP RUN [WITH ERROR|NORMAL STATUS [identifier-1|literal-1]]); 2002 has no STOP literal format; the 2002 MCS purge of 14.5.10 item 2 belongs to GR1, not to these rules.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR4",
+      "quote": "unless error termination has been indicated by an implementor-defined mechanism",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.38.3-6",
+    "verdict": "UPHELD",
+    "reason": "Identical; STOP RUN in a program, method or function ends the run unit in both. Sampled re-run of l1c30_stop_run_from_called_program at --std 2002: PASS. STOP format identical (STOP RUN [WITH ERROR|NORMAL STATUS [identifier-1|literal-1]]); 2002 has no STOP literal format; the 2002 MCS purge of 14.5.10 item 2 belongs to GR1, not to these rules.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR6",
+      "quote": "Execution of the run unit terminates and control is transferred to the operating system",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-2",
+    "verdict": "UPHELD",
+    "reason": "Identical; figurative constants and the display/national usage pair are the same. STRING format identical; 2002 SR1 already admits boolean literals as 2023 does; 2023 SR11 'variable-length group' is defined by dynamic-length/dynamic-capacity subordinates (8.5.1.12.1), so 2002 ODO groups stay legal; no CD-specific semantics (a CD record item is an ordinary data item operand).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR2",
+      "quote": "it refers to an implicit one character data item",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "aaaff2772f3809a0362b1dfbece4012c9404e3c31de1416e33d4aef5b9389a23",
+  "read": "444311137b09fecdca48247120099dfccea2ede7ee580863e950ac92c9256508",
+  "refute": "65f42f53477f89fa3ebaa10418153356ca57cb6ffa72adc9bda776501f72c098"
+ }
+}

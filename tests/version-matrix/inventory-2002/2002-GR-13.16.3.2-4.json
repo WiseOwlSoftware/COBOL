@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.3.2-4",
+ "rule-digest": "32066904f165",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.3.3-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. In GR4, 'the last character of the input field' is a character in a screen item (4.27 'A graphic character'). The screen section is processor-dependent in 2002 (§2002:3.1.5 with B.3), and the compiler refuses it at --std 2002 with COBOL1560 (the reader's probe), so the evidence is unaffected. The term picks out the same characters in both, so the scope and the evidence do not change."
+   }
+  },
+  "source": "lineage-reads-2002/q-11.json",
+  "digests": {
+   "GR-13.18.3.3-4": "32066904f165"
+  }
+ }
+}

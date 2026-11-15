@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-8.4.2.11.2-2",
+ "rule-digest": "36230e5b2faf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.11.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "object reference (newer: 9.3.2)",
+    "answer": "The §2002:4 object reference includes implicitly-defined items as §2023:9.3.2 does, but SR1 limits identifier-1 to items of the file, working-storage, local-storage and linkage sections, so only USAGE OBJECT REFERENCE items are reached, identically in both. The 2002 refusal (COBOL2785) stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "SR-8.4.3.11.3-2": "36230e5b2faf"
+  }
+ }
+}

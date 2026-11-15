@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-10.6.2-1",
+ "rule-digest": "69363e81b4a0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-10.7.3-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "source unit",
+    "answer": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. 'contains, is contained in, or precedes another source unit' reaches the same units. The scope and the evidence do not change."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "SR-10.7.3-1": "69363e81b4a0"
+  }
+ }
+}

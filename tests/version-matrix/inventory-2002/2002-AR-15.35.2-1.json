@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-AR-15.35.2-1",
+ "rule-digest": "bf4560fdac57",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "AR-15.45.3-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class boolean is category boolean plus bit group items (§2002:8.5.2), the same set; the reader's p7_iob covers both. Scope unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "8.8.1.x (standard arithmetic) govern numeric expressions; this argument is boolean and no arithmetic enters. §2002:15 and §2002:15.1 differ from 2023 15.1/15.2 only in the function-type text (2002 15.1 says 'The number of character positions in this data item is specified in the function definition'; 2023 adds the sentence on type determining use); both describe the returned item. Argument classes are in §2002:15.2, whose argument types the reader cited; this argument rule does not rest on the changed text."
+   }
+  },
+  "source": "lineage-reads-2002/q-39.json",
+  "digests": {
+   "AR-15.45.3-1": "bf4560fdac57"
+  }
+ }
+}

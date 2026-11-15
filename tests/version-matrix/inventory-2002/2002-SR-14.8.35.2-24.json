@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.35.2-24",
+ "rule-digest": "7583957543c1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.39.3-25"
+  ],
+  "bridge": true,
+  "answers": {
+   "band-formats": {
+    "flag": "band-formats [10] against [[11]]",
+    "answer": "2002 Format 10 (set-locale) is 2023 Format 11 element for element (SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME ... | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}); the number moved only because 2023 inserted Format 8 function-pointer-assignment (§2023:14.9.39.2 'SET { identifier-12 } … TO identifier-13') ahead of it, and SR25/SR26 of 2002 read as SR26/SR27 of 2023. The band reaches the same single format in both editions, so no split and no change of scope."
+   }
+  },
+  "source": "lineage-reads-2002/p-16.json",
+  "digests": {
+   "SR-14.9.39.3-25": "7583957543c1"
+  }
+ }
+}

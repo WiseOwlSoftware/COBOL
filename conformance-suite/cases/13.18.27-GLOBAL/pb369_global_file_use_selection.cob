@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb369_global_file_use_selection
       *> rules: [SR-13.18.27.3-1, GR-14.9.49.4-4]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.37.2-8",
+ "rule-digest": "d176754ff112",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.41.3-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "indexed organization (newer: D.2.2.3)",
+    "answer": "§2002:4 'indexed organization: The permanent logical file structure in which each record is identified by the value of one or more keys within that record'; 2023 describes it in D.2.2.3 and 12.4.5.10 GR5 in the same terms. SR8 restricts START WITH LENGTH to such files; 2002's organizations are sequential, relative and indexed, so the refused set is the same; pb352-start-length-non-indexed refuses at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-32.json",
+  "digests": {
+   "SR-14.9.41.3-8": "d176754ff112"
+  }
+ }
+}

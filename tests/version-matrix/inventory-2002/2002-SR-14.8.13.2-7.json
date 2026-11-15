@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.13.2-7",
+ "rule-digest": "aac821d02822",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.14.3-7"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "exit program statement; procedure",
+    "answer": "§2002:4 (4.76) EXIT PROGRAM statement is 'an abbreviation for EXIT statement with the PROGRAM phrase', the 2023 3.74 definition less its archaic note; §2002:4 (4.150) procedure 'One or more successive paragraphs or sections in the procedure division' (2023 adds 'paragraph, section'); SR7 restricts the statement to a program procedure division, the same programs, functions and methods in both, so no scope change."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "SR-14.9.14.3-7": "aac821d02822"
+  }
+ }
+}

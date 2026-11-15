@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-13.16.14.2-8",
+ "rule-digest": "962d2e5b9455",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.14.3-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 13651 has the same rule split by '## Page 336' before c): page break only. Re-read §2002:13.16.14.2 SR8 (FORMAT 1): unchanged."
+   },
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "The definition's drop does not change which entries the rule governs: report lines of report groups in the report section, as in 2023; a)-c) are shown at 2002 (pb1222 refusals, pb1059)."
+   }
+  },
+  "source": "lineage-reads-2002/q-12.json",
+  "digests": {
+   "SR-13.18.14.3-8": "962d2e5b9455"
+  }
+ }
+}

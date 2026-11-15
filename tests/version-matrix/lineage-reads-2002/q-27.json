@@ -1,0 +1,2017 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-27 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-27",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.21.2-5",
+   "2002-SR-14.8.21.2-6",
+   "2002-SR-14.8.21.2-7",
+   "2002-SR-14.8.21.2-8",
+   "2002-SR-14.8.21.2-9",
+   "2002-GR-14.8.21.3-10",
+   "2002-GR-14.8.21.3-13",
+   "2002-GR-14.8.21.3-14",
+   "2002-GR-14.8.21.3-15",
+   "2002-GR-14.8.21.3-18",
+   "2002-GR-14.8.21.3-19",
+   "2002-GR-14.8.21.3-21",
+   "2002-GR-14.8.21.3-22",
+   "2002-GR-14.8.21.3-5",
+   "2002-GR-14.8.21.3-6",
+   "2002-GR-14.8.21.3-9",
+   "2002-SR-14.8.22.2-1",
+   "2002-SR-14.8.22.2-13",
+   "2002-SR-14.8.22.2-14",
+   "2002-SR-14.8.22.2-16",
+   "2002-SR-14.8.22.2-17",
+   "2002-SR-14.8.22.2-19",
+   "2002-SR-14.8.22.2-20",
+   "2002-SR-14.8.22.2-21",
+   "2002-SR-14.8.22.2-6"
+  ],
+  "flags": {
+   "2002-SR-14.8.22.2-17": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-SR-14.8.22.2-19": {
+    "band-lacks-2002": "bands ['2014,2023']"
+   },
+   "2002-SR-14.8.22.2-21": {
+    "band-lacks-2002": "bands ['2014,2023']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-27",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.21.2-5",
+    "to": [
+     "SR-14.9.22.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.2 SR5",
+      "quote": "Identifier-2 shall reference an elementary numeric data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.3 SR5",
+      "quote": "Identifier-2 shall reference an elementary numeric data item.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "formats 1 and 3: identifier-2 (the TALLYING counter) in any section, including a record item under a CD"
+    ],
+    "evidence-2002": [
+     "refusal of a non-numeric (index) counter: covered by pb1127-inspect-index-item-tally-counter (refuse-at includes 2002; refused COBOL0847 at 2002 in this run)",
+     "a numeric counter in a CD record accepted and counted: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\inspect-cd.cob (T1, T4)"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). SR5 is a category rule with no section dependence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\inspect-cd.cob",
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). This syntax rule is decided at compile time and the switch changes only the run-time region (InspectBinder.BindPhrases into BoundInspect.BeforeFromLeftmost); it refuses nothing at any edition (VERSION_CHANGE_REFERENCE row 7.65), so the rule's 2002 behaviour is the evidence-2002 the read names, unchanged by the switch."
+    },
+    "answer-citations": [],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.21.2-6",
+    "to": [
+     "SR-14.9.22.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.2 SR6",
+      "quote": "When both literal-1 and literal-3 are specified, they shall be the same size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.3 SR6",
+      "quote": "When both literal-1 and literal-3 are specified, they shall be the same size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.9.2 SR2",
+      "quote": "Constant-name-1 may be used anywhere that a format specifies a literal",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "formats 2 and 3: literal-1/literal-3 pairs, including figurative constants and constant-names (2002 has constant entries, §2002:13.9.2 SR2)"
+    ],
+    "evidence-2002": [
+     "figurative/symbolic literal-1 size mismatch refused: pb3233-inspect-figurative-literal1-size, pb3233-inspect-symbolic-literal1-size (refuse-at includes 2002; refused COBOL0846 at 2002)",
+     "constant-name literal-1/literal-3 mismatch: pb1127-inspect-constant-name-replacing-size refused COBOL0846 at 2002 in this run (its refuse-at band names 2023 only, and its comment wrongly calls 2023 'the first edition with constant entries'; the behaviour at 2002 is correct)",
+     "positive controls run clean at 2002: pb3233_inspect_figurative_pattern_size, pb1127_inspect_constant_name_operands (accept band 2023, output matches at 2002), pb5103_inspect_identifier_sizes_match"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Note for the suite: the constant-name witnesses' bands omit 2002 although 2002 has constant entries.",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). This syntax rule is decided at compile time and the switch changes only the run-time region (InspectBinder.BindPhrases into BoundInspect.BeforeFromLeftmost); it refuses nothing at any edition (VERSION_CHANGE_REFERENCE row 7.65), so the rule's 2002 behaviour is the evidence-2002 the read names, unchanged by the switch."
+    },
+    "answer-citations": [],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.21.2-7",
+    "to": [
+     "SR-14.9.22.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.2 SR7",
+      "quote": "When the CHARACTERS phrase is specified, literal-3 shall be one character in length.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.3 SR7",
+      "quote": "When the CHARACTERS phrase is specified, literal-3 shall be one character in length.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.9.2 SR2",
+      "quote": "Constant-name-1 may be used anywhere that a format specifies a literal",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "formats 2 and 3: CHARACTERS BY literal-3, including a constant-name literal-3"
+    ],
+    "evidence-2002": [
+     "pb1127-inspect-constant-name-characters-by refused COBOL0846 at 2002 in this run (band names 2023 only; behaviour at 2002 correct)",
+     "pb5103_inspect_identifier_sizes_match (accept includes 2002) passes at 2002"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Self-contained length rule.",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). This syntax rule is decided at compile time and the switch changes only the run-time region (InspectBinder.BindPhrases into BoundInspect.BeforeFromLeftmost); it refuses nothing at any edition (VERSION_CHANGE_REFERENCE row 7.65), so the rule's 2002 behaviour is the evidence-2002 the read names, unchanged by the switch.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines character as a code value of a coded character set, a COBOL character, a screen-item graphic character or 'A single code value of a coded character set' (§2002:4); 2023 drops these entries but uses the word the same way. In INSPECT the character is one character of identifier-1's category (§2002:14.8.21.3 GR3a): one alphanumeric or one national character, so the rule governs the same data. National case shown at --std 2002 by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-nat-char.cob (C1 ABC***, C2 XZCXZC) with negative control inspect-nat-char-neg.cob (N\"**\" with CHARACTERS refused COBOL0846)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR3a",
+      "quote": "the INSPECT statement shall treat the content of each such identifier as a character-string of the category associated with that identifier",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null,
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.21.2-8",
+    "to": [
+     "SR-14.9.22.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.2 SR8",
+      "quote": "Identifier-1 is a sending operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.3 SR8",
+      "quote": "Identifier-1 is a sending operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR1",
+      "quote": "A function-identifier shall not be specified as a receiving operand.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1: identifier-1 classified as a sending operand, so a 2002 sending-only identifier (an alphanumeric function-identifier, §2002:8.4.2.2.2 SR1) is admitted as format 1 identifier-1"
+    ],
+    "evidence-2002": [
+     "the twin's witness pb881_constant_record_sending_roles does not run at 2002 (CONSTANT RECORD is 2014+, COBOL0900)",
+     "covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\inspect-sr8.cob at 2002 and 2023 (INSPECT FUNCTION UPPER-CASE(S) TALLYING: L1=0003 L2=0001 [abbcb]) with negative control E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\inspect-sr8-neg.cob (format 2 on a function-identifier refused COBOL1632 at both)"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Same requirement; only the twin's witness uses a 2014+ construct, so the 2002 evidence is the probe. needs: a 2002-runnable witness (inspect-sr8.cob can serve).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\inspect-sr8.cob",
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). This syntax rule is decided at compile time and the switch changes only the run-time region (InspectBinder.BindPhrases into BoundInspect.BeforeFromLeftmost); it refuses nothing at any edition (VERSION_CHANGE_REFERENCE row 7.65), so the rule's 2002 behaviour is the evidence-2002 the read names, unchanged by the switch."
+    },
+    "answer-citations": [],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.21.2-9",
+    "to": [
+     "SR-14.9.22.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.2 SR9",
+      "quote": "When both literal-4 and literal-5 are specified they shall be the same size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.3 SR9",
+      "quote": "When both literal-4 and literal-5 are specified they shall be the same size",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 4: literal-4/literal-5 pairs including figurative constants and constant-names"
+    ],
+    "evidence-2002": [
+     "pb3233-inspect-figurative-literal4-size (refuse-at includes 2002), pb1127-inspect-constant-name-converting-size refused COBOL0846 at 2002 in this run; pb4305_inspect_converting_to_all_2002 and pb1127_inspect_constant_name_operands pass at 2002"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Self-contained size rule.",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). This syntax rule is decided at compile time and the switch changes only the run-time region (InspectBinder.BindPhrases into BoundInspect.BeforeFromLeftmost); it refuses nothing at any edition (VERSION_CHANGE_REFERENCE row 7.65), so the rule's 2002 behaviour is the evidence-2002 the read names, unchanged by the switch."
+    },
+    "answer-citations": [],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-10",
+    "to": [
+     "GR-14.9.22.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR10",
+      "quote": "is not initialized by the execution of the INSPECT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR11",
+      "quote": "is not initialized by the execution of the INSPECT statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 and format 3: the counter keeps its prior content (any section, CD record included)"
+    ],
+    "evidence-2002": [
+     "the twin witness l1p5_inspect_general_rules cannot run at 2002 (BACKWARD leg, COBOL0845); its C1 leg is covered by probe l1p5-nobackward.cob (the twin witness l1p5_inspect_general_rules without its one BACKWARD leg, which 2002 lacks) at 2002 and 2023: output identical to the twin's .out minus G4",
+     "counter in a CD record: covered by inspect-cd.cob at 2002: identifier-1, the TALLYING counter and identifier-3/5/6/7 as record items under an output CD: T1=05 T2=[AxyAAC] T3=[zxwzzC] T4=03 [QRABAB], all as derived"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Same rule.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\l1p5-nobackward.cob",
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-ba-f3.cob at --std 2002: the format 3 statement with a crossed AFTER/BEFORE operand leaves the preset counter at 05 (2023: 07), so the counter is not initialized and the 2002 region applies."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-13",
+    "to": [
+     "GR-14.9.22.4-14"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR13",
+      "quote": "the EC-RANGE-INSPECT-SIZE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR14",
+      "quote": "the EC-RANGE-INSPECT-SIZE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "Size of replace items in INSPECT differs",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "formats 2 and 3: identifier-3/identifier-5 size mismatch at runtime raises EC-RANGE-INSPECT-SIZE (fatal); figurative literal-3 sized to literal-1"
+    ],
+    "evidence-2002": [
+     "covered by pb1126_inspect_size_ec and pb1128_inspect_identifier1_class_store (accept 2002), both output-matching at 2002 in this run"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). EC-RANGE-INSPECT-SIZE is in both exception tables with the same category (Fatal) and description (§2002:14.5.12.1.5 table row 'Size of replace items in INSPECT differs'). The held-back dependence (exception handling, 2002 14.5.12) was read: the condition's name, category and the >>TURN mechanism are the same.",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). The size check is independent of the region; pb1126_inspect_size_ec MATCH at 2002 this session.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "The screen matched the words 'as literal' (an INSPECT operand role, 'used as literal-3' / 'referenced, as literal-1'), not the AS literal of a constant entry or arithmetic; the rule performs no arithmetic and nothing in 2002 standard arithmetic (§2002:8.8.1.x) bears on it. For the exception part (§2002:14.5.12.x): The rule's dependent behaviour is EC-RANGE-INSPECT-SIZE, fatal in the 2002 table (§2002:14.5.12.1.5 'Size of replace items in INSPECT differs'); 2002 enables checking only by TURN (§2002:14.5.12.1), runs the USE declarative for a fatal condition (§2002:14.5.12.1.2) and RESUME AT NEXT STATEMENT is not normal completion (§2002:14.5.12.1.1) so execution continues (§2002:14.8.31.3 GR2). What 2023 changed (MERGE/SORT, EC-I-O, the PERFORM WHEN phrase, the non-fatal clause regrouped, incompatible data) does not reach INSPECT at 2002. Shown at --std 2002: pb1126_inspect_size_ec run this session, output MATCHes its .out (E1-E3 EC-RANGE-INSPECT-SIZE, E4 X  X)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR13",
+      "quote": "When a figurative constant is used as literal-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "Size of replace items in INSPECT differs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "By default, checking is not enabled for any exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled and there is an applicable USE statement in the source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.1",
+      "quote": "An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.31.3 GR2",
+      "quote": "control is transferred to an implicit CONTINUE statement that immediately follows the end of the statement",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null,
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-14",
+    "to": [
+     "GR-14.9.22.4-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR14",
+      "quote": "the data item referenced by identifier-5 shall be one character in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR15",
+      "quote": "the data item referenced by identifier-5 shall be one character in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "Size of replace items in INSPECT differs",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "formats 2 and 3: CHARACTERS BY identifier-5 not one character raises EC-RANGE-INSPECT-SIZE"
+    ],
+    "evidence-2002": [
+     "covered by pb1126_inspect_size_ec (accept 2002), output matches at 2002"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). EC-RANGE-INSPECT-SIZE is in both exception tables with the same category (Fatal) and description (§2002:14.5.12.1.5 table row 'Size of replace items in INSPECT differs').",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). The one-character size check is independent of the region; pb1126_inspect_size_ec MATCH at 2002 this session.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines character as a code value of a coded character set, a COBOL character, a screen-item graphic character or 'A single code value of a coded character set' (§2002:4); 2023 drops these entries but uses the word the same way. In INSPECT the character is one character of identifier-1's category (§2002:14.8.21.3 GR3a): one alphanumeric or one national character, so the rule governs the same data. National case shown at --std 2002 by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-nat-char.cob (C1 ABC***, C2 XZCXZC) with negative control inspect-nat-char-neg.cob (N\"**\" with CHARACTERS refused COBOL0846).",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "The rule's dependent behaviour is EC-RANGE-INSPECT-SIZE, fatal in the 2002 table (§2002:14.5.12.1.5 'Size of replace items in INSPECT differs'); 2002 enables checking only by TURN (§2002:14.5.12.1), runs the USE declarative for a fatal condition (§2002:14.5.12.1.2) and RESUME AT NEXT STATEMENT is not normal completion (§2002:14.5.12.1.1) so execution continues (§2002:14.8.31.3 GR2). What 2023 changed (MERGE/SORT, EC-I-O, the PERFORM WHEN phrase, the non-fatal clause regrouped, incompatible data) does not reach INSPECT at 2002. Shown at --std 2002: pb1126_inspect_size_ec run this session, output MATCHes its .out (E1-E3 EC-RANGE-INSPECT-SIZE, E4 X  X)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR3a",
+      "quote": "the INSPECT statement shall treat the content of each such identifier as a character-string of the category associated with that identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "Size of replace items in INSPECT differs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "By default, checking is not enabled for any exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled and there is an applicable USE statement in the source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.1",
+      "quote": "An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.31.3 GR2",
+      "quote": "control is transferred to an implicit CONTINUE statement that immediately follows the end of the statement",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null,
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null,
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-15",
+    "to": [
+     "GR-14.9.22.4-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR15",
+      "quote": "The ALL, FIRST, and LEADING phrases are transitive across the operands that follow them",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR16",
+      "quote": "The ALL, FIRST, and LEADING phrases are transitive across the operands that follow them",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 2 (and format 3's replacing part): ALL/FIRST/LEADING transitive across following operands"
+    ],
+    "evidence-2002": [
+     "twin witness l1p5 (T1, T2 legs) cannot run at 2002; covered by probe l1p5-nobackward.cob (the twin witness l1p5_inspect_general_rules without its one BACKWARD leg, which 2002 lacks) at 2002 and 2023: output identical to the twin's .out minus G4 (T1=[XYAB], T2=[XYZAYZ])",
+     "format 3 with FIRST transitive in a CD record: inspect-cd.cob at 2002: identifier-1, the TALLYING counter and identifier-3/5/6/7 as record items under an output CD: T1=05 T2=[AxyAAC] T3=[zxwzzC] T4=03 [QRABAB], all as derived (T4)"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Same rule.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\l1p5-nobackward.cob",
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-ba-f3.cob at --std 2002: REPLACING FIRST \"A\" BY \"Z\" \"B\" BY \"W\" AFTER \"X\" BEFORE \"Y\" over BYAAXBB gives BYZAXBB (2023: BYZAXWB): FIRST carries to \"B\", whose crossed region is empty at 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-18",
+    "to": [
+     "GR-14.9.22.4-19"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR18",
+      "quote": "Item identification of any identifier in the format 2 statement is done only once before executing the format 1 statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR19",
+      "quote": "Item identification of any identifier in the format 2 statement is done only once before executing the format 1 statement.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 3: executed as format 1 then format 2 with item identification once (ODO lengths included, with GR5)"
+    ],
+    "evidence-2002": [
+     "covered by pb5119_format3_odo_length and pb5119_format3_odo_forms (accept 2002) and pb1123_inspect_item_identification_once (band 2023, output matches at 2002 in this run)",
+     "S1-lists section C flagged pb5119_format3_odo_length_1985 differing at 2002: that case pins the 1985 reading (§1985:VI.6.18.4 GR17 re-reads the length for the second statement); at 2002 the output LENGTH 5 ZZZBA is the 2002 result the 2002 twin case expects, so it is not a defect"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Same rule; the 1985 difference is between 1985 and 2002, not 2002 and 2023.",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-ba-f3.cob at --std 2002: TALLYING and REPLACING with the same crossed operand over AYAAXAA gives 05 AYAAXAA (2023: 07 AYAAXZZ): both halves of the format 3 equivalence take the 2002 region."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-19",
+    "to": [
+     "GR-14.9.22.4-20"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR19",
+      "quote": "Correspondence between the characters of literal-4 and the characters of literal-5 is by ordinal position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR20",
+      "quote": "Correspondence between the characters of literal-4 and the characters of literal-5 is by ordinal position",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 4: CONVERTING as a series of ALL phrases by ordinal correspondence"
+    ],
+    "evidence-2002": [
+     "covered by pb1128_inspect_identifier1_class_store (accept 2002), l1c15_inspect_converting_duplicate_first (accept 2002); CD operands: inspect-cd.cob at 2002: identifier-1, the TALLYING counter and identifier-3/5/6/7 as record items under an output CD: T1=05 T2=[AxyAAC] T3=[zxwzzC] T4=03 [QRABAB], all as derived (T3)"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Same rule.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\inspect-cd.cob",
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). Format 4 takes the region of its format 2 equivalent; pb5120_before_after_intersection, run at --std 2002 this session: output MATCHes its 2002 .out (CROSSED 00, REPLACED AYAAXAA, CONVERTED AYAAXAA, CHARACTERS 00), the 2002 leftmost rule on formats 1, 2 and 4.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines character as a code value of a coded character set, a COBOL character, a screen-item graphic character or 'A single code value of a coded character set' (§2002:4); 2023 drops these entries but uses the word the same way. In INSPECT the character is one character of identifier-1's category (§2002:14.8.21.3 GR3a): one alphanumeric or one national character, so the rule governs the same data. National case shown at --std 2002 by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-nat-char.cob (C1 ABC***, C2 XZCXZC) with negative control inspect-nat-char-neg.cob (N\"**\" with CHARACTERS refused COBOL0846).",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The screen matched the words 'as literal' (an INSPECT operand role, 'used as literal-3' / 'referenced, as literal-1'), not the AS literal of a constant entry or arithmetic; the rule performs no arithmetic and nothing in 2002 standard arithmetic (§2002:8.8.1.x) bears on it. The screen matched 'corresponding' in 'the corresponding single character of literal-5' (§2002:14.8.21.3 GR19), ordinary English for ordinal pairing, not the CORRESPONDING phrase or the size error condition of 14.6.4/14.6.6; no dependence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR3a",
+      "quote": "the INSPECT statement shall treat the content of each such identifier as a character-string of the category associated with that identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR19",
+      "quote": "the corresponding single character of literal-5",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null,
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null,
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-21",
+    "to": [
+     "GR-14.9.22.4-22"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR21",
+      "quote": "The size of literal-5 or the data item referenced by identifier-7 shall be equal to the size of literal-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR22",
+      "quote": "The size of literal-5 or the data item referenced by identifier-7 shall be equal to the size of literal-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "Size of replace items in INSPECT differs",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 4: identifier-6/identifier-7 size mismatch raises EC-RANGE-INSPECT-SIZE; figurative literal-5 sized to literal-4"
+    ],
+    "evidence-2002": [
+     "covered by pb1126_inspect_size_ec and pb1128_inspect_identifier1_class_store (accept 2002), output-matching at 2002"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). EC-RANGE-INSPECT-SIZE is in both exception tables with the same category (Fatal) and description (§2002:14.5.12.1.5 table row 'Size of replace items in INSPECT differs').",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). The size check is independent of the region; pb1126_inspect_size_ec MATCH at 2002 this session.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "The screen matched the words 'as literal' (an INSPECT operand role, 'used as literal-3' / 'referenced, as literal-1'), not the AS literal of a constant entry or arithmetic; the rule performs no arithmetic and nothing in 2002 standard arithmetic (§2002:8.8.1.x) bears on it. For the exception part (§2002:14.5.12.x): The rule's dependent behaviour is EC-RANGE-INSPECT-SIZE, fatal in the 2002 table (§2002:14.5.12.1.5 'Size of replace items in INSPECT differs'); 2002 enables checking only by TURN (§2002:14.5.12.1), runs the USE declarative for a fatal condition (§2002:14.5.12.1.2) and RESUME AT NEXT STATEMENT is not normal completion (§2002:14.5.12.1.1) so execution continues (§2002:14.8.31.3 GR2). What 2023 changed (MERGE/SORT, EC-I-O, the PERFORM WHEN phrase, the non-fatal clause regrouped, incompatible data) does not reach INSPECT at 2002. Shown at --std 2002: pb1126_inspect_size_ec run this session, output MATCHes its .out (E1-E3 EC-RANGE-INSPECT-SIZE, E4 X  X)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR13",
+      "quote": "When a figurative constant is used as literal-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "Size of replace items in INSPECT differs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "By default, checking is not enabled for any exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled and there is an applicable USE statement in the source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.1",
+      "quote": "An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.31.3 GR2",
+      "quote": "control is transferred to an implicit CONTINUE statement that immediately follows the end of the statement",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null,
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-22",
+    "to": [
+     "GR-14.9.22.4-23"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR22",
+      "quote": "the first occurrence of the character is used for replacement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR23",
+      "quote": "the first occurrence of the character is used for replacement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 4: a repeated character in identifier-6/literal-4 uses its first occurrence"
+    ],
+    "evidence-2002": [
+     "covered by l1c15_inspect_converting_duplicate_first (accept 2002, output matches at 2002)"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Same rule.",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). The first-occurrence rule is independent of the region; pb5120_before_after_intersection, run at --std 2002 this session: output MATCHes its 2002 .out (CROSSED 00, REPLACED AYAAXAA, CONVERTED AYAAXAA, CHARACTERS 00), the 2002 leftmost rule on formats 1, 2 and 4.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines character as a code value of a coded character set, a COBOL character, a screen-item graphic character or 'A single code value of a coded character set' (§2002:4); 2023 drops these entries but uses the word the same way. In INSPECT the character is one character of identifier-1's category (§2002:14.8.21.3 GR3a): one alphanumeric or one national character, so the rule governs the same data. National case shown at --std 2002 by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-nat-char.cob (C1 ABC***, C2 XZCXZC) with negative control inspect-nat-char-neg.cob (N\"**\" with CHARACTERS refused COBOL0846)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR3a",
+      "quote": "the INSPECT statement shall treat the content of each such identifier as a character-string of the category associated with that identifier",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null,
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-5",
+    "to": [
+     "GR-14.9.22.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR5",
+      "quote": "Item identification for any identifier is done only once as the first operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR6",
+      "quote": "Item identification for any identifier is done only once as the first operation",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "all formats: item identification of every identifier once, first"
+    ],
+    "evidence-2002": [
+     "covered by pb5184_replacing_function_once, pb4115_inspect_function_evaluated_once (accept 2002) and pb1123_inspect_item_identification_once (band 2023, output matches at 2002)"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Same rule.",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). Item identification happens before any region is computed and the switch does not move it; the read's evidence (pb5184, pb4115, pb1123 at 2002) stands. pb5120_before_after_intersection, run at --std 2002 this session: output MATCHes its 2002 .out (CROSSED 00, REPLACED AYAAXAA, CONVERTED AYAAXAA, CHARACTERS 00), the 2002 leftmost rule on formats 1, 2 and 4."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-6",
+    "to": [
+     "GR-14.9.22.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR6",
+      "quote": "each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR7",
+      "quote": "each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2)",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "formats 1 and 2: each properly matched occurrence tallied or replaced"
+    ],
+    "evidence-2002": [
+     "twin witness l1p5 (P1, P2 legs) covered at 2002 by l1p5-nobackward.cob (the twin witness l1p5_inspect_general_rules without its one BACKWARD leg, which 2002 lacks) at 2002 and 2023: output identical to the twin's .out minus G4",
+     "CD operands: inspect-cd.cob at 2002: identifier-1, the TALLYING counter and identifier-3/5/6/7 as record items under an output CD: T1=05 T2=[AxyAAC] T3=[zxwzzC] T4=03 [QRABAB], all as derived (T1, T2)"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Same rule. (pb4089_character_channel_into_redefines_alias is band 2014,2023 and was not needed.)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\l1p5-nobackward.cob",
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). pb5120_before_after_intersection, run at --std 2002 this session: output MATCHes its 2002 .out (CROSSED 00, REPLACED AYAAXAA, CONVERTED AYAAXAA, CHARACTERS 00), the 2002 leftmost rule on formats 1, 2 and 4."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-9",
+    "to": [
+     "GR-14.9.22.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21",
+    "clause-2023": "14.9.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR9",
+      "quote": "Both the ALL and LEADING phrases are transitive across the operands that follow them",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR10",
+      "quote": "Both the ALL and LEADING phrases are transitive across the operands that follow them",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1: ALL and LEADING transitive across following operands"
+    ],
+    "evidence-2002": [
+     "covered by pb1125_inspect_tallying_next_counter_extent (band 2023, output matches at 2002 in this run)"
+    ],
+    "reason": "General format: 2002 14.8.21.1 has formats 1-4 with the same tallying-, replacing-, after-before-phrase and replacement-item as 2023 14.9.22.2; 2023 only ADDS the optional BACKWARD phrase to every format (a widening the 2002 rule does not reach). The FORMAT bands of the syntax and general rules are the same lists in the same order; 2023's general rules are renumbered by one (its GR2 splits 2002 GR1), and every internal reference ('general rules 6 through 8', '7e', '11 and 16') moves with them. Literal classes (alphanumeric, boolean, national), constant-names as literals (§2002:13.9.2 SR2) and figurative constants are the same. No obsolete element, debugging-line form or CD-only form appears in the clause; a record item under a CD is an ordinary data item for INSPECT (no INSPECT rule names a section). Same rule.",
+    "probe": null,
+    "widening": "2023 adds the optional BACKWARD phrase to the INSPECT formats; the sentence then also covers INSPECT BACKWARD, which 2002 lacks",
+    "class": null,
+    "flags-answered": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-ba-f3.cob at --std 2002: TALLYING FOR LEADING \"A\" \"B\" AFTER \"X\" BEFORE \"Y\" over AYXBBA gives 01 (2023: 03): LEADING carries to \"B\", never eligible at 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8b",
+      "quote": "from its leftmost character position up to, but not including, the first occurrence of literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27",
+    "flags": {
+     "behaviour-switch: inspect-before-from-first-eligible-position": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-1",
+    "to": [
+     "SR-14.9.23.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR1",
+      "quote": "Identifier-1 shall be an object reference.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR1",
+      "quote": "Identifier-1 shall be an object reference.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1 of every INVOKE shall be an object reference"
+    ],
+    "evidence-2002": [
+     "refusal: pb1136-invoke-receiver-not-object-reference, pb1136-invoke-null-identifier-2 (refuse-at includes 2002; refused at 2002 in this run)",
+     "positive: pb1136_invoke_null_receiver (accept 2002) output matches at 2002"
+    ],
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is renamed object-class-name-1 (2023 generalizes the object class; no 2002 form lost). The syntax rules match one for one with 2023 inserting SR17 (zero-length literal-2, a 2023 construct), so 2002 SR17-SR21 are 2023 SR18-SR22. The fifth-cause check: 2002 SR9 and SR11 admit identifier-3 and identifier-4 from the communication section (Annex A lists INVOKE SR9 and SR11 among the communication-facility references); 2023 SR9/SR11 do not. A type rule on identifier-1 with no section dependence.",
+    "probe": null,
+    "widening": null,
+    "class": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-13",
+    "to": [
+     "SR-14.9.23.3-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR13",
+      "quote": "there shall not be an item subordinate to that group item that is an object reference described with the ACTIVE-CLASS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR13",
+      "quote": "there shall not be an item subordinate to that group item that is an object reference described with the ACTIVE-CLASS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:10.5.2 SR4",
+      "quote": "The data division of a method in a class definition shall not contain a communication section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication section is located in the data division of a source program.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-3/4/5 group items without an ACTIVE-CLASS subordinate; no CD reach: ACTIVE-CLASS only in factory/instance definitions or a method's linkage/local-storage (§2002:13.16.58.2 SR15), a method has no communication section (§2002:10.5.2 SR4), and the communication section belongs to a source program (§2002:A.1.1)"
+    ],
+    "evidence-2002": [
+     "covered by pb1116-active-class-subordinate (refuse-at includes 2002; refused COBOL2728 at 2002)"
+    ],
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is renamed object-class-name-1 (2023 generalizes the object class; no 2002 form lost). The syntax rules match one for one with 2023 inserting SR17 (zero-length literal-2, a 2023 construct), so 2002 SR17-SR21 are 2023 SR18-SR22. The fifth-cause check: 2002 SR9 and SR11 admit identifier-3 and identifier-4 from the communication section (Annex A lists INVOKE SR9 and SR11 among the communication-facility references); 2023 SR9/SR11 do not. Although identifier-3/4 may be CD items in 2002, no CD record can hold an ACTIVE-CLASS object reference, so the scope is the 2023 scope.",
+    "probe": null,
+    "widening": null,
+    "class": null,
+    "flags-answered": {
+     "definition-dropped: object reference (newer: 9.3.2)": "The §2002:4 object reference matches §2023:9.3.2; the rule concerns an object reference described with the ACTIVE-CLASS phrase, a USAGE OBJECT REFERENCE data description, the same in both. No scope change; pb1116 refused at 2002 stands."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "An explicitly- or implicitly-defined data item that contains a reference to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.2",
+      "quote": "An object reference is an implicitly- or explicitly-defined data item containing an object reference value",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-14",
+    "to": [
+     "SR-14.9.23.3-14"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR14",
+      "quote": "that argument is valid for being passed by reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR14",
+      "quote": "that argument is valid for being passed by reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.3 GR6",
+      "quote": "if the argument meets the requirements of syntax rules 9 and 10, BY REFERENCE is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR16",
+      "quote": "The TEXT LENGTH clause defines data-name-2 as the name of an elementary data item whose implicit description is that of an integer of 4 digits, without an operational sign",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.7.1.2.1",
+      "quote": "then the definition of the formal parameter and the definition of the argument shall have the same BLANK WHEN ZERO, JUSTIFIED, PICTURE, USAGE, and SIGN clauses",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "an argument with no BY phrase whose formal is not BY VALUE: BY REFERENCE implied when valid for BY REFERENCE (2002 GR6: meets SR9 and SR10)",
+     "that includes a data item of the communication section: a CD record item and a CD's implicit items (TEXT LENGTH etc.)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by pb5465_invoke_by_phrase_not_transitive and pb1051_method_by_value (accept 2002), output-matching at 2002",
+     "CD record item: not shown by the 2023 row; probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob A1=[ZZZZ] (passed BY REFERENCE): correct",
+     "CD implicit item TL (output CD TEXT LENGTH, implicitly PICTURE 9(4)): probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd-tl.cob refused COBOL0828 at 2002: WRONG"
+    ],
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is renamed object-class-name-1 (2023 generalizes the object class; no 2002 form lost). The syntax rules match one for one with 2023 inserting SR17 (zero-length literal-2, a 2023 construct), so 2002 SR17-SR21 are 2023 SR18-SR22. The fifth-cause check: 2002 SR9 and SR11 admit identifier-3 and identifier-4 from the communication section (Annex A lists INVOKE SR9 and SR11 among the communication-facility references); 2023 SR9/SR11 do not. 2002 SR9 makes 'valid for being passed by reference' include communication-section items (§2002:14.8.22.3 GR6 refers to SR9 and SR10); 2023 SR9 excludes them, so the 2023 row says nothing about them.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd-tl.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for an argument with no BY phrase that is a CD item (invoke-cd.cob A1 can serve), and the fix of the defect below before the CD-implicit-item case can be witnessed",
+    "compiler-at-2002": "wrong: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd-tl.cob. Program: output CD with TEXT LENGTH IS TL; INVOKE T \"BUMP\" USING TL, formal 01 LK-N PIC 9(4) BY REFERENCE. Expected: accepted, TL=0006 U1=0008, since TL's implicit description is PICTURE 9(4) (§2002:A.1.2.3 GR16 b and its implicit record description '02 data-name-2 PICTURE 9(4). TEXT LENGTH') and §2002:14.7.1.2.1 asks only the same BLANK WHEN ZERO, JUSTIFIED, PICTURE, USAGE and SIGN clauses. Observed at --std 2002: error COBOL0828 '...the argument (an elementary numeric item described with USAGE DISPLAY) and the formal parameter (... PICTURE 9(4) USAGE DISPLAY) are not described with the same ... clauses ... the formal parameter is described with PICTURE 9(4) and the argument is not'. A CD record item U1 PIC 9(4) is passed fine (A1). Code site: the implicit CD fields are built without a PICTURE (src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs, the CommunicationField.TextLength rows) and compared by ActivationRelations.SameElementaryClauses (src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs). Same root as the p-14 refuter's side finding (explicit BY REFERENCE TL). Rejects legal source."
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-16",
+    "to": [
+     "SR-14.9.23.3-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR16",
+      "quote": "literal-2 shall be a numeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR16",
+      "quote": "literal-2 shall be a numeric literal",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "BY VALUE literal-2 (or literal-2 for a BY VALUE formal) shall be numeric"
+    ],
+    "evidence-2002": [
+     "refusal pb1051-by-value-literal-alphanumeric (refuse-at includes 2002; COBOL4268 at 2002); positive pb1051_method_by_value, pb1051_method_by_value_match (accept 2002) output-matching"
+    ],
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is renamed object-class-name-1 (2023 generalizes the object class; no 2002 form lost). The syntax rules match one for one with 2023 inserting SR17 (zero-length literal-2, a 2023 construct), so 2002 SR17-SR21 are 2023 SR18-SR22. The fifth-cause check: 2002 SR9 and SR11 admit identifier-3 and identifier-4 from the communication section (Annex A lists INVOKE SR9 and SR11 among the communication-facility references); 2023 SR9/SR11 do not. A literal rule with no section dependence; 2023's new SR17 (no zero-length literal-2) concerns a 2023-only construct.",
+    "probe": null,
+    "widening": null,
+    "class": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The flag fires on the word 'corresponding' (invokes pattern 'size error|arithmetic statement|corresponding'). Here it is plain English ('its corresponding formal parameter' of an INVOKE BY VALUE literal), not the CORRESPONDING phrase (§2002:14.6.5) and not an arithmetic statement or size error (§2002:14.6.6, §2002:14.6.4), so the changed arithmetic and size-error text (standard-binary/decimal modes, floating-point operands, near-zero size error) cannot reach this rule; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR16",
+      "quote": "If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-27"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-17",
+    "to": [
+     "SR-14.9.23.3-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR17",
+      "quote": "an OPTIONAL phrase shall be specified for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR18",
+      "quote": "an OPTIONAL phrase shall be specified for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OMITTED argument requires an OPTIONAL formal in the method's procedure division header"
+    ],
+    "evidence-2002": [
+     "refusal pb757-invoke-omitted-not-optional (refuse-at includes 2002; COBOL2237 at 2002); positive pb757_invoke_omitted (accept 2002) output-matching"
+    ],
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is renamed object-class-name-1 (2023 generalizes the object class; no 2002 form lost). The syntax rules match one for one with 2023 inserting SR17 (zero-length literal-2, a 2023 construct), so 2002 SR17-SR21 are 2023 SR18-SR22. The fifth-cause check: 2002 SR9 and SR11 admit identifier-3 and identifier-4 from the communication section (Annex A lists INVOKE SR9 and SR11 among the communication-facility references); 2023 SR9/SR11 do not. Self-contained.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "The rule uses only 'procedure division header', not the defined term 'procedure' (§2002:4 4.150); no change of scope or evidence.",
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Read §2002:14.6.4 and 14.6.6 (size error, arithmetic statements; 31-digit composite, standard arithmetic). The rule matched only on 'corresponding formal parameter'; OMITTED/OPTIONAL in INVOKE has nothing to do with size error or arithmetic statements. No dependence; evidence unchanged."
+    },
+    "class": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'procedure': 2002 defines procedure (4.150, ISO_COBOL_2002.md line 1418: 'One or more successive paragraphs or sections in the procedure division.') and 2023 3.145 differently, but the rule uses only the compound 'procedure division header', which names the header of the division in both editions and does not use the term's definition; no change to scope or evidence."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-19",
+    "to": [
+     "SR-14.9.23.3-20"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR19",
+      "quote": "If identifier-3 does not reference an address-identifier, identifier-3 is a receiving operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR20",
+      "quote": "If identifier-3 does not reference an address-identifier, identifier-3 is a receiving operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-3 that is not an address-identifier is a receiving operand: a sending-only 2002 identifier (object-view, SELF) is refused there",
+     "identifier-3 that is a communication-section item (SR9) is a receiving operand: the invoked method may change it"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by pb1551-invoke-by-reference-view and pb1551-invoke-universal-self (refuse-at includes 2002; COBOL2871 and COBOL3978 at 2002); the l1-invoke-byref-constant-record twins are 2014+ (CONSTANT RECORD) and say nothing at 2002",
+     "CD item: not shown by the 2023 row; probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob A3=[ZZZZ] (and A1, A2): correct"
+    ],
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is renamed object-class-name-1 (2023 generalizes the object class; no 2002 form lost). The syntax rules match one for one with 2023 inserting SR17 (zero-length literal-2, a 2023 construct), so 2002 SR17-SR21 are 2023 SR18-SR22. The fifth-cause check: 2002 SR9 and SR11 admit identifier-3 and identifier-4 from the communication section (Annex A lists INVOKE SR9 and SR11 among the communication-facility references); 2023 SR9/SR11 do not. 2002 identifier-3 admits communication-section items (SR9), which 2023 identifier-3 does not.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a CD record item as identifier-3 (invoke-cd.cob A3 can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob)",
+    "flags-answered": [
+     "band-lacks-2002: the twin's constant-record witnesses are 2014+; the pb1551 witnesses (object-view, SELF, both 2002 forms) are refused at 2002 and the CD case is probed; the flag does not change the scope, only where the evidence comes from."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-20",
+    "to": [
+     "SR-14.9.23.3-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR20",
+      "quote": "Identifier-5 and any identifier specified in arithmetic-expression-1 or boolean-expression-1 is a sending operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR21",
+      "quote": "Identifier-5 and any identifier specified in arithmetic-expression-1 or boolean-expression-1 is a sending operand.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-5 (BY CONTENT/BY VALUE) and identifiers in arithmetic-/boolean-expression-1 are sending operands (identifier-5 has no section restriction in either edition; a CD record item as identifier-5 is location-independent)"
+    ],
+    "evidence-2002": [
+     "covered by pb1137_invoke_argument_forms and pb1051_method_by_value (accept 2002), output-matching at 2002; CD item BY CONTENT: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob A4=[CCCC]"
+    ],
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is renamed object-class-name-1 (2023 generalizes the object class; no 2002 form lost). The syntax rules match one for one with 2023 inserting SR17 (zero-length literal-2, a 2023 construct), so 2002 SR17-SR21 are 2023 SR18-SR22. The fifth-cause check: 2002 SR9 and SR11 admit identifier-3 and identifier-4 from the communication section (Annex A lists INVOKE SR9 and SR11 among the communication-facility references); 2023 SR9/SR11 do not. No section dependence for identifier-5 in either edition; the probe confirms the CD case anyway.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob",
+    "widening": null,
+    "class": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-21",
+    "to": [
+     "SR-14.9.23.3-22"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR21",
+      "quote": "Identifier-4 is a receiving operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR22",
+      "quote": "Identifier-4 is a receiving operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR11",
+      "quote": "Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR11",
+      "quote": "Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, or linkage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.8.2 SR2",
+      "quote": "This identifier format shall not be specified as a receiving operand.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-4 (RETURNING) is a receiving operand: a sending-only 2002 identifier is refused there",
+     "identifier-4 may be a communication-section item (SR11), which receives the method's result"
+    ],
+    "evidence-2002": [
+     "the twin's witnesses (l1-invoke-returning-constant-record*) are 2014+ (CONSTANT RECORD) and say nothing at 2002",
+     "non-CD: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-ret-recv.cob (RETURNING SELF refused COBOL3978 at 2002 and 2023)",
+     "CD item: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob A5=[RRRR]: correct"
+    ],
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is renamed object-class-name-1 (2023 generalizes the object class; no 2002 form lost). The syntax rules match one for one with 2023 inserting SR17 (zero-length literal-2, a 2023 construct), so 2002 SR17-SR21 are 2023 SR18-SR22. The fifth-cause check: 2002 SR9 and SR11 admit identifier-3 and identifier-4 from the communication section (Annex A lists INVOKE SR9 and SR11 among the communication-facility references); 2023 SR9/SR11 do not. 2002 identifier-4 admits communication-section items (SR11), which 2023 identifier-4 does not; and no twin witness runs at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for RETURNING into a CD record item (invoke-cd.cob A5) and a 2002-runnable receiving-operand refusal (invoke-ret-recv.cob)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-ret-recv.cob)",
+    "flags-answered": [
+     "band-lacks-2002: confirmed, the twin's witnesses use CONSTANT RECORD (2014+); 2002 evidence comes from invoke-ret-recv.cob and invoke-cd.cob."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-6",
+    "to": [
+     "SR-14.9.23.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR6",
+      "quote": "neither the BY CONTENT nor the BY VALUE phrase shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR6",
+      "quote": "neither the BY CONTENT nor the BY VALUE phrase shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "universal identifier-1: no BY CONTENT/BY VALUE; every argument is passed BY REFERENCE, i.e. is an identifier-3",
+     "such an argument may be a communication-section item (SR9)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by pb1137_invoke_argument_forms (accept 2002), output-matching at 2002 (conformance-test OoSpineTests.Universal_ForbiddenArgShapes_0866 not run here)",
+     "CD item: not shown by the 2023 row; probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob A2=[ZZZZ] (universal receiver, no BY phrase, CD record item passed BY REFERENCE): correct"
+    ],
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is renamed object-class-name-1 (2023 generalizes the object class; no 2002 form lost). The syntax rules match one for one with 2023 inserting SR17 (zero-length literal-2, a 2023 construct), so 2002 SR17-SR21 are 2023 SR18-SR22. The fifth-cause check: 2002 SR9 and SR11 admit identifier-3 and identifier-4 from the communication section (Annex A lists INVOKE SR9 and SR11 among the communication-facility references); 2023 SR9/SR11 do not. The implied BY REFERENCE makes every argument identifier-3, whose 2002 domain (SR9) includes communication-section items and whose 2023 domain does not.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a universal INVOKE whose argument is a CD record item (invoke-cd.cob A2 can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-27\\invoke-cd.cob)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-27",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.21.2-5",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Identifier-2 as the implicit MESSAGE COUNT and TEXT LENGTH items accepted and counted (T1, T2).",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-27\\inspect-cdimp.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.21.2-6",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Literal/figurative size rule; no section dependence.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.21.2-7",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Literal length rule; no section dependence.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.21.2-8",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Implicit CD items as format 1 identifier-1 (T1, T2) are sending operands as required.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-27\\inspect-cdimp.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.21.2-9",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Literal size rule; no section dependence.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-10",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Implicit MESSAGE COUNT counter starting at 2 kept its content (T1=000006).",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-27\\inspect-cdimp.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-13",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. EC-RANGE-INSPECT-SIZE is Fatal with the same description in both exception tables (2002 md line 16413, 2023 md line 21593).",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-14",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Same exception row as GR13.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-15",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Transitivity rule; no section or form dependence.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-18",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Format 3 item identification; same text and no removed form.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-19",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Format 4 with the implicit STATUS KEY as identifier-7 converted by ordinal position (T4).",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-27\\inspect-cdimp.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-21",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Size rule; same exception row.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-22",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. First-occurrence rule; no section dependence.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-5",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Item identification once; same in both.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-6",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. Implicit STATUS KEY as identifier-3 replaced each occurrence (T3).",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-27\\inspect-cdimp.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-9",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.21, 2023 14.9.22): the general formats differ only by 2023's optional BACKWARD; the FORMAT bands and rule lists match; no obsolete element, debugging-line form or CD-only form in the clause. Communication reach checked beyond the reader's explicit CD record: the IMPLICIT items of an input CD (SYMBOLIC QUEUE X(12), TEXT LENGTH 9(4), STATUS KEY XX, MESSAGE COUNT 9(6), 2002 A.1.2.3 GR2) as identifier-1, identifier-2, identifier-3 and identifier-7 compile and run correctly at --std 2002 (probe: T1=000006 T2=0012 T3=[xyBxyC      ] T4=[zwBzwC      ] T5=996996). No INSPECT operand can be of class object or pointer, so the CD object-reference gap found under INVOKE does not reach this clause. Side note, not a difference: 2002 GR4's range 'general rules 6 through 21' was not renumbered in 2023 GR5 (still 6 through 21 after the shift), but every rule outside the range names its identifiers explicitly, so the requirement is unchanged. ALL transitivity; no section dependence.",
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR2",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The reader called SR1 'a type rule on identifier-1 with no section dependence'. In 2002 identifier-1 may be an object reference that is a record under an output CD, a case the 2023 row cannot show. In 2002 a level-1 USAGE OBJECT REFERENCE (or POINTER) entry may be a record description entry under an OUTPUT CD: 2002 13.16.58.2 SR13 admits these usages at level 1, SR14 bars object references only in the FILE section, 2002 A.1.2.2 SR9 puts no category limit on output-CD records (only input and I-O CD records must be alphanumeric positions, SR5 and SR14), and 2002 13.16.42.2 SR13 governs a written REDEFINES clause, not the CD's implicit redefinition (the compiler's own reading for the file section's implicit area, kb/Work PB836 and PB981, is the same: no clause, so no bar). The 2023 twin has no communication section, so its evidence says nothing about this case. At --std 2002 the compiler refuses the declaration: error COBOL0899 'the record area of CDOBJ is shared ... is of a pointer class ... a shared record area of that shape is recognized but not yet implemented' (a staged GAP that rejects legal 2002 source; a WORKING-STORAGE control of the same program runs). Probe: INVOKE CDOBJ \"HI\" where 01 CDOBJ USAGE OBJECT REFERENCE R27C1 follows CD CDOUT FOR OUTPUT; expected HELLO; observed COBOL0899 at 2002. needs: its own verdict; compiler-at-2002: wrong (rejects legal source; the defect sits in the CD record-area binding, the implicit-area arm of ClassifyRedefinesClassesPass, and reaches every rule whose operand may be a CD object or pointer record).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR1",
+      "quote": "Identifier-1 shall be an object reference.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR1",
+      "quote": "Identifier-1 shall be an object reference.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "shall describe a record of exactly 87 alphanumeric character positions",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-27\\invoke-cdobj1.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-13",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The reader's no-CD-reach argument holds: an ACTIVE-CLASS object reference exists only in a factory or instance definition or a method's linkage or local-storage (2002 13.16.58.2 SR15), a method has no communication section, and the communication section belongs to a source program (2002 A.1.1); an object reference elsewhere is level 1 or inside a STRONG type (SR13), so no CD group can hold an ACTIVE-CLASS subordinate.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication section is located in the data division of a source program.",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-16",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "A rule on literal-2 only; no operand reaches a CD item; the 2023-only SR17 (zero-length literal-2) concerns a construct 2002 lacks. The USING phrase format is identical.",
+    "citations": [],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-17",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "OMITTED has no operand; the compound 'procedure division header' is the same in both editions (the flagged term 'procedure' is not used through its definition). No removed form.",
+    "citations": [],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-20",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The reader said identifier-5 has 'no section dependence' and probed an alphanumeric CD record item. In 2002 identifier-5 BY VALUE may be of class object or pointer (2002 14.8.22.2 SR15), and such an item may be a level-1 record under an output CD. In 2002 a level-1 USAGE OBJECT REFERENCE (or POINTER) entry may be a record description entry under an OUTPUT CD: 2002 13.16.58.2 SR13 admits these usages at level 1, SR14 bars object references only in the FILE section, 2002 A.1.2.2 SR9 puts no category limit on output-CD records (only input and I-O CD records must be alphanumeric positions, SR5 and SR14), and 2002 13.16.42.2 SR13 governs a written REDEFINES clause, not the CD's implicit redefinition (the compiler's own reading for the file section's implicit area, kb/Work PB836 and PB981, is the same: no clause, so no bar). The 2023 twin has no communication section, so its evidence says nothing about this case. At --std 2002 the compiler refuses the declaration: error COBOL0899 'the record area of CDOBJ is shared ... is of a pointer class ... a shared record area of that shape is recognized but not yet implemented' (a staged GAP that rejects legal 2002 source; a WORKING-STORAGE control of the same program runs). Also checked and CORRECT at 2002: the implicit TEXT LENGTH item as identifier-5 BY CONTENT, BY VALUE and inside arithmetic-expression-1 (invoke-cdimp5.cob: S=0005 V=0005 S=0006 TL=0005; TL unchanged as a sending operand). Probe invoke-cdobj5.cob: INVOKE T \"TAKE\" USING BY VALUE CDOBJ twice; expected GOT-NONNULL twice; observed COBOL0899 at 2002; control invoke-wsobj5-control.cob (CDOBJ in WORKING-STORAGE) prints GOT-NONNULL twice at 2002 and 2023. needs: its own verdict; compiler-at-2002: wrong (same root as SR1).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR20",
+      "quote": "Identifier-5 and any identifier specified in arithmetic-expression-1 or boolean-expression-1 is a sending operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR21",
+      "quote": "Identifier-5 and any identifier specified in arithmetic-expression-1 or boolean-expression-1 is a sending operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR15",
+      "quote": "identifier-5 shall be of class numeric, object or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "shall describe a record of exactly 87 alphanumeric character positions",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-27\\invoke-cdobj5.cob"
+   }
+  ],
+  "disputed-different": [],
+  "side-finding": "The same COBOL0899 refusal of a level-1 OBJECT REFERENCE or POINTER record under an output CD also reaches the reader's DIFFERENT rows SR14, SR19, SR21 and SR6 for object and pointer arguments; their 'compiler-at-2002: correct' covers alphanumeric and numeric CD items only."
+ },
+ "imported": {
+  "asked": "48da4c14c32173b27b0c153f4d1417312a9a5bb238e9e1784d3d468f089a9668",
+  "read": "874690312853b4a89d5839458010a871a0eaca381a36573313b32e313a46dee0",
+  "refute": "115bff31043b4cc9def2d3012f58668fccb0963559a88288652e4e93335a453d"
+ }
+}

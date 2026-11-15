@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-9",
+ "rule-digest": "9d2049712ed2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
+    "answer": "GR9 states no value; the record operation conflict values are §2002:9.1.12.7 (51-54), a subclause the screen does not flag as changed, and pb338_read_conflict_position / pb338_random_read_conflict_position MATCH at --std 2002. The changed parts: §2002:9.1.12 (changed): the lead text differs in USE procedure versus processing statements and 2023's EC-I-O-WARNING; neither changes the status this rule sets; §2002:9.1.12.1 (changed): successful-completion values (2023 adds line sequential 06/09); not reached by this rule; §2002:9.1.12.2 (changed): implementor-defined successful values; not reached; §2002:9.1.12.5 (changed): permanent errors (2023 adds 34 boundary cases); not reached; §2002:9.1.12.9 (changed): implementor-defined unsuccessful values; not reached; §2002:9.1.13 (changed): the invalid key condition's processing; this rule's status is not an invalid key, so not reached."
+   },
+   "behaviour-switch": {
+    "flag": "indexed-read-previous-after-open-at-end",
+    "answer": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd) changes only a sequential READ PREVIOUS that is the first retrieval after OPEN on an indexed file, the case of §2002:14.8.29.3 GR18c; this rule does not govern that case, and its own behaviour at --std 2002 is shown by pb338_read_conflict_position and pb338_random_read_conflict_position MATCH at 2002; the switch's arm returns before any record is locked or read. Separately, the switch's own 2002 arm is wrong (a defect lead, not this row's): probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob gives P1=K002|00 at --std 2002 (and 2014), where §2002:14.8.26.3 GR12 sets an indexed file's position indicator to the lowest-ordinal characters and §2002:14.8.29.3 GR18c selects a record whose key is 'less than or equal to the file position indicator', none, so GR18 gives status 10 and the at end condition (2023 prints ATEND|10); code site IndexedConnector.SelectSequentialRecord (src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs:445) with DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (DialectBehavior.cs:297, kb/Work PB344)."
+   }
+  },
+  "source": "lineage-reads-2002/q-30.json",
+  "digests": {
+   "GR-14.9.30.4-10": "9d2049712ed2"
+  }
+ }
+}

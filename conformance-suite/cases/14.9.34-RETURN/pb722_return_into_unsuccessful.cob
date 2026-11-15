@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb722_return_into_unsuccessful
       *> rules: [GR-14.9.34.4-4, GR-14.9.34.4-5]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

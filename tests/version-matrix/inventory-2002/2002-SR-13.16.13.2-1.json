@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-13.16.13.2-1",
+ "rule-digest": "8b76e584f510",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.13.3-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "alphanumeric coded character set",
+    "answer": "§2002:4 defines it as 'A coded character set that the implementor has designated for representation of data items of usage display and alphanumeric literals', the same words as §2023:3.10, which only lays out the synonym 'alphanumeric character set' differently. The governed alphabets do not change."
+   },
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)",
+    "answer": "§2002:4 defines the four senses of character (for example 'A code value that constitutes the coded representation of a letter') and coded character set ('A set of unambiguous rules that establishes a character set', after ISO/IEC 10646-1); 2023 uses the same notions without defining them. Which alphabets define an alphanumeric coded character set is fixed by the ALPHABET clause and 2002 Table 7, which the reader compared row for row with 2023 Table 6. The dropped definitions do not change which programs the rule governs."
+   }
+  },
+  "source": "lineage-reads-2002/q-12.json",
+  "digests": {
+   "SR-13.18.13.3-1": "8b76e584f510"
+  }
+ }
+}

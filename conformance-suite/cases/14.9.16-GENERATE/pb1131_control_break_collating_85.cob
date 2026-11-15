@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1131_control_break_collating_85
       *> rules: [GR-14.9.16.4-3]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

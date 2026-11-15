@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-12.3.6.3-2",
+ "rule-digest": "18ddaecf7578",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.6.4.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "normalized": {
+    "flag": "normalized",
+    "answer": "The 2002 text is 'file-name-1, file-name-2, ...' with three periods where 2023 prints the ellipsis glyph. The words are otherwise identical, the requirement is the same, and GR-12.4.6.4.4-2 is the right pointer."
+   },
+   "definition-changed": {
+    "flag": "runtime element",
+    "answer": "Same referent: §2002:4 (4.167) 'The executable unit resulting from compiling a source element' and §2023:3.159 'element consisting of code and data produced by the compilation of a source element' name the same programs, functions and methods; the record area is available to the running program in both. The scope and the evidence are unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+    "answer": "The screen matched 'aligned' in GR2's 'This is equivalent to an implicit redefinition of the area with records aligned on the leftmost byte position'. That sentence is about storage redefinition. §2002:14.5.8 governs where data is placed in a receiving elementary item on a move ('The standard rules for positioning data within an elementary item depend on the category of the receiving item'), and 8.5.3 (types) and 8.5.4 (zero-length items) name nothing the rule uses. The rule does not rest on any of them."
+   }
+  },
+  "source": "lineage-reads-2002/q-09.json",
+  "digests": {
+   "GR-12.4.6.4.4-2": "3c2944735909"
+  }
+ }
+}

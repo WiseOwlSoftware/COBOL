@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb25_figurative_intrinsic_argument
 *> rules: [RV-15.57.4-1]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

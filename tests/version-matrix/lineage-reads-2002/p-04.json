@@ -1,0 +1,1543 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-04 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-04",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-13.16.41.3-9",
+   "2002-GR-13.16.42.3-1",
+   "2002-GR-13.16.42.3-2",
+   "2002-GR-13.16.43.3-1",
+   "2002-GR-13.16.47.3-4",
+   "2002-GR-13.16.5.3-1",
+   "2002-GR-13.16.50.3-1",
+   "2002-GR-13.16.50.3-2",
+   "2002-GR-13.16.50.3-3",
+   "2002-GR-13.16.50.3-4",
+   "2002-GR-13.16.51.3-4",
+   "2002-GR-13.16.53.3-3",
+   "2002-GR-13.16.61.3-15",
+   "2002-GR-13.16.61.3-16",
+   "2002-GR-13.16.61.3-2",
+   "2002-GR-13.16.62.3-1",
+   "2002-GR-13.16.8.3-1",
+   "2002-GR-13.16.8.3-2",
+   "2002-GR-13.4.3-2",
+   "2002-GR-13.5.3-1",
+   "2002-GR-14.1.3-11",
+   "2002-GR-14.1.3-4",
+   "2002-GR-14.1.3-7",
+   "2002-GR-14.8.1.3-10",
+   "2002-GR-14.8.1.3-9"
+  ]
+ },
+ "read": {
+  "slice": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\in\\p-04.json",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.41.3-9",
+    "to": [
+     "GR-13.18.43.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.41 RECORD clause",
+    "clause-2023": "13.18.43 RECORD clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR9",
+      "quote": "If integer-2 is not specified, the minimum number of bytes to be contained in any record of the file is equal to the least number of bytes described for a record in that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR9",
+      "quote": "If integer-2 is not specified, the minimum number of bytes to be contained in any record of the file is equal to the least number of bytes described for a record in that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR8",
+      "quote": "The number of bytes associated with a record description is determined by the sum of the number of bytes in all elementary data items excluding redefinitions and renamings",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 is the same in both (2023 only adds BYTES as a synonym of CHARACTERS, SR2). The rule sits under FORMAT 2 in both; GR8, which defines the bytes 'described for a record', is word-identical. The RECORD clause is a file description (FD/SD) clause in both editions, so it cannot reach a CD. 2002 GR3 says 'variable-length data item' where 2023 says 'occurs-depending table', but GR9 rests on GR8, not GR3. No removed form, no enumeration, no deferral.",
+    "probe": null,
+    "widening": "2023 Format 2 also accepts BYTES in place of CHARACTERS"
+   },
+   {
+    "rule-id": "2002-GR-13.16.42.3-1",
+    "to": [
+     "GR-13.18.44.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.42 REDEFINES clause",
+    "clause-2023": "13.18.44 REDEFINES clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.42.2 SR4",
+      "quote": "This clause shall not be specified in level 1 entries in the communication section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.3 GR1",
+      "quote": "Storage association for the subject of the entry starts at the first bit of the data item referenced by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.44.4 GR1",
+      "quote": "Storage association for the subject of the entry starts at the first bit of the data item referenced by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a), named in the clause itself: 2002 SR4 forbids REDEFINES only in LEVEL 1 entries of the communication section, so a REDEFINES in a subordinate entry of a CD record is legal 2002 and GR1 governs its storage association. 2023 has no communication section and deleted SR4. Otherwise the format and SR/GR set correspond (2023 adds SR13 CONSTANT RECORD and SR17 variable-length groups, both 2023-only constructs).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-redef.cob (std 2002: COBOL0903 obsolete warning, runs, '1235 ABCD AB': C1R REDEFINES C1 inside a CD record shares C1's storage; std 2023: COBOL0902 refused)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.42.3-2",
+    "to": [
+     "GR-13.18.44.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.42 REDEFINES clause",
+    "clause-2023": "13.18.44 REDEFINES clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.42.3 GR2",
+      "quote": "When the same storage area is defined by more than one data description entry, the data-name associated with any of those data description entries may be used to reference that storage area.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.44.4 GR2",
+      "quote": "When the same storage area is defined by more than one data description entry, the data-name associated with any of those data description entries may be used to reference that storage area.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR4",
+      "quote": "This clause shall not be specified in level 1 entries in the communication section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a), doubly: in 2002 the same storage area is defined by more than one entry under a CD both through an explicit REDEFINES in a subordinate CD record entry (SR4 forbids only level 1) and through the IMPLICIT redefinition of the CD record area by every record description that follows the CD (A.1.1.2). GR2 licenses references through any of those names. 2023 has neither case.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-redef.cob (std 2002: C1 and C1R both reference the same CD-record storage, ADD 1 TO C1R shows in C1 as 1235)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.43.3-1",
+    "to": [
+     "GR-13.18.45.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.43 RENAMES clause",
+    "clause-2023": "13.18.45 RENAMES clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.43.2 SR3",
+      "quote": "Data-name-1 may be qualified only by the names of the associated level 01, FD, CD, or SD entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.45.3 SR3",
+      "quote": "Data-name-1 may be qualified only by the names of the associated level 01, FD, or SD entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.43.3 GR1",
+      "quote": "When the THROUGH phrase is not specified, all of the data attributes of data-name-2 become the data attributes of data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.45.4 GR1",
+      "quote": "When the THROUGH phrase is not specified, all of the data attributes of data-name-2 become the data attributes of data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a), named in the clause itself: 2002 SR3 names CD among the entries a 66-level data-name-1 is associated with; 2023 SR3 drops CD. So in 2002 GR1 also governs a 66 RENAMES (no THROUGH) written after a record under a CD. Format identical otherwise.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-redef.cob (std 2002: 66 C2N RENAMES C2 after a CD record displays 'AB', the attributes and storage of C2)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.47.3-4",
+    "to": [
+     "GR-13.18.49.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.47 SAME AS clause",
+    "clause-2023": "13.18.49 SAME AS clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.47.3 GR4",
+      "quote": "If a group item to which data-name-1 is subordinate contains a GROUP-USAGE clause and the subject of the entry is a group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.49.4 GR4",
+      "quote": "If a group item to which data-name-1 is subordinate contains a GROUP-USAGE clause and the subject of the entry is a group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.47.2 SR7",
+      "quote": "Data-name-1 shall reference an elementary item or a level 1 group item described in the file, working-storage, local-storage, or linkage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.49.3 SR7",
+      "quote": "Data-name-1 shall reference an elementary item or a level 1 group item described in the file, working-storage, local-storage, or linkage section.",
+      "check": "OK"
+     }
+    ],
+    "reason": "The format (SAME AS data-name-1) is identical. The subject of a SAME AS entry CAN sit in a CD record in 2002 (cause (a) reaches SR7 and SR9 of this clause), but GR4 cannot fire there or anywhere: it needs data-name-1 subordinate to a group AND the subject a group, while the word-identical SR7 of both editions requires data-name-1 to be an elementary item (then the subject is elementary) or a LEVEL 1 group (then it is subordinate to nothing). The rule is vacuous in both editions alike, so no 2002 program reaches a case 2023's does not. GROUP-USAGE {BIT|NATIONAL} is the same in both. The probe confirms SR7 is enforced at 2002 on a CD-record subject.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-sameas-gu.cob (std 2002: SAME AS a level-5 group refused COBOL1556 citing SR7)",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.5.3-1",
+    "to": [
+     "GR-13.18.5.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.5 BASED clause",
+    "clause-2023": "13.18.5 BASED clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.3 GR1",
+      "quote": "The BASED clause specifies that the subject of the entry is a based entry defining a template that is dynamically associated with storage through an implicit data-address pointer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.5.4 GR1",
+      "quote": "The BASED clause specifies that the subject of the entry is a based entry defining a template that is dynamically associated with storage through an implicit data-address pointer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR16",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical (BASED). The clause is confined to linkage, working-storage and local-storage level 1/77 entries in both editions, so it cannot reach a CD record. 2023 adds SR2 (not a dynamic-length item or variable-length group), constructs 2002 lacks. GR1 itself defers to nothing. 'Based entry' and 'implicit data-address pointer' carry the same meaning (2023 GR2 only adds a pointer to the SET rules).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.50.3-1",
+    "to": [
+     "GR-13.18.52.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.50 SIGN clause",
+    "clause-2023": "13.18.52 SIGN clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.50.3 GR1",
+      "quote": "The SIGN clause specifies the position and the mode of representation of the operational sign for the numeric item to which it applies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.52.4 GR1",
+      "quote": "The SIGN clause specifies the position and the mode of representation of the operational sign for the numeric item to which it applies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.50.2 SR1",
+      "quote": "an alphanumeric group item, national group item, or strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a), missed by the screen: SIGN is written inline in the 2002 13.14 format 1 (not as a meta-term), and the CD's record description entries are 13.14 data description entries (A.1.1, A.1.1.2) with no section restriction on SIGN. So GR1 governs a signed numeric item, or a group, in a CD record in 2002; 2023 has no such entry. Clause otherwise word-identical (format, SR1-SR3, GR1-GR7).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-sign.cob (std 2002: CDREC SIGN TRAILING SEPARATE gives S2 '012-'; std 2023 COBOL0902)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.50.3-2",
+    "to": [
+     "GR-13.18.52.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.50 SIGN clause",
+    "clause-2023": "13.18.52 SIGN clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.50.3 GR2",
+      "quote": "the SIGN clause specified in the subordinate group item takes precedence for that subordinate group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.52.4 GR2",
+      "quote": "the SIGN clause specified in the subordinate group item takes precedence for that subordinate group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): a CD record (01 under the CD) with a group SIGN clause and a subordinate group with its own SIGN is legal 2002; 2023 cannot express it. Same clause text otherwise.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-sign.cob (std 2002: G1 SIGN LEADING SEPARATE under CDREC SIGN TRAILING SEPARATE: S1 = '-012')",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.50.3-3",
+    "to": [
+     "GR-13.18.52.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.50 SIGN clause",
+    "clause-2023": "13.18.52 SIGN clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.50.3 GR3",
+      "quote": "the SIGN clause specified in that elementary entry takes precedence for that elementary entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.52.4 GR3",
+      "quote": "the SIGN clause specified in that elementary entry takes precedence for that elementary entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): elementary SIGN overriding a group SIGN inside a CD record is a 2002-only case. Same clause text otherwise.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-sign.cob (std 2002: S3 SIGN LEADING under CDREC SIGN TRAILING SEPARATE: '}12', leading overpunch, no separate sign)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.50.3-4",
+    "to": [
+     "GR-13.18.52.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.50 SIGN clause",
+    "clause-2023": "13.18.52 SIGN clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.50.3 GR4",
+      "quote": "The implementor shall specify the position and representation of the operational sign.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.52.4 GR4",
+      "quote": "The implementor shall specify the position and representation of the operational sign.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): every PIC S item in a CD record with no SIGN clause applying falls under GR4 in 2002; 2023 has no such item. The implementor-defined representation is the same choice in both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-sign4.cob (std 2002: PIC S9(3) in a CD record holds -12 as '01K', identical to its working-storage twin)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.51.3-4",
+    "to": [
+     "GR-13.18.53.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.51 SOURCE clause",
+    "clause-2023": "13.18.53 SOURCE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.51.3 GR4",
+      "quote": "successive operands are assigned to successive repeating printable items, horizontally and then vertically",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.53.4 GR4",
+      "quote": "successive operands are assigned to successive repeating printable items, horizontally and then vertically",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.51.2 SR4",
+      "quote": "Identifier-1 specifies a data item defined in any section of the data division.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical except that 2023 writes [rounded-phrase] (14.7.4) for 2002's [ROUNDED], a widening. The rule is about how operands are distributed over repeating printable items in a report group; it does not depend on what the operand is. An operand may be a CD record item in 2002 (SR4: any section), but the distribution rule is the same for it. PRESENT WHEN and OCCURS DEPENDING suppression exist in both report writers. No list membership, no deferral. Note for the refuter: report writer is optional in 2023 (A.4.11) and required in 2002; the compiler claims it, so a CONFORMS 2023 verdict on this rule is an implementation, not a licence.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-01/src/src_multi.cob (log: E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-01/work/src_multi-2002/run.log)",
+    "widening": "2023 rounded-phrase (ROUNDED MODE) in place of ROUNDED",
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 16557 has the same rule split by a '## Page 414' marker: a page break, no textual change. But re-checking the 2002 rule against its own clause found its evidence missing: the 2023 row's only witness, pb506_report_value_operand_list, is REFUSED at --std 2002 (rc 65: COBOL0900 for a numeric VALUE on a numeric-edited item and for ORGANIZATION LINE SEQUENTIAL, both later constructs unrelated to this rule), so nothing from the 2023 row shows §2002:13.16.51.3 GR4 at 2002. Probe src_multi.cob shows horizontal-then-vertical assignment and the wrap-around at 2002 (and the same at 2023)."
+    },
+    "class": "other",
+    "class-detail": "evidence: the twin witness does not run at --std 2002 (refused for constructs the 2002 rule does not involve)",
+    "needs": "a 2002 witness for multi-operand SOURCE distribution (candidate: probe src_multi.cob, lines AAA BBB / AAA BBB / CCC DDD / CCC DDD / CCC DDD at 2002); the suppressed-items sentence stays unshown at every edition because a DEPENDING repetition cannot nest under another repeating entry (§2002:13.16.36.2 SR9, multiple LINE equivalent by §2002:13.16.33.3 GR9; probe src_odo.cob refused COBOL2021)",
+    "compiler-at-2002": "correct",
+    "evidence-2002": [
+     "horizontal then vertical assignment: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-01/src/src_multi.cob at --std 2002 (lines 2-3: AAA BBB / CCC DDD from SOURCES ARE WS-A WS-B WS-C WS-D)",
+     "wrap to the first operand: covered by the same probe (lines 4-5: CCC DDD twice from two operands over 2x2 repetitions)",
+     "multiple COLUMN with SOURCES: covered by the same probe (line 1: AAA BBB)",
+     "assignment to items suppressed by PRESENT WHEN or OCCURS DEPENDING: not shown (no observable 2002 shape: a DEPENDING repetition cannot be subordinate to another repetition)",
+     "twin witness pb506_report_value_operand_list: refused at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-01/work/pb506_report_value_operand_list-2002/run.log)"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.51.3 GR4",
+      "quote": "If no further operands remain, assignment begins again from the first operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.51.2 SR6",
+      "quote": "the number of operands of the SOURCE clause shall be equal to the number of repetitions of the repeating entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR9",
+      "quote": "If the DEPENDING ON phrase is not specified, an OCCURS clause may be subordinate to a data description entry that contains another OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.33.3 GR9",
+      "quote": "A multiple LINE clause is functionally equivalent to a LINE clause with a single operand, together with a simple OCCURS clause",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-04"
+   },
+   {
+    "rule-id": "2002-GR-13.16.53.3-3",
+    "to": [
+     "GR-13.18.55.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.53 SYNCHRONIZED clause",
+    "clause-2023": "13.18.55 SYNCHRONIZED clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.53.3 GR3",
+      "quote": "SYNCHRONIZED LEFT specifies that the elementary item is to be positioned such that it will begin at the left byte of the natural boundary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.55.4 GR4",
+      "quote": "SYNCHRONIZED LEFT specifies that the elementary item is to be positioned such that it will begin at the left byte of the natural boundary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR11",
+      "quote": "The SYNCHRONIZED, PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a), the same as the first sample's 13.16.53.3 GR6: SYNCHRONIZED is inline in the 2002 13.14 format 1 and allowed in CD record entries, so SYNC LEFT on an elementary item of a CD record is a 2002 case. 2023 renumbers (GR3 -> GR4, new GR1) and widens SYNC to group items.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-sign4.cob (std 2002: SYNC LEFT in a CD record accepted and runs; alignment itself is not observable from the program)",
+    "widening": "2023 SR1 and GR1 extend SYNCHRONIZED to group items",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "not probed"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-15",
+    "to": [
+     "GR-13.18.63.4-15"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR15",
+      "quote": "If multiple specifications of the FROM phrase reference the same table element, the value defined by the last specified FROM phrase in the VALUE clause is assigned to the table element.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR15",
+      "quote": "If multiple specifications of the FROM phrase reference the same table element, the value defined by the last specified FROM phrase in the VALUE clause is assigned to the table element.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "VALUE clauses in the working-storage, local-storage, and communication sections take effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR4",
+      "quote": "VALUE clauses in the working-storage and local-storage sections take effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a), named in the clause: 2002's VALUE clause covers communication-section items (description and GR4), so a format 2 table VALUE with overlapping FROM phrases in the first CD record redefinition is a 2002 case; 2023's GR4 and description drop the communication section. Format 2 and its band are the same in both (2023 adds dynamic-capacity tables to GR12/14/16, a widening).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-valtab.cob (std 2002: VALUES 'A' 'B' FROM (1) 'C' FROM (2) in a CD record gives 'ACCC', the last FROM wins; ws-valtab.cob gives the same at 2002 and 2023)",
+    "widening": "2023 extends format 2 to dynamic-capacity tables",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-16",
+    "to": [
+     "GR-13.18.63.4-19"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR16",
+      "quote": "The characteristics of a condition-name are implicitly those of its conditional variable.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR19",
+      "quote": "The characteristics of a condition-name are implicitly those of its conditional variable.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "VALUE clauses in the working-storage, local-storage, and communication sections take effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): a level 88 condition-name under a CD record item is legal 2002 (13.14.2 SR22 excludes no section), and GR16 governs it; 2023 has none. Band FORMAT 3 in both. Same as the first sample's 13.16.61.2 SR20.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-sign.cob (std 2002: 88 B1-ZERO VALUE '   ' under a BLANK WHEN ZERO item of a CD record is true after MOVE 0; cd-sign-num88.cob: VALUE 0 there is refused, consistent with 2002 13.16.61.2 SR4 for a numeric-edited, class alphanumeric, conditional variable)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-2",
+    "to": [
+     "GR-13.18.63.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR2",
+      "quote": "In the file section, VALUE clauses take effect only during the execution of an INITIALIZE statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR2",
+      "quote": "In the file section, VALUE clauses take effect only during the execution of an INITIALIZE statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR11",
+      "quote": "General rules 1, 2, 3, 4, 5, 6, 7, 8, and 10 above apply.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (c), the mechanism of the first sample's 13.16.61.3 GR5: the 2002 rule is banded 'FORMATS 1 AND 2', so it also governs a format 2 (table) VALUE in the file section. 2023 bands its GR2 'FORMAT 1' only and reaches format 2 through GR11 ('General rules 1, 2, ... apply'). The 2023 twin alone does not cover the 2002 rule's format 2 case. Not a communication case (file section only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\fd-valtab.cob (std 2002 and 2023: a format 2 VALUE in an FD record takes effect on INITIALIZE ... ALL TO VALUE: '[ACCCE]')",
+    "widening": null,
+    "class": "split-rule",
+    "needs": "KEPT to both targets (GR-13.18.63.4-2 and GR-13.18.63.4-11)",
+    "compiler-at-2002": "correct",
+    "second-targets": [
+     "GR-13.18.63.4-11"
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.62.3-1",
+    "to": [
+     "GR-13.18.64.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.62 VARYING clause",
+    "clause-2023": "13.18.64 VARYING clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.62.3 GR1",
+      "quote": "Each entry containing a VARYING clause establishes an independent temporary integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.64.4 GR1",
+      "quote": "Each entry containing a VARYING clause establishes an independent temporary integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4, Optional language element list.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.64.1",
+      "quote": "The VARYING clause feature of the VALIDATE facility is an obsolete feature.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "A FIFTH CAUSE, optional status: GR1 governs both legs of VARYING (report group entries and VALIDATE). In 2023 the VALIDATE facility, VARYING included (A.4.14 item 8), is an OPTIONAL element (4.2.7), so a 2023 verdict can rest on declining that leg. In 2002 the only optional element is Annex A: VALIDATE (2002 14.8.46) and the validation clauses are required. The 2023 verdict therefore says nothing about the 2002 validation leg. Also cause (a): validation clauses are inline in 2002 13.14 format 1 and allowed in CD record entries.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\ws-vary.cob (std 2002: working-storage 05 T1 OCCURS 3 VARYING K DESTINATION D1 (K): COBOL1708 refused for VARYING and DESTINATION; VALIDATE gets COBOL1580 inert); cd-vary.cob the same in a CD record",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for VARYING in a data description entry (validation leg) is refusal, COBOL1708, justified by 2023 Annex A.4.14, which 2002 does not have",
+    "compiler-at-2002": "wrong"
+   },
+   {
+    "rule-id": "2002-GR-13.16.8.3-1",
+    "to": [
+     "GR-13.18.8.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.8 BLANK WHEN ZERO clause",
+    "clause-2023": "13.18.8 BLANK WHEN ZERO clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.8.3 GR1",
+      "quote": "the content of the data item is set to all spaces when the item is a receiving operand and the value being stored is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.8.4 GR1",
+      "quote": "the content of the data item is set to all spaces when the item is a receiving operand and the value being stored is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR11",
+      "quote": "The SYNCHRONIZED, PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a), the same as the first sample's 13.16.8.2 SR2: BLANK WHEN ZERO is inline in 2002 13.14 format 1 and allowed in a CD record entry; also, in 2002 'receiving operand' reaches RECEIVE ... INTO a record. 2023 has neither. Clause otherwise identical (2023 adds GR3, spaces read as zero, a widening).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-sign.cob (std 2002: MOVE 0 TO B1 PIC 9(3) BLANK WHEN ZERO in a CD record leaves '   ')",
+    "widening": "2023 GR3: an all-spaces BLANK WHEN ZERO sender reads as zero",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.8.3-2",
+    "to": [
+     "GR-13.18.8.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.8 BLANK WHEN ZERO clause",
+    "clause-2023": "13.18.8 BLANK WHEN ZERO clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.8.3 GR2",
+      "quote": "If the subject of the entry is described by its picture character-string as category numeric, the BLANK WHEN ZERO clause defines the item as numeric-edited.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.8.4 GR2",
+      "quote": "If the subject of the entry is described by its picture character-string as category numeric, the BLANK WHEN ZERO clause defines the item as numeric-edited.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): a PIC 9 BLANK WHEN ZERO item in a CD record is a 2002 case that GR2 makes numeric-edited; 2023 has none.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\cd-sign-num88.cob (std 2002: the CD-record item is treated as numeric-edited, so a numeric-literal 88 VALUE on it is refused, as 2002 13.16.61.2 SR4 requires for class alphanumeric)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.4.3-2",
+    "to": [
+     "GR-13.5.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.4 Working-storage section",
+    "clause-2023": "13.5 Working-storage section",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.4.3 GR2",
+      "quote": "Data items in the working-storage section of a program that does have the initial attribute are initial data.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.5.4 GR2",
+      "quote": "Data items in the working-storage section of a program that does have the initial attribute are initial data.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.6.3",
+      "quote": "Data items and file connectors defined in the file, working-storage, and communication sections of an initial program are initial items.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.6.4",
+      "quote": "Data items and file connectors defined in the file and working-storage sections of an initial program are initial items.",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule names only the working-storage section, so the 2002 extension of 'initial items' to the communication section (8.6.3) is outside it. The initial attribute (INITIAL clause of PROGRAM-ID) and the persistence clause (2002 8.6.3, 2023 8.6.4) are the same for working-storage. 2023's format adds type-declaration-entry and GR3 adds the INITIALIZE clause, neither touching this classification.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.5.3-1",
+    "to": [
+     "GR-13.6.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.5 Local-storage section",
+    "clause-2023": "13.6 Local-storage section",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.5.3 GR1",
+      "quote": "Data items in the local-storage section are automatic data.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.6.4 GR1",
+      "quote": "Data items in the local-storage section are automatic data.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.6.3",
+      "quote": "Data items defined in the local-storage section are automatic items.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.6.4",
+      "quote": "Data items defined in the local-storage section are automatic items.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule over an identical section (2023 only adds type-declaration entries to the format). 'Automatic' is defined word for word the same in 2002 8.6.3 and 2023 8.6.4. No CD, no enumeration, no deferral.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-11",
+    "to": [
+     "GR-14.2.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.1 Procedure division structure",
+    "clause-2023": "14.2 Procedure division structure",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR11",
+      "quote": "At all times in the activated element, references to data-name-1 and to data-name-2 are resolved in accordance with their description in the linkage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR11",
+      "quote": "At all times in the activated element, references to data-name-1 and to data-name-2 are resolved in accordance with their description in the linkage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.1.2 SR1",
+      "quote": "Data-name-1 shall be defined as a level 01 entry or a level 77 entry in the linkage section.",
+      "check": "OK"
+     }
+    ],
+    "reason": "The procedure-division header and using-phrase formats are identical (2023 renames class-name-1 to object-class-name-1 in RAISING). Data-name-1 and data-name-2 are linkage-section level 01/77 in both, so no CD reach; the band is FORMATS 1 AND 2 in both and the set of source elements (SR10) is the same. 2023 adds message-tag to BY VALUE (SR2), a widening.",
+    "probe": null,
+    "widening": "2023 SR2 admits class message-tag for BY VALUE"
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-4",
+    "to": [
+     "GR-14.2.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.1 Procedure division structure",
+    "clause-2023": "14.2 Procedure division structure",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR4",
+      "quote": "Both the BY REFERENCE and the BY VALUE phrases are transitive across the parameters that follow them",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR4",
+      "quote": "Both the BY REFERENCE and the BY VALUE phrases are transitive across the parameters that follow them",
+      "check": "OK"
+     }
+    ],
+    "reason": "The using-phrase format is identical in both editions (BY REFERENCE with OPTIONAL, BY VALUE); no BY CONTENT or other form in either header. Same band. No CD reach (linkage section).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-7",
+    "to": [
+     "GR-14.2.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.1 Procedure division structure",
+    "clause-2023": "14.2 Procedure division structure",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR7",
+      "quote": "The initial value of the returning item, data-name-2, is undefined.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR7",
+      "quote": "The initial value of the returning item, data-name-2, is undefined.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.1.2 SR5",
+      "quote": "Data-name-2 shall be defined as a level 01 entry or level 77 entry in the linkage section.",
+      "check": "OK"
+     }
+    ],
+    "reason": "RETURNING data-name-2 is the same in both formats, with the same SR3-SR6; the rule refers to nothing else. No CD reach.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-10",
+    "to": [
+     "GR-14.9.1.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1 ACCEPT statement",
+    "clause-2023": "14.9.1 ACCEPT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR10",
+      "quote": "DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR10",
+      "quote": "DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 (chronological in 2002, temporal in 2023) is the same: DATE [YYYYMMDD], DAY [YYYYDDD], DAY-OF-WEEK, TIME. The rule describes the conceptual sending item, and the two-row table is identical. The receiving identifier-2 may be a CD record item in 2002, but that is governed by GR6 (MOVE rules), not by this rule. 2023 SR6 (no variable-length group) concerns a 2023-only construct.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\acc-day.cob (std 2002 and 2023 alike: DAY YYYYDDD into 9(7) '2026318', into X(9) '2026318  ')",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. GR10's 'character positions' and 'numeric characters' are the digits of a usage display item in the alphanumeric coded character set (4.29); probe acc-day.cob gives '2026318' at 2002. The term picks out the same characters in both, so the scope and the evidence do not change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.3 GR10",
+      "quote": "DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-9",
+    "to": [
+     "GR-14.9.1.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1 ACCEPT statement",
+    "clause-2023": "14.9.1 ACCEPT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR9",
+      "quote": "DAY without the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display five digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR9",
+      "quote": "DAY without the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display five digits in length",
+      "check": "OK"
+     }
+    ],
+    "reason": "As for GR10: identical format 2, identical table, and the rule concerns only the conceptual DAY item.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-04\\acc-day.cob (std 2002 and 2023 alike: DAY into 9(5) '26318')",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. GR9's 'the character positions of which, numbered from left to right' are the digits of a usage display item (4.29/4.31); probe acc-day.cob gives '26318' at 2002. The term picks out the same characters in both, so the scope and the evidence do not change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.3 GR9",
+      "quote": "the character positions of which, numbered from left to right, are",
+      "check": "OK"
+     }
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-04",
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.41.3-9",
+    "verdict": "UPHELD",
+    "reason": "Read 13.16.41 (2002) and 13.18.43 (2023) whole. Format 2 is the same in both but for the BYTES synonym (2023 SR2), a widening. GR9 also covers the implicit format 2 clause through GR5b, which is word-identical. The bytes 'described for a record' come from GR8, also identical (2023 SYNC on groups only widens the implicit FILLER it counts). The RECORD clause appears only in FD/SD entries in both, so it cannot reach a CD record. 2002 GR3's 'variable-length data item' against 2023's 'occurs-depending table' does not feed GR9. Neither edition has an obsolete form of the clause, and GR9 defers to nothing outside the clause.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR9",
+      "quote": "minimum number of bytes to be contained in any record of the file is equal to the least number of bytes described for a record in that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR9",
+      "quote": "minimum number of bytes to be contained in any record of the file is equal to the least number of bytes described for a record in that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR5",
+      "quote": "an implicit format 1 or format 2 RECORD clause is assumed to be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR5",
+      "quote": "an implicit format 1 or format 2 RECORD clause is assumed to be specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.47.3-4",
+    "verdict": "UPHELD",
+    "reason": "Checked the vacuity argument on its own. SR7 is identical in both editions: data-name-1 is an elementary item or a level 1 group. SR2, also identical, forbids subordinate entries after a SAME AS entry. So an elementary data-name-1 makes an elementary subject, and a level 1 group data-name-1 is subordinate to no group. GR4 needs both conditions together, so it can fire in neither edition. Other syntax rules do differ: 2023 SR1 bars a data-name-1 subject to OCCURS where 2002 SR1 only allows qualification; 2023 SR3 is reworded; 2023 adds SR10. None of these makes GR4 reachable in 2002. A subject inside a CD record is possible in 2002, but GR4 stays vacuous there too. Same requirement.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.47.2 SR7",
+      "quote": "Data-name-1 shall reference an elementary item or a level 1 group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.49.3 SR7",
+      "quote": "Data-name-1 shall reference an elementary item or a level 1 group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.47.2 SR2",
+      "quote": "shall not be immediately followed by a subordinate data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.49.3 SR2",
+      "quote": "shall not be immediately followed by a subordinate data description entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.5.3-1",
+    "verdict": "UPHELD",
+    "reason": "The format (BASED) is identical. The rule leans on 'based entry' (2002 8.6.4, 2023 8.6.5), and those clauses are word-identical: working-storage, local-storage and linkage only, associated through the address of a data item or ALLOCATE storage. So there is no CD reach and no 2002-only association mechanism. 2023 adds SR2, which excludes dynamic-length items and variable-length groups, both 2023-only constructs. 2023 GR2 only adds a pointer to the SET rules.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.3 GR1",
+      "quote": "dynamically associated with storage through an implicit data-address pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.5.4 GR1",
+      "quote": "dynamically associated with storage through an implicit data-address pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.6.4",
+      "quote": "A based entry is a data description entry in the working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.6.5",
+      "quote": "A based entry is a data description entry in the working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.4.3-2",
+    "verdict": "UPHELD",
+    "reason": "The rule covers working-storage only, so it has no CD reach. The 2002 communication-section initial items in 8.6.3 fall outside it. The initial attribute is obtained the same way in both editions, from the INITIAL clause (2002 8.6.5, 2023 8.6.6). 2023 8.6.6 also re-initializes contained programs' data when an initial program is initialized. That concerns static data under GR1 and initialization under GR3, not this classification. 2023 adds type-declaration-entry to the format and the INITIALIZE clause to GR3; neither touches GR2.",
+    "citations": [
+     {
+      "cite": "§2002:13.4.3 GR2",
+      "quote": "Data items in the working-storage section of a program that does have the initial attribute are initial data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.5.4 GR2",
+      "quote": "Data items in the working-storage section of a program that does have the initial attribute are initial data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.6.5",
+      "quote": "The initial attribute is attained by specifying the INITIAL clause in the program's identification division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.6.6",
+      "quote": "The initial attribute is attained by specifying the INITIAL clause in the program's identification division",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.5.3-1",
+    "verdict": "UPHELD",
+    "reason": "SR1 is identical in both editions: the section is allowed in program, function and method definitions. The automatic-items paragraph of 8.6.3 (2002) and 8.6.4 (2023) is identical. The format adds only type-declaration entries in 2023, a widening. The rule has no CD reach and no removed form.",
+    "citations": [
+     {
+      "cite": "§2002:13.5.3 GR1",
+      "quote": "Data items in the local-storage section are automatic data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.6.4 GR1",
+      "quote": "Data items in the local-storage section are automatic data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.5.2 SR1",
+      "quote": "may be specified in a program definition or function definition or in a method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.6.3 SR1",
+      "quote": "may be specified in a program definition or function definition or in a method definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-11",
+    "verdict": "UPHELD",
+    "reason": "Compared the procedure-division header and using-phrase operand by operand. They are identical apart from class-name-1 becoming object-class-name-1 in RAISING. SR1 and SR5 (linkage level 01/77, no BASED, no REDEFINES) are identical, so there is no CD reach. The FORMATS 1 AND 2 band and SR10's list of source elements are the same. 2023 adds message-tag to BY VALUE (SR2), a widening.",
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR11",
+      "quote": "references to data-name-1 and to data-name-2 are resolved in accordance with their description in the linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR11",
+      "quote": "references to data-name-1 and to data-name-2 are resolved in accordance with their description in the linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.1.2 SR1",
+      "quote": "Data-name-1 shall be defined as a level 01 entry or a level 77 entry in the linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR1",
+      "quote": "Data-name-1 shall be defined as a level 01 entry or a level 77 entry in the linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-4",
+    "verdict": "UPHELD",
+    "reason": "The using-phrase is identical in both editions: [BY REFERENCE] [OPTIONAL] data-name-1, or BY VALUE data-name-1, repeated. Neither edition's header has another passing mode. GR4 refers to nothing else, and the band is the same.",
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR4",
+      "quote": "If neither the BY REFERENCE nor the BY VALUE phrase is specified prior to the first parameter, the BY REFERENCE phrase is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR4",
+      "quote": "If neither the BY REFERENCE nor the BY VALUE phrase is specified prior to the first parameter, the BY REFERENCE phrase is assumed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-7",
+    "verdict": "UPHELD",
+    "reason": "RETURNING data-name-2 is identical in both editions, and SR3 to SR6 (where RETURNING is required or allowed, and the linkage level 01/77 constraint) are identical. The rule depends on nothing else and has no CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR7",
+      "quote": "The initial value of the returning item, data-name-2, is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR7",
+      "quote": "The initial value of the returning item, data-name-2, is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.1.2 SR5",
+      "quote": "Data-name-2 shall be defined as a level 01 entry or level 77 entry in the linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR5",
+      "quote": "Data-name-2 shall be defined as a level 01 entry or level 77 entry in the linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-10",
+    "verdict": "UPHELD",
+    "reason": "Format 2 lists the same four sources in both editions: DATE [YYYYMMDD], DAY [YYYYDDD], DAY-OF-WEEK and TIME. GR6, which makes them conceptual items moved by MOVE rules, is identical. GR10's table (positions 1-4 for the year, 5-7 for the day of the year) is identical. A CD-record receiver in 2002 is governed by GR6's MOVE, not by this description of the sender. 2023's LEAP-SECOND change touches TIME (GR11) only.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR10",
+      "quote": "DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR10",
+      "quote": "DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.3 GR6",
+      "quote": "DATE, DAY, DAY-OF-WEEK, and TIME are conceptual data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR6",
+      "quote": "DATE, DAY, DAY-OF-WEEK, and TIME are conceptual data items",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-9",
+    "verdict": "UPHELD",
+    "reason": "Same analysis as GR10: identical format 2, identical GR6, and an identical table (positions 1-2 for the two low-order digits of the year, 3-5 for the day of the year 001 to 366). The rule describes only the conceptual DAY item.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR9",
+      "quote": "DAY without the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display five digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR9",
+      "quote": "DAY without the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display five digits in length",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "f1ffa63cb7a6a95c6fe16610eb3f92b99317aab317ff6b4281d01efa284cac42",
+  "read": "6f22cea927ba68916f97bb776c7cbdd1f90b91af6b1b16399a52048dd18b6da1",
+  "refute": "a092acdf5e0addd6f1ceafacea7bb65accef3ea14f2e4b38be27788f96df3b39"
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-14.8.29.2-3",
+ "rule-digest": "ce8a988fa60c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "type | for type declaration (newer: 8.5.3)",
+    "answer": "2002 'type (for type declaration): A template that contains all the characteristics of a data item and its subordinates' (§2002:4); 8.5.3 decides 'same type', and within one source element that is the same TYPE clause or the same subordinate item of one declaration (§2002:8.5.3 NOTE). 2023's additions (STRONG/EXTERNAL presence, aligned, dynamic length, bit) concern constructs 2002 lacks or that SR3's both-strongly-typed premise already fixes; the different-type refusal (w-pb348-read-into-strong-group.cob, COBOL1533 at 2002) shows it."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+    "answer": "8.5.3 (near) supplies SR3's 'same type' and is answered above: unchanged for 2002 programs. 8.5.4 (zero-length items) and 14.5.8 (alignment, removed) were flagged by the word 'type' alone; SR3 says nothing about zero-length items or alignment, so neither bears on it."
+   },
+   "behaviour-switch": {
+    "flag": "indexed-read-previous-after-open-at-end",
+    "answer": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd) changes only a sequential READ PREVIOUS that is the first retrieval after OPEN on an indexed file, the case of §2002:14.8.29.3 GR18c; this rule does not govern that case, and its own behaviour at --std 2002 is shown by the compile-time probes the read names (COBOL1995, COBOL1533 at 2002); a syntax rule the run-time switch cannot reach. Separately, the switch's own 2002 arm is wrong (a defect lead, not this row's): probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob gives P1=K002|00 at --std 2002 (and 2014), where §2002:14.8.26.3 GR12 sets an indexed file's position indicator to the lowest-ordinal characters and §2002:14.8.29.3 GR18c selects a record whose key is 'less than or equal to the file position indicator', none, so GR18 gives status 10 and the at end condition (2023 prints ATEND|10); code site IndexedConnector.SelectSequentialRecord (src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs:445) with DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (DialectBehavior.cs:297, kb/Work PB344)."
+   }
+  },
+  "source": "lineage-reads-2002/q-29.json",
+  "digests": {
+   "SR-14.9.30.3-2": "ce8a988fa60c"
+  }
+ }
+}

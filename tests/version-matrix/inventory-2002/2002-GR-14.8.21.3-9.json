@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-9",
+ "rule-digest": "13dd72ee0afb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "inspect-before-from-first-eligible-position",
+    "answer": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-ba-f3.cob at --std 2002: TALLYING FOR LEADING \"A\" \"B\" AFTER \"X\" BEFORE \"Y\" over AYXBBA gives 01 (2023: 03): LEADING carries to \"B\", never eligible at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-27.json",
+  "digests": {
+   "GR-14.9.22.4-10": "13dd72ee0afb"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.1.3-20",
+ "rule-digest": "5062af1ae29e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.1.4-20"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Two triggers: 'terminated' (end of the ACCEPT statement, not run unit termination §2002:14.5.10, initial state or transfer of control) and 'EC-' (EC-DATA-INCOMPATIBLE). The rule leaves the choice implementor-defined; 2002 processes the condition under §2002:14.5.12.1.2/14.5.12.1.3 and §2002:14.5.12.2, whose text differs from 2023, but that difference is only observable when executable code for the screen ACCEPT exists. The screen ACCEPT is declined at --std 2002 (COBOL1707) and §2002:3.1.5 lets the implementor produce no code, so no exception path is reached; scope and evidence unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-24.json",
+  "digests": {
+   "GR-14.9.1.4-20": "5062af1ae29e"
+  }
+ }
+}

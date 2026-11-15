@@ -1,0 +1,1558 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-02 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-02",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-12.3.4.6.3-5",
+   "2002-GR-12.3.4.6.3-6",
+   "2002-GR-12.3.4.8.3-2",
+   "2002-GR-12.3.4.8.3-5",
+   "2002-GR-12.3.4.9.2-1",
+   "2002-GR-12.3.6.3-3",
+   "2002-GR-12.3.6.3-4",
+   "2002-GR-13.14.3-2",
+   "2002-GR-13.14.3-3",
+   "2002-GR-13.16.10.3-1",
+   "2002-GR-13.16.10.3-2",
+   "2002-GR-13.16.10.3-4",
+   "2002-GR-13.16.12.3-3",
+   "2002-GR-13.16.13.3-3",
+   "2002-GR-13.16.13.3-6",
+   "2002-GR-13.16.14.3-1",
+   "2002-GR-13.16.14.3-10",
+   "2002-GR-13.16.14.3-12",
+   "2002-GR-13.16.14.3-9",
+   "2002-GR-13.16.15.3-1",
+   "2002-GR-13.16.20.3-3",
+   "2002-GR-13.16.25.3-1",
+   "2002-GR-13.16.25.3-3",
+   "2002-GR-13.16.31.3-2",
+   "2002-GR-13.16.32.3-1"
+  ]
+ },
+ "read": {
+  "slice": "p-02",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-12.3.4.6.3-5",
+    "to": [
+     "GR-12.4.5.7.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.6",
+    "clause-2023": "12.4.5.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.3 GR5",
+      "quote": "If alphabet-name-2 is not specified in the file control entry, the native national collating sequence applies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.4 GR5",
+      "quote": "If alphabet-name-2 is not specified in the file control entry, the native national collating sequence applies",
+      "check": "OK"
+     }
+    ],
+    "reason": "Both formats (file-level IS/FOR ALPHANUMERIC/FOR NATIONAL; key-level OF data-name-1/record-key-name-1) and SR1-SR5, SR7(2002)=SR8(2023) are word-identical. 2023 adds only SR6 (data-name-1 and record-key-name-1 not subscripted), which restricts no 2002 program because both operands are names from a RECORD KEY clause. No communication or debugging reach (indexed file control entry).",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so 'record keys of class national' names the same 2002 keys (national, national-edited, numeric-edited usage national, national group items: §2002:8.5.2). Scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "a national group item has class and category national",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.6.3-6",
+    "to": [
+     "GR-12.4.5.7.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.6",
+    "clause-2023": "12.4.5.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.3 GR6",
+      "quote": "Alphabet-name-3 applies to record keys identified by data-name-1 or record-key-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.4 GR6",
+      "quote": "Alphabet-name-3 applies to record keys identified by data-name-1 or record-key-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Key-level format identical; the GR sits under FORMAT 2 in both. 2023 SR6 (not subscripted) removes no 2002 form: data-name-1/record-key-name-1 are names specified in a RECORD KEY/ALTERNATE RECORD KEY clause in both.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-2",
+    "to": [
+     "GR-12.4.5.9.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.8",
+    "clause-2023": "12.4.5.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR2",
+      "quote": "If the processor does not support record locking, record locks have no effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR2",
+      "quote": "If the processor does not support record locking, record locks have no effect",
+      "check": "OK"
+     }
+    ],
+    "reason": "LOCK MODE general format identical (MANUAL/AUTOMATIC, WITH LOCK ON [MULTIPLE] RECORD/RECORDS). 2023 adds SR1 (not with APPLY COMMIT), a construct absent from 2002, so no 2002 program is excluded. GR1-GR6 identical; GR7 raised minimums and GR8 dropping 'atomic' do not touch GR2.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-5",
+    "to": [
+     "GR-12.4.5.9.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.8",
+    "clause-2023": "12.4.5.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR5",
+      "quote": "Records locks are obtained only when the LOCK phrase is explicitly specified on an I-O statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR5",
+      "quote": "Records locks are obtained only when the LOCK phrase is explicitly specified on an I-O statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format. The I-O statements carrying a record LOCK phrase are the same set in both editions (grep of underlined LOCK in the statement formats: READ twice, REWRITE, WRITE twice). CLOSE WITH LOCK (2002) is a file lock, not a record lock, so it is outside this rule.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.9.2-1",
+    "to": [
+     "GR-12.4.5.10.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.9",
+    "clause-2023": "12.4.5.10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.9.2 GR1",
+      "quote": "The file organization is established at the time a physical file is created and cannot subsequently be changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.10.3 GR1",
+      "quote": "The file organization is established at the time a physical file is created and cannot subsequently be changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.10.3 GR2",
+      "quote": "The LINE SEQUENTIAL phrase specifies that the file organization is line sequential",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 format SEQUENTIAL/RELATIVE/INDEXED; 2023 format LINE SEQUENTIAL/[RECORD] SEQUENTIAL/RELATIVE/INDEXED. Bare SEQUENTIAL remains (RECORD is an optional word), so every 2002 form is still in 2023.",
+    "probe": null,
+    "widening": "2023 adds LINE SEQUENTIAL organization, which the same sentence also governs"
+   },
+   {
+    "rule-id": "2002-GR-12.3.6.3-3",
+    "to": [
+     "GR-12.4.6.4.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.6",
+    "clause-2023": "12.4.6.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.3 GR3",
+      "quote": "A sort-merge-area format SAME clause specifies that memory is shared as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.4 GR4",
+      "quote": "A sort-merge-area format SAME clause specifies that memory is shared as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.4 GR3",
+      "quote": "The file and record area of a file subject to commit and rollback may not be shared",
+      "check": "OK"
+     }
+    ],
+    "reason": "All three SAME formats (file-area, record-area, sort-merge-area) and SR1-SR10 identical. 2023 inserts SR11 and GR3 (APPLY COMMIT), which renumbers this rule to GR4 and touches only files subject to APPLY COMMIT, absent from 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.6.3-4",
+    "to": [
+     "GR-12.4.6.4.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.6",
+    "clause-2023": "12.4.6.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.3 GR4",
+      "quote": "any non-sort and non-merge files associated with file-names specified in that clause shall not be in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.4 GR5",
+      "quote": "any non-sort and non-merge files associated with file-names specified in that clause shall not be in the open mode",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same formats and syntax rules; renumbered to GR5 by the inserted APPLY COMMIT GR3.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.14.3-2",
+    "to": [
+     "GR-13.16.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14",
+    "clause-2023": "13.16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.3 GR2",
+      "quote": "a GROUP-USAGE NATIONAL clause is implied for the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.4 GR2",
+      "quote": "a GROUP-USAGE NATIONAL clause is implied for the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The structure of a record description and the elements allowed in a record description entry are explained in",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "shall describe a record of exactly 87 alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "Support for data of classes boolean and national and exception handling are intentionally omitted from the obsolete communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Data description entry rule. In 2002 the record description entries after a CD are data description entries governed by 13.14 (A.1.1.2), and no normative rule forbids a national group under an output CD (SR9 sets no class, unlike the input CD's 87 alphanumeric positions in SR5); only an informative NOTE in Annex A says national support is omitted from the facility. 2023 has no communication section, so the 2023 verdict says nothing about a group subordinate to a national group in a record under a CD.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-02/cd-natgroup.cob",
+    "widening": null,
+    "needs": "a 2002 witness for a group subordinate to a GROUP-USAGE NATIONAL record under an output CD (or a recorded decision that the Annex A NOTE excludes national data from CD records)",
+    "compiler-at-2002": "correct: cd-natgroup.cob at --std 2002 prints N1=[AB] N2=[CD] and LEN G1 4 BYTES G1 8 (G1 implied national), identical to ws-natgroup.cob in working storage",
+    "class": "communication-reach"
+   },
+   {
+    "rule-id": "2002-GR-13.14.3-3",
+    "to": [
+     "GR-13.16.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14",
+    "clause-2023": "13.16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.3 GR3",
+      "quote": "Format 3 contains the name of the condition and the value, values, or range of values associated with the condition-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.4 GR3",
+      "quote": "Format 3 contains the name of the condition and the value, values, or range of values associated with the condition-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR22",
+      "quote": "A condition-name may be associated with any data description entry that contains a level-number except the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The structure of a record description and the elements allowed in a record description entry are explained in",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 3 (88 condition-name) is identical in both editions, but in 2002 it also governs condition-names associated with items of a record description entry under a CD (A.1.1.2 sends CD records to 13.14; 13.16.31 SR2 admits level 88 under a CD). 2023 has no CD, so the 2023 verdict does not cover that case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-02/cd-88-66.cob",
+    "widening": null,
+    "needs": "a 2002 witness for a condition-name (88, single value and THRU range, SET TO TRUE) in a record under a CD",
+    "compiler-at-2002": "correct: cd-88-66.cob at --std 2002 prints A1-YES TRUE, RANGE FALSE, RANGE2 TRUE, A1=[YES] AB=[YES42]; --std 2023 refuses the section (COBOL0902)",
+    "class": "communication-reach"
+   },
+   {
+    "rule-id": "2002-GR-13.16.10.3-1",
+    "to": [
+     "GR-13.18.10.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.10",
+    "clause-2023": "13.18.10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.10.3 GR1",
+      "quote": "This clause is required except when one or more of the following conditions exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.10.4 GR1",
+      "quote": "This clause is required except when one or more of the following conditions exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.5.3 SR4",
+      "quote": "neither the BLOCK CONTAINS clause nor the RECORD CONTAINS clause shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "BLOCK CONTAINS format identical; it appears in FD formats 1, 2 and 3 in both editions and in no SD. 2023 adds 13.4.5.3 SR4 forbidding it with LINE SEQUENTIAL, a 2023-only organization, so no 2002 form is removed. FD only, no CD reach.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.10.3-2",
+    "to": [
+     "GR-13.18.10.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.10",
+    "clause-2023": "13.18.10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.10.3 GR2",
+      "quote": "The size of a physical record may be stated in terms of records unless one or more of the following situations exists",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.10.4 GR2",
+      "quote": "The size of a physical record may be stated in terms of records unless one or more of the following situations exists",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format, same enumeration a)-c) in both. FD only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.10.3-4",
+    "to": [
+     "GR-13.18.10.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.10",
+    "clause-2023": "13.18.10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.10.3 GR4",
+      "quote": "If integer-1 is not specified, integer-2 represents the exact size of the physical record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.10.4 GR4",
+      "quote": "If integer-1 is not specified, integer-2 represents the exact size of the physical record",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format [integer-1 TO] integer-2; SR1 identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.12.3-3",
+    "to": [
+     "GR-13.18.12.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.12",
+    "clause-2023": "13.18.12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.3 GR3",
+      "quote": "If identifier-1 is specified, it is evaluated at the start of the processing for each body group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.4 GR3",
+      "quote": "If identifier-1 is specified, it is evaluated at the start of the processing for each body group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.15.3 GR6",
+      "quote": "preceded by a page fit test which, if unsuccessful, results in a page advance",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.16.4 GR6",
+      "quote": "preceded by a page fit test that, if unsuccessful, results in a page advance",
+      "check": "OK"
+     }
+    ],
+    "reason": "CODE format identical; report description entry identical apart from 2023 factoring CODE/CONTROL/PAGE into meta-terms. The referenced GENERATE page advance processing (GR6) differs only in which/that; GR7 adds 'if it is enabled' to EC-REPORT-INACTIVE, not CODE evaluation. 2023 SR2 restates the identifier-1 limit in 2023 terms; 2002 SR2 already bars a variable-length item.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-3",
+    "to": [
+     "GR-13.18.13.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.13",
+    "clause-2023": "13.18.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR3",
+      "quote": "the specified alphabet is used for code-set conversion of all data items in each record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR3",
+      "quote": "the specified alphabet is used for code-set conversion of all data items in each record",
+      "check": "OK"
+     }
+    ],
+    "reason": "CODE-SET format, SR1-SR3 and GR1-GR7 identical; in FD formats 1 and 3 in both editions. SELECT WHEN, FORMAT clause and WRITE/REWRITE FILE exist in both. No CD reach.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-6",
+    "to": [
+     "GR-13.18.13.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.13",
+    "clause-2023": "13.18.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR6",
+      "quote": "each coded character from the storage medium is replaced with its associated native coded character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR6",
+      "quote": "each coded character from the storage medium is replaced with its associated native coded character",
+      "check": "OK"
+     }
+    ],
+    "reason": "As GR3: identical clause, same file description formats.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. In GR6, 'coded character' is a code value of the alphabet's or the native coded character set (4.26/4.29/4.40). The term picks out the same characters in both, so the scope and the evidence do not change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.13.3 GR6",
+      "quote": "each coded character from the storage medium is replaced with its associated native coded character as defined in the alphabet being used",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-1",
+    "to": [
+     "GR-13.18.14.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR1",
+      "quote": "The COLUMN clause defines one or more printable items. If a COLUMN clause is not specified, the items are not printed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR1",
+      "quote": "The COLUMN clause defines one or more printable items. If a COLUMN clause is not specified, the items are not printed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Both COLUMN formats (report-writer, screen-item) and SR1-SR13 identical; report group description entry identical except the zero-length literal exclusion in its implied PICTURE rule (a 2023-only literal).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-10",
+    "to": [
+     "GR-13.18.14.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR10",
+      "quote": "Any unoccupied columns in each print line are filled with space characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR10",
+      "quote": "Any unoccupied columns in each print line are filled with space characters",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical clause; format 1 rules identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-12",
+    "to": [
+     "GR-13.18.14.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR12",
+      "quote": "A multiple COLUMN clause is functionally equivalent to a COLUMN clause with a single operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR12",
+      "quote": "A multiple COLUMN clause is functionally equivalent to a COLUMN clause with a single operand",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical clause; SR10 (multiple COLUMN clause, no OCCURS in the same entry) identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-9",
+    "to": [
+     "GR-13.18.14.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14",
+    "clause-2023": "13.18.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR9",
+      "quote": "The rightmost column position of each printable item becomes the new value of the horizontal counter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR9",
+      "quote": "The rightmost column position of each printable item becomes the new value of the horizontal counter",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical clause; GR7/GR8 (horizontal counter, relative columns) identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.15.3-1",
+    "to": [
+     "GR-13.18.16.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.15",
+    "clause-2023": "13.18.16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.3 GR1",
+      "quote": "The order of appearance of the operands of the CONTROL clause establishes the levels of the control hierarchy",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.4 GR1",
+      "quote": "The order of appearance of the operands of the CONTROL clause establishes the levels of the control hierarchy",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR3",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.3 SR3",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical. 2002 SR3 ('may be qualified') became 2023 SR3 (not subject to OCCURS); qualification is general in 2023, and a CONTROL operand is a data-name with no subscripts in both, so no legal 2002 operand is excluded. 2023 SR7 (variable-length group) is 2023-only. RD only, no CD reach.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.20.3-3",
+    "to": [
+     "GR-13.18.22.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.20",
+    "clause-2023": "13.18.22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.20.3 GR3",
+      "quote": "Literal-1, if specified, is the name of the file connector or record that is externalized to the operating environment",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.4 GR5",
+      "quote": "Literal-1, if specified, is the name of the file connector or record that is externalized to the operating environment",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR1",
+      "quote": "in level 1 data description entries in the working-storage section, and in level 1 type declarations",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical. 2002 SR1: FD entries and WS record description entries; 2023 SR1: FD entries, level 1 WS data description entries and level 1 type declarations, so every 2002 place remains. 2023 drops the 2002 SR4 ban on strongly-typed groups (wider). Renumbered GR3->GR5 by inserted type-declaration rules. No CD reach.",
+    "probe": null,
+    "widening": "2023 also externalizes type declarations and strongly-typed groups"
+   },
+   {
+    "rule-id": "2002-GR-13.16.25.3-1",
+    "to": [
+     "GR-13.18.27.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.25",
+    "clause-2023": "13.18.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.25.3 GR1",
+      "quote": "A constant-name, data-name, file-name, report-name, or screen-name described using a GLOBAL clause is a global name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.27.4 GR1",
+      "quote": "A constant-name, data-name, file-name, report-name, or screen-name described using a GLOBAL clause is a global name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.25.2 SR1",
+      "quote": "The GLOBAL clause may be specified only in the following entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "SR1 a) allows GLOBAL in any constant entry, with no section limit, and the 2002 communication section format admits constant entries after a CD (A.1.1). So in 2002 the sentence also makes a constant-name declared under a CD a global name visible in contained programs; 2023 has no communication section, so its verdict cannot cover that case. Data description entries under a CD cannot be GLOBAL (SR1 b) names file, WS, LS and linkage only).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-02/cd-global-const.cob",
+    "widening": null,
+    "needs": "a 2002 witness for a GLOBAL constant entry in the communication section referenced from a contained program",
+    "compiler-at-2002": "correct: cd-global-const.cob at --std 2002 prints OUTER GLOBALK LOCALK and INNER GLOBALK; cd-global-const-neg.cob (constant without GLOBAL) is refused in the contained program with COBOL1639",
+    "class": "communication-reach"
+   },
+   {
+    "rule-id": "2002-GR-13.16.25.3-3",
+    "to": [
+     "GR-13.18.27.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.25",
+    "clause-2023": "13.18.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.25.3 GR3",
+      "quote": "it is only the subject of that REDEFINES clause that possesses the global attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.27.4 GR3",
+      "quote": "it is only the subject of that REDEFINES clause that possesses the global attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR4",
+      "quote": "This clause shall not be specified in level 1 entries in the communication section",
+      "check": "OK"
+     }
+    ],
+    "reason": "GLOBAL needs a level 1 data description entry in file/WS/LS/linkage (SR1 b), and REDEFINES is barred on level 1 in the communication section (13.16.42.2 SR4), so no CD reach. Same in both; the 2023 SR3 external-file exception does not touch GR3.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.31.3-2",
+    "to": [
+     "GR-13.18.33.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.31",
+    "clause-2023": "13.18.33",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.31.3 GR2",
+      "quote": "Level-number 66 is assigned to identify RENAMES entries and may be used only as described by the renames format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.4 GR2",
+      "quote": "Level-number 66 is assigned to identify RENAMES entries and may be used only as described by the renames format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.3 SR2",
+      "quote": "Data description entries subordinate to a FD or SD entry shall have level-numbers with the values 66, 88, or 1 through 49",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.3 GR3",
+      "quote": "Multiple level 1 entries subordinate to a CD, FD, or SD entry represent implicit redefinitions of the same area",
+      "check": "OK"
+     }
+    ],
+    "reason": "The clause names the CD in 2002 (SR2 and GR3: entries subordinate to a CD may have 66, 88, 1-49) and not in 2023 (SR2: FD or SD). GR2 b) and c) therefore also govern 66 RENAMES entries and 88 condition-names in records under a CD in 2002, a case the 2023 rule cannot reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-02/cd-88-66.cob",
+    "widening": null,
+    "needs": "a 2002 witness for 66 RENAMES and 88 condition-name entries in a record under a CD",
+    "compiler-at-2002": "correct: cd-88-66.cob at --std 2002 compiles and runs (AB RENAMES A1 THRU B1 gives [YES42]; condition-names test and SET correctly)",
+    "class": "communication-reach"
+   },
+   {
+    "rule-id": "2002-GR-13.16.32.3-1",
+    "to": [
+     "GR-13.18.34.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.32",
+    "clause-2023": "13.18.34",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR1",
+      "quote": "The LINAGE clause provides a means for specifying the size of a logical page in terms of number of lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR1",
+      "quote": "The LINAGE clause provides a means for specifying the size of a logical page in terms of number of lines",
+      "check": "OK"
+     }
+    ],
+    "reason": "LINAGE format identical; FD format 1 only in both. 2023 adds SR1 (data-names not subject to OCCURS), which excludes nothing a 2002 data-name operand with no subscripts could legally name. GR2-GR6 identical.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "removed-element: overflow": "The screen matched the word 'overflow' (its removed-element pattern aims at CALL ... ON OVERFLOW, §2002:G.1 item 4). Here the word is 'the page overflow condition' of a LINAGE file, an element present in both editions (§2002:13.16.32.3 GR1 = §2023:13.18.34.4 GR1, same words), not CALL ON OVERFLOW; no obsolete or archaic element is named. The reader's row had no 2002 evidence, so I ran it: pb523_linage_margins_on_the_medium_85 (logical page = sum of the phrases, zero margins) matches its .out at --std 2002 in fixed format, and probe linage_nofoot (LINAGE 3, no FOOTING) at --std 2002 raises END-OF-PAGE only at the overflowing third WRITE, not when line 3 is reached (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/linage_nofoot.cob (output linage_nofoot.2002.txt) and E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR1",
+      "quote": "If the FOOTING phrase is not specified, no end-of-page condition independent of the page overflow condition exists",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR1",
+      "quote": "If the FOOTING phrase is not specified, no end-of-page condition independent of the page overflow condition exists",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/linage_nofoot.cob (output linage_nofoot.2002.txt) and E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log",
+    "scope-2002": [
+     "LINAGE clause of an FD (format 1): logical page size = sum of LINAGE, TOP, BOTTOM; absent margins zero; no FOOTING -> end-of-page only with page overflow"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85 at --std 2002 (MATCH, E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log)",
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/linage_nofoot.cob at --std 2002 (EOP at the overflowing WRITE only)"
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-02",
+  "cases": [
+   {
+    "rule-id": "2002-GR-12.3.4.6.3-5",
+    "verdict": "DOUBTFUL",
+    "reason": "The answerer enumerated 2002 class national as 'national, national-edited, numeric-edited usage national, national group items' and said the 2002 table equals 2023's; but 2002's national category (§2002:8.5.2.7 item 3) also lists 'An elementary data item explicitly or implicitly described as usage national', which 2023 §2023:8.5.2.10 (and 2014) dropped. Read literally, PIC 9(n) USAGE NATIONAL and PIC 1(n) USAGE NATIONAL are category, hence class, national in 2002, a datum the 2023 evidence never shows. Other 2002 text (§2002:13.16.22.3 GR4 'class numeric with usage national', §2002:14.8.23.3 GR2a) contradicts that reading, so it is not decisive either way; the flag answer did not address it. For THIS rule: under the literal reading a RECORD KEY PIC 9(3) USAGE NATIONAL is category national, so §2002:12.3.4.12.2 SR2 admits it and this rule then governs it as a record key of class national. The compiler refuses such a key at 2002 (COBOL0863 'category-numeric item'), so the 2023 evidence never shows this rule applied to it. Settle with one ruling (a docs/conformance entry or kb/Work decision): whether §2002:8.5.2.7 item 3, absent from 2014 and 2023, is inoperative for an elementary item whose PICTURE gives category numeric, numeric-edited or boolean (as §2002:13.16.22.3 GR4, §2002:14.8.23.3 GR2a and Table 3 presuppose), or makes such an item (also) category and class national at --std 2002. If inoperative: UPHELD. If operative: DIFFERENT, compiler-at-2002 wrong.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.3 GR5",
+      "quote": "the native national collating sequence applies to any record keys of class national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.12.2 SR2",
+      "quote": "shall reference a data item of category alphanumeric or category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.7",
+      "quote": "An elementary data item explicitly or implicitly described as usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.2.10",
+      "quote": "A group item explicitly or implicitly described with a GROUP-USAGE clause with the NATIONAL phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.9",
+      "quote": "An elementary data item described as numeric by its PICTURE character-string and not described with a BLANK WHEN ZERO clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR4",
+      "quote": "class numeric with usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR2a",
+      "quote": "elementary data item of usage national and of category numeric, numeric-edited, or boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "Numeric-edited (if usage is national)",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/refute-a-08/startnatnum.cob",
+    "compiler-at-2002": "RECORD KEY PIC 9(3) USAGE NATIONAL refused COBOL0863 at 2002 and 2023 (startnatnum.2002.txt)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.6.3-6",
+    "verdict": "UPHELD",
+    "reason": "As GR5: key-level format and SR identical; no removed form, no CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.3 GR6",
+      "quote": "Alphabet-name-3 applies to record keys identified by data-name-1 or record-key-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.4 GR6",
+      "quote": "Alphabet-name-3 applies to record keys identified by data-name-1 or record-key-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-2",
+    "verdict": "UPHELD",
+    "reason": "Format identical; 2023 SR1 is APPLY COMMIT only. 2002 lists LOCK MODE as processor-dependent (B.3 28), 2023 as optional (A.4.7); the 2023 verdict rests on this processor supporting locks on every connector, which holds at 2002 too.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR2",
+      "quote": "If the processor does not support record locking, record locks have no effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR2",
+      "quote": "If the processor does not support record locking, record locks have no effect",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-5",
+    "verdict": "UPHELD",
+    "reason": "Re-grepped every underlined LOCK in both texts: READ (WITH LOCK/NO LOCK, ADVANCING ON LOCK, IGNORING LOCK), REWRITE, WRITE x2 - same set in both editions; no record-lock phrase 2023 dropped.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR5",
+      "quote": "Records locks are obtained only when the LOCK phrase is explicitly specified on an I-O statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR5",
+      "quote": "Records locks are obtained only when the LOCK phrase is explicitly specified on an I-O statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.9.2-1",
+    "verdict": "UPHELD",
+    "reason": "Bare SEQUENTIAL is RECORD SEQUENTIAL in 2023 (RECORD optional word); no 2002 organization removed.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.9.2 GR1",
+      "quote": "The file organization is established at the time a physical file is created and cannot subsequently be changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.10.3 GR1",
+      "quote": "The file organization is established at the time a physical file is created and cannot subsequently be changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.10.3 GR2",
+      "quote": "The LINE SEQUENTIAL phrase specifies that the file organization is line sequential",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.6.3-3",
+    "verdict": "UPHELD",
+    "reason": "Three SAME formats and SR1-SR10 identical; I-O-CONTROL reach only; 2023 additions are APPLY COMMIT only.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.3 GR3",
+      "quote": "A sort-merge-area format SAME clause specifies that memory is shared as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.4 GR4",
+      "quote": "A sort-merge-area format SAME clause specifies that memory is shared as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.4 GR3",
+      "quote": "The file and record area of a file subject to commit and rollback may not be shared",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.6.3-4",
+    "verdict": "UPHELD",
+    "reason": "Same as GR3; SORT/MERGE file operands identical.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.3 GR4",
+      "quote": "any non-sort and non-merge files associated with file-names specified in that clause shall not be in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.4 GR5",
+      "quote": "any non-sort and non-merge files associated with file-names specified in that clause shall not be in the open mode",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.10.3-1",
+    "verdict": "UPHELD",
+    "reason": "Format, FD formats 1-3 and enumeration a)-c) identical. The 2023 verdict cites A.3 item 5 but its core argument (no blocking, so condition a) holds for every file without the clause) does not need it. See GR4 for the A.3 dependency.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.10.3 GR1",
+      "quote": "This clause is required except when one or more of the following conditions exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.10.4 GR1",
+      "quote": "This clause is required except when one or more of the following conditions exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.5.3 SR4",
+      "quote": "neither the BLOCK CONTAINS clause nor the RECORD CONTAINS clause shall be specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.10.3-2",
+    "verdict": "DOUBTFUL",
+    "reason": "The 2023 CONFORMS verdict (tests/version-matrix/inventory/GR-13.18.10.4-2.json) rests on 'with no blocking none [of the situations] arises' and cites A.3 item 5 as the warrant for doing no blocking. 2002 has no such item (its B.3 list 1-31 never names BLOCK CONTAINS). If at 2002 BLOCK CONTAINS n RECORDS must actually block (GR4), whether situation b) padding (the processor's own record-length headers, 9.1.7.2) arises is unsettled. Settled by: a recorded decision that 2002 permits BLOCK CONTAINS to be inert (e.g. from §2002:9.1.1 'size of a physical record is hardware dependent'), which would also close GR4.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.10.3 GR2",
+      "quote": "The size of a physical record may be stated in terms of records unless one or more of the following situations exists",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.10.4 GR2",
+      "quote": "The size of a physical record may be stated in terms of records unless one or more of the following situations exists",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.10.3-4",
+    "verdict": "OVERTURNED",
+    "reason": "Words, format and FD reach identical, but the 2023 CONFORMS verdict for GR4 (inventory GR-13.18.10.4-4 and DRV-GR-13.18.10.4-4) rests explicitly on §2023:A.3 item 5, which lets BLOCK CONTAINS have no effect: 'Exact vs min/max physical record size has no runtime effect under the documented inert claim (A.3 item 5)'. The compiler ignores integer-1/integer-2 entirely. 2002's processor-dependent list (B.3, items 1-31) has no BLOCK CONTAINS item, and the only other BLOCK CONTAINS text in 2002 is the EXTERNAL agreement rule 13.3.4.3 GR2a. So at 2002 the requirement 'integer-2 represents the exact size of the physical record' carries no inertness excuse: 2023 conformance (via an excuse 2023 added) does not imply 2002 conformance. Needs its own 2002 verdict: either a recorded decision that 2002 permits an inert clause (the 9.1.1 'hardware dependent' sentence is the only candidate and is in 2023 too, so it was not what the 2023 verdict relied on), or the clause modeled.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.10.3 GR4",
+      "quote": "If integer-1 is not specified, integer-2 represents the exact size of the physical record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.10.4 GR4",
+      "quote": "If integer-1 is not specified, integer-2 represents the exact size of the physical record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.3",
+      "quote": "The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The following is a list of the COBOL language elements within this International Standard that depend on specific devices",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.1",
+      "quote": "The size of a physical record is hardware dependent and bears no direct relationship to the size of the file",
+      "check": "OK"
+     }
+    ],
+    "class": "other",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.12.3-3",
+    "verdict": "UPHELD",
+    "reason": "CODE format and RD reach identical; GENERATE page-advance text (14.8.15.3 GR6 / 14.9.16.4 GR6) differs only in which/that.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.3 GR3",
+      "quote": "If identifier-1 is specified, it is evaluated at the start of the processing for each body group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.4 GR3",
+      "quote": "If identifier-1 is specified, it is evaluated at the start of the processing for each body group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.15.3 GR6",
+      "quote": "preceded by a page fit test which, if unsuccessful, results in a page advance",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.16.4 GR6",
+      "quote": "preceded by a page fit test that, if unsuccessful, results in a page advance",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-3",
+    "verdict": "UPHELD",
+    "reason": "CODE-SET format, SR, GR1-GR7 and FD formats 1 and 3 identical; ALPHABET clause forms identical; processor-dependency identical (2002 B.3 11 = 2023 A.3 27). The verdict's 'no SELECT WHEN in this grammar' gap is edition-neutral.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR3",
+      "quote": "the specified alphabet is used for code-set conversion of all data items in each record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR3",
+      "quote": "the specified alphabet is used for code-set conversion of all data items in each record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-6",
+    "verdict": "UPHELD",
+    "reason": "As GR3.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR6",
+      "quote": "each coded character from the storage medium is replaced with its associated native coded character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR6",
+      "quote": "each coded character from the storage medium is replaced with its associated native coded character",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-1",
+    "verdict": "UPHELD",
+    "reason": "Both COLUMN formats, SR1-SR13 and GR1-GR19 compared line by line: identical apart from NOTE wording.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR1",
+      "quote": "The COLUMN clause defines one or more printable items. If a COLUMN clause is not specified, the items are not printed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR1",
+      "quote": "The COLUMN clause defines one or more printable items. If a COLUMN clause is not specified, the items are not printed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-10",
+    "verdict": "UPHELD",
+    "reason": "Identical clause.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR10",
+      "quote": "Any unoccupied columns in each print line are filled with space characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR10",
+      "quote": "Any unoccupied columns in each print line are filled with space characters",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-12",
+    "verdict": "UPHELD",
+    "reason": "Identical clause; SR10 identical.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR12",
+      "quote": "A multiple COLUMN clause is functionally equivalent to a COLUMN clause with a single operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR12",
+      "quote": "A multiple COLUMN clause is functionally equivalent to a COLUMN clause with a single operand",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-9",
+    "verdict": "UPHELD",
+    "reason": "Identical clause; GR6-GR8 identical.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR9",
+      "quote": "The rightmost column position of each printable item becomes the new value of the horizontal counter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR9",
+      "quote": "The rightmost column position of each printable item becomes the new value of the horizontal counter",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.15.3-1",
+    "verdict": "UPHELD",
+    "reason": "Format identical. Attacked the communication question: 2002 SR2 bars only the report section, so a CONTROL operand may be a CD record item at 2002. Not a CD-entry rule (the operand order is location-independent), and the probe shows it correct anyway: cd-control.cob at --std 2002 (CONTROLS ARE CMAJ CMIN, both in an output CD record) prints AMT=10 MIN=010 AMT=20 MIN=020 MAJ=030 AMT=30 MIN=030 MAJ=030.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.2 SR2",
+      "quote": "Data-name-1 shall not be defined in the report section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.3 GR1",
+      "quote": "The order of appearance of the operands of the CONTROL clause establishes the levels of the control hierarchy",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-02/cd-control.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.20.3-3",
+    "verdict": "UPHELD",
+    "reason": "Format identical; every 2002 EXTERNAL place (FD, WS record) remains; SD and CD admit no EXTERNAL in either edition.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.20.3 GR3",
+      "quote": "Literal-1, if specified, is the name of the file connector or record that is externalized to the operating environment",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.4 GR5",
+      "quote": "Literal-1, if specified, is the name of the file connector or record that is externalized to the operating environment",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR1",
+      "quote": "in level 1 data description entries in the working-storage section, and in level 1 type declarations",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.25.3-3",
+    "verdict": "UPHELD",
+    "reason": "GLOBAL with REDEFINES needs a level 1 data description entry in file/WS/LS/linkage in both; CD constant entries carry no REDEFINES.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.25.3 GR3",
+      "quote": "it is only the subject of that REDEFINES clause that possesses the global attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.27.4 GR3",
+      "quote": "it is only the subject of that REDEFINES clause that possesses the global attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR4",
+      "quote": "This clause shall not be specified in level 1 entries in the communication section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.32.3-1",
+    "verdict": "UPHELD",
+    "reason": "LINAGE format, GR1-GR8 and FD format 1 identical.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR1",
+      "quote": "The LINAGE clause provides a means for specifying the size of a logical page in terms of number of lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR1",
+      "quote": "The LINAGE clause provides a means for specifying the size of a logical page in terms of number of lines",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "90d8665c23dfa3d7405c73b12023c98753655092d7956b029ec2a528ea98a765",
+  "read": "8fb3b53cdcc1d75bf3770f70c76c2f330a7ce65c21d5e7a3eeafea5e0c70a447",
+  "refute": "530a41b4339436880e46c32d2fabac4c45482ee800303f2b790a9972f81d1483"
+ }
+}

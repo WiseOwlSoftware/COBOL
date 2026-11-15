@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb704_sort_duplicates_in_order_85
       *> rules: [GR-14.9.40.4-3]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

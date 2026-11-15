@@ -1,0 +1,2111 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-10 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-10",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-13.9.3-2",
+   "2002-GR-13.9.3-3",
+   "2002-SR-13.12.2-1",
+   "2002-GR-13.12.3-1",
+   "2002-SR-13.13.2-1",
+   "2002-SR-13.13.2-10",
+   "2002-SR-13.13.2-12",
+   "2002-SR-13.13.2-16",
+   "2002-SR-13.13.2-4",
+   "2002-SR-13.13.2-5",
+   "2002-SR-13.13.2-7",
+   "2002-SR-13.13.2-8",
+   "2002-GR-13.13.3-1",
+   "2002-GR-13.13.3-3",
+   "2002-SR-13.14.2-14",
+   "2002-SR-13.14.2-19",
+   "2002-GR-13.14.3-4",
+   "2002-SR-13.15.2-1",
+   "2002-SR-13.15.2-2",
+   "2002-SR-13.15.2-3",
+   "2002-SR-13.15.2-4",
+   "2002-SR-13.15.2-5",
+   "2002-SR-13.15.2-6",
+   "2002-SR-13.15.2-8",
+   "2002-SR-13.15.2-9"
+  ],
+  "flags": {
+   "2002-GR-13.14.3-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.15.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.15.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.15.2-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.15.2-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.15.2-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.15.2-6": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.15.2-8": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.15.2-9": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-10",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.9.3-2",
+    "to": [
+     "GR-13.10.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.9.3",
+    "clause-2023": "13.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.3 GR2",
+      "quote": "the class and category of constant-name-1 is the same as that of literal-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.4 GR2",
+      "quote": "the class and category of constant-name-1 is the same as that of literal-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Constant entry general format is identical in both editions (13.9.1 / 13.10.2). The 2002 literal categories (alphanumeric, national, boolean, numeric incl. floating) are all 2023 categories; a compilation variable's literal (2002 >>DEFINE) is classified the same way. GR2 does not rest on the arithmetic mode (category only). The twin's witnesses run at --std 2002 with the golden output.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "CONSTANT AS literal-1 (each literal class/category)",
+     "CONSTANT FROM compilation-variable-name-1"
+    ],
+    "evidence-2002": {
+     "literal-1": "covered by conformance:cases/13.10-Constant/constant_entry (2002: rc=0, golden match after trailing-space normalization, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt)",
+     "compilation-variable-name-1": "covered by conformance:cases/7.3.11-DEFINE/pb1368_constant_from_compilation_variable (2002: GOLDEN-MATCH, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-13.9.3-3",
+    "to": [
+     "GR-13.10.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.3",
+    "clause-2023": "13.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.3 GR3",
+      "quote": "This integer literal has the value specified in these general rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.4 GR3",
+      "quote": "This integer literal has the value specified in these general rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.9.3 GR4",
+      "quote": "it is evaluated in accordance with 7.2.5, Compile-time arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.4",
+      "quote": "The result shall be the exact product truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.3 GR2",
+      "quote": "The implementor shall define and document which mode of arithmetic is to be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.9.3 GR6",
+      "quote": "when data-name-2 is a variable-length data item, the maximum size of the data item is used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR8",
+      "quote": "that specifies the variable-table format of the OCCURS clause is a variable-length data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR3 defers its value to 'these general rules'. For arithmetic-expression-1 that is GR4 -> 7.2.5, which in 2002 PRESCRIBES standard arithmetic (each operation truncated to 32 significant digits); 2023 7.3.6.3 GR2 makes the mode implementor-defined, so the twin's witnesses (l1c05, constant_entry) show the 2023 implementor mode, not 2002 standard arithmetic. The LENGTH/BYTE-LENGTH half is the same requirement (2002 'variable-length data item' = group with a variable-table OCCURS = 2023 'occurs-depending group item'), and in 2002 it also reaches CD record items (probe const-cd.cob: KL=87 KB=7 at 2002, correct). Probe const-arith.cob at --std 2002: K1 = 1/3*3 -> 0 (correct), K2 = 2/3*3 -> 2 (2002 standard arithmetic gives 1.99...98 -> 1), K4 = 1234567890123456789012345678901/7*7 -> ...901 (2002 gives ...900.9 -> ...900). The compiler rounds each intermediate (the SDIDI / STANDARD-DECIMAL engine, kb/Work PB1592) instead of truncating each operation to 32 digits.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/const-arith.cob",
+    "widening": null,
+    "scope-2002": [
+     "arithmetic-expression-1: value by 2002 standard arithmetic (32-digit truncation per operation)",
+     "BYTE-LENGTH OF data-name-1 / LENGTH OF data-name-2 (maximum size for a variable-length group)",
+     "data-name-1/2 naming a communication-section record item"
+    ],
+    "evidence-2002": {
+     "arithmetic-expression-1": "not shown by the twin (it shows the 2023 implementor mode); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/const-arith.cob shows K2=2 and K4=...901 at 2002, expected 1 and ...900",
+     "BYTE-LENGTH/LENGTH": "covered by conformance:cases/13.10-Constant/pb1227_constant_byte_length and 8.4.2.3-Subscripts/pb1016_constant_length_subscripts (2002: GOLDEN-MATCH)",
+     "CD record item": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/const-cd.cob (2002: KL=87 KB=7)"
+    },
+    "class": "deferral",
+    "needs": "its own verdict: the compiler at --std 2002 evaluates CONSTANT AS arithmetic-expression with rounded intermediates (2/3*3 -> 2), where 2002 standard arithmetic truncates each operation to 32 digits (-> 1); fix with the known 2002 standard-arithmetic defect, then a 2002 witness",
+    "compiler-at-2002": "wrong (the known 2002 standard-arithmetic defect reaches this rule): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/const-arith.cob, '01 K2 CONSTANT AS 2 / 3 * 3.' prints K2=...0002 at --std 2002; expected 1 per §2002:7.2.5.2 GR1 with §2002:8.8.1.3.5 and §2002:8.8.1.3.4; K4 prints ...901, expected ...900"
+   },
+   {
+    "rule-id": "2002-SR-13.12.2-1",
+    "to": [
+     "SR-13.14.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.12.2",
+    "clause-2023": "13.14.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.12.2 SR1",
+      "quote": "There shall be one and only one REPORT clause specifying report-name-1 in a given file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.3 SR1",
+      "quote": "There shall be one and only one REPORT clause specifying report-name-1 in a given file description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "RD format differs only in presentation (2002 writes CODE/CONTROL/PAGE inline; 2023 references the clauses). The rule concerns the FD's REPORT clause, which exists only in a file description entry in both editions; no CD reach (a CD has no REPORT clause). Both twin witnesses refuse at 2002 with COBOL2714.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "an RD named in no REPORT clause",
+     "an RD named in two FDs' REPORT clauses"
+    ],
+    "evidence-2002": {
+     "no clause": "covered by conformance:cases/13.14-Report-description/pb1285-report-in-no-clause (2002: COBOL2714)",
+     "two clauses": "covered by conformance:cases/13.14-Report-description/pb1285-report-in-two-clauses (2002: COBOL2714)"
+    },
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule governs RD entries and the FD REPORT clause; the report it names is the RD subject in both editions (§2002:13.12 = §2023:13.14.1), so the dropped definition changes nothing here."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.12.3-1",
+    "to": [
+     "GR-13.14.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.12.3",
+    "clause-2023": "13.14.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.12.3 GR1",
+      "quote": "If GLOBAL is specified, report-name-1 and all its constituent report groups",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.4 GR1",
+      "quote": "If GLOBAL is specified, report-name-1 and all its constituent report groups",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same [IS GLOBAL] phrase, same list (report groups, PAGE-COUNTER, LINE-COUNTER, sum counters). The witness runs at 2002 with the golden (the 2023 run differs only by the EXIT PROGRAM obsolescence warning).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "GLOBAL RD: report groups, PAGE-COUNTER, LINE-COUNTER, sum counters visible in contained programs"
+    ],
+    "evidence-2002": {
+     "GLOBAL RD": "covered by conformance:cases/13.14-Report-description/l1c27_global_report_counters (2002: GOLDEN-MATCH)"
+    },
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (a GLOBAL report and its groups and counters) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-1",
+    "to": [
+     "SR-13.15.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.13.2",
+    "clause-2023": "13.15.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR1",
+      "quote": "Report group description entries may appear only in the report section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR1",
+      "quote": "Report group description entries may appear only in the report section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Report group format identical. The prohibition covers every other section; in 2002 that includes the communication section, which the twin's witness (working-storage) does not show. Probe rg-in-cd.cob: a TYPE DETAIL / COLUMN entry under a CD is refused at 2002 (COBOL5506, COBOL1941), correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/rg-in-cd.cob",
+    "widening": null,
+    "scope-2002": [
+     "report group entry in working-storage (refuse)",
+     "report group entry under a CD in the communication section (refuse)"
+    ],
+    "evidence-2002": {
+     "working-storage": "covered by conformance:cases/13.15-Report-group-description/l1c27-report-group-in-working-storage (2002: refused, same diagnostics as 2023)",
+     "communication section": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/rg-in-cd.cob (2002: rc=65, COBOL5506 at TYPE DETAIL)"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a report group entry under a CD (probe rg-in-cd.cob)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/rg-in-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-10",
+    "to": [
+     "SR-13.15.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13.2",
+    "clause-2023": "13.15.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR10",
+      "quote": "Every elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR10",
+      "quote": "Every elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Report group description general format (13.13.1 / 13.15.2) is identical phrase for phrase (SUM/SOURCE differ only by ROUNDED -> rounded-phrase, a 2023 widening); LINE, COLUMN, TYPE and OCCURS formats are identical. No communication-section or debugging reach. Both witnesses refuse at 2002 with COBOL2247.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "elementary entry with COLUMN and no SOURCE/VALUE/SUM (with and without PICTURE)"
+    ],
+    "evidence-2002": {
+     "COLUMN without operand": "covered by pb853-report-column-no-operand and pb853-report-column-no-operand-no-picture (2002: COBOL2247)"
+    },
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). SR10 is a syntax rule (a COLUMN entry also has SOURCE, VALUE or SUM, §2002:13.13.2 SR10), checked at compile time; nothing is evaluated, so the arithmetic text cannot change it."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.13.2 SR10",
+      "quote": "Every elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-12",
+    "to": [
+     "SR-13.15.3-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13.2",
+    "clause-2023": "13.15.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR12",
+      "quote": "A PICTURE clause shall be specified in every elementary entry that has a SOURCE or SUM clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR12",
+      "quote": "A PICTURE clause shall be specified in every elementary entry that has a SOURCE or SUM clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Report group description general format (13.13.1 / 13.15.2) is identical phrase for phrase (SUM/SOURCE differ only by ROUNDED -> rounded-phrase, a 2023 widening); LINE, COLUMN, TYPE and OCCURS formats are identical. No communication-section or debugging reach. Witnesses refuse at 2002 (COBOL2247) and the placement golden matches at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "SOURCE without PICTURE",
+     "SUM without PICTURE"
+    ],
+    "evidence-2002": {
+     "SOURCE": "covered by pb1288-report-source-no-picture (2002: COBOL2247)",
+     "SUM": "covered by pb1288-report-sum-no-picture (2002: COBOL2247)",
+     "accepted shapes": "covered by pb1288_report_entry_placement (2002: GOLDEN-MATCH)"
+    },
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). SR12 is a syntax rule (PICTURE required with SOURCE or SUM, §2002:13.13.2 SR12); nothing is evaluated, so the arithmetic text cannot change it."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.13.2 SR12",
+      "quote": "A PICTURE clause shall be specified in every elementary entry that has a SOURCE or SUM clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-16",
+    "to": [
+     "SR-13.15.3-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13.2",
+    "clause-2023": "13.15.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR16",
+      "quote": "Condition-1 shall not reference any sum counter, LINE-COUNTER, PAGE-COUNTER, or other report section data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR16",
+      "quote": "Condition-1 shall not reference any sum counter, LINE-COUNTER, PAGE-COUNTER, or other report section data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Report group description general format (13.13.1 / 13.15.2) is identical phrase for phrase (SUM/SOURCE differ only by ROUNDED -> rounded-phrase, a 2023 widening); LINE, COLUMN, TYPE and OCCURS formats are identical. No communication-section or debugging reach. Condition-1 is the PRESENT WHEN condition of the same format; a CD item it may name is not a report section item. Probe pw-sum.cob shows a sum counter, PAGE-COUNTER and a printable item each refused at 2002 (COBOL1559).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "PRESENT WHEN naming LINE-COUNTER/PAGE-COUNTER",
+     "naming a sum counter",
+     "naming another report item"
+    ],
+    "evidence-2002": {
+     "LINE-COUNTER": "covered by pb1289-present-when-on-printless-group (2002: COBOL1559)",
+     "sum counter / PAGE-COUNTER / report item": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/pw-sum.cob (2002: three COBOL1559)",
+     "legal conditions": "covered by pb1222_report_arrangement_present_when (2002: GOLDEN-MATCH)"
+    },
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule governs PRESENT WHEN conditions in report group descriptions of an RD; the report concept is the same report-section description in both editions, so its scope and evidence stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-4",
+    "to": [
+     "SR-13.15.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13.2",
+    "clause-2023": "13.15.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR4",
+      "quote": "The first entry that follows a report description entry shall be a level 1 entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR4",
+      "quote": "The first entry that follows a report description entry shall be a level 1 entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Report group description general format (13.13.1 / 13.15.2) is identical phrase for phrase (SUM/SOURCE differ only by ROUNDED -> rounded-phrase, a 2023 widening); LINE, COLUMN, TYPE and OCCURS formats are identical. No communication-section or debugging reach. Witness refuses at 2002 with COBOL2772.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "first entry after RD not level 1"
+    ],
+    "evidence-2002": {
+     "not level 1": "covered by l1m8-report-first-entry-not-level-1 (2002: COBOL2772)"
+    },
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule governs the entry after an RD; a report is the RD-described one in both editions, so the dropped definition changes no program the rule governs."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-5",
+    "to": [
+     "SR-13.15.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13.2",
+    "clause-2023": "13.15.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR5",
+      "quote": "The TYPE clause may be specified only in a level 1 entry and shall be specified in every level 1 entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR5",
+      "quote": "The TYPE clause may be specified only in a level 1 entry and shall be specified in every level 1 entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Report group description general format (13.13.1 / 13.15.2) is identical phrase for phrase (SUM/SOURCE differ only by ROUNDED -> rounded-phrase, a 2023 widening); LINE, COLUMN, TYPE and OCCURS formats are identical. No communication-section or debugging reach. TYPE clause (report-group format) alternatives identical. Both halves refused at 2002 (COBOL2247).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "level 1 without TYPE",
+     "TYPE below level 1"
+    ],
+    "evidence-2002": {
+     "level 1 without TYPE": "covered by pb1288-report-level1-no-type (2002: COBOL2247)",
+     "TYPE below level 1": "covered by pb1288-report-type-below-level1 (2002: COBOL2247)"
+    },
+    "flags-answered": {
+     "definition-dropped: type | for type declaration (newer: 8.5.3)": "The rule's 'type' is the TYPE clause of a report group description entry, i.e. §2002:13.16.55 format 2 (report-group types), not the type that §2002:4 defines for a type declaration ('A template that contains all the characteristics of a data item and its subordinates', the same words as §2023:8.5.3.1); the dropped definition cannot change which programs the rule governs.",
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)": "Invoked only by the word 'type'. §2002:8.5.3 (TYPEDEF types), §2002:8.5.4 (zero-length items) and §2002:14.5.8 (alignment of data in a receiving item) do not bear on the level at which a report group's TYPE clause is written; the rule does not rest on their 2002 text, and the evidence already shown at --std 2002 stands."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.3.1",
+      "quote": "A type is a template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.55",
+      "quote": "The TYPE clause in a report group description entry identifies the circumstances under which a report group will be printed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.3",
+      "quote": "A type is referenced in a data description entry by specifying the TYPE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "The standard rules for positioning data within an elementary item depend on the category of the receiving item",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-10"
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-7",
+    "to": [
+     "SR-13.15.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.13.2",
+    "clause-2023": "13.15.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR7",
+      "quote": "The data-name shall not be referenced in any other way",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR7",
+      "quote": "The data-name shall not be referenced in any other way",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.1",
+      "quote": "SEND cd-name-1 FROM identifier-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "The permitted references (GENERATE, USE BEFORE REPORTING, SUM qualifier, UPON, SUM operand) are the same in both editions, but 'any other way' is universal: in 2002 it also forbids naming a report data-name as an operand of a communication statement (SEND ... FROM identifier-1, RECEIVE ... INTO), which the twin's witnesses (MOVE, FILE STATUS, ODO object, contained program) do not show. Probe rpt-send.cob: SEND OUT-CD FROM PV (PV a report item) is refused at 2002 with COBOL5092; control rpt-send-ok.cob (FROM a working-storage item) compiles at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/rpt-send.cob",
+    "widening": null,
+    "scope-2002": [
+     "permitted references (GENERATE, USE BEFORE REPORTING, SUM)",
+     "procedure-statement reference (refuse)",
+     "data-division clause reference (FILE STATUS, ODO) (refuse)",
+     "communication statement operand, e.g. SEND FROM (refuse)"
+    ],
+    "evidence-2002": {
+     "permitted": "covered by pb1046_report_sum_counter_in_contained_program (2002: GOLDEN-MATCH)",
+     "procedure / data-division references": "covered by the pb1046-* refusal cases (2002: COBOL5092 each)",
+     "communication statement": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/rpt-send.cob (2002: COBOL5092) with control rpt-send-ok.cob (2002: rc=0)"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a report data-name named in a communication statement (probe rpt-send.cob)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/rpt-send.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-8",
+    "to": [
+     "SR-13.15.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13.2",
+    "clause-2023": "13.15.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR8",
+      "quote": "No report group description entry with a LINE clause shall be subordinate to another entry with a LINE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR8",
+      "quote": "No report group description entry with a LINE clause shall be subordinate to another entry with a LINE clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Report group description general format (13.13.1 / 13.15.2) is identical phrase for phrase (SUM/SOURCE differ only by ROUNDED -> rounded-phrase, a 2023 widening); LINE, COLUMN, TYPE and OCCURS formats are identical. No communication-section or debugging reach. Witness refuses at 2002 with COBOL2199.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "LINE entry subordinate to a LINE entry"
+    ],
+    "evidence-2002": {
+     "LINE in LINE": "covered by pb565-report-line-in-line (2002: COBOL2199)"
+    },
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule governs LINE nesting within a report group description; the report concept is identical in its report-section meaning, so its scope and witness stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.13.3-1",
+    "to": [
+     "GR-13.15.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13.3",
+    "clause-2023": "13.15.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.3 GR1",
+      "quote": "Each level 1 entry identifies a report group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.4 GR1",
+      "quote": "Each level 1 entry identifies a report group",
+      "check": "OK"
+     }
+    ],
+    "reason": "Report group format identical; no CD reach. Witness output equals its golden at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "level 1 entry and its subordinates form the report group"
+    ],
+    "evidence-2002": {
+     "extent": "covered by l1c27_report_group_level1_extent (2002: output equals golden after trailing-space normalization, as at 2023)"
+    },
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (the report group a level 1 entry forms) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.13.3-3",
+    "to": [
+     "GR-13.15.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13.3",
+    "clause-2023": "13.15.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.3 GR3",
+      "quote": "is said to be a repeating entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.4 GR3",
+      "quote": "is said to be a repeating entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Report group format identical; no CD reach. OCCURS (report format, with STEP), multi-operand LINE and COLUMN formats are identical in both editions. Witnesses match at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "OCCURS repetition",
+     "multi-operand LINE",
+     "multi-operand COLUMN",
+     "subordinate of a repeating entry"
+    ],
+    "evidence-2002": {
+     "repetition": "covered by pb565_report_repeating_entry and pb565_report_vertical_repetition (2002: GOLDEN-MATCH)"
+    },
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (repeating entries of a report group) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-14",
+    "to": [
+     "SR-13.16.3-15"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14.2",
+    "clause-2023": "13.16.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR14",
+      "quote": "The TYPEDEF clause may be specified only in a data description entry whose level-number is 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR15",
+      "quote": "The TYPEDEF clause may be specified only in a data description entry whose level-number is 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same TYPEDEF [STRONG] form; the 2002 TYPEDEF clause (13.16.56) has no section restriction, so SR14 also governs data description entries written under a CD (communication section records), which the twin's witnesses (working-storage) do not show. Probe td-cd-sub.cob: a level-05 TYPEDEF under a CD record is refused at 2002 (COBOL1529); control td-cd-ok.cob compiles and runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/td-cd-sub.cob",
+    "widening": null,
+    "scope-2002": [
+     "TYPEDEF at level 77 (refuse)",
+     "TYPEDEF on a subordinate entry (refuse)",
+     "TYPEDEF on FILLER (refuse)",
+     "TYPEDEF on a subordinate entry of a CD record (refuse)"
+    ],
+    "evidence-2002": {
+     "77 / subordinate / FILLER": "covered by pb488-typedef-level-77, pb488-typedef-subordinate, pb488-typedef-filler (2002: COBOL1529 each)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/td-cd-sub.cob (2002: COBOL1529) with control td-cd-ok.cob (2002: rc=0)"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for TYPEDEF under a CD record (probe td-cd-sub.cob)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/td-cd-sub.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-19",
+    "to": [
+     "SR-13.16.3-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.14.2",
+    "clause-2023": "13.16.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR19",
+      "quote": "The PROPERTY clause shall not be specified in the same data description entry as",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR21",
+      "quote": "The PROPERTY clause shall not be specified in the same data description entry as",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.40.2 SR1",
+      "quote": "The PROPERTY clause may be specified only in the working-storage section of a factory definition or an instance definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same PROPERTY [WITH NO GET/SET] [IS FINAL] form. In 2002 PROPERTY is confined to the working-storage section of a factory or instance definition, so there is no communication-section reach. Both halves (BASED, TYPEDEF) and the composed TYPE case are refused at 2002 (COBOL2333, COBOL2510).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/cases-run.txt",
+    "widening": null,
+    "scope-2002": [
+     "PROPERTY with BASED (refuse)",
+     "PROPERTY with TYPEDEF (refuse)"
+    ],
+    "evidence-2002": {
+     "BASED": "covered by pb521-property-with-based and pb1650-property-composed-based (2002: refused)",
+     "TYPEDEF": "covered by pb521-property-with-typedef (2002: COBOL2333)",
+     "legal PROPERTY": "covered by pb1650_property_typed (2002: GOLDEN-MATCH)"
+    },
+    "flags-answered": {
+     "communication-reach: clause 13.14 is reached by the 2002 communication section (Annex A, the CD entry)": "The PROPERTY clause 'may be specified only in the working-storage section of a factory definition or an instance definition' (§2002:13.16.40.2 SR1), so no CD record carries it and the rule reaches no communication-section entry.",
+     "definition-changed: property": "2002: 'A name that may be used to qualify an object reference to get a value from or pass a value to an object' (§2002:4); 2023: 'name that can be used to qualify ...' (§2023:3.137). Wording only ('may' to 'can'); the rule is about the PROPERTY clause co-occurring with BASED or TYPEDEF, which the definition does not widen or narrow.",
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)": "The screen matched the word 'TYPEDEF'. §2002:8.5.3 defines what a type is and how typed items match, §2002:8.5.4 what a zero-length item is, §2002:14.5.8 how data is aligned in a receiving item; SR19 is a pure clause co-occurrence ban (§2002:13.14.2 SR19) and rests on none of them. Witnesses re-run now at 2002: pb521-property-with-based/-typedef COBOL2333, pb1650-property-composed-based refused, pb1650_property_typed PASS (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.40.2 SR1",
+      "quote": "The PROPERTY clause may be specified only in the working-storage section of a factory definition or an instance definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A name that may be used to qualify an object reference to get a value from or pass a value to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.137",
+      "quote": "name that can be used to qualify an object reference to get a value from or pass a value to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.3",
+      "quote": "A type is declared and named by specifying the TYPEDEF clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A zero-length item is a data item whose minimum length is zero and whose length at execution time is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "The standard rules for positioning data within an elementary item depend on the category of the receiving item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR19",
+      "quote": "The PROPERTY clause shall not be specified in the same data description entry as",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-10"
+   },
+   {
+    "rule-id": "2002-GR-13.14.3-4",
+    "to": [
+     "GR-13.16.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14.3",
+    "clause-2023": "13.16.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.3 GR4",
+      "quote": "During the content validation stage of a VALIDATE statement that references the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.4 GR4",
+      "quote": "During the content validation stage of a VALIDATE statement that references the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.1",
+      "quote": "88 [ condition-name-2 ] value-clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.1",
+      "quote": "Format 5 (content-validation-entry)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.46",
+      "quote": "The VALIDATE statement invokes data validation, input distribution, and error indication",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 twin is DOCUMENTED-NON-SUPPORT under 2023 Annex A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 requires every normative element of clauses 6-16 and makes only Annex A (communications) optional; VALIDATE and the format 4 validation entry are in clauses 13 and 14, and neither is in the B.3 processor-dependent list. So 2002 REQUIRES format 4 and its VALIDATE semantics. The compiler refuses it at --std 2002 with COBOL1708 (citing the 2023 annex).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/val-fmt4.cob",
+    "widening": null,
+    "scope-2002": [
+     "88 [condition-name-2] VALUE ... IS VALID/INVALID [WHEN] (format 4 / VALUE format 5)",
+     "condition-name-2 usable as a format 3 condition-name",
+     "the content-validation stage of VALIDATE"
+    ],
+    "evidence-2002": {
+     "format 4 named": "not shown: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/val-fmt4.cob refused at 2002 (COBOL1708 error; VALIDATE itself COBOL1580, accepted inert)",
+     "format 4 unnamed": "not shown: conformance:wiseowl/cases/13.16-Data-description/declined-validate-value-format5-anon refused at 2002 (COBOL1708)",
+     "VALIDATE content validation": "not shown (VALIDATE accepted inert at 2002)"
+    },
+    "class": "other",
+    "needs": "2002 requires the format 4 validation entry and VALIDATE content validation; the compiler declines it",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/val-fmt4.cob ('01 WS-A PIC 9(4) VALUE 5. 88 A-OK VALUES 1 THRU 9 IS VALID.' then VALIDATE WS-A) is refused at --std 2002 with COBOL1708 ('content-validation entry ... Annex A.4.14'), rc=65; expected acceptance and A-OK true per §2002:13.14.3 GR4, required by §2002:3.1",
+    "licence-2002": "none",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 licence is Annex A.4.14 (optional); 2002 makes only Annex A (communications) optional (§2002:3.1) and B.3 does not list VALIDATE, so there is no 2002 licence and the decline at 2002 is a defect"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-1",
+    "to": [
+     "SR-13.17.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.2",
+    "clause-2023": "13.17.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR1",
+      "quote": "If the entry-name clause is specified, only the screen-name format or filler format may be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR1",
+      "quote": "If the entry-name clause is specified, only the screen-name format or filler format may be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 twin is DOCUMENTED-NON-SUPPORT (2023 Annex A.4.2, optional). 2002 licenses the same non-support by another route: the screen section is processor-dependent (§2002:B.3 item 1) and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time diagnostic and no executable code required. The compiler declines every screen section construct at --std 2002 with COBOL1560 (the section and each clause by name). Note: the diagnostic cites the 2023 licence (Annex A.4.2) even at --std 2002, not §2002:3.1.5 / B.3; a wording point, not a conformance failure.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "screen section entry: entry-name placement and its two formats (declined as a processor-dependent element)"
+    ],
+    "evidence-2002": {
+     "decline at 2002": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section (2002: COBOL1560) and probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob, scr-viol.cob (2002: COBOL1560 on the section and each clause)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (screen section processor-dependent; unclaimed support need not be implemented)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: a 2002 licence exists (processor-dependent, §2002:3.1.5 + B.3 item 1) and the compiler declines the screen section at --std 2002 with COBOL1560; scope and evidence unchanged"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-2",
+    "to": [
+     "SR-13.17.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.2",
+    "clause-2023": "13.17.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR2",
+      "quote": "If the GLOBAL clause is specified, the screen-name format of the entry-name clause shall be specified and level-number shall be 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR2",
+      "quote": "If the GLOBAL clause is specified, the screen-name format of the entry-name clause shall be specified and level-number shall be 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 twin is DOCUMENTED-NON-SUPPORT (2023 Annex A.4.2, optional). 2002 licenses the same non-support by another route: the screen section is processor-dependent (§2002:B.3 item 1) and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time diagnostic and no executable code required. The compiler declines every screen section construct at --std 2002 with COBOL1560 (the section and each clause by name). Note: the diagnostic cites the 2023 licence (Annex A.4.2) even at --std 2002, not §2002:3.1.5 / B.3; a wording point, not a conformance failure.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "screen section entry: GLOBAL on a screen entry (declined as a processor-dependent element)"
+    ],
+    "evidence-2002": {
+     "decline at 2002": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section (2002: COBOL1560) and probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob, scr-viol.cob (2002: COBOL1560 on the section and each clause)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (screen section processor-dependent; unclaimed support need not be implemented)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: a 2002 licence exists (processor-dependent, §2002:3.1.5 + B.3 item 1) and the compiler declines the screen section at --std 2002 with COBOL1560; scope and evidence unchanged"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-3",
+    "to": [
+     "SR-13.17.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.2",
+    "clause-2023": "13.17.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR3",
+      "quote": "Level-number shall be a number from 1 through 48",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR3",
+      "quote": "Level-number shall be a number from 1 through 48",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 twin is DOCUMENTED-NON-SUPPORT (2023 Annex A.4.2, optional). 2002 licenses the same non-support by another route: the screen section is processor-dependent (§2002:B.3 item 1) and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time diagnostic and no executable code required. The compiler declines every screen section construct at --std 2002 with COBOL1560 (the section and each clause by name). Note: the diagnostic cites the 2023 licence (Annex A.4.2) even at --std 2002, not §2002:3.1.5 / B.3; a wording point, not a conformance failure.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "screen section entry: group screen entry level 1-48 (declined as a processor-dependent element)"
+    ],
+    "evidence-2002": {
+     "decline at 2002": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section (2002: COBOL1560) and probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob, scr-viol.cob (2002: COBOL1560 on the section and each clause)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (screen section processor-dependent; unclaimed support need not be implemented)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: a 2002 licence exists (processor-dependent, §2002:3.1.5 + B.3 item 1) and the compiler declines the screen section at --std 2002 with COBOL1560; scope and evidence unchanged"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-4",
+    "to": [
+     "SR-13.17.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.2",
+    "clause-2023": "13.17.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR4",
+      "quote": "The subject of the entry shall be a group screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR4",
+      "quote": "The subject of the entry shall be a group screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 twin is DOCUMENTED-NON-SUPPORT (2023 Annex A.4.2, optional). 2002 licenses the same non-support by another route: the screen section is processor-dependent (§2002:B.3 item 1) and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time diagnostic and no executable code required. The compiler declines every screen section construct at --std 2002 with COBOL1560 (the section and each clause by name). Note: the diagnostic cites the 2023 licence (Annex A.4.2) even at --std 2002, not §2002:3.1.5 / B.3; a wording point, not a conformance failure.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "screen section entry: format 1 subject is a group (declined as a processor-dependent element)"
+    ],
+    "evidence-2002": {
+     "decline at 2002": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section (2002: COBOL1560) and probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob, scr-viol.cob (2002: COBOL1560 on the section and each clause)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (screen section processor-dependent; unclaimed support need not be implemented)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: a 2002 licence exists (processor-dependent, §2002:3.1.5 + B.3 item 1) and the compiler declines the screen section at --std 2002 with COBOL1560; scope and evidence unchanged"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-5",
+    "to": [
+     "SR-13.17.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.2",
+    "clause-2023": "13.17.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR5",
+      "quote": "Level-number shall be a number from 1 through 49",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR5",
+      "quote": "Level-number shall be a number from 1 through 49",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 twin is DOCUMENTED-NON-SUPPORT (2023 Annex A.4.2, optional). 2002 licenses the same non-support by another route: the screen section is processor-dependent (§2002:B.3 item 1) and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time diagnostic and no executable code required. The compiler declines every screen section construct at --std 2002 with COBOL1560 (the section and each clause by name). Note: the diagnostic cites the 2023 licence (Annex A.4.2) even at --std 2002, not §2002:3.1.5 / B.3; a wording point, not a conformance failure.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "screen section entry: elementary screen entry level 1-49 (declined as a processor-dependent element)"
+    ],
+    "evidence-2002": {
+     "decline at 2002": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section (2002: COBOL1560) and probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob, scr-viol.cob (2002: COBOL1560 on the section and each clause)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (screen section processor-dependent; unclaimed support need not be implemented)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: a 2002 licence exists (processor-dependent, §2002:3.1.5 + B.3 item 1) and the compiler declines the screen section at --std 2002 with COBOL1560; scope and evidence unchanged"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-6",
+    "to": [
+     "SR-13.17.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.2",
+    "clause-2023": "13.17.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR6",
+      "quote": "The subject of the entry shall be an elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR6",
+      "quote": "The subject of the entry shall be an elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 twin is DOCUMENTED-NON-SUPPORT (2023 Annex A.4.2, optional). 2002 licenses the same non-support by another route: the screen section is processor-dependent (§2002:B.3 item 1) and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time diagnostic and no executable code required. The compiler declines every screen section construct at --std 2002 with COBOL1560 (the section and each clause by name). Note: the diagnostic cites the 2023 licence (Annex A.4.2) even at --std 2002, not §2002:3.1.5 / B.3; a wording point, not a conformance failure.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "screen section entry: format 2 subject is elementary (declined as a processor-dependent element)"
+    ],
+    "evidence-2002": {
+     "decline at 2002": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section (2002: COBOL1560) and probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob, scr-viol.cob (2002: COBOL1560 on the section and each clause)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (screen section processor-dependent; unclaimed support need not be implemented)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: a 2002 licence exists (processor-dependent, §2002:3.1.5 + B.3 item 1) and the compiler declines the screen section at --std 2002 with COBOL1560; scope and evidence unchanged"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-8",
+    "to": [
+     "SR-13.17.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.2",
+    "clause-2023": "13.17.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR8",
+      "quote": "If the FULL clause is specified, the JUSTIFIED clause shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR8",
+      "quote": "If the FULL clause is specified, the JUSTIFIED clause shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 twin is DOCUMENTED-NON-SUPPORT (2023 Annex A.4.2, optional). 2002 licenses the same non-support by another route: the screen section is processor-dependent (§2002:B.3 item 1) and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time diagnostic and no executable code required. The compiler declines every screen section construct at --std 2002 with COBOL1560 (the section and each clause by name). Note: the diagnostic cites the 2023 licence (Annex A.4.2) even at --std 2002, not §2002:3.1.5 / B.3; a wording point, not a conformance failure.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "screen section entry: FULL with JUSTIFIED (declined as a processor-dependent element)"
+    ],
+    "evidence-2002": {
+     "decline at 2002": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section (2002: COBOL1560) and probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob, scr-viol.cob (2002: COBOL1560 on the section and each clause)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (screen section processor-dependent; unclaimed support need not be implemented)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: a 2002 licence exists (processor-dependent, §2002:3.1.5 + B.3 item 1) and the compiler declines the screen section at --std 2002 with COBOL1560; scope and evidence unchanged"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-9",
+    "to": [
+     "SR-13.17.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.2",
+    "clause-2023": "13.17.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR9",
+      "quote": "If the LOCALE phrase of the PICTURE clause is specified, the SIGN clause shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR9",
+      "quote": "If the LOCALE phrase of the PICTURE clause is specified, the SIGN clause shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 twin is DOCUMENTED-NON-SUPPORT (2023 Annex A.4.2, optional). 2002 licenses the same non-support by another route: the screen section is processor-dependent (§2002:B.3 item 1) and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time diagnostic and no executable code required. The compiler declines every screen section construct at --std 2002 with COBOL1560 (the section and each clause by name). Note: the diagnostic cites the 2023 licence (Annex A.4.2) even at --std 2002, not §2002:3.1.5 / B.3; a wording point, not a conformance failure.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "screen section entry: PICTURE LOCALE with SIGN (declined as a processor-dependent element)"
+    ],
+    "evidence-2002": {
+     "decline at 2002": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section (2002: COBOL1560) and probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob, scr-viol.cob (2002: COBOL1560 on the section and each clause)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (screen section processor-dependent; unclaimed support need not be implemented)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: a 2002 licence exists (processor-dependent, §2002:3.1.5 + B.3 item 1) and the compiler declines the screen section at --std 2002 with COBOL1560; scope and evidence unchanged"
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-10",
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.9.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "Communication-section reach the reader missed. The 2002 data division format and the 2002 communication section format both admit a constant-entry under a communication description entry (the bracket after communication-description-entry is {constant-entry | record-description-entry}...), so in 2002 GR2 also governs the class and category of a constant-name declared in the COMMUNICATION SECTION. 2023 has no communication section, and the twin's witnesses (cases/13.10-Constant/constant_entry, 7.3.11-DEFINE/pb1368_constant_from_compilation_variable) declare their constants in working-storage, so the 2023 row's evidence says nothing about that 2002 scope item. The reader's own GR3 row found the CD reach only through data-name-1/2 (a CD record named by LENGTH OF), not a constant entry written IN the communication section. Probe const-in-cd.cob: '01 KA CONSTANT AS \"HELLO\".' and '01 KN CONSTANT AS 123.' written after 'CD CI FOR INPUT'; at --std 2002 it compiles (COBOL0903 obsolescence warning only) and prints 'KA=HELLO KN=123' and 'NUMERIC-OK' (KA used as an alphanumeric literal in MOVE, KN as a numeric literal in MOVE and a relation): compiler correct; at --std 2023 refused COBOL0902 (section removed). Needs: a 2002 witness for a constant entry under a CD (this probe). The same reach covers every 13.9 rule (SR1-SR11, GR1-GR6), not only this one.",
+    "citations": [
+     {
+      "cite": "§2002:13.9.3 GR2",
+      "quote": "the class and category of constant-name-1 is the same as that of literal-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.4 GR2",
+      "quote": "the class and category of constant-name-1 is the same as that of literal-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.1.1",
+      "quote": "COMMUNICATION SECTION. │ communication-description-entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "COMMUNICATION SECTION . constant-entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.25.2 SR1",
+      "quote": "The GLOBAL clause may be specified only in the following entries",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-10/const-in-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.12.2-1",
+    "verdict": "UPHELD",
+    "reason": "RD SR1 concerns the FD's REPORT clause. The REPORT clause (2002 13.16.44 / 2023 13.18.46) has the same format and the same SR1-SR2 (2023 SR3 only adds the PERFORM WHEN reference, irrelevant here). A CD has no REPORT clause; the report section placement rule is word-identical (13.7.2 SR1 / 13.8.3 SR1). RD format differs only by presentation (inline CODE/CONTROL/PAGE in 2002 vs clause references). No 2002-only context found.",
+    "citations": [
+     {
+      "cite": "§2002:13.12.2 SR1",
+      "quote": "There shall be one and only one REPORT clause specifying report-name-1 in a given file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.3 SR1",
+      "quote": "There shall be one and only one REPORT clause specifying report-name-1 in a given file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.44.2 SR2",
+      "quote": "Each report-name-1 may appear in only one REPORT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.3 SR2",
+      "quote": "Each report-name-1 may appear in only one REPORT clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.12.3-1",
+    "verdict": "UPHELD",
+    "reason": "Same [IS GLOBAL] RD phrase and list. The GLOBAL clause SR1 list and SR4 (no GLOBAL in factory/instance/method) are the same in 2002 and 2023 (only 2023 SR3 on external files differs, which is about files); report section placement identical, so a GLOBAL RD occurs only in a program/function in both. No CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:13.12.3 GR1",
+      "quote": "If GLOBAL is specified, report-name-1 and all its constituent report groups",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.4 GR1",
+      "quote": "If GLOBAL is specified, report-name-1 and all its constituent report groups",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.25.2 SR4",
+      "quote": "The GLOBAL clause shall not be specified in a factory definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7.2 SR1",
+      "quote": "Within a class definition, the report section may be specified only in a factory definition or an instance definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.3 SR1",
+      "quote": "Within a class definition, the report section may be specified only in a factory definition or an instance definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-10",
+    "verdict": "UPHELD",
+    "reason": "Report group format (13.13.1 / 13.15.2) identical phrase for phrase; COLUMN format 1 identical (diffed); SOURCE and SUM differ only by ROUNDED -> rounded-phrase and 2023-added restrictions (SOURCE SR8, SUM SR3/SR9) that do not touch whether an entry carries one of the three clauses. Report group entries cannot appear under a CD (SR1).",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR10",
+      "quote": "Every elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR10",
+      "quote": "Every elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-12",
+    "verdict": "UPHELD",
+    "reason": "Same as SR10: identical report group format; SOURCE/SUM formats lose no 2002 form in 2023 (diffed: only ROUNDED -> rounded-phrase). The implied-PICTURE rule SR14 gains a 2023 zero-length exclusion, which concerns VALUE, not SOURCE/SUM.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR12",
+      "quote": "A PICTURE clause shall be specified in every elementary entry that has a SOURCE or SUM clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR12",
+      "quote": "A PICTURE clause shall be specified in every elementary entry that has a SOURCE or SUM clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-16",
+    "verdict": "UPHELD",
+    "reason": "Prohibition scoped to report section items, identical in both. Attacked the 2002-only permitted side: a PRESENT WHEN condition naming a CD record item is not a report section item and must be accepted at 2002. Probe pw-cd.cob ('PRESENT WHEN CF1 = SPACES', CF1 under 'CD CI FOR INPUT') compiles and runs at --std 2002 and prints the Y column: correct. Reader's pw-sum.cob re-run here: three COBOL1559 at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR16",
+      "quote": "Condition-1 shall not reference any sum counter, LINE-COUNTER, PAGE-COUNTER, or other report section data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR16",
+      "quote": "Condition-1 shall not reference any sum counter, LINE-COUNTER, PAGE-COUNTER, or other report section data item",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-10/pw-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-4",
+    "verdict": "UPHELD",
+    "reason": "Report section format identical in both (RD followed by {constant-entry | report-group-description-entry}...), so the 'level 1 entry' that may follow an RD (including a level-1 constant entry) is the same set.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR4",
+      "quote": "The first entry that follows a report description entry shall be a level 1 entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR4",
+      "quote": "The first entry that follows a report description entry shall be a level 1 entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-5",
+    "verdict": "UPHELD",
+    "reason": "TYPE clause (2002 13.16.55 / 2023 13.18.57) diffed: report-group format and its rules identical apart from typography; changes are in the type-name format GR3 only.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR5",
+      "quote": "The TYPE clause may be specified only in a level 1 entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR5",
+      "quote": "The TYPE clause may be specified only in a level 1 entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-8",
+    "verdict": "UPHELD",
+    "reason": "LINE clause (2002 13.16.33 / 2023 13.18.35) diffed: no difference beyond typography and reflowed lines.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR8",
+      "quote": "No report group description entry with a LINE clause shall be subordinate to another entry with a LINE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR8",
+      "quote": "No report group description entry with a LINE clause shall be subordinate to another entry with a LINE clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.13.3-1",
+    "verdict": "UPHELD",
+    "reason": "Definitional rule over an identical format; report groups cannot be under a CD.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.3 GR1",
+      "quote": "Each level 1 entry identifies a report group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.4 GR1",
+      "quote": "Each level 1 entry identifies a report group",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.13.3-3",
+    "verdict": "UPHELD",
+    "reason": "Report group OCCURS (with STEP), multi-operand LINE and COLUMN formats identical in both editions (LINE and COLUMN diffed).",
+    "citations": [
+     {
+      "cite": "§2002:13.13.3 GR3",
+      "quote": "is said to be a repeating entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.4 GR3",
+      "quote": "is said to be a repeating entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-19",
+    "verdict": "UPHELD",
+    "reason": "Same two-item list (BASED, TYPEDEF). PROPERTY is confined to the working-storage section of a factory or instance definition in 2002, so no CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR19",
+      "quote": "The PROPERTY clause shall not be specified in the same data description entry as",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR21",
+      "quote": "The PROPERTY clause shall not be specified in the same data description entry as",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.40.2 SR1",
+      "quote": "The PROPERTY clause may be specified only in the working-storage section of a factory definition or an instance definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-1",
+    "verdict": "UPHELD",
+    "reason": "Licence verified in the 2002 text: B.3 item 1 makes the screen section processor-dependent and 3.1.5 lets unclaimed support go unimplemented, requiring a compile-time warning mechanism and documentation of the absence. The compiler emits COBOL1560 on the section and each clause at --std 2002 (scr-2002.cob re-run here), and docs/conformance/5/A.4.2.md records the facility as Not claimed. Note (not a conformance failure): 2014 E.2 item 23 calls 2002 screen handling 'required', but the 2002 text's own B.3/3.1.5 governs; the diagnostic and the doc cite only the 2023 licence.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR1",
+      "quote": "If the entry-name clause is specified, only the screen-name format or filler format may be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-2",
+    "verdict": "UPHELD",
+    "reason": "Same licence as 13.15.2 SR1 (B.3 item 1 + 3.1.5); GLOBAL on a screen entry draws COBOL1560 at --std 2002 (re-run).",
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR2",
+      "quote": "If the GLOBAL clause is specified, the screen-name format of the entry-name clause shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-3",
+    "verdict": "UPHELD",
+    "reason": "Same licence as 13.15.2 SR1; declined at 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR3",
+      "quote": "Level-number shall be a number from 1 through 48",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-4",
+    "verdict": "UPHELD",
+    "reason": "Same licence as 13.15.2 SR1; declined at 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR4",
+      "quote": "The subject of the entry shall be a group screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-5",
+    "verdict": "UPHELD",
+    "reason": "Same licence as 13.15.2 SR1; declined at 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR5",
+      "quote": "Level-number shall be a number from 1 through 49",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-6",
+    "verdict": "UPHELD",
+    "reason": "Same licence as 13.15.2 SR1; declined at 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR6",
+      "quote": "The subject of the entry shall be an elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-8",
+    "verdict": "UPHELD",
+    "reason": "Same licence as 13.15.2 SR1; FULL drew COBOL1560 at 2002 (re-run).",
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR8",
+      "quote": "If the FULL clause is specified, the JUSTIFIED clause shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-9",
+    "verdict": "UPHELD",
+    "reason": "Same licence as 13.15.2 SR1; declined at 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR9",
+      "quote": "If the LOCALE phrase of the PICTURE clause is specified, the SIGN clause shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-10/scr-2002.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "d1af80fc9f5f48fe72ad76b36444b3277d5c195543be1e238aa27bd070fbc920",
+  "read": "8f6fa15ff6fc035709e539672c754c90e5609eea0795970d6fb07bd29bdf7980",
+  "refute": "afae4ffe27365c29cc44c234d1aa41edee065ab61e6b95d88bb13d325ff34671"
+ }
+}

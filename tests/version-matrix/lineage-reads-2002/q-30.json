@@ -1,0 +1,2046 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-30 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-30",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.29.3-22",
+   "2002-GR-14.8.29.3-23",
+   "2002-GR-14.8.29.3-27",
+   "2002-GR-14.8.29.3-28",
+   "2002-GR-14.8.29.3-5",
+   "2002-GR-14.8.29.3-7",
+   "2002-GR-14.8.29.3-9",
+   "2002-GR-14.8.30.3-1",
+   "2002-GR-14.8.30.3-3",
+   "2002-SR-14.8.31.2-2",
+   "2002-SR-14.8.31.2-3",
+   "2002-GR-14.8.31.3-1",
+   "2002-SR-14.8.32.2-3",
+   "2002-GR-14.8.32.3-4",
+   "2002-SR-14.8.33.2-10",
+   "2002-SR-14.8.33.2-11",
+   "2002-SR-14.8.33.2-12",
+   "2002-SR-14.8.33.2-3",
+   "2002-GR-14.8.33.3-19",
+   "2002-GR-14.8.33.3-2",
+   "2002-GR-14.8.33.3-20",
+   "2002-GR-14.8.33.3-21",
+   "2002-GR-14.8.33.3-22",
+   "2002-GR-14.8.33.3-24",
+   "2002-SR-14.8.34.2-3"
+  ],
+  "flags": {
+   "2002-GR-14.8.29.3-27": {
+    "changed-definition-term": "dynamic access"
+   },
+   "2002-GR-14.8.29.3-28": {
+    "changed-definition-term": "dynamic access"
+   },
+   "2002-GR-14.8.29.3-5": {
+    "changed-definition-term": "alphanumeric group item"
+   },
+   "2002-GR-14.8.29.3-7": {
+    "band-lacks-2002": "bands ['2014,2023']"
+   },
+   "2002-GR-14.8.30.3-1": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.30.3-3": {
+    "changed-definition-term": "output file"
+   },
+   "2002-SR-14.8.31.2-2": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-SR-14.8.32.2-3": {
+    "changed-definition-term": "alphanumeric group item"
+   },
+   "2002-SR-14.8.33.2-10": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-14.8.33.2-11": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-14.8.33.2-12": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.33.3-20": {
+    "changed-definition-term": "dynamic access"
+   },
+   "2002-SR-14.8.34.2-3": {
+    "changed-definition-term": "index"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-30",
+  "seed": null,
+  "probe-root": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30",
+  "probe-notes": "src/ holds the probe programs; runs/<name>.<std>/out.txt holds each compile+run; log-2002.txt holds the twin-witness runs at --std 2002 (tools/runcase.py compares stdout to the case's .out, or checks a refusal's expected code); cites-result.txt holds the cite.py verdicts.",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.29.3-22",
+    "to": [
+     "GR-14.9.30.4-25"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.29 READ statement (GR22, Format 1 general rules)",
+    "clause-2023": "14.9.30 READ statement (GR25)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR22",
+      "quote": "moves the relative record number of the record made available to the relative key data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR25",
+      "quote": "moves the relative record number of the record made available to the relative key data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.13.2 SR1",
+      "quote": "Data-name-1 may be qualified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.3 SR1",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.13.2 SR3",
+      "quote": "Data-name-1 shall not be defined in a record description entry subordinate to the associated file-name.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "sequential READ of a relative file whose RELATIVE KEY is a working-storage/local-storage/linkage integer item",
+     "the same with a RELATIVE KEY item in a record under a CD (2002 SR3 forbids only the file's own records)",
+     "the same with a subscripted RELATIVE KEY item, RELATIVE KEY IS RK(2) (2002 SR1 only says 'may be qualified'; 2023 SR1 forbids any OCCURS)"
+    ],
+    "evidence-2002": [
+     "WS key: covered by conformance:cases/12.4.5.13-RELATIVE-KEY/l1_read_relative_key_moved, run at --std 2002 MATCH (log-2002.txt)",
+     "CD key: covered by probe src/read-relkey-cd.cob at --std 2002: N1 00 BBBB 0002, N2 00 EEEE 0005 (runs/read-relkey-cd.2002/out.txt): correct",
+     "subscripted key: not shown; probe src/read-relkey-sub.cob is refused at --std 2002 with COBOL2024 'RELATIVE KEY RK(2) is written with a subscript' citing §2023:8.4.2.2.2 (runs/read-relkey-sub.2002/out.txt)"
+    ],
+    "reason": "Words identical and the READ formats are identical, but the relative key data item the rule moves into is wider in 2002: it may be subscripted (2002 RELATIVE KEY SR1 only permits qualification restrictions; 2014 E.2 records the later change) and may sit in a CD record. The 2023 row cannot reach either. The CD case works at 2002; the subscripted case is refused at 2002, the defect already found by the p-09 refuter on 2002-SR-12.3.4.13.2-3 (COBOL2024 has no edition arm).",
+    "needs": "its own verdict: at --std 2002 the CD relative key is correct (read-relkey-cd.cob) and the subscripted relative key is refused COBOL2024 (read-relkey-sub.cob): a 2002 witness for RELATIVE KEY IS RK(n) once the p-09 defect is fixed",
+    "compiler-at-2002": "wrong (subscripted RELATIVE KEY refused: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/read-relkey-sub.cob, the known p-09 defect); correct for the CD key (src/read-relkey-cd.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/read-relkey-cd.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/read-relkey-sub.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-23",
+    "to": [
+     "GR-14.9.30.4-26"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.29 READ statement (GR23)",
+    "clause-2023": "14.9.30 READ statement (GR26)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR23",
+      "quote": "in which they are released by execution of WRITE statements, or by execution of REWRITE statements that create such duplicate values",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR26",
+      "quote": "in which they are released by execution of WRITE statements, or by execution of REWRITE statements that create such duplicate values",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.3 GR1",
+      "quote": "The rewrite file connector is the file connector referenced by file-name-1 or the file-name associated with record-name-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.3.4.2 SR3b",
+      "quote": "a FILE phrase specifying file-name-1 and the FROM phrase shall be specified on all WRITE and REWRITE statements associated with the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "REWRITE FILE file-name-1 (14.9.35)",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "duplicate-key order of records released by WRITE record-name / REWRITE record-name",
+     "duplicate-key order of records released by WRITE FILE file-name-1 FROM / REWRITE FILE file-name-1 FROM (required 2002 forms, and the only forms 2002 allows for an FD without record descriptions, 13.3.4.2 SR3b)",
+     "the PREVIOUS reverse order of the same"
+    ],
+    "evidence-2002": [
+     "record-name forms: covered by conformance:cases/9.1.13.2-Successful-completion/l1_rewrite_alt_key_order, l1_read_alt_dup_walk, cases/14.9.30-READ/l1_start_dup_set_entry, pb2693_dup_orders_survive_close, each run at --std 2002 MATCH (log-2002.txt)",
+     "FILE forms: not shown; every WRITE FILE / REWRITE FILE is refused at --std 2002 with COBOL1706 citing §2023 Annex A.4.13 (src/rwf-idx.cob, src/rwf-seq.cob)"
+    ],
+    "reason": "Same words and same READ format. But 'WRITE statements' and 'REWRITE statements' in 2002 include the FILE forms, which 2002 requires (only Annex A is optional in 2002) and which 2023 makes optional (A.4.13). The compiler declines them at every edition, so the 2023 verdict rests on a licence 2002 lacks, and duplicates created by REWRITE FILE / WRITE FILE have no 2002 evidence. Same family as p-14 D1 and the q-12 refuter's CODE-SET overturns.",
+    "needs": "its own verdict: the record-name forms are correct at --std 2002 (four twin witnesses MATCH); the FILE forms are refused COBOL1706 at --std 2002, so a 2002 witness for duplicates released by REWRITE FILE / WRITE FILE once D1 is fixed",
+    "compiler-at-2002": "wrong (D1: REWRITE FILE / WRITE FILE refused COBOL1706 at --std 2002; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-idx.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-idx.cob",
+    "widening": "2023 adds SUPPRESS WHEN (suppressed keys absent), not a 2002 case"
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-27",
+    "to": [
+     "GR-14.9.30.4-30"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.29 READ statement (GR27, Format 2)",
+    "clause-2023": "14.9.30 READ statement (GR30, Format 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR27",
+      "quote": "data-name-1 or record-key-name-1 is established as the key of reference for this retrieval",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR30",
+      "quote": "data-name-1 or record-key-name-1 is established as the key of reference for this retrieval",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "An access mode in which specific logical records may be obtained from or placed into a mass storage file in a nonsequential manner",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.62",
+      "quote": "access mode in which specific logical records can be obtained from or placed into a mass storage file in a nonsequential manner",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.8.3",
+      "quote": "The dynamic access mode may be used only on files with relative or indexed organizations.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "random READ ... KEY IS data-name-1 (prime or alternate) of an indexed file, and the key of reference it leaves for later sequential READs in dynamic access",
+     "the same with KEY IS record-key-name-1 (a split key named by the SOURCE phrase of RECORD KEY)"
+    ],
+    "evidence-2002": [
+     "data-name-1: covered by conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1_read_key_of_reference, run at --std 2002 MATCH (log-2002.txt)",
+     "record-key-name-1: covered by probe src/read-splitkey.cob at --std 2002 (RECORD KEY IS SK SOURCE IS K2 K1; READ KEY IS SK gives R 00 ABV1, the following READ NEXT walks SK order and gives 10): correct"
+    ],
+    "reason": "Format 2 identical (KEY IS data-name-1 | record-key-name-1). Record keys live in the file's own records, so no CD reach. Flag 'dynamic access' (changed-definition-term): 2002 §4 entry 4.64 and 2023 3.62 differ only in 'may' versus 'can'; 2002 9.1.8.3 confines dynamic access to relative and indexed files as 2023 does; the rule's scope in 2002 follows from that definition unchanged, and the evidence covers it.",
+    "flags-answered": {
+     "behaviour-switch: indexed-read-previous-after-open-at-end": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd) changes only a sequential READ PREVIOUS that is the first retrieval after OPEN on an indexed file, the case of §2002:14.8.29.3 GR18c; this rule does not govern that case, and its own behaviour at --std 2002 is shown by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob at 2002: after READ KEY IS the alternate, READ PREVIOUS walks the alternate (R1=K004, R2=K006), the key of reference of §2002:14.8.29.3 GR27, plus l1_read_key_of_reference MATCH at 2002. Separately, the switch's own 2002 arm is wrong (a defect lead, not this row's): probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob gives P1=K002|00 at --std 2002 (and 2014), where §2002:14.8.26.3 GR12 sets an indexed file's position indicator to the lowest-ordinal characters and §2002:14.8.29.3 GR18c selects a record whose key is 'less than or equal to the file position indicator', none, so GR18 gives status 10 and the at end condition (2023 prints ATEND|10); code site IndexedConnector.SelectSequentialRecord (src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs:445) with DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (DialectBehavior.cs:297, kb/Work PB344).",
+     "definition-changed: dynamic access": "2002 'An access mode in which specific logical records may be obtained from or placed into a mass storage file in a nonsequential manner' and sequentially (§2002:4); 2023 differs only in 'can' for 'may'. The rule governs the same dynamic indexed connectors; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob shows the key of reference carried to later sequential READs at 2002."
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/read-splitkey.cob",
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR18c",
+      "quote": "If PREVIOUS is specified, the first existing record in the physical file whose record number or key value is less than or equal to the file position indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR12",
+      "quote": "the file position indicator is set to the characters that have the lowest ordinal position in the collating sequence associated with the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR18",
+      "quote": "If no record is found that satisfies the above rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR27",
+      "quote": "this key of reference is also used for retrievals by any subsequent executions of sequential format READ statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "An access mode in which specific logical records may be obtained from or placed into a mass storage file in a nonsequential manner",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-30",
+    "flags": {
+     "behaviour-switch: indexed-read-previous-after-open-at-end": null,
+     "definition-changed: dynamic access": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-28",
+    "to": [
+     "GR-14.9.30.4-31"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.29 READ statement (GR28, Format 2)",
+    "clause-2023": "14.9.30 READ statement (GR31, Format 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR28",
+      "quote": "the prime record key is established as the key of reference for this retrieval",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR31",
+      "quote": "the prime record key is established as the key of reference for this retrieval",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "An access mode in which specific logical records may be obtained from or placed into a mass storage file in a nonsequential manner",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "random READ of an indexed file without KEY, and the prime key of reference it leaves for later sequential READs in dynamic access"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1_read_key_of_reference, run at --std 2002 MATCH (log-2002.txt): the bare READ re-establishes the prime key after an alternate"
+    ],
+    "reason": "Format 2 identical; no operand that could sit outside the file's records; 'dynamic access' as for GR27.",
+    "flags-answered": {
+     "behaviour-switch: indexed-read-previous-after-open-at-end": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd) changes only a sequential READ PREVIOUS that is the first retrieval after OPEN on an indexed file, the case of §2002:14.8.29.3 GR18c; this rule does not govern that case, and its own behaviour at --std 2002 is shown by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob at 2002: a bare random READ re-establishes the prime key and READ PREVIOUS walks it (R3=K004, R4=K002), plus l1_read_key_of_reference MATCH at 2002. Separately, the switch's own 2002 arm is wrong (a defect lead, not this row's): probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob gives P1=K002|00 at --std 2002 (and 2014), where §2002:14.8.26.3 GR12 sets an indexed file's position indicator to the lowest-ordinal characters and §2002:14.8.29.3 GR18c selects a record whose key is 'less than or equal to the file position indicator', none, so GR18 gives status 10 and the at end condition (2023 prints ATEND|10); code site IndexedConnector.SelectSequentialRecord (src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs:445) with DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (DialectBehavior.cs:297, kb/Work PB344).",
+     "definition-changed: dynamic access": "2002 'An access mode in which specific logical records may be obtained from or placed into a mass storage file in a nonsequential manner' and sequentially (§2002:4); 2023 differs only in 'can' for 'may'. The rule governs the same dynamic indexed connectors; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob shows the key of reference carried to later sequential READs at 2002."
+    },
+    "probe": null,
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR18c",
+      "quote": "If PREVIOUS is specified, the first existing record in the physical file whose record number or key value is less than or equal to the file position indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR12",
+      "quote": "the file position indicator is set to the characters that have the lowest ordinal position in the collating sequence associated with the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR18",
+      "quote": "If no record is found that satisfies the above rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR27",
+      "quote": "this key of reference is also used for retrievals by any subsequent executions of sequential format READ statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "An access mode in which specific logical records may be obtained from or placed into a mass storage file in a nonsequential manner",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-30",
+    "flags": {
+     "behaviour-switch: indexed-read-previous-after-open-at-end": null,
+     "definition-changed: dynamic access": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-5",
+    "to": [
+     "GR-14.9.30.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.29 READ statement (GR5)",
+    "clause-2023": "14.9.30 READ statement (GR6)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR5",
+      "quote": "proceeds as though there were one record description entry describing an alphanumeric group item of the maximum size established by the RECORD clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR6",
+      "quote": "proceeds as though there were one record description entry describing an alphanumeric group item of the maximum size established by the RECORD clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "alphanumeric group item: Any group item except for",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.11",
+      "quote": "group item except for a bit group item, a national group item, a strongly-typed group item, or a variable-length group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.12.1",
+      "quote": "A variable-length group is a group item whose data description has at least one dynamic-length elementary item or dynamic-capacity table as a subordinate item.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "READ ... INTO of a sequential, relative or indexed FD that has no record description entries (2002 13.3.4.2 SR3, formats 1 and 2): the record area behaves as one alphanumeric group of the RECORD clause's maximum size"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_2023, run at --std 2002 MATCH (log-2002.txt)"
+    ],
+    "reason": "Format identical. The rule governs the implied record description of the FD's record area; the receiver identifier-1 (which in 2002 may be a CD item) is governed by GR4/SR1, not by this rule. Flag 'alphanumeric group item': 2002 excludes strongly-typed, bit and national groups; 2023 adds only the variable-length group, which exists only through dynamic-length items and dynamic-capacity tables (2014+), so the implied record is the same kind of item in 2002.",
+    "probe": null,
+    "widening": null,
+    "flags-answered-reader": [
+     "changed-definition-term 'alphanumeric group item': 2023 adds only the variable-length-group exclusion, a 2014+ concept; the implied record's kind is unchanged in 2002, scope and evidence hold"
+    ],
+    "from-slice": "q-30",
+    "flags-answered": {
+     "behaviour-switch: indexed-read-previous-after-open-at-end": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord) decides only which record §2002:14.8.29.3 GR18 selects for a READ PREVIOUS that is the first operation after OPEN on an indexed file. GR5 fixes the shape of the implied record area for READ INTO with no record description; which record fills it is GR18's. pb345 reads no PREVIOUS (grep). No change. Lead, not this row: at --std 2002 the switch returns the lowest record (probe prev-open-ix.cob: P1=K002|00) where §2002:14.8.26.3 GR12 (FPI = lowest-ordinal characters) with §2002:14.8.29.3 GR18c2 (key less than or equal to the FPI) find no record, so '10' and at end; that is a GR18 defect.",
+     "definition-changed: alphanumeric group item": "§2002:4 4.11: 'alphanumeric group item: Any group item except for' a strongly-typed, bit or national group item; 2023 3.11 adds the variable-length group, which needs dynamic-length items or dynamic-capacity tables that 2002 does not have. The implied record of GR5 is a plain group of the RECORD clause's maximum size in both, so the rule governs the same files."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR12",
+      "quote": "When the organization is indexed, the file position indicator is set to the characters that have the lowest ordinal position in the collating sequence associated with the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR18c2",
+      "quote": "If PREVIOUS is specified, the first existing record in the physical file whose record number or key value is less than or equal to the file position indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR18",
+      "quote": "If no record is found that satisfies the above rules, the file position indicator is set to indicate that no next or previous logical record exists, the I-O status value associated with file-name-1 is set to '10', the at end condition exists",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR18",
+      "quote": "normally get an at end condition for indexed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "alphanumeric group item: Any group item except for",
+      "check": "OK"
+     }
+    ],
+    "answer-lead": "see leads[0]: the switch is wrong at --std 2002 for GR18 (not this rule)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-7",
+    "to": [
+     "GR-14.9.30.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.29 READ statement (GR7)",
+    "clause-2023": "14.9.30 READ statement (GR8)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR7",
+      "quote": "the record lock is ignored and the READ operation proceeds as if the record were not locked",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR8",
+      "quote": "the record lock is ignored and the READ operation proceeds as if the record were not locked",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "READ (either format) of a record already locked by the same file connector, under record locking set by the 2002 LOCK MODE clause (12.3.4.8)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.30-READ/l1_read_self_lock_ignored, run at --std 2002 MATCH (log-2002.txt; the trailing '51' shows the lock still stands)"
+    ],
+    "reason": "Format identical; no operand reach. Flag 'band-lacks-2002': the 2023 row's band is 2014,2023, but the 2002 text carries the rule word for word (GR7) with the same LOCK MODE reference (2002 GR6 cites 12.3.4.8), so the band understates the rule's editions; the twin witness compiles and runs MATCH at --std 2002, which is the evidence.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/runs/l1_read_self_lock_ignored.2002/stdout.txt",
+    "widening": null,
+    "flags-answered-reader": [
+     "band-lacks-2002 (bands ['2014,2023']): the rule exists in 2002 verbatim; evidence comes from running the twin witness at --std 2002 (MATCH). The 2023 row's band should include 2002 (an inventory band defect, not a compiler one)"
+    ],
+    "from-slice": "q-30",
+    "flags-answered": {
+     "behaviour-switch: indexed-read-previous-after-open-at-end": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord) decides only which record §2002:14.8.29.3 GR18 selects for a READ PREVIOUS that is the first operation after OPEN on an indexed file. GR7 ignores the connector's own lock on the record identified for access; which record that is comes from GR18. l1_read_self_lock_ignored reads no PREVIOUS (grep). No change. Lead, not this row: at --std 2002 the switch returns the lowest record (probe prev-open-ix.cob: P1=K002|00) where §2002:14.8.26.3 GR12 (FPI = lowest-ordinal characters) with §2002:14.8.29.3 GR18c2 (key less than or equal to the FPI) find no record, so '10' and at end; that is a GR18 defect."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR12",
+      "quote": "When the organization is indexed, the file position indicator is set to the characters that have the lowest ordinal position in the collating sequence associated with the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR18c2",
+      "quote": "If PREVIOUS is specified, the first existing record in the physical file whose record number or key value is less than or equal to the file position indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR18",
+      "quote": "If no record is found that satisfies the above rules, the file position indicator is set to indicate that no next or previous logical record exists, the I-O status value associated with file-name-1 is set to '10', the at end condition exists",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR18",
+      "quote": "normally get an at end condition for indexed",
+      "check": "OK"
+     }
+    ],
+    "answer-lead": "see leads[0]: the switch is wrong at --std 2002 for GR18 (not this rule)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-9",
+    "to": [
+     "GR-14.9.30.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.29 READ statement (GR9)",
+    "clause-2023": "14.9.30 READ statement (GR10)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR9",
+      "quote": "The key of reference for indexed files is unchanged.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR10",
+      "quote": "The key of reference for indexed files is unchanged.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "record operation conflict on a READ of either format, sequential, relative and indexed files: items a) to e)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.30-READ/pb338_read_conflict_position and pb338_random_read_conflict_position, both run at --std 2002 MATCH (log-2002.txt)"
+    ],
+    "reason": "Format and the five items identical; the conflict condition comes from the same RETRY/locking rules (2002 GR8 cites 14.6.8, 2023 GR9 14.7.9, same text). No operand reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "behaviour-switch: indexed-read-previous-after-open-at-end": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd) changes only a sequential READ PREVIOUS that is the first retrieval after OPEN on an indexed file, the case of §2002:14.8.29.3 GR18c; this rule does not govern that case, and its own behaviour at --std 2002 is shown by pb338_read_conflict_position and pb338_random_read_conflict_position MATCH at 2002; the switch's arm returns before any record is locked or read. Separately, the switch's own 2002 arm is wrong (a defect lead, not this row's): probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob gives P1=K002|00 at --std 2002 (and 2014), where §2002:14.8.26.3 GR12 sets an indexed file's position indicator to the lowest-ordinal characters and §2002:14.8.29.3 GR18c selects a record whose key is 'less than or equal to the file position indicator', none, so GR18 gives status 10 and the at end condition (2023 prints ATEND|10); code site IndexedConnector.SelectSequentialRecord (src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs:445) with DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (DialectBehavior.cs:297, kb/Work PB344).",
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": "GR9 states no value; the record operation conflict values are §2002:9.1.12.7 (51-54), a subclause the screen does not flag as changed, and pb338_read_conflict_position / pb338_random_read_conflict_position MATCH at --std 2002. The changed parts: §2002:9.1.12 (changed): the lead text differs in USE procedure versus processing statements and 2023's EC-I-O-WARNING; neither changes the status this rule sets; §2002:9.1.12.1 (changed): successful-completion values (2023 adds line sequential 06/09); not reached by this rule; §2002:9.1.12.2 (changed): implementor-defined successful values; not reached; §2002:9.1.12.5 (changed): permanent errors (2023 adds 34 boundary cases); not reached; §2002:9.1.12.9 (changed): implementor-defined unsuccessful values; not reached; §2002:9.1.13 (changed): the invalid key condition's processing; this rule's status is not an invalid key, so not reached."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR18c",
+      "quote": "If PREVIOUS is specified, the first existing record in the physical file whose record number or key value is less than or equal to the file position indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR12",
+      "quote": "the file position indicator is set to the characters that have the lowest ordinal position in the collating sequence associated with the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR18",
+      "quote": "If no record is found that satisfies the above rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.7",
+      "quote": "The input-output statement is unsuccessful due to an attempt to access a record that is currently locked by another file connector",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-30",
+    "flags": {
+     "behaviour-switch: indexed-read-previous-after-open-at-end": null,
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.30.3-1",
+    "to": [
+     "GR-14.9.32.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.30 RELEASE statement (GR1)",
+    "clause-2023": "14.9.32 RELEASE statement (GR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.30.3 GR1",
+      "quote": "If it is executed at any other time, the EC-FLOW-RELEASE exception condition is set to exist.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.32.4 GR1",
+      "quote": "If it is executed at any other time, the EC-FLOW-RELEASE exception condition is set to exist.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "procedure: One or more successive paragraphs or sections in the procedure division.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RELEASE executed inside the input procedure range of a SORT naming its file",
+     "RELEASE executed at any other time: EC-FLOW-RELEASE (Fatal in the 2002 exception table, as in 2023)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.32-RELEASE/pb349_sort_merge_flow_ec, run at --std 2002 MATCH (log-2002.txt)"
+    ],
+    "reason": "RELEASE format identical; EC-FLOW-RELEASE is 'Fatal | RELEASE not in range of SORT' in both exception tables. Flag 'procedure': the 2023 definition adds 'paragraph' and 'executable code' wording; an input procedure is the same sections/paragraphs named by SORT INPUT PROCEDURE in both, so the range the rule tests is unchanged.",
+    "flags-answered": {
+     "definition-changed: procedure": "The rule's input/output procedure is the procedure-name-1 [THRU procedure-name-2] range of SORT/MERGE in both editions; §2002:4 (entry 4.150) ('one or more successive paragraphs or sections') names the same range that §2023:3.145 does. Scope unchanged.",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:14.5.12.1.1 through §2002:14.5.12.2 against §2023:14.6.13.1.1 through §2023:14.6.13.2. The 2002 differences are: no MERGE/SORT, fatal-EC-I-O or PERFORM WHEN steps in fatal processing (§2023:14.6.13.1.3 (items 2-4) are 2023-only), the 2002 non-fatal wording, and the incompatible-data text. EC-FLOW-RELEASE is Fatal in the 2002 table. The RELEASE executed outside a SORT is not itself a MERGE or SORT statement, so 2023's item 2 does not reach it, and 2002 item 2 (declarative; RESUME continues) governs as in 2023. The witness pb349_sort_merge_flow_ec (accept [2002]) raises it from the main line with no SORT active and MATCHes at 2002."
+    },
+    "probe": null,
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.1",
+      "quote": "An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid only in the following cases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.31.3 GR2",
+      "quote": "control is transferred to an implicit CONTINUE statement that immediately follows the end of the statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.30.3-3",
+    "to": [
+     "GR-14.9.32.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.30 RELEASE statement (GR3)",
+    "clause-2023": "14.9.32 RELEASE statement (GR3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.30.3 GR3",
+      "quote": "The logical record is also available as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.32.4 GR3",
+      "quote": "The logical record is also available as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "output file: A file that is opened in either the output mode or extend mode.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.141",
+      "quote": "file that is opened such that it can only be written or extended",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RELEASE of an SD record whose file is in a SAME RECORD AREA clause: the record stays available in the SD area and in the other files' records of that clause"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.32-RELEASE/l1_release_same_record_area, run at --std 2002 MATCH (log-2002.txt). The second twin, pb1195_released_record_also_available_out_of_line, does not compile at 2002 (COBOL0900 DYNAMIC LENGTH), but its extra leg (an out-of-line dynamic-length record) is a 2014+ construct outside the 2002 scope"
+    ],
+    "reason": "Format identical; SAME RECORD AREA names files only (same SAME clause in both, per the p-16 reading), so no CD reach. Flag 'output file': 2002 'opened in output or extend mode' and 2023 'can only be written or extended' name the same files.",
+    "flags-answered": {
+     "definition-changed: output file": "§2002:4 (entry 4.145) 'A file that is opened in either the output mode or extend mode' and §2023:3.141 'can only be written or extended' name the same files. In GR3 'the associated output file' is the sort-merge file of record-name-1 in both editions (an SD file is never OPENed), so the definition does not change which files the SAME RECORD AREA availability covers; scope and evidence unchanged."
+    },
+    "probe": null,
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A file that is opened in either the output mode or extend mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.141",
+      "quote": "file that is opened such that it can only be written or extended",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.31.2-2",
+    "to": [
+     "SR-14.9.33.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.31 RESUME statement (SR2)",
+    "clause-2023": "14.9.33 RESUME statement (SR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.31.2 SR2",
+      "quote": "The RESUME statement shall not be specified in a declarative procedure for which the GLOBAL phrase is specified in the associated USE statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.33.3 SR2",
+      "quote": "The RESUME statement shall not be specified in a declarative procedure for which the GLOBAL phrase is specified in the associated USE statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.31.2 SR1",
+      "quote": "The RESUME statement may be specified only in a declarative.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.33.3 SR1",
+      "quote": "in an imperative statement in a WHEN phrase of an exception-checking PERFORM statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RESUME written in a declarative procedure whose USE statement has GLOBAL (any USE format of 2002)"
+    ],
+    "evidence-2002": [
+     "covered by probe src/resume-global.cob at --std 2002: refused COBOL0713 (runs/resume-global.2002/out.txt). The twin witness pb1160-resume-in-when-in-global-declarative is refused at 2002 too (COBOL0713) but also draws COBOL0900 for its Format-3 PERFORM, so the probe is the clean 2002 evidence"
+    ],
+    "reason": "Format identical. 2023 widens SR1 to WHEN phrases of the exception-checking PERFORM (2023-only), a widening; SR2's scope in 2002 is the GLOBAL declarative alone, refused at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/resume-global.cob",
+    "widening": "2023 SR1 also lets RESUME appear in an exception-checking PERFORM's WHEN phrase; SR2 does not reach it",
+    "flags-answered": {
+     "definition-changed: procedure": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('declarative procedure' with a GLOBAL USE) names the same units in 2002; scope and evidence unchanged.",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:14.5.12.1.2, 14.5.12.1.3 and 14.5.12.2 (fatal and non-fatal processing, incompatible data); the 2023 text adds the PERFORM WHEN arm, the SORT/MERGE and I-O status arms and APPLY COMMIT, none writable in 2002. This syntax rule bars RESUME in a GLOBAL declarative; it matched only on 'declarative' and does not rest on how an exception is processed. No change; the reader's probe resume-global.cob (COBOL0713 at 2002) stands."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If there is an applicable USE statement in the source unit that specifies the exception-name associated with the exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.31.2-3",
+    "to": [
+     "SR-14.9.33.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.31 RESUME statement (SR3)",
+    "clause-2023": "14.9.33 RESUME statement (SR3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.31.2 SR3",
+      "quote": "Procedure-name-1 shall be a procedure-name in the nondeclarative portion of the function, method, or program.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.33.3 SR3",
+      "quote": "Procedure-name-1 shall be a procedure-name in the nondeclarative portion of the function, method, or program.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "procedure: One or more successive paragraphs or sections in the procedure division.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RESUME AT procedure-name-1 in a program",
+     "the same in a function or method"
+    ],
+    "evidence-2002": [
+     "program: covered by conformance:cases/14.9.33-RESUME/l1c24-resume-at-declarative-paragraph and l1c24-resume-at-declarative-section, refused COBOL0714 at --std 2002 (log-2002.txt)",
+     "function: covered by probe src/resume-func.cob, refused COBOL0714 at --std 2002 (its message says 'program' inside a FUNCTION-ID, cosmetic)"
+    ],
+    "reason": "Format identical; procedure-names resolve the same way; no 2002-only procedure kind (USE FOR DEBUGGING is not in 2002). Flag 'procedure': definition wording only.",
+    "flags-answered": {
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 defines method as 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 drops the entry and describes methods at §2023:9.3.4, whose text is word for word §2002:9.3.4. SR3's 'function, method, or program' names the same runtime elements in 2002, so the procedures governed are unchanged.",
+     "pending-clause: §2002:9.3.5 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:9.3.5 (method resolution) and §2002:14.5.12.1.2, 14.5.12.1.3 and 14.5.12.2 (fatal and non-fatal handling, incompatible data; 2023 retitles 'Non-fatal' as 'Nonfatal' at 14.6.13.1.4 and adds the PERFORM WHEN arms). SR3 is a compile-time rule on which procedure-name RESUME AT may name and rests on none of that runtime text, so the 2002 refusals (COBOL0714) stand."
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/resume-func.cob",
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "The method implementation that is bound to the invocation depends on the class, at runtime, of the object on which the method is invoked",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "processing proceeds as indicated for the statement in which the exception condition was set to exist",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.31.3-1",
+    "to": [
+     "GR-14.9.33.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.31 RESUME statement (GR1)",
+    "clause-2023": "14.9.33 RESUME statement (GR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.31.3 GR1",
+      "quote": "If the RESUME statement is executed within the scope of execution of a global declarative, it is the equivalent of the execution of a CONTINUE statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.33.4 GR1",
+      "quote": "If the RESUME statement is executed within the scope of execution of a global declarative, it is the equivalent of the execution of a CONTINUE statement.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a RESUME (NEXT STATEMENT or procedure-name) in a local declarative performed from a GLOBAL declarative, including the GLOBAL declarative run for a contained program"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.33-RESUME/pb1160_resume_in_global_scope (accept [2002]), run at --std 2002 MATCH (log-2002.txt)"
+    ],
+    "reason": "Format identical; the PERFORM-from-declarative route the witness uses is 2002 too (the 2002 USE syntax rule 'Procedure-names within a declarative section may be referenced in a different declarative section ... only with a PERFORM statement', line 22153 of the 2002 text). No 2002-only reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "GR1 makes RESUME in a global declarative a CONTINUE; what follows is the declarative's completion under §2002:14.5.12.1.1 and the fatal/nonfatal sequence of §2002:14.5.12.1.2/1.3. 2023's fatal and nonfatal processing differs from §2002:14.5.12.1.2/1.3 only by additions with no 2002 counterpart (the PERFORM WHEN path, §2023:14.6.13.1.3; SORT/MERGE and fatal EC-I-O steps; APPLY COMMIT rollback); the 2002 sequence (conditional phrase, declarative, PROPAGATE, abnormal termination, implementor-defined when unchecked) is 2023's without them, and §2002:14.5.12.2 differs only by 2023's floating-point arms. The witness pb1160_resume_in_global_scope MATCHes at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.5.12.1.1",
+      "quote": "An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If there are no specific rules, the exception condition is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is within imperative-statement-1 of a PERFORM statement that contains a WHEN phrase",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-30"
+   },
+   {
+    "rule-id": "2002-SR-14.8.32.2-3",
+    "to": [
+     "SR-14.9.34.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.32 RETURN statement (SR3)",
+    "clause-2023": "14.9.34 RETURN statement (SR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.32.2 SR3",
+      "quote": "describe an alphanumeric group item or an elementary item of category alphanumeric or category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.34.3 SR2",
+      "quote": "describe an alphanumeric group item or an elementary item of category alphanumeric or category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "alphanumeric group item: Any group item except for",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RETURN ... INTO a working-storage/local-storage/linkage identifier-1, arms a) and b)",
+     "RETURN ... INTO an identifier-1 in a record under a CD, or a CD's implicit data-name (TEXT LENGTH etc.), arm b) asking that item's category"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by conformance:cases/14.9.34-RETURN/pb337-return-into-not-admissible (refused COBOL1994 at --std 2002) and cases/14.9.30-READ/pb337_into_receiver_admissible_2002 (MATCH at --std 2002) (log-2002.txt)",
+     "CD: covered by probes src/return-into-cd.cob (RETURN INTO a CD alphanumeric group and a CD alphanumeric item with two SD records: G BBBB, A DDDD) and src/return-into-cd-neg.cob (INTO a CD numeric item and INTO TEXT LENGTH CTL, both refused COBOL1994) at --std 2002: correct"
+    ],
+    "reason": "Format and words identical. Arm b) classifies identifier-1, and in 2002 identifier-1 may be an item of a CD record or a CD's implicitly described data-name, which the 2023 row cannot reach. Compiler correct at 2002 on both arms for CD operands. Flag 'alphanumeric group item': the 2023-only variable-length-group exclusion does not change the 2002 set.",
+    "flags-answered": [
+     "changed-definition-term 'alphanumeric group item': no 2002 effect (variable-length groups are 2014+); the extra 2002 reach is the CD operand, probed"
+    ],
+    "needs": "its own verdict: the compiler at --std 2002 for RETURN INTO a CD item is correct (return-into-cd.cob accepted and runs; return-into-cd-neg.cob refused COBOL1994)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/return-into-cd.cob, src/return-into-cd-neg.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/return-into-cd.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/return-into-cd-neg.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.32.3-4",
+    "to": [
+     "GR-14.9.34.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.32 RETURN statement (GR4)",
+    "clause-2023": "14.9.34 RETURN statement (GR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.32.3 GR4",
+      "quote": "after executing any implicit move resulting from the presence of an INTO phrase, control is transferred to imperative-statement-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.34.4 GR4",
+      "quote": "after executing any implicit move resulting from the presence of an INTO phrase, control is transferred to imperative-statement-2",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "successful RETURN with or without INTO and with or without NOT AT END: record available, then the INTO move, then imperative-statement-2 or the end of the statement"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.34-RETURN/pb722_return_into_unsuccessful, run at --std 2002 MATCH (log-2002.txt); also probe src/return-into-cd.cob (NOT AT END shows the moved value)"
+    ],
+    "reason": "Format identical. The rule is the ordering of three steps; the receiver of the INTO move is GR5's business, and the ordering holds for a CD receiver too (return-into-cd.cob at 2002 shows the moved value inside NOT AT END). The GR3 rewording (control-transfer prose) does not touch this rule.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/return-into-cd.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. RETURN is not among the statements whose I-O status is set, and its unsuccessful case is the at end condition of §2002:14.8.32.3 GR3, not an I-O status; GR4 orders record, INTO move, imperative-statement-2. 9.1.12 does not reach it. Re-run now at --std 2002: pb722_return_into_unsuccessful matches its .out (trailing whitespace only) (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK or WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "The input-output statement is successfully executed and no further information is available concerning the input-output operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "When the invalid key condition occurs, execution of the input-output statement that recognized the condition is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "The exception-name for successful completion with an I-O status value that is not '00' is EC-I-O-WARNING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.32.3 GR3",
+      "quote": "the at end condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.33.2-10",
+    "to": [
+     "SR-14.9.35.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (SR10)",
+    "clause-2023": "14.9.35 REWRITE statement (SR10)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.2 SR10",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.3 SR10",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "REWRITE FILE file-name-1 (14.9.35)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The REWRITE statement is dependent upon a mass storage type of device.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "when a subset of the syntax or functionality is implemented, that subset shall be identified as a standard extension in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "none. §2002:3.1 makes only Annex A (communications) optional. §2002:B.3 item 19 makes the whole REWRITE statement processor-dependent on a mass storage device, which this implementation has and for which it claims and implements REWRITE; §2002:3.1.5 then requires all its syntax, or the subset documented as a standard extension, and docs/conformance/5/A.4.13.md documents the decline only under §2023 A.4.13",
+    "scope-2002": [
+     "REWRITE FILE file-name-1 without FROM (refuse)",
+     "REWRITE FILE file-name-1 FROM a figurative constant (refuse)",
+     "REWRITE FILE file-name-1 FROM a valid MOVE sender / an alphanumeric, boolean or national literal (accept)"
+    ],
+    "evidence-2002": [
+     "refusals: not shown as SR10; src/rwf-sr10-nofrom.cob and src/rwf-sr10-figcon.cob are refused at --std 2002 only by the blanket COBOL1706 (FILE phrase declined under §2023 A.4.13)",
+     "accepted forms: not shown; src/rwf-seq.cob (REWRITE FILE F FROM a literal on an I-O sequential file) is refused COBOL1706 at --std 2002"
+    ],
+    "reason": "Target-not-CONFORMS-OK flag: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 A.4.13. 2002 has no such licence (see licence-2002), so 2002 requires the FILE form and this rule's checks on it. The compiler declines the FILE phrase at every edition, so at --std 2002 a conforming REWRITE FILE program is refused. Same mechanism as p-14 D1.",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: 2002 gives no licence to decline REWRITE FILE; the compiler declines it at --std 2002 with COBOL1706 citing 2023 text: the finding"
+    ],
+    "needs": "2002 requires REWRITE FILE file-name-1 FROM ...; the compiler declines it",
+    "compiler-at-2002": "wrong (D1, known from p-14): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-seq.cob expected to compile and print RW 00, R WXYZ (with NOT-IO 49 for the REWRITE on an input-mode connector); observed 'error COBOL1706: REWRITE FILE F: the FILE phrase ... are the two items of Annex A.4.13, an OPTIONAL language element (§2023:4.2.7)', exit 65",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-seq.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-sr10-nofrom.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-sr10-figcon.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.33.2-11",
+    "to": [
+     "SR-14.9.35.3-11"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (SR11)",
+    "clause-2023": "14.9.35 REWRITE statement (SR11)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.2 SR11",
+      "quote": "File-name-1 shall not reference a report file or a sort-merge file description entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.3 SR11",
+      "quote": "File-name-1 shall not reference a report file or a sort-merge file description entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The REWRITE statement is dependent upon a mass storage type of device.",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "none (as for SR10: §2002:3.1 optional is Annex A only; §2002:B.3 item 19 does not license dropping one form of a REWRITE whose support is claimed)",
+    "scope-2002": [
+     "REWRITE FILE sd-file-name (refuse)",
+     "REWRITE FILE report-file-name (refuse)",
+     "REWRITE FILE of an ordinary FD (accept: the other side of the rule)"
+    ],
+    "evidence-2002": [
+     "SD/report refusals: not shown as SR11; src/rwf-sr11-sd.cob is refused at --std 2002 only by COBOL1706",
+     "ordinary FD: not shown; refused COBOL1706 (src/rwf-seq.cob)"
+    ],
+    "reason": "file-name-1 exists only in the FILE form, which 2002 requires and the compiler declines at --std 2002 under a 2023 licence; so neither side of the rule has 2002 evidence.",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: no 2002 licence; the compiler declines REWRITE FILE at --std 2002 (COBOL1706)"
+    ],
+    "needs": "2002 requires REWRITE FILE file-name-1 FROM ...; the compiler declines it",
+    "compiler-at-2002": "wrong (D1): conforming REWRITE FILE refused (src/rwf-seq.cob, COBOL1706, exit 65); the SR11 violation src/rwf-sr11-sd.cob is refused but only by COBOL1706, never by SR11's own check",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-sr11-sd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.33.2-12",
+    "to": [
+     "SR-14.9.35.3-12"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (SR12)",
+    "clause-2023": "14.9.35 REWRITE statement (SR12)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.2 SR12",
+      "quote": "shall not contain a data item described with a USAGE OBJECT REFERENCE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.3 SR12",
+      "quote": "shall not contain a data item described with a USAGE OBJECT REFERENCE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "none (as for SR10)",
+    "scope-2002": [
+     "REWRITE FILE f FROM a strongly-typed group containing an object reference (refuse)",
+     "REWRITE FILE f FROM an item with no object reference (accept)"
+    ],
+    "evidence-2002": [
+     "refusal: not shown as SR12; src/rwf-sr12-objref.cob (FROM a TYPEDEF STRONG group with USAGE OBJECT REFERENCE) is refused at --std 2002 only by COBOL1706",
+     "accept side: not shown; refused COBOL1706 (src/rwf-seq.cob)"
+    ],
+    "reason": "Applies only with the FILE phrase, which 2002 requires and the compiler declines at --std 2002. (A first version of the probe put the object reference under a plain group; COBOL1724 refused it, correctly by 2002 13.16.58.2 SR13, so the probe uses a STRONG typedef.)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: no 2002 licence; the compiler declines REWRITE FILE at --std 2002 (COBOL1706)"
+    ],
+    "needs": "2002 requires REWRITE FILE file-name-1 FROM ...; the compiler declines it",
+    "compiler-at-2002": "wrong (D1): src/rwf-seq.cob refused COBOL1706; src/rwf-sr12-objref.cob refused only by COBOL1706",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-sr12-objref.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.33.2-3",
+    "to": [
+     "SR-14.9.35.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (SR3)",
+    "clause-2023": "14.9.35 REWRITE statement (SR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.2 SR3",
+      "quote": "Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be specified for a REWRITE statement that references a file with sequential organization",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.3 SR2",
+      "quote": "Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be specified for a REWRITE statement that references a file with sequential organization",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.3 GR1",
+      "quote": "The rewrite file connector is the file connector referenced by file-name-1 or the file-name associated with record-name-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REWRITE record-name-1 [NOT] INVALID KEY on a sequential file or a relative file in sequential access (refuse)",
+     "REWRITE FILE file-name-1 FROM ... [NOT] INVALID KEY on the same files (refuse); without the phrases (accept)"
+    ],
+    "evidence-2002": [
+     "record-name form: covered by conformance:cases/14.9.35-REWRITE/rewrite-invalid-key-sequential-org and rewrite-invalid-key-relative-sequential, refused COBOL1720 at --std 2002 (log-2002.txt)",
+     "FILE form: not shown; src/rwf-sr3-seq-ik.cob is refused at --std 2002 only by COBOL1706, and the conforming FILE form without the phrase is refused too (src/rwf-seq.cob)"
+    ],
+    "reason": "Words identical; 'a REWRITE statement that references a file' covers REWRITE FILE file-name-1 in 2002, where that form is required (the 2023 row covers only record-name forms because 2023 makes the FILE form optional and it is declined).",
+    "needs": "a 2002 witness for SR3 on REWRITE FILE (sequential and relative-sequential) once D1 is fixed",
+    "compiler-at-2002": "wrong (D1: the FILE form is refused COBOL1706 at --std 2002, src/rwf-seq.cob); the SR3 violation in the FILE form is refused only by that blanket code (src/rwf-sr3-seq-ik.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-sr3-seq-ik.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-19",
+    "to": [
+     "GR-14.9.35.4-20"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (GR19, RELATIVE AND INDEXED FILES)",
+    "clause-2023": "14.9.35 REWRITE statement (GR20)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR19",
+      "quote": "after any changes made to the record length by the FORMAT clause shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR20",
+      "quote": "after any changes made to the record length by the FORMAT clause shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.3 GR17",
+      "quote": "may differ from the number of bytes in the record being replaced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.3.4.2 SR3b",
+      "quote": "a FILE phrase specifying file-name-1 and the FROM phrase shall be specified on all WRITE and REWRITE statements associated with the file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REWRITE record-name-1 on a relative or indexed RECORD VARYING file, size out of bounds: '44'",
+     "REWRITE FILE file-name-1 FROM identifier-1 / literal-1 on the same files (the identifier-1 and literal-1 arms; for a record-less relative or indexed FD the only REWRITE 2002 allows)",
+     "the FORMAT arm: no 2002 reach, since 2002 FD Format 2 (relative-or-indexed) has no FORMAT clause (probe src/rw-format-varying.cob refused COBOL2604 at 2002, correctly)"
+    ],
+    "evidence-2002": [
+     "record-name form: covered by conformance:cases/14.9.35-REWRITE/l1c26_rewrite_relative_invalid_key (C5/C6 status 44), run at --std 2002 MATCH (log-2002.txt)",
+     "FILE form: not shown; refused COBOL1706 at --std 2002 (src/rwf-rel.cob)"
+    ],
+    "reason": "Identical words; the identifier-1 and literal-1 arms name the FILE form's operands (and the FROM operands), and 2002 requires that form; record-less relative and indexed FDs in 2002 can be rewritten only through it (13.3.4.2 SR3b). The FORMAT arm, which looked like a second reach, is empty in 2002 for these files.",
+    "needs": "a 2002 witness for REWRITE FILE f FROM ... on a relative/indexed RECORD VARYING file (status 44) once D1 is fixed",
+    "compiler-at-2002": "wrong (D1: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-rel.cob refused COBOL1706, exit 65)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-rel.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rw-format-varying.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-2",
+    "to": [
+     "GR-14.9.35.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (GR2)",
+    "clause-2023": "14.9.35 REWRITE statement (GR3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR2",
+      "quote": "If the open mode is some other value or the file is not open, the I-O status in the rewrite file connector is set to '49'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR3",
+      "quote": "If the open mode is some other value or the file is not open, the I-O status in the rewrite file connector is set to '49'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.3 GR1",
+      "quote": "The rewrite file connector is the file connector referenced by file-name-1 or the file-name associated with record-name-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REWRITE record-name-1 on a connector not open or not open I-O: '49'",
+     "REWRITE FILE file-name-1 FROM ... on the same: '49'"
+    ],
+    "evidence-2002": [
+     "record-name form: covered by conformance:cases/14.9.27-OPEN/l1_open_not_open_statements, l1_table20_indexed, cases/9.1.13.2-Successful-completion/l1_table20_seq_relative, cases/14.9.10-DELETE/w73b_pb1194_mutation_open_mode_first, all run at --std 2002 MATCH (log-2002.txt)",
+     "FILE form: not shown; src/rwf-seq.cob (REWRITE FILE on an input-mode connector, expecting NOT-IO 49) refused COBOL1706 at --std 2002"
+    ],
+    "reason": "GR1 makes the rewrite file connector either file-name-1 (FILE form) or record-name-1's file; the FILE form is required in 2002 and declined at --std 2002.",
+    "needs": "a 2002 witness for REWRITE FILE on a connector not open I-O ('49') once D1 is fixed",
+    "compiler-at-2002": "wrong (D1: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-seq.cob refused COBOL1706)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-seq.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-20",
+    "to": [
+     "GR-14.9.35.4-21"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (GR20, RELATIVE FILES)",
+    "clause-2023": "14.9.35 REWRITE statement (GR21)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR20",
+      "quote": "logically replaces the record identified by the relative key data item specified for file-name-1 or the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR21",
+      "quote": "logically replaces the record identified by the relative key data item specified for file-name-1 or the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.13.2 SR1",
+      "quote": "Data-name-1 may be qualified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.3 SR1",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.13.2 SR3",
+      "quote": "Data-name-1 shall not be defined in a record description entry subordinate to the associated file-name.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REWRITE record-name-1, relative random/dynamic, WS relative key: replace or '23'",
+     "REWRITE FILE file-name-1 FROM ... (required 2002 form; the rule names file-name-1)",
+     "relative key data item in a CD record",
+     "subscripted relative key data item RELATIVE KEY IS RK(n)"
+    ],
+    "evidence-2002": [
+     "record-name, WS key: covered by conformance:cases/14.9.35-REWRITE/l1c26_rewrite_relative_invalid_key, run at --std 2002 MATCH (log-2002.txt)",
+     "FILE form: not shown; src/rwf-rel.cob refused COBOL1706 at --std 2002",
+     "CD key: covered by probe src/read-relkey-cd.cob at --std 2002 (REWRITE slot 2 NIK 00, slot 7 IK 23, R2 00 XXXX): correct",
+     "subscripted key: not shown; refused COBOL2024 at --std 2002 (src/read-relkey-sub.cob)"
+    ],
+    "reason": "The rule names file-name-1, so it governs the FILE form, required in 2002 and declined at --std 2002; and its relative key data item reaches CD records and subscripted items in 2002 (as for READ GR22). Primary class 'other' (FILE form); also communication-reach (correct) and removed-form (refused, the p-09 defect).",
+    "needs": "a 2002 witness for REWRITE FILE on a relative file (replace and '23') once D1 is fixed, and for a subscripted relative key once the p-09 defect is fixed; the CD key is correct at --std 2002 (read-relkey-cd.cob)",
+    "compiler-at-2002": "wrong (D1: src/rwf-rel.cob refused COBOL1706; p-09 defect: src/read-relkey-sub.cob refused COBOL2024); correct for the CD key (src/read-relkey-cd.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-rel.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/read-relkey-cd.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/read-relkey-sub.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-21",
+    "to": [
+     "GR-14.9.35.4-22"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (GR21, INDEXED FILES)",
+    "clause-2023": "14.9.35 REWRITE statement (GR22)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR21",
+      "quote": "the value of the prime record key of the record to be replaced shall be equal to the value of the prime record key of the last record read using this file connector",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR22",
+      "quote": "the value of the prime record key of the record to be replaced shall be equal to the value of the prime record key of the last record read using this file connector",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.3 GR1",
+      "quote": "The rewrite file connector is the file connector referenced by file-name-1 or the file-name associated with record-name-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REWRITE record-name-1, indexed sequential access: prime key equal to the last read, else '21'",
+     "REWRITE FILE file-name-1 FROM ... on the same"
+    ],
+    "evidence-2002": [
+     "record-name form: covered by conformance:cases/14.9.35-REWRITE/l1c26_rewrite_indexed_prime_key (S1 ST=21), run at --std 2002 MATCH (log-2002.txt)",
+     "FILE form: not shown; REWRITE FILE refused COBOL1706 at --std 2002 (src/rwf-idx.cob)"
+    ],
+    "reason": "Through GR1 the rewrite file connector includes the FILE form, required in 2002 and declined at --std 2002. Indexed record keys are in the file's own records (no CD reach).",
+    "needs": "a 2002 witness for REWRITE FILE on an indexed sequential-access file ('21') once D1 is fixed",
+    "compiler-at-2002": "wrong (D1: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-idx.cob refused COBOL1706)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-idx.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-22",
+    "to": [
+     "GR-14.9.35.4-23"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (GR22, INDEXED FILES)",
+    "clause-2023": "14.9.35 REWRITE statement (GR23)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR22",
+      "quote": "If there is no existing record in the physical file with that prime record key, the execution of the REWRITE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR23",
+      "quote": "If there is no existing record in the physical file with that prime record key, the execution of the REWRITE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.3 GR1",
+      "quote": "The rewrite file connector is the file connector referenced by file-name-1 or the file-name associated with record-name-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REWRITE record-name-1, indexed random/dynamic: replace by prime key or '23'",
+     "REWRITE FILE file-name-1 FROM ... on the same"
+    ],
+    "evidence-2002": [
+     "record-name form: covered by conformance:cases/14.9.35-REWRITE/l1c26_rewrite_indexed_prime_key (D1 ST=23, D2-D6), run at --std 2002 MATCH (log-2002.txt); probe src/rw-alt22.cob (IK 23) at 2002",
+     "FILE form: not shown; src/rwf-idx.cob (first REWRITE FILE expects IK23 23) refused COBOL1706 at --std 2002"
+    ],
+    "reason": "As GR21: the FILE form is in the rule's 2002 scope and declined at --std 2002.",
+    "needs": "a 2002 witness for REWRITE FILE on an indexed random/dynamic file ('23') once D1 is fixed",
+    "compiler-at-2002": "wrong (D1: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-idx.cob refused COBOL1706)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-idx.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-24",
+    "to": [
+     "GR-14.9.35.4-25"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33 REWRITE statement (GR24, INDEXED FILES)",
+    "clause-2023": "14.9.35 REWRITE statement (GR25)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR24",
+      "quote": "the I-O status associated with the rewrite file connector is set to '22'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR25",
+      "quote": "the I-O status associated with the rewrite file connector is set to '22'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.3 GR1",
+      "quote": "The rewrite file connector is the file connector referenced by file-name-1 or the file-name associated with record-name-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "record-name form: a) '21' sequential, b) '23' random/dynamic, c) '22' duplicate of a no-DUPLICATES alternate key; no update and the record area unaffected",
+     "the FILE form for a), b), c)"
+    ],
+    "evidence-2002": [
+     "record-name a) and b): covered by conformance:cases/14.9.35-REWRITE/l1c26_rewrite_indexed_prime_key, run at --std 2002 MATCH (log-2002.txt)",
+     "record-name c): the twin witness pb1072_suppress_when_forms does not compile at 2002 (COBOL0900 SUPPRESS WHEN, 2023-only); covered instead by probe src/rw-alt22.cob at --std 2002: IK 22 REC=02AA, R2 00 02BB (no update), IK 23, NIK 00, RA 00 02DD: correct",
+     "FILE form: not shown; src/rwf-idx.cob (expects IK23 23, IK22 22, OK 00) refused COBOL1706 at --std 2002"
+    ],
+    "reason": "Identical words, and the a)-c) list is the same; 2023's SUPPRESS WHEN additions to GR24 (suppressed keys never duplicate) are a widening. But the rewrite file connector includes the FILE form, required in 2002 and declined at --std 2002; and the 2023 row's '22' witness is a 2023-only program, so the record-name '22' leg needed the probe.",
+    "needs": "a 2002 witness for REWRITE FILE on an indexed file for '21', '23' and '22' once D1 is fixed; the record-name '22' leg can take src/rw-alt22.cob as its 2002 witness",
+    "compiler-at-2002": "wrong (D1: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-idx.cob refused COBOL1706); correct for the record-name legs (src/rw-alt22.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rw-alt22.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-idx.cob",
+    "widening": "2023 GR25 is read with GR24's SUPPRESS WHEN text: suppressed key entries do not cause '22'"
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-3",
+    "to": [
+     "SR-14.9.37.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.34 SEARCH statement (SR3, Format 1)",
+    "clause-2023": "14.9.37 SEARCH statement (SR5, Format 1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR3",
+      "quote": "Identifier-2 shall reference a data item whose usage is index or a data item that is an integer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR5",
+      "quote": "Identifier-2 shall reference a data item whose usage is index or a data item that is an integer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "index: A storage area or a register, the content of which refers to a particular element in a table.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.102",
+      "quote": "conceptual data item, the content of which refers to a particular element in a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SEARCH ... VARYING identifier-2 with identifier-2 an index data item or an integer in working-storage/local-storage/linkage",
+     "identifier-2 an integer in a CD record, and identifier-1 a table in a CD record",
+     "identifier-2 subscripted by identifier-1's first index-name (refuse)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by conformance:cases/14.9.37-SEARCH/pb211-search-varying-noninteger and pb211-search-varying-self-subscript (refused COBOL2325 at --std 2002), l1_search_varying_index_data_item and l1_search_varying_integer_item (MATCH at --std 2002), cases/14.9.17-GO-TO/pb212_operand_class_screens (MATCH) (log-2002.txt)",
+     "CD: covered by probes src/cd-search-varying.cob at --std 2002 (CD table, CD integer identifier-2: C-FOUND B CN=02; WS table with CD identifier-2: W-FOUND Z CN=03) and src/cd-search-varying-neg.cob (CD non-integer and CD self-subscript both refused COBOL2325): correct"
+    ],
+    "reason": "Format 1 identical. In 2002 identifier-2 may be an item of a CD record and identifier-1 a CD table (the p-16 reading of SR5/SR9 for Format 2), which the 2023 row cannot reach. 2023 additionally lets identifier-1 be nested in an outer table (SR2, SR3), a widening that does not alter SR3's sense. Flag 'index': 2002 'storage area or register', 2023 'conceptual data item': the same usage-index items qualify; scope and evidence unchanged by it.",
+    "flags-answered": [
+     "changed-definition-term 'index': wording only; the usage-index items admitted are the same in 2002; the extra 2002 reach is the CD operand, probed"
+    ],
+    "needs": "its own verdict: the compiler at --std 2002 for SEARCH VARYING with CD operands is correct (cd-search-varying.cob runs; cd-search-varying-neg.cob refused COBOL2325)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/cd-search-varying.cob, src/cd-search-varying-neg.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/cd-search-varying.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/cd-search-varying-neg.cob",
+    "widening": "2023 lets identifier-1 be subscripted at outer levels (nested tables)"
+   }
+  ],
+  "defects": [
+   {
+    "id": "D1 (known: p-14 D1)",
+    "edition": "2002",
+    "rows": [
+     "2002-SR-14.8.33.2-10",
+     "2002-SR-14.8.33.2-11",
+     "2002-SR-14.8.33.2-12",
+     "2002-SR-14.8.33.2-3",
+     "2002-GR-14.8.33.3-2",
+     "2002-GR-14.8.33.3-19",
+     "2002-GR-14.8.33.3-20",
+     "2002-GR-14.8.33.3-21",
+     "2002-GR-14.8.33.3-22",
+     "2002-GR-14.8.33.3-24",
+     "2002-GR-14.8.29.3-23"
+    ],
+    "summary": "At --std 2002 REWRITE FILE (and WRITE FILE) is refused COBOL1706 as a declined 2023 optional element (A.4.13); 2002 requires it (only Annex A is optional, §2002:3.1).",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/rwf-seq.cob",
+    "expected": "compiles; NOT-IO 49, RW 00, R WXYZ",
+    "observed": "error COBOL1706 at lines 16, 19, 24; exit 65"
+   },
+   {
+    "id": "known: p-09 refute, 2002-SR-12.3.4.13.2-3",
+    "edition": "2002",
+    "rows": [
+     "2002-GR-14.8.29.3-22",
+     "2002-GR-14.8.33.3-20"
+    ],
+    "summary": "At --std 2002 RELATIVE KEY IS RK(2) is refused COBOL2024; 2002 RELATIVE KEY SR1 only says the item may be qualified (2014 E.2 records the later restriction).",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-30/src/read-relkey-sub.cob",
+    "expected": "compiles; N1 00 CCCC 0003",
+    "observed": "error COBOL2024: RELATIVE KEY 'RK(2)' is written with a subscript ... (ISO §2023:8.4.2.2.2 Format 1); exit 65"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-30",
+  "probe-root": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-30",
+  "probe-notes": "src/ holds the probes; run/<name>-<std>/result.txt holds stdout and the exit code, stderr.txt the diagnostics. Compiler: E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe (pinned). The reader's twin-witness runs were sampled from probes-q-30/log-2002.txt and probes-q-30/runs.",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.29.3-27",
+    "verdict": "UPHELD",
+    "reason": "Both editions print Format 2 the same: KEY IS data-name-1 | record-key-name-1, with the same INTO, IGNORING LOCK/retry and LOCK phrases. SR10 (2002) and SR11 (2023) restrict the operands to the file's RECORD KEY or ALTERNATE RECORD KEY in the same words, and 2002 already has record-key-name SOURCE (2002 8.4.5.1.3, file control). A key lives in the file's own record, so no CD reach is possible. The 2002 Format 1 random-read route (GR16: no NEXT/PREVIOUS means format 2 rules apply) has its twin in 2023. The 'dynamic access' definition changes only in wording. Sampled the reader's evidence: l1_read_key_of_reference gives MATCH at 2002 (log-2002.txt), and read-splitkey.cob at 2002 gives 'R 00 ABV1' then 'N 10'. That discriminates: in K1K2 order the NEXT would have returned BAV2. 2023's SUPPRESS WHEN on alternate keys is a widening.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR27",
+      "quote": "data-name-1 or record-key-name-1 is established as the key of reference for this retrieval",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR30",
+      "quote": "data-name-1 or record-key-name-1 is established as the key of reference for this retrieval",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.2 SR10",
+      "quote": "Data-name-1 or record-key-name-1 shall be specified in the RECORD KEY clause or an ALTERNATE RECORD KEY clause associated with file-name-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.3 SR11",
+      "quote": "Data-name-1 or record-key-name-1 shall be specified in the RECORD KEY clause or an ALTERNATE RECORD KEY clause associated with file-name-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.29.3 GR16",
+      "quote": "otherwise, the read is a random read and the rules for format 2 apply",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-28",
+    "verdict": "UPHELD",
+    "reason": "Format 2 is identical, and the rule has no operand: it concerns the prime key, which is in the file's records. A 2002 Format 1 READ without NEXT under dynamic access is a random read (GR16) in both editions. The witness l1_read_key_of_reference gives MATCH at 2002 (log-2002.txt sampled).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR28",
+      "quote": "the prime record key is established as the key of reference for this retrieval",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR31",
+      "quote": "the prime record key is established as the key of reference for this retrieval",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-5",
+    "verdict": "UPHELD",
+    "reason": "Same formats. The rule governs the implied record of a record-less FD, sized by the RECORD clause. I compared the RECORD clauses: 2002 13.16.41 has formats 1-3 in CHARACTERS, sized in bytes (GR1); 2023 adds the synonym BYTES (SR2), a widening, with the same size rules. A record-less FD is a file FD in both editions, never a CD. The receiver identifier-1 is GR4's business. The 'alphanumeric group item' change concerns only variable-length groups (2014+). The witness pb345_record_less_fd_area_2023 gives MATCH at 2002 (log sampled).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR5",
+      "quote": "proceeds as though there were one record description entry describing an alphanumeric group item of the maximum size established by the RECORD clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR6",
+      "quote": "proceeds as though there were one record description entry describing an alphanumeric group item of the maximum size established by the RECORD clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR1",
+      "quote": "Each integer in a RECORD clause specifies a record size in terms of bytes.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.3 SR2",
+      "quote": "The words BYTES and CHARACTERS are synonymous and may be used interchangeably.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-7",
+    "verdict": "UPHELD",
+    "reason": "Identical rule and formats; record locking comes from LOCK MODE in both editions (2002 GR6 -> 12.3.4.8). The rule governs READ's treatment of a lock its own connector holds, not how that lock was set. A lock set by a 2002 WRITE/REWRITE FILE ... WITH LOCK (a form the compiler declines at 2002) belongs to those statements' rows. 2023 adds APPLY COMMIT (SR5), a 2023-only restriction that 2002 programs cannot reach. The witness l1_read_self_lock_ignored gives MATCH at 2002 (log sampled). The band flag points at an inventory band, not at the rule.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR7",
+      "quote": "the record lock is ignored and the READ operation proceeds as if the record were not locked",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR8",
+      "quote": "the record lock is ignored and the READ operation proceeds as if the record were not locked",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.29.3-9",
+    "verdict": "UPHELD",
+    "reason": "Items a) to e) are word-identical. The conflict condition comes from the same GR8 and RETRY text (2002 14.6.8, 2023 14.7.9). The I-O status value in b) is 'a value ... to indicate', the same in both. No operand reach. pb338_read_conflict_position and pb338_random_read_conflict_position give MATCH at 2002 (log sampled).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.29.3 GR9",
+      "quote": "The key of reference for indexed files is unchanged.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.30.4 GR10",
+      "quote": "The key of reference for indexed files is unchanged.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.30.3-1",
+    "verdict": "UPHELD",
+    "reason": "The RELEASE formats and the sentence are identical, and EC-FLOW-RELEASE is 'Fatal | RELEASE not in range of SORT' in both tables. I attacked the deferral: 'set to exist' hands off to fatal-exception processing, and that changed in two ways. (1) 2002 14.5.12.1.1 counts EXIT FUNCTION and EXIT METHOD as ending a declarative abnormally; 2023 drops both statements. (2) 2023 adds step 2 of 14.6.13.1.3 (an executed MERGE or SORT follows its own rules), along with the PERFORM WHEN and APPLY COMMIT steps, none of which a 2002 program can reach. I probed the 2002-only route: rel-func-exit.cob raises the condition in a FUNCTION-ID whose declarative ends in EXIT FUNCTION. At 2002 it prints 'F-HANDLED=EC-FLOW-RELEASE' and 'MAIN-1 V=7' and exits 0: no abnormal end, which is correct for 2002. At 2023 it is refused COBOL0902. rel-normal.cob, with a declarative that completes normally, ends the run abnormally with exit 1 at both editions, as both texts require. rel-other-sd.cob does a RELEASE of another SD's record inside the SORT's input procedure, and the handler ends in RESUME. At both editions the SORT ends and AFTER-SORT prints, which is correct by 2002 SORT GR16 (RESUME means the USE procedure did not complete normally). The EXIT FUNCTION route belongs to the exception-processing clause's own rows, not to this sentence (same reading as q-26 and q-34 on fatal-EC rules). The compiler is correct there anyway, so this is not a false green.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.30.3 GR1",
+      "quote": "If it is executed at any other time, the EC-FLOW-RELEASE exception condition is set to exist.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.32.4 GR1",
+      "quote": "If it is executed at any other time, the EC-FLOW-RELEASE exception condition is set to exist.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.1",
+      "quote": "An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.2",
+      "quote": "An EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3 GR2",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.3 GR16",
+      "quote": "If a USE procedure invoked while a format 1 SORT statement is active does not complete normally",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-30/src/rel-func-exit.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-30/src/rel-normal.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-30/src/rel-other-sd.cob (runs under refute-q-30/run/<name>-2002 and -2023)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.30.3-3",
+    "verdict": "UPHELD",
+    "reason": "The RELEASE format is identical, and the 2002 and 2023 SAME clauses are word-identical in formats and rules: only FILE-CONTROL file-names, no report file in a record-area SAME, and an SD allowed in one record-area SAME (SR6 in both). A CD cannot be named, so there is no communication reach. The 'output file' definition changes in wording only. l1_release_same_record_area gives MATCH at 2002 (log sampled).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.30.3 GR3",
+      "quote": "The logical record is also available as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.32.4 GR3",
+      "quote": "The logical record is also available as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.6.2 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.31.2-2",
+    "verdict": "UPHELD",
+    "reason": "The RESUME format is identical. I compared the 2002 and 2023 USE formats (14.8.45.1 and 14.9.49.2): GLOBAL appears in Format 1 (file exception) and Format 2 (BEFORE REPORTING) in both, and Formats 3 and 4 have no GLOBAL in either. 2002 Annex A (communications) adds no USE format, and 2002 has no USE FOR DEBUGGING. So the set of GLOBAL declaratives is the same. 2023 SR1 adds the PERFORM WHEN placement, a widening. Sampled resume-global.cob at 2002: refused COBOL0713, exit 65.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.31.2 SR2",
+      "quote": "The RESUME statement shall not be specified in a declarative procedure for which the GLOBAL phrase is specified in the associated USE statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.33.3 SR2",
+      "quote": "The RESUME statement shall not be specified in a declarative procedure for which the GLOBAL phrase is specified in the associated USE statement.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.31.2-3",
+    "verdict": "UPHELD",
+    "reason": "Format identical, and the source-element kinds named (function, method, program) exist in both editions. The removal of EXIT METHOD and EXIT FUNCTION in 2023 does not touch where a procedure-name may live. Sampled l1c24-resume-at-declarative-paragraph and -section (COBOL0714 at 2002, log) and resume-func.cob (COBOL0714 at 2002).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.31.2 SR3",
+      "quote": "Procedure-name-1 shall be a procedure-name in the nondeclarative portion of the function, method, or program.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.33.3 SR3",
+      "quote": "Procedure-name-1 shall be a procedure-name in the nondeclarative portion of the function, method, or program.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.31.3-1",
+    "verdict": "UPHELD",
+    "reason": "Identical sentence, and the same GLOBAL declaratives (see SR2). The PERFORM route into a local declarative exists in both editions (USE SR4 is identical). The witness pb1160_resume_in_global_scope is marked accept [2002] and gives MATCH at 2002 (log sampled). It covers RESUME AT NEXT STATEMENT, RESUME AT a procedure, and the contained-program arm.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.31.3 GR1",
+      "quote": "it is the equivalent of the execution of a CONTINUE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.33.4 GR1",
+      "quote": "it is the equivalent of the execution of a CONTINUE statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.32.3-4",
+    "verdict": "UPHELD",
+    "reason": "The RETURN format is identical. The rule fixes the order: the record is made available, then the INTO move, then imperative-statement-2. What the INTO move does, including a CD receiver, is GR5's business, and the reader's return-into-cd.cob shows the order holds for a CD receiver at 2002 anyway. The neighbouring GR3 rewording governs only the AT END path. pb722_return_into_unsuccessful gives MATCH at 2002 (log sampled).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.32.3 GR4",
+      "quote": "after executing any implicit move resulting from the presence of an INTO phrase, control is transferred to imperative-statement-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.34.4 GR4",
+      "quote": "after executing any implicit move resulting from the presence of an INTO phrase, control is transferred to imperative-statement-2",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "7128ae831892789f68e7eea6664a8800cfc0b9f63f490127d07ebb2751117d26",
+  "read": "9c5cc3ec4faee85d6a066c61a6ecee09754fc7fda23c3ab7a6c2882ec50b36c8",
+  "refute": "a0c1b65df275657041531c74f596639e406de4b5df1f806f78a4d960d6224afc"
+ }
+}

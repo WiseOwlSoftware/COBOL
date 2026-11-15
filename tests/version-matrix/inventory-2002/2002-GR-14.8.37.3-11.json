@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.37.3-11",
+ "rule-digest": "616b4096fe7a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.41.4-11"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
+    "answer": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. The START outcome is only 'the invalid key condition exists' (empty file / file not present), whose status 23 and transfer of control (§2002:14.8.37.3 GR6 -> 9.1.13) are unchanged. Re-run now at --std 2002, each matching its .out: l1_start_first_last_relative, pb870_start_first_last_relative_exceptions (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/suite.2002.log (outputs under run/))."
+   }
+  },
+  "source": "lineage-reads-2002/q-32.json",
+  "digests": {
+   "GR-14.9.41.4-11": "616b4096fe7a"
+  }
+ }
+}

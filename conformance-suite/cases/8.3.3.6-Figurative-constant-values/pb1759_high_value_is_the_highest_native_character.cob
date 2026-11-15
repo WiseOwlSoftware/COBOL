@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1759_high_value_is_the_highest_native_character
       *> rules: [GR-8.3.3.6.4-6, GR-12.3.7.4-10]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c08_end_marker_closes_unit
       *> rules: [GR-10.7.4-1]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

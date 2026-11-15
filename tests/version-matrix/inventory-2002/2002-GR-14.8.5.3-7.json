@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.5.3-7",
+ "rule-digest": "588c7f0d29c6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.5.4-7"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "run unit",
+    "answer": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; 'not been called in this run unit' covers the same programs."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The initial state after CANCEL (§2002:14.5.2.1.2.1 item 3) is CANCEL GR3's; GR7 is the no-action case and its transfer to the next statement is ordinary 14.5.3 flow. No dependence on the differing text; the reader's cancel_q25.cob at 2002 stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-25.json",
+  "digests": {
+   "GR-14.9.5.4-7": "588c7f0d29c6"
+  }
+ }
+}

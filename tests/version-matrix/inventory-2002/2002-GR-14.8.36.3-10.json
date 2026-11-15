@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-10",
+ "rule-digest": "7f9906a2a019",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-11"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule's input/output procedure is the procedure-name-1 [THRU procedure-name-2] range of SORT/MERGE in both editions; §2002:4 (entry 4.150) ('one or more successive paragraphs or sections') names the same range that §2023:3.145 does. Scope unchanged. The return mechanism is inserted after the last statement of that range in both."
+   }
+  },
+  "source": "lineage-reads-2002/q-31.json",
+  "digests": {
+   "GR-14.9.40.4-11": "7f9906a2a019"
+  }
+ }
+}

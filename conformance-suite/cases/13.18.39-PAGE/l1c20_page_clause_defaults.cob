@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c20_page_clause_defaults
       *> rules: [GR-13.18.39.4-3]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

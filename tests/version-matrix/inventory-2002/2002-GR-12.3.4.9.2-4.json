@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-12.3.4.9.2-4",
+ "rule-digest": "402e6b44c3ea",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.10.3-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "indexed organization (newer: D.2.2.3)",
+    "answer": "§2002:4 'indexed organization: The permanent logical file structure in which each record is identified by the value of one or more keys within that record'; 2023 describes it in D.2.2.3 and 12.4.5.10 GR5 in the same terms. The rule restates that definition; the files it governs are the same and pb1098 runs at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-08.json",
+  "digests": {
+   "GR-12.4.5.10.3-5": "402e6b44c3ea"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.47.2-6",
+ "rule-digest": "1cce0bc633c1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.49.3-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "object reference (newer: 9.3.2)",
+    "answer": "The §2002:4 object reference matches §2023:9.3.2's explicit/implicit split; this rule names only items 'described with a USAGE OBJECT REFERENCE clause', the explicit kind, the same in both. No scope change; the 2002 refusals (COBOL1556) stand."
+   }
+  },
+  "source": "lineage-reads-2002/q-18.json",
+  "digests": {
+   "SR-13.18.49.3-6": "1cce0bc633c1"
+  }
+ }
+}

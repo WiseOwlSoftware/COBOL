@@ -1,0 +1,1769 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice t-near of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "t-near",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-13.16.38.4-15",
+   "2002-GR-13.16.38.4-2",
+   "2002-GR-13.16.38.4-3",
+   "2002-GR-13.16.38.4-6",
+   "2002-GR-13.16.38.4-7",
+   "2002-SR-13.16.40.2-4",
+   "2002-GR-13.16.40.3-1",
+   "2002-GR-13.16.40.3-2",
+   "2002-GR-13.16.41.3-3",
+   "2002-SR-13.16.42.2-13",
+   "2002-SR-13.16.42.2-14",
+   "2002-SR-13.16.42.2-15",
+   "2002-SR-13.16.42.2-6",
+   "2002-SR-13.16.42.2-7",
+   "2002-SR-13.16.43.2-10",
+   "2002-SR-13.16.44.2-3",
+   "2002-GR-13.16.45.2-3",
+   "2002-GR-13.16.51.3-2",
+   "2002-SR-13.16.52.2-3",
+   "2002-SR-13.16.52.2-6",
+   "2002-GR-13.16.52.3-1",
+   "2002-GR-13.16.52.3-11",
+   "2002-GR-13.16.52.3-3",
+   "2002-SR-13.16.53.2-1",
+   "2002-GR-13.16.53.3-1"
+  ],
+  "pointers": {
+   "2002-GR-13.16.38.4-15": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.5-15",
+    "similarity": 0.974
+   },
+   "2002-GR-13.16.38.4-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.5-2",
+    "similarity": 0.994
+   },
+   "2002-GR-13.16.38.4-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.5-3",
+    "similarity": 0.908
+   },
+   "2002-GR-13.16.38.4-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.5-6",
+    "similarity": 0.942
+   },
+   "2002-GR-13.16.38.4-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.5-7",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.40.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.42.3-4",
+    "similarity": 0.993
+   },
+   "2002-GR-13.16.40.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.42.4-1",
+    "similarity": 0.948
+   },
+   "2002-GR-13.16.40.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.42.4-2",
+    "similarity": 0.937
+   },
+   "2002-GR-13.16.41.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.43.4-3",
+    "similarity": 0.962
+   },
+   "2002-SR-13.16.42.2-13": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.44.3-12",
+    "similarity": 0.951
+   },
+   "2002-SR-13.16.42.2-14": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.44.3-14",
+    "similarity": 0.957
+   },
+   "2002-SR-13.16.42.2-15": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.44.3-15",
+    "similarity": 0.968
+   },
+   "2002-SR-13.16.42.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.44.3-5",
+    "similarity": 0.959
+   },
+   "2002-SR-13.16.42.2-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.44.3-6",
+    "similarity": 0.994
+   },
+   "2002-SR-13.16.43.2-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.45.3-11",
+    "similarity": 0.989
+   },
+   "2002-SR-13.16.44.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.46.3-3",
+    "similarity": 0.917
+   },
+   "2002-GR-13.16.45.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.47.3-3",
+    "similarity": 0.998
+   },
+   "2002-GR-13.16.51.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.53.4-2",
+    "similarity": 0.963
+   },
+   "2002-SR-13.16.52.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.54.3-4",
+    "similarity": 0.991
+   },
+   "2002-SR-13.16.52.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.54.3-7",
+    "similarity": 0.969
+   },
+   "2002-GR-13.16.52.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.54.4-1",
+    "similarity": 0.977
+   },
+   "2002-GR-13.16.52.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.54.4-11",
+    "similarity": 0.995
+   },
+   "2002-GR-13.16.52.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.54.4-3",
+    "similarity": 0.956
+   },
+   "2002-SR-13.16.53.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.55.3-1",
+    "similarity": 0.906
+   },
+   "2002-GR-13.16.53.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.55.4-2",
+    "similarity": 0.993
+   }
+  }
+ },
+ "read": {
+  "slice": "t-near",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.38.4-15",
+    "to": [
+     "GR-13.18.40.5-15"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.4 (PICTURE clause, editing rules) Format 2 GR15",
+    "clause-2023": "13.18.40.5 GR15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 2 (LOCALE) numeric-edited items with Z: leading-Z suppression (a) and all-Z zero value (b), in file, working-storage, local-storage, linkage entries",
+     "the same items in record entries under a CD (2002 Annex A)"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by cases/13.18.40-PICTURE/pb64t6_locale_edit_rules (accept [2002]) MATCH at --std 2002, and probe ws_ledit.cob (LB0 all spaces, LB ' $    5.25', LD '    1,234.50')",
+     "CD record": "not shown by the 2023 row; covered by probe cd_edit.cob at --std 2002 (LB0=[          ] LB=[ $    5.25] LD=[    1,234.50], identical to ws_ledit)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR15",
+      "quote": "The symbol 'Z' is used as the symbol for zero suppression with replacement. The replacement character is the character space",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR15",
+      "quote": "Zero suppression with replacement is indicated by specifying a string of one or more symbols 'Z'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in 'non-zero'/'nonzero' and capitalisation; Format 2 general format is identical in both editions; GR9-GR14 around it identical. But in 2002 a LOCALE picture may describe an item of a record under a CD, which the 2023 row cannot show; same reach the q-17 and p-03 readers recorded for GR1, GR4, GR8, GR10, GR12-GR14 of this clause.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_edit-2002.out",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a Format 2 Z-suppressed LOCALE item in a record under an output CD is correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/ws_ledit.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-2",
+    "to": [
+     "GR-13.18.40.5-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.4 (PICTURE clause, editing rules) GR2 Table 8",
+    "clause-2023": "13.18.40.5 GR2 Table 7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the editing each category admits (Table 8): alphanumeric-edited and national-edited simple insertion only; fixed-point numeric-edited all; floating-point edited simple/special/fixed in the significand, none in the exponent",
+     "the same for edited items of records under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by cases/13.18.40-PICTURE/pb490_simple_insertion_strings_85, cases/13.18.40.5-Editing-rules/pb490_simple_insertion_strings_2002, cases/12.3.7-SPECIAL-NAMES/pb490_simple_insertion_comma_mode, cases/13.18.40-PICTURE/pb492_national_edited_2023: MATCH at --std 2002 (runcase.sh; the EDITING-phrase cases pb490_editing_simple_insertion, pb492_national_edited_editing, pb491_editing_variable_width, pb2639_floating_char1_digit_positions are refused at 2002 COBOL0900, correctly: §2002 Format 1 has no EDITING phrase); floating-point edited +9.99E+99 / +.9999E+99, XXBXX/X0X and NNBNN0N/N by probe pic_edit.cob at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/pic_edit.txt)",
+     "CD record": "not shown by the 2023 row; covered by probe cd_edit.cob at --std 2002 (AE=[AB CD/E0F] NE=[AB CD0E/F] FP=[+1.23E+02], as in working-storage)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR2",
+      "quote": "The type of editing that may be performed upon an item is dependent upon the category to which the item belongs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR2",
+      "quote": "The type of editing that may be performed upon an item is dependent upon the category to which the item belongs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Table 8 (2002) and Table 7 (2023) have the same rows and entries; only the table number differs. Every category named exists in 2002. The 2002 scope also reaches edited items of a CD record.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_edit-2002.out",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for alphanumeric-edited, national-edited and floating-point edited items in a record under an output CD is correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/pic_edit.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-3",
+    "to": [
+     "GR-13.18.40.5-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.4 (PICTURE clause, editing rules) GR3",
+    "clause-2023": "13.18.40.5 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "simple insertion symbols B 0 / , (exactly these four; 2002 Format 1 has no EDITING phrase, so no character-1)",
+     "the same in records under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by cases/13.18.40-PICTURE/pb490_simple_insertion_strings_85, cases/13.18.40.5-Editing-rules/pb490_simple_insertion_strings_2002, cases/12.3.7-SPECIAL-NAMES/pb490_simple_insertion_comma_mode, cases/13.18.40-PICTURE/pb492_national_edited_2023: MATCH at --std 2002 (runcase.sh; the EDITING-phrase cases pb490_editing_simple_insertion, pb492_national_edited_editing, pb491_editing_variable_width, pb2639_floating_char1_digit_positions are refused at 2002 COBOL0900, correctly: §2002 Format 1 has no EDITING phrase)",
+     "CD record": "not shown by the 2023 row; covered by probe cd_edit.cob at --std 2002 (SL=[   12], AE=[AB CD/E0F])"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR3",
+      "quote": "The symbols 'B', '0', '/', and ',' are used as the simple insertion editing symbols",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR3",
+      "quote": "if literal=1 is specified, character-1 are used as the simple insertion editing symbols",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds character-1 (the EDITING phrase of the 2023 Format 1) to the simple insertion set; the 2002 set is the four symbols, a subset. The four-symbol behaviour holds at 2002; the reach into CD records is not shown by the 2023 row.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_edit-2002.out",
+    "widening": "2023 adds character-1 of the EDITING phrase to the simple insertion symbols (13.18.40.5 GR3); the 2002 cases are a subset",
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for simple insertion editing in a record under an output CD is correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-6",
+    "to": [
+     "GR-13.18.40.5-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.4 (PICTURE clause, editing rules) GR6 Table 10",
+    "clause-2023": "13.18.40.5 GR6 Table 9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "floating insertion with cs, + and - only; embedded/right simple-insertion symbols; leading-only (a) and all-positions (b, zero value -> spaces) forms; truncation per 14.5.8",
+     "the same in records under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by cases/13.18.40.5-Editing-rules/pb490_simple_insertion_strings_2002 and pb490_simple_insertion_strings_85 MATCH at --std 2002 (form a, embedded symbols, + and -); form b zero value, right-of-point floating and truncation ($$$9 <- 12345 = $345) by probe pic_edit.cob at --std 2002",
+     "CD record": "not shown by the 2023 row; covered by probe cd_edit.cob at --std 2002 (Z0 PA/CA/MA all spaces, NEG PA=[   -.05], TRUNC CT=[$345] PT=[+345], PS=[  +123])"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR6",
+      "quote": "The currency symbol and the editing sign control symbols '+' and '-' are used as the floating insertion symbols",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR6",
+      "quote": "the extended editing sign control symbols, if specified, and the fixed editing sign control symbols",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds the extended editing sign control symbols (character-1 with NEGATIVE/POSITIVE) and two Table 9 rows; 2002 has cs, + and - only. The referenced 14.5.8 (2002, Alignment of data within data items) states the same decimal-point alignment with zero fill or truncation as 2023 14.6.8 for numeric-edited receivers. The NOTE wording differs, not normative. The 2002 scope reaches CD records.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_edit-2002.out",
+    "widening": "2023 adds the extended editing sign control symbols and their Table 9 rows; the 2002 cases are a subset",
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for floating insertion editing in a record under an output CD is correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/pic_edit.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-7",
+    "to": [
+     "GR-13.18.40.5-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.4 (PICTURE clause, editing rules) GR7",
+    "clause-2023": "13.18.40.5 GR7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Z and * zero suppression, embedded/right simple-insertion symbols, forms a and b (zero value: spaces for Z; asterisks with the decimal separator kept for *)",
+     "the same in records under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by pb490_simple_insertion_strings_2002 / _85 MATCH at --std 2002 (ZZ/ZZ, **/**, zero values); ***.** <- 0 = ***.** and ZZZ.ZZ <- 0 = spaces by probe pic_edit.cob at --std 2002",
+     "CD record": "not shown by the 2023 row; covered by probe cd_edit.cob at --std 2002 (SA=[***.**], ZA=[      ], ZL=[   .00], SL=[     ])"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR7",
+      "quote": "all character positions of the item will contain the character asterisk, but the decimal separator, when specified, will appear in the item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR7",
+      "quote": "Zero suppression with replacement is indicated by specifying a string of one or more identical zero-suppression characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words identical except 'non-zero'/'nonzero'; the 2002 rule's own requirement equals the 2023 one, but in 2002 it also governs edited items of a CD record.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_edit-2002.out",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for Z and * zero suppression in a record under an output CD is correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_edit.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/pic_edit.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.40.2-4",
+    "to": [
+     "SR-13.18.42.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.40.2 (PROPERTY clause, syntax rules) SR4",
+    "clause-2023": "13.18.42.3 SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a PROPERTY entry (working-storage of a factory or instance definition only, SR1) whose data-name equals a property-name a superclass defines by a PROPERTY clause or by GET/SET PROPERTY methods"
+    ],
+    "evidence-2002": {
+     "superclass PROPERTY clause": "covered by cases/13.18.42-PROPERTY/pb1274-property-name-of-later-superclass at --std 2002: refused COBOL2563 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/tout/pb1274-property-name-of-later-superclass.txt)",
+     "superclass GET PROPERTY method": "covered by probe prop_method_super.cob at --std 2002: refused COBOL2563 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/prop_method_super.txt)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.40.2 SR4",
+      "quote": "The data-name for the subject of the entry shall not be the same as a property-name defined in a superclass",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.3 SR4",
+      "quote": "The data-name for the subject of the entry shall not be the same as a property-name defined in a superclass",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.40.2 SR1",
+      "quote": "The PROPERTY clause may be specified only in the working-storage section of a factory definition or an instance definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule and identical general format; the NOTE differs only 'may'/'can'. SR1 limits the clause to working-storage of a factory or instance definition, so there is no CD or debugging reach. 2023's added SR5/SR6 (CONSTANT RECORD, ACTIVE-CLASS) are other rules.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/prop_method_super.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.40.3-1",
+    "to": [
+     "GR-13.18.42.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.40.3 (PROPERTY clause, general rules) GR1",
+    "clause-2023": "13.18.42.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "implicit GET method for a subject of class index, object or pointer (SET ... TO)",
+     "for alphanumeric-edited, national-edited, numeric-edited (MOVE to LS (1:), no re-editing)",
+     "otherwise (MOVE)"
+    ],
+    "evidence-2002": {
+     "object, pointer": "covered by cases/8.4.3.9-Object-property/pb1275_property_set_formats MATCH at --std 2002; pb1274_property_accessor_override, pb1448_group_valued_property, oo_property_explicit_ref MATCH at 2002",
+     "index, edited, elementary": "covered by probe prop_kinds.cob at --std 2002 (E=[ 12.50], AE=[AB CD ], IX=004, N=042; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/prop_kinds.txt)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.40.3 GR1",
+      "quote": "If the subject of this entry is of class index, object, or pointer, the implicit definition of this method is as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.4 GR1",
+      "quote": "If the subject of this entry is of class index, message-tag, object, or pointer, the implicit definition of this method is as follows",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds message-tag (a 2023 class) to the first arm and ends the implicit method with GOBACK where 2002 has EXIT METHOD; both return the RETURNING item, so no program can tell them apart. The 2002 classes are a subset. Working-storage of OO definitions only: no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/prop_kinds.cob",
+    "widening": "2023 adds class message-tag to the SET-statement arm"
+   },
+   {
+    "rule-id": "2002-GR-13.16.40.3-2",
+    "to": [
+     "GR-13.18.42.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.40.3 GR2",
+    "clause-2023": "13.18.42.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "implicit SET method for index, object, pointer (SET)",
+     "edited categories (MOVE to data-name (1:))",
+     "otherwise (MOVE)"
+    ],
+    "evidence-2002": {
+     "object, pointer": "covered by pb1275_property_set_formats MATCH at --std 2002",
+     "index, edited, elementary": "covered by probe prop_kinds.cob at --std 2002 (MOVE 12.5 TO E OF A then GET gives ' 12.50'; SET IX OF A; MOVE 42 TO N OF A)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.40.3 GR2",
+      "quote": "If the SET phrase is not specified, the PROPERTY clause causes a method to be defined for the containing object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.4 GR2",
+      "quote": "If the SET phrase is not specified, the PROPERTY clause causes a method to be defined for the containing object",
+      "check": "OK"
+     }
+    ],
+    "reason": "As GR1: message-tag added in 2023, EXIT METHOD vs GOBACK at the end of the implicit method, otherwise identical.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/prop_kinds.cob",
+    "widening": "2023 adds class message-tag"
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-3",
+    "to": [
+     "GR-13.18.43.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.41.3 (RECORD clause, general rules) GR3",
+    "clause-2023": "13.18.43.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "record size in bytes of an FD/SD record: fixed elementary items plus the maximum size of any group containing an OCCURS DEPENDING table, implicit filler included"
+    ],
+    "evidence-2002": {
+     "fixed records, national and bit items": "covered by cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes MATCH at --std 2002 and pb1277-record-contains-national-larger refused COBOL2010 at 2002",
+     "ODO maximum": "covered by probes rec_odo.cob (RECORD CONTAINS 12, max 12: accepted, BYTE-LENGTH 12) and rec_odo_small.cob (11: refused COBOL2010 '3 to 12 bytes') at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR3",
+      "quote": "plus the sum of the maximum number of bytes in any variable-length data item subordinate to the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR3",
+      "quote": "plus the sum of the maximum number of bytes in any occurs-depending table subordinate to the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR8",
+      "quote": "that has an entry subordinate to it that specifies the variable-table format of the OCCURS clause is a variable-length data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.11.1",
+      "quote": "The term variable-length data item refers to either a dynamic-capacity table or a dynamic-length elementary item",
+      "check": "OK"
+     }
+    ],
+    "reason": "The differing words are 'variable-length data item' (2002) vs 'occurs-depending table' (2023). In 2002 a variable-length data item is a group with a subordinate variable-table OCCURS (13.16.36.3 GR8); 2023 re-used the term for dynamic-capacity tables and dynamic-length items (8.5.1.11.1), so it names the ODO case directly. Same requirement. The clause sits in FD/SD entries only: no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/rec_odo_small-2002.out",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.42.2-13",
+    "to": [
+     "SR-13.18.44.3-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.42.2 (REDEFINES clause, syntax rules) SR13",
+    "clause-2023": "13.18.44.3 SR12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "REDEFINES subject of class object or pointer, or a strongly-typed group item, in any data division section",
+     "the same in a record under a CD (non-level-1 entries, SR4)"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb179-redefines-pointer-subject and pb2071-template-pointer-redefines refused COBOL1697 at --std 2002",
+     "CD record": "not shown by the 2023 row; probe cd_red_sr13.cob at --std 2002: COBOL1697 (plus COBOL1724, the 2002 USAGE SR13 level-1 rule); cd_red_st13.cob: strongly-typed subject refused (COBOL1532/COBOL2150)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer or a strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.44.3 SR12",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object, message-tag, or pointer or a strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR4",
+      "quote": "This clause shall not be specified in level 1 entries in the communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "A USAGE clause with the OBJECT REFERENCE, POINTER, or PROGRAM-POINTER phrase may be specified only for an elementary data item with level 1 or subordinate to a type declaration that includes the STRONG phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds message-tag; otherwise identical. The REDEFINES clause reaches non-level-1 entries of CD records in 2002 (SR4 bans only level 1 there). In a CD the pointer and strongly-typed cases are already excluded by 13.16.58.2 SR13 and the strong-type level rule, so the CD reach is formal, but the 2023 row cannot show it; same class as the p-12 reader's SR1, SR2, SR5, SR8-SR10.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_red_sr13-2002.out",
+    "widening": "2023 adds class message-tag",
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a REDEFINES entry in a record under a CD is correct: refused COBOL1697 (probes cd_red_sr13.cob, cd_red_st13.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_red_sr13.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_red_st13.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.42.2-14",
+    "to": [
+     "SR-13.18.44.3-14"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.42.2 (REDEFINES clause, syntax rules) SR14",
+    "clause-2023": "13.18.44.3 SR14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data-name-2 of class object or pointer, strongly-typed group, or subordinate to one",
+     "the same in a record under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb179-redefines-pointer-target, pb1282-redefines-in-strong-typedef, pb2071-template-redefines-pointer, pb2071-template-redefines-in-nested-strong refused COBOL1697 at --std 2002; pb1282_redefines_in_weak_typedef_ok and pb2071_unused_template_redefines_conforms MATCH",
+     "CD record": "not shown by the 2023 row; probes cd_red_sr14.cob and cd_red_st14.cob at --std 2002: COBOL1697"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.42.2 SR14",
+      "quote": "Data-name-2 shall not be of class object or pointer, a strongly-typed group item, or an item subordinate to a strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.44.3 SR14",
+      "quote": "Data-name-2 shall not be of class object, message-tag, or pointer, a strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR4",
+      "quote": "This clause shall not be specified in level 1 entries in the communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "As SR13: message-tag added in 2023; CD reach in 2002, formal because 13.16.58.2 SR13 already keeps pointers at level 1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_red_sr14-2002.out",
+    "widening": "2023 adds class message-tag",
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a REDEFINES entry in a record under a CD is correct: refused COBOL1697 (probes cd_red_sr14.cob, cd_red_st14.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_red_sr14.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_red_st14.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.42.2-15",
+    "to": [
+     "SR-13.18.44.3-15"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.42.2 (REDEFINES clause, syntax rules) SR15",
+    "clause-2023": "13.18.44.3 SR15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "alignment of the REDEFINES subject equals that of data-name-2 (bit items not on a byte boundary)",
+     "the same in a record under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb1280-redefines-character-over-mid-byte-bits and pb1280-redefines-aligned-over-mid-byte-bits refused COBOL2739 at --std 2002; pb1280_redefines_entry_rules_legal MATCH",
+     "CD record": "not shown by the 2023 row; probe cd_red_sr15.cob at --std 2002: COBOL2739 (the probe also trips SR9 size, COBOL1539, as ws_red_sr15.cob does)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.42.2 SR15",
+      "quote": "The description of the subject of the entry shall be such that its required alignment is the same as the alignment of the data item referenced by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.44.3 SR15",
+      "quote": "The description of the subject of the entry shall be such that its required alignment is the same as the alignment of the data item referenced by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR4",
+      "quote": "This clause shall not be specified in level 1 entries in the communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Rule identical (NOTE 'may'/'can'). 2002 USAGE BIT exists, so the bit-alignment case is a 2002 case. CD reach in 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_red_sr15-2002.out",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a REDEFINES entry in a record under a CD is correct: refused COBOL2739 (probe cd_red_sr15.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_red_sr15.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.42.2-6",
+    "to": [
+     "SR-13.18.44.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.42.2 (REDEFINES clause, syntax rules) SR6",
+    "clause-2023": "13.18.44.3 SR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data-name-2 with an OCCURS clause; subscripted data-name-2; an ODO table in the original or the redefinition",
+     "the same in a record under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb177-redefines-target-occurs, pb2071-template-redefines-table, pb2071-template-redefines-typed-table (COBOL1701), pb1281-redefines-subscripted (COBOL2024), pb1281-redefines-odo-in-redefinition (COBOL0855) refused at --std 2002; pb1281_redefines_data_name_2_bare MATCH",
+     "CD record": "not shown by the 2023 row; probes cd_red_sr6a.cob (COBOL1701), cd_red_sr6b.cob (COBOL0855), cd_red_ok.cob (legal REDEFINES under OCCURS: T2=56) at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.42.2 SR6",
+      "quote": "Neither the original definition nor the redefinition shall include a variable-occurrence data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.44.3 SR5",
+      "quote": "Neither the original definition nor the redefinition shall include an occurs-depending table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "variable-occurrence data item: A table element that is repeated a variable number of times",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Differing words: 'variable-occurrence data item' (2002) vs 'occurs-depending table' (2023). The 2002 definition (clause 4) is a table element repeated a variable number of times, which in 2002 can only be an ODO table (no dynamic-capacity tables): same set. CD reach in 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_red_sr6a-2002.out",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a REDEFINES entry in a record under a CD is correct: refused COBOL1701/COBOL0855, legal form accepted (probes cd_red_sr6a.cob, cd_red_sr6b.cob, cd_red_ok.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_red_sr6a.cob, cd_red_sr6b.cob, cd_red_ok.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.42.2-7",
+    "to": [
+     "SR-13.18.44.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.42.2 (REDEFINES clause, syntax rules) SR7",
+    "clause-2023": "13.18.44.3 SR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "qualified data-name-2 in any REDEFINES entry",
+     "the same in a record under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb1281-redefines-qualified refused COBOL2915 at --std 2002; pb1281_redefines_data_name_2_bare MATCH",
+     "CD record": "not shown by the 2023 row; probe cd_red_sr7.cob at --std 2002: COBOL2915"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.42.2 SR7",
+      "quote": "Data-name-2 shall not be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.44.3 SR6",
+      "quote": "Data-name-2 shall not be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR4",
+      "quote": "This clause shall not be specified in level 1 entries in the communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule (NOTE numbering only). CD reach in 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_red_sr7-2002.out",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a REDEFINES entry in a record under a CD is correct: refused COBOL2915 (probe cd_red_sr7.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_red_sr7.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.43.2-10",
+    "to": [
+     "SR-13.18.45.3-11"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.43.2 (RENAMES clause, syntax rules) SR10",
+    "clause-2023": "13.18.45.3 SR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RENAMES THRU: data-name-3 neither begins before data-name-2 nor ends within it",
+     "the same for 66 entries of a record under a CD (SR3 names CD entries)"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb1283-renames-thru-subordinate, -precedes, -redefinition refused COBOL2740 at --std 2002; pb1283_renames_legal and pb96_renames_span_over_redefines MATCH",
+     "CD record": "not shown by the 2023 row; probes cd_ren_sr10a.cob and cd_ren_sr10b.cob refused COBOL2740, cd_ren_ok.cob accepted (AB=1234) at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.43.2 SR10",
+      "quote": "The beginning of the storage area described by data-name-3 shall not precede the beginning of the storage area described by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.45.3 SR11",
+      "quote": "The end of the storage area described by data-name-3 shall follow the end of the storage area described by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.43.2 SR3",
+      "quote": "Data-name-1 may be qualified only by the names of the associated level 01, FD, CD, or SD entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Rule identical (NOTE 'shall not'/'cannot'). 2002 SR3 lets data-name-1 be qualified by a CD entry, so RENAMES reaches CD records; same as the p-12/p-13/q-18 RENAMES rows.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_ren_sr10a-2002.out",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a RENAMES THRU entry in a record under a CD is correct: refused COBOL2740 (probes cd_ren_sr10a.cob, cd_ren_sr10b.cob), legal form accepted (cd_ren_ok.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_ren_sr10a.cob, cd_ren_sr10b.cob, cd_ren_ok.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.44.2-3",
+    "to": [
+     "SR-13.18.46.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.44.2 (REPORT clause, syntax rules) SR3",
+    "clause-2023": "13.18.46.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a report file named in the procedure division only by USE, CLOSE, OPEN OUTPUT/EXTEND"
+    ],
+    "evidence-2002": {
+     "permitted references": "covered by cases/13.4.5-File-description/pb1171_report_file_legal_references MATCH at --std 2002",
+     "other statements": "covered by pb1171-report-file-io-reference refused COBOL2577 (READ) at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.44.2 SR3",
+      "quote": "may be referenced in the procedure division only by the USE statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.3 SR3",
+      "quote": "only by the USE statement, the WHEN phrase of a PERFORM statement, the CLOSE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds 'the WHEN phrase of a PERFORM statement' to the permitted list; 2002 PERFORM has no WHEN phrase, so no 2002 program can tell the lists apart. File description entries only: no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/tout/pb1171-report-file-io-reference.txt",
+    "widening": "2023 also permits the WHEN phrase of a PERFORM statement, a 2023 form"
+   },
+   {
+    "rule-id": "2002-GR-13.16.45.2-3",
+    "to": [
+     "GR-13.18.47.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.45.2 (REQUIRED clause, general rules) GR3",
+    "clause-2023": "13.18.47.3 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the REQUIRED clause of a screen description entry (screen section)"
+    ],
+    "evidence-2002": {
+     "screen section": "covered by conformance:wiseowl/cases/13.18.47-REQUIRED/a42-screen-required at --std 2002: refused by name, COBOL1560 'the SCREEN SECTION' (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/tout/a42-screen-required.txt)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.45.2 GR3",
+      "quote": "The effect of the REQUIRED clause is to reject the terminator keystroke and any other cursor-moving keystrokes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.47.3 GR3",
+      "quote": "The effect of the REQUIRED clause is to reject the terminator keystroke and any other cursor-moving keystrokes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words identical except 'non-zero'/'nonzero'. The 2023 row is DOCUMENTED-NON-SUPPORT; 2002 licenses the same decline: the screen section is processor-dependent (B.3 item 1) and 3.1.5 lets an implementation not implement processor-dependent elements it does not claim; the named compile-time diagnostic is the warning mechanism 3.1.5 requires. Same reading as q-18 for GR1, GR2, GR4-GR7.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/tout/a42-screen-required.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (screen section processor-dependent)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.51.3-2",
+    "to": [
+     "GR-13.18.53.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.51.3 (SOURCE clause, general rules) GR2",
+    "clause-2023": "13.18.53.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "implicit COMPUTE of arithmetic-expression-1 (or identifier-1 ROUNDED) at print, with plain ROUNDED (2002 has no ROUNDED MODE)",
+     "operands in any data division section (SR4), including items of a record under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD operands": "covered by pb852_report_source_expression, pb852_report_source_operand_parens, pb3990_report_source_rounded_edited, pb4031_report_source_size_checking, pb4031_report_overflow_checking MATCH at --std 2002 (pb3990_report_source_prohibited_keeps_the_item and pb4031_report_source_prohibited_checked are ROUNDED MODE programs, refused at 2002 COBOL0803, correctly)",
+     "CD operands": "not shown by the 2023 row; probe src_cd.cob at --std 2002: SOURCE CN * 2 + CFR ROUNDED prints 016/018, unrounded 015.55/017.55 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/src_cd-2002.out); q-19 rw-cd.cob (CFR ROUNDED -> 002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.51.3 GR2",
+      "quote": "If the ROUNDED phrase is specified, the implicit COMPUTE statement has a ROUNDED phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.53.4 GR2",
+      "quote": "If the ROUNDED phrase is specified, the implicit COMPUTE statement has the corresponding ROUNDED phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.51.2 SR4",
+      "quote": "Identifier-1 specifies a data item defined in any section of the data division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "'a ROUNDED phrase' vs 'the corresponding ROUNDED phrase': 2023's rounded-phrase may carry MODE; 2002 has only ROUNDED, a subset. SR4 lets the expression's identifiers name items in any section, which in 2002 includes the communication section; same reach q-19 recorded for SR2, SR5 and GR1. Under ARITHMETIC IS STANDARD the implicit COMPUTE meets the known 32-vs-34-digit standard-arithmetic defect (not rediscovered here).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/src_cd-2002.out",
+    "widening": "2023 rounded-phrase adds ROUNDED MODE",
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a SOURCE arithmetic expression whose operands are items of a CD record is correct (probe src_cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/src_cd.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.52.2-3",
+    "to": [
+     "SR-13.18.54.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.52.2 (SUM clause, syntax rules) SR3",
+    "clause-2023": "13.18.54.3 SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data-name-1 addend: numeric report-section item, may be qualified, unsubscripted, sub-rules a)-g)"
+    ],
+    "evidence-2002": {
+     "a)-g) refusals": "covered by pb1294-sum-data-name-not-numeric, -group, -subscripted, -with-upon, -same-group-not-repeating, -fewer-levels, -repetition-maximum, -chain-cycle (COBOL2730), -group-types (COBOL2731), all refused at --std 2002",
+     "legal forms incl. qualification": "covered by pb1294_report_rolled_totals, pb1294_report_rolled_repeating, pb1294_report_rolled_cross_report (SUM X1 OF RA) MATCH at --std 2002; probe sum_qual.cob (SUM DV OF DL, DV IN DL IN R: 11)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.2 SR3",
+      "quote": "Data-name-1 shall be the name of a numeric data item in the report section. It may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.3 SR4",
+      "quote": "Data-name-1 shall be the name of a numeric data item in the report section",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 adds 'It may be qualified.'; 2023 drops the sentence but qualification of data-name-1 stays permitted by the general qualification rules, and the row's own witness pb1294_report_rolled_cross_report qualifies it and runs at 2002. 'be a repeating item' vs 'reference a repeating item' and the 13.13/13.15 cross-reference (report group description entry GR3, same text) change nothing. data-name-1 is a report-section item: no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/sum_qual-2002.out",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.52.2-6",
+    "to": [
+     "SR-13.18.54.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.52.2 SR6",
+    "clause-2023": "13.18.54.3 SR7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "UPON data-name-2: the name of a detail, optionally qualified by its report-name"
+    ],
+    "evidence-2002": {
+     "not a detail / subscripted": "covered by pb482-sum-upon-not-detail and pb482-sum-upon-subscripted refused COBOL2046 at --std 2002",
+     "qualified by report-name": "covered by pb1294_report_rolled_cross_report (UPON DA OF RA) MATCH at --std 2002; probe sum_qual.cob (UPON DL OF R)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.2 SR6",
+      "quote": "Data-name-2 shall be the name of a detail. It may be qualified by a report-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.3 SR7",
+      "quote": "Data-name-2 shall be the name of a detail. It may be qualified only by a report-name",
+      "check": "OK"
+     }
+    ],
+    "reason": "'may be qualified by a report-name' vs 'only by a report-name': a detail is a level-01 report group whose only possible qualifier is its RD's report-name, so the 2002 permission admits exactly the 2023 set.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/sum_qual-2002.out",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.52.3-1",
+    "to": [
+     "GR-13.18.54.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.52.3 (SUM clause, general rules) GR1",
+    "clause-2023": "13.18.54.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "one independent signed sum counter and size error indicator per SUM entry, digits from the entry's PICTURE"
+    ],
+    "evidence-2002": {
+     "counter identity, digits": "covered by pb882_report_sum_counter_identity, pb883_report_sum_expression, pb1296_sum_counter_digits_85 MATCH and pb882-sum-counter-ambiguous refused COBOL2145 at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.3 GR1",
+      "quote": "The sum counter is an internal register that behaves as a data item of the category numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.4 GR1",
+      "quote": "The sum counter is a conceptual data item that behaves as a data item of the category numeric",
+      "check": "OK"
+     }
+    ],
+    "reason": "'an internal register' vs 'a conceptual data item': both behave as a numeric data item; no program can tell them apart. Report-section entries only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/tout/pb882_report_sum_counter_identity.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.52.3-11",
+    "to": [
+     "GR-13.18.54.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.52.3 GR11",
+    "clause-2023": "13.18.54.4 GR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a data-name-1 addend absent by PRESENT WHEN or ODO is not added for that instance"
+    ],
+    "evidence-2002": {
+     "PRESENT WHEN absent addend": "covered by cases/13.18.53-SOURCE/pb1294_report_rolled_totals (accept [2002]) MATCH at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.3 GR11",
+      "quote": "data-name-1 is not added into the sum counter during the processing that instance of the report group in which data-name-1 is defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.4 GR11",
+      "quote": "data-name-1 is not added into the sum counter during the processing of that instance of the report group in which data-name-1 is defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only 'processing that instance' vs 'processing of that instance' (a 2002 typo). Report-section only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/tout/pb1294_report_rolled_totals.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.52.3-3",
+    "to": [
+     "GR-13.18.54.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.52.3 GR3",
+    "clause-2023": "13.18.54.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "implicit ADD/COMPUTE ON SIZE ERROR of each addend at GENERATE/TERMINATE",
+     "on size error ONLY the entry's size error indicator is set (EC-REPORT-SUM-SIZE is raised later, at print, by GR4)",
+     "addends may name items of any non-report section, including a CD record (SR4/SR5)"
+    ],
+    "evidence-2002": {
+     "addition, signs, expressions": "covered by pb883_report_sum_expression MATCH at --std 2002; pb5248_sum_size_error_presentation MATCH at 2002 (unchecked: spaces printed)",
+     "no exception at the addition": "NOT shown by the 2023 row (2023 raises EC-REPORT-SUM-SIZE at the addition); probe sum_ec.cob at --std 2002 shows the compiler raising it at the addition: WRONG",
+     "CD addends": "covered by q-19 rw-cd.cob at --std 2002 (SUM OF CN, SUM OF CN + 1: 0007/0008, 0008/0009)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.3 GR3",
+      "quote": "Each addition is tested for size error; if a size error occurs, the associated size error indicator is set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.4 GR3",
+      "quote": "Each addition is tested for size error; if a size error occurs, the EC-REPORT-SUM-SIZE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.52.3 GR4",
+      "quote": "If the associated size error indicator is set, an EC-REPORT-SUM-SIZE exception condition is set to exist and the printable item is filled with spaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.52.3 GR7",
+      "quote": "whenever any GENERATE statement is executed for the current report or any detail defined for the current report",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.3 SR3",
+      "quote": "The ROUNDED phrase may be specified in the SUM clause only if the COLUMN clause is specified for the subject of the entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR3 sets only the size error indicator when an addition overflows; the exception is GR4's, at presentation. 2023 GR3 sets EC-REPORT-SUM-SIZE to exist at the addition itself. With checking on, EC-REPORT-SUM-SIZE is fatal in both tables, so the moment of the raise is observable. The compiler applies the 2023 rule at --std 2002. Second finding in this row's evidence: the row's witness pb883-sum-rounded-without-column is refused at 2002 by COBOL2143, the 2014/2023 SR (13.18.54.3 SR3) that 2002 13.16.52.2 does not have.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/sum_ec.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict, after a fix: at --std 2002 an overflowing SUM addition must set only the size error indicator (no EC-REPORT-SUM-SIZE until the counter is presented, GR4); probe sum_ec.cob is the candidate 2002 witness",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/sum_ec.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/sum_ec-2002.out)",
+    "defects": [
+     {
+      "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/sum_ec.cob",
+      "expected": "--std 2002: 'GEN1 DONE S1=+5', 'GEN2 DONE S1=+5' (GENERATE 2's 5+6 overflows PIC 9: indicator set, no raise, §2002:13.16.52.3 GR3), then at TERMINATE the final control footing presents S1 with the indicator set: EC-REPORT-SUM-SIZE raised (§2002:13.16.52.3 GR4), declarative 'RAISED 1 EC-REPORT-SUM-SIZE', fatal termination",
+      "observed": "--std 2002 (same as 2023): 'GEN1 DONE S1=+5', 'RAISED 1 EC-REPORT-SUM-SIZE', 'abnormal run-unit termination: EC-REPORT-SUM-SIZE (fatal): report R: an addition into sum counter 1 is a size error (ISO §2023:13.18.54.4 GR3)'; GEN2 DONE never printed",
+      "citation": "§2002:13.16.52.3 GR3 'Each addition is tested for size error; if a size error occurs, the associated size error indicator is set' (OK)"
+     },
+     {
+      "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/sum_round_nocol.cob (= cases/13.18.54-SUM/pb883-sum-rounded-without-column without its header)",
+      "expected": "--std 2002: accepted; 13.16.52.1 prints [ ROUNDED ] after RESET ON and 13.16.52.2 SR1-SR7 put no COLUMN condition on it (the restriction is §2023:13.18.54.3 SR3, first in 2014)",
+      "observed": "--std 2002: error COBOL2143 'the SUM clause writes a ROUNDED phrase, which is permitted only if the COLUMN clause is specified for the subject of the entry (ISO §2023:13.18.54.3 SR3)', rc 65 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/sum_round_nocol-2002.out)",
+      "citation": "§2023:13.18.54.3 SR3 'The ROUNDED phrase may be specified in the SUM clause only if the COLUMN clause is specified for the subject of the entry' (OK); no 2002 counterpart in 13.16.52.2"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.53.2-1",
+    "to": [
+     "SR-13.18.55.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.53.2 (SYNCHRONIZED clause, syntax rules) SR1",
+    "clause-2023": "13.18.55.3 SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SYNCHRONIZED only on elementary items: on a group (any section, typedefs) it is prohibited",
+     "the same in records under a CD"
+    ],
+    "evidence-2002": {
+     "group refused": "covered by cases/13.18.55-SYNCHRONIZED/sync_group_below_2023 and pb494-typedef-sync-group-below-2023 refused COBOL0900 at --std 2002",
+     "elementary accepted": "covered by pb5189_sync_index_item_2002 MATCH and l1_byte_length_implicit_filler MATCH at --std 2002",
+     "CD record": "probe cd_sync_grp.cob refused COBOL0900, cd_sync_el.cob accepted at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.53.2 SR1",
+      "quote": "The SYNCHRONIZED clause may be specified only for an elementary item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.55.3 SR1",
+      "quote": "The SYNCHRONIZED clause may be specified for group and elementary items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words say opposite things: 2002 prohibits SYNCHRONIZED on a group, 2023 permits it. The 2023 CONFORMS verdict is about accepting groups and cannot carry the 2002 prohibition; the row's below-2023 refusal cases happen to witness it at 2002, and the CD reach is shown only by the probes.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_sync_grp-2002.out",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is correct: SYNCHRONIZED on a group refused COBOL0900 (sync_group_below_2023, pb494-typedef-sync-group-below-2023, probe cd_sync_grp.cob), on an elementary item accepted",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_sync_grp.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_sync_el.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.53.3-1",
+    "to": [
+     "GR-13.18.55.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.53.3 (SYNCHRONIZED clause, general rules) GR1",
+    "clause-2023": "13.18.55.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "natural-boundary alignment of a SYNCHRONIZED elementary item; slack bytes counted in the containing group's size and in a group REDEFINES",
+     "the same in records under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler (accept [2002]) MATCH at --std 2002",
+     "CD record": "not shown by the 2023 row; probe cd_sync_el.cob at --std 2002: BYTE-LENGTH 6, identical to ws_sync_el.cob (no slack bytes, the implementor's natural boundaries)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.53.3 GR1",
+      "quote": "This clause specifies that the subject data item is to be aligned in the computer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.55.4 GR2",
+      "quote": "This clause specifies that the subject elementary data item is to be aligned in the computer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "'subject data item' vs 'subject elementary data item': in 2002 SR1 already limits the clause to elementary items, so the same. The rule reaches SYNC items of CD records in 2002; same as q-20 for GR4, GR8, GR9 and p-04 for GR3.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/out/cd_sync_el-2002.out",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a SYNCHRONIZED item of a CD record is correct (probe cd_sync_el.cob, same layout as working-storage)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/cd_sync_el.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-near/ws_sync_el.cob)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "t-near",
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.40.2-4",
+    "verdict": "OVERTURNED",
+    "reason": "2002 has no PROPERTY SR5/SR6. In 2002 a PROPERTY entry may be an ACTIVE-CLASS object reference (PROPERTY SR1: factory/instance working-storage; USAGE SR15 permits ACTIVE-CLASS there), so SR4 also governs an ACTIVE-CLASS PROPERTY subject whose name clashes with a superclass property. 2023 SR6 forbids every such entry, so the 2023 row (pb1274-property-name-of-later-superclass) says nothing about it. Probe propac_super.cob (superclass PROPERTY O, subclass 01 O USAGE OBJECT REFERENCE ACTIVE-CLASS PROPERTY): refused at --std 2002, but only by COBOL2563 citing the 2023-only SR6; the SR4 clash is never diagnosed. Outcome (refusal) is what 2002 SR4 requires, for the wrong rule; once the 2002 SR6 defect (q-18, kb PB1273 family) is fixed, the SR4 check for ACTIVE-CLASS subjects has no witness. needs: a 2002 witness of SR4 for an ACTIVE-CLASS subject after the SR6-at-2002 fix. compiler-at-2002: correct outcome, wrong rule.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.40.2 SR4",
+      "quote": "The data-name for the subject of the entry shall not be the same as a property-name defined in a superclass",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.40.2 SR1",
+      "quote": "The PROPERTY clause may be specified only in the working-storage section of a factory definition or an instance definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.3 SR6",
+      "quote": "The PROPERTY clause shall not be specified for data items of usage object reference described with an ACTIVE-CLASS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.3 SR4",
+      "quote": "The data-name for the subject of the entry shall not be the same as a property-name defined in a superclass",
+      "check": "OK"
+     }
+    ],
+    "class": "other (2023 added a restriction: SR6 bars PROPERTY on an ACTIVE-CLASS object reference; 2002 permits it, so SR4 reaches 2002 entries the 2023 rule never governs; same cause as q-18 GR3)",
+    "compiler-at-2002": "correct outcome by the wrong (2023-only) rule",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-near/propac_super.cob (outputs out/propac_super-2002.out, out/propac_super-2023.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.40.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "GR1's first arm (class object: implicit GET method SET LS-data-name TO data-name) governs in 2002 an ACTIVE-CLASS object-reference PROPERTY item, which 2002 permits (no SR6; USAGE SR15 allows ACTIVE-CLASS in instance/factory working-storage, and in method linkage, where LS-data-name lives). 2023 SR6 forbids that entry, so the 2023 row's witnesses (pb1275_property_set_formats etc.) cannot show it. Probe propac_getset.cob (instance item 01 O USAGE OBJECT REFERENCE ACTIVE-CLASS PROPERTY; driver SET O OF A TO B, SET R TO O OF A): legal 2002 source, refused at --std 2002 with COBOL2563 citing §2023:13.18.42.3 SR6 (rc 65). needs: its own verdict after a fix: at --std 2002 the implicit GET method of an ACTIVE-CLASS property returns the reference (probe expects GETSET OK).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.40.3 GR1",
+      "quote": "If the subject of this entry is of class index, object, or pointer, the implicit definition of this method is as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.3 SR6",
+      "quote": "The PROPERTY clause shall not be specified for data items of usage object reference described with an ACTIVE-CLASS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.4 GR1",
+      "quote": "If the subject of this entry is of class index, message-tag, object, or pointer, the implicit definition of this method is as follows",
+      "check": "OK"
+     }
+    ],
+    "class": "other (2023 added a restriction: SR6 bars PROPERTY on an ACTIVE-CLASS object reference; the 2002 GR1 object arm governs it)",
+    "compiler-at-2002": "wrong (refuses legal 2002 source with COBOL2563 citing a 2023-only rule)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-near/propac_getset.cob (outputs out/propac_getset-2002.out, out/propac_getset-2023.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.40.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "As GR1 for the implicit SET method (SET data-name TO LS-data-name): the 2002 object arm governs an ACTIVE-CLASS PROPERTY item, legal in 2002 and forbidden by 2023 SR6. Probe propac_getset.cob exercises SET O OF A TO B; refused at --std 2002 COBOL2563 (§2023:13.18.42.3 SR6). needs: its own verdict after a fix: the implicit SET method of an ACTIVE-CLASS property at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.40.3 GR2",
+      "quote": "If the SET phrase is not specified, the PROPERTY clause causes a method to be defined for the containing object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.3 SR6",
+      "quote": "The PROPERTY clause shall not be specified for data items of usage object reference described with an ACTIVE-CLASS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.42.4 GR2",
+      "quote": "If the SET phrase is not specified, the PROPERTY clause causes a method to be defined for the containing object",
+      "check": "OK"
+     }
+    ],
+    "class": "other (2023 added a restriction: SR6 bars PROPERTY on an ACTIVE-CLASS object reference; the 2002 GR2 object arm governs it)",
+    "compiler-at-2002": "wrong (refuses legal 2002 source with COBOL2563 citing a 2023-only rule)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-near/propac_getset.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.41.3-3",
+    "verdict": "OVERTURNED",
+    "reason": "The term change (variable-length data item vs occurs-depending table) is harmless, as the reader says. But GR3 sets the record size of every FD/SD record, and in 2002 that includes an FD with the FORMAT clause (13.16.22), a required 2002 element with no optional licence (3.1.1; same finding as q-28 for OPEN); GR2 of this very clause names the FORMAT clause as affecting only the physical size, so GR3's logical-record size explicitly governs FORMAT files. 2023 makes FORMAT optional (A.4.8) and the compiler declines it, so the 2023 row's witnesses (pb1277_record_size_in_bytes) contain no FORMAT file. Probe rec_format.cob (FD FF FORMAT CHARACTER DATA RECORD CONTAINS 12, 01 with PIC 99 + ODO 1 TO 10): refused COBOL1705 at --std 2002 (citing §2023 A.4.8); the same FD without FORMAT (rec_noformat.cob) gives LEN=12 OPEN=00. needs: a 2002 witness for a FORMAT-file record size once FORMAT is supported at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.41.3 GR3",
+      "quote": "regardless of the types of characters used to represent the items within the logical record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR2",
+      "quote": "Factors in the source element other than the RECORD clause that may affect the size of records on physical storage medium are the CODE-SET clause and the FORMAT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR1",
+      "quote": "The FORMAT clause specifies that external media format is to be used for records written to the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR3",
+      "quote": "plus the sum of the maximum number of bytes in any occurs-depending table subordinate to the record",
+      "check": "OK"
+     }
+    ],
+    "class": "other (declined-element reach: the rule governs records of FORMAT-clause files, required in 2002 and refused at --std 2002 under the 2023-only licence A.4.8; same cause as q-28)",
+    "compiler-at-2002": "wrong (refuses legal 2002 source)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-near/rec_format.cob (control rec_noformat.cob; outputs out/rec_format-2002.out, out/rec_noformat-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.44.2-3",
+    "verdict": "OVERTURNED",
+    "reason": "SR3 permits the report file to be referenced by the CLOSE statement. The 2002 CLOSE format has WITH LOCK, and 14.8.6.2 SR1 limits only NO REWIND/REEL/UNIT to sequential files, so CLOSE report-file WITH LOCK is a permitted 2002 reference under SR3. 2023's CLOSE has no LOCK phrase, so the 2023 row's witness pb1171_report_file_legal_references cannot show it (same cause as the q-18 overturn of REPORT GR2). Probe (q-18 refuter's rptlock.cob, CLOSE RPT WITH LOCK of a report file): accepted at --std 2002 (lock honoured: re-OPEN status 38), refused COBOL0902 at --std 2023. compiler-at-2002: correct. needs: a 2002 witness for CLOSE WITH LOCK as a permitted report-file reference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.44.2 SR3",
+      "quote": "may be referenced in the procedure division only by the USE statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6",
+      "quote": "The CLOSE statement terminates the processing of reels/units and files with rewind, lock, or removal where applicable",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6.3 GR3",
+      "quote": "When the LOCK phrase is specified, the file connector referenced by file-name-1 shall not be opened again during the execution of this run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.1",
+      "quote": "The CLOSE statement terminates the processing of reels/units and files with rewind or removal where applicable",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.3 SR3",
+      "quote": "only by the USE statement, the WHEN phrase of a PERFORM statement, the CLOSE statement",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form (the CLOSE statement SR3 permits has WITH LOCK in 2002; 2023 deleted it)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-18/rptlock.cob (outputs rptlock-2002.out, rptlock-2023.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.45.2-3",
+    "verdict": "UPHELD",
+    "reason": "REQUIRED general format (bare REQUIRED) and GR3 including its four-item termination list (alphanumeric, national, numeric, boolean) are identical but for non-zero/nonzero. Screen section only: no CD or removed-form reach. 2002 licenses declining the screen section (3.1.5 with B.3 item 1), as q-18 recorded for GR1, GR2, GR4-GR7; the reader's a42-screen-required refusal at --std 2002 by name holds.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.45.2 GR3",
+      "quote": "The effect of the REQUIRED clause is to reject the terminator keystroke and any other cursor-moving keystrokes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.47.3 GR3",
+      "quote": "The effect of the REQUIRED clause is to reject the terminator keystroke and any other cursor-moving keystrokes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.52.2-3",
+    "verdict": "UPHELD",
+    "reason": "SUM general formats are the same except 2023's rounded-phrase (outside SR3). Sub-rules a)-g) match item for item; the referenced 13.13 GR3 (2002) and 13.15 GR3 (2023) repeating-item definition is word-identical. 'It may be qualified' (2002 only) is a permission the general qualification rules also give in 2023 and the twin witness pb1294_report_rolled_cross_report uses it at 2002. data-name-1 is a report-section item: no CD reach. The q-19 SUM-intrinsic cause concerns arithmetic-expression-1, not data-name-1.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.2 SR3",
+      "quote": "Data-name-1 shall be the name of a numeric data item in the report section. It may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.3 SR4",
+      "quote": "Data-name-1 shall be the name of a numeric data item in the report section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.13.3 GR3",
+      "quote": "A report item is a repeating item if it is defined by a repeating entry or by an entry that is subordinate to a repeating entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.4 GR3",
+      "quote": "A report item is a repeating item if it is defined by a repeating entry or by an entry that is subordinate to a repeating entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.52.2-6",
+    "verdict": "UPHELD",
+    "reason": "A detail is a level-1 report group whose only possible qualifier is its RD's report-name, so 'qualified by a report-name' and 'qualified only by a report-name' admit the same programs. UPON phrase unchanged in the format; report section only.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.2 SR6",
+      "quote": "Data-name-2 shall be the name of a detail. It may be qualified by a report-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.3 SR7",
+      "quote": "Data-name-2 shall be the name of a detail. It may be qualified only by a report-name",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.52.3-1",
+    "verdict": "UPHELD",
+    "reason": "Only 'internal register' vs 'conceptual data item'. The 2002 size error indicator matters more in 2002 (2002 GR3 sets it at the addition; the compiler's raise-at-addition is the reader's GR3 defect, not GR1's). GR1's own content (independent counter and indicator per entry, digits from PICTURE, signed) checked at --std 2002 with checking off: probe sum_ind.cob, S1 PIC 9 overflows (5+6) and prints spaces while S2 PIC 99 and S3 PIC -99 of the same addends print 07 and -07; identical at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.3 GR1",
+      "quote": "Each entry containing a SUM clause establishes an independent sum counter and size error indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.4 GR1",
+      "quote": "Each entry containing a SUM clause establishes an independent sum counter and size error indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.52.3 GR4",
+      "quote": "If the associated size error indicator is set, an EC-REPORT-SUM-SIZE exception condition is set to exist and the printable item is filled with spaces",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-near/sum_ind.cob (outputs out/sum_ind-2002.out, run/sum_ind-2002/SUMIND.TXT)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.52.3-11",
+    "verdict": "UPHELD",
+    "reason": "Identical but for the 2002 typo ('processing that instance'). Report section only. The ODO half was not shown by the row's witness (PRESENT WHEN only); probe sum_odo.cob at --std 2002: detail DX OCCURS 1 TO 3 DEPENDING ON WS-N VALUE 1, generated with WS-N 2, 3, 1; final SUM DX prints 06 (absent occurrences not added), same at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.3 GR11",
+      "quote": "is declared to be absent as a result of a PRESENT WHEN clause or an OCCURS clause with the DEPENDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.4 GR11",
+      "quote": "data-name-1 is not added into the sum counter during the processing of that instance of the report group in which data-name-1 is defined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-near/sum_odo.cob (outputs out/sum_odo-2002.out, run/sum_odo-2002/SUMODO.TXT)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "9ce0d76ac1ddda04760f064fdece88cfed9a2e9ab43e4efa7d359cbde0430936",
+  "read": "19cc6a5299781b8f545d2ba95c3d5448debe701ba9956e6b2d31f5123985b94c",
+  "refute": "c5430862858f5f29c713e7a0e7d766a45ec9cf510cc56a1690ff11fa14497a99"
+ }
+}

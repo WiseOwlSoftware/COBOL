@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c18_merge_key_order_ties
       *> rules: [SR-14.9.24.3-8, GR-14.9.24.4-3, GR-14.9.24.4-4]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-21",
+ "rule-digest": "d45d5e5538a6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.39.4-24"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "The rule only sets EC-LOCALE-MISSING to exist; what follows rests on 2002 condition handling. 2002's table makes it fatal (§2002:14.5.12.1.5 'EC-LOCALE-MISSING Fatal The specified locale is not available'), so 14.5.12.1.2 governs: with checking enabled and an applicable USE the declarative runs, and RESUME is not normal completion (§2002:14.5.12.1.1 lists 'An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement'), so RESUME AT NEXT STATEMENT continues; with checking off (the default, §2002:14.5.12.1) the continuation is implementor-defined (14.5.12.1.2 item 5). 14.5.12.1.3 (non-fatal) and 14.5.12.2 (incompatible data) are not reached by a fatal locale condition. The dependent behaviour is shown at 2002: the twin witness, which enables checking and handles the condition with a declarative and RESUME, matches its .out. No change."
+   },
+   "band-formats": {
+    "flag": "band-formats [10] against [[11]]",
+    "answer": "2002 Format 10 (set-locale) is 2023 Format 11 element for element (SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME ... | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}); the number moved only because 2023 inserted Format 8 function-pointer-assignment (§2023:14.9.39.2 'SET { identifier-12 } … TO identifier-13') ahead of it, and SR25/SR26 of 2002 read as SR26/SR27 of 2023. The band reaches the same single format in both editions, so no split and no change of scope."
+   }
+  },
+  "source": "lineage-reads-2002/q-31.json",
+  "digests": {
+   "GR-14.9.39.4-24": "d45d5e5538a6"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-28",
+ "rule-digest": "0b0c13c39e0b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-31"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "dynamic access",
+    "answer": "2002 'An access mode in which specific logical records may be obtained from or placed into a mass storage file in a nonsequential manner' and sequentially (§2002:4); 2023 differs only in 'can' for 'may'. The rule governs the same dynamic indexed connectors; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob shows the key of reference carried to later sequential READs at 2002."
+   },
+   "behaviour-switch": {
+    "flag": "indexed-read-previous-after-open-at-end",
+    "answer": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd) changes only a sequential READ PREVIOUS that is the first retrieval after OPEN on an indexed file, the case of §2002:14.8.29.3 GR18c; this rule does not govern that case, and its own behaviour at --std 2002 is shown by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob at 2002: a bare random READ re-establishes the prime key and READ PREVIOUS walks it (R3=K004, R4=K002), plus l1_read_key_of_reference MATCH at 2002. Separately, the switch's own 2002 arm is wrong (a defect lead, not this row's): probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/read-prev-open-2002.cob gives P1=K002|00 at --std 2002 (and 2014), where §2002:14.8.26.3 GR12 sets an indexed file's position indicator to the lowest-ordinal characters and §2002:14.8.29.3 GR18c selects a record whose key is 'less than or equal to the file position indicator', none, so GR18 gives status 10 and the at end condition (2023 prints ATEND|10); code site IndexedConnector.SelectSequentialRecord (src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs:445) with DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (DialectBehavior.cs:297, kb/Work PB344)."
+   }
+  },
+  "source": "lineage-reads-2002/q-30.json",
+  "digests": {
+   "GR-14.9.30.4-31": "0b0c13c39e0b"
+  }
+ }
+}

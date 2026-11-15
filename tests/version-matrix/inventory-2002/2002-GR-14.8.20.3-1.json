@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.20.3-1",
+ "rule-digest": "87891f7e9b5f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.21.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so INITIATE initializes the same per-report counters; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "Matched on 'size error' (the sum counter's size error indicator). The indicator is SET by the SUM addition of §2002:13.16.52.3 GR3 ('if a size error occurs, the associated size error indicator is set', by the ADD rules, so §2002:14.6.4 and 8.8.1.x decide when); this rule only zeros the counter and unsets the indicator, at INITIATE and at the reset points, which depends neither on how the size error was detected nor on the 2002 31/32-digit standard arithmetic (PB5575 does not reach it). pb1130_report_sum_size_line_overlap re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "GR-14.9.21.4-1": "87891f7e9b5f"
+  }
+ }
+}

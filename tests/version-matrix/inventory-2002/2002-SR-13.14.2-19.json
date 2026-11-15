@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-13.14.2-19",
+ "rule-digest": "e5e63da4f8d3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.16.3-21"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "property",
+    "answer": "2002: 'A name that may be used to qualify an object reference to get a value from or pass a value to an object' (§2002:4); 2023: 'name that can be used to qualify ...' (§2023:3.137). Wording only ('may' to 'can'); the rule is about the PROPERTY clause co-occurring with BASED or TYPEDEF, which the definition does not widen or narrow."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+    "answer": "The screen matched the word 'TYPEDEF'. §2002:8.5.3 defines what a type is and how typed items match, §2002:8.5.4 what a zero-length item is, §2002:14.5.8 how data is aligned in a receiving item; SR19 is a pure clause co-occurrence ban (§2002:13.14.2 SR19) and rests on none of them. Witnesses re-run now at 2002: pb521-property-with-based/-typedef COBOL2333, pb1650-property-composed-based refused, pb1650_property_typed PASS (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt)."
+   },
+   "communication-reach": {
+    "flag": "clause 13.14 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "The PROPERTY clause 'may be specified only in the working-storage section of a factory definition or an instance definition' (§2002:13.16.40.2 SR1), so no CD record carries it and the rule reaches no communication-section entry."
+   }
+  },
+  "source": "lineage-reads-2002/q-10.json",
+  "digests": {
+   "SR-13.16.3-21": "e5e63da4f8d3"
+  }
+ }
+}

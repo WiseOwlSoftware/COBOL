@@ -2,7 +2,7 @@
 *> id: pb742_legal_entry_formats_85
 *> rules: [SR-12.4.5.2-8, SR-12.4.5.2-9, GR-12.4.5.3-5, GR-12.4.5.3-7,
 *>    GR-12.4.5.3-8, GR-12.4.5.3-9, SR-12.4.5.6.3-2, SR-12.4.5.12.3-2]
-*> accept: [85]
+*> accept: [85, 2002]
 *> source-format: free
 *> portable: unverified
 *>---

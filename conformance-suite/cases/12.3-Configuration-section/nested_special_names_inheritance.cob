@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: nested_special_names_inheritance
       *> rules: [GR-12.3.4-1, SR-14.9.39.3-5, AR-15.67.3-5]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
