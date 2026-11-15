@@ -26,11 +26,11 @@
       *>   R-C is TERMINATEd before CLOSE RPT-C, so that CLOSE raises
       *>   nothing; no exception has been raised, so EXCEPTION-STATUS is
       *>   31 spaces (§2002:15.28.2 RV1): "CLOSE-C=00 ES=[" 31 spaces "]".
-      *>   R-B is still active (INITIATEd, never TERMINATEd, §2002:
-      *>   14.8.20.3 GR4) when CLOSE RPT-A runs: the CLOSE completes,
-      *>   status 00, and EC-REPORT-NOT-TERMINATED (24 letters, then 7
-      *>   spaces) is the last exception status although R-A itself was
-      *>   terminated: "any report" of the file.
+      *>   R-B is still active (INITIATEd, never TERMINATEd,
+      *>   §2002:14.8.20.3 GR4) when CLOSE RPT-A runs: the CLOSE
+      *>   completes, status 00, and EC-REPORT-NOT-TERMINATED (24
+      *>   letters, then 7 spaces) is the last exception status although
+      *>   R-A itself was terminated: "any report" of the file.
       *> A leg fails if a report bound by one clause is refused or not
       *> initiated, if the CLOSE of a file with an active report fails or
       *> raises nothing, or if the CLOSE with no active report raises.
