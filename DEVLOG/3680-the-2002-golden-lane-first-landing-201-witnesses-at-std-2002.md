@@ -37,7 +37,7 @@ case.
 - PB5652 (new): an unprefixed REPOSITORY SUM intrinsic inside a report SUM clause is a parse error at 2002 (2002-SR-13.16.52.2-1).
 - PB5602 (extended): a subscripted RECORD KEY is refused COBOL2024 (2002-GR-12.3.4.4.3-2; -3 was already claimed).
 - PB5620 (extended): the 2002 Format 1 WRITE phrase order is a parse error, so SR21 cannot be witnessed (2002-SR-14.8.47.2-21).
-- PB5621 (extended): an ANY LENGTH formal bound BY REFERENCE to an ODO group takes the group's maximum length (2002-GR-8.8.4.1.3.3-1, 2002-GR-13.16.2.3-1).
+- PB5621 (extended, since retired): an ANY LENGTH formal bound BY REFERENCE to an ODO group takes the group's maximum length (2002-GR-8.8.4.1.3.3-1, 2002-GR-13.16.2.3-1). That is the standard's rule; see the PB5621 merge below.
 - PB5577 (extended): the VALIDATE decline COBOL1708 hides SR18 and the validation half of level 88 (2002-SR-13.14.2-18, 2002-GR-13.16.31.3-2).
 - PB5606 (a dated finding): SAME AS a COMMUNICATION SECTION record is accepted (2002-SR-13.16.47.2-7, already claimed).
 
@@ -77,3 +77,15 @@ Format 1 pair `g2_write_sequential_lock_phrase_manual` / `_automatic_neg` (the 2
 `g2_write_random_lock_phrase_manual` / `_automatic_neg` the writers had held until PB5620 landed. `record_verdicts.py
 --edition 2002` re-recorded -21 CONFORMS; at the merged head the 2002 inventory is 2,282 GAP, CONFORMS 314, DIVERGES 9,
 PARTIAL 1.
+
+**Merged with PB5621's retirement (landed on main).** The queue bounced pull request #1710 DIRTY again. Main had retired
+PB5621, and the one conflict was `kb/Work/PB5621.md`'s `inventory_rows`: this branch had added 2002-GR-8.8.4.1.3.3-1 and
+2002-GR-13.16.2.3-1 to it, and main emptied it. A retired note claims no rows, so main's frontmatter is taken. Main's reason
+for retiring the note also removes this branch's two DIVERGES records: the repro passed the ODO group BY REFERENCE, and
+§2002:14.7.1.1 gives such an argument its maximum length. So the formal has length 5, is not zero-length, and five spaces
+are ALPHABETIC; the output was correct. 2002-GR-13.16.2.3-1 is CONFORMS on the BY CONTENT golden already landed here,
+`g2-any-length-zero-length-by-content`, and on main's `pb5621-unstring-any-length-variable-occurrence-2002`, whose BY
+REFERENCE leg pins the maximum. The held draft `g2_class_zero_length` (8.8.4.1.3@2002) now passes its argument BY CONTENT
+and witnesses 2002-GR-8.8.4.1.3.3-1. At --std 2002 it prints its expected output, and the same source BY REFERENCE prints
+`S0-ALPHA=T`, so the leg can fail. `record_verdicts.py --edition 2002` re-recorded both rows CONFORMS. At the merged head
+the 2002 inventory is 2,277 GAP, CONFORMS 319, DIVERGES 7, PARTIAL 1.

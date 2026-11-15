@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-GR-8.8.4.1.3.3-1",
  "rule-digest": "8a96bc28213a",
- "verdict": "DIVERGES",
+ "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#BoundaryLength",
- "notes": "kb/Work PB5621: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) an ANY LENGTH formal bound BY REFERENCE to a zero-length ODO group has length 5, so its class condition answers true; the ODO-group arms answer false correctly."
+ "test-ref": "conformance:cases/8.8.4.1.3@2002-CLASS-CONDITION/g2_class_zero_length",
+ "notes": "§2002:8.8.4.1.3.3 GR1: a class condition without NOT over a zero-length item is false. g2_class_zero_length exercises the three 2002 zero-length items of §2002:8.5.4: an OCCURS DEPENDING group at N=0 (every class phrase F, NOT ALPHABETIC T), a group of only such an item (F), and an ANY LENGTH formal bound BY CONTENT to that group (ALPHABETIC F, NOT NUMERIC T), with N=2 legs that are not zero-length (ALPHABETIC T through the formal). The arguments are BY CONTENT because BY REFERENCE a variable-occurrence argument has its maximum length (§2002:14.7.1.1), so it is not zero-length (kb/Work PB5621, retired). The DIVERGES record golden-2002-1 first wrote rested on PB5621's retracted premise."
 }
