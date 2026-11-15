@@ -227,8 +227,16 @@ internal sealed class McsStore : IDisposable
 
     /// <summary>⛔ A DEVICE, §6 "Devices": the file <c>&lt;device&gt;.out</c>, oriented to variable-length messages (A.2.6.3 GR2), so vertical positioning "is not applicable" and the
     /// MCS ignores it (GR12). Each device's messages are written positionally at its committed end, <c>DeviceEnds</c>, and the file's length is set to the end of what was
-    /// written, so any tail a dead or refused statement left past the committed end is overwritten or cut; the device is flushed to the medium
-    /// (<see cref="RandomAccess.FlushToDisk"/>), which orders it before page 2; and the committed end moves in the same store statement.</summary>
+    /// written, so any tail a dead or refused statement left past the committed end is overwritten or cut; the write is durable when it returns, which orders it before page 2;
+    /// and the committed end moves in the same store statement.
+    /// <para>⛔ THE BARRIER IS A WRITE-THROUGH WRITE, NOT A FLUSH PER STATEMENT (kb/Work PB5147): the device is opened <see cref="FileOptions.WriteThrough"/>
+    /// (<c>FILE_FLAG_WRITE_THROUGH</c> on Windows, <c>O_SYNC</c> elsewhere), so the write returns once its bytes AND the size change it makes are on the medium
+    /// ("A write-through request via FILE_FLAG_WRITE_THROUGH also causes NTFS to flush any metadata changes ... that result from processing the request", CreateFile,
+    /// "Caching Behavior"). A <c>FlushFileBuffers</c> after each write, the barrier this replaced, asks the volume to flush its whole write cache: on GitHub's Windows
+    /// runners its median ran from 4 ms to 830 ms a call from one merge group to the next, and CM102M's 544 sends paid it 544 times. The cut that <see cref="RandomAccess.SetLength"/> makes when a dead tail was longer is not
+    /// written through and needs not be: a tail a power loss keeps lies past the committed end, which the next run unit's first statement cuts. A device the statement
+    /// CREATES is also flushed and its directory synced once (<see cref="HostFile.SyncDirectory"/>): the creation of an empty file's name is metadata a write-through
+    /// write is not documented to carry, and the committed end must never name bytes of a file a power loss can take away.</para></summary>
     private void Transmit(McsTables tables, IReadOnlyList<(string Device, StoredMessage Message)> transmissions, List<Written> written)
     {
         foreach (var device in transmissions.Select(t => t.Device).Distinct(StringComparer.Ordinal))
@@ -241,12 +249,13 @@ internal sealed class McsStore : IDisposable
             string? row = CommittedRow(tables, device);
             long end = Math.Min(row is null ? length : tables.DeviceEnd(row)!.Value, length);   // a file shorter than its committed end was changed outside the MCS; a device with no row (a run unit holding definitions a later seeding retired) keeps what its file holds, as seeding does
             written.Add(new Written(device, end, existed));
-            using (var handle = File.OpenHandle(file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
+            using (var handle = File.OpenHandle(file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite, FileOptions.WriteThrough))
             {
                 RandomAccess.Write(handle, text, end);
                 RandomAccess.SetLength(handle, end + text.Length);
-                RandomAccess.FlushToDisk(handle);
+                if (!existed) RandomAccess.FlushToDisk(handle);
             }
+            if (!existed) HostFile.SyncDirectory(_root);
             if (row is not null) tables.SetDeviceEnd(row, end + text.Length);   // a retired device gets no row back: seeding retired it, and a row it recreated would claim a file another row owns
         }
     }
