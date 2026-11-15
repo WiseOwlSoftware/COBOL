@@ -1802,8 +1802,14 @@ internal static class IntrinsicArgumentRules
         string why;
         if (ExactValue(pw.Exp) is { } e)
         {
-            // A literal base to a literal exponent is a constant: the fold values it and the constant witness reads the value.
-            if (literalBase is not null || e.IsInteger && e.Sign >= 0) return null;   // ProvablyIntegral's arm: N ** 2 is always an integer
+            if (e.IsInteger && e.Sign >= 0) return null;   // ProvablyIntegral's arm: N ** 2 is always an integer
+            if (literalBase is { } lc && !e.IsInteger)
+            {
+                // ExactValue folds a power only for an integer exponent, so a fraction exponent on a literal base is read here (§2023:15.3
+                // AR6): c ** (p/q), p/q in lowest terms, is an integer only for p > 0 and c a perfect q-th power; a negative c has no real value.
+                if (lc.Sign < 0 || e.Sign > 0 && IsPerfectRoot(lc, e.Denominator)) return null;
+            }
+            // A literal base to an integer exponent within MaxFoldedExponent never reaches here (the fold values it); beyond it, c ** -m is 1/c^m.
             why = e.IsInteger ? $"to the negative power {e}" : $"to the power {e}, which is not an integer";
         }
         else
@@ -1846,11 +1852,15 @@ internal static class IntrinsicArgumentRules
     /// <summary>Is <paramref name="c"/> (at least 2) the 10^<paramref name="scale"/>-th power of an integer, so that an exponent item
     /// whose least positive value is 10^(−scale) gives <c>c ** t</c> an integer at t = 10^(−scale)? <paramref name="scale"/> is
     /// positive: the caller asks it of an item with fraction digits. A c below 2 ** 10^scale has a root between 1 and 2.</summary>
-    private static bool IsPerfectPower(System.Numerics.BigInteger c, int scale)
+    private static bool IsPerfectPower(System.Numerics.BigInteger c, int scale) => IsPerfectRoot(c, System.Numerics.BigInteger.Pow(10, scale));
+
+    /// <summary>Is <paramref name="c"/> (at least 2) the <paramref name="degree"/>-th power of an integer? A c below
+    /// 2 ** degree has a root between 1 and 2, so a degree of at least its bit length answers false without a search.</summary>
+    private static bool IsPerfectRoot(System.Numerics.BigInteger c, System.Numerics.BigInteger degreeBig)
     {
         long bits = (long)c.GetBitLength();
-        if (Math.Pow(10, scale) >= bits) return false;   // c < 2 ** 10^scale
-        int degree = (int)Math.Pow(10, scale);
+        if (degreeBig >= bits) return false;   // c < 2 ** degree
+        int degree = (int)degreeBig;
         System.Numerics.BigInteger lo = 2, hi = System.Numerics.BigInteger.One << (int)(bits / degree + 1);
         while (lo <= hi)
         {
@@ -1941,6 +1951,7 @@ internal static class IntrinsicArgumentRules
             // A POWER WITH A WITNESS is a term whose own value is not always an integer (kb/Work PB5345): it is neither a constant nor an
             // item of the Net, and the verdict on it waits for the other terms (the end of NotAlwaysIntegral).
             case BoundPower pw when ExactValue(pw) is null && PowerWitness(pw) is { } powerWhy:
+                spine.Residue = true;   // a power is a term that is no constant and no item of the Net (IsNeverNegativeWhereItemsAreNot's "no other term")
                 spine.PowerWhy ??= powerWhy;
                 spine.PowerTerms++;
                 // The items beneath it move with the power, so a leaf of the same item elsewhere is no free step (the default arm's reason).

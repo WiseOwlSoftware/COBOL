@@ -70,6 +70,12 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         ("2 ** M", true, "a literal base 2 or more, a signed exponent: M = -1 gives 1/2"),
         ("2 ** (- U)", true, "a literal base 2 or more, a negated exponent: U = 1 gives 1/2"),
         ("2 ** K", true, "a literal base that is no perfect 10th power, a fraction exponent: K = 0.1 gives 2 ** 0.1, between 1 and 2"),
+        ("2 ** 0.5", true, "a literal base to a fraction literal: the fold values only an integer exponent, so the power arm reads it (R1-1): 2 ** 0.5 is irrational"),
+        ("3 ** 0.5 + 1", true, "a literal power to a fraction literal plus an integral constant"),
+        ("2 ** -0.5", true, "a literal base to a negative fraction literal: between 0 and 1"),
+        ("2 ** -65", true, "a literal base to a negative integer beyond MaxFoldedExponent, which the fold leaves unvalued: 1 / 2^65"),
+        ("4 ** 0.5", false, "a literal base that is a perfect square to 0.5 is 2, an integer"),
+        ("(-2) ** 0.5", false, "FAIL OPEN: a negative base at a fraction has no real value"),
         ("M ** M", true, "one item as base and exponent: M = -2 gives 1/4"),
         ("K ** K", true, "one item with fraction digits as base and exponent: K = 0.1 gives a value between 0 and 1"),
         ("N ** (- N)", true, "one unsigned item as base and negated exponent: N = 2 gives 1/4"),
@@ -117,6 +123,9 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         var refusedLines = compiled.Errors
             .Select(e => Regex.Match(e, @"\((\d+),\d+\): error COBOL1627"))
             .Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).ToHashSet();
+        // R1-3: an admitted row counts only when its statement compiled without any other diagnostic (a parse error would admit it falsely).
+        var otherErrors = compiled.Errors.Where(e => !e.Contains("error COBOL1627", StringComparison.Ordinal)).ToList();
+        Assert.True(otherErrors.Count == 0, "the power-shape table's source drew a diagnostic other than COBOL1627:\n  " + string.Join("\n  ", otherErrors));
         var wrong = new List<string>();
         for (int i = 0; i < PowerShapes.Length; i++)
         {
