@@ -1,0 +1,12 @@
+SEND 00 9
+M1 00 2 [PQ        ]
+S1 00 1 [AB        ]
+S2 00 2 [CD        ]
+M3 00 3 [EF        ]
+M4 00 0 [HELLO]
+M4 00 2 [WORLD]
+S5 00 0 [ABCDE]
+S5 00 1 [FGH  ]
+S5 00 2 [IJ   ]
+S6 00 1 [X         ]
+S6 00 3 [Y         ]

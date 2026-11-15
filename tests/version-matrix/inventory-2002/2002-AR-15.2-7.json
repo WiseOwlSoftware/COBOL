@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.2-7",
+ "rule-digest": "c5d1e4062b4b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+ "test-ref": "conformance:cases/15.2@2002-ARGUMENTS/g2-arg-keyword-locale",
+ "notes": "§2002:15.2 AR7: a SPECIAL-NAMES locale-name LOC1 given to LOCALE-COMPARE (operands equal after trailing-space truncation, so '=', §2002:15.40.3 RV2 RV5), NUMVAL-C and TEST-NUMVAL-C. The --std 2002 run of g2-arg-keyword-locale matched the derived .out."
+}

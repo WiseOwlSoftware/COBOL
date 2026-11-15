@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-6",
+ "rule-digest": "301e0ad17952",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#OfAddress",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2-invoke-cd-receiving-operands; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2-invoke-universal-by-content",
+ "notes": "§2002:14.8.22.2 SR6: through a universal reference a CD record item with no BY phrase or BY REFERENCE is passed by reference (A2, A6 = ZZZZ, §2002:14.1.3 GR8); BY CONTENT is refused COBOL0866. Matched at --std 2002 (pinned dc1f2dcce8)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.26.2-4",
+ "rule-digest": "bf2e6c69fada",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenTapePhrase; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#OpenTapePhraseRule; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen",
+ "test-ref": "conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_norewind_input_output; conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_norewind_indexed_refused",
+ "notes": "§2002:14.8.26.2 SR4 grants NO REWIND for sequential files: OPEN OUTPUT/INPUT S WITH NO REWIND on a sequential disk file compile and run with status 07 (§2002:14.8.26.3 GR9, §2002:9.1.12.1 item 5) and the records read back; the same phrase on an INDEXED file is refused COBOL1802 at the OPEN. Both matched at --std 2002 on the pinned build."
+}

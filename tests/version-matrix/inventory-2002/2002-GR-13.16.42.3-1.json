@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.42.3-1",
+ "rule-digest": "042580633b30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PlaceForItem; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#BuildBackingPath",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-record-storage",
+ "notes": "§2002:13.16.42.3 GR1: in a CD record C1R/C1S/B2R start at data-name-2's first bit and span their own sizes (C1=1235, C1S=12, C1=XY35, B2R=0110, B1=0000) and LENGTH(C1) stays 4; --std 2002 run matched the derived .out."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.2-12",
+ "rule-digest": "da1d9d1e6a8f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfCategory",
+ "test-ref": "conformance:cases/15.2@2002-ARGUMENTS/g2-arg-index-pointer",
+ "notes": "§2002:15.2 AR12 admits a data item of class pointer, which Table 22 gives to LENGTH and BYTE-LENGTH only; both are accepted for a USAGE POINTER item and positive (§2002:15.39.3 RV3, 15.12.3 RV1). The --std 2002 run of g2-arg-index-pointer matched the derived .out."
+}

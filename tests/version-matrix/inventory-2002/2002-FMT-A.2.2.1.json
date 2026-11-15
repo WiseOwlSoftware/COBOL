@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-A.2.2.1",
+ "rule-digest": "ef3c1271abc1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindDisable; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath",
+ "test-ref": "conformance:cases/A.2.2@2002-DISABLE-STATEMENT/2002-FMT-A_2_2_1",
+ "notes": "Per §2002:A.2.2.1 every DISABLE arm (INPUT, INPUT TERMINAL, I-O TERMINAL, OUTPUT) is legal, and per §2002:A.2.2.3 GR1 with tables A.1 and A.2 a first DISABLE gives 00 and a repeat 15 (error key 5, which §2002:A.1.2.3 GR22 updates on that error); the --std 2002 run of the pinned build printed exactly that."
+}

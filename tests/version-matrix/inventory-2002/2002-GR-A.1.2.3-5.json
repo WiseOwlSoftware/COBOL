@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.1.2.3-5",
+ "rule-digest": "7e9c0887b171",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-GR-A_1_2_3-5",
+ "notes": "§2002:A.1.2.3 GR5: with only the queue named, the MCS picks the next message within it (FIRST, then SECOND serially), and afterwards data-name-1..4 hold all the levels ([A][B][spaces]); a fully named empty sub-queue gives NO DATA. G2CD05 at --std 2002 matched the derived .out."
+}

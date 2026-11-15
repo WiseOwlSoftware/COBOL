@@ -18,7 +18,7 @@
 # which adjudication>"`, and writes it as the `# Last recorded:` line below.
 #
 # Tab-separated, sorted by id; a leading # is a comment. Columns: id<TAB>tier<TAB>verdict
-# Last recorded: local differential at main 12620aaa7 (2026-11-03); six flips of nightly 41679939118 adjudicated correct in kb/Work PB4346
+# Last recorded: nightly run 43734875156 at main 40362f08f1 (2026-11-15), no re-run; the one flip syn_file:108 (Duplicated FD) is landed PB5541's COBOL4250 refusal of a second FD, adjudicated correct in kb/Work/PB5541/2026-11-15-differential-flip-syn-file-108.md
 configuration:105	ISO_PINNED	AGREE_REJECT
 configuration:126	DEFAULT_DIALECT	AGREE_REJECT
 configuration:147	DEFAULT_DIALECT	WE_REJECT_THEY_ACCEPT
@@ -984,7 +984,7 @@ syn_definition:955	VENDOR_DIALECT	AGREE_ACCEPT
 syn_definition:998	DEFAULT_DIALECT	AGREE_REJECT
 syn_file:1040	DEFAULT_DIALECT	AGREE_ACCEPT
 syn_file:1068	DEFAULT_DIALECT	AGREE_REJECT
-syn_file:108	DEFAULT_DIALECT	WE_ACCEPT_THEY_REJECT
+syn_file:108	DEFAULT_DIALECT	AGREE_REJECT
 syn_file:1097	DEFAULT_DIALECT	AGREE_REJECT
 syn_file:1147	DEFAULT_DIALECT	AGREE_REJECT
 syn_file:1180	DEFAULT_DIALECT	AGREE_REJECT

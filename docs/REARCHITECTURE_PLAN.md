@@ -35,15 +35,16 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   partition redesign (PB4146) and each fuzz night's triage. Neither lane plans what the other's dispatch holds
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
   nothing else on `docs/CONFORMANCE.md`.
-- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch golden-2002-1 with
-  PB5602's and PB5620's landings merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **2,282 GAP** (2,562 before
-  the first 2002 golden-lane landing), 324 adjudicated: CONFORMS 314, DIVERGES 9, PARTIAL 1. The 2002 golden lane (gl2002, kb/Work PB5597) gives
-  each 2002 row a witness of its own at `--std 2002`; 24 of its 85 input files are integrated so far.
+- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch golden-2002-2 on main
+  63ab0c4ece):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **2,172 GAP** (2,562 before the first 2002
+  golden-lane landing, 2,258 before the second), 433 adjudicated: CONFORMS 424, DIVERGES 8, PARTIAL 1. The 2002 golden lane
+  (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; 36 of its 85 input files are integrated
+  so far.
 - **▶ ONE OWN-EDITION RULE FOR EVERY OLDER EDITION (kb/Work PB5675, 2026-11-15).** A KEPT row of 1985 or 2002 closes
   only on its chain AND a witness of its own, a suite case that runs at its own edition (design section 10.6; the
-  2002-only switch `own-edition-evidence` is gone). At this branch's base 1985 stood at **32 GAP**, 2002 at 2,258 and
-  2023 at 0; after it 1985 stands at **835 GAP** (803 inherited without an own-edition witness, 14 never adjudicated,
-  18 open), 2002 at 2,258 and 2023 at 0. This is the count becoming true, not a regression: 570 of the 1,373 stored 1985
+  2002-only switch `own-edition-evidence` is gone). On main d8b7ad040e 1985 stood at **32 GAP**, 2002 at 2,172 and
+  2023 at 0; with this change 1985 stands at **835 GAP** (803 inherited without an own-edition witness, 14 never
+  adjudicated, 18 open), 2002 at 2,172 and 2023 at 0 (`inventory_view.py --summary`, 2026-11-15). This is the count becoming true, not a regression: 570 of the 1,373 stored 1985
   KEPT records have a witness at 85 for every target and stay closed (written as their own test-ref), 232 have one for
   some targets and 571 for none. The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
   terms is still owed, so 835 is a lower bound. 1985 is the earliest edition: its rows are recorded with their own

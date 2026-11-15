@@ -29,7 +29,7 @@ own-edition witness, never adjudicated, open) in the probe's `invent` line, `--s
 **The batch.** `witness-batch` then `record_verdicts.py --edition`: 2002, 704 witness-only records (+928 test-refs);
 1985, 570 (+785). 1,274 store files gain one line each and lose none; a second run writes no record.
 
-**The figures** (`inventory_view.py --summary`). 2023 0 GAP and 2002 2,258 before and after. 1985 from 32 GAP to 835
+**The figures** (`inventory_view.py --summary`). 2023 0 GAP and 2002 unchanged by it (2,258 before and after at main 63ab0c4ece; 2,172 before and after once merged with main d8b7ad040e). 1985 from 32 GAP to 835
 (803 inherited without an own-edition witness, 14 never adjudicated, 18 open). This is the count becoming true, not a
 regression. The 570 that stay closed rest on the old comparison audit plus a witness at 85; their read in 1985's own
 terms is still owed, so 835 is a lower bound. 1985 is the earliest edition: its rows are recorded with their own

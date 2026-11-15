@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-25",
+ "rule-digest": "ec923181538b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
+ "test-ref": "conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_unsuccessful_order",
+ "notes": "§2002:14.8.26.3 GR25: with EC-I-O checking on, the format 3 USE AFTER EXCEPTION CONDITION EC-I-O FILE procedure of a failed OPEN already sees the I-O status (35, then 41) and the EC-I-O condition (EC-I-O-PERMANENT-ERROR, EC-I-O-LOGIC-ERROR), so a) and b) precede c); the absent file is not created and the already-open file keeps its records and open mode. Matched at --std 2002. The run continues after RESUME by §2002:14.5.12.1.2 item 2, which applies because the format 3 USE names EC-I-O."
+}

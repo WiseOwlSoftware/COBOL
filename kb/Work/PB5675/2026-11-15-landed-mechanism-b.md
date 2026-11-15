@@ -22,7 +22,7 @@ search over stored records, and the views say the rest. An `editions.of` entry m
 (+928 test-refs); 1985, 570 records (+785). Each adds one field to a store file and nothing else (1,274 files, one line
 added each); a second run writes nothing.
 
-**The figures** (`inventory_view.py --summary`): 2023 0 GAP and 2002 2,258 GAP before and after; 1985 from 32 GAP to
+**The figures** (`inventory_view.py --summary`): 2023 0 GAP and 2002 unchanged by it (2,258 before and after at main 63ab0c4ece; 2,172 at main d8b7ad040e); 1985 from 32 GAP to
 835 (803 inherited without an own-edition witness, 14 never adjudicated, 18 open). This is the count becoming true, not
 a regression. The 570 that stay closed rest on the old comparison audit plus a witness at 85; their read in 1985's own
 terms is still owed, so 835 is a lower bound.

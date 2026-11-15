@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.50.3-7",
+ "rule-digest": "b7026897a775",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs",
+ "test-ref": "conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-record",
+ "notes": "§2002:13.16.50.3 GR7: comparisons and computations convert SIGN-clause items automatically, both CD-record items and the working-storage national item NN1 into the CD item R1. The --std 2002 run matched: CMP1 NE, CMP2 EQ, SUM [-036] and SUM2 [-024]."
+}
