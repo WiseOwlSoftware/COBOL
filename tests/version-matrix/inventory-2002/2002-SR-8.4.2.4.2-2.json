@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.4.2-2",
+ "rule-digest": "323c718fb0dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OoBindInlineInvocation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#RefuseUniversalInlineReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSendIdentifier",
+ "test-ref": "conformance:cases/8.4.2.1@2002-Identifier/pb5603-send-identifier-formats",
+ "notes": "Same text as the 2023 twin SR-8.4.3.4.3-2 (CONFORMS), the one receiver screen every inline invocation is bound through; the SEND positions now reach it (kb/Work PB5603). The golden's receivers are of class object: OB (USAGE OBJECT REFERENCE RQ5603C) and class and interface views of a universal reference, never the universal reference itself."
+}
