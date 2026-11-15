@@ -1,4 +1,4 @@
-## The 2002 golden lane, fifth landing: 121 witnesses at --std 2002 for 17 more files and the PB5625 rows, 2002 GAP 2,077 to 1,983
+## Entry 3707 — 2026-11-15 15:29 PST — The 2002 golden lane, fifth landing: 121 witnesses at --std 2002 for 17 more files and the PB5625 rows, 2002 GAP 2,077 to 1,983
 
 The gl2002 lane (kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`. This landing integrates 17
 of the lane's 85 input files (PROPERTY, REDEFINES, SAME AS, SOURCE, SYNCHRONIZED and USAGE clauses; the procedure
@@ -46,3 +46,4 @@ the REDEFINES writer as a side finding, and no open row waits on it.
   - 2002-DOC-B.1-91: the default locale under the adapter's pinned environment.
   - 2002-DOC-B.1-92 (open): it needs a witness that depends on the category.
   - 2002-DOC-B.1-93: the switch is in a non-COBOL module.
+
