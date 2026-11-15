@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.3.2-2",
  "rule-digest": "9143dfd5d2ce",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/pointer_alloc",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

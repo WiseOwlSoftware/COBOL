@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.10.2-3",
  "rule-digest": "15870facace9",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-operand-split-after-match",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

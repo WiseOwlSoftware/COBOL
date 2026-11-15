@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.17.3-6",
  "rule-digest": "30e14cb53f7c",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb416_initialize_operand_screens_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

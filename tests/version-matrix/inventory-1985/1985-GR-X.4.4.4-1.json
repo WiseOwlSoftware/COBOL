@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.4.4.4-1",
  "rule-digest": "f82a2b23a019",
+ "test-ref": "conformance:cases/13.14-Report-description/l1c27_global_report_counters",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

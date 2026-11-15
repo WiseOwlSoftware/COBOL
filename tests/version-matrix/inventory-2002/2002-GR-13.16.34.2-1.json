@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.34.2-1",
  "rule-digest": "cb38c58a844a",
+ "test-ref": "conformance:wiseowl/cases/13.18.36-LOWLIGHT/a42-screen-lowlight",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

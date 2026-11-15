@@ -199,8 +199,10 @@ def case_05_the_audit_holds_a_stored_record_to_its_read(expect):
     s = R.normal_slice("p-01", F.record("p-01", [F.read(ids[0]), F.read(ids[1])],
                                         [F.refute(ids[0]), F.refute(ids[1], "OVERTURNED")]))
 
-    def stored(rid, to=None, src="lineage-reads-2002/p-01.json", kind="KEPT"):
-        return {"rule-id": rid, "next": {"kind": kind, "to": to or [F.twin(rid)], "source": src}}
+    def stored(rid, to=None, src="lineage-reads-2002/p-01.json", kind="KEPT", own=True):
+        t = (to or [F.twin(rid)])[0]
+        return {"rule-id": rid, "next": {"kind": kind, "to": to or [F.twin(rid)], "source": src},
+                **({"test-ref": f"conformance:cases/X/{t}"} if own else {})}
 
     lin = F.lineage(ids)
     w = F.witnesses({"GR-1.1.3-1": ["2002", "2023"], "GR-1.1.3-2": ["2002", "2023"], "GR-1.1.3-9": ["2002", "2023"],
@@ -208,19 +210,53 @@ def case_05_the_audit_holds_a_stored_record_to_its_read(expect):
     expect.equal("a stored KEPT record that is its read's decision stands, and one of another source witnessed at 2002",
                  R.stored_errors(ED, [stored(ids[0]), stored(ids[3], src="audit-2002/x")], [s], w, lin), [])
     other = R.stored_errors(ED, [stored(ids[2], src="audit-2002/x")], [s], w, lin)
-    expect("a stored KEPT record of ANY source with no witness at its own edition is red (2002 names own-edition-evidence)",
-           len(other) == 1 and R.NO_OWN_WITNESS in other[0])
-    expect.equal("an edition whose records predate the rule (1985) is not held to it",
-                 R.stored_errors(R.edition(1985), [stored("1985-GR-1.1.3-8", src="audit-1985/x")], [s], w, lin), [])
+    expect("a stored KEPT row whose own witness does not run at its edition is red, naming the row and the case",
+           len(other) == 1 and R.NO_OWN_WITNESS in other[0] and ids[2] in other[0] and "cases/X/GR-1.1.3-8" in other[0])
+    expect.equal("kb/Work PB5675: a stored KEPT row with NO witness of its own is no audit error (its state is GAP)",
+                 R.stored_errors(ED, [stored(ids[2], src="audit-2002/x", own=False)], [s], w, lin), [])
     errs = R.stored_errors(ED, [stored(ids[1]), stored("2002-GR-1.1.3-3"), stored(ids[0], to=["GR-9.9.9-9"])], [s], w, lin)
     expect("a record whose read was overturned, whose source holds no read of it, or that carries into other rules is red",
            len(errs) == 3 and "OVERTURNED" in errs[0] and "holds no read" in errs[1] and "carries into" in errs[2])
     narrowed = F.witnesses({"GR-1.1.3-1": ["2023"]})
-    expect("a witness whose band is later narrowed past the edition turns the stored record red",
-           any(R.NO_OWN_WITNESS in e for e in R.stored_errors(ED, [stored(ids[0])], [s], narrowed, lin)))
-    expect("a stored KEPT record into targets the pairing does not name is red",
-           any(R.NOT_THE_PAIRING in e for e in R.stored_errors(ED, [stored(ids[3], to=["GR-1.1.3-1"], src="audit-2002/x")],
-                                                              [s], w, lin)))
+    lost = R.stored_errors(ED, [stored(ids[0])], [s], narrowed, lin)
+    expect("kb/Work PB5675: a LOSS is loud: a witness whose band is later narrowed past the edition turns the stored "
+           "record red, naming the row and the case",
+           len(lost) == 1 and ids[0] in lost[0] and "cases/X/GR-1.1.3-1" in lost[0] and "does not run at 2002" in lost[0])
+    moved = R.stored_errors(ED, [dict(stored(ids[0]), **{"test-ref": "conformance:cases/X/gone"})], [s], w, lin)
+    expect("a witness whose case moved or was deleted is red by name", len(moved) == 1 and "names no conformance" in moved[0])
+    expect.equal("kb/Work PB5675: the audit of a STORED record asks no pairing: a record into targets the pairing does not "
+                 "name, witnessed of its own, stands (the pairing is the writer's test of a NEW record)",
+                 R.stored_errors(ED, [stored(ids[3], to=["GR-1.1.3-1"], src="audit-2002/x")], [s], w, lin), [])
+
+
+def case_05b_one_rule_at_every_older_edition(expect):
+    """kb/Work PB5675: the same evidence test at 1985 as at 2002, with no edition key; the writer's refusal at 1985."""
+    e85 = R.edition(1985)
+    rid, t = "1985-SR-VI.5.8.3-1", "SR-13.18.38.3-1"
+    w = R.Witnesses({f"cases/X/{t}": R.CaseInfo(f"cases/X/{t}", R.REPO, ("85", "2023"), ("85", "2023"), (), (t,), None)},
+                    {t: [f"conformance:cases/X/{t}"]}, {t: ["85", "2002", "2014", "2023"]})
+    lin85 = R.Lineage({rid: "SR"}, {}, R.EvidenceTable.load(), {})
+    kept = {"rule-id": rid, "next": {"kind": "KEPT", "to": [t], "source": "audit-1985/x"}}
+    expect.equal("a 1985 KEPT row's own witness that runs at 85 stands", R.stored_errors(
+        e85, [dict(kept, **{"test-ref": f"conformance:cases/X/{t}"})], [], w, lin85), [])
+    narrowed = R.Witnesses({f"cases/X/{t}": R.CaseInfo(f"cases/X/{t}", R.REPO, ("2023",), ("2023",), (), (t,), None)},
+                           {t: [f"conformance:cases/X/{t}"]}, {t: ["2023"]})
+    expect("and the same loss is loud at 1985 as at 2002 (no edition is exempt)",
+           any("does not run at 85" in e for e in R.stored_errors(
+               e85, [dict(kept, **{"test-ref": f"conformance:cases/X/{t}"})], [], narrowed, lin85)))
+    expect("a unit test is no own witness at an older edition",
+           any("runs at no older edition" in e for e in R.stored_errors(
+               e85, [dict(kept, **{"test-ref": "unit:T.M"})], [], w, lin85)))
+    found, problems = R.kept_witnesses(e85, rid, [t], None, lin85, w)
+    expect("the WRITER keeps the whole test at 1985: the 1985 pairing is empty (word-identical text), so a new KEPT record "
+           "is refused there, though the evidence part finds its witness",
+           [r for r, _ in problems] == [R.NOT_THE_PAIRING] and found == [f"conformance:cases/X/{t}"])
+    real = R.Lineage.of(e85)
+    expect.equal("the repository's 1985 pairing pairs no rule: every new 1985 KEPT record is refused (1985 rows are "
+                 "recorded with their own verdicts)", len(real.pairs), 0)
+    paired = R.Lineage({rid: "SR"}, {rid: (t,)}, R.EvidenceTable.load(), {})
+    expect.equal("with a pairing, the writer's search at 1985 returns the witness it records as the row's test-ref",
+                 R.kept_witnesses(e85, rid, [t], None, paired, w), ([f"conformance:cases/X/{t}"], []))
 
 
 def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):

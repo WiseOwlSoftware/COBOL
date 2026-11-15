@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-8.3.1.2.4.3-2",
  "rule-digest": "70b02872227a",
+ "test-ref": "conformance:cases/8.3.3.5-National-literals/l1c19_national_literal_quotes_class",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

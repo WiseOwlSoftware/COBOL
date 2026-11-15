@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-7.2.17.3-4",
  "rule-digest": "9e1b80626d2c",
+ "test-ref": "conformance:cases/7.3.21-PROPAGATE/l1c21_propagate_default_off",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

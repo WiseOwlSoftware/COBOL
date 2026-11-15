@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.19.3-3",
  "rule-digest": "c6e4eb367fc6",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb419_initialize_resume_boundary",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

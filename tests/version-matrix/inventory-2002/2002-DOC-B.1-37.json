@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-DOC-B.1-37",
  "rule-digest": "d9f177364cbc",
+ "test-ref": "conformance:wiseowl/cases/12.3.7-SPECIAL-NAMES/a42-special-names-cursor",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

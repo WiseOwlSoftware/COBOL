@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.4.2-20",
  "rule-digest": "6dc1bd6ab1b9",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb238-by-value-nonnumeric-literal; conformance:cases/14.9.4-CALL/pb238-by-value-formal-derived-literal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

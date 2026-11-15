@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.31.2-3",
  "rule-digest": "a9d3e14fed35",
+ "test-ref": "conformance:cases/14.9.33-RESUME/l1c24-resume-at-declarative-paragraph; conformance:cases/14.9.33-RESUME/l1c24-resume-at-declarative-section",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.7.3-1",
  "rule-digest": "7f484576824b",
+ "test-ref": "conformance:cases/13.18.33-Level-number/pb485-level-number-missing",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

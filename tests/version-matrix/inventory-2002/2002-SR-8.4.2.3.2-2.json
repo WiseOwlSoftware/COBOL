@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.2.3.2-2",
  "rule-digest": "7e50986b04d7",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb8-refmod-numeric-function",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

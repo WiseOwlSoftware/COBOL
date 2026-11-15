@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.3.1.1.3-3",
  "rule-digest": "29e4ad58581d",
+ "test-ref": "conformance:wiseowl/cases/8.8.4.2-Simple-relation-conditions/pb1468_relation_defined_pairs",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

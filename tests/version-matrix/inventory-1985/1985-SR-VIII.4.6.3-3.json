@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VIII.4.6.3-3",
  "rule-digest": "20d1863e66a1",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/rewrite-invalid-key-sequential-org; conformance:cases/14.9.35-REWRITE/rewrite-invalid-key-relative-sequential",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

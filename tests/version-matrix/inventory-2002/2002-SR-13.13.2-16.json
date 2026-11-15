@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.13.2-16",
  "rule-digest": "0e0c08950503",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb1222_report_arrangement_present_when",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

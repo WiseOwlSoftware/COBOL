@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-11.5.2-5",
  "rule-digest": "105f00eb8b2c",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/pb1502_interface_inherits_legal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

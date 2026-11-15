@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.4.9.3-4",
  "rule-digest": "c7acdc68fa0a",
+ "test-ref": "conformance:cases/14.9.49-USE/pb363_before_reporting_legal_store",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

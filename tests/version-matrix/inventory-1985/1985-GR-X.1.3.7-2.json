@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.1.3.7-2",
  "rule-digest": "0d8f361d11d3",
+ "test-ref": "conformance:cases/9.1.5-Sharing-file-connectors/l1c11_global_file_common_connector",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

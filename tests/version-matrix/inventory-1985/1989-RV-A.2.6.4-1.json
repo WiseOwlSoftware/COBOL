@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.6.4-1",
  "rule-digest": "a194e0333ff1",
+ "test-ref": "conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

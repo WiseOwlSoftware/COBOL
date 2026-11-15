@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.1.3-4",
  "rule-digest": "6574f29db7ad",
+ "test-ref": "conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

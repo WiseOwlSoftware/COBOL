@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.7.2-2",
  "rule-digest": "9af2d4012460",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/boolean_ops; conformance:cases/14.9.8-COMPUTE/pb157_compute_bit_group",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

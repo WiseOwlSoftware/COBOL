@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.39.3-2",
  "rule-digest": "6875461947a4",
+ "test-ref": "conformance:cases/15.50.4-Returned-value-rules/intrinsics_byte_length",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

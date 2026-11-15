@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.5.3-8",
  "rule-digest": "feb33d5f235e",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/l1_cancel_external_unchanged",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
