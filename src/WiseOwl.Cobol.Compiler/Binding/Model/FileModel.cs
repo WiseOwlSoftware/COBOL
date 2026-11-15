@@ -112,6 +112,11 @@ public sealed class PaddingCharacterSpec
     public IReadOnlyList<string> Qualifiers { get; init; } = [];
     public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; init; }
     public DataItem? Item { get; set; }
+
+    /// <summary>Whether the targeted edition has the clause at all: COBOL-85 and COBOL-2002 (obsolete there) do, 2014 deleted it
+    /// (the version gate refuses it, VersionConformancePass.VisitPaddingCharacterClause). Only a clause the edition has
+    /// specifies a file control format (<c>FileControlKeyRules.EntryClauses</c>, kb/Work PB5565).</summary>
+    public bool InEdition { get; set; }
 }
 
 /// <summary>A RESOLVED record key of an indexed file (ISO §2023:12.4.5.12 / §2023:12.4.5.6): the data items whose bytes,
@@ -316,6 +321,14 @@ public sealed class FileModel
     /// including the ones no 2023 format carries (PADDING CHARACTER), so it is captured as written rather than
     /// re-derived from the per-clause facts.</summary>
     public List<(string Written, WiseOwl.Cobol.Editions.DiagnosticCursor At)> BeyondAssign { get; } = [];
+
+    /// <summary>The ASSIGN clause's refusals that are rules of the entry's FORMAT rather than of one operand's lexical shape —
+    /// a figurative constant as literal-1 (§2023:12.4.5.2 SR4) and a list the SR5 determination does not allow
+    /// (COBOL2256) — recorded when the TO phrase is read and REPORTED by <see cref="FileControlKeyRules.Screen"/>, because the
+    /// 1985 sort-merge entry (§1985:XI.2.3.2, §1985:XI.2.3.3) restricts neither and whether this entry is a sort-merge file's
+    /// is known only once its SD has been read (kb/Work PB5587).</summary>
+    public List<(WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor Code, WiseOwl.Cobol.Editions.DiagnosticCursor At, string Message)>
+        EntryShapeFindings { get; } = [];
 
     /// <summary>The FILE STATUS data-name as written, resolved to <see cref="FileStatusItem"/> post-build; null if none.</summary>
     public string? FileStatusName { get; set; }
