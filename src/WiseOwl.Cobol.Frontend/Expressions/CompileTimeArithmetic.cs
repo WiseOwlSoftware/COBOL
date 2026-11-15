@@ -12,16 +12,19 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 /// <see cref="CompileTimeExpressionEvaluator"/> (a constant entry's <c>AS</c>, <c>&gt;&gt;DEFINE</c>,
 /// <c>&gt;&gt;IF</c>/<c>&gt;&gt;EVALUATE</c>) reaches, because the evaluator asks it and nothing else does
 /// (kb/Work PB1592).
-/// <para>⛔ TWO MODES, BECAUSE THE STANDARD HAS TWO RULES. Annex E.2 item 6 says the mode "is now explicitly
-/// implementor defined" and that "The previous COBOL Standard required the use of an arithmetic mode that is no
-/// longer supported"; the one mode 2023 removed is Standard Arithmetic (E.2 item 21). So at 2002 and 2014 the mode
-/// is PRESCRIBED — <see cref="Standard"/>, the SDIDI decimal engine this compiler already runs
-/// <c>ARITHMETIC IS STANDARD</c> on (34 digits, decimal128 range, <c>ArithmeticModes.IsDecimalEngine</c>) — and
-/// from 2023 it is the implementor's documented choice, <see cref="SystemDecimal"/> (docs/CONFORMANCE.md
-/// DOC-A.1-29). The edition boundary is written once, in <see cref="DialectBehaviors"/>
-/// (<see cref="DialectBehavior.CompileTimeArithmeticImplementorDefined"/>). COBOL-85 has no compile-time arithmetic
-/// expression (the §2023:7.3 directives and the constant entry are 2002 introductions); an expression reached there only
-/// after its introduction gate has refused it takes the pre-2023 mode.</para>
+/// <para>⛔ THREE MODES, BECAUSE THE STANDARD HAS THREE RULES. §2002:7.2.5.2 GR1 says "Standard arithmetic shall be
+/// used for all arithmetic operations" — <see cref="Standard2002"/>: the 2002 standard intermediate data item of 32
+/// significant digits, each operation's result TRUNCATED to 32 (§2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5) in the
+/// range 10^-999 to 10^1000 - 10^968 (§2002:8.8.1.3.1.1). §2014:7.3.5.2 GR1 says "The results of all arithmetic operations
+/// shall be as if ARITHMETIC IS STANDARD-DECIMAL were in effect at compile time" — <see cref="StandardDecimal"/>, the SDIDI
+/// decimal engine this compiler already runs <c>ARITHMETIC IS STANDARD-DECIMAL</c> on (34 digits, decimal128 range).
+/// From 2023 the mode is the implementor's documented choice, <see cref="SystemDecimal"/> (docs/CONFORMANCE.md
+/// DOC-A.1-29): Annex E.2 item 6 says the mode "is now explicitly implementor defined" and that "The previous COBOL
+/// Standard required the use of an arithmetic mode that is no longer supported". The two edition boundaries are
+/// written once, in <see cref="DialectBehaviors"/> (<see cref="DialectBehavior.CompileTimeArithmeticIsStandardDecimal"/>
+/// at 2014, <see cref="DialectBehavior.CompileTimeArithmeticImplementorDefined"/> at 2023). COBOL-85 has no compile-time
+/// arithmetic expression (the §2023:7.3 directives and the constant entry are 2002 introductions); an expression reached
+/// there only after its introduction gate has refused it takes the 2002 mode.</para>
 /// <para>Values travel in the mode-independent carrier (<see cref="CtNumeric"/>); a mode governs only what happens
 /// to a value that ENTERS an arithmetic expression and each operation on such values.</para>
 /// </summary>
@@ -29,11 +32,19 @@ public abstract class CompileTimeArithmetic
 {
     private CompileTimeArithmetic() { }
 
-    /// <summary>Standard arithmetic — the mode ISO/IEC 1989:2002 and 2014 prescribe for compile-time arithmetic
-    /// expressions (Annex E.2 items 6 and 21), on the SDIDI decimal engine (§2023:8.8.1.5: 34 significant digits, the
-    /// decimal128 range) with the standard-decimal default intermediate rounding, NEAREST-AWAY-FROM-ZERO
-    /// (§2023:11.9.11.2 GR3 a) — a compile-time expression has no OPTIONS paragraph to name another).</summary>
-    public static readonly CompileTimeArithmetic Standard = new StandardMode();
+    /// <summary>COBOL-2002's standard arithmetic — the mode ISO/IEC 1989:2002 prescribes for compile-time arithmetic
+    /// expressions (§2002:7.2.5.2 GR1): a standard intermediate data item of 32 significant digits whose every operation
+    /// result is the exact result TRUNCATED to 32 digits (§2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5), magnitude 10^-999
+    /// through 10^1000 - 10^968 (§2002:8.8.1.3.1.1), a value outside it a size error (§2002:8.8.1.3.1 r2; at compile
+    /// time the caller's range diagnostic).</summary>
+    public static readonly CompileTimeArithmetic Standard2002 = new Standard2002Mode();
+
+    /// <summary>The mode ISO/IEC 1989:2014 prescribes for compile-time arithmetic expressions (§2014:7.3.5.2 GR1: "as if
+    /// ARITHMETIC IS STANDARD-DECIMAL were in effect at compile time"), on the SDIDI decimal engine (§2023:8.8.1.5: 34
+    /// significant digits, the decimal128 range) with the standard-decimal default intermediate rounding,
+    /// NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a) — a compile-time expression has no OPTIONS paragraph to name
+    /// another).</summary>
+    public static readonly CompileTimeArithmetic StandardDecimal = new StandardDecimalMode();
 
     /// <summary>The COBOL-2023 implementor-defined mode (§2023:7.3.6.3 GR2; docs/CONFORMANCE.md DOC-A.1-29): .NET
     /// <see cref="decimal"/> — at most 28 digits after the point, magnitude below about 7.9×10²⁸, an inexact result
@@ -42,8 +53,9 @@ public abstract class CompileTimeArithmetic
 
     /// <summary>⛔ THE ONE SELECTION: the mode compile-time arithmetic expressions use at <paramref name="edition"/>.</summary>
     public static CompileTimeArithmetic For(EditionInfo edition) =>
-        DialectBehaviors.IsActive(DialectBehavior.CompileTimeArithmeticImplementorDefined, edition.Year)
-            ? SystemDecimal : Standard;
+        DialectBehaviors.IsActive(DialectBehavior.CompileTimeArithmeticImplementorDefined, edition.Year) ? SystemDecimal
+        : DialectBehaviors.IsActive(DialectBehavior.CompileTimeArithmeticIsStandardDecimal, edition.Year) ? StandardDecimal
+        : Standard2002;
 
     /// <summary>How a diagnostic names this mode's evaluation range, so a range message states the limit of the
     /// mode that actually refused the value.</summary>
@@ -59,14 +71,59 @@ public abstract class CompileTimeArithmetic
     /// screen and never reaches here.</summary>
     public abstract CobolDec? Apply(char op, CobolDec left, CobolDec right);
 
-    private sealed class StandardMode : CompileTimeArithmetic
+    /// <summary>The SDIDI engine's §2023:8.8.1.5.2 r2 range check raises <see cref="CobolSizeError"/> (EC-SIZE-OVERFLOW /
+    /// EC-SIZE-UNDERFLOW); at compile time that is the caller's range diagnostic, never a run-time condition.</summary>
+    protected static CobolDec? Guard(Func<CobolDec> operation)
+    {
+        try { return operation(); }
+        catch (CobolSizeError) { return null; }
+    }
+
+    private sealed class Standard2002Mode : CompileTimeArithmetic
+    {
+        /// <summary>§2002:8.8.1.3.1.1: "a precision of 32 decimal digits".</summary>
+        private const int Digits = 32;
+
+        /// <summary>§2002:8.8.1.3.1.1: magnitude from 10^-999 through 10^1000 - 10^968 (9.99…E+999), the leading digit's
+        /// exponent from -999 through 999.</summary>
+        private const int MinAdjustedExp = -999, MaxAdjustedExp = 999;
+
+        public override string RangeDescription =>
+            "the standard-arithmetic range (the standard intermediate data item: 32 significant digits, magnitude 10^-999 "
+            + "through 10^1000 - 10^968 — ISO §2002:8.8.1.3.1.1, prescribed for compile-time arithmetic by §2002:7.2.5.2 GR1)";
+
+        /// <summary>An operand not already in a standard intermediate data item is converted into one
+        /// (§2002:8.8.1.3.1 r1); a 2002 fixed-point numeric literal has at most 31 digits, so the truncation only
+        /// serves a value that arrives wider.</summary>
+        public override CobolDec? Enter(CobolDec value) => InRange(value.TruncateToSignificantDigits(Digits));
+
+        /// <summary>Each result is "the exact sum / product / quotient truncated to 32 significant digits" and a
+        /// subtraction "shall be equivalent to the evaluation of (operand-1 + (- operand-2))" (§2002:8.8.1.3.3). The
+        /// engine truncates to its own 34 digits first; truncation composes, so cutting that to 32 is the exact result's
+        /// 32-digit truncation.</summary>
+        public override CobolDec? Apply(char op, CobolDec left, CobolDec right) => InRange(Guard(() => op switch
+        {
+            '+' => CobolDec.Add(left, right, CobolRounding.Truncation),
+            '-' => CobolDec.Sub(left, right, CobolRounding.Truncation),
+            '*' => CobolDec.Mul(left, right, CobolRounding.Truncation),
+            '/' => CobolDec.Div(left, right, CobolRounding.Truncation),
+            _ => throw new ArgumentOutOfRangeException(nameof(op), op, "not a compile-time arithmetic operator"),
+        })?.TruncateToSignificantDigits(Digits));
+
+        /// <summary>§2002:8.8.1.3.1 r2: too large or too small to be contained is a size error — "Underflow is
+        /// treated as a SIZE ERROR and is not rounded to zero". Zero is the unique in-range value of no magnitude.</summary>
+        private static CobolDec? InRange(CobolDec? value) =>
+            value is { } v && v.Sig != 0 && v.AdjustedExponent is < MinAdjustedExp or > MaxAdjustedExp ? null : value;
+    }
+
+    private sealed class StandardDecimalMode : CompileTimeArithmetic
     {
         private const CobolRounding Rounding = CobolRounding.NearestAwayFromZero;
 
         public override string RangeDescription =>
             "the standard-arithmetic range (the standard-decimal intermediate data item: 34 significant digits, "
-            + "magnitude up to 9.99E+6144 — ISO §2023:8.8.1.5.2, prescribed for compile-time arithmetic before COBOL-2023 "
-            + "by Annex E.2 items 6 and 21)";
+            + "magnitude up to 9.99E+6144 — ISO §2023:8.8.1.5.2, prescribed for compile-time arithmetic at 2014 by "
+            + "§2014:7.3.5.2 GR1)";
 
         public override CobolDec? Enter(CobolDec value) => Guard(() => CobolDec.FromParsed(value.Sig, value.Exp, Rounding));
 
@@ -78,14 +135,6 @@ public abstract class CompileTimeArithmetic
             '/' => CobolDec.Div(left, right, Rounding),
             _ => throw new ArgumentOutOfRangeException(nameof(op), op, "not a compile-time arithmetic operator"),
         });
-
-        /// <summary>The SDIDI's §2023:8.8.1.5.2 r2 range check raises <see cref="CobolSizeError"/> (EC-SIZE-OVERFLOW /
-        /// EC-SIZE-UNDERFLOW); at compile time that is the caller's range diagnostic, never a run-time condition.</summary>
-        private static CobolDec? Guard(Func<CobolDec> operation)
-        {
-            try { return operation(); }
-            catch (CobolSizeError) { return null; }
-        }
     }
 
     private sealed class SystemDecimalMode : CompileTimeArithmetic

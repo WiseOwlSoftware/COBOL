@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.13.3-3",
+ "rule-digest": "aabfe1b61329",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#Standard2002",
+ "test-ref": "conformance:cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/pb5575-ct-arith-32-digit-truncation",
+ "notes": "§2002:7.2.13.3 GR3 includes text-2 when the condition is FALSE; the same expression compared with 9 is FALSE at 2002 (the 34-digit engine says TRUE) and the witness shows its text-2 (kb/Work PB5575)."
+}

@@ -27,8 +27,9 @@ using Core = CobolParserCore;
 /// probe/truncate rule.
 ///
 /// The MODE of arithmetic (§2023:7.3.6.3 GR2) is the edition's: the constructor selects it through
-/// <see cref="CompileTimeArithmetic.For"/> — standard arithmetic at 2002/2014, where Annex E.2 6) says the previous
-/// standard prescribed it, and the documented System.Decimal mode from 2023 (kb/Work PB1592). Values travel in the
+/// <see cref="CompileTimeArithmetic.For"/> — standard arithmetic at 2002 (32 digits, every result truncated), standard-decimal at
+/// 2014, where Annex E.2 6) says the previous standards prescribed it, and the documented System.Decimal mode from 2023
+/// (kb/Work PB1592, PB5575). Values travel in the
 /// mode-independent <see cref="CtNumeric"/> carrier, so a consumer never sees which mode produced one.
 ///
 /// A non-numeric literal operand ARRIVES SCREENED: a directive fragment is lexed apart from the unit, and the
@@ -123,7 +124,7 @@ public sealed class CompileTimeExpressionEvaluator
         // An arithmetic EXPRESSION: evaluate the raw value in the edition's mode (intermediates un-truncated,
         // §2023:7.3.6.3 GR1), then truncate the FINAL result to its integer part (§2023:7.3.6.3 GR3 / INTEGER-PART §2023:15.49).
         // GR3 also makes that value "an integer numeric literal", so it is held to the literal's digit capacity
-        // (§2023:8.3.3.3.2) — reachable only under standard arithmetic, whose 34-digit intermediates can carry a
+        // (§2023:8.3.3.3.2) — reachable only under standard arithmetic, whose 32- or 34-digit intermediates can carry a
         // product of two 31-digit operands that no literal of this edition can spell.
         if (EvalArith(expr, where) is not { } result) return null;
         CobolDec truncated = result.TruncateToInteger();
