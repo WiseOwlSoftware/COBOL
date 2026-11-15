@@ -1868,3 +1868,120 @@ that a refusal alone had witnessed; the licence check refused none of the kept d
 state opens with a checked 2002 citation; the 107 values that begin `none` or `not needed` are refused). `record_verdicts.py
 --edition 2002 --dry-run` accepts all 204 (GAP 3,297 to 3,094). Of the 96 rows refused only for their evidence, `widen`
 finds 66 widenable and 30 that need a witness of their own.
+
+### 10.7 Lineage runs forward: the decision, the switch's requirements, the open questions (kb/Work PB5679; STAGED)
+
+**What this section is.** The decision that the rule lineage runs forward, the requirements a design of the change of
+record format (the SWITCH, kb/Work PB5682) must meet, and the questions still open. It designs no mechanism. Every
+statement below is in one of three parts: DECIDED (10.7.1), REQUIREMENTS with their acceptance cases (10.7.2), OPEN
+(10.7.3). When the switch lands, it replaces, in section 10.2, the paragraphs "Change is recorded once, between ADJACENT
+editions only" (with its table), "A rule of the newer edition that no older row's `to` names is NEW", "A verdict is held
+once per chain", "The band at an older edition is the chains'", the reading of NEW, CHANGED and REMOVED in "The edition
+gates rest on the lineage's edges" and "A missing edition is bridged, provisionally"; in section 10.4, "The lineage
+seed"; and in sections 10.5 and 10.6, every sentence that makes a read decision a KEPT record with a `to` list on the
+older row. Until then sections 10.2 to 10.6 describe the tooling as it is.
+
+**The owner's model** (2026-11-15): "Conceptually, each version's rules, syntax, and semantics are independent. However,
+as the language designers needed to maintain some level of compatibility, unless explicitly decides not, later version
+rules can be thought of as including a prior version's construct as is, including with additions, deletions, and
+alterations, explicitly removing the prior version construct, or adding an entirely new construct." On the direction:
+"A newer version can inherit an older versions construct as the newer version didn't remove or change it." And on each
+edition's rules: "2002 spec covers 2002 rules" (2026-11-14); "the same argument for the 2002 rules applies equally to the
+1985 rules" (2026-11-15).
+
+**What today's record gets wrong.** The record sits on the OLDER row (`next`, kind KEPT, `to` the 2023 rules), names the
+newest held edition over every edition between (all 2,260 stored 1985 records and all 704 stored 2002 records name 2023
+with `bridge: true`), and gives a KEPT row its targets' state (`lineage.state_of`). The endpoint comparison was wrong for
+16 of 100 word-identical 2002/2023 pairs in the first blind sample and 13 of 100 (plus 3 doubtful) in the second
+(section 10.5).
+
+#### 10.7.1 DECIDED
+
+- **D1. A relation is recorded on the SUCCESSOR and names its PREDECESSOR**, with one of the owner's four relations
+  (as is; altered, saying which additions, deletions or alterations; removed; new), on the authority of the successor's
+  own change list (the 2002 text's Annex F, `§2002:F.1` and `§2002:F.2`; the 2014 text's Annex E, `§2014:E.2` and
+  `§2014:E.3`; the 2023 text's Annex E, `§2023:E.2` and `§2023:E.3`), checked by a read of both rules in their own
+  editions' terms and attacked by a refuter. No record, tool message or document says an older row inherits from a
+  newer one.
+- **D2. A row closes on its own record and a witness that runs at its own edition; no state function reads another
+  row.** Kb/Work PB5675 is the first half (the row's own `test-ref`); the switch removes the state a KEPT row takes from
+  its targets.
+- **D3. A verdict's PROVENANCE is recorded and visible in every view**: `adjudicated` (the code was judged against this
+  rule at this edition) or `shared` (taken from a named line-mate's adjudication through read-backed as-is relations,
+  with this row's own witness). A shared verdict is never presented as an adjudicated one. Where the line-mates a row
+  could share from disagree in verdict, nothing is shared: the row needs its own adjudication. How provenance is stored
+  is part of the switch's design.
+- **D4. 1985 is the earliest edition: it has no predecessor to share from, and every NEW 1985 verdict is an adjudicated one. Whether the 1985 rows closed today on a verdict shared from the 2023 adjudication must each be adjudicated on the 1985 code is kb/Work PB5692's question, decided on its measurement; until then their provenance is `shared`.**
+- **D5. One record format at every landed head.** The change of format is ONE change, the switch; nothing is withdrawn
+  before it; no copy of the retired content survives it (CLAUDE.md rule 4).
+- **D6. 2014 is planned only.** The owner, 2026-11-15, asked "We also need to do 2014, don't we?" and then said "If so,
+  we can skip it until the other three editions are complete but should plan for it". 2014 slots between 2002 and 2023;
+  until its steps land, a 2002-to-2023 relation stands in with 2014 skipped. Nothing before the switch, and no
+  precondition of it, needs 2014's catalog. The 2014 text is transcribed (kb/Work PB5268) and reconciled, its 74
+  confirmed repairs applied (kb/Work PB5331).
+
+#### 10.7.2 REQUIREMENTS the switch's design must meet
+
+Each requirement carries the acceptance case a design is tested against, with the command that shows today's behaviour.
+
+- **Q1. No verdict is written at the switch that the stored evidence does not support in its stated provenance.** The
+  2002 reads compared texts and judged no code (a read record holds `verdict: SAME`, `clause-2002`, `clause-2023`,
+  `checked`, `citations` and `flags-answered`, and no code location: any slice of
+  `tests/version-matrix/lineage-reads-2002/`), so a verdict resting on one is `shared`, never `adjudicated`, and never
+  labelled as the read's own judgment. Acceptance: the switch writes no `adjudicated` verdict on any of the 704 2002 rows
+  that today close on a KEPT record (`python scripts/spec/inventory_view.py --check` prints 2002's change records), and no
+  verdict on a 1985 row whose KEPT targets carry different verdicts.
+- **Q2. The edition-gate proofs after the switch are the proofs of today.** An edge is proven only by a relation that IS
+  a change (new, removed, or altered with its citation), never by an as-is relation, and a general format proves only a
+  whole diagram new or removed (today's rules, `scripts/spec/edition_gates.py`'s module text). Acceptance (the first
+  two shown today by `python scripts/spec/edition_gates.py --check` and `--list`; the last two as marked):
+  - `GR-14.5.3.2-1`, named by 12 1985 KEPT records, does not prove `end-accept-2002` or `end-display-2002` (both held
+    open today, `HELD_OPEN`: "§2023:14.5.3.2 GR1 is KEPT");
+  - `GR-12.4.5.10.3-3` does not prove `file-organization-record-sequential-2023` (held open today);
+  - a window citing `FMT-14.9.25.2` (MOVE's format, named by one 1985 KEPT record) from 2002 is refused. No gate
+    cites it today: this case is a self-test the switch must write (plant the window, see it refused);
+  - the 385 2023 rules named only by many-to-many 1985 KEPT records do not become change evidence. The figure is a
+    MEASUREMENT (853 rules named only by KEPT records, 385 of them by a multi-target record or by several records, 4 of
+    those general formats) by the reviewer's script
+    `E:/COBOL-coord/scratch/my-20261115/review-w20262048-a/splitmerge.py`, which is not in the repository; the switch
+    brings the count into a tracked tool.
+- **Q3. No proven edge is lost.** Acceptance: the 9 edges at 2014 and 2023 that rest on a 1985 CHANGED or REMOVED record
+  today (`edition_gates.py --list`: 5 ends at 2014, 4 ends at 2023) keep a proof after the switch, among them
+  `constructs/communication-facility-removed-2014 [1985, 2014) end 2014: §1985:XIV.2.2.2: 1985-FMT-XIV.2.2.2 REMOVED`,
+  and when a 1985-to-2002 read finds the 1985 rule continued in 2002, the removal of the 2002 rule is written.
+- **Q4. Every row's state is identical before and after the switch, proven per row** (`python
+  scripts/spec/inventory_view.py --states --edition <year>` at the switch's base and head, every held edition). Before
+  the switch, a landing that moves a gate proof STATES each moved gate and why: a correct re-record can move one (a 1985
+  KEPT record re-recorded CHANGED after a read makes its 2023 targets changing; classifying the 14 1985 rules that have
+  no record today moves what is NEW).
+- **Q5. A later-found difference reddens the relations it touches without anyone remembering to record it**: the tool
+  that records the difference writes the trigger. The 704 existing reads have no field naming the definitions and
+  governing clauses the reader examined; the design says what protects them until they have one.
+- **Q6. The composition rule is defined for every pair of relations it can meet, removal included**, in both of its
+  forms: a CHAIN (a relation from P to M, then one from M to S, or M's rule removed at S), and a MEETING (P's rule and M's
+  rule each related to one later rule S, which says nothing of a removal, since a removed rule has no later rule).
+  Acceptance: an implementer finds an answer, or "undetermined: read the pair", for every combination of as-is,
+  altered, new and removed in each form.
+- **Q7. A shared verdict follows its basis.** A row closed on a verdict shared from a line-mate does not stay closed
+  silently when the basis moves: when the as-is relation it rests on is re-recorded altered or goes STALE, or the
+  line-mate's adjudicated verdict changes in kind, the sharing row reopens, or an audit is red until it is re-judged.
+  Today's chain state does this, because `lineage.state_of` reads the target row's state live, so a switch without it
+  is a regression. Acceptance, both cases; today's behaviour is shown by the C# test
+  `SpecTraceabilityInventoryDriftTests.TheseChecks_ActuallyFail_OnAFabricatedInventory` (its `StateAt` assertions) and
+  by `python scripts/spec/lineage.py --self-test`:
+  1. Rule A is word-identical in 2002 and 2023, and the 2002 row is closed on a shared CONFORMS. A later read records A's
+     relation altered: the 2002 row must not stay closed. Today the same row with its record CHANGED and no verdict of its
+     own is a GAP (`StateAt(kept with { Next = new("CHANGED", ...) })` is `GAP`), and a target whose text changed under
+     its id makes the record STALE and the INVENTORY VIEW audit red (`lineage.stale_targets`).
+  2. The same row, and the 2023 row is re-adjudicated DIVERGES: the 2002 row must not stay closed. Today a KEPT row whose
+     target is not OK is a GAP (`StateAt(kept, ..., Target(..., verdict: ""))` is `GAP`; the self-test's "a KEPT row
+     into two rules is a GAP while either is").
+
+#### 10.7.3 OPEN
+
+- **Is a shared verdict enough to close a row?** Kb/Work PB5692. Until the switch, a shared verdict is a stored KEPT
+  record, and the views count KEPT rows as they do today; a provenance field in the views arrives with the switch.
+- **The gate derivation and the migration mechanics, to the requirements above.** Kb/Work PB5682.
+- **The `examined` field for the existing reads and the tool-written difference trigger** (Q5). Kb/Work PB5693.
+
+The steps are the notes of decision PB5679 (`python scripts/spec/work.py next --cluster PB5679`).

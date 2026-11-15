@@ -42,9 +42,9 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   so far.
 - **▶ ONE OWN-EDITION RULE FOR EVERY OLDER EDITION (kb/Work PB5675, 2026-11-15).** A KEPT row of 1985 or 2002 closes
   only on its chain AND a witness of its own, a suite case that runs at its own edition (design section 10.6; the
-  2002-only switch `own-edition-evidence` is gone). On main d8b7ad040e 1985 stood at **32 GAP**, 2002 at 2,172 and
+  2002-only switch `own-edition-evidence` is gone). On main d077329121 1985 stood at **32 GAP**, 2002 at 2,169 and
   2023 at 0; with this change 1985 stands at **835 GAP** (803 inherited without an own-edition witness, 14 never
-  adjudicated, 18 open), 2002 at 2,172 and 2023 at 0 (`inventory_view.py --summary`, 2026-11-15). This is the count becoming true, not a regression: 570 of the 1,373 stored 1985
+  adjudicated, 18 open), 2002 at 2,169 and 2023 at 0 (`inventory_view.py --summary`, 2026-11-15). This is the count becoming true, not a regression: 570 of the 1,373 stored 1985
   KEPT records have a witness at 85 for every target and stay closed (written as their own test-ref), 232 have one for
   some targets and 571 for none. The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
   terms is still owed, so 835 is a lower bound. 1985 is the earliest edition: its rows are recorded with their own
