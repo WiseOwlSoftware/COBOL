@@ -155,4 +155,22 @@ public sealed partial class CompilerDirectiveWordsDriftTests
     [InlineData("<>", 2014, true)]
     public void EditionKeyedWords(string word, int edition, bool reserved) =>
         Assert.Equal(reserved, CompilerDirectiveWords.IsReserved(word, edition));
+
+    /// <summary>The refusal text cites the edition's own table and syntax rule (kb/Work PB5599): at --std 2002 a name refused
+    /// because §2002:8.12 prints it must not send the user to §2023:8.12, which does not list FLAG-85.</summary>
+    [Theory]
+    [InlineData(2002, CompilerDirectiveWords.Site.Define, "§2002:8.12", "§2002:7.2.9.2 SR1")]
+    [InlineData(2014, CompilerDirectiveWords.Site.Define, "§2014:8.12", "§2014:7.3.9.2 SR1")]
+    [InlineData(2023, CompilerDirectiveWords.Site.Define, "§2023:8.12", "§2023:7.3.11.3 SR1")]
+    [InlineData(2002, CompilerDirectiveWords.Site.DefinedCondition, "§2002:8.12", "§2002:7.2.7.3.2 SR1")]
+    [InlineData(2014, CompilerDirectiveWords.Site.DefinedCondition, "§2014:8.12", "§2014:7.3.7.3.2 SR1")]
+    [InlineData(2023, CompilerDirectiveWords.Site.DefinedCondition, "§2023:8.12", "§2023:7.3.8.4.3 SR1")]
+    [InlineData(2002, CompilerDirectiveWords.Site.TurnFileName, "§2002:8.12", "§2002:7.2.19.2 SR1")]
+    [InlineData(2014, CompilerDirectiveWords.Site.TurnFileName, "§2014:8.12", "§2014:7.3.20.2 SR1")]
+    [InlineData(2023, CompilerDirectiveWords.Site.TurnFileName, "§2023:8.12", "§2023:7.3.25.3 SR1")]
+    public void RefusalCitationsNameTheEditionsOwnText(int edition, CompilerDirectiveWords.Site site, string table, string rule)
+    {
+        Assert.Equal(table, CompilerDirectiveWords.TableCitation(edition));
+        Assert.Equal(rule, CompilerDirectiveWords.Citation(edition, site));
+    }
 }

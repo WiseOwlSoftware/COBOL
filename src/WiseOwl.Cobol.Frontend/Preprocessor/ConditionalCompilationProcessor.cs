@@ -728,7 +728,7 @@ public static partial class ConditionalCompilationProcessor
         // representation, asked of the same screen the defined condition uses (kb/Work PB1366).
         if (CompilerDirectiveWords.IsReserved(name, dialectLevel))
         {
-            diag.DirectiveWordAsName(name, "a DEFINE directive", "ISO §2023:7.3.11.3 SR1");
+            diag.DirectiveWordAsName(name, "a DEFINE directive", dialectLevel, CompilerDirectiveWords.Site.Define);
             return apply ? DefineEffect.RefusalOf(name) : null;
         }
         // §2023:8.3.2.1 applies to the compilation-variable-name — a word the tree-walk funnel never sees. Checked at
@@ -1049,9 +1049,10 @@ public static partial class ConditionalCompilationProcessor
                 : Editions.Diagnostics.DiagnosticCatalog.DirectiveExpressionViolation.Code, message);
 
         /// <summary>COBOL2650 — a compilation-variable-name that is a §2023:8.12 compiler-directive word (kb/Work PB1366).</summary>
-        public void DirectiveWordAsName(string name, string where, string rule) =>
+        public void DirectiveWordAsName(string name, string where, int edition, CompilerDirectiveWords.Site site) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveWordAsName.Code,
-                $"'{name}' is a compiler-directive word (ISO §2023:8.12) and shall not be used as a compilation-variable-name in {where} ({rule})");
+                $"'{name}' is a compiler-directive word (ISO {CompilerDirectiveWords.TableCitation(edition)}) and shall not be used as a "
+                + $"compilation-variable-name in {where} (ISO {CompilerDirectiveWords.Citation(edition, site)})");
 
         /// <summary>COBOL2651 — a DEFINE directive that does not match its general format (kb/Work PB1367).</summary>
         public void DefineMalformed(string complaint) =>

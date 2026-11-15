@@ -186,7 +186,9 @@ public static class TurnDirectiveProcessor
                 {
                     diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
                         $">>TURN: '{w}' duplicates a compiler-directive word, so it is interpreted as that directive "
-                        + "word and not as file-name-1, and the directive matches no format (ISO §2023:7.3.25.3 SR1; §2023:8.12)",
+                        + "word and not as file-name-1, and the directive matches no format (ISO "
+                        + $"{CompilerDirectiveWords.Citation(dialectLevel, CompilerDirectiveWords.Site.TurnFileName)}; "
+                        + $"{CompilerDirectiveWords.TableCitation(dialectLevel)})",
                         loc, default);
                     return null;
                 }

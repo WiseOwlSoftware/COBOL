@@ -28,5 +28,7 @@ both now write the boolean literal B"1111", which is literal-1.
 
 Self-review: architecture (one table, the window beside the word, no second list; the DEFINE gate is a construct row, not a
 hand edition test), full code (each quoted rule checked with `cite.py --check`; the COBOL2650 and COBOL0718 message text
-still cites §2023 at every edition, left for a note), performance (the table is a dictionary built once), duplication
+now cites the edition's own table and rule, see review round 1 below), performance (the table is a dictionary built once), duplication
 (the catalog drift test replaced a hand list). No diagnostic code was allocated or used.
+
+Review round 1 (R1-1, blocking): the refusals cited §2023:8.12 and the 2023 rules at every edition, so at --std 2002 FLAG-85 was refused with a pointer to a table that does not list it. CompilerDirectiveWords.TableCitation(edition) and Citation(edition, Site) now name §2002/§2014/§2023 clause 8.12 and the DEFINE (7.2.9.2 / 7.3.9.2 / 7.3.11.3), defined-condition (7.2.7.3.2 / 7.3.7.3.2 / 7.3.8.4.3) and TURN file-name (7.2.19.2 / 7.3.20.2 / 7.3.25.3) SR1, each checked with cite.py; all three message sites (COBOL2650 DEFINE and defined condition, COBOL0718) use them. Test: CompilerDirectiveWordsDriftTests.RefusalCitationsNameTheEditionsOwnText.

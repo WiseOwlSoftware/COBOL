@@ -103,4 +103,35 @@ public static class CompilerDirectiveWords
         || (edition >= 2002
             && ((ExceptionCatalog.TryGet(word, out var ec) && ec.IntroducedIn <= edition)
                 || ExceptionCatalog.IsImplementorSuffixForm(word)));
+
+    /// <summary>The directive whose syntax rule forbids a compiler-directive word at a site (<see cref="Citation"/>).</summary>
+    public enum Site { Define, DefinedCondition, TurnFileName }
+
+    /// <summary>The citation of the edition's clause-8.12 table that <see cref="IsReserved"/> asked, e.g. <c>§2002:8.12</c>
+    /// (no word is reserved below 2002, so no site asks there; 2002 answers as the first edition).</summary>
+    public static string TableCitation(int edition) => $"§{Printed(edition)}:8.12";
+
+    /// <summary>The citation of the syntax rule that forbids a compiler-directive word at <paramref name="site"/>, in the
+    /// edition's own text: the DEFINE name rule is SR1 of §2002:7.2.9.2 / §2014:7.3.9.2 / §2023:7.3.11.3, the defined
+    /// condition's is SR1 of §2002:7.2.7.3.2 / §2014:7.3.7.3.2 / §2023:7.3.8.4.3, and the TURN file-name rule is SR1 of
+    /// §2002:7.2.19.2 / §2014:7.3.20.2 / §2023:7.3.25.3 (kb/Work PB5599).</summary>
+    public static string Citation(int edition, Site site)
+    {
+        int year = Printed(edition);
+        string clause = (site, year) switch
+        {
+            (Site.Define, 2002) => "7.2.9.2",
+            (Site.Define, 2014) => "7.3.9.2",
+            (Site.Define, _) => "7.3.11.3",
+            (Site.DefinedCondition, 2002) => "7.2.7.3.2",
+            (Site.DefinedCondition, 2014) => "7.3.7.3.2",
+            (Site.DefinedCondition, _) => "7.3.8.4.3",
+            (Site.TurnFileName, 2002) => "7.2.19.2",
+            (Site.TurnFileName, 2014) => "7.3.20.2",
+            _ => "7.3.25.3",
+        };
+        return $"§{year}:{clause} SR1";
+    }
+
+    private static int Printed(int edition) => edition >= 2023 ? 2023 : edition >= 2014 ? 2014 : 2002;
 }
