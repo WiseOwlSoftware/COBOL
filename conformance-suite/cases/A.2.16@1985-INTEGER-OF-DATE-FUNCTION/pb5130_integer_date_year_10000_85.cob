@@ -30,6 +30,7 @@
        01  WS-DATE             PIC 9(9) VALUE 100000101.
        01  WS-DAYS             PIC 9(8).
        01  WS-W                PIC 9(9).
+       01  WS-D8               PIC 9(8).
        PROCEDURE DIVISION.
        MAIN-PARA.
            COMPUTE WS-DAYS = FUNCTION INTEGER-OF-DATE (16010101).
@@ -48,6 +49,8 @@
            DISPLAY WS-W.
            COMPUTE WS-W = FUNCTION DAY-OF-INTEGER (3068037).
            DISPLAY WS-W.
-           DISPLAY FUNCTION DATE-OF-INTEGER (3068037).
-           DISPLAY FUNCTION DAY-OF-INTEGER (3067672).
+           COMPUTE WS-W = FUNCTION DATE-OF-INTEGER (3068037).
+           DISPLAY WS-W.
+           COMPUTE WS-D8 = FUNCTION DAY-OF-INTEGER (3067672).
+           DISPLAY WS-D8.
            STOP RUN.

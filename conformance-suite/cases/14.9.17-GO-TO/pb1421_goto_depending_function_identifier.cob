@@ -1,10 +1,12 @@
       *>--- conformance-case
       *> id: pb1421_goto_depending_function_identifier
       *> rules: [SR-14.9.17.3-1, SR-14.9.51.3-14, FMT-14.9.17.2]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> kb/Work PB5108: accepted from 2002 only. X3.23-1985 Amendment 1 lets a numeric or integer function stand
+      *> only in an arithmetic expression (IV 4.3.8.3.3 SR4), and 2002 Annex F.2 item 60 removed that restriction.
       *> kb/Work PB1421 — GO TO Format 2's DEPENDING ON identifier-1, and its sibling WRITE ... ADVANCING
       *> identifier-2, are IDENTIFIER positions, so each admits a function-identifier (ISO/IEC 1989:2023
       *> §2023:8.4.3.1.2 Format 1) the way the PERFORM ... TIMES count does (kb/Work PB86). Both were a parse error.

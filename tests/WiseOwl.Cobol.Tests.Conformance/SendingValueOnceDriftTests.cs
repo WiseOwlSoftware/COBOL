@@ -93,8 +93,8 @@ public sealed class SendingValueOnceDriftTests
             01 W-TEST-BR PIC X(5).
             PROCEDURE DIVISION.
             MAIN.
-                MOVE FUNCTION RANDOM(1) TO W-SEED.
-                MOVE FUNCTION RANDOM TO W-SUBJ.
+                COMPUTE W-SEED = FUNCTION RANDOM(1).
+                COMPUTE W-SUBJ = FUNCTION RANDOM.
                 EVALUATE W-SUBJ
                     WHEN 0 THRU 0.25
                         MOVE "BAND1" TO W-CTRL-BR
@@ -103,8 +103,8 @@ public sealed class SendingValueOnceDriftTests
                     WHEN OTHER
                         MOVE "BAND3" TO W-CTRL-BR
                 END-EVALUATE.
-                MOVE FUNCTION RANDOM TO W-CTRL.
-                MOVE FUNCTION RANDOM(1) TO W-SEED.
+                COMPUTE W-CTRL = FUNCTION RANDOM.
+                COMPUTE W-SEED = FUNCTION RANDOM(1).
                 EVALUATE FUNCTION RANDOM
                     WHEN 0 THRU 0.25
                         MOVE "BAND1" TO W-TEST-BR
@@ -113,7 +113,7 @@ public sealed class SendingValueOnceDriftTests
                     WHEN OTHER
                         MOVE "BAND3" TO W-TEST-BR
                 END-EVALUATE.
-                MOVE FUNCTION RANDOM TO W-TEST.
+                COMPUTE W-TEST = FUNCTION RANDOM.
                 IF W-TEST-BR = W-CTRL-BR
                     DISPLAY "BRANCH=SAME"
                 ELSE

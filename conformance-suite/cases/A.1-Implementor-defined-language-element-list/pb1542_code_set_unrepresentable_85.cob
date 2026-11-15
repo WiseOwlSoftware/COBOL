@@ -62,6 +62,8 @@
        FD SQRAW.
        01 SW PIC X(3).
        WORKING-STORAGE SECTION.
+       01  WORD1              PIC 9(9).
+       01  WORD2              PIC 9(9).
        01 FS PIC XX.
        01 FW PIC XX.
        PROCEDURE DIVISION.
@@ -72,16 +74,20 @@
            DISPLAY "SQ-TILDE=" FS.
            MOVE "AéB" TO SR.
            WRITE SR.
-           DISPLAY "SQ-E=" FS " " FUNCTION ORD(SR(2:1)).
+           COMPUTE WORD1 = FUNCTION ORD(SR(2:1))
+           DISPLAY "SQ-E=" FS " " WORD1.
            MOVE "A€B" TO SR.
            WRITE SR.
-           DISPLAY "SQ-EURO=" FS " " FUNCTION ORD(SR(2:1)).
+           COMPUTE WORD1 = FUNCTION ORD(SR(2:1))
+           DISPLAY "SQ-EURO=" FS " " WORD1.
            CLOSE SQ.
            OPEN INPUT SQRAW.
            READ SQRAW AT END CONTINUE END-READ
            .
-           DISPLAY "SQ-RAW=" FW " " FUNCTION ORD(SW(1:1))
-               " " FUNCTION ORD(SW(3:1)).
+           COMPUTE WORD1 = FUNCTION ORD(SW(1:1))
+           COMPUTE WORD2 = FUNCTION ORD(SW(3:1))
+           DISPLAY "SQ-RAW=" FW " " WORD1
+               " " WORD2.
            READ SQRAW AT END CONTINUE END-READ
            .
            DISPLAY "SQ-RAW2=" FW.
@@ -93,7 +99,8 @@
            OPEN I-O SQ.
            READ SQ AT END CONTINUE END-READ
            .
-           DISPLAY "SQ-IN=" FS " " FUNCTION ORD(SR(2:1)).
+           COMPUTE WORD1 = FUNCTION ORD(SR(2:1))
+           DISPLAY "SQ-IN=" FS " " WORD1.
            REWRITE SR.
            DISPLAY "SQ-REWR=" FS.
            MOVE "XYZ" TO SR.

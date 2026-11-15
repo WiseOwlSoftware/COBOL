@@ -1,10 +1,13 @@
       *>--- conformance-case
       *> id: pb3268_function_value_one_evaluation
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> kb/Work PB5108: accepted from 2002 only. Its statements put a numeric or integer function where an identifier stands
+      *> (a MOVE sender, a DISPLAY operand), which X3.23-1985 Amendment 1 admits only inside an arithmetic expression
+      *> (IV 4.3.8.3.3 SR4); 2002 Annex F.2 item 60 removed that restriction.
       *> kb/Work PB3268 - a NUMERIC function moved to MORE THAN ONE receiver. ISO 14.9.25.4 GR1: a
       *> function-identifier "is evaluated only once, immediately before data is moved to the first of
       *> the receiving operands", and the rule writes the shape out as MOVE a TO temp / MOVE temp TO b /

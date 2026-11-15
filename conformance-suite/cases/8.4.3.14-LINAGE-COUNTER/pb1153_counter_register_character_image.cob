@@ -37,6 +37,7 @@
        01 P-REC PIC X(10).
        FD RPTF REPORT IS R1.
        WORKING-STORAGE SECTION.
+       01  WLENGTH1           PIC 9.
        01 WX4  PIC X(4).
        01 WX20 PIC X(20).
        01 W2   PIC X(2) VALUE "02".
@@ -64,7 +65,8 @@
                DISPLAY "LNC-REL=EQ"
            ELSE
                DISPLAY "LNC-REL=NE".
-           DISPLAY "LNC-LENGTH=" FUNCTION LENGTH(LINAGE-COUNTER).
+           COMPUTE WLENGTH1 = FUNCTION LENGTH(LINAGE-COUNTER)
+           DISPLAY "LNC-LENGTH=" WLENGTH1.
            CLOSE LPF.
       *> PAGE-COUNTER is 1 after INITIATE; LINE-COUNTER is the line of the
       *> detail just printed, 2 (FIRST DETAIL 2). Their image is 10 digits.
@@ -84,7 +86,8 @@
                ADD 1 TO K
            END-PERFORM.
            DISPLAY "PC-TIMES=" K.
-           DISPLAY "PC-LENGTH=" FUNCTION LENGTH(PAGE-COUNTER).
+           COMPUTE WLENGTH1 = FUNCTION LENGTH(PAGE-COUNTER)
+           DISPLAY "PC-LENGTH=" WLENGTH1.
            TERMINATE R1.
            CLOSE RPTF.
            STOP RUN.

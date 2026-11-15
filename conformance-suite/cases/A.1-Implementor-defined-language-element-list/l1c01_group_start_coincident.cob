@@ -41,7 +41,7 @@
        01 N PIC 99.
        PROCEDURE DIVISION.
        MAIN.
-           MOVE FUNCTION LENGTH(G) TO N
+           COMPUTE N = FUNCTION LENGTH(G)
            DISPLAY "LEN-G=" N
            MOVE 0 TO G1
            MOVE "Z" TO G2
@@ -56,6 +56,6 @@
                DISPLAY "G2-NOT-AT-3"
            END-IF
            MOVE "XY123" TO D
-           MOVE FUNCTION LENGTH(D) TO N
+           COMPUTE N = FUNCTION LENGTH(D)
            DISPLAY "D1=" D1 " D2=" D2 " LEN-D=" N
            STOP RUN.
