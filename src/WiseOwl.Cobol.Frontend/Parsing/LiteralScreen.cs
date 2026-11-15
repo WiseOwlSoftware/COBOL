@@ -80,7 +80,9 @@ public static class LiteralScreen
     /// tree's screen has it.
     /// <paramref name="gateFormats"/> asks the edition question (<see cref="GateFormat"/>) too — false for a directive
     /// in an OMITTED branch, whose text is held to the syntax of §2023:7.2.1 but is not compiled, so no construct it uses is
-    /// introduced by it (the same posture as the directive's own gate and the boolean-operator gate).</summary>
+    /// introduced by it (the same posture as the directive's own gate and the boolean-operator gate). The digit capacity of a numeric literal
+    /// (<see cref="ScreenDigitCapacity"/>) is an edition and implementor-limit question, so it is asked only under it: §2023:8.3.3.3.2
+    /// makes 31 digits a minimum an implementor shall allow, not a syntax rule, and an omitted branch is not compiled.</summary>
     public static bool Run(IParseTree tree, EditionInfo edition, IDiagnosticSink sink, bool gateFormats, ClientWrittenTokens? clientWritten = null)
     {
         clientWritten ??= ClientWrittenTokens.FlaggedOnly;
@@ -99,7 +101,7 @@ public static class LiteralScreen
                 continue;
             }
             if (SignedSlot(node) is ({ } sign, { } first)) clean &= ScreenSign(node, sign, first, sink);
-            if (node is ParserRuleContext rule && NumericLiteralOf(rule) is { } numeric && !clientWritten.Contains(rule.Start))
+            if (gateFormats && node is ParserRuleContext rule && NumericLiteralOf(rule) is { } numeric && !clientWritten.Contains(rule.Start))
                 clean &= ScreenDigitCapacity(rule, numeric, edition, sink);
             for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
         }
