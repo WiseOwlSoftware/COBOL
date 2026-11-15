@@ -1,4 +1,6 @@
-## At --std 85 PADDING CHARACTER is refused outside the sequential entry, and a sort-merge ASSIGN admits a figurative constant and a list (PB5565, PB5587)
+## Entry 3663 — 2026-11-15 00:42 PST — At --std 85 PADDING CHARACTER is refused outside the sequential entry, and a sort-merge ASSIGN admits a figurative constant and a list (PB5565, PB5587); PB5587 review round: a numeric literal is the sort-merge ASSIGN's literal-1 at 85, and the golden cites the SORT rule
+
+### At --std 85 PADDING CHARACTER is refused outside the sequential entry, and a sort-merge ASSIGN admits a figurative constant and a list (PB5565, PB5587)
 
 Two findings of the 1985 re-read 5 shared one table's neighbourhood, the file control entry's per-format clause rules, and were
 fixed as one wave group.
@@ -32,3 +34,8 @@ PARTIAL to CONFORMS (record_verdicts, GAP 63 to 60).
 
 **Left open, seen on the way.** A 1985 FD's `ASSIGN TO SPACE` is still refused with a message citing §2023:12.4.5.2 SR4 where
 §1985:VII.2.3.3 SR3 is the rule that applies; the outcome is right, the citation names the wrong edition.
+
+### PB5587 review round: a numeric literal is the sort-merge ASSIGN's literal-1 at 85, and the golden cites the SORT rule
+
+The branch review found the row 1985-FMT-XI.2.3.2 flipped to CONFORMS while a numeric literal as literal-1 (`SELECT SF1 ASSIGN TO 123` on an SD) was still refused at --std 85, by the grammar (COBOL5506), though §1985:XI.2.3.3 has no SR3 making literal-1 nonnumeric as the other entries do. Root fix: `assignTarget` in CobolIO.g4 admits `numericLiteral`; `AssignTargetRule.Text` records the SR4 refusal (COBOL2645) on `FileModel.EntryShapeFindings` so `FileControlKeyRules.Screen` reports it unless the file is an SD below 2002. The numeric literal is now refused by name at 2002+ (it was COBOL5506 at every edition and entry). The golden gained a third SD (`ASSIGN TO 123`, sorts AAA BBB CCC; runs verified), a 2002-and-later negative `pb5587-sort-merge-assign-numeric-2002` (COBOL2645), and its ascending-order citation now names §1985:XI.4.4.4 GR2a.
+
