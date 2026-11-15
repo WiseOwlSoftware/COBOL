@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-1",
+ "rule-digest": "89606a4a9a76",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_open_mode_48",
+ "notes": "§2002:14.8.47.3 GR1: sequential access admits extend or output, otherwise I-O or output; any other open mode makes the WRITE unsuccessful with I-O status '48'. Sequential file (sequential access): OUTPUT 00, INPUT 48, EXTEND 00, I-O 48. Relative file with ACCESS SEQUENTIAL: OUTPUT 00, I-O 48 (the sequential-access table, though I-O is legal for the other access modes). Relative ACCESS DYNAMIC (RK 1, 2, 3 never present): OUTPUT 00, I-O 00, INPUT 48. Indexed ACCESS RANDOM (keys K001-K003 distinct): OUTPUT 00, I-O 00, INPUT 48. Matched at --std 2002 with the pinned build of dc1f2dcce8 (g2_write_open_mode_48)."
+}

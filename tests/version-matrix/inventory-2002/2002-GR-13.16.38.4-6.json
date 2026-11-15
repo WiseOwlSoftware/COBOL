@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-6",
+ "rule-digest": "acab6c666ea7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Render; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FindFloatingPlacement; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#TrySimpleInsertion; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#MarkFloating",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-editing",
+ "notes": "§2002:13.16.38.4 GR6 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): Form b (all positions floating) with zero gives all spaces (PA, CA, MA: 7 spaces); nonzero behaves as form a: one + or $ just before the first nonzero digit (\"  +1.50\", \"  $1.50\"), \"-\" gives space when positive (Table 10, \"   1.50\") and \"-\" before the decimal point position for -0.05 (\"   -.05\"); the second floating symbol bounds the digits so 12345 truncates to 345 ($$$9 -> \"$345\", +++9 -> \"+345\"); an embedded \"/\" is part of the string and takes the floating \"+\" just before the first nonzero digit (++/++9, 123 -> \"  +123\"). The --std 2002 run of the pinned build (dc1f2dcce8) matched the derived .out."
+}

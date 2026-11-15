@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-14",
+ "rule-digest": "66b76be182c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#AppendAsDebuggingLines",
+ "test-ref": "conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-replacing-word-and-nesting-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-debugging-line-library-no-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-recursive-refused",
+ "notes": "§2002:7.1.2.3 GR14 permits a REPLACING-free nested COPY, at least 5 levels, and forbids self-copying; at --std 2002 a D-line nested COPY gives OUTER, INNER with debugging mode and OUTER without (GR13, §2002:6.2.7), five levels print LEVEL-1..LEVEL-5, and a self-copying copybook draws CBL3621."
+}

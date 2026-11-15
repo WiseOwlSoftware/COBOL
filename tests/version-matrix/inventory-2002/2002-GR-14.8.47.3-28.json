@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-28",
+ "rule-digest": "ef49f2cf00dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SetRelativeKey",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_relative_io_insert",
+ "notes": "§2002:14.8.47.3 GR28: a relative file opened I-O with random or dynamic access inserts records; the program sets the relative key to the record number and the WRITE releases the record at that number. Seed record 3 (OPEN OUTPUT, random access, RK=3: SEED-3 00); OPEN I-O on the ACCESS RANDOM connector with RK=1 -> RANDOM-IO-1 00; OPEN I-O on the ACCESS DYNAMIC connector to the same file with DK=5 -> DYNAMIC-IO-5 00 (no record at 1 or 5, so GR25b's '22' does not arise; 00 per GR10). Matched at --std 2002 with the pinned build of dc1f2dcce8 (g2_write_relative_io_insert)."
+}

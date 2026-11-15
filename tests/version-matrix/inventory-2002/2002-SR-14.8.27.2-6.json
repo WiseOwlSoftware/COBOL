@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.27.2-6",
+ "rule-digest": "085250169443",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckVaryingOperandRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#Classify",
+ "test-ref": "conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf01_cd_operands; conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf06_cd_noninteger_from_index; conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf07_from_index_by_cd_noninteger; conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf10_from_index_by_literal_noninteger; conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf11_after_cd_noninteger_from_index; conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf12_after_from_index_by_cd_noninteger; conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf13_after_from_index_by_literal_noninteger",
+ "notes": "§2002:14.8.27.2 SR6: FROM an index at occurrence 2 into an integer CD record item BY an integer CD item gives 2,3 (g2prf01 matched at --std 2002); a 9V9 CD VARYING item (a), a 9V9 CD BY item (b) and BY 1.5 (c) are each refused COBOL2120. The AFTER arm: AFTER an integer CD item FROM TX (occurrence 2) BY TL2 gives 1/2, 1/3 (g2prf01 Z lines matched); AFTER 9V9 FROM an index (a), AFTER ... BY a 9V9 CD item (b) and BY 1.5 (c) are each refused COBOL2120 (g2prf11-13)."
+}

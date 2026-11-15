@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-9",
+ "rule-digest": "251f1424638b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2002-call-on-overflow-operands",
+ "notes": "§2002:14.8.4.2 SR9: identifier-3 is a receiving operand, and §2002:14.8.4.3 GR4 places the result into it. At --std 2002, under ON OVERFLOW, RV gets 0042 and a CD field used as the RETURNING item gets 0077. Output matched the derivation."
+}

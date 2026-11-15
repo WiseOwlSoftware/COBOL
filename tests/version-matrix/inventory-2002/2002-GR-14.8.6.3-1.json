@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.6.3-1",
+ "rule-digest": "b69d85d1cce5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo01_not_open_every_form",
+ "notes": "§2002:14.8.6.3 GR1: every CLOSE form of a not-open connector, including WITH LOCK, is unsuccessful with 42 (C1..C5, C7, C8), and a successful CLOSE WITH LOCK gives 00 (C6). --std 2002 run matched. §2002:9.1.12: a 42 status is fatal and the implementor decides whether execution continues; DOC-A.1-103: it continues, because the file has a FILE STATUS clause and EC-I-O checking is not enabled."
+}

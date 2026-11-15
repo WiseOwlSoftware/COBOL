@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-1",
+ "rule-digest": "cfb396b1a16c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call01_overflow_activating_instance",
+ "notes": "§2002:14.8.4.3 GR1 (ALL FORMATS) makes the executing instance the activating runtime element. With every CALL in the 2002-only ON OVERFLOW format, each recursive activation resumes in its own LOCAL-STORAGE instance (§2002:8.6.3). The --std 2002 run matched the derived .out."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.2.2.3-4",
+ "rule-digest": "fca9f68b5283",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOne; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#Deliver; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#FindSource",
+ "test-ref": "conformance:cases/A.2.2@2002-DISABLE-STATEMENT/g2002-disable-input-terminal-source",
+ "notes": "DISABLE INPUT TERMINAL at --std 2002 closes every path of source T1 and none of T2, with 15 when already closed and 21 for an unknown source (§2002:A.2.2.3 GR4, Table A.1). The golden ran at --std 2002 on the pinned build dc1f2dcce8 and matched its derived .out."
+}

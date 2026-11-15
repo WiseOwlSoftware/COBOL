@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.40.3-3",
+ "rule-digest": "1a1c03b0ed88",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Compare; src/WiseOwl.Cobol.Runtime/Values/Text/LocaleCollation.cs#Resolve",
+ "test-ref": "conformance:cases/15.40@2002-LOCALE-COMPARE-FUNCTION/g2lc01-locale-compare",
+ "notes": "§2002:15.40.3 RV3: the named locale is used ('aa' vs 'z' is '<' under en-US, '>' under da-DK), otherwise the current locale ('<', then '>' after SET LOCALE LC_COLLATE TO DAN), and an unavailable locale sets EC-LOCALE-MISSING (the declarative ran, §2002:14.5.12.1.2). The --std 2002 run matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.3-4",
+ "rule-digest": "14f18c5a98ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#AssociationFailure; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Associate; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#AssociationMade; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitAssociation",
+ "test-ref": "conformance:cases/12.3.4@2002-FILE-CONTROL-ENTRY/g2asg01_assign_using_content",
+ "notes": "§2002:12.3.4.3 GR4 leaves the USING content's meaning and any consistency rule to the implementor; per DOC-A.1-73 and DOC-A.1-10 the space-trimmed content is the target mapped as literal-1 is, blank content gives 31 (§2002:9.1.12.5), and no consistency rule exists, so with TO and USING both written the content alone names the file. g2asg01 run at --std 2002 matched the derived 8 lines."
+}

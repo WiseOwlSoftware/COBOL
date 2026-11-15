@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-1",
+ "rule-digest": "a4a0c6e3ffeb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#NationalWindow; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-categories-locale",
+ "notes": "§2002:13.16.38.3 GR1 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): Under an OUTPUT CD record (§2002:A.1.2.2 SR9) PIC N(3) defines three national character positions: LENGTH(NA)=3, NA(2:2)=N\"BC\" counts national positions, BYTE-LENGTH 6 under the implementor's UTF-16 national representation (two bytes a position); PIC X(3) defines three alphanumeric positions: LENGTH 3, BYTE-LENGTH 3. The --std 2002 run of the pinned build (dc1f2dcce8) matched the derived .out."
+}

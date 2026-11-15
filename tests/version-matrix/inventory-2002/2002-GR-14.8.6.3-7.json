@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.6.3-7",
+ "rule-digest": "239454c575d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo03_same_record_area_lock",
+ "notes": "§2002:14.8.6.3 GR7 with §2002:12.3.6.3 GR2: after plain CLOSE and CLOSE WITH LOCK of one SAME RECORD AREA member while the other is open, the shared area stays available (content kept, a MOVE seen through both names). --std 2002 run matched. §2002:9.1.12: a 38 status is fatal and the implementor decides whether execution continues; DOC-A.1-103: it continues, because FA has a FILE STATUS clause and EC-I-O checking is not enabled."
+}

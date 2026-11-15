@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.4.1.7.3-1",
+ "rule-digest": "c9cf9c42e7fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/OmittedProbe.cs#OmittedProbe; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#OmittedTest; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#WholeFormalProbe",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted",
+ "notes": "§2002:8.8.4.1.7.3 GR1: the OMITTED test is true a) 'if the OMITTED phrase, rather than an identifier or literal, is specified as the argument corresponding to data-name-1': INVOKE O \"TAKE\" USING OMITTED -> 'TAKE OMITTED', CALL \"PB757S2\" USING OMITTED -> forwarded, FUNCTION PB757F(OMITTED W4) -> 'F(OMITTED W4)=OP'; b) 'the argument corresponding to data-name-1 was a trailing argument that was omitt. Ran the existing conformance-suite/cases/8.4.3.2-Function-identifier/pb757_invoke_omitted.cob --std 2002 --source-format free --run with the pinned exe matched the derivation at --std 2002 with the pinned build of tree dc1f2dcce8."
+}

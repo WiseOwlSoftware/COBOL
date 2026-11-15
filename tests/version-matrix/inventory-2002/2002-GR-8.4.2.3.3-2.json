@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.3.3-2",
+ "rule-digest": "1eb6e824c9d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#RefModExclusion; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#NumericImagePlace; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveImpl",
+ "test-ref": "conformance:cases/8.4.2.3@2002-REFERENCE-MODIFICATION/g2rfm01_refmod_cd_numeric_display_and_national",
+ "notes": "§2002:8.4.2.3.3 GR2: implicitly-DISPLAY numeric CD fields (MESSAGE COUNT 9(6), TEXT LENGTH 9(4), DESTINATION COUNT 9(4), §2002:A.1.2.3 GR2k/h, GR16a) and a numeric-edited item are reference-modified as alphanumeric: MC(4:3)=456, MC(2:)=23456, TL 00/42, MOVE 'XY' TO MC(1:2) gives XY3456, DC 00/12, NE(2:4)=3.50; g2rfm01 at --std 2002 matched."
+}

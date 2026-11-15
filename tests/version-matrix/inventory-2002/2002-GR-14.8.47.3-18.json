@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-18",
+ "rule-digest": "157f5164a248",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#OpenConnectorWriteStream; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#SharedAppendStream; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_shared_extend_order_free",
+ "notes": "§2002:14.8.47.3 GR18 with GR11: records added by shared extend connectors follow SEED and both are present (R1=SEED, one AAAA and one BBBB among records 2..3, COUNT=3, fixed and RECORD VARYING); the case is order-free. Matched at --std 2002."
+}

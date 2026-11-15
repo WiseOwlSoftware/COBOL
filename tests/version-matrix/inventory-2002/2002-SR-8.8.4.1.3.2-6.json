@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.3.2-6",
+ "rule-digest": "db819c2d5fe2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#IsLocaleAlphabet",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5-class-condition-locale-alphabet",
+ "notes": "§2002:8.8.4.1.3.2 SR6: 'Alphabet-name-1 shall not reference an alphabet associated with a locale.' A prohibiting SR granting no form, so a refusal is its evidence. Ran the existing pb64t5-class-condition-locale-alphabet.cob --std 2002 --source-format free --run with the pinned exe matched the derivation at --std 2002 with the pinned build of tree dc1f2dcce8."
+}

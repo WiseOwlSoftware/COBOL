@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-9",
+ "rule-digest": "b8d43362dc39",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#OdoResolvePass",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-record-tables; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-eight-subscripts",
+ "notes": "§2002:13.16.36.2 SR9: Nested fixed tables are permitted up to seven subscripts: L1..L7 (each OCCURS 2, L7 PIC X) in the CD record accept L7(2 1 2 1 2 1 2), whose byte sits at offset 0+16+0+4+0+1 = 21 of the 64-byte L1(2), so E1 Z[ ], E2 00 (no Z in L1(1)) and E3 Z (L1(2)(22:1)); an eighth nested level A8 is refused. Matched at --std 2002 on the pinned build of dc1f2dcce8 (E1-E3 of the accepted case; g2-occurs-cd-eight-subscripts refused COBOL2646)."
+}

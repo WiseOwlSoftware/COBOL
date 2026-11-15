@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-4",
+ "rule-digest": "a1869bf7d2d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#At",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2occ01_cd_record_occurs",
+ "notes": "Per §2002:13.16.36.3 GR4 integer-2 fixes the occurrence count: LENGTH of the CD-record groups holding 3 x X(2), 2 x X(3) and 2 x 9V9 tables is 6, 6 and 4, one occurrence 2. The --std 2002 run matched."
+}

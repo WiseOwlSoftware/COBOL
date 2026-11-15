@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-12",
+ "rule-digest": "c97af9de5f96",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call12_as_nested",
+ "notes": "§2002:14.8.4.2 SR12 grants CALL literal-1 AS NESTED in a program definition; G2CALL12 calls its directly contained G2CALLIN AS NESTED and the derived G2CALLIN-ENTERED / ARG=AFTER / G2CALL12-DONE matched at --std 2002. The refusal in function and method definitions stays pinned by pb132-call-as-nested-in-function/-in-method (COBOL1682 at 2002)."
+}

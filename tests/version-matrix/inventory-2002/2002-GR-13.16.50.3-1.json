@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.50.3-1",
+ "rule-digest": "e2f672522328",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#WithInheritedSign; src/WiseOwl.Cobol.Compiler/Binding/Passes/InheritSignClausesPass.cs#InheritSignClausesPass",
+ "test-ref": "conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-record-precedence",
+ "notes": "§2002:13.16.50.3 GR1 in a CD record: the group SIGN TRAILING SEPARATE gives S2 \"012-\"/\"012+\" (length 4) and leaves unsigned U2 \"012\" (length 3). Run with the pinned compiler (tree dc1f2dcce8) at --std 2002: output equals the derived golden."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.3-2",
+ "rule-digest": "4ce1cb0f480d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenCore",
+ "test-ref": "conformance:cases/12.3.4@2002-FILE-CONTROL-ENTRY/g2opt01_optional_open_modes",
+ "notes": "§2002:12.3.4.3 GR2: OPTIONAL applies to input, I-O and extend mode only; an absent OPTIONAL file opens 05 (I-O/extend create it, §2002:9.1.12.1), its first READ is 10 (§2002:9.1.12.3), an absent non-optional file is 35 (§2002:9.1.12.5), and OUTPUT on an OPTIONAL file is 00, for sequential, relative and indexed files. g2opt01 run at --std 2002 matched the derived 21 lines."
+}

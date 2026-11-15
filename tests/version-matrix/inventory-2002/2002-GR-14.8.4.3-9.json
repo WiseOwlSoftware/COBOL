@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-9",
+ "rule-digest": "c5322e838c8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ResolvePrototype; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#CalleeSignature; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Gr9NonIdentifierMode",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call02_cd_single_identifier_argument; conformance:cases/14.9.4-CALL/pb613_gr8_one_reduction; conformance:cases/14.9.4-CALL/pb3760_literal_and_expression_arguments",
+ "notes": "§2002:14.8.4.3 GR9a with §2002:14.8.4.2 SR3 (communication section admitted): keyword-less CD record items to BY REFERENCE formals go BY REFERENCE (QA=XYZ MC=0042), an arithmetic expression BY CONTENT (MC-EXPR=0005). --std 2002 run matched."
+}

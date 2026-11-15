@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.42.2-3",
+ "rule-digest": "89ddb2a4d2d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Time",
+ "test-ref": "conformance:cases/15.42@2002-LOCALE-TIME-FUNCTION/g2002-locale-time-function",
+ "notes": "§2002:15.42.2 AR3 - AR3: this function widens the CURRENT-DATE ranges to hours 00 through 24 and seconds 00 through 99: \"240000\" GER -> 24:00:00 and \"235999\" GER -> 23:59:99 format with no exception; \"250000\" (hours 25) is outside AR3a -> EC-ARGUMENT-FUNCTION (§2002:15.2): HANDLED-ARGUMENT-FUNCTION then AFTER-HOUR-25. Expected lines derived from the 2002 text before the run; G2LTM01 at --std 2002 on the pinned build (tree dc1f2dcce8) printed exactly the derived .out."
+}

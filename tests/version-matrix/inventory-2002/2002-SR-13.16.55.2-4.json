@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.55.2-4",
+ "rule-digest": "81e33c444cf2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TemplateItems; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckStrongTypeDeclarationsPass.cs#CheckStrongTypeDeclarationsPass; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckStrongTypeDeclarationsPass.cs#FirstStrongItemIn",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-cd-strong-record",
+ "notes": "§2002:13.16.55.2 SR4: a subject of a STRONG type shall not be implicitly redefined; §2002:A.1.2.2 SR9: records subordinate to an output CD implicitly redefine its record area. So even a single STRONG record CD-OREC under an output CD (line 27) must be refused. Refused at --std 2002 with COBOL5991 at that line, as derived (pinned cobol.exe (tree dc1f2dcce8) --std 2002)."
+}
