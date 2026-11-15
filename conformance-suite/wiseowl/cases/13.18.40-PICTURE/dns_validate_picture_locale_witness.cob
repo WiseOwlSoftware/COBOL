@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: dns_validate_picture_locale_witness
       *> rules: [GR-13.18.40.4-19]
-      *> accept: [2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -16,14 +15,10 @@
       *> resolves to the Format-1 twin. The locale sentence is unique
       *> to rule 19, which sits under the printed FORMAT 2 heading.
       *> The rule's whole trigger is the VALIDATE statement. The statement is implemented (kb/Work PB5577,
-      *> docs/rearchitecture/DESIGN-validate-facility.md), and its format stage checks the numeric, alphabetic and boolean
-      *> items; the format check of an EDITED picture (a currency symbol and the locale's monetary specification, which is
-      *> what GR19 adds) is a later stage of that design, so this program pins only what holds in every stage: control
-      *> passes through the VALIDATE, the subject is unchanged (§2023:14.9.50.4 GR5 - "the content of the invalid data
-      *> item does not change" - and §2023:13.18.17.4 GR1 - "The data item itself remains unchanged") and N reaches 1.
-      *> The expected output is therefore not evidence that GR19's locale-dependent check ran; it stays an open row.
-      *> M is compared against its own saved image rather than displayed, so the expectation pins SHAPE-independence,
-      *> not a locale's currency string.
+      *> docs/rearchitecture/DESIGN-validate-facility.md), but the format check of an EDITED picture (a currency symbol and the
+      *> locale's monetary specification, which is what GR19 adds) is a later stage of that design, so VALIDATE of an operand
+      *> holding an edited item is refused (COBOL7363): a validation that passed it as valid would report a record the
+      *> standard calls invalid (§2023:14.9.50.4 GR6 a). The program is otherwise legal; this pins the refusal, not GR19.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1VALW01.
        ENVIRONMENT DIVISION.
