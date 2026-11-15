@@ -1,4 +1,4 @@
-## The 2002 golden lane, first landing: 201 witnesses at --std 2002 for 24 of 85 files, 2002 GAP 2,562 to 2,340
+## Entry 3680 — 2026-11-15 05:51 PST — The 2002 golden lane, first landing: 201 witnesses at --std 2002 for 24 of 85 files, 2002 GAP 2,562 to 2,340
 
 The 2002 golden lane (gl2002, kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6) gives each 2002 row that
 the 2002 read left needing evidence a witness of its own at `--std 2002`. It covers 622 rows in 85 input files:
@@ -58,3 +58,4 @@ split across two lines. Rejoining it fixed the audit. The second gate: `=== BUIL
 `WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic`. `compare_oracle.py` reports `DIFFERENT — 201 of 20268 cases
 differ`: every one is an ADDED line naming exactly the new cases at 2002, with no CSHARP, DIAGNOSTICS or REMOVED
 line.
+
