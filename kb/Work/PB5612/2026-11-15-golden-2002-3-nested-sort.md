@@ -18,6 +18,6 @@ The rules (each checked with `python scripts/spec/cite.py --check`, verdict OK):
 - `§2002:14.5.12.1.2`: "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally".
 
 The mechanism is this note's: `CobolSort.RaisedByTheStatement` marks the raise `RaisedBySortMerge`, and the EC guard disposes of it under the
-2023-only `§2023:14.6.13.1.3 GR2` at every edition. A doubt for the fixer: GR9 makes the SORT's results undefined.
+2023-only `§2023:14.6.13.1.3 GR2` at every edition. A doubt for the fixer: `§2002:14.8.36.3 GR9` makes the SORT's results undefined.
 That leaves the sorted records free, but not the fatal procedure, which 2002 states for every fatal condition. The row
 is recorded DIVERGES naming this note.
