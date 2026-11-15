@@ -95,6 +95,7 @@ from inventory_schema import (NEWEST, RETIRED_WITNESS_MARK, WITNESS_FIELDS, Edit
 from inventory_store import REPO, inventory_dir, read_store, record_of, write_store
 import inventory_view  # noqa: E402  (THE view: the rows a batch is validated against and written from; kb/Work PB4992)
 import lineage  # noqa: E402  (THE definition of an older edition's change record and its state; kb/Work PB4993)
+import lineage_screen  # noqa: E402  (the flags a change record answers before it is written; kb/Work PB5597)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -452,6 +453,16 @@ def main() -> int:
 
     if bad := validate(records, schema, catalog, by_id, ed, targets):
         print(f"⛔ {len(bad)} shape violation(s) — NOTHING was written:\n")
+        for b in bad:
+            print(f"   {b}")
+        return 1
+    # THE ONE RECORDING PATH ASKS THE LINEAGE SCREEN (kb/Work PB5597, branch review R2-1 of PB5589): a change record on a
+    # pair the edition's screen flags answers each flag as it now reads, whoever wrote the batch, so every STORED record
+    # answered its flags when it was written and a later flag on it is the screen's change, owed a re-read
+    # (lineage_screen.owed_records), never a record that skipped the question.
+    if not ed.newest and (bad := lineage_screen.unanswered(
+            [rec for _, _, rec in records if isinstance(rec.get("next"), dict)], lineage_screen.committed(ed.year))):
+        print(f"⛔ {len(bad)} change record(s) leave a flag of the lineage screen unanswered — NOTHING was written:\n")
         for b in bad:
             print(f"   {b}")
         return 1

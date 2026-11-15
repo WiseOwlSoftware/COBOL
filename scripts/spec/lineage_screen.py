@@ -82,25 +82,57 @@ def committed(year: int) -> dict[str, Any] | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+#: What is wrong with a decision's answer to one flag (`answer_problems`): no answer, an answer to the flag as it read
+#: before the screen changed it (keyed by the flag's content, kb/Work PB5597, branch review R2-2 of PB5589), or an answer
+#: to a trigger that does not flag the pair.
+UNANSWERED, CHANGED_FLAG, STRAY = "unanswered", "flag changed", "stray answer"
+
+
+def answer_problems(row: dict[str, Any], flags: dict[str, dict[str, str]]) -> list[tuple[str, str, str]]:
+    """`(trigger, problem, message)` for each flag of the screen's `flags` (rule-id -> trigger -> detail) that the change
+    record `row` (a store row or a batch record: `rule-id` and `next`) does not answer as it now reads. An answer is
+    `{"flag": the detail it answered, "answer": why the decision holds}` (`lineage.answer_shaped`): one written for another
+    detail of the same trigger answers another question."""
+    nxt = row.get("next") or {}
+    if not nxt.get("kind"):
+        return []
+    answers = nxt.get("answers") or {}
+    asked = flags.get(row["rule-id"], {})
+    out = []
+    for name, detail in asked.items():
+        got = answers.get(name)
+        if not lineage.answer_shaped(got):
+            out.append((name, UNANSWERED, f"{name}: {detail}"))
+        elif got["flag"] != detail:
+            out.append((name, CHANGED_FLAG, f"{name}: answered for \"{got['flag']}\", now \"{detail}\""))
+    out += [(name, STRAY, f"{name}: answered, and it does not flag the pair") for name in sorted(set(answers) - set(asked))]
+    return out
+
+
 def unanswered(rows: Iterable[dict[str, Any]], screen: dict[str, Any] | None) -> list[str]:
-    """Why a change record of `rows` (store rows or batch records: `rule-id` and `next`) does not stand against `screen`:
-    its pair is flagged, and its decision does not answer every flag by the trigger's name with a reason
-    (`next.answers`). An answer to a trigger that flags nothing is refused too: it answers a question nobody asked."""
+    """THE WRITER'S REFUSAL (audit_batch.change_batch, record_verdicts.py): why each change record of `rows` may not be
+    written against `screen`: its pair is flagged and its decision does not answer every flag as the flag now reads, or it
+    answers a trigger that does not flag it (a question nobody asked). One message per refused record."""
     flags = (screen or {}).get("marks", {})
     out = []
     for r in rows:
-        nxt = r.get("next") or {}
-        if not nxt.get("kind"):
-            continue
-        answers = nxt.get("answers") or {}
-        asked = flags.get(r["rule-id"], {})
-        if missing := [n for n in asked if not str(answers.get(n) or "").strip()]:
-            out.append(f"{r['rule-id']}: a {nxt['kind']} record on a pair the screen flags, whose decision does not answer "
-                       f"{missing} (" + "; ".join(f"{n}: {asked[n]}" for n in missing) + "): the read answers each flag in "
-                       "next.answers, by trigger, with why the older rule still states that requirement")
-        if stray := sorted(set(answers) - set(asked)):
-            out.append(f"{r['rule-id']}: next.answers answers {stray}, which do not flag the pair")
+        if probs := answer_problems(r, flags):
+            out.append(f"{r['rule-id']}: a {r['next']['kind']} record whose decision does not answer the lineage screen's "
+                       "flags as they now read (" + "; ".join(f"{p}: {m}" for _n, p, m in probs) + "): the read answers "
+                       "each flag in next.answers, by trigger, with the flag's detail and why the older rule still states "
+                       "that requirement")
     return out
+
+
+def owed_records(rows: Iterable[dict[str, Any]], screen: dict[str, Any] | None) -> list[str]:
+    """A STORED record the screen now asks a question it did not answer (kb/Work PB5597, branch review R2-1 of PB5589):
+    the writer refused every unanswered flag when the record was written (`unanswered`, asked by change-batch and by
+    record_verdicts.py), so a stored record's unanswered, changed or stray flag is a change of the screen since (a new
+    behaviour, a new trigger, a judgment that moved). It is OWED a re-read, listed by `--check` as the table's owed
+    judgments are, never a red gate: a compiler change that adds a behaviour must not turn every stored record red."""
+    flags = (screen or {}).get("marks", {})
+    return [f"{r['rule-id']}: owed a re-read (" + "; ".join(f"{p}: {m}" for _n, p, m in probs) + ")"
+            for r in rows if (probs := answer_problems(r, flags))]
 
 
 # -- the texts ------------------------------------------------------------------------------------------------------------
@@ -359,7 +391,9 @@ def load_table(year: int) -> dict[str, Any]:
     path = table_path(year)
     if not path.exists():
         raise SystemExit(f"lineage_screen: {year} has no trigger table ({path.relative_to(REPO)})")
-    return json.loads(path.read_text(encoding="utf-8"))
+    table = json.loads(path.read_text(encoding="utf-8"))
+    triggers(table)   # refused at load: a trigger with no mechanism, no reason, or a control character in a parameter
+    return table
 
 
 def probe_text(text: str) -> str:
@@ -564,7 +598,24 @@ def triggers(table: dict[str, Any]) -> list[dict[str, Any]]:
                              f"one of {sorted(MECHANISMS)}")
         if not (t.get("reason") or "").strip():
             raise SystemExit(f"lineage_screen: trigger {t['name']} states no reason for the pairs it flags")
+        if bad := control_characters(t.get("params", {})):
+            raise SystemExit(f"lineage_screen: trigger {t['name']} holds a control character in {bad}: a JSON escape such "
+                             "as \\b decodes to one (a backspace, which no rule text holds); write a pattern's \\b as "
+                             "\\\\b in the JSON (kb/Work PB5597, branch review R2-3 of PB5589)")
     return rows
+
+
+def control_characters(value: Any, where: str = "params") -> list[str]:
+    """Each place in a trigger's parameters whose string holds a control character (U+0000 to U+001F, U+007F): none is
+    meant, since no rule text a pattern searches holds one, so each is a JSON escape that decoded to the wrong thing."""
+    if isinstance(value, str):
+        bad = sorted({c for c in value if ord(c) < 32 or ord(c) == 127})
+        return [f"{where} ({', '.join(f'U+{ord(c):04X}' for c in bad)})"] if bad else []
+    if isinstance(value, dict):
+        return [w for k, v in value.items() for w in control_characters(v, f"{where}.{k}")]
+    if isinstance(value, list):
+        return [w for i, v in enumerate(value) for w in control_characters(v, f"{where}[{i}]")]
+    return []
 
 
 def flagging(trigger: dict[str, Any]) -> bool:
@@ -730,14 +781,17 @@ def main(argv: list[str] | None = None) -> int:
         text = json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
         path = screen_path(y)
         errs = table_errors(s)
+        owed_stored: list[str] = []
         if a.check is not None:
             import inventory_view  # noqa: PLC0415  (the stored records of the edition)
-            errs += unanswered(inventory_view.inventory(y), doc)
+            owed_stored = owed_records(inventory_view.inventory(y), doc)
         print(f"{y}: pairs {len(s.pairs)}, flagged {doc['counts']['marked']}; pending {doc['counts']['pending']}; "
               f"fixture: caught pairs unflagged {len(doc['labels']['different-unflagged'])}, known misses flagged "
               f"{doc['labels']['known-misses-flagged']}")
         for o in doc["owed"]:
             print(f"  · owed: {o}")
+        for o in owed_stored:
+            print(f"  · owed (a stored record): {o}")
         for e in errs:
             print(f"  ⛔ {e}")
         if a.check is not None:
