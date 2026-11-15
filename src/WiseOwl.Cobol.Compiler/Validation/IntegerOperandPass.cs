@@ -215,7 +215,7 @@ internal static class IntegerOperandRules
     internal static readonly IReadOnlyDictionary<Type, string> LiteralOnlySlots = new Dictionary<Type, string>
     {
         [typeof(Core.SendAdvancingPhraseContext)] =
-            "the phrase's identifier-3 alternative is a dataReference, which reads a constant-name (WRITE's writeBeforeAfter is the same shape)",
+            "the phrase's identifier-3 alternative is a sendIdentifier, whose dataReference reads a constant-name (WRITE's writeBeforeAfter is the same shape)",
         [typeof(Core.MemorySizeClauseContext)] = Removed85,
         [typeof(Core.SegmentLimitClauseContext)] = Removed85,
         [typeof(Core.MultipleFileTapeEntryContext)] = Removed85,

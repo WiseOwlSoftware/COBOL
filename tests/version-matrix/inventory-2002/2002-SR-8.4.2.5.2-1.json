@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.5.2-1",
+ "rule-digest": "c2cc00a7c895",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom",
+ "test-ref": "conformance:cases/8.4.2.1@2002-Identifier/pb5603-send-identifier-formats",
+ "notes": "Same text as the 2023 twin SR-8.4.3.5.3-1 (CONFORMS). kb/Work PB5603: the object-view stands as the inline receiver in SEND FROM and WITH; identifier-1 of each view (OB, OU) is of class object."
+}

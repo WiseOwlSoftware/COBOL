@@ -31,15 +31,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class InlineMethodInvocationOperandDriftTests
 {
-    private static readonly string[] GrammarFiles =
-    [
-        "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
-        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4",
-        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
-        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4",
-        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4",
-        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4",
-    ];
+    /// <summary>⛔ EVERY PARSER GRAMMAR, READ FROM THE DIRECTORY, NEVER LISTED (kb/Work PB5603): a hand-kept list of six files left the
+    /// communication, report writer, screen, special-names, declined-facility and word grammars unscanned, so the communication SEND's
+    /// operand rule offered a function-identifier and no inline method invocation and this guard never saw it.</summary>
+    private static IEnumerable<string> GrammarFiles() => UserWordSlotDriftTests.ParserGrammars();
 
     /// <summary>The rule whose own DEFINITION is <c>functionCall</c>, the one that defines Format 4, and Format 4's
     /// own receiver's TERM <c>objectReferenceTerm</c> (kb/Work PB1425) — a rule cannot be asked to offer itself as an
@@ -58,10 +53,8 @@ public sealed class InlineMethodInvocationOperandDriftTests
     private static Dictionary<string, string> LoadRules()
     {
         var rules = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (string rel in GrammarFiles)
+        foreach (string path in GrammarFiles())
         {
-            string path = TestRepo.Within("src/WiseOwl.Cobol.Frontend/Grammar/", rel);
-            Assert.True(File.Exists(path), $"grammar file '{rel}' not found — if it moved, move this guard");
             string g4 = File.ReadAllText(path);
             g4 = Regex.Replace(g4, @"/\*.*?\*/", " ", RegexOptions.Singleline);
             g4 = Regex.Replace(g4, @"//[^\n]*", " ");

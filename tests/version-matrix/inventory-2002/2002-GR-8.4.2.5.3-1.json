@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.5.3-1",
+ "rule-digest": "c83d976d8d3b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/CompilerTemps.cs#ForObjectView",
+ "test-ref": "conformance:cases/8.4.2.1@2002-Identifier/pb5603-send-identifier-formats",
+ "notes": "Same text as the 2023 twin GR-8.4.3.5.4-1 (CONFORMS). kb/Work PB5603: `OU AS RQ5603C :: \"GETY\"` resolves GETY at compile time through the view's class description, though OU is a universal reference, and SEND transmits its DEF."
+}
