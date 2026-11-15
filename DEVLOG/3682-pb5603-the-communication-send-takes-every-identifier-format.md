@@ -1,4 +1,4 @@
-## PB5603: the communication SEND takes every identifier format in FROM, WITH and ADVANCING
+## Entry 3682 — 2026-11-15 06:17 PST — PB5603: the communication SEND takes every identifier format in FROM, WITH and ADVANCING
 
 **Mechanism.** At `--std 2002` the communication SEND statement (§2002:A.2.6) refused `SEND CD FROM OB :: "GETX"` (COBOL0001) and `AFTER ADVANCING FUNCTION MOD (5 3) LINES` (COBOL5506). Its grammar wrote three operand rules of its own: `sendText` offered a function-identifier and no inline method invocation, and `sendIndicator` and `sendAdvancingPhrase` offered only a data reference. Identifier-1, identifier-2 and identifier-3 are identifiers, and §2002:8.4.2.1.1 gives the identifier both a function-identifier format and an inline-method-invocation format. The guard that pairs the two formats, `InlineMethodInvocationOperandDriftTests`, read a hand-kept list of six grammar files. That list left out the communication grammar and five others, so the guard never saw `sendText`.
 
@@ -9,3 +9,4 @@
 **Goldens.** `cases/8.4.2.1@2002-Identifier/pb5603-send-identifier-formats` sends one portion through an inline invocation, then a portion whose FROM is a class view of a universal reference and whose WITH is an interface view returning 2 (EMI), with an integer function in ADVANCING. A third SEND puts an inline invocation in ADVANCING. The test then receives `ABCDEF` and `GHI`. At 85 the same program is refused by the function placement gate. Two refusals at 2002 pin SR3: `pb5603-send-with-integer-function` and `pb5603-send-with-constant-name` (COBOL6171).
 
 **Rows.** Six 2002 rows re-verdicted CONFORMS, which takes the 2002 GAP from 2562 to 2556: `2002-GR-8.4.2.1.3-1`, `2002-SR-8.4.2.4.2-2`, `2002-SR-8.4.2.5.2-1`, `2002-GR-8.4.2.5.3-1`, `2002-GR-8.4.2.5.3-6` and `2002-GR-8.4.2.5.3-7`. They are not in `closes_rows`, because `work.py check` refuses 2002 ids there (PB5094).
+
