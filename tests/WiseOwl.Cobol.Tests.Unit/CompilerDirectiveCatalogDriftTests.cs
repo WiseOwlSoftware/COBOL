@@ -246,13 +246,12 @@ public sealed class CompilerDirectiveCatalogDriftTests
             $"these directive lines violate their own general format and are accepted in silence: "
             + $"[{string.Join(", ", silent)}] — the PB794 under-rejection has returned");
         // The exemptions are NAMED, so growing the set is a visible edit rather than a quiet one.
-        Assert.Equal(["flag-85-directive-window", "flag-native-arithmetic-directive-window", "page-directive-2002"],
-            exempt.Order(StringComparer.Ordinal));
+        Assert.Equal(["page-directive-2002"], exempt.Order(StringComparer.Ordinal));
     }
 
     /// <summary>The operand spelling a row's general format does not admit, derived from the row: a word the closed
     /// set does not admit, or nothing where the format requires an operand; null when no malformed operand exists
-    /// (PAGE's comment-text-1, §2023:7.3.19.3 SR2, and the two removed FLAG windows).</summary>
+    /// (PAGE's comment-text-1, §2023:7.3.19.3 SR2).</summary>
     private static string? MalformedOperandOf(DirectiveOperandSyntax s) => s.Form switch
     {
         // A word the set does not admit — for >>CALL-CONVENTION that is an undefined call-convention-name,
@@ -305,7 +304,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
     private static readonly Dictionary<string, (string Code, string Conforming)> StageOwners = new()
     {
         [nameof(TurnDirectiveProcessor)] = ("COBOL0718", "EC-ALL CHECKING ON"),
-        [nameof(FlagDirectiveProcessor)] = ("COBOL1622", "ALL ON"),
+        [nameof(FlagDirectiveProcessor)] = ("COBOL1622", "ON"),   // "ON" is conforming to all four FLAG directives (ALL, the default, is optional)
         [nameof(CobolWordsDirectiveProcessor)] = ("COBOL1623", "RESERVE \"ZQXWORD\""),
     };
 
