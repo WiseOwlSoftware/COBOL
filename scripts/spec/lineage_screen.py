@@ -1,36 +1,37 @@
 #!/usr/bin/env python3
-"""THE RULE STAGE'S SCREEN: which candidate pairs of an older edition may be KEPT by rule (kb/Work PB5589, PB5584).
+"""THE LINEAGE SCREEN: which candidate pairs of an older edition are FLAGGED, because their identical words are known to
+govern something else in the older edition (kb/Work PB5589, PB5584).
 
     python scripts/selftests/spec/lineage_screen/test_screen.py   # its cases (the case layout, kb/Work PB5428)
     python scripts/spec/lineage_screen.py --write [YEAR]       # docs/rearchitecture/spec-lineage-screen-<year>.json
-    python scripts/spec/lineage_screen.py --check [YEAR]       # stale, or a judgment table that no longer fits: RED
+    python scripts/spec/lineage_screen.py --check [YEAR]       # stale, an unanswered flag, a lost fixture pair: RED
     python scripts/spec/lineage_screen.py --measure YEAR --labels 'GLOB'   # each trigger against labelled sample reads
 
-DESIGN-spec-conformance-review.md section 10.5 is the design. In short: a pair of the candidate pairing
-(`lineage.candidates`) has the same construct, kind and words in both editions, and still need not state the same
-requirement. Its meaning can rest on a clause no catalog row holds (a PENDING clause, such as §2002:8.8.1.3.2's standard
-arithmetic), on a definition the newer edition changed or no longer gives, on a behaviour the compiler switches between the
-editions, on its band of formats, or on the rows its clause has around it. Each such cause is a TRIGGER, and THE TRIGGERS
-ARE DATA: one table per older edition (`scripts/spec/data/lineage-screen-<year>.json`, `triggers`), each row naming its
-`mechanism` (one of `MECHANISMS`, the only code), its parameters, its `source` (the field, clause or register it reads) and
-the `reason` an excluded row is written with. A new trigger that an existing mechanism computes is a row; a new mechanism is
-one function in `MECHANISMS` and its self-test arm. A row whose `mechanism` is null is a NAMED EMPTY SLOT: it marks
-nothing, and the writer refuses to write a batch while one exists (`empty_slots`), because a screen with a known hole
-would let through exactly the rows the hole was named for.
+DESIGN-spec-conformance-review.md section 10.5 is the design. A pair of the candidate pairing (`lineage.candidates`) has
+the same construct, kind and words in two editions. That does NOT make it the same requirement: each edition's rule is
+judged on its own edition's text, and every pair is decided by a READ (an agent reads the older rule in its own text and a
+refuter attacks the decision; `audit_batch.py change-batch --edition YEAR --state DIR` writes only such decisions). Two
+blind samples measured it: of 100 pairs this screen leaves unmarked, 13 were different and 3 doubtful.
 
-Two kinds of trigger: `at: "text"` triggers read the two editions' texts and catalogs only, and their marks are COMMITTED
-(the screen file, `spec-lineage-triggers-<year>.json`), and the LINEAGE SCREEN audit refuses a stored rule-stage KEPT
-record (`RULE_STAGE_SOURCE`) on a rule the committed screen marks; `at: "view"` triggers read the next edition's computed rows (a target that is not CONFORMS and OK, a band
-that does not name the older edition), which move with every landing, so the writer evaluates them when it writes.
+What the screen does is FLAG the pairs whose words are known to reach further in the older edition than the words alone
+show: a rule whose meaning rests on a clause of the older text no catalog row holds (a PENDING clause, such as
+§2002:8.8.1.3.2's 32-digit standard arithmetic), on a term the older definitions clause defines, on a behaviour the compiler
+switches by edition, on a band of formats, on a record entry the older edition lets a CD entry hold, or on rules it names
+without stating. A flag is a question the read must answer: a change record for a flagged pair stands only when its
+decision answers each flag by the trigger's name, with why the older rule still states that requirement (`next.answers`,
+`unanswered`), which the writer and this module's `--check` refuse otherwise.
 
-The KEPT WRITER is `audit_batch.py change-batch --edition YEAR` with no `--state` (`rule_stage`): one record per pair that
-no trigger marks, its `source` RULE_STAGE_SOURCE; every other pair is listed with each trigger that marks it and that
-trigger's reason. The pending-clause diff (P0) is the mechanism `pending-clause`: each pending clause of the older catalog
-(`outside-denominator.pending-clauses`) against its newer counterpart (the table's `pending` judgment, else the newer clause
-of the same title nearest in words), word-diffed on its own body, or on its subtree where either side's own body is only
-an anchor over its subclauses, and classed identical, near (ratio >= NEAR), changed or removed. A changed or removed
-clause, or a near one the table promotes, marks every pair whose rule lies under a clause it `governs` or whose text
-matches a pattern it `invokes`.
+THE TRIGGERS ARE DATA: one table per older edition (`scripts/spec/data/lineage-screen-triggers-<year>.json`, `triggers`), each
+row naming its `mechanism` (one of `MECHANISMS`, the only code), its parameters, its `source` and the `reason` its flag
+gives. A new trigger an existing mechanism computes is a row; a new mechanism is one function in `MECHANISMS` and its
+case in the test file. A row with `"measured-only": true` is computed and scored against the labels and flags nothing.
+
+UNKNOWN FAILS CLOSED: a changed or removed pending clause the table does not judge flags every pair under its own clause
+and every pair whose text names its title, and a dialect behaviour of the window the table places in no clause flags
+every pair; each is printed by `--check` as owed, and neither turns the gate red. The REGRESSION FIXTURE
+(`tests/version-matrix/lineage-screen-labels-<year>.json`) pins what the screen catches, never that it suffices: `--check`
+fails when a DIFFERENT pair of a sample marked `caught` goes unflagged, and reports how many of the known misses (a
+sample marked `known-misses`) the triggers now flag.
 """
 from __future__ import annotations
 
@@ -63,36 +64,42 @@ FACTS = "tests/doc-facts/compiler-facts.json"
 
 
 def table_path(year: int) -> pathlib.Path:
-    return REPO / "scripts" / "spec" / "data" / f"rule-stage-triggers-{year}.json"
-
-
-#: The `source` of every change record the rule stage writes (`audit_batch.py change-batch --edition` with no audit run):
-#: a pair of the candidate pairing that no excluding trigger marks. The LINEAGE SCREEN audit refuses a stored record of this
-#: source on a rule the committed screen marks (`rule_stage_refusals`), so a trigger added to the table withdraws, by name,
-#: every record it no longer admits.
-RULE_STAGE_SOURCE = "lineage-rule-stage"
+    return REPO / "scripts" / "spec" / "data" / f"lineage-screen-triggers-{year}.json"
 
 
 def screen_path(year: int) -> pathlib.Path:
     """The committed screen of the older edition `year`'s candidate pairs (`--write`)."""
-    return REPO / "docs" / "rearchitecture" / f"spec-lineage-triggers-{year}.json"
+    return REPO / "docs" / "rearchitecture" / f"spec-lineage-screen-{year}.json"
 
 
-def rule_stage_refusals(rows: Iterable[dict[str, Any]], screen: dict[str, Any] | None) -> list[str]:
-    """Why a stored rule-stage record of `rows` (an older edition's) no longer stands: its rule is marked by the committed
-    `screen` (None when the edition has none: then no rule-stage record may exist), by trigger and detail."""
-    marks = (screen or {}).get("marks", {})
+def committed(year: int) -> dict[str, Any] | None:
+    """The committed screen of `year`, or None when the edition has no trigger table (then nothing is flagged)."""
+    path = screen_path(year)
+    if not table_path(year).exists():
+        return None
+    if not path.exists():
+        raise SystemExit(f"lineage_screen: {year} has a trigger table and no committed screen: run --write {year}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def unanswered(rows: Iterable[dict[str, Any]], screen: dict[str, Any] | None) -> list[str]:
+    """Why a change record of `rows` (store rows or batch records: `rule-id` and `next`) does not stand against `screen`:
+    its pair is flagged, and its decision does not answer every flag by the trigger's name with a reason
+    (`next.answers`). An answer to a trigger that flags nothing is refused too: it answers a question nobody asked."""
+    flags = (screen or {}).get("marks", {})
     out = []
     for r in rows:
         nxt = r.get("next") or {}
-        if nxt.get("source") != RULE_STAGE_SOURCE:
+        if not nxt.get("kind"):
             continue
-        if screen is None:
-            out.append(f"{r['rule-id']}: a rule-stage record, and its edition has no screen (lineage_screen.py)")
-        elif r["rule-id"] in marks:
-            why = "; ".join(f"{k}: {v}" for k, v in marks[r["rule-id"]].items())
-            out.append(f"{r['rule-id']}: a rule-stage {nxt.get('kind')} record on a rule the screen marks ({why}): "
-                       f"withdraw it; the pair is judged with what marks it")
+        answers = nxt.get("answers") or {}
+        asked = flags.get(r["rule-id"], {})
+        if missing := [n for n in asked if not str(answers.get(n) or "").strip()]:
+            out.append(f"{r['rule-id']}: a {nxt['kind']} record on a pair the screen flags, whose decision does not answer "
+                       f"{missing} (" + "; ".join(f"{n}: {asked[n]}" for n in missing) + "): the read answers each flag in "
+                       "next.answers, by trigger, with why the older rule still states that requirement")
+        if stray := sorted(set(answers) - set(asked)):
+            out.append(f"{r['rule-id']}: next.answers answers {stray}, which do not flag the pair")
     return out
 
 
@@ -195,7 +202,7 @@ def pending_diff(pending: Iterable[str], older: Clauses, newer: Clauses,
 
 
 def marking(diff: dict[str, dict[str, Any]], judged: dict[str, dict[str, Any]]) -> list[str]:
-    """The pending clauses whose dependents are marked: every changed or removed one, and a near one the table judged."""
+    """The pending clauses whose dependents are flagged: every changed or removed one, and a near one the table judged."""
     return [c for c, d in diff.items() if d["class"] in (CHANGED, REMOVED) or (d["class"] == NEAR_CLASS and c in judged)]
 
 
@@ -322,7 +329,7 @@ class Screen:
     def of(cls, year: int, table: dict[str, Any] | None = None) -> "Screen":
         ed = edition(year)
         if ed.next_held is None:
-            raise SystemExit(f"lineage_screen: {year} is the newest held edition; it has no rule stage")
+            raise SystemExit(f"lineage_screen: {year} is the newest held edition; it has no candidate pairs to screen")
         loaded: dict[int, Clauses] = {}
         texts: dict[int, str] = {}
 
@@ -417,16 +424,32 @@ def _pending_clause(s: Screen, p: dict[str, Any]) -> Marks:
     judged = s.table.get("pending", {})
     out: dict[str, list[str]] = {}
     for c in marking(s.diff, judged):
-        j = judged.get(c)
-        if j is None:
-            raise SystemExit(f"lineage_screen: the pending clause {c} is {s.diff[c]['class']} and the table has no judgment "
-                             f"of what it governs (pending.{c}): add one (lineage_screen.py --check names every such clause)")
+        j = judged.get(c) or undecided_judgment(c, s.diff[c]["title"])
         rxs = [re.compile(r, re.I) for r in j["invokes"]]
+        tag = f"§{s.year}:{c} ({s.diff[c]['class']}" + (", undecided)" if c not in judged else ")")
         for x in s.pairs:
             r = s.rules[x["rule-id"]]
             if any(section_matches(g, r["section"]) for g in j["governs"]) or any(rx.search(r["text"]) for rx in rxs):
-                out.setdefault(x["rule-id"], []).append(f"§{s.year}:{c} ({s.diff[c]['class']})")
+                out.setdefault(x["rule-id"], []).append(tag)
     return {k: ", ".join(v) for k, v in out.items()}
+
+
+def undecided_judgment(clause: str, title: str) -> dict[str, Any]:
+    """UNKNOWN FAILS CLOSED: what a changed or removed pending clause the table does not judge governs, until it does:
+    every rule under the clause itself and every rule whose text names the clause's title."""
+    return {"governs": [clause], "invokes": [rf"\b{re.escape(title)}\b"] if title.strip() else []}
+
+
+def undecided(s: Screen) -> list[str]:
+    """What the table owes: each changed or removed pending clause it does not judge, and each behaviour of the window
+    it places in no clause, both flagged fail-closed meanwhile (`--check` prints them; neither is a red gate)."""
+    judged, sections = s.table.get("pending", {}), s.table.get("behaviours", {})
+    return ([f"pending clause §{s.year}:{c} ({d['class']}) has no judgment: it flags every pair under {c} and every "
+             f"pair naming '{d['title']}' until pending.{c} states what it governs"
+             for c, d in s.diff.items() if d["class"] in (CHANGED, REMOVED) and c not in judged]
+            + [f"dialect behaviour {b['id']} (changed in {b['changedIn']}) is placed in no {s.year} clause: it flags every "
+               f"pair until behaviours.{b['id']} names the {s.year} clauses it sits in"
+               for b in behaviour_window(s) if b["id"] not in sections])
 
 
 def behaviour_window(s: Screen) -> list[dict[str, Any]]:
@@ -438,12 +461,10 @@ def _behaviour_switch(s: Screen, p: dict[str, Any]) -> Marks:
     sections = s.table.get("behaviours", {})
     out: dict[str, list[str]] = {}
     for b in behaviour_window(s):
-        if b["id"] not in sections:
-            raise SystemExit(f"lineage_screen: the dialect behaviour {b['id']} changed in {b['changedIn']} and the table "
-                             f"names no {s.year} clause it sits in (behaviours.{b['id']})")
+        placed = sections.get(b["id"])
         for x in s.pairs:
-            if any(section_matches(g, s.rules[x["rule-id"]]["section"]) for g in sections[b["id"]]["sections"]):
-                out.setdefault(x["rule-id"], []).append(b["id"])
+            if placed is None or any(section_matches(g, s.rules[x["rule-id"]]["section"]) for g in placed["sections"]):
+                out.setdefault(x["rule-id"], []).append(b["id"] + ("" if placed else " (unplaced)"))
     return {k: ", ".join(v) for k, v in out.items()}
 
 
@@ -474,7 +495,7 @@ def construct_clause(rule: dict[str, Any], locator: str = "section") -> str:
 
 
 def _clause_identity(s: Screen, p: dict[str, Any]) -> Marks:
-    """WHOLE-CLAUSE IDENTITY: a rule is decidable by rule only when every row of its clause (its general format and every
+    """WHOLE-CLAUSE IDENTITY (measured only): a rule is marked unless every row of its clause (its general format and every
     rule) pairs with exactly one newer rule, all of one newer clause, and that clause has no row the pairing leaves out."""
     kinds = set(p.get("kinds") or ())
     by_pair = {x["rule-id"]: x for x in s.pairs}
@@ -524,33 +545,12 @@ def _construct_reach(s: Screen, p: dict[str, Any]) -> Marks:
             and not confined.search(s.rules[x["rule-id"]]["text"])}
 
 
-#: THE MECHANISMS, by the name a trigger row gives as its `mechanism`. A row's `at` says when it is evaluated: `text`
-#: (committed in the screen file) or `view` (the writer, against the next edition's rows, `view_marks`).
+#: THE MECHANISMS, by the name a trigger row gives as its `mechanism`.
 MECHANISMS: dict[str, Callable[[Screen, dict[str, Any]], Marks]] = {
     "pair-targets": _pair_targets, "pair-match": _pair_match, "text-pattern": _text_pattern,
     "absent-from": _absent_from, "definitions": _definitions, "pending-clause": _pending_clause,
     "behaviour-switch": _behaviour_switch, "listed": _listed, "field-differs": _field_differs,
     "clause-identity": _clause_identity, "construct-reach": _construct_reach}
-VIEW_MECHANISMS = ("target-state", "target-band")
-
-
-def view_marks(trigger: dict[str, Any], pairs: list[dict[str, Any]], year: int, band: str,
-               targets: dict[str, dict[str, Any]]) -> Marks:
-    """An `at: view` trigger over `pairs`: `target-state`, a target whose verdict is not one of `accept` or whose state is
-    not OK; `target-band`, a target whose `editions` band does not name the older edition's spelling `band`."""
-    p, out = trigger.get("params", {}), {}
-    for x in pairs:
-        ts = [targets.get(t, {}) for t in x["to"]]
-        if trigger["mechanism"] == "target-state":
-            bad = [t for t, r in zip(x["to"], ts) if r.get("verdict") not in p["accept"] or r.get("state") != "OK"]
-            if bad:
-                out[x["rule-id"]] = "; ".join(f"{t} {targets.get(t, {}).get('verdict') or '-'}/"
-                                              f"{targets.get(t, {}).get('state') or '-'}" for t in bad)
-        else:
-            bad = [t for t, r in zip(x["to"], ts) if band not in (r.get("editions") or "").split(",")]
-            if bad:
-                out[x["rule-id"]] = "; ".join(f"{t} band {targets.get(t, {}).get('editions') or '-'}" for t in bad)
-    return out
 
 
 def triggers(table: dict[str, Any]) -> list[dict[str, Any]]:
@@ -559,35 +559,28 @@ def triggers(table: dict[str, Any]) -> list[dict[str, Any]]:
     if len(set(names)) != len(names):
         raise SystemExit(f"lineage_screen: the trigger table names a trigger twice ({names})")
     for t in rows:
-        m = t.get("mechanism")
-        if m is not None and m not in MECHANISMS and m not in VIEW_MECHANISMS:
-            raise SystemExit(f"lineage_screen: trigger {t['name']} names the mechanism {m!r}, which is not one of "
-                             f"{sorted(MECHANISMS) + list(VIEW_MECHANISMS)}")
-        if m is not None and not (t.get("reason") or "").strip():
-            raise SystemExit(f"lineage_screen: trigger {t['name']} states no reason for the rows it excludes")
+        if t.get("mechanism") not in MECHANISMS:
+            raise SystemExit(f"lineage_screen: trigger {t['name']} names the mechanism {t.get('mechanism')!r}, which is not "
+                             f"one of {sorted(MECHANISMS)}")
+        if not (t.get("reason") or "").strip():
+            raise SystemExit(f"lineage_screen: trigger {t['name']} states no reason for the pairs it flags")
     return rows
 
 
-def excluding(trigger: dict[str, Any]) -> bool:
-    """Does the trigger bar the pairs it marks? A row with `"excludes": false` is MEASURED only: computed, committed and
-    scored against the labels, never a refusal (whole-clause identity, which bars 83 of the sample's 84 SAME rows)."""
-    return trigger.get("excludes", True)
-
-
-def empty_slots(table: dict[str, Any]) -> list[str]:
-    """The named triggers no mechanism computes yet: while one exists, no batch is written (`audit_batch` refuses)."""
-    return [t["name"] for t in triggers(table) if t.get("mechanism") is None]
+def flagging(trigger: dict[str, Any]) -> bool:
+    """Does the trigger flag the pairs it marks? A row with `"measured-only": true` is computed, committed and scored
+    against the labels and flags nothing (whole-clause identity, which marks 83 of the first sample's 84 SAME pairs)."""
+    return not trigger.get("measured-only", False)
 
 
 def text_marks(s: Screen) -> dict[str, dict[str, str]]:
-    """Every `at: text` trigger's marks: {trigger name: {rule-id: detail}}."""
-    return {t["name"]: MECHANISMS[t["mechanism"]](s, t.get("params", {}))
-            for t in triggers(s.table) if t.get("mechanism") in MECHANISMS}
+    """Every trigger's marks: {trigger name: {rule-id: detail}}."""
+    return {t["name"]: MECHANISMS[t["mechanism"]](s, t.get("params", {})) for t in triggers(s.table)}
 
 
 def screen_document(s: Screen) -> dict[str, Any]:
     marks = text_marks(s)
-    barring = {t["name"] for t in triggers(s.table) if excluding(t)}
+    barring = {t["name"] for t in triggers(s.table) if flagging(t)}
     by_rule: dict[str, dict[str, str]] = {}
     measured: dict[str, dict[str, str]] = {}
     for name, m in marks.items():
@@ -595,89 +588,73 @@ def screen_document(s: Screen) -> dict[str, Any]:
             (by_rule if name in barring else measured).setdefault(rid, {})[name] = detail
     diff = s.diff
     return {"_comment": [
-        f"THE RULE STAGE'S SCREEN of the {s.year} candidate pairs into {s.newer_year} (lineage_screen.py, kb/Work PB5589;",
-        "DESIGN-spec-conformance-review.md section 10.5). `pending`: each pending clause against its newer counterpart",
-        "(class, ratio, the differing word runs); `definitions`: the terms the newer definitions clause defines otherwise",
-        "or not at all; `marks`: each pair a text trigger marks, by trigger, with its detail. The writer (audit_batch.py",
-        "change-batch --edition) refuses every marked pair; the LINEAGE SCREEN audit refuses a stored rule-stage KEPT",
-        "record on a marked rule. `measured`: the marks of the triggers that exclude nothing (`excludes: false`).",
+        f"THE LINEAGE SCREEN of the {s.year} candidate pairs (lineage_screen.py, kb/Work PB5589; DESIGN-spec-conformance-",
+        "review.md section 10.5). It FLAGS pairs; an unflagged pair is not thereby the same requirement, and every pair is",
+        "decided by a read. `pending`: each pending clause against its counterpart (class, ratio, the differing word runs);",
+        "`definitions`: the terms whose definition differs or is not given in the other edition's definitions clause;",
+        "`marks`: each flagged pair, by trigger, with its detail: a change record for it answers each flag (next.answers),",
+        "or audit_batch.py change-batch and lineage_screen.py --check refuse it. `measured`: the marks of the",
+        "measured-only triggers. `labels`: the regression fixture's result. `owed`: the judgments the table owes.",
         f"Regenerate: python scripts/spec/lineage_screen.py --write {s.year}; --check fails when it is stale."],
         "edition": s.year, "next": s.newer_year,
-        "triggers": [{**{k: t.get(k) for k in ("name", "mechanism", "at", "source")}, "excludes": excluding(t)}
+        "triggers": [{**{k: t.get(k) for k in ("name", "mechanism", "source")}, "flags": flagging(t)}
                      for t in triggers(s.table)],
         "counts": {"pairs": len(s.pairs), "marked": len(by_rule), **{n: len(m) for n, m in marks.items()},
                    "pending": {k: sum(1 for d in diff.values() if d["class"] == k)
                                for k in (IDENTICAL, NEAR_CLASS, CHANGED, REMOVED)}},
         "pending": diff, "definitions": s.definitions,
-        "labels": label_findings(s, marks),
+        "labels": label_findings(s, marks), "owed": undecided(s),
         "marks": {rid: by_rule[rid] for rid in sorted(by_rule)},
         "measured": {rid: measured[rid] for rid in sorted(measured)}}
 
 
-#: THE REGRESSION FIXTURE (kb/Work PB5589, PLAN-2002-v3-K0 D1): the pairs a blind sample read whole, each SAME or
-#: DIFFERENT, with the read that decided it. Every DIFFERENT pair must stay marked by a trigger that excludes; a SAME pair
-#: an excluding trigger marks is listed (what the screen costs), never an error.
+#: THE REGRESSION FIXTURE (kb/Work PB5589): samples of pairs read blind and whole, each labelled SAME, DIFFERENT or
+#: DOUBTFUL by the read that decided it, each sample with its EXPECTATION. `caught`: every DIFFERENT pair must stay flagged
+#: (the screen's triggers were built from them). `known-misses`: a later sample's DIFFERENT and DOUBTFUL pairs, which the
+#: screen was not built to catch: `--check` reports how many are flagged, a measure that grows when a trigger row is added,
+#: and fails on none of them. The fixture pins what the screen catches, never that it suffices.
+CAUGHT, KNOWN_MISSES = "caught", "known-misses"
+
+
 def labels_path(year: int) -> pathlib.Path:
-    return REPO / "tests" / "version-matrix" / f"rule-stage-labels-{year}.json"
+    return REPO / "tests" / "version-matrix" / f"lineage-screen-labels-{year}.json"
 
 
-def labels(year: int) -> dict[str, str]:
+def labels(year: int) -> list[dict[str, str]]:
+    """The fixture's cases of `year`, each `{rule-id, verdict, expect}`, every sample in file order."""
     path = labels_path(year)
-    return ({c["rule-id"]: c["verdict"] for c in json.loads(path.read_text(encoding="utf-8"))["cases"]}
-            if path.exists() else {})
+    if not path.exists():
+        return []
+    out = []
+    for sample in json.loads(path.read_text(encoding="utf-8"))["samples"]:
+        if sample["expectation"] not in (CAUGHT, KNOWN_MISSES):
+            raise SystemExit(f"lineage_screen: sample {sample['name']} expects {sample['expectation']!r}, not one of "
+                             f"{[CAUGHT, KNOWN_MISSES]}")
+        out += [{"rule-id": c["rule-id"], "verdict": c["verdict"], "expect": sample["expectation"]} for c in sample["cases"]]
+    return out
 
 
-def label_findings(s: Screen, marks: dict[str, dict[str, str]], got: dict[str, str] | None = None) -> dict[str, Any]:
+def label_findings(s: Screen, marks: dict[str, dict[str, str]], got: list[dict[str, str]] | None = None) -> dict[str, Any]:
     lab = s.labels if got is None else got
-    barring = {t["name"] for t in triggers(s.table) if excluding(t)}
-    fired = {rid: sorted(n for n, m in marks.items() if n in barring and rid in m) for rid in lab}
+    barring = {t["name"] for t in triggers(s.table) if flagging(t)}
+    flagged = {c["rule-id"] for c in lab if any(n in barring and c["rule-id"] in m for n, m in marks.items())}
+    misses = [c for c in lab if c["expect"] == KNOWN_MISSES and c["verdict"] != "SAME"]
     return {"cases": len(lab),
-            "different-unmarked": sorted(r for r, v in lab.items() if v == "DIFFERENT" and not fired[r]),
-            "same-marked": {r: fired[r] for r, v in sorted(lab.items()) if v == "SAME" and fired[r]},
-            "by-trigger": {n: {v: sum(1 for r, x in lab.items() if x == v and r in m) for v in ("DIFFERENT", "SAME")}
-                           for n, m in marks.items()}}
-
-
-def rule_stage(s: Screen, targets: dict[str, dict[str, Any]] | None = None
-               ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, str]]]:
-    """THE RULE STAGE (kb/Work PB5589): `(dispositions, excluded)`. Each candidate pair that no EXCLUDING trigger marks, text
-    or view (`targets`, the next edition's rows by id; the working tree's view by default), is a disposition whose `change`
-    is the chained (KEPT) record into its one target, for `audit_batch.change_records` to write; every other pair is in
-    `excluded` with each trigger that marks it and that trigger's reason and detail. A named empty slot refuses: a screen
-    with a known hole would admit exactly the pairs it was named for."""
-    if slots := empty_slots(s.table):
-        raise SystemExit(f"lineage_screen: the trigger table's slot(s) {slots} have no mechanism yet; no rule-stage batch is "
-                         "written until each is built")
-    if targets is None:
-        import inventory_view  # noqa: PLC0415  (the next edition's computed rows)
-        targets = {r["rule-id"]: r for r in inventory_view.inventory(s.newer_year)}
-    band = edition(s.year).spelling
-    rows = {t["name"]: t for t in triggers(s.table) if excluding(t)}
-    marks = {n: m for n, m in text_marks(s).items() if n in rows}
-    marks.update({n: view_marks(t, s.pairs, s.year, band, targets) for n, t in rows.items()
-                  if t["mechanism"] in VIEW_MECHANISMS})
-    chained = inventory_schema.load_schema().next.chained.name
-    disp: dict[str, dict[str, Any]] = {}
-    excluded: dict[str, dict[str, str]] = {}
-    for x in s.pairs:
-        hits = {n: f"{rows[n]['reason']} ({m[x['rule-id']]})" for n, m in marks.items() if x["rule-id"] in m}
-        if hits:
-            excluded[x["rule-id"]] = hits
-        else:
-            disp[x["rule-id"]] = {"change": {"kind": chained, "to": x["to"], "reason": (
-                f"The {s.year} rule's words are the {s.newer_year} rule's (lineage candidates, match {x['match']}), and no "
-                f"trigger of the rule stage's screen marks the pair (spec-lineage-triggers-{s.year}.json).")}}
-    return disp, excluded
+            "different-unflagged": sorted(c["rule-id"] for c in lab
+                                          if c["expect"] == CAUGHT and c["verdict"] == "DIFFERENT" and c["rule-id"] not in flagged),
+            "known-misses-flagged": f"{sum(1 for c in misses if c['rule-id'] in flagged)} of {len(misses)}",
+            "same-flagged": sorted({c["rule-id"] for c in lab if c["verdict"] == "SAME" and c["rule-id"] in flagged}),
+            "by-trigger": {n: {v: sum(1 for c in lab if c["verdict"] == v and c["rule-id"] in m)
+                               for v in ("DIFFERENT", "DOUBTFUL", "SAME")} for n, m in marks.items()}}
 
 
 def table_errors(s: Screen) -> list[str]:
-    """Why the judgment table no longer fits the texts: a changed or removed pending clause it does not judge, a judgment
-    of a clause that is identical or not pending, a behaviour of the window with no clause, or one outside it."""
+    """Why the judgment table no longer fits the texts: a judgment of a clause that is identical or not pending, a
+    judgment with no why, a behaviour placed that did not change in the window, or a `caught` fixture pair unflagged. (What
+    the table does not yet judge is `undecided`: flagged fail-closed, printed, never red.)"""
     errs = []
     judged = s.table.get("pending", {})
     for c, d in s.diff.items():
-        if d["class"] in (CHANGED, REMOVED) and c not in judged:
-            errs.append(f"pending clause §{s.year}:{c} is {d['class']} and pending.{c} does not judge what it governs")
         if d["class"] == IDENTICAL and c in judged:
             errs.append(f"pending.{c} judges a clause identical to its counterpart: withdraw the judgment")
     for c in sorted(set(judged) - set(s.diff)):
@@ -685,14 +662,11 @@ def table_errors(s: Screen) -> list[str]:
     for c, j in judged.items():
         if not (j.get("why") or "").strip():
             errs.append(f"pending.{c} states no why")
-    lab = s.labels
-    if lab and (missed := label_findings(s, text_marks(s), lab)["different-unmarked"]):
-        errs.append(f"the regression fixture {labels_path(s.year).relative_to(REPO)}: DIFFERENT pair(s) {missed} are marked "
-                    "by no excluding trigger (a trigger that caught them was lost or narrowed)")
+    if s.labels and (missed := label_findings(s, text_marks(s))["different-unflagged"]):
+        errs.append(f"the regression fixture {labels_path(s.year).relative_to(REPO)}: DIFFERENT pair(s) {missed} of a "
+                    "`caught` sample are flagged by no trigger (a trigger that caught them was lost or narrowed)")
     window = {b["id"] for b in behaviour_window(s)}
     sections = s.table.get("behaviours", {})
-    errs += [f"behaviour {b} changed between {s.year} and {s.newer_year} and behaviours.{b} names no clause"
-             for b in sorted(window - set(sections))]
     errs += [f"behaviours.{b} names a behaviour that did not change between {s.year} and {s.newer_year}"
              for b in sorted(set(sections) - window)]
     return errs
@@ -705,7 +679,7 @@ def screened_years() -> list[int]:
 
 
 def measure(year: int, pattern: str, among: str | None) -> int:
-    """Each text trigger against labelled sample reads (`cases` with `rule-id` and `verdict` SAME or DIFFERENT): how many
+    """Each trigger against labelled sample reads (`cases` with `rule-id` and `verdict`): how many
     of each label it marks, and, with `among` (a JSON list of rule ids), how many of those it marks."""
     labels: dict[str, str] = {}
     for f in sorted(glob.glob(pattern)):
@@ -719,23 +693,24 @@ def measure(year: int, pattern: str, among: str | None) -> int:
     tally = {v: sum(1 for x in labels.values() if x == v) for v in sorted(set(labels.values()))}
     print(f"labelled {len(labels)} {tally}" + (f"; pool {len(pool)}" if pool is not None else ""))
     union: set[str] = set()
-    barring = {t["name"] for t in triggers(s.table) if excluding(t)}
+    barring = {t["name"] for t in triggers(s.table) if flagging(t)}
     for name, m in marks.items():
         hit = {v: sum(1 for r, x in labels.items() if x == v and r in m) for v in tally}
         if name in barring:
             union |= set(m)
         print(f"  {name:22s} marks {len(m):5d}" + (f"  pool {len(pool & set(m)):4d}" if pool is not None else "")
               + "  " + "  ".join(f"{v} {hit[v]}/{tally[v]}" for v in tally))
-    print("  union of the excluding  " + "  ".join(f"{v} {sum(1 for r, x in labels.items() if x == v and r in union)}/{tally[v]}"
+    print("  union of the flagging   " + "  ".join(f"{v} {sum(1 for r, x in labels.items() if x == v and r in union)}/{tally[v]}"
                                              for v in tally) + (f"  pool {len(pool & union)}" if pool is not None else ""))
     return 0
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="The rule stage's screen of an older edition's candidate pairs (kb/Work PB5589).")
+    ap = argparse.ArgumentParser(description="The lineage screen of an older edition's candidate pairs (kb/Work PB5589).")
     ap.add_argument("--write", type=int, nargs="?", const=0, metavar="YEAR")
     ap.add_argument("--check", type=int, nargs="?", const=0, metavar="YEAR",
-                    help="fail when the committed screen is stale or the judgment table no longer fits; with no YEAR, "
+                    help="fail when the committed screen is stale, the judgment table no longer fits, a stored record "
+                         "leaves a flag unanswered or a caught fixture pair is unflagged; with no YEAR, "
                          "every held edition with a trigger table: the gate's LINEAGE SCREEN audit")
     ap.add_argument("--measure", type=int, metavar="YEAR")
     ap.add_argument("--labels", help="with --measure: a glob of labelled sample reads")
@@ -757,10 +732,12 @@ def main(argv: list[str] | None = None) -> int:
         errs = table_errors(s)
         if a.check is not None:
             import inventory_view  # noqa: PLC0415  (the stored records of the edition)
-            errs += rule_stage_refusals(inventory_view.inventory(y), doc)
-        slots = empty_slots(s.table)
-        print(f"{y} -> {s.newer_year}: pairs {len(s.pairs)}, marked {doc['counts']['marked']}; pending "
-              f"{doc['counts']['pending']}" + (f"; EMPTY SLOT(S) {slots}: no batch is written" if slots else ""))
+            errs += unanswered(inventory_view.inventory(y), doc)
+        print(f"{y}: pairs {len(s.pairs)}, flagged {doc['counts']['marked']}; pending {doc['counts']['pending']}; "
+              f"fixture: caught pairs unflagged {len(doc['labels']['different-unflagged'])}, known misses flagged "
+              f"{doc['labels']['known-misses-flagged']}")
+        for o in doc["owed"]:
+            print(f"  · owed: {o}")
         for e in errs:
             print(f"  ⛔ {e}")
         if a.check is not None:
