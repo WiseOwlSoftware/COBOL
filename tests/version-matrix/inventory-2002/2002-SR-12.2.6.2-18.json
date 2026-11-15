@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-18",
+ "rule-digest": "a775211240be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#CurrencyOperandOf; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#SwitchBindCurrency",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb5595-currency-hexadecimal-literal-7-bare-2002",
+ "notes": "Same text as the 2023 twin SR-12.3.7.3-18 (CONFORMS). CurrencyOperandOf refuses a figurative constant, numeric, boolean and NULL literal-7; the hexadecimal X\"40\" literal-7 of the golden is an alphanumeric literal and is accepted at 2002 (kb/Work PB5595: the 2014 SR19 requiring PICTURE SYMBOL for a hexadecimal literal-7 is gated from 2014, and the 2002 text has no such rule)."
+}

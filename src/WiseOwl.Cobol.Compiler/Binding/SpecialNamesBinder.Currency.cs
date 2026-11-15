@@ -26,7 +26,7 @@ public sealed partial class SpecialNamesBinder
     /// <param name="Name">The standard's name for the operand.</param>
     /// <param name="Rule">The syntax rule, "SR18" / "SR26".</param>
     /// <param name="Requirement">The rule's own words, for the diagnostic.</param>
-    /// <param name="RefusesHexadecimal">True when a literal in hexadecimal format is refused outright (SR26). A
+    /// <param name="RefusesHexadecimal">True when a literal in hexadecimal format is refused outright (SR26, from the 2014 text). A
     /// hexadecimal literal-7 is the opposite: SR19 REQUIRES the PICTURE SYMBOL phrase for it and NOTE 1 exempts its
     /// content from the compile-time currency-string limitations.</param>
     private sealed record CurrencyOperand(string Name, string Rule, string Requirement, bool RefusesHexadecimal)
@@ -59,6 +59,9 @@ public sealed partial class SpecialNamesBinder
         string? what;
         string spelling;
         CurrencyLiteral? value = null;
+        // ⛔ Literal-8's hexadecimal refusal first appears in the 2014 text (§2014:12.3.6.2 SR26); §2002:12.2.6.2 SR22 asks an
+        // alphanumeric literal of one character that is no figurative constant, and names no hexadecimal form (kb/Work PB5595).
+        bool refuseHexadecimal = op.RefusesHexadecimal && Edition.DialectLevel >= 2014;
         if (operand.literal() is { } lit)
         {
             var nn = lit.nonNumericLiteral();
@@ -77,7 +80,7 @@ public sealed partial class SpecialNamesBinder
             var cls = OperandLiteralClass(lit);
             what = nn?.figurativeConstant() is not null ? "a figurative constant"
                 : lit.numericLiteral() is not null ? "a numeric literal"
-                : op.RefusesHexadecimal && hex ? "a hexadecimal literal"
+                : refuseHexadecimal && hex ? "a hexadecimal literal"
                 : cls is LiteralClass.Boolean ? "a boolean literal"
                 : null;
             spelling = ConcatFolder.Spelling(lit);
@@ -100,7 +103,7 @@ public sealed partial class SpecialNamesBinder
             {
                 PicCategory.Numeric => "a numeric literal",
                 PicCategory.Boolean => "a boolean literal",
-                _ when op.RefusesHexadecimal && hex => "a hexadecimal literal",
+                _ when refuseHexadecimal && hex => "a hexadecimal literal",
                 _ => null,
             };
             spelling = $"{word.GetText()} (the constant-name for {k.StandsFor})";
@@ -166,10 +169,13 @@ public sealed partial class SpecialNamesBinder
         // Bare form (the COBOL-85 surface): r22 — one character, both string and symbol.
         if (operand7 is not { } bare) return;
         // SR19: a hexadecimal literal-7 (X"…" / NX"…") requires the PICTURE SYMBOL phrase. Detected on the operand's
-        // WRITTEN form (the decoded characters cannot tell the forms apart), by CurrencyOperandOf.
-        if (bare.Hexadecimal)
+        // WRITTEN form (the decoded characters cannot tell the forms apart), by CurrencyOperandOf. ⛔ The rule first appears
+        // in the 2014 text (§2014:12.3.6.2 SR19); §2002:12.2.6.2 has no rule naming a hexadecimal literal-7 (kb/Work PB5595),
+        // so at COBOL-2002 a single-character X"40" is the one-character literal its SR19 asks, and below 2002 the
+        // literal's own introduction gate refuses it.
+        if (bare.Hexadecimal && Edition.DialectLevel >= 2014)
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
-                + "SYMBOL phrase (ISO §2023:12.3.7.3 r19)");
+                + "SYMBOL phrase (ISO " + (Edition.DialectLevel < 2023 ? "§2014:12.3.6.2 SR19" : "§2023:12.3.7.3 SR19") + ")");
         if (bare.Text.Length != 1)
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
@@ -212,7 +218,7 @@ public sealed partial class SpecialNamesBinder
         // the implementor, and Annex A.1 item 43 requires it documented — docs/CONFORMANCE.md DOC-A.1-43 states it: two
         // characters are equivalent exactly when they have the same invariant-culture upper-case mapping. A COBOL character
         // folds by §2023:8.1.3.2 GR3 b), which the same mapping gives (kb/Work PB1092). Change the key and that row together.
-        char key = char.ToUpperInvariant(symbol);
+        char key = CurrencySymbolEquivalence.Fold(symbol, Edition.DialectLevel);
         if (key == '$') Cfg.DollarSpecified = true;   // r25 — a clause named '$' as literal-8: no implied clause
         bool isBound = Cfg.DeclaredCurrencySigns.TryGetValue(key, out var bound);
         if (definition is not { } defined)
@@ -254,36 +260,68 @@ public sealed partial class SpecialNamesBinder
 ///   <item>COBOL-85, §1985:VI.4.5.4 GR11: the digits; "the uppercase letters A, B, C, D, P, R, S, V, X, Z; the lowercase
 ///     letters a through z; or the space"; and <c>* + - , . ; ( ) " =</c> and <c>/</c>. E and N are not picture symbols of
 ///     the 1985 PICTURE clause, so they are legal currency symbols, and every lowercase letter is excluded.</item>
-///   <item>COBOL-2002 onward, §2023:12.3.7.3 SR22 (literal-7) and SR27 (literal-8; §2002:12.2.6.2 SR19 the same list): the
-///     digits; "A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents; or the space"; and the same special
-///     characters.</item>
+///   <item>COBOL-2002 onward, §2002:12.2.6.2 SR19 and SR23, §2014:12.3.6.2 SR22 and SR27, §2023:12.3.7.3 SR22 and SR27
+///     (one list): the digits; "A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents; or the space"; and the
+///     same special characters.</item>
 /// </list>
-/// The letter test goes through the item-43 equivalence (<c>char.ToUpperInvariant</c>), so a non-COBOL character whose
-/// invariant upper case is an excluded letter is excluded with it — the "additional characters prohibited" of §2023:8.1.2
-/// that Annex A.1 item 44 requires documented (docs/CONFORMANCE.md DOC-A.1-44; kb/Work PB1397).
-/// <c>CurrencySymbolExclusionDriftTests</c> pins each row's letters to its rule's text.</summary>
-internal sealed record CurrencySymbolExclusion(string UppercaseLetters, bool EveryLowercaseLetter, string Citation)
+/// ⛔ WHAT "THEIR LOWERCASE EQUIVALENTS" REACHES IS EACH EDITION'S OWN (kb/Work PB5647). Equivalence of case is, at 1985 and
+/// 2002, between COBOL basic letters only (§2002:8.1.2.1 GR3, the Annex D mapping), so a non-COBOL character is excluded by
+/// neither list there: <c>ſ</c> (U+017F), whose invariant upper case is <c>S</c>, is a legal symbol. From 2014 the implementor
+/// specifies the additional characters of the compile-time set (§2014:8.1.1) and the equivalence of a currency symbol that
+/// is not a COBOL character (§2014:12.3.6.2 SR20), so the letter test goes through the item-43 equivalence
+/// (<see cref="CurrencySymbolEquivalence.Fold"/>): a non-COBOL character whose invariant upper case is an excluded letter is excluded with
+/// it — the "additional characters prohibited" of §2023:8.1.2 that Annex A.1 item 44 requires documented
+/// (docs/CONFORMANCE.md DOC-A.1-44; kb/Work PB1397). <c>CurrencySymbolExclusionDriftTests</c> pins each row's letters to
+/// its rule's text.</summary>
+internal sealed record CurrencySymbolExclusion(string UppercaseLetters, bool EveryLowercaseLetter, int Year, string Citation)
 {
     /// <summary>The excluded special characters, the space among them: the same set in every edition.</summary>
     internal const string SpecialCharacters = " +-,.*/;()\"=";
 
     internal static readonly CurrencySymbolExclusion Cobol85 =
-        new("ABCDPRSVXZ", EveryLowercaseLetter: true, "ISO §1985:VI.4.5.4 GR11");
+        new("ABCDPRSVXZ", EveryLowercaseLetter: true, Year: 1985, "ISO §1985:VI.4.5.4 GR11");
 
     internal static readonly CurrencySymbolExclusion Cobol2002 =
-        new("ABCDENPRSVXZ", EveryLowercaseLetter: false, "ISO §2023:12.3.7.3 SR22/SR27");
+        new("ABCDENPRSVXZ", EveryLowercaseLetter: false, Year: 2002, "ISO §2002:12.2.6.2 SR19/SR23");
 
-    /// <summary>The row of the edition <paramref name="year"/>: the 1985 list below COBOL-2002.</summary>
-    internal static CurrencySymbolExclusion For(int year) => year < 2002 ? Cobol85 : Cobol2002;
+    internal static readonly CurrencySymbolExclusion Cobol2014 =
+        Cobol2002 with { Year = 2014, Citation = "ISO §2014:12.3.6.2 SR22/SR27" };
+
+    internal static readonly CurrencySymbolExclusion Cobol2023 =
+        Cobol2014 with { Year = 2023, Citation = "ISO §2023:12.3.7.3 SR22/SR27" };
+
+    /// <summary>The row of the edition <paramref name="year"/>.</summary>
+    internal static CurrencySymbolExclusion For(int year) => year switch
+    {
+        < 2002 => Cobol85,
+        < 2014 => Cobol2002,
+        < 2023 => Cobol2014,
+        _ => Cobol2023,
+    };
 
     internal bool Excludes(char c) =>
         char.IsAsciiDigit(c)
         || SpecialCharacters.Contains(c)
-        || UppercaseLetters.Contains(char.ToUpperInvariant(c))
+        || UppercaseLetters.Contains(CurrencySymbolEquivalence.Fold(c, Year))
         || EveryLowercaseLetter && char.IsAsciiLetterLower(c);
 
     /// <summary>The letters of the row as its diagnostic names them.</summary>
     internal string LetterText => EveryLowercaseLetter
         ? $"the uppercase letters {string.Join(' ', UppercaseLetters.ToCharArray())}, the lowercase letters a through z"
         : $"the picture letters {string.Join(' ', UppercaseLetters.ToCharArray())} (either case)";
+}
+
+/// <summary>⛔ THE CASE EQUIVALENCE OF A CURRENCY SYMBOL, HELD ONCE (kb/Work PB5647): the key of the unit's currency set, the fold
+/// of a PICTURE character-string and the exclusion list's letter test all ask it, so they cannot disagree. A COBOL basic
+/// letter folds by the Annex mapping at every edition (§2002:8.1.2.1 GR3). A character outside the repertoire folds by its
+/// invariant-culture upper case (the implementor's equivalence, DOC-A.1-43) from COBOL-2014, where the text lets the
+/// implementor specify the additional characters and their equivalence (§2014:12.3.6.2 SR20); below 2014 it is equivalent to
+/// no COBOL letter, so <c>ſ</c> (U+017F) is no <c>S</c> and stays the symbol it was written as.</summary>
+internal static class CurrencySymbolEquivalence
+{
+    internal static char Fold(char c, int dialectLevel)
+    {
+        char upper = char.ToUpperInvariant(c);
+        return dialectLevel < 2014 && !char.IsAscii(c) && char.IsAscii(upper) ? c : upper;
+    }
 }

@@ -1,0 +1,9 @@
+## PB5595, PB5647: the CURRENCY SIGN hexadecimal rules and the long-s prohibition are 2014 introductions
+
+Two defects of one file, `SpecialNamesBinder.Currency.cs`, both a 2014 rule asked at every edition.
+
+PB5595: `CURRENCY SIGN IS X"40"` was refused at `--std 2002` with COBOL0890 by SR19 (a hexadecimal literal-7 needs PICTURE SYMBOL), a rule first printed in §2014:12.3.6.2 SR19; §2002:12.2.6.2 names no hexadecimal form. The refusal is now asked from 2014. The sibling in the same file, literal-8's hexadecimal refusal (§2014:12.3.6.2 SR26; §2002:12.2.6.2 SR22 has none), got the same gate in `CurrencyOperandOf`. At 85 the hexadecimal literal is refused by its own introduction gate alone.
+
+PB5647: `CURRENCY SIGN IS "EUR" WITH PICTURE SYMBOL "ſ"` (U+017F) was refused at 2002 because the exclusion test folded with `char.ToUpperInvariant` and ſ folds to `S`. Re-probing showed the same fold in two more places: the currency set's key and the PICTURE fold, so with the exclusion lifted `PIC ſſ9.99` bound as `SS9.99` and displayed `2.50`. The three now ask one function, `CurrencySymbolEquivalence.Fold`: a character outside the repertoire folds to its invariant upper case from 2014 (§2014:8.1.1, §2014:12.3.6.2 SR20) and is equivalent to no COBOL letter below it (§2002:8.1.2.1 GR3). `CurrencySymbolExclusion` has a row per edition (2002, 2014, 2023) with its own citation. DOC-A.1-43 and DOC-A.1-44 state the boundary.
+
+Goldens: `pb5595-currency-hexadecimal-literal-7-bare-2002`, `pb5595-currency-hexadecimal-literal-8-2002`, `pb5647-currency-picture-symbol-long-s-2002`, `pb5647-currency-bare-long-s-85` (accepted); `pb791-currency-hexadecimal-literal-7-without-picture-symbol`, `pb791-currency-hexadecimal-literal-8` and `l1c06-currency-long-s-prohibited` now refuse at 2014 and 2023 only. Rows 2002-SR-12.2.6.2-18, -19 and -23 closed CONFORMS (2002 GAP 2511 to 2508).
