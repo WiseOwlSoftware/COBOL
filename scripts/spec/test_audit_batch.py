@@ -389,9 +389,11 @@ def main() -> int:
         dirty = [p for p in pairs if p["rule-id"] in marks and len(p["to"]) == 1]
         (u, v, x, d), (f, g) = clean[:4], dirty[:2]
 
+        cited_2002 = {r["id"]: r["citation"] for r in inventory_schema.edition(2002).rules()}
+
         def a_read(p: dict, verdict: str = "SAME", **kw: object) -> dict:
             return {"rule-id": p["rule-id"], "to": p["to"], "verdict": verdict, "reason": f"planted {verdict}",
-                    "citations": [{"cite": "§2002:1 GR1", "quote": "q", "check": "OK"}], "probe": None, **kw}
+                    "citations": [{"cite": cited_2002[p["rule-id"]], "check": "OK"}], "probe": None, **kw}
 
         reads = root / "reads"
         reads.mkdir()
