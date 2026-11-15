@@ -1663,11 +1663,25 @@ public static class DiagnosticCatalog
         "COBOL1621", "flag-14-incompatibility", EditionSeverity.Warning,
         "A construct is flagged by an active >>FLAG-14 option — a 2014-to-2023 incompatibility potentially "
         + "affecting existing programs (the specific option + change is named in the message).", "ISO §2023:7.3.15");
+    /// <summary>COBOL7390 — a construct is flagged by an active <c>&gt;&gt;FLAG-85</c> option (§2002:7.2.11.3 GR1: "The
+    /// implementor shall provide a warning mechanism that flags the incompatibilities potentially affecting existing
+    /// programs for the selected option"); a Warning, never a failure (kb/Work PB5600).</summary>
+    public static readonly DiagnosticDescriptor Flag85Warning = new(
+        "COBOL7390", "flag-85-incompatibility", EditionSeverity.Warning,
+        "A construct is flagged by an active >>FLAG-85 option — a 1985-to-2002 incompatibility potentially "
+        + "affecting existing programs (the specific option + change is named in the message).", "ISO §2002:7.2.11");
+    /// <summary>COBOL7391 — an arithmetic operation uses native arithmetic while standard arithmetic is in effect and
+    /// <c>&gt;&gt;FLAG-NATIVE-ARITHMETIC</c> is ON (§2002:7.2.12.3 GR1, GR2; §2002:8.8.1.3); a Warning (kb/Work PB5600).</summary>
+    public static readonly DiagnosticDescriptor FlagNativeArithmeticWarning = new(
+        "COBOL7391", "flag-native-arithmetic-use", EditionSeverity.Warning,
+        "An arithmetic operation uses native arithmetic although standard arithmetic is in effect for the source unit "
+        + "and >>FLAG-NATIVE-ARITHMETIC is ON.", "ISO §2002:7.2.12");
     public static readonly DiagnosticDescriptor FlagDirectiveMalformed = new(
         "COBOL1622", "flag-directive-malformed", EditionSeverity.Error,
-        "A >>FLAG-02 / >>FLAG-14 directive is malformed — an unknown option word, an option word or ALL written "
-        + "more than once (§2023:5.2.6.4), ALL combined with individual options, or an ON/OFF that is not the last word.",
-        "ISO §2023:7.3.14.2 / §2023:7.3.15.2");
+        "A >>FLAG-02 / >>FLAG-14 / >>FLAG-85 / >>FLAG-NATIVE-ARITHMETIC directive is malformed — an unknown option word, "
+        + "an option word or ALL written more than once (§2023:5.2.6.4), ALL combined with individual options, an "
+        + "ON/OFF that is not the last word, or (FLAG-NATIVE-ARITHMETIC) any word but ON or OFF.",
+        "ISO §2023:7.3.14.2 / §2023:7.3.15.2 / §2002:7.2.11.1 / §2002:7.2.12.1");
     // §2023:7.3.10 COBOL-WORDS directive — a malformed directive or a syntax-rule violation. Error: an ill-formed or
     // rule-violating word-modification would silently mis-shape the reserved/context/function word tables.
     public static readonly DiagnosticDescriptor CobolWordsDirectiveInvalid = new(
