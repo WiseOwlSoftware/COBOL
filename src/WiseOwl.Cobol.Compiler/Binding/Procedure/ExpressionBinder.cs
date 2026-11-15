@@ -1181,6 +1181,19 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="BindByValueExpr"/>.</para></summary>
     public BoundExpr BindExpr(IParseTree node) => BindExprCore(node, OperandContext.Arithmetic);
 
+    /// <summary>Bind a SENDING operand of ADD, SUBTRACT, MULTIPLY or DIVIDE: the <c>sendingOperand</c> or <c>arithmeticPhraseOperand</c>
+    /// wrapper, which §2023:14.9.2.2, §2023:14.9.44.2, §2023:14.9.26.2 and §2023:14.9.12.2 print as `identifier | literal`, never an
+    /// arithmetic expression. Identical to <see cref="BindExpr"/> except that a function-identifier written as the whole operand is
+    /// asked the placement rule of COBOL-85 ("may be used only in an arithmetic expression", §1985:IV.4.3.8.3.3 SR4;
+    /// <see cref="IntrinsicBinder.ScreenIdentifierPlacement"/>, kb/Work PB5108). Not <see cref="BindExpr"/> itself: the wrapper
+    /// walk also serves relation and EVALUATE operands, where a function IS an arithmetic expression.</summary>
+    public BoundExpr BindArithmeticStatementOperand(Antlr4.Runtime.ParserRuleContext wrapper)
+    {
+        var bound = BindExpr(wrapper);
+        if (wrapper.GetChild(0) is Core.FunctionCallContext fc) host.Intrinsic.ScreenIdentifierPlacement(fc, bound);
+        return bound;
+    }
+
     /// <summary>Bind an arithmetic expression at a position BOTH index clauses list — SET amounts/values — where an
     /// index-name (§2023:13.18.38.3 r7) and an index data item (§2023:13.18.60.3 SR10) are legal operands (kb/Work R29,
     /// PB215). Identical to <see cref="BindExpr"/> otherwise. A relation or EVALUATE operand is not one (PB2018).</summary>

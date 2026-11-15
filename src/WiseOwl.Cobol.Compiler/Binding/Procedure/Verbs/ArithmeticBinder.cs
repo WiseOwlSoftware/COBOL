@@ -27,7 +27,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindAdd(Core.AddStatementContext add)
     {
         if (add.sendingOperand() is not { Length: > 0 } operands) return host.Corr.BindAddCorresponding(add);   // Format 3 (§2023:14.9.2.2)
-        var addends = operands.Select(host.Expr.BindExpr).ToList();
+        var addends = operands.Select(host.Expr.BindArithmeticStatementOperand).ToList();
         var sizeErr = host.BindSizeError(add.conditionalPhrases());
         var to = add.addToPhrase()?.arithmeticPhraseOperand();
         if (add.arithmeticGivingPhrase() is { } giving)
@@ -67,7 +67,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindSubtract(Core.SubtractStatementContext sub)
     {
         if (sub.sendingOperand() is not { Length: > 0 } operands) return host.Corr.BindSubtractCorresponding(sub);   // Format 3 (§2023:14.9.44.2)
-        var minuends = operands.Select(host.Expr.BindExpr).ToList();
+        var minuends = operands.Select(host.Expr.BindArithmeticStatementOperand).ToList();
         var sizeErr = host.BindSizeError(sub.conditionalPhrases());
         if (sub.subtractFromPhrase()?.arithmeticPhraseOperand() is not { } from)
             // §2023:14.9.44.2 (kb/Work PB134): every SUBTRACT format prints FROM.
@@ -94,7 +94,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (mul.sendingOperand() is not { } aCtx)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "MULTIPLY with no multiplicand: every MULTIPLY format prints identifier-1 or "
                 + "literal-1 after the verb (ISO §2023:14.9.26.2)");
-        var a = host.Expr.BindExpr(aCtx);
+        var a = host.Expr.BindArithmeticStatementOperand(aCtx);
         var byOps = mul.arithmeticPhraseOperand();
         var sizeErr = host.BindSizeError(mul.conditionalPhrases());
         if (mul.arithmeticGivingPhrase() is { } giving)
@@ -115,7 +115,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindDivide(Core.DivideStatementContext div)
     {
         if (div.sendingOperand() is not { } aCtx) return DivideShape();
-        var a = host.Expr.BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
+        var a = host.Expr.BindArithmeticStatementOperand(aCtx);   // INTO: the divisor; BY: the dividend
         var sizeErr = host.BindSizeError(div.conditionalPhrases());
         var into = div.divideIntoPhrase()?.arithmeticPhraseOperand();
         var by = div.divideByPhrase()?.arithmeticPhraseOperand();
@@ -218,7 +218,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // The WRAPPER is bound, so the operand walk's function-call arm fires: passing a raw FunctionCallContext
         // re-springs PB45's trap (the walk descends into the ARGUMENT and drops the function; `ADD 1 TO
         // FUNCTION SQRT(9) GIVING X` computed 1 + 9).
-        return host.Expr.BindExpr(operands[0]);
+        return host.Expr.BindArithmeticStatementOperand(operands[0]);
     }
 
     /// <summary>The operand an <c>arithmeticPhraseOperand</c> writes, without its ROUNDED phrase.</summary>

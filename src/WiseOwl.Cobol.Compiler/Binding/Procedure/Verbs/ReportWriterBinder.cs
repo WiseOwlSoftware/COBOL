@@ -213,7 +213,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     private BoundOperand SourceIdentifierOperand(Antlr4.Runtime.ParserRuleContext identifier) => identifier switch
     {
         Core.DataReferenceContext dref => host.Expr.FieldOperand(dref),
-        Core.FunctionCallContext fc => host.Intrinsic.IntrinsicOperand(fc),
+        // Not IntrinsicOperand: a numeric function here is already the 85 SOURCE row's (report-source-expression-2002, asked by
+        // VersionConformancePass.GateReportSourceFunctions), so the placement screen would report the one operand twice (kb/Work PB5108).
+        Core.FunctionCallContext fc => IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fc), functionValue: true),
         _ => host.Oo.OoIdentifierOperand(identifier),
     };
 

@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: a numeric or integer function-identifier where an identifier is written (not in an arithmetic expression) requires COBOL-2002"}

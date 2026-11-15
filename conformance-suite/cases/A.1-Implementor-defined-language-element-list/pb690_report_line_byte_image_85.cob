@@ -52,6 +52,7 @@
        FD  CHK.
        01  CHK-REC PIC X.
        WORKING-STORAGE SECTION.
+       01  WORD1              PIC 9(9).
        01  WS-EOF  PIC X     VALUE "N".
        01  WS-A    PIC X(3).
        01  WS-N    PIC 9     VALUE 0.
@@ -96,8 +97,9 @@
            IF WS-I = 0
                DISPLAY "LINE " WS-N " BLANK"
            ELSE
+               COMPUTE WORD1 = FUNCTION ORD(WS-LINE(2:1))
                DISPLAY "LINE " WS-N " [" WS-LINE(1:WS-I) "] "
-                   FUNCTION ORD(WS-LINE(2:1))
+                   WORD1
            END-IF.
            MOVE SPACES TO WS-LINE.
            MOVE 0 TO WS-I.
