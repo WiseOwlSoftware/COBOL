@@ -32,6 +32,7 @@ public static class Constructs
     public const string BareGotoRemoved2002 = "bare-goto-removed-2002";
     public const string BasedClause2002 = "based-clause-2002";
     public const string BooleanData2002 = "boolean-data-2002";
+    public const string BooleanLiteral2002 = "boolean-literal-2002";
     public const string BooleanOfInteger2002 = "boolean-of-integer-2002";
     public const string BooleanOperators2002 = "boolean-operators-2002";
     public const string BooleanShiftOperators2023 = "boolean-shift-operators-2023";
@@ -162,6 +163,7 @@ public static class Constructs
     public const string MultipleFileTapeRemoved2002 = "multiple-file-tape-removed-2002";
     public const string NationalData2002 = "national-data-2002";
     public const string NationalEdited2002 = "national-edited-2002";
+    public const string NationalLiteral2002 = "national-literal-2002";
     public const string NextSentenceArchaic2023 = "next-sentence-archaic-2023";
     public const string NotEqualOperator2014 = "not-equal-operator-2014";
     public const string NucleusMoveDisplay = "nucleus-move-display";

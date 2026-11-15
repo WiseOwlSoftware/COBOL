@@ -313,4 +313,43 @@ public sealed class NationalBooleanLiteralTests
         Assert.True(ok, detail);
         Assert.Equal($"A{'\u03A9'}B\nA{'\u03A9'}B", stdout);
     }
+
+    /// <summary>kb/Work PB5535 \u2014 THE EDITION GATE OF A NATIONAL OR BOOLEAN LITERAL NAMES THE LITERAL. Both are COBOL-2002
+    /// introductions (\u00A72023:8.3.3.5.1: "National literals are of the class and category national"; \u00A72023:8.3.3.4.1:
+    /// "Boolean literals are of the class and category boolean"), where a COBOL-85 literal is one of "two types, nonnumeric
+    /// or numeric" (\u00A71985:IV.4.2.2.2). The gate used to report under the DATA rows, so <c>DISPLAY N"AB"</c> at 85 read
+    /// "national data (PICTURE symbol N / USAGE NATIONAL) requires COBOL-2002" of a program that declares no such item. The
+    /// bug is in the words, so the test reads them: below 2002 the diagnostic names the literal's own row, and from 2002
+    /// there is none.</summary>
+    [Theory]
+    [InlineData("N\"AB\"", "the national literal N\"...\"", "national data", 85)]
+    [InlineData("NX\"0041\"", "the national literal N\"...\"", "national data", 85)]
+    [InlineData("B\"1\"", "the boolean literal B\"...\"", "boolean data", 85)]
+    [InlineData("BX\"F\"", "the boolean literal B\"...\"", "boolean data", 85)]
+    [InlineData("N\"AB\"", null, null, 2002)]
+    [InlineData("NX\"0041\"", null, null, 2002)]
+    [InlineData("B\"1\"", null, null, 2002)]
+    [InlineData("BX\"F\"", null, null, 2002)]
+    public void LiteralEditionGate_NamesTheLiteral(string literal, string? construct, string? dataConstruct, int edition)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. NBLIT40.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY {literal}.
+                STOP RUN.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, edition);
+        if (construct is null)
+        {
+            Assert.True(ok, string.Join(Environment.NewLine, errors));
+            return;
+        }
+        Assert.False(ok, $"{literal} must be refused at COBOL-{edition}");
+        string gate = Assert.Single(errors, e => e.Contains("COBOL0900"));
+        Assert.Contains($"{construct} requires COBOL-2002", gate);
+        Assert.Contains(literal, gate);
+        Assert.DoesNotContain(dataConstruct!, gate);
+    }
 }

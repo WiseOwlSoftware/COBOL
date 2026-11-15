@@ -1,0 +1,13 @@
+{
+ "id": "boolean-literal-2002",
+ "status": "active",
+ "description": "The boolean literal B\"...\" and its hexadecimal form BX\"...\" (ISO §2023:8.3.3.4: \"Boolean literals are of the class and category boolean\", 8.3.3.4.1). A COBOL-2002 introduction, QUOTED: ANSI X3.23-1985 says \"Every literal belongs to one of two types, nonnumeric or numeric\" (§1985:IV.4.2.2.2). Gated position-blind on the TOKEN by LiteralScreen.GateFormat (kb/Work PB5416), because a literal stands in positions that seed no item. Its own row, apart from boolean-data-2002, so the edition diagnostic names the literal and not the PICTURE 1 / USAGE BIT data the program may not use (kb/Work PB5535).",
+ "display": "the boolean literal B\"...\"",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.3.3.4 (Boolean literals); §2023:8.3.3.4.1; §1985:IV.4.2.2.2 (a COBOL-85 literal is nonnumeric or numeric)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 catalog national/boolean; the literal leg of boolean-data-2002 (kb/Work PB5535)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMBOOLL.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY B\"1\".\n    STOP RUN.\n"
+}
