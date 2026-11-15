@@ -1,4 +1,4 @@
-## PB5679: the rule lineage runs forward: the decision, the switch's requirements, the open questions
+## Entry 3697 — 2026-11-15 13:04 PST — PB5679: the rule lineage runs forward: the decision, the switch's requirements, the open questions
 
 The owner decided on 2026-11-15 that a later COBOL edition includes an earlier edition's rule as is, alters it, removes
 it or adds a new one, so a lineage relation belongs to the later edition's row and names its predecessor. Today every
@@ -18,3 +18,4 @@ PB5684 and analyses PB5692 and PB5693, and notes beside PB5574, PB5583 and PB499
 edition gates (`edition_gates.py --list`) 24 rest outside the lineage, 38 on a 1985 CHANGED or REMOVED record, 198 on a
 2023 rule NEW against 1985 and 52 on 2023 rules a 1985 CHANGED record names. No code, schema data, test or inventory
 record changes.
+
