@@ -100,7 +100,7 @@ public sealed partial class FileControlBinder
                     // The TO phrase is a LIST (§2023:12.4.5.1's ellipsis); which lists are allowable and what one names
                     // is the §2023:12.4.5.2 SR5 determination, read in ONE place (AssignTargetRule, DOC-A.1-71).
                     file.AssignTarget = asg.assignTarget() is { Length: > 0 } tgts
-                        ? AssignTargetRule.Resolve(Edition, _host.LiteralEnv, tgts, name)
+                        ? AssignTargetRule.Resolve(Edition, _host.LiteralEnv, tgts, file)
                         : "";   // bare `ASSIGN USING …`: no device-name-1/literal-1 exists — UNASSOCIATED until an OPEN
                     if (asg.dataReference() is { } dyn)
                     {
@@ -180,7 +180,10 @@ public sealed partial class FileControlBinder
                 // rule screened as written, data-name-1 resolved and screened post-build (ResolveFiles), and both part of
                 // the external file connector's entry identity (kb/Work PB5069, PB5070).
                 else if (clauses.paddingCharacterClause() is { } pad)
+                {
                     file.Padding = CapturePadding(pad);
+                    file.Padding.InEdition = Edition.DialectLevel < 2014;   // deleted from 2014: PaddingCharacterRemoved2014
+                }
                 // RESERVE clause (ISO §2023:12.4.5.14) — integer-1 is the connector's input-output area count
                 // (§2023:12.4.5.14.3 GR1, "If the RESERVE clause is specified, the number of input-output areas allocated
                 // is equal to the value of integer-1"; kb/Work PB643): the emitter tells the connector
