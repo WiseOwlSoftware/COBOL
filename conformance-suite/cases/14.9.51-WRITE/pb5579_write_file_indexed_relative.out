@@ -1,0 +1,6 @@
+FI written 00
+FI invalid 22
+FI read 00 ABC12345
+FR written 00
+FR invalid 22
+FR read 00 REL-REC3

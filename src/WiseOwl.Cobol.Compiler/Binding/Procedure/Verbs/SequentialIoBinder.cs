@@ -136,32 +136,40 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         return BoundImplicitSeries.Of([.. closes.Select(f => (BoundStatement)new BoundClose([f]))]);
     }
 
-    /// <summary>⛔ THE ONE SITE for Annex A.4.13 — the declined <c>FILE file-name-1</c> alternative of
-    /// <c>{ record-name-1 | FILE file-name-1 }</c>, shared by WRITE (§2023:14.9.51.2, both formats) and REWRITE
-    /// (§2023:14.9.35.2). Returns true when the phrase was written, having named it (COBOL1706); the caller
-    /// then yields <see cref="BoundUnsupported"/> without binding.
-    /// <para>Placed BEFORE the sequential/keyed reroute so Format 1 and Format 2 are covered by the same
-    /// check — the alternative is declined for every organization, and a check after the reroute would have
-    /// left the indexed/relative arm undiagnosed. Both verbs call this single helper rather than each
-    /// carrying a copy: the previous shape had WRITE silently IMPLEMENTING the unclaimed module (a live
-    /// <c>else if (w.fileName() …)</c> arm writing the whole record area) while REWRITE fell through to a
-    /// run-time <c>NotImplemented</c> throw whose interpolated record name was EMPTY — one construct, two
-    /// arms, two postures, neither of them the documented one (feedback_two_arm_dispatch).</para>
-    /// <para>The whole-record-area write it replaced was not merely undiagnosed but WRONG: §2023:14.9.51.4 GR8
-    /// derives the implicit record from the DESCRIPTION OF identifier-1, not from the largest record's
-    /// view.</para></summary>
-    private bool DeclinedFilePhrase(Core.FileNameContext? fileName, string verb)
+    /// <summary>⛔ THE ONE SITE of the <c>FILE file-name-1</c> alternative of <c>{ record-name-1 | FILE file-name-1 }</c> (Annex A.4.13,
+    /// kb/Work PB5579), shared by WRITE (§2023:14.9.51.2, both formats) and REWRITE (§2023:14.9.35.2): it resolves file-name-1, asks
+    /// the statements' rule on the file's kind (§2023:14.9.51.3 SR12, §2023:14.9.35.3 SR11) and binds the FROM operand as the
+    /// statement's implicit record (<see cref="MoveBinder.BindFilePhraseRecord"/>). Returns false after reporting; the caller
+    /// yields <see cref="BoundRejected"/>.
+    /// <para>Called BEFORE the sequential/keyed reroute, so Format 1 and Format 2 take the same arm: the record it yields goes to
+    /// the organization's own binder like any record-name-1's. It replaced the refusal this class carried (COBOL1706), and
+    /// before that a live arm that wrote the WHOLE record area, which §2023:14.9.51.4 GR8 does not describe: the implicit record
+    /// has the description of identifier-1, not the largest record's view (feedback_two_arm_dispatch).</para></summary>
+    private bool BindFileFormat(Core.FileNameContext fileName, Core.RecordFromPhraseContext? from, string verb,
+        FromPhraseRules rules, out FileModel file, out Place record)
     {
-        if (fileName is null) return false;
-        ctx.Edition.Declined(DiagnosticCatalog.WriteRewriteFileUnclaimed,
-            $"{verb} FILE {fileName.GetText()}");
+        record = null!;
+        string statementRule = verb == "WRITE"
+            ? "ISO §2023:14.9.51.3 SR12 (§2002:14.8.47.2 SR12)"
+            : "ISO §2023:14.9.35.3 SR11 (§2002:14.8.33.2 SR11)";
+        if (!ctx.Validation.ResolveFile(fileName, verb, out file!, statementRule: statementRule)) return false;
+        if (host.Move.BindFilePhraseRecord(rules, file, from) is not { } implicitRecord) return false;
+        record = implicitRecord;
         return true;
     }
 
-    public BoundStatement BindWrite(Core.WriteStatementContext w)
+    /// <summary>The write file and record of a WRITE: the <c>FILE file-name-1</c> alternative's implicit record
+    /// (<see cref="BindFileFormat"/>) or record-name-1's own (§2023:14.9.51.3 SR5), with the FROM phrase's implicit MOVE as a
+    /// deferred bind (<paramref name="bindFrom"/>: the record-name arm's, null for the FILE arm, whose record IS identifier-1).
+    /// Returns the statement that refuses the operand, or null. Resolved BEFORE the sequential/keyed reroute so both organizations
+    /// are under every rule here (feedback_two_arm_dispatch).</summary>
+    private BoundStatement? ResolveWriteRecord(Core.WriteStatementContext w, out FileModel file, out Place record,
+        out Func<BoundMove?> bindFrom)
     {
-        if (DeclinedFilePhrase(w.fileName(), "WRITE"))                      // Annex A.4.13 item 2) — COBOL1706
-            return BoundRejected.Reported(ctx.Edition);   // Declined REPORTED it; a declined element is not an unbuilt one (PB236)
+        file = null!; record = null!; bindFrom = () => null;
+        if (w.fileName() is { } fileName)   // Annex A.4.13 item 2
+            return BindFileFormat(fileName, w.recordFromPhrase(), "WRITE", FromPhraseRules.WriteFile, out file, out record)
+                ? null : BoundRejected.Reported(ctx.Edition);
         // ⛔ THE record-name-1 IDENTITY RULE IS THE SHARED ONE (kb/Work PB347) — §2023:14.9.51.3 SR5 is RELEASE's
         // §2023:14.9.32.3 SR1 and REWRITE's §2023:14.9.35.3 SR1 written a third time, so all three ask
         // StatementValidation.ResolveRecordName. Its two arms are DIFFERENT diagnoses and are kept apart: a
@@ -169,19 +177,28 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // deferral here, while a reference that resolves but is not a logical record is the SOURCE's error and
         // is refused at bind (§2023:4.2.2 ¶2). Conflated, `WRITE WS-REC` drew only the COBOL1756 deferral
         // warning — the compiler announcing ITS gap for what is the program's mistake.
-        // The call sits BEFORE the `file.IsSequential` reroute below, so the RELATIVE and INDEXED arms are under
+        // The call sits BEFORE the `file.IsSequential` reroute, so the RELATIVE and INDEXED arms are under
         // the rule too and not just this file's sequential one (feedback_two_arm_dispatch).
         if (w.recordName()?.dataReference() is not { } rn)
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText()}' not resolvable to a file");
-        if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } record)
+        if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } resolved)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
-        if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "WRITE",
+        if (!ctx.Validation.ResolveRecordName(resolved, rn.GetText(), "WRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO §2023:14.9.51.3 SR5)",
                 "ISO §2023:14.9.51.3 SR21 — \"If record-name-1 is defined in a containing program and is referenced in a "
                 + "contained program, the file description entry for the file-name associated with record-name-1 shall "
-                + "contain a GLOBAL clause.\"", out var file))
+                + "contain a GLOBAL clause.\"", out file!))
             return BoundRejected.Reported(ctx.Edition);   // ResolveRecordName REPORTED; a refused operand is not an unbuilt one
+        record = resolved;
+        var (f, r) = (file, resolved);
+        bindFrom = () => host.Move.BindFromPhrase(FromPhraseRules.Write, f, r, w.recordFromPhrase()?.sendingOperand());
+        return null;
+    }
+
+    public BoundStatement BindWrite(Core.WriteStatementContext w)
+    {
+        if (ResolveWriteRecord(w, out var file, out var record, out var bindFrom) is { } refused) return refused;
         // §2023:14.9.51.3 SR12's REPORT half (its sort-merge half is UnsupportedOrg's) — kb/Work PB1171.
         if (!ctx.Validation.ScreenReportFileReference(file, "WRITE", "ISO §2023:14.9.51.3 SR12 — \"The file description "
                 + "entry associated with the write file shall not contain the REPORT clause\""))
@@ -190,7 +207,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // for EVERY organization; the emitter routes a lock-relevant statement through the governed runtime entry.
         BoundRecordLock wlock = fileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §2023:14.9.51 SR22 → COBOL1512
         RetrySpec? wretry = fileLock.BindVerbRetry(w.retryPhrase());                                    // §2023:14.7.9 / §2023:14.9.51 GR16
-        if (!file.IsSequential) return keyedIo.BindWrite(w, file, record, wlock, wretry);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
+        if (!file.IsSequential) return keyedIo.BindWrite(w, file, record, wlock, wretry, bindFrom);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
         // §2023:14.9.51.3 SR2 — "If the organization of the write file is sequential, format 1 shall be specified."
         // Format 1 (§2023:14.9.51.2) has no INVALID KEY bracket at all, so the phrase is not admissible on THIS arm.
@@ -247,8 +264,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // kb/Work PB5201: the file's positioning is a property of the PROGRAM (any WRITE of it names ADVANCING), not of the history of the run.
         if (advancing is not null) file.WrittenWithAdvancing = true;
         return new BoundWrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Write, file, record, w.recordFromPhrase()?.sendingOperand()),
-            advancing, UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
+            bindFrom(), advancing, UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
         { Lock = wlock, Retry = wretry, InvalidKey = winvalid };
     }
 
@@ -331,32 +347,46 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         };
     }
 
-    public BoundStatement BindRewrite(Core.RewriteStatementContext rw)
+    /// <summary>The rewrite file and record of a REWRITE, the twin of <see cref="ResolveWriteRecord"/>: the <c>FILE file-name-1</c>
+    /// alternative's implicit record (<see cref="BindFileFormat"/>) or record-name-1's own (§2023:14.9.35.3 SR1).</summary>
+    private BoundStatement? ResolveRewriteRecord(Core.RewriteStatementContext rw, out FileModel file, out Place record,
+        out Func<BoundMove?> bindFrom)
     {
-        if (DeclinedFilePhrase(rw.fileName(), "REWRITE"))                    // Annex A.4.13 item 1) — COBOL1706
-            return BoundRejected.Reported(ctx.Edition);   // Declined REPORTED it; a declined element is not an unbuilt one (PB236)
+        file = null!; record = null!; bindFrom = () => null;
+        if (rw.fileName() is { } fileName)   // Annex A.4.13 item 1
+            return BindFileFormat(fileName, rw.recordFromPhrase(), "REWRITE", FromPhraseRules.RewriteFile, out file, out record)
+                ? null : BoundRejected.Reported(ctx.Edition);
         // §2023:14.9.35.3 SR1 is WRITE's §2023:14.9.51.3 SR5 word for word — but they are two rules that happen to share a
         // sentence, not one rule, so each site quotes its OWN clause and the shared MECHANISM is the helper, not
         // the message (kb/Work PB347). Placed, like WRITE's, BEFORE the `file.IsSequential` reroute, so the
         // relative and indexed arms are under the rule too (feedback_two_arm_dispatch).
         if (rw.recordName()?.dataReference() is not { } rn)
             return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
-        if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } record)
+        if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } resolved)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
-        if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "REWRITE",
+        if (!ctx.Validation.ResolveRecordName(resolved, rn.GetText(), "REWRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO §2023:14.9.35.3 SR1)",
                 "ISO §2023:14.9.35.3 SR3 — \"If record-name-1 is defined in a containing program and is referenced in a "
                 + "contained program, the file description entry for the file associated with record-name-1 shall "
-                + "contain a GLOBAL clause.\"", out var file))
+                + "contain a GLOBAL clause.\"", out file!))
             return BoundRejected.Reported(ctx.Edition);   // ResolveRecordName REPORTED; a refused operand is not an unbuilt one
-        // §2023:14.9.35.3 SR11's REPORT half, asked of the record's file (the FILE format is declined) — kb/Work PB1171.
+        record = resolved;
+        var (f, r) = (file, resolved);
+        bindFrom = () => host.Move.BindFromPhrase(FromPhraseRules.Rewrite, f, r, rw.recordFromPhrase()?.sendingOperand());
+        return null;
+    }
+
+    public BoundStatement BindRewrite(Core.RewriteStatementContext rw)
+    {
+        if (ResolveRewriteRecord(rw, out var file, out var record, out var bindFrom) is { } refused) return refused;
+        // §2023:14.9.35.3 SR11's REPORT half, asked of the record's file (the FILE format asks it in ResolveFile) — kb/Work PB1171.
         if (!ctx.Validation.ScreenReportFileReference(file, "REWRITE", "ISO §2023:14.9.35.3 SR11 — \"File-name-1 shall "
                 + "not reference a report file or a sort-merge file description entry\""))
             return BoundRejected.Reported(ctx.Edition);
         BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §2023:14.9.35 SR4 → COBOL1512
         RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryPhrase());                                      // §2023:14.7.9 / §2023:14.9.35 GR11
-        if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record, rlock, rretry);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
+        if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record, rlock, rretry, bindFrom);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
         // §2023:14.9.35.3 SR2, arm (a) — "Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be
         // specified for a REWRITE statement that references a file with SEQUENTIAL ORGANIZATION". This arm
         // dropped the parsed phrase on the floor with no diagnostic at all, which is a strictly worse shape than
@@ -378,8 +408,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             rinvalid = keyedIo.KeyedInvalidPhrase(rw.conditionalPhrases());
         }
         return new BoundRewrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Rewrite, file, record, rw.recordFromPhrase()?.sendingOperand()),
-            UnsupportedOrg(file, "REWRITE"))
+            bindFrom(), UnsupportedOrg(file, "REWRITE"))
         { Lock = rlock, Retry = rretry, InvalidKey = rinvalid };
     }
 

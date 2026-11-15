@@ -88,7 +88,7 @@ internal sealed record FromPhraseRules(
 
     /// <summary>WRITE (ISO §2023:14.9.51). §2023:14.9.51.3 SR4 is UNCONDITIONAL and stricter than the FILE-less SR11
     /// ("alphanumeric, boolean, or national"), so a conforming program satisfies both only inside SR4's set —
-    /// which is what is enforced. The FILE-phrase arm (SR10) is unreachable: Annex A.4.13 item 2 is declined.</summary>
+    /// which is what is enforced. The FILE phrase has its own row, <see cref="WriteFile"/>.</summary>
     public static readonly FromPhraseRules Write = new(
         "WRITE FROM",
         new("ISO §2023:14.9.51.4 GR5 a); §2023:14.9.51.3 SR6", "§1985:VII.4.7.4 GR3", "§1985:VIII.4.9.4 GR3", "§1985:IX.4.9.4 GR3"),
@@ -100,8 +100,32 @@ internal sealed record FromPhraseRules(
         null,
         RecordAreaVerb.Write);
 
+    /// <summary>WRITE FILE file-name-1 FROM (ISO §2023:14.9.51.3 SR7 - SR10; §2002:14.8.47.2 SR7 - SR10): the FROM operand is the record
+    /// itself, so its function class is SR10's set, "an alphanumeric or national function" - SR4's set, which holds without
+    /// the FILE phrase, is the same (kb/Work PB5579).</summary>
+    public static readonly FromPhraseRules WriteFile = new(
+        "WRITE FILE FROM",
+        new("ISO §2023:14.9.51.4 GR8 (§2002:14.8.47.3 GR5)"),
+        [PicCategory.Alphanumeric, PicCategory.National],
+        new("ISO §2023:14.9.51.3 SR10 (§2002:14.8.47.2 SR10) — \"If identifier-1 references a function and the FILE phrase is "
+            + "specified, identifier-1 shall reference an alphanumeric or national function.\""),
+        null,
+        RecordAreaVerb.Write);
+
+    /// <summary>REWRITE FILE file-name-1 FROM (ISO §2023:14.9.35.3 SR7 - SR12; §2002:14.8.33.2 SR7 - SR12): SR8's set, narrower than
+    /// SR9's (which admits a boolean function) because the FILE phrase is written (kb/Work PB5579).</summary>
+    public static readonly FromPhraseRules RewriteFile = new(
+        "REWRITE FILE FROM",
+        new("ISO §2023:14.9.35.4 GR9 (§2002:14.8.33.3 GR8)"),
+        [PicCategory.Alphanumeric, PicCategory.National],
+        new("ISO §2023:14.9.35.3 SR8 (§2002:14.8.33.2 SR8) — \"If identifier-1 references a function and the FILE phrase is "
+            + "specified, identifier-1 shall reference an alphanumeric or national function.\""),
+        null,
+        RecordAreaVerb.Rewrite);
+
     /// <summary>REWRITE (ISO §2023:14.9.35). §2023:14.9.35.3 SR9's set is the WIDER one — it admits a boolean function —
-    /// and it is the applicable rule because the FILE phrase (SR8's condition) is declined, A.4.13 item 2.</summary>
+    /// and it is the applicable rule where the FILE phrase (SR8's condition) is not written; the FILE phrase has its own row,
+    /// <see cref="RewriteFile"/>.</summary>
     public static readonly FromPhraseRules Rewrite = new(
         "REWRITE FROM",
         new("ISO §2023:14.9.35.4 GR7 a); §2023:14.9.35.3 SR6", "§1985:VII.4.5.4 GR4", "§1985:VIII.4.6.4 GR5", "§1985:IX.4.6.4 GR5"),
@@ -392,6 +416,26 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
 
     // ── The … FROM and … INTO phrases (kb/Work PB348) ───────────────────────────────────────────────────────
 
+    /// <summary>The FUNCTION-IDENTIFIER class restriction of a FROM phrase (<see cref="FromPhraseRules.FunctionCategories"/>): a SET per
+    /// verb because the rules name different sets — RELEASE §2023:14.9.32.3 SR2 and WRITE §2023:14.9.51.3 SR4 admit "an
+    /// alphanumeric or national function"; REWRITE §2023:14.9.35.3 SR9 admits "an alphanumeric, boolean, or national function"
+    /// when the FILE phrase is not specified, and the FILE phrase's rows (<see cref="FromPhraseRules.WriteFile"/>,
+    /// <see cref="FromPhraseRules.RewriteFile"/>) are the narrower set. A scalar "must be alphanumeric" column would reject legal
+    /// source on the REWRITE arm. The class is read off the BOUND operand through the same Table-16 sender position the category
+    /// screen uses, so a folded integer function (FUNCTION LENGTH constant-folds to a numeric literal, which is how it escaped
+    /// every earlier reading of this position) still answers "numeric", not "unknown".</summary>
+    private bool ScreenFromFunctionClass(BoundOperand source, Core.FunctionCallContext? fc, FromPhraseRules rules, FileModel file)
+    {
+        if (fc is null || rules.FunctionCategories is not { } admitted || rules.FunctionRuleCite is not { } functionRule)
+            return true;
+        var cat = MoveTable16.SenderPosition(source).Category;
+        if (admitted.Contains(cat)) return true;
+        ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
+            $"{rules.Statement} {DataBinder.WrittenText(fc)}: {functionRule.At(ctx.Edition.DialectLevel, file.Organization)} — this function's result is of "
+            + $"category {cat.ToString().ToLowerInvariant()}");
+        return false;
+    }
+
     /// <summary>
     /// Bind a <c>… FROM {identifier-1 | literal-1}</c> phrase into its implicit MOVE — WRITE (ISO §2023:14.9.51),
     /// REWRITE (§2023:14.9.35) and RELEASE (§2023:14.9.32) alike. Null when no FROM phrase is written.
@@ -419,22 +463,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // extended to an inline method invocation. §2023:14.9.51.3 SR4, §2023:14.9.35.3 SR9 and §2023:14.9.32.3 SR2 each restrict
         // "a FUNCTION-IDENTIFIER" by name, and none states a rule for an inline invocation, so what governs it is
         // the phrase's own implicit MOVE, which BindMoveOf applies.
-        var fc = send.functionCall();
-
-        // ── The FUNCTION-IDENTIFIER class restriction, a SET per verb because the rules name different sets:
-        // RELEASE §2023:14.9.32.3 SR2 and WRITE §2023:14.9.51.3 SR4 admit "an alphanumeric or national function";
-        // REWRITE §2023:14.9.35.3 SR9 admits "an alphanumeric, boolean, or national function" when the FILE phrase is
-        // not specified (and the FILE arm, §2023:14.9.35.3 SR8 / §2023:14.9.51.3 SR10, is Annex A.4.13 item 2 — DECLINED
-        // COBOL1706 before this point, so only the no-FILE readings are reachable). A scalar "must be
-        // alphanumeric" column here would reject legal source on the REWRITE arm.
-        // The class is read off the BOUND operand through the same Table-16 sender position the category screen
-        // uses, so a folded integer function (FUNCTION LENGTH constant-folds to a numeric literal, which is how
-        // it escaped every earlier reading of this position) still answers "numeric", not "unknown". ──
-        if (fc is not null && rules.FunctionCategories is { } admitted && rules.FunctionRuleCite is { } functionRule
-            && MoveTable16.SenderPosition(source).Category is var cat && !admitted.Contains(cat))
-            ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
-                $"{rules.Statement} {DataBinder.WrittenText(fc)}: {functionRule.At(ctx.Edition.DialectLevel, file.Organization)} — this function's result is of "
-                + $"category {cat.ToString().ToLowerInvariant()}");
+        ScreenFromFunctionClass(source, send.functionCall(), rules, file);
 
         // ── §2023:14.9.32.3 SR4, "Literal-1 shall not be a zero-length literal." RELEASE's alone: neither
         // §2023:14.9.51.3 nor §2023:14.9.35.3 states it for the FROM phrase of WRITE / REWRITE, so it is carried on the
@@ -446,6 +475,82 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
 
         return BindMoveOf(source, [record], rules.PhraseAt(ctx.Edition.DialectLevel, file.Organization));
     }
+
+    /// <summary>
+    /// ⛔ <b>THE ONE BINDING OF THE FILE PHRASE'S IMPLICIT RECORD</b> (kb/Work PB5579) — <c>WRITE FILE file-name-1 FROM x</c> and
+    /// <c>REWRITE FILE file-name-1 FROM x</c>, Annex A.4.13's two items. §2023:14.9.51.4 GR8 and §2023:14.9.35.4 GR9
+    /// (§2002:14.8.47.3 GR5, §2002:14.8.33.3 GR8) make the statement "MOVE identifier-1 TO implicit-record-1 / WRITE
+    /// implicit-record-1", where implicit-record-1 is "as though … a record description entry subordinate to the file
+    /// description entry having the same description as identifier-1" (a literal-1: "the same class, category, usage, and
+    /// length as literal-1"; a function: the class, category, usage and length of the returned value). A MOVE between two
+    /// items of ONE description is the identity copy, so what the statement releases is the image of identifier-1 itself:
+    /// the returned <see cref="Place"/> IS the implicit record, and the verb binds as <c>WRITE</c> / <c>REWRITE</c> of it with
+    /// no MOVE of its own. A function value and a reference-modified item are held in the intermediate result item
+    /// <see cref="SendingValueTemp"/> provides (evaluated once), and a literal in an item of its own description
+    /// (<see cref="SendingValueTemp.MaterializeLiteral"/>); both stores are pre-ops ahead of the statement.
+    /// <para>Applies the FILE phrase's syntax rules, which the record-name arm does not carry: the FROM phrase is required
+    /// (§2023:14.9.51.3 SR7, §2023:14.9.35.3 SR10 — COBOL7351), literal-1 is an alphanumeric, boolean or national literal and no
+    /// figurative constant, and identifier-1's description holds no USAGE OBJECT REFERENCE item (SR7 b), SR8, SR10 b), SR12 —
+    /// COBOL7352), a function is alphanumeric or national (SR10, SR8), and a bit item is statically byte-aligned (SR9, SR7 —
+    /// COBOL7353). identifier-1 shall be "valid as a sending operand in a MOVE statement" (SR7 a), SR10 a)): the SR1 class
+    /// check of §2023:14.9.25.3 asked of it, since no receiver exists to pair it with.</para>
+    /// Null when the statement is refused (the diagnostic is reported) or the operand has no description to hold.</summary>
+    public Place? BindFilePhraseRecord(FromPhraseRules rules, FileModel file, Core.RecordFromPhraseContext? from)
+    {
+        if (from?.sendingOperand() is not { } send)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.FilePhraseRequiresFrom,
+                $"{rules.Statement[..^" FROM".Length]} file-name-1 on '{file.CobolName}' has no FROM phrase");
+            return null;
+        }
+        BoundOperand source = SendingOperand(send, rules.Statement);
+        if (source is BoundOperandError) return null;   // already diagnosed
+        if (!ScreenFromFunctionClass(source, send.functionCall(), rules, file)) return null;
+        // literal-1 "shall be an alphanumeric, boolean, or national literal and shall not be a figurative constant".
+        if (source is BoundNumericLiteral { FunctionValue: false } or BoundFigurative or BoundAllLiteral or BoundPredefinedNull)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.FilePhraseOperand,
+                $"{rules.Statement} {DataBinder.WrittenText(send)}: literal-1 shall be an alphanumeric, boolean, or national literal and "
+                + "shall not be a figurative constant (§2023:14.9.51.3 SR7 b), §2023:14.9.35.3 SR10 b))");
+            return null;
+        }
+        if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed,
+                $"{classRefusal} — {rules.Statement}: identifier-1 shall be valid as a sending operand in a MOVE statement");
+            return null;
+        }
+        if (source is BoundFieldOperand { Place: var sender })
+        {
+            if (HoldsObjectReference(sender.Item))
+            {
+                ctx.Edition.Error(DiagnosticCatalog.FilePhraseOperand,
+                    $"{rules.Statement} {DataBinder.WrittenText(send)}: the description of identifier-1, including its subordinate data "
+                    + "items, shall not contain a data item described with a USAGE OBJECT REFERENCE clause (§2023:14.9.51.3 SR8, "
+                    + "§2023:14.9.35.3 SR12)");
+                return null;
+            }
+            if (BitLayout.IsBitItem(sender.Item))
+                host.Params.ScreenBitAlignment(sender, DiagnosticCatalog.FilePhraseBitAlignment, rules.Statement,
+                    "§2023:14.9.51.3 SR9, §2023:14.9.35.3 SR7");
+            // A reference-modified operand is "a unique data item" of a run-time length (§2023:8.4.3.3.4 GR6): held once.
+            if (sender is not RefModPlace) return sender;
+        }
+        Place? held = source switch
+        {
+            BoundStringLiteral literal => host.SendingValue.MaterializeLiteral(literal, "filefrom"),
+            _ => host.SendingValue.Materialize(source, "filefrom"),
+        };
+        if (held is null)
+            ctx.Edition.Error(DiagnosticCatalog.FilePhraseOperand,
+                $"{rules.Statement} {DataBinder.WrittenText(send)}: this operand has no description the implicit record can take "
+                + "(§2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9)");
+        return held;
+    }
+
+    /// <summary>Does <paramref name="item"/>'s description, its subordinate data items included, hold a USAGE OBJECT REFERENCE item?</summary>
+    private static bool HoldsObjectReference(DataItem item) =>
+        item.Pic?.Usage == Usage.ObjectReference || item.Children.Any(HoldsObjectReference);
 
     /// <summary>
     /// Bind a <c>… INTO identifier-1</c> phrase into its implicit MOVE — the sequential READ, the keyed READ and
