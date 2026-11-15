@@ -70,9 +70,11 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             return;
         }
         w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, primeKey, vary, ctx.Data.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
-        for (int i = 0; i < file.AlternateKeys.Count; i++)
+        // In the CONNECTOR'S order (FileModel.AlternateKeyConnectorIndex): the verbs below name a key by that index, and every
+        // describer of an external connector must agree on it whatever order its clauses were written in (kb/Work PB5567).
+        foreach (int i in Enumerable.Range(0, file.AlternateKeys.Count).OrderBy(file.ConnectorKeyIndex))
         {
-            var (alt, dups, suppress) = file.AlternateKeys[i];
+            var (alt, dups, suppress, _) = file.AlternateKeys[i];
             if (KeySegments(alt, file.FixedFormRecords) is not { } altKey)
             {
                 w.Line(LoudStmt($"indexed file '{file.CobolName}': ALTERNATE RECORD KEY '{alt.Face}' not "
@@ -195,7 +197,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 string keyImage = SeqIo.RecordAreaSendImage(file) ?? "\"\"";   // the WHOLE area (kb/Work PB5217)
                 string? keyExtents = area is not null ? OperandText.RecordSendExtents(area) : null;
                 var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
-                w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, rd.KeyIndex, keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img, keyExtents)};");
+                w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, file.ConnectorKeyIndex(rd.KeyIndex), keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img, keyExtents)};");
                 break;
         }
         using (w.Block($"if ({IoStatusClass.Successful(st)})"))
@@ -499,7 +501,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             string areaImage = SeqIo.RecordAreaSendImage(file) ?? "\"\"";   // THE ONE record-area channel, the WHOLE area (kb/Work PB327, PB5217)
             string? areaExtents = places.RecordArea(file) is { } extentArea
                 ? OperandText.RecordSendExtents(extentArea) : null;   // its extent table (D-FRA (v); kb/Work PB1053)
-            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), areaImage, len, areaExtents)};");
+            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, file.ConnectorKeyIndex(sta.KeyIndex), CsLiteral(sta.Op), areaImage, len, areaExtents)};");
         }
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "START", invalidKeyHandled: sta.InvalidKey?.Invalid is not null);

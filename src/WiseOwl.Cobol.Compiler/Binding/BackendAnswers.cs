@@ -53,7 +53,11 @@ internal static class BackendAnswers
             }
         foreach (var files in units.Select(static u => u.Data.Files).Concat(classes.SelectMany(static c => new[] { c.Data.Files, c.FactoryData.Files })))
             foreach (var file in files.Declared)
-                if (file.IsExternal) file.SelectFingerprint = FileEntryIdentity.Of(file);
+                if (file.IsExternal)
+                {
+                    file.SelectFingerprint = FileEntryIdentity.Of(file);
+                    file.AlternateKeyConnectorIndex = FileEntryIdentity.AlternateKeyConnectorOrder(file);
+                }
     }
 
     /// <summary>The classes and interfaces of a RAISING phrase, each resolved by its name in the group's class table: an entry
