@@ -50,4 +50,34 @@ public sealed class SetAmountTests
         Assert.Equal(SetAmountLanding.Integer, SetAmount.Land(1, -38, out Int128 whole));
         Assert.Equal(Int128.Parse("100000000000000000000000000000000000000"), whole);
     }
+
+    /// <summary>kb/Work PB5619: the STANDARD-DECIMAL lane lands on the SDIDI's OWN exponent. Each row is (significand,
+    /// exponent, the value as an integer): an integer at any exponent lands as itself, and a trailing zero run does not
+    /// make a fraction one.</summary>
+    [Theory]
+    [InlineData(5L, 0, 5L)]
+    [InlineData(12L, 2, 1200L)]
+    [InlineData(2000L, -3, 2L)]         // 2.000 IS an integer value
+    [InlineData(0L, -6000, 0L)]         // zero at any exponent is zero
+    public void ASdidiIntegerValue_LandsAsThatValue(long sig, int exp, long value)
+    {
+        Assert.Equal(SetAmountLanding.Integer, SetAmount.Land(new CobolDec(sig, exp), out Int128 whole));
+        Assert.Equal((Int128)value, whole);
+    }
+
+    /// <summary>1 + 1E-20 and 1E-6000: a fraction below a fixed working scale is still a fraction (§2002:14.8.35.3 GR16).</summary>
+    [Theory]
+    [InlineData("100000000000000000001", -20)]
+    [InlineData("1", -6000)]
+    [InlineData("-3", -1)]
+    public void ASdidiFraction_IsNotAnInteger(string sig, int exp)
+        => Assert.Equal(SetAmountLanding.NotAnInteger, SetAmount.Land(new CobolDec(Int128.Parse(sig), exp), out _));
+
+    /// <summary>10 ** 40 is an integer past <see cref="Int128"/>: the format's range leg, never a size error (§2002:14.8.35.3 GR17).</summary>
+    [Theory]
+    [InlineData(1L, 40)]
+    [InlineData(-1L, 39)]
+    [InlineData(1L, 6000)]
+    public void ASdidiIntegerPastTheCarrier_IsBeyondCarrier(long sig, int exp)
+        => Assert.Equal(SetAmountLanding.BeyondCarrier, SetAmount.Land(new CobolDec(sig, exp), out _));
 }
