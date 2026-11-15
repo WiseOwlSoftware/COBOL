@@ -89,6 +89,7 @@ import json
 import pathlib
 import sys
 from collections import Counter
+from typing import Any
 
 from inventory_schema import (NEWEST, RETIRED_WITNESS_MARK, WITNESS_FIELDS, Edition, edition, load_schema, prose_of,
                               resites, retired_symbols_left_in_prose, statement_losses, witness_losses, witness_shape_error)
@@ -96,6 +97,7 @@ from inventory_store import REPO, inventory_dir, read_store, record_of, write_st
 import inventory_view  # noqa: E402  (THE view: the rows a batch is validated against and written from; kb/Work PB4992)
 import lineage  # noqa: E402  (THE definition of an older edition's change record and its state; kb/Work PB4993)
 import lineage_screen  # noqa: E402  (the flags a change record answers before it is written; kb/Work PB5597)
+import lineage_reads  # noqa: E402  (a suite case's cited rules, for a KEPT row's own witness; kb/Work PB5730)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -234,7 +236,7 @@ def _reference_errors(rec: dict, where: str, schema) -> list[str]:
 
 def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dict[str, str],
              by_id: dict[str, dict], ed: Edition = NEWEST,
-             targets: dict[str, dict] | None = None) -> list[str]:
+             targets: dict[str, dict] | None = None, rules_of: Any = None) -> list[str]:
     """Every shape violation across the whole set — reported together, never one at a time.
 
     Stopping at the first bad record would make a reviewer re-run this once per mistake, and a batch produced by a
@@ -291,6 +293,11 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
                 # its own-edition witness (kb/Work PB5675) is the one verdict field it carries: each reference it names
                 # is shape-checked as any witness is; the LINEAGE READS audit checks it runs at the edition
                 bad += _reference_errors(rec, where, schema)
+                # ... and each case it names is ABOUT the row: it cites the row's rule or a rule the row carries into
+                # (kb/Work PB5730: the one predicate the audit asks too)
+                if rec.get("test-ref"):
+                    bad += [f"{where}: {why}" for why in lineage.unrelated_witnesses(
+                        {**after, "test-ref": rec["test-ref"]}, schema, rules_of or lineage_reads.header_rules)]
                 continue
             if not verdict and not row.get("verdict"):
                 if set(rec) <= {"rule-id", "next", "notes"}:
