@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-14",
+ "rule-digest": "92f78616c72e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+ "test-ref": "conformance:cases/14.8.29@2002-READ-STATEMENT/g2_read_record_available",
+ "notes": "§2002:14.8.29.3 GR14: the record and the INTO target are available before the NOT AT END and NOT INVALID KEY imperatives and before the next statement. g2_read_record_available at --std 2002 matched (R001/R001, R002, D002, D001)."
+}

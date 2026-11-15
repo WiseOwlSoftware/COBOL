@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.2-1",
+ "rule-digest": "49908ccadba6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveLine.cs#TryParse; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#DropDirectiveContinuation; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#IsDirectiveLine; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnDirectiveContinued",
+ "test-ref": "conformance:cases/7.2@2002-COMPILER-DIRECTIVES/g2cd02_flag85_continued_refused; conformance:cases/7.2@2002-COMPILER-DIRECTIVES/g2cd03_fna_continued_refused; conformance:cases/7.2@2002-COMPILER-DIRECTIVES/g2cd01_one_line_directives",
+ "notes": "§2002:7.2.2 SR1 'A compiler directive shall be specified on one line, except for the EVALUATE and the IF directives' reaches the 2002-only FLAG-85 and FLAG-NATIVE-ARITHMETIC directives: a column-7 continuation of either is refused at 2002 (COBOL2696 at line 21, pinned build --std 2002), and the one-line forms with a multi-line >>IF compile and print A/B/IF-ONE as derived."
+}

@@ -3,6 +3,6 @@
  "rule-digest": "c0d748690e33",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindMethodData",
- "test-ref": "conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2-configuration-section-in-method",
- "notes": "§2002:12.2.2 SR2 forbids a configuration section in a method definition; a bare CONFIGURATION SECTION header in method M is refused at --std 2002 with COBOL2644 at that line, while the same class without it compiles."
+ "test-ref": "conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2-configuration-section-in-method; conformance:cases/12.2.2@2002-CONFIGURATION-SECTION/pb5609-method-debugging-mode-without-name",
+ "notes": "§2002:12.2.2 SR2 forbids a configuration section in a method definition; a bare CONFIGURATION SECTION header in method M is refused at --std 2002 with COBOL2644 at that line, while the same class without it compiles (g2-configuration-section-in-method). 2002's configuration section also has a form 2023 lacks: SOURCE-COMPUTER ... WITH DEBUGGING MODE, with or without computer-name-1 (§2002:12.2.4.1). A method whose configuration section writes the name-less clause is refused by this rule too (COBOL2644) after the obsolete warning COBOL0903, where it was the grammar's parse error COBOL1971 (kb/Work PB5609)."
 }

@@ -1,0 +1,5 @@
+S1=[EC-OVERFLOW-STRING             ]
+S2=[                               ]
+DECL
+O3=NONNULL S3=[EXCEPTION-OBJECT               ]
+O4=NULL    S4=[                               ]

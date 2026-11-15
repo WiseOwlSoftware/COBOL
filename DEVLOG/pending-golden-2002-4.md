@@ -26,7 +26,10 @@ note was corrected.
 
 **Mechanical repairs** (no expectation changed):
 - 6 PROGRAM-IDs collided with cases already on main or with each other and were renumbered (G2CAT02, G2COL03,
-  G2SPN04-06, G2SRC03).
+  G2SPN04-06, G2SRC03). Merging main after golden-2002-3 landed brought 3 more collisions, renumbered G2REL03, G2SRC04
+  and G2SRC05.
+- 2002-SR-12.2.2-2 was recorded by both this landing and PB5609 (DEVLOG 3701); the merged record keeps both witnesses.
+- On the tree merged with main 1d13746fce the 2002 GAP is 1,991.
 - docs/conformance DOC-A.1-204 now names g2tn05_with_location in its `Pinned by`.
 
 **Defects** (both repros re-run on this build):

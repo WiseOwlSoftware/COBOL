@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.6.3-2",
+ "rule-digest": "2829edfb3eb0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Category; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Category",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo05_categories_by_format",
+ "notes": "§2002:14.8.6.3 GR2 partitions physical files into the four categories that are the columns of GR3's table 15; with the documented placement (DOC-A.1-24: sequential = (a) Non-unit, relative/indexed = (d)), every 2002 CLOSE format's cell is pinned: NO REWIND c,h = closed + 07, UNIT and REEL FOR REMOVAL f = 07 and still open (next READ 10), WITH LOCK c,e = 00 then re-OPEN 38, for sequential, indexed and relative. g2clo05 matched its derived .out at --std 2002."
+}

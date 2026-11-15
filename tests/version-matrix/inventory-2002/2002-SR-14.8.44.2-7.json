@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.44.2-7",
+ "rule-digest": "406a0691b18f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.8.44@2002-UNSTRING-STATEMENT/g2_unstring_receiving_operands",
+ "notes": "§2002:14.8.44.2 SR7 grants DELIMITER IN and COUNT IN only with DELIMITED BY: the golden writes them together and each alone under DELIMITED BY and runs with the values GR11c-e give (U1-U4); the phrase without DELIMITED BY is refused at 2002 (COBOL1651, cases/14.9.48-UNSTRING/pb88-unstring-count-without-delimited). Matched at --std 2002 on the dc1f2dcce8 build."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.7.2-1",
+ "rule-digest": "1be95d9ab213",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/14.8.7@2002-COMPUTE-STATEMENT/g2cmp01_numeric_receivers; conformance:cases/14.8.7@2002-COMPUTE-STATEMENT/g2cmp02_group_receiver; conformance:cases/14.8.7@2002-COMPUTE-STATEMENT/g2cmp03_alphanumeric_receiver",
+ "notes": "§2002:14.8.7.2 SR1 admits only elementary numeric or numeric-edited receivers: numeric, numeric-edited and the 2002 CD's implicit numeric items (§2002:A.1.2.3 GR2, GR16) are accepted and receive 025 / 25.00 / 3.3 / 0036 000036 0002 0037 (g2cmp01 matched at --std 2002); a group and an alphanumeric receiver are refused with COBOL1675 at the COMPUTE line (g2cmp02, g2cmp03)."
+}

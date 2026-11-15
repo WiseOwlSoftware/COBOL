@@ -45,7 +45,7 @@
       *> NOT | [NOT] simple-relational-operator | extended-...), so
       *> only the Format 1 operators take the NOT here.
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2REL01.
+       PROGRAM-ID. G2REL03.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01  A                       PIC 9 VALUE 5.

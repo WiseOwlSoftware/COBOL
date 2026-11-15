@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.21.2-8",
+ "rule-digest": "f54f33436164",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindFunctionTarget",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-tally-replace-transitive",
+ "notes": "§2002:14.8.21.2 SR8 makes format 1 identifier-1 a sending operand, so FUNCTION UPPER-CASE(...) (receiving-forbidden by §2002:8.4.2.2.2 SR1) is accepted there: tallies 03 then 04 and 03 for a CD-record argument, the argument unchanged. The --std 2002 run of g2-inspect-tally-replace-transitive matched the derived output."
+}

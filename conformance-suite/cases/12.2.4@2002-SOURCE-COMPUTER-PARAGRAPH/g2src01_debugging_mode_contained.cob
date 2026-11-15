@@ -23,7 +23,7 @@
       *>   clause is specified in a source unit, all debugging lines
       *>   are compiled as if the debugging indicator was replaced by
       *>   three spaces" -> OK
-      *> G2SRC03 has the clause; G2SRC1A is contained in it and
+      *> G2SRC05 has the clause; G2SRC1A is contained in it and
       *> G2SRC1B is contained in G2SRC1A (an indirectly contained
       *> unit is inside the containing source unit, §2002:4 "source
       *> unit": "including any contained source units"). Neither
@@ -31,7 +31,7 @@
       *> (§2002:12.2.2 SR1), so each gets the clause only through GR1.
       *> Derived output, one line per DISPLAY, every debugging line
       *> compiled as ordinary source:
-      *>   OUTER, OUTER-DEBUG        (fixed D line in G2SRC03, GR4)
+      *>   OUTER, OUTER-DEBUG        (fixed D line in G2SRC05, GR4)
       *>   INNER1, INNER1-DEBUG      (fixed D line, inherited, GR1)
       *>   INNER1-FLOAT-DEBUG        (floating >>D line, §2002:6.1.2,
       *>                              inherited, GR1)
@@ -41,7 +41,7 @@
       *> none of the INNER ones (§2002:12.2.4.3 GR5 would make
       *> them comment lines).
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2SRC03.
+       PROGRAM-ID. G2SRC05.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SOURCE-COMPUTER. X WITH DEBUGGING MODE.
@@ -66,4 +66,4 @@
            GOBACK.
        END PROGRAM G2SRC1B.
        END PROGRAM G2SRC1A.
-       END PROGRAM G2SRC03.
+       END PROGRAM G2SRC05.
