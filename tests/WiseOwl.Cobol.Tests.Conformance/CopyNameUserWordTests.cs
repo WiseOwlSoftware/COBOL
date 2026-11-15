@@ -97,12 +97,14 @@ public sealed class CopyNameUserWordTests
         Assert.Contains("prog.cob(9,", error);   // the paragraph header, line 9 of the program
     }
 
-    /// <summary>The same text-name copied twice, and a library-name written twice, are one type of user-defined word each.</summary>
+    /// <summary>The same text-name copied twice, and a library-name written three times, are one type of user-defined word each.
+    /// Every COPY names its library: a second library is available, so at 85 an unqualified text-name is refused
+    /// (§1985:XII.2.3 SR1, kb/Work PB5473).</summary>
     [Fact]
     public void TheSameName_WrittenTwice_IsNoConflict()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
-            Program("", "COPY PB5482NOP.\n       COPY PB5482NOP.\n       COPY PB5482TXT OF PB5482LIB.\n       COPY PB5482NOP OF PB5482LIB."),
+            Program("", "COPY PB5482NOP OF PB5482LIB.\n       COPY PB5482NOP OF PB5482LIB.\n       COPY PB5482TXT OF PB5482LIB."),
             85, copybooks: new Dictionary<string, string>(Copybooks) { ["PB5482LIB/PB5482NOP.cpy"] = Empty });
         Assert.True(ok, string.Join('\n', errors));
     }

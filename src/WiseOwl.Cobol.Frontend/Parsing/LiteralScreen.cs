@@ -249,8 +249,9 @@ public static class LiteralScreen
     /// <list type="bullet">
     /// <item>the NATIONAL literal (§2023:8.3.3.5, <c>N"…"</c> and <c>NX"…"</c>) and the BOOLEAN literal (§2023:8.3.3.4,
     /// <c>B"…"</c> and <c>BX"…"</c>), COBOL-2002 introductions: a COBOL-85 literal is "nonnumeric or numeric"
-    /// (§1985:IV.4.2.2.2). They are gated under the rows of their data classes (<see cref="Constructs.NationalData2002"/>,
-    /// <see cref="Constructs.BooleanData2002"/>), which the edition introduced together. The gate used to be the version
+    /// (§1985:IV.4.2.2.2). Each has its own row (<see cref="Constructs.NationalLiteral2002"/>,
+    /// <see cref="Constructs.BooleanLiteral2002"/>), apart from its data class's, so the diagnostic names the literal the program
+    /// wrote and not PICTURE N / USAGE NATIONAL or PICTURE 1 / USAGE BIT data it may not use (kb/Work PB5535). The gate used to be the version
     /// pass's, scoped to a procedure-division statement, on the reasoning that a data-division literal seeds an item whose
     /// category <c>VersionConformancePass.GateData</c> gates; but a literal stands in positions that seed no item, so
     /// <c>VALUE OF ID IS N"AB"</c> in an FD, a level-88 or VALUE literal of an alphanumeric item and a SPECIAL-NAMES literal
@@ -276,10 +277,10 @@ public static class LiteralScreen
         switch (CobolLiteral.ClassOf(raw))
         {
             case LiteralClass.National:
-                ConstructRegistry.Check(edition, sink, Constructs.NationalData2002, $"the national literal {CobolLiteral.Abbreviated(raw)}");
+                ConstructRegistry.Check(edition, sink, Constructs.NationalLiteral2002, $"the national literal {CobolLiteral.Abbreviated(raw)}");
                 break;
             case LiteralClass.Boolean:
-                ConstructRegistry.Check(edition, sink, Constructs.BooleanData2002, $"the boolean literal {CobolLiteral.Abbreviated(raw)}");
+                ConstructRegistry.Check(edition, sink, Constructs.BooleanLiteral2002, $"the boolean literal {CobolLiteral.Abbreviated(raw)}");
                 break;
             case LiteralClass.Alphanumeric when CobolLiteral.IsHexadecimalFormat(raw):
                 ConstructRegistry.Check(edition, sink, Constructs.HexAlphanumericLiteral2002,

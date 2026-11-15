@@ -1350,11 +1350,19 @@ reference formats, and the only place source comments are recognized. Its model:
   COBOL3734; §1985:IV.7.3.3 "starts in area A of any line", so `X. Y.` with Y in position 11 is legal and Y in position 12 is not: kb/Work PB5497), and any other text that begins a line, a level-number other than 01 or 77 excepted, begins in area B
   (`fixed-form-text-in-area-a-2002`, COBOL3735) — are asked at `--std 85` only. Neither half can be asked alone: which
   token heads an item is the grammar's, where a token begins is the reference format's. So `FixedFormLine` is the ONE
-  definition of the area (`AreaAWidth`, `ProgramTextStart`, `BeginsInAreaA`; the comment-entry reader uses it too),
-  `ReferenceFormatMap` keeps, per fixed-form physical line, the physical column where its program text begins and its
-  area (`PlacementAt`: begins its line in area A, in area B, follows other text in area A, follows other text in area B, or no area — free form), `FixedFormAreas`
-  composes the converged pass's `SourceLineMap` with every text's map so a TOKEN is placed where the user wrote it
-  (through COPY, REPLACE and tabs alike; `Frontend.Areas` → `EditionContext.Areas`), and `Validation/AreaPlacementPass`
+  definition of the area (`AreaAWidth`, `ProgramTextStart`, `BeginsInAreaA`; the comment-entry reader uses
+  it too), `ReferenceFormatMap` answers, per fixed-form physical column (tabs expanded), its area
+  (`AreaAt`: area A, area B, or no area — free form), `FixedFormAreas` composes the converged pass's `SourceLineMap` with
+  every text's map so a TOKEN's area is that of the place it was LAID OUT at (through COPY, REPLACE and tabs alike;
+  `Frontend.Areas` → `EditionContext.Areas`), while WHETHER it begins its line is a fact of the RESULTANT program, read by
+  the pass from the token stream (no token before it on its resultant line), because the program is judged only after
+  all COPY and REPLACE processing (§1985:XII.2.4 GR8; kb/Work PB5313). The laid-out place is the token's origin except for
+  the words of a pseudo-text-2 a replacement places: they stand at the text they replace (the origin diagnostics name)
+  but are laid out where pseudo-text-2 wrote them (`OriginSpan.Layout`, written by `OriginWriter.AppendLaidOut`), since
+  each "begins in the same area of the resultant program as it appears in pseudo-text-2" (§1985:XII.2.4 GR9); REPLACE's
+  pseudo-text-2 is laid out the same way (the determination for §1985:XII.3.4 GR10, whose sentence COPY's GR10 carries
+  beside that rule), and identifier-2, literal-2 and word-2 keep the replaced word's area. A new stage that places text
+  written elsewhere lays it out with the same call, and the pass needs no change. `Validation/AreaPlacementPass`
   (pre-bind, beside `LevelNumberPass`, so its diagnostics join the edition gates' instead of pre-empting them as a
   front-end error would) collects the heads from the tree — rule-owned items by their context's first token, the
   headers a rule writes INLINE (`X DIVISION`, `METHOD-ID.`, `END METHOD`, `END DECLARATIVES`) by their spelling among a

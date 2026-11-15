@@ -1,0 +1,16 @@
+{
+ "id": "copy-unqualified-text-name-2002",
+ "description": "A COPY statement whose text-name-1 is not qualified by a library-name while another COBOL library is available (§2002:7.1.2.3 GR3: \"When neither library-name-1 nor literal-2 is specified, a default COBOL library is used\"). ANSI X3.23-1985 required the qualification (§1985:XII.2.3 SR1: \"If more than one COBOL library is available during compilation, text-name-1 must be qualified by library-name-1\"); ISO/IEC 1989:2002 Annex F.2 item 38 lists the relaxation as a 2002 change (\"When more than one COBOL library is referenced, text-name need not be qualified when the library text resides in the default library\"). The libraries available during a compilation are the DOC-A.1-40 determination: the default library and each library a COPY statement of the compilation group names with OF or IN that a library place holds. The introduction gate is CopyProcessor.ResolveOneCopy, reported at each unqualified COPY statement once a second library is available (kb/Work PB5473).",
+ "display": "a COPY statement with an unqualified text-name while more than one COBOL library is available",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§2002:7.1.2.3 GR3; §1985:XII.2.3 SR1",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "§2002:7.1.2.3 GR3; ISO/IEC 1989:2002 Annex F.2 item 38",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCUQ.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\nCOPY VMCUQA.\nCOPY VMCUQB OF VMCUQL.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W1 W2.\n    STOP RUN.\n",
+ "copybooks": {
+  "VMCUQA.cpy": "01 W1 PIC X VALUE \"K\".\n",
+  "VMCUQL/VMCUQB.cpy": "01 W2 PIC X VALUE \"L\".\n"
+ }
+}
