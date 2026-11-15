@@ -1419,7 +1419,7 @@ public sealed partial class SequentialConnector : FileConnector
     private bool RecordAreaOutsideLineCharacterSet(ReadOnlySpan<char> recordArea, bool national) =>
         _lineSequential && LineSequentialCharacterSet.HasCharacterOutside(recordArea, national, CodeSet);
 
-    // ── FORMAT and SELECT WHEN (ISO §2023:13.18.24, §2023:13.18.51; ISO/IEC 1989:2002 §13.16.22, §13.16.49) ──────────────────
+    // ── FORMAT and SELECT WHEN (ISO §2023:13.18.24, §2023:13.18.51; ISO/IEC 1989:2002 §2002:13.16.22, §2002:13.16.49) ──────────────────
 
     /// <summary>The file's record format — the translation of each record between the record area and the medium, item by item
     /// over the SELECTED record description entry (<see cref="RecordFormat"/>) — or null for a file with neither a FORMAT clause

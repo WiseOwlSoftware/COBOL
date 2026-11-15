@@ -3061,7 +3061,7 @@ category.
 - Q4 — **RESOLVED: implemented, not deferred.** LINE SEQUENTIAL status 06 landed with the GR15 remainder machinery, and 09 landed with kb/Work PB329 together with the Annex A.1 item 115 determination it delegates to (`docs/CONFORMANCE.md` DOC-A.1-115) and the WRITE-side '71' arm (14.9.51.4 GR23) that had never existed. See the LINE SEQUENTIAL edge-case notes above.
 - Q5 minor: confirm SAME AREA buffer-only and SAME SORT-MERGE AREA are acceptable no-ops in a managed runtime.
 
-## FORMAT and SELECT WHEN (ISO §2023:13.18.24, §2023:13.18.51; ISO/IEC 1989:2002 §13.16.22, §13.16.49; kb/Work PB5578)
+## FORMAT and SELECT WHEN (ISO §2023:13.18.24, §2023:13.18.51; §2002:13.16.22, §2002:13.16.49; kb/Work PB5578)
 
 Annex A.4.8 is CLAIMED. ISO/IEC 1989:2002 requires both clauses (§2002:3.1 makes only the communication facility optional), and 2014 and 2023 carry the same rules.
 

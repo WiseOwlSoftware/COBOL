@@ -539,7 +539,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     }
 
     /// <summary>⛔ THE FILE'S RECORD FORMAT, told to the connector (ISO §2023:13.18.24 FORMAT clause, §2023:13.18.51 SELECT WHEN clause; ISO/IEC
-    /// 1989:2002 §13.16.22, §13.16.49): the FORMAT clause's kinds, one <c>RecordPlan</c> per record description entry in the order written (the
+    /// 1989:2002 §2002:13.16.22, §2002:13.16.49): the FORMAT clause's kinds, one <c>RecordPlan</c> per record description entry in the order written (the
     /// order SELECT WHEN GR3 evaluates), the byte offset of the conditional variable all the clauses share (SR4), and the CODE-SET alphabet,
     /// which a file translated item by item carries here and not in <see cref="EmitCodeSetRegistration"/>'s whole-record conversion. A file
     /// with several record description entries then registers the SELECT WHEN selector: the entries' conditions compiled, in order, over the

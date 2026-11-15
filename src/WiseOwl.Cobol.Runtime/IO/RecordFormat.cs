@@ -91,13 +91,13 @@ public sealed class RecordPlan
 
 /// <summary>
 /// ⛔ THE ONE FORMAT AND SELECT WHEN ENGINE (ISO §2023:13.18.24 FORMAT clause, §2023:13.18.51 SELECT WHEN clause; ISO/IEC 1989:2002
-/// §13.16.22 and §13.16.49, the editions that REQUIRE them): the translation of a record between its INTERNAL image — the
+/// §2002:13.16.22 and §2002:13.16.49, the editions that REQUIRE them): the translation of a record between its INTERNAL image — the
 /// record area — and its EXTERNAL image, the bytes on the medium, item by item over the SELECTED record description entry.
 /// One instance per file connector.
 /// <para><b>Selection.</b> A file with several record description entries has one <see cref="RecordPlan"/> for each and a
 /// selector (<see cref="Select"/>, compiled from the SELECT WHEN clauses) that evaluates their conditions in the order the
 /// entries are written until one is true (SELECT WHEN GR3); none true is I-O status 45, a record identification failure
-/// (GR4, §2023:9.1.13.7 item 5). A file with one entry uses it (FORMAT GR2 a).</para>
+/// (GR4, §2023:9.1.13.7 GR5). A file with one entry uses it (§2023:13.18.24.4 GR2 a).</para>
 /// <para><b>The representation the FORMAT clause produces</b> (GR10 — Annex A.1 item 84, REQUIRED user documentation,
 /// docs/conformance/7/DOC-A.1-84.md): a selected item becomes TEXT, and the text of every item is as wide as its item
 /// needs for any value it can hold, so a record's external length is fixed by its record description entry and the
