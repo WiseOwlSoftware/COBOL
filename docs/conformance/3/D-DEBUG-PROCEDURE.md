@@ -24,6 +24,6 @@
   first included (GR20: §1985:IV.4.4.2 puts the control mechanism's transfer on each execution, and CCVS DB101A's SIMPLE-PERFORM-TEST and
   PERF-ITERATION-TEST read 'PERFORM LOOP' for the first); 'USE PROCEDURE' for a USE procedure about to execute, DEBUG-LINE the statement that causes it
   (GR21); 'FALL THROUGH' for the implicit transfer from the previous paragraph (GR22). **Latitude (the text is silent; CLAUDE.md rule 1):** where a
-  section and its first paragraph are both subjects they share the cause of the one transfer that reached them, START PROGRAM included. Witnesses:
+  section and its first paragraph are both subjects they share the cause of the one transfer that reached them, START PROGRAM included. A section of no paragraphs (§1985:IV.6.4.1.2) is a procedure-name like any other, executed by the PERFORM of it and by the fall-through into it, and a program that compiles a debugging section gives it a pc to trigger on; DEBUG-LINE identifies "the first statement of that procedure" (GR3 a), which it has none of, so it carries the section header's line (GR12: "the implementor-defined means of identifying a particular source statement"). Witnesses: `conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/pb5568_debug_empty_section_subject_85`, `.../pb5568_debug_all_procedures_empty_section_85`,
   `conformance:cases/_unassigned/pb5083-debug-section-subject`, `-alter`, `-sort-merge`, `-perform-loop`, `-use-procedure`, and the refusal below 1985
   `conformance:wiseowl/diagnostics/pb5083-debug-section-subject-removed-2002`.
