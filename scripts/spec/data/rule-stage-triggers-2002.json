@@ -1,0 +1,492 @@
+{
+ "_comment": [
+  "THE RULE STAGE'S TRIGGER TABLE for 2002 into 2023 (lineage_screen.py, kb/Work PB5589; DESIGN-spec-conformance-review.md",
+  "section 10.5). `triggers`: each cause that bars a candidate pair from a KEPT record written by rule, by mechanism (the",
+  "only code), its parameters, the field or text it reads and the reason an excluded pair is listed with; a null",
+  "mechanism is a named empty slot, and no batch is written while one exists. `pending`: the judgment of each changed or",
+  "removed pending clause (its 2023 counterpart where the title match is wrong, the 2002 clauses it governs, the patterns",
+  "that invoke it, why). `behaviours`: the 2002 clauses of each compiler dialect behaviour that changed after 2002.",
+  "`holds`: rows held by evidence no text shows (the S1 run's refusals of a construct the rule names)."
+ ],
+ "definitions": {
+  "older": "4",
+  "newer": "3"
+ },
+ "triggers": [
+  {
+   "name": "target-state",
+   "mechanism": "target-state",
+   "at": "view",
+   "params": {
+    "accept": [
+     "CONFORMS"
+    ]
+   },
+   "source": "the 2023 view: verdict and state",
+   "reason": "the 2023 rule it pairs with is not CONFORMS and OK, so no verdict carries"
+  },
+  {
+   "name": "target-band",
+   "mechanism": "target-band",
+   "at": "view",
+   "params": {},
+   "source": "the 2023 view: editions band",
+   "reason": "the 2023 rule's band does not name 2002, so the chain places no test at 2002"
+  },
+  {
+   "name": "ambiguous",
+   "mechanism": "pair-targets",
+   "at": "text",
+   "params": {
+    "max": 1
+   },
+   "source": "spec-lineage-candidates-2002.json `to`",
+   "reason": "the rule pairs with more than one 2023 rule"
+  },
+  {
+   "name": "normalized",
+   "mechanism": "pair-match",
+   "at": "text",
+   "params": {
+    "accept": [
+     "exact"
+    ]
+   },
+   "source": "spec-lineage-candidates-2002.json `match`",
+   "reason": "the texts are the same only after typography is erased"
+  },
+  {
+   "name": "absent-from-2014",
+   "mechanism": "absent-from",
+   "at": "text",
+   "params": {
+    "edition": 2014,
+    "except-kinds": [
+     "FMT"
+    ]
+   },
+   "source": "specs/ISO_COBOL_2014.md",
+   "reason": "the rule's words are not in the 2014 text the KEPT record bridges"
+  },
+  {
+   "name": "definition-changed",
+   "mechanism": "definitions",
+   "at": "text",
+   "params": {
+    "which": "changed"
+   },
+   "source": "§2002:4 and §2023:3",
+   "reason": "the rule uses a term whose 2023 definition differs from 2002's"
+  },
+  {
+   "name": "definition-dropped",
+   "mechanism": "definitions",
+   "at": "text",
+   "params": {
+    "which": "dropped"
+   },
+   "source": "§2002:4 and §2023:3",
+   "reason": "the rule uses a term 2002 defines and 2023's definitions clause does not (its meaning rests on where 2023 now defines it)"
+  },
+  {
+   "name": "cross-reference",
+   "mechanism": "text-pattern",
+   "at": "text",
+   "params": {
+    "pattern": "\\b\\d+(?:\\.\\d+)+\\b"
+   },
+   "source": "the 2002 rule's text",
+   "reason": "the rule refers to another clause by number, whose content may differ"
+  },
+  {
+   "name": "pending-clause",
+   "mechanism": "pending-clause",
+   "at": "text",
+   "params": {},
+   "source": "spec-rule-catalog-2002.json outside-denominator.pending-clauses",
+   "reason": "the rule depends on a pending clause whose text changed or is gone in 2023"
+  },
+  {
+   "name": "behaviour-switch",
+   "mechanism": "behaviour-switch",
+   "at": "text",
+   "params": {},
+   "source": "tests/doc-facts/compiler-facts.json dialectBehaviors",
+   "reason": "the rule's clause holds a behaviour the compiler switches between 2002 and 2023"
+  },
+  {
+   "name": "held",
+   "mechanism": "listed",
+   "at": "text",
+   "params": {
+    "rows": "holds"
+   },
+   "source": "this table's holds",
+   "reason": "the rule is held by evidence no text shows"
+  },
+  {
+   "name": "band-formats",
+   "mechanism": "field-differs",
+   "at": "text",
+   "params": {
+    "field": "band-formats"
+   },
+   "source": "the catalogs' band-formats",
+   "reason": "the formats the rule's band rules differ between the two editions (2023 split or joined the formats)"
+  },
+  {
+   "name": "clause-identity",
+   "mechanism": "clause-identity",
+   "at": "text",
+   "params": {},
+   "source": "both catalogs, by construct clause",
+   "reason": "the rule's clause is not the same set of rows in both editions (a row added, removed, unpaired or moved)",
+   "excludes": false,
+   "why-measured": "PLAN-2002-v3-K0 section 1: it bars 83 of the sample's 84 SAME pairs, so it is scored, never a refusal"
+  },
+  {
+   "name": "communication-reach",
+   "mechanism": "construct-reach",
+   "at": "text",
+   "params": {
+    "context": "the 2002 communication section (Annex A, the CD entry)",
+    "clauses": [
+     "13.14",
+     "13.16.31",
+     "13.16.42",
+     "13.16.43"
+    ],
+    "formats-of": [
+     "13.14"
+    ],
+    "clause-pattern": "13\\.16\\.\\d+",
+    "confined": "\b(?:only|shall be specified only) in the (?:file|working-storage|local-storage|linkage|report|screen) section"
+   },
+   "source": "§2002:A (the communication facility; §2002:G.2 item 1, obsolete) and the 2002 catalog's FMT-13.14 rows",
+   "reason": "the rule governs entries a 2002 CD entry can hold, the communication section 2023 removed, so its 2002 scope is wider"
+  },
+  {
+   "name": "removed-element",
+   "mechanism": "text-pattern",
+   "at": "text",
+   "params": {
+    "pattern": "debugging|communication|cd-name|padding|overflow|floating .{0,20}indicator",
+    "flags": "i"
+   },
+   "source": "§2002:G.2 items 1-3 (communication facility; debugging lines and DEBUGGING MODE; PADDING CHARACTER), §2002:G.1 item 4 (ON OVERFLOW of CALL)",
+   "reason": "the rule names an element 2002 marks obsolete or archaic that a later edition removed"
+  },
+  {
+   "name": "deferral",
+   "mechanism": "text-pattern",
+   "at": "text",
+   "params": {
+    "pattern": "unless .{0,60}prohibit|except as (?:specified|otherwise)|the rules for |prohibit",
+    "flags": "i"
+   },
+   "source": "the 2002 rule's text",
+   "reason": "the rule defers to other rules, whose content it does not state"
+  }
+ ],
+ "pending": {
+  "2": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "5.4": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "6": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "6.2.4": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "7.1": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "7.1.1.4": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "8.1.1": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "8.3.1.1": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "8.3.1.1.3": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589).",
+   "counterpart": "8.3.2.4"
+  },
+  "8.3.1.1.3.1": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "8.4.1.1": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "8.4.5.1": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "8.5.3": {
+   "governs": [],
+   "invokes": [
+    "zero-length|\\btype\\b|typedef|alignment|aligned"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for data representation: types, zero-length items, alignment (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "8.5.4": {
+   "governs": [],
+   "invokes": [
+    "zero-length|\\btype\\b|typedef|alignment|aligned"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for data representation: types, zero-length items, alignment (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "8.8.1.1": {
+   "governs": [
+    "15"
+   ],
+   "invokes": [
+    "arithmetic|standard intermediate|rounded|size error|truncat|significant digit|compile-time|constant entry|sum clause|\\bas\\b literal"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for standard arithmetic (2023 has no standard intermediate data item: §2002:8.8.1.3.2 truncates to 32 significant digits) (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "8.8.1.3.1": {
+   "governs": [
+    "15"
+   ],
+   "invokes": [
+    "arithmetic|standard intermediate|rounded|size error|truncat|significant digit|compile-time|constant entry|sum clause|\\bas\\b literal"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for standard arithmetic (2023 has no standard intermediate data item: §2002:8.8.1.3.2 truncates to 32 significant digits) (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "8.8.1.3.6": {
+   "governs": [
+    "15"
+   ],
+   "invokes": [
+    "arithmetic|standard intermediate|rounded|size error|truncat|significant digit|compile-time|constant entry|sum clause|\\bas\\b literal"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for standard arithmetic (2023 has no standard intermediate data item: §2002:8.8.1.3.2 truncates to 32 significant digits) (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "8.8.2": {
+   "governs": [],
+   "invokes": [
+    "relation condition|comparison|compared|boolean expression"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for comparison and boolean expressions (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "8.8.4.1.1": {
+   "governs": [],
+   "invokes": [
+    "relation condition|comparison|compared|boolean expression"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for comparison and boolean expressions (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "8.8.4.2.4": {
+   "governs": [],
+   "invokes": [
+    "relation condition|comparison|compared|boolean expression"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for comparison and boolean expressions (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "9.1.12": {
+   "governs": [],
+   "invokes": [
+    "i-o status|invalid key|at end condition|status key|file status|permanent error|logic error"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for the I-O status values and the invalid key condition (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589).",
+   "counterpart": "9.1.13"
+  },
+  "9.1.12.1": {
+   "governs": [],
+   "invokes": [
+    "i-o status|invalid key|at end condition|status key|file status|permanent error|logic error"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for the I-O status values and the invalid key condition (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "9.1.12.2": {
+   "governs": [],
+   "invokes": [
+    "i-o status|invalid key|at end condition|status key|file status|permanent error|logic error"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for the I-O status values and the invalid key condition (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "9.1.12.5": {
+   "governs": [],
+   "invokes": [
+    "i-o status|invalid key|at end condition|status key|file status|permanent error|logic error"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for the I-O status values and the invalid key condition (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "9.1.12.9": {
+   "governs": [],
+   "invokes": [
+    "i-o status|invalid key|at end condition|status key|file status|permanent error|logic error"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for the I-O status values and the invalid key condition (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "9.1.13": {
+   "governs": [],
+   "invokes": [
+    "i-o status|invalid key|at end condition|status key|file status|permanent error|logic error"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for the I-O status values and the invalid key condition (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "9.1.14": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "9.3.5": {
+   "governs": [],
+   "invokes": [
+    "method|invoke"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for method invocation (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "13.16.39": {
+   "governs": [],
+   "invokes": [],
+   "why": "The P0 prototype gave this changed clause no trigger; it marks nothing until the adjudicator's judgment (kb/Work PB5589)."
+  },
+  "14.5.2.1.2.1": {
+   "governs": [],
+   "invokes": [
+    "run unit|initial state|terminat|transfer of control"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for transfers of control and run unit termination (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "14.5.3": {
+   "governs": [],
+   "invokes": [
+    "run unit|initial state|terminat|transfer of control"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for transfers of control and run unit termination (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "14.5.8": {
+   "governs": [],
+   "invokes": [
+    "zero-length|\\btype\\b|typedef|alignment|aligned"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for data representation: types, zero-length items, alignment (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "14.5.10": {
+   "governs": [],
+   "invokes": [
+    "run unit|initial state|terminat|transfer of control"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for transfers of control and run unit termination (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "14.5.12.1.2": {
+   "governs": [],
+   "invokes": [
+    "\\bec-|exception condition|exception object|declarative|fatal"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for exception handling (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "14.5.12.1.3": {
+   "governs": [],
+   "invokes": [
+    "\\bec-|exception condition|exception object|declarative|fatal"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for exception handling (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "14.5.12.2": {
+   "governs": [],
+   "invokes": [
+    "\\bec-|exception condition|exception object|declarative|fatal"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for exception handling (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "14.6.4": {
+   "governs": [],
+   "invokes": [
+    "size error|arithmetic statement|corresponding"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for the size error condition and the arithmetic statements (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "14.6.6": {
+   "governs": [],
+   "invokes": [
+    "size error|arithmetic statement|corresponding"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for the size error condition and the arithmetic statements (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "15": {
+   "governs": [
+    "15"
+   ],
+   "invokes": [
+    "intrinsic function|function-identifier"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for intrinsic function evaluation (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  },
+  "15.1": {
+   "governs": [
+    "15"
+   ],
+   "invokes": [
+    "intrinsic function|function-identifier"
+   ],
+   "why": "Seeded from the P0 prototype's trigger for intrinsic function evaluation (measure8.py); the judgment of this clause alone is the adjudicator's (kb/Work PB5589)."
+  }
+ },
+ "behaviours": {
+  "compile-time-arithmetic-mode": {
+   "sections": [
+    "7.2",
+    "13.9"
+   ],
+   "why": "compile-time arithmetic: the directives of §2002:7.2 and the constant entry §2002:13.9"
+  },
+  "indexed-read-previous-after-open-at-end": {
+   "sections": [
+    "14.8.29"
+   ],
+   "why": "the READ statement, §2002:14.8.29"
+  },
+  "relative-write-key-out-of-range-permanent-error": {
+   "sections": [
+    "14.8.47"
+   ],
+   "why": "the WRITE statement, §2002:14.8.47"
+  },
+  "inspect-before-from-first-eligible-position": {
+   "sections": [
+    "14.8.21"
+   ],
+   "why": "the INSPECT statement, §2002:14.8.21"
+  }
+ },
+ "holds": {
+  "2002-SR-13.16.53.2-2": "S1 (adopt-2002): its witness was refused at 2002 for SYNCHRONIZED, the construct the rule names",
+  "2002-SR-13.16.61.2-26": "S1 (adopt-2002): its witness was refused at 2002 for a report VALUE operand list, which the rule names",
+  "2002-GR-13.16.61.3-19": "S1 (adopt-2002): its witness was refused at 2002 for a report VALUE operand list, which the rule names",
+  "2002-SR-8.4.2.6.2-1": "S1 (adopt-2002): its witness was refused at 2002 for the exception-object user word, which the rule names",
+  "2002-SR-8.4.2.6.2-2": "S1 (adopt-2002): its witness was refused at 2002 for the exception-object user word, which the rule names",
+  "2002-GR-8.4.1.2.3-1": "S1 (adopt-2002): its witness was refused at 2002 for ALL subscripts, which the rule names"
+ }
+}

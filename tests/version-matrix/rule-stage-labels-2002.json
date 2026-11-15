@@ -1,0 +1,913 @@
+{
+ "_comment": [
+  "THE RULE STAGE'S REGRESSION FIXTURE for 2002 (kb/Work PB5589; PLAN-2002-v3-K0 D1): 100 candidate pairs a blind",
+  "sample (seed 20261115, an Opus reader and refuter per row, text only) read whole and labelled SAME (the 2002 rule",
+  "states the 2023 rule's requirement) or DIFFERENT (it does not). lineage_screen.py --check fails when an excluding",
+  "trigger of rule-stage-triggers-2002.json leaves any DIFFERENT pair unmarked; the SAME pairs an excluding trigger",
+  "marks are listed in spec-lineage-triggers-2002.json (`labels`), what the screen costs. A later sample's labels are",
+  "added here, never replaced."
+ ],
+ "edition": 2002,
+ "cases": [
+  {
+   "rule-id": "2002-GR-11.3.3-2",
+   "to": [
+    "GR-11.4.4-2"
+   ],
+   "verdict": "SAME",
+   "reason": "Whole FACTORY paragraph clause is word-identical in both editions (format, SR1-2, GR1-2 with its three-case enumeration a-c, and the 9.3.11 reference). No case added or removed.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-11.9.3-1",
+   "to": [
+    "GR-11.10.4-1"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 1 identical. 2023 SR1 additionally forbids a zero-length literal-1, but zero-length literals do not exist in 2002, so no 2002 program is excluded.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-12.3.4.12.3-2",
+   "to": [
+    "GR-12.4.5.12.4-2"
+   ],
+   "verdict": "SAME",
+   "reason": "Format, SR2-5 and GR1-4 identical. SR1 changed from 'may be qualified' (2002) to 'shall not be subject to any OCCURS clauses' (2023). Not a removed case: in 2002 an unsubscripted data-name naming a table element is already illegal outside the listed exceptions (8.4.1.2.2 SR5, which does not list RECORD KEY), so the 2023 SR1 only states what 2002 implied; qualification remains available under the general qualification rules.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-12.3.4.14.2-1",
+   "to": [
+    "GR-12.4.5.14.3-1"
+   ],
+   "verdict": "SAME",
+   "reason": "Clause word-identical in both editions (format and the single GR); the implementor-defined default is the same item in both.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-12.3.4.3-6",
+   "to": [
+    "GR-12.4.5.3-6"
+   ],
+   "verdict": "SAME",
+   "reason": "GR6 and the COLLATING SEQUENCE clause it defaults (formats, GR1-6) are identical; 2023 adds only SR6 (key-level data-names not subscripted) there. GR1's external-file list changed (2002 h PADDING CHARACTER dropped, FILE STATUS and SUPPRESS WHEN added) but that is GR1, not GR6.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-12.3.4.5.3-5",
+   "to": [
+    "GR-12.4.5.6.4-5"
+   ],
+   "verdict": "SAME",
+   "reason": "GR5 identical. 2023 adds the SUPPRESS WHEN phrase (SR7, GR6), which does not touch GR5. SR1 'may be qualified' vs 'shall not be subject to any OCCURS clauses' is the same non-change as in RECORD KEY (2002 8.4.1.2.2 SR5 already forbids an unsubscripted table-element reference here).",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-12.3.6.3-1",
+   "to": [
+    "GR-12.4.6.4.4-1"
+   ],
+   "verdict": "SAME",
+   "reason": "Formats, SR1-10 and GR1 identical. 2023 adds APPLY COMMIT rules (SR11, new GR3) for a facility 2002 lacks; no 2002 case removed.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.14.3-1",
+   "to": [
+    "GR-13.16.4-1"
+   ],
+   "verdict": "SAME",
+   "reason": "GR1-4 identical. The GROUP-USAGE clause it implies is identical except 2023 SR1 excludes a variable-length group, a 2023-only construct, so no 2002 bit group is affected.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.13.3-7",
+   "to": [
+    "GR-13.18.13.4-7"
+   ],
+   "verdict": "SAME",
+   "reason": "Whole CODE-SET clause (format, SR1-3, GR1-7) identical; only 'FILE option' became 'FILE phrase' in GR4.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.38.3-16",
+   "to": [
+    "GR-13.18.40.4-17"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 2 (locale) general format identical; its GRs (2002 15-18 = 2023 16-19) identical. 2023 adds SR32 (not with CONSTANT RECORD, a 2023 construct) and SR35 (1-31 digit positions, which 2002 SR6 already imposed on all numeric-edited items). Ordinal shift is from Format 1 additions (EDITING phrase).",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.38.4-9",
+   "to": [
+    "GR-13.18.40.5-9"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 2 editing rules 9-15 are identical in both editions; Format 2 syntax unchanged for 2002 programs. Locale/LC_MONETARY definitions were outside this reading (mechanically screened as unchanged terms).",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.41.3-18",
+   "to": [
+    "GR-13.18.43.4-18"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 3 and GR17-19 identical. 2023 adds BYTES as a synonym of CHARACTERS (SR2) in all formats: a widening.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.41.3-2",
+   "to": [
+    "GR-13.18.43.4-2"
+   ],
+   "verdict": "SAME",
+   "reason": "GR2 identical; the CODE-SET and FORMAT clauses it names exist unchanged in 2023 (13.18.13, 13.18.24; FORMAT SR3 adds message-tag only). GR3 changed ('variable-length data item' -> 'occurs-depending table') but GR2 does not lean on it.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.41.3-4",
+   "to": [
+    "GR-13.18.43.4-4"
+   ],
+   "verdict": "SAME",
+   "reason": "GR4 (all formats) identical; bit-data alignment basis present in both.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.53.3-2",
+   "to": [
+    "GR-13.18.55.4-3"
+   ],
+   "verdict": "SAME",
+   "reason": "Rule identical. 2023 permits SYNCHRONIZED on a group item (SR1) and treats it as specified on each subordinate elementary item (new GR1, hence the ordinal shift); 2002's elementary-only cases are a subset.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.53.3-5",
+   "to": [
+    "GR-13.18.55.4-6"
+   ],
+   "verdict": "SAME",
+   "reason": "Rule identical; same widening to group-level SYNCHRONIZED as above.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.61.3-5",
+   "to": [
+    "GR-13.18.63.4-5"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "COVERAGE, not semantics. The 2002 rule sits under 'FORMATS 1 AND 2' and governs a group-level table-format (format 2) VALUE too. The 2023 twin sits under 'FORMAT 1' only; format 2 receives it only through a separate rule, 2023 GR11 ('General rules 1, 2, 3, 4, 5, 6, 7, 8, and 10 above apply'). So the 2023 GR5 verdict says nothing about the format-2 case the 2002 rule requires. The requirement itself survives in 2023 (GR5+GR11) and the probe shows identical behaviour at both editions; the carry is sound only with to = [GR-13.18.63.4-5, GR-13.18.63.4-11] (GR11 is OK in the 2023 view). Mechanically detectable: the catalog's band-formats differ ([1,2] vs [1]).",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.16.61.3-9",
+   "to": [
+    "GR-13.18.63.4-9"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "COVERAGE, not semantics; same mechanism as 13.16.61.3 GR5. The 2002 rule is banded 'FORMAT 1 AND 4' (data-item and report-section). The 2023 twin is under 'FORMAT 1' only; format 4 gets it only through 2023 GR21 ('General rules 1, 7, 8, and 9 above apply'). The 2023 GR9 verdict alone does not cover the report-section case; carry needs to = [GR-13.18.63.4-9, GR-13.18.63.4-21]. Band-formats differ in the catalogs ([1,4] vs [1]). 2023 also adds OCCURS DYNAMIC (widening, not relevant to 2002).",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.3.4.3-1",
+   "to": [
+    "GR-13.4.5.4-1"
+   ],
+   "verdict": "SAME",
+   "reason": "Formats equivalent (2023 factors LINAGE into a linage-clause meta-term; adds SR4 for LINE SEQUENTIAL, a 2023 construct, and a PERFORM WHEN reference in SR9). GR1 identical.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-13.3.5.3-1",
+   "to": [
+    "GR-13.4.6.4-1"
+   ],
+   "verdict": "SAME",
+   "reason": "2002 writes the RECORD forms inline (CHARACTERS only); 2023 uses record-clause (13.18.43), the same three forms plus BYTES as a synonym. GR1 identical.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.10.3-7",
+   "to": [
+    "GR-14.9.11.4-8"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 1 identical; GR identical. 2023 inserts GR7 (variable-length group display, a 2023 construct) and widens 'hardware device' to 'hardware or software device' (SR2).",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.16.3-1",
+   "to": [
+    "GR-14.9.17.4-1"
+   ],
+   "verdict": "SAME",
+   "reason": "Formats and GRs identical (2002 has no ALTER, so format 1 procedure-name-1 is mandatory in both). 2023 adds only SR3 (not in a PERFORM WHEN phrase, a 2023 construct).",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.19.3-1",
+   "to": [
+    "GR-14.9.20.4-1"
+   ],
+   "verdict": "SAME",
+   "reason": "GR1 identical; 2023 adds FUNCTION-POINTER and MESSAGE-TAG categories and an exception-checking PERFORM restriction, neither touching bit/national group handling. Probe confirms identical behaviour.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.26.3-17",
+   "to": [
+    "GR-14.9.27.4-19"
+   ],
+   "verdict": "SAME",
+   "reason": "Format identical; GR with its a-c enumeration identical. Ordinal shift from GR order changes (I-O status moved to GR1, authority GR3 added).",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.26.3-20",
+   "to": [
+    "GR-14.9.27.4-21"
+   ],
+   "verdict": "SAME",
+   "reason": "GR identical; 'shareable' is undefined in both editions. 2023 forbids the sharing phrase for APPLY COMMIT files (SR7, a 2023 construct). 9.1.14/9.1.15 Sharing mode was reworded (file-lock text and APPLY COMMIT added), but not in what makes a file shareable.",
+   "read": "sample-k0/k0-1-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.27.3-5",
+   "to": [
+    "GR-14.9.28.4-7"
+   ],
+   "verdict": "SAME",
+   "reason": "PERFORM out-of-line/inline formats identical; 'specified set of statements' defined identically (2002 GR2 = 2023 GR4); in 2023 the rule sits under 'FORMATS 1 AND 2', the same two formats 2002 has. 2023 adds Format 3 (exception-checking PERFORM), to which the rule does not apply, and range/overlap rules GR1-2 that do not alter it.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.3.3-3",
+   "to": [
+    "GR-14.9.3.4-3"
+   ],
+   "verdict": "SAME",
+   "reason": "ALLOCATE general format and syntax rules 1-5 are word-identical; general rules 1-5 identical. 2023 data-description additions (dynamic-capacity tables, dynamic-length items) could make 'bytes required to hold an item as described by data-name-1' cover new descriptions, a widening only.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.30.3-5",
+   "to": [
+    "GR-14.9.32.4-5"
+   ],
+   "verdict": "SAME",
+   "reason": "RELEASE format identical. 2002 SR2 forbids identifier-1 and record-name-1 sharing storage; 2023 drops that restriction (adds a NOTE on overlapping operands) and adds SR4 (no zero-length literal). So 2023 GR5 governs a superset of programs; for every 2002-legal program (no overlap) the requirement is the same.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.33.3-11",
+   "to": [
+    "GR-14.9.35.4-12"
+   ],
+   "verdict": "SAME",
+   "reason": "REWRITE format identical (retry-phrase, WITH LOCK / WITH NO LOCK). Single/multiple record locking defined identically in LOCK MODE clause (2002 12.3.4.8.3 GR6-7 = 2023 12.4.5.9.4 GR6-7). Ordinal shift is 2023 moving the I-O status rule to GR1. 2023 9.1.16 adds files subject to commit and rollback, which get implicit multiple record locking; that is a 2023-only case (APPLY COMMIT), a widening.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.33.3-3",
+   "to": [
+    "GR-14.9.35.4-4"
+   ],
+   "verdict": "SAME",
+   "reason": "Format identical; rule is a statement of effect independent of organization. 2023 adds line sequential files (GR17) for which the same sentence also holds: widening only.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.35.3-24",
+   "to": [
+    "GR-14.9.39.4-27"
+   ],
+   "verdict": "SAME",
+   "reason": "Save-locale format is 2002 Format 11 and 2023 Format 12 (renumbered because 2023 inserted function-pointer-assignment as Format 8); diagram identical (SET identifier-11 TO LOCALE {LC_ALL|USER-DEFAULT}); the syntax rule on identifier-11 (category data-pointer, elementary) identical; rule sits under its own FORMAT heading in both.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.35.3-8",
+   "to": [
+    "GR-14.9.39.4-9"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 5 in both; 2023 renames class-name-1 to object-class-name-1 (the other alternative), identifier-3/identifier-4 and SR8-SR12, SR14 on identifier-4 are word-identical; 2023 SR13 tightens only the class-name alternative (ONLY phrase), not identifier-4.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.36.3-23",
+   "to": [
+    "GR-14.9.40.4-24"
+   ],
+   "verdict": "SAME",
+   "reason": "Table-format SORT diagram identical; GR17-23 (2002) = GR18-24 (2023) word for word (ordinal shift from an earlier ALL FORMATS rule). Data-name-2 SR13 is reworded: 2002 requires subscripts on all levels with rightmost ALL for a multi-level table; 2023 defers to 8.4.2.3, which still allows rightmost ALL and also allows omitting it. 2023 admits a superset of data-name-2 references. Key-item SR14 differences (b, d) constrain keys, not GR24.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.37.3-15",
+   "to": [
+    "GR-14.9.41.4-15"
+   ],
+   "verdict": "SAME",
+   "reason": "START format identical; general rules 1-21 identical in order and words except cross-reference renumbering and a 2023 sentence in GR17e on suppressed alternate keys. SR4 differs (2002 qualification; 2023 no OCCURS) but GR15 covers the KEY-omitted case, where data-name-1/record-key-name-1 is the prime record key itself, unaffected by SR4.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.37.3-3",
+   "to": [
+    "GR-14.9.41.4-3"
+   ],
+   "verdict": "SAME",
+   "reason": "Identical rule; the LOCK MODE clause exemption of START is identical in both editions. 2023 commit/rollback files (implicit multiple locking) are a 2023-only case.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.38.3-5",
+   "to": [
+    "GR-14.9.42.4-5"
+   ],
+   "verdict": "SAME",
+   "reason": "STOP RUN [WITH {ERROR|NORMAL} STATUS [identifier-1|literal-1]] identical; SR2-3 identical; GR1-6 identical. 2023 adds SR4 (no zero-length literal, a 2023-only literal form) and rewords SR1 placement; neither changes what GR5 requires. Implementor-defined constraints rest on the same sentence.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.44.3-6",
+   "to": [
+    "GR-14.9.48.4-6"
+   ],
+   "verdict": "SAME",
+   "reason": "Whole-clause diff: format identical; general rules identical except cross-reference renumbering and ON OVERFLOW control-transfer rewording. 2023 adds SR10 (identifiers shall not reference a variable-length group) and zero-length literal exclusion, but a variable-length group needs a dynamic-length item or dynamic-capacity table, both 2023-only, so no 2002 program is excluded.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-14.8.5.3-4",
+   "to": [
+    "GR-14.9.5.4-4"
+   ],
+   "verdict": "SAME",
+   "reason": "CANCEL format and rules diffed whole: identical except cross-reference renumbering, 2023 zero-length literal exclusion (2023-only form) and GR9 rewording of USE procedures on implicit CLOSE. GR4 and the contained-program concept are unchanged.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-8.3.1.2.1.3-2",
+   "to": [
+    "GR-8.3.3.2.4-2"
+   ],
+   "verdict": "SAME",
+   "reason": "Same two formats (alphanumeric, hexadecimal-alphanumeric) in both, under ALL FORMATS in both. 2023 makes character-1 optional (zero-length literals) and raises the length limit from 160 to 8,191; every 2002 alphanumeric literal is a 2023 alphanumeric literal of the same class and category.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-8.3.1.2.3.3-5",
+   "to": [
+    "GR-8.3.3.4.4-6"
+   ],
+   "verdict": "SAME",
+   "reason": "Hexadecimal-boolean format identical apart from 2023 making the digits optional; the digit-to-boolean table (2002 GR4 = 2023 GR5) is identical; the ordinal shift is 2023's zero-length GR4. Probe: MOVE BX\"A5\" to PIC 1(8) gives 10100101 and compares equal to B\"10100101\" at both editions.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-GR-8.4.2.3.3-4",
+   "to": [
+    "GR-8.4.3.3.4-4"
+   ],
+   "verdict": "SAME",
+   "reason": "Reference-modification format identical; SR1's list identical except the 2023 exclusion of variable-length groups (a 2023-only construct); GR1-3 identical. 2023 changes to GR5c (REF-MOD-ZERO-LENGTH directive, zero value raising EC-BOUND-REF-MOD) are in a different rule. Probe: SIGN LEADING/TRAILING SEPARATE items, N1(1:1) and N2(3:1) yield the sign character at both editions.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-11.2.2-9",
+   "to": [
+    "SR-11.3.3-8"
+   ],
+   "verdict": "SAME",
+   "reason": "CLASS-ID format identical (class-name renamed object-class-name). REPOSITORY class-specifier and interface-specifier formats identical in both (12.2.7.1 / 12.3.8.2). Ordinal shift: 2002 SR7 (method interface conformance) is absent in 2023. 2023 adds SR9 (no duplicate parameter-name), a separate rule.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-11.5.2-3",
+   "to": [
+    "SR-11.6.3-3"
+   ],
+   "verdict": "SAME",
+   "reason": "INTERFACE-ID format identical; SR1-5 identical (2023 adds zero-length exclusion to SR1 and new SR6-7). 9.3.10 Interface inheritance text identical in both editions.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.2.6.2-18",
+   "to": [
+    "SR-12.3.7.3-18"
+   ],
+   "verdict": "SAME",
+   "reason": "CURRENCY SIGN format identical; SR18 identical and admits the same literals (zero-length literals are 2023-only and are excluded by 2023 SR22/23 anyway). Probe: CURRENCY SIGN ALL \"@\" rejected under SR18 at both editions; \"@\" accepted at both. SAME for SR18 itself. LEAD (a different 2002 rule, not this pair): 2023 SR19 (hex literal-7 requires PICTURE SYMBOL) has no 2002 counterpart (2002 SR19 only requires one character outside the listed set), yet --std 2002 rejects CURRENCY SIGN IS X\"40\" with COBOL0890 citing §2023:12.3.7.3 r19. Code site: E:\\COBOL-wt\\coderead85-tree-d\\src\\WiseOwl.Cobol.Compiler\\Binding\\SpecialNamesBinder.Currency.cs lines 170-172 (edition-blind). Repro: probes-2\\cs.cob. The 2014 text (ISO_COBOL_2014.md line 10831) already carries SR19, so the gate would be 2014+.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.2.7.2-12",
+   "to": [
+    "SR-12.3.8.3-12"
+   ],
+   "verdict": "SAME",
+   "reason": "Intrinsic function-specifier diagram identical (2023 moves it to its own intrinsic-function-specifier name). The set of intrinsic-function-names grows: every 2002 intrinsic function clause name in 15.x is present in 2023 (76 vs 94 headings, none removed), so no 2002 name falls out. Probe: FUNCTION UPPER-CASE INTRINSIC plus a data item UPPER-CASE is rejected (COBOL1649) at both editions; without the REPOSITORY entry it is accepted at both.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.2.7.2-8",
+   "to": [
+    "SR-12.3.8.3-8"
+   ],
+   "verdict": "SAME",
+   "reason": "Interface-specifier format identical (class-name-4 renamed object-class-name-4); interface-specifier SR7-9 identical. 2023 GR7 adds a sentence restricting where a USING-described interface may be named, unrelated to the self-reference rule.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.3.4.2-10",
+   "to": [
+    "SR-12.4.5.2-9"
+   ],
+   "verdict": "SAME",
+   "reason": "File control entry Format 2 (relative) is clause-for-clause identical in both editions. The ordinal shift is 2002 SR8 (data-name-1 may be qualified) dropped in 2023. Changes elsewhere: Format 1 gains SUPPRESS WHEN, Format 3 gains LINE/RECORD SEQUENTIAL and loses PADDING CHARACTER; none touches Format 2 or the sort-merge FD exclusion.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.3.4.2-13",
+   "to": [
+    "SR-12.4.5.2-13"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 4 (sort-merge: SELECT [OPTIONAL] file-name-1 ASSIGN ... [[ORGANIZATION IS] SEQUENTIAL]) identical in both. Same ordinal by coincidence: 2023 drops SR8 and adds SR12 (LINE SEQUENTIAL with RESERVE).",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.3.4.5.2-4",
+   "to": [
+    "SR-12.4.5.6.3-4"
+   ],
+   "verdict": "SAME",
+   "reason": "ALTERNATE RECORD KEY format identical except 2023's added SUPPRESS WHEN literal-1 phrase (does not affect leftmost-position rule). SR2-6 identical; SR1 changes from 'may be qualified' to 'not subject to any OCCURS clauses', which does not alter SR4. Probe: alternate key K2 in a second record at the leftmost byte of prime key K1 is rejected (COBOL0863) at both editions.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.3.4.6.2-2",
+   "to": [
+    "SR-12.4.5.7.3-2"
+   ],
+   "verdict": "SAME",
+   "reason": "COLLATING SEQUENCE clause Format 1 identical; SR1-3 identical (2023 adds Format 2 SR6 and SR8). The ALPHABET clause FOR NATIONAL alternatives (LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase) and the rule that defines a national collating sequence (GR7b) are identical in both editions.",
+   "read": "sample-k0/k0-2-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.3.4.6.2-5",
+   "to": [
+    "SR-12.4.5.7.3-5"
+   ],
+   "verdict": "SAME",
+   "reason": "Both general formats (file-level and key-level) are identical; the rule sits under FORMAT 2 in both. record-key-name is defined by the identical RECORD KEY / ALTERNATE RECORD KEY formats (record-key-name-1 SOURCE IS data-name-2 ...). 2023 inserts a new SR6 (data-name-1 and record-key-name-1 shall not be subscripted), renumbering the old SR6/7 to SR7/8; that adds a restriction beside the rule but does not change SR5. General rules identical.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.3.6.2-8",
+   "to": [
+    "SR-12.4.6.4.3-8"
+   ],
+   "verdict": "SAME",
+   "reason": "The three formats and SR1-SR10 are word-identical in both editions. 2023 adds SR11 and GR3 about APPLY COMMIT (a 2023-only clause), which constrain only files that 2002 cannot declare. Nothing SR8 relies on (sort-merge-area format, sort or merge file) changed.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-12.3.6.2-9",
+   "to": [
+    "SR-12.4.6.4.3-9"
+   ],
+   "verdict": "SAME",
+   "reason": "Formats, SR1-SR10 and the file-area/record-area general rules are identical. 2023's added SR11/GR3 (APPLY COMMIT) concern a clause absent from 2002 and do not alter the file-area/record-area subset requirement.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.13.2-13",
+   "to": [
+    "SR-13.15.3-13"
+   ],
+   "verdict": "SAME",
+   "reason": "General format of the report group description entry is identical (same clause list, same source/sum/value choice). SR1-SR17 are identical except SR14, where 2023 excludes zero-length literals from PICTURE omission (zero-length literals are new in 2023); that does not touch SR13. General rules identical apart from the cross-reference number.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.14.2-15",
+   "to": [
+    "SR-13.16.3-16"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 1 carries [BASED] in both; the rule is under FORMAT 1 in both. The sections named (linkage, working-storage, local-storage) exist in both. 2023 adds CONSTANT RECORD and DYNAMIC LENGTH and forbids BASED with CONSTANT RECORD (new SR13), and renumbers BASED to SR16; these restrict 2023-only constructs. The REDEFINES/EXTERNAL exclusions with BASED are kept (SR3, SR5).",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.14.2-20",
+   "to": [
+    "SR-13.16.3-22"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "REVISED from SAME on reading the communication facility. CAUSE: communication-section domain. Format 2 (66 RENAMES ... THROUGH|THRU) is identical and the rule is the sole FORMAT 2 rule in both, but 2002 permits level-66 entries subordinate to a CD entry (13.16.31 SR2), a case 2023 does not have. The 2002 communication section (Annex A, optional and obsolete, implemented by WiseOwl at --std 2002 per docs/CONFORMANCE.md 3.3) is followed by record description entries built from the ordinary data description entry, so every rule constraining such an entry also governs CD records in 2002; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The rule text carries no cross-reference to Annex A, so the mechanical filter could not see it. Probe cd-domain.cob (66 RENAMES ... THRU / THROUGH after a CD record): runs at --std 2002, rejected at 2023 (COBOL0902).",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.14.2-2",
+   "to": [
+    "SR-13.18.14.3-2"
+   ],
+   "verdict": "SAME",
+   "reason": "Both formats (report-writer, screen-item) identical, and the rule is under ALL FORMATS in both. All COLUMN syntax rules identical apart from cross-reference numbers.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.14.2-5",
+   "to": [
+    "SR-13.18.14.3-5"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 1 (report-writer) is identical: the same six COLUMN/COL spellings and the optional IS/ARE. SR4 (ARE only with plural) and SR5 identical. FORMAT 1 band in both.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.15.2-1",
+   "to": [
+    "SR-13.18.16.3-1"
+   ],
+   "verdict": "SAME",
+   "reason": "General format identical (CONTROL IS | CONTROLS ARE, data-name-1 ... | FINAL [data-name-1] ...). Lexical synonymy only.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.15.2-6",
+   "to": [
+    "SR-13.18.16.3-6"
+   ],
+   "verdict": "SAME",
+   "reason": "Format identical. The neighbouring rules changed: 2002 SR3 'may be qualified' became 2023 SR3 'shall not be subject to any OCCURS clauses', 2002 SR5 'variable-occurrence entry' became 'occurs-depending table', and 2023 adds SR7 (no variable-length group). None of these changes what 'unique' means for data-name-1 or the permission for two instances to overlap; the set of admissible data-name-1 references differs only by restrictions placed in other rules. Qualification remains permitted in 2023 by the general rules for references (8.4.2.2.3 SR2), so a qualified data-name-1 written twice is the same duplicate in both.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.31.2-3",
+   "to": [
+    "SR-13.18.33.3-3"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "CAUSE: communication-section domain. The sentence is identical but its domain is not. In 2002 the level-number clause covers data description entries subordinate to a CD entry (SR2 names CD, FD, SD); 2023 SR2 names only FD and SD, the communication section having been removed. 2002 Annex A (optional, obsolete) lists 13.16.31 SR2 among the clauses that refer to the communications facility, and WiseOwl implements that facility at --std 2002 (docs/CONFORMANCE.md 3.3, kb/Work PB4677). So the 2002 rule permits '01'/'1' spellings for CD record entries, a case the 2023 rule (and its CONFORMS verdict) says nothing about. The removed case is in the obsolete optional Annex A, a 2002 clause family the plan already treats as uncatalogued, but the rule text carries no cross-reference to it, so the mechanical filter could not have seen it. Probe: lvl-cd.cob (CD with '01', '5' and '1' record entries) compiles and runs at --std 2002 (warning COBOL0903, output OK) and is rejected at --std 2023 (COBOL0902); the compiler happens to honour the 2002 case, but the 2023 verdict does not show it.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.33.2-10",
+   "to": [
+    "SR-13.18.35.3-10"
+   ],
+   "verdict": "SAME",
+   "reason": "Both formats identical; FORMAT 1 band in both; SR1-SR13 identical (only cross-reference numbers differ). The four sub-items a)-d) of the multiple LINE clause are the same in both.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.35.2-5",
+   "to": [
+    "SR-13.18.37.3-5"
+   ],
+   "verdict": "SAME",
+   "reason": "General format identical (integer-1 | PLUS integer-2 | NEXT PAGE [WITH RESET]); SR1-SR7 identical apart from cross-reference numbers. 'Page footing' is the same TYPE clause group type in both.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.36.2-17",
+   "to": [
+    "SR-13.18.38.3-18"
+   ],
+   "verdict": "SAME",
+   "reason": "Formats 1-3 identical; 2023 adds Format 4 (dynamic-capacity-table) to which this FORMATS 2 AND 3 rule does not apply. The rule sits under FORMATS 2 AND 3 in both. GLOBAL is never permitted on communication-section entries in 2002 (13.16.25 SR1 lists only constant, file/WS/LS/linkage level-1, screen, FD and RD entries), so the communication-section domain difference that affects other data-description rules in this slice cannot reach this one. Neighbouring changes (2002 SR2 'may be qualified' became 'shall not be subscripted'; 'variable-occurrence' became 'occurs-depending table') do not change SR17.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.36.2-20",
+   "to": [
+    "SR-13.18.38.3-22"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "CAUSE: communication-section domain. Format 2 (variable-table, renamed occurs-depending-table in 2023) is identical and the rule is under FORMAT 2 in both; 2023 adds SR19 (no format 2 OCCURS under CONSTANT RECORD), a 2023-only restriction. The 2002 communication section (Annex A, optional and obsolete, implemented by WiseOwl at --std 2002 per docs/CONFORMANCE.md 3.3) is followed by record description entries built from the ordinary data description entry, so every rule constraining such an entry also governs CD records in 2002; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The rule text carries no cross-reference to Annex A, so the mechanical filter could not see it. A 2002 CD record entry with OCCURS DEPENDING followed by a non-subordinate entry is governed by this rule. Probe cd-odo-bad.cob at --std 2002: rejected with COBOL0856 citing the 2023 rule, so the compiler honours the 2002 case, but the 2023 verdict does not show it.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.37.2-1",
+   "to": [
+    "SR-13.18.39.3-1"
+   ],
+   "verdict": "SAME",
+   "reason": "General format identical (same DETAIL/DE, CONTROL HEADING/CH alternatives); SR1-SR6 identical. Lexical synonymy in the report description entry, which has no communication-section counterpart.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.38.2-11",
+   "to": [
+    "SR-13.18.40.3-13"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "CAUSE: communication-section domain. Taken alone the requirement is the same and wider in 2023: the rule is under FORMAT 1 in both; 2023 Format 1 adds the EDITING phrase (extended editing sign control) and the 'rules for the symbol period' it swaps grew accordingly, while every 2002 period/comma rule survives (2002 SR8/SR13/SR16/SR26 = 2023 SR7/SR17/SR20/SR29, SR7 only clarified 'without an intervening separator space'). The 2002 communication section (Annex A, optional and obsolete, implemented by WiseOwl at --std 2002 per docs/CONFORMANCE.md 3.3) is followed by record description entries built from the ordinary data description entry, so every rule constraining such an entry also governs CD records in 2002; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The rule text carries no cross-reference to Annex A, so the mechanical filter could not see it. A PICTURE in a CD record item under DECIMAL-POINT IS COMMA is such a case. Probes: dpc.cob (working-storage) gives 12.345,67 at both --std 2002 and 2023; cd-domain.cob (CD record E1 PIC ZZ9,99) runs at 2002 printing '  1,50' and is rejected at 2023 (COBOL0902).",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.41.2-6",
+   "to": [
+    "SR-13.18.43.3-7"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 2 (variable-length) identical except that 2023 lets BYTES stand for CHARACTERS (new SR2), which shifts the numbering; integer-2 is the same FROM operand in both. The RECORD clause appears only in FD/SD entries, which exist in both.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.42.2-11",
+   "to": [
+    "SR-13.18.44.3-10"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "CAUSE: communication-section domain, named in the clause itself. The format is identical and SR1-SR16 correspond, but 2002 has an SR4 ('shall not be specified in level 1 entries in the communication section') that 2023 deletes, so REDEFINES at levels 2-49 in CD records is a 2002 case of this rule that 2023 cannot express (2023 instead adds CONSTANT RECORD and variable-length restrictions, SR13/SR17). The 2002 communication section (Annex A, optional and obsolete, implemented by WiseOwl at --std 2002 per docs/CONFORMANCE.md 3.3) is followed by record description entries built from the ordinary data description entry, so every rule constraining such an entry also governs CD records in 2002; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The rule text carries no cross-reference to Annex A, so the mechanical filter could not see it. Probe redef-cd-bad.cob (05 C1 REDEFINES A1 after an intervening 05 B1 in a CD record): rejected at --std 2002 with COBOL2739; redef-ws-bad.cob is the working-storage control (rejected at both editions).",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.42.2-12",
+   "to": [
+    "SR-13.18.44.3-11"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "CAUSE: communication-section domain, named in the clause itself (2002 SR4, deleted in 2023). The permission is otherwise the same. The 2002 communication section (Annex A, optional and obsolete, implemented by WiseOwl at --std 2002 per docs/CONFORMANCE.md 3.3) is followed by record description entries built from the ordinary data description entry, so every rule constraining such an entry also governs CD records in 2002; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The rule text carries no cross-reference to Annex A, so the mechanical filter could not see it. Probe redef-cd-ok.cob (10 C3 REDEFINES C2 where C2 is subordinate to 05 C1 REDEFINES A1, in a CD record): compiles and runs at --std 2002 (OK), rejected at 2023 only for the communication section (COBOL0902).",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.43.2-8",
+   "to": [
+    "SR-13.18.45.3-9"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "CAUSE: communication-section domain, named in the clause itself: 2002 SR3 lists CD among the entries a RENAMES data-name-1 is associated with, 2023 SR3 drops CD. The lexical equivalence is otherwise identical and the format is identical. A 66-level RENAMES ... THRU in a CD record is a 2002 case the 2023 rule does not reach. The 2002 communication section (Annex A, optional and obsolete, implemented by WiseOwl at --std 2002 per docs/CONFORMANCE.md 3.3) is followed by record description entries built from the ordinary data description entry, so every rule constraining such an entry also governs CD records in 2002; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The rule text carries no cross-reference to Annex A, so the mechanical filter could not see it. Probe cd-domain.cob (66 R1 RENAMES G1A THRU G1B and 66 R2 RENAMES G1A THROUGH E1 after a CD record): runs at --std 2002, rejected at 2023 (COBOL0902).",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.61.2-11",
+   "to": [
+    "SR-13.18.63.3-13"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "CAUSE: communication-section domain, named in the clause itself (2002 description and GR4 name communication-section items; the 2023 description and rules do not). Coverage of formats otherwise matches: 2002 SR11 is under FORMATS 1 AND 2; 2023 SR13 is under FORMAT 1 and SR16 extends it to Format 2. (Note for the carry: the 2023 catalog bands SR-13.18.63.3-13 as FORMAT 1 only, so its verdict may not have examined Format 2; the 2002 rule's band includes Format 2 directly.) A group VALUE in a CD record with a subordinate VALUE is a 2002 case the 2023 rule does not reach. The 2002 communication section (Annex A, optional and obsolete, implemented by WiseOwl at --std 2002 per docs/CONFORMANCE.md 3.3) is followed by record description entries built from the ordinary data description entry, so every rule constraining such an entry also governs CD records in 2002; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The rule text carries no cross-reference to Annex A, so the mechanical filter could not see it. Probe cd-value-bad.cob: rejected at --std 2002 with COBOL1702; cd-domain.cob (05 G1 VALUE 'ABCD' in a CD record) runs at 2002.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.61.2-20",
+   "to": [
+    "SR-13.18.63.3-28"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "CAUSE: communication-section domain (88-level condition-names under CD record items). Apart from that the equivalence is the same: 2002 places it under FORMATS 3 AND 5; 2023 places SR28 under FORMAT 3 and SR36 extends it to Format 5 by reference. (Note for the carry: the 2023 catalog bands SR-13.18.63.3-28 as FORMAT 3 only; the Format 5 case reaches it only through SR36, so its verdict may not have examined the content-validation format.) The 2002 communication section (Annex A, optional and obsolete, implemented by WiseOwl at --std 2002 per docs/CONFORMANCE.md 3.3) is followed by record description entries built from the ordinary data description entry, so every rule constraining such an entry also governs CD records in 2002; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The rule text carries no cross-reference to Annex A, so the mechanical filter could not see it. Probe cd-domain.cob (88 K1-LOW VALUES ARE 1 THRU 3, 88 K1-HI VALUE 7 THROUGH 9 under a CD record item): runs at --std 2002, rejected at 2023 (COBOL0902).",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.16.61.2-7",
+   "to": [
+    "SR-13.18.63.3-17"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "CAUSE: communication-section domain (table VALUES and 88-level VALUES in CD records). Apart from that the equivalence is the same: 2002 SR7 is under FORMATS 2, 3, 4, AND 5; 2023 puts SR17 under FORMAT 2 and extends it to Formats 3, 4 and 5 by reference (SR24, SR34, SR36). (Note for the carry: the 2023 catalog bands SR-13.18.63.3-17 as FORMAT 2 only, so its verdict may cover only the table format, while the 2002 rule names four formats directly.) The 2002 communication section (Annex A, optional and obsolete, implemented by WiseOwl at --std 2002 per docs/CONFORMANCE.md 3.3) is followed by record description entries built from the ordinary data description entry, so every rule constraining such an entry also governs CD records in 2002; 2023 has no communication section, so the 2023 rule and its CONFORMS verdict say nothing about that case. The rule text carries no cross-reference to Annex A, so the mechanical filter could not see it. Probe cd-domain.cob (VALUES ARE 1 2 3 FROM (1) on a table and VALUES ARE on an 88, in a CD record): runs at --std 2002, rejected at 2023 (COBOL0902).",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.3.4.2-4",
+   "to": [
+    "SR-13.4.5.3-5"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 1 is the same (2023 replaces the inline LINAGE syntax with a linage-clause reference to 13.18.34; the other clauses are identical); the rule is under FORMAT 1 in both. 2023 widens 'sequential file' with LINE SEQUENTIAL organization and adds SR4 (no BLOCK/RECORD CONTAINS for line sequential), a restriction only on the new case. Every 2002 sequential file is still described by Format 1.",
+   "read": "sample-k0/k0-3-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-13.3.5.2-1",
+   "to": [
+    "SR-13.4.6.3-1"
+   ],
+   "verdict": "SAME",
+   "reason": "Same SD format (2023 factors the RECORD clause out to 13.18.43, file-name-1 unchanged); syntax rules 1-4 identical in both; 'file control entry' unchanged. Nothing removed.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.13.2-4",
+   "to": [
+    "SR-14.9.14.3-4"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "The 2002 rule sits under the band 'FORMATS 2, 3, AND 4' (EXIT PROGRAM, EXIT METHOD, EXIT FUNCTION, each with RAISING identifier-1). 2023 has only Format 2 (program) carrying RAISING identifier-1, and Annex E.2 item 1 lists 'EXIT METHOD statement' and 'EXIT FUNCTION statement' as removed. So the 2002 rule governs identifier-1 in EXIT METHOD RAISING and EXIT FUNCTION RAISING, cases the 2023 rule cannot speak to. The 2023 band is also archaic (F.1). Probe: EXIT FUNCTION compiles clean at --std 2002 and is refused (COBOL0902, removed in 2023) at --std 2023, confirming the 2002-only population. Also depends on exception handling (RAISING), one of 2002's uncatalogued areas.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.23.2-3",
+   "to": [
+    "SR-14.9.24.3-3"
+   ],
+   "verdict": "SAME",
+   "reason": "MERGE general format identical in both editions (USING file-name-2 {file-name-3}..., OUTPUT PROCEDURE/GIVING). The rule is self-contained on record sizes of the SD and the USING files; no referenced rule or enumeration. 2023 changes only neighbouring rules (SR1 placement, key-item restrictions), not this one.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.25.2-1",
+   "to": [
+    "SR-14.9.26.3-1"
+   ],
+   "verdict": "SAME",
+   "reason": "Both formats identical (2023 replaces ROUNDED with rounded-phrase, which does not touch identifier-1/2). Category numeric: 2023 adds new numeric usages (e.g. FLOAT-DECIMAL, BINARY-CHAR etc.) that a 2002 program cannot declare; every 2002 numeric/non-numeric item classifies the same.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.27.2-12",
+   "to": [
+    "SR-14.9.28.3-13"
+   ],
+   "verdict": "SAME",
+   "reason": "Procedure-name-2 appears only in the out-of-line Format 1 THROUGH phrase, identical in both editions. 2023 bands the rule FORMAT 1 (2002 unbanded) which matches where procedure-name-2 occurs. 2023's added Format 3 (exception-checking) and UNTIL EXIT do not involve procedure-name-2.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.27.2-4",
+   "to": [
+    "SR-14.9.28.3-10"
+   ],
+   "verdict": "SAME",
+   "reason": "THROUGH/THRU occurs only in Format 1 (out-of-line) in both editions; 2023 bands the rule FORMAT 1, 2002 leaves it unbanded, which covers the same occurrences. Added Format 3 has no THRU.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.33.2-2",
+   "to": [
+    "SR-14.9.35.3-1"
+   ],
+   "verdict": "SAME",
+   "reason": "REWRITE general format identical (record-name-1 | FILE file-name-1, FROM identifier-1/literal-1, retry, LOCK, INVALID KEY). Renumbered only because 2023 dropped 2002's SR1 (same storage area); this rule itself is unchanged and self-contained.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.35.2-22",
+   "to": [
+    "SR-14.9.39.3-23"
+   ],
+   "verdict": "SAME",
+   "reason": "The 2002 Format 9 and 2023 Format 10 data-pointer-arithmetic formats are identical (SET {identifier-9}... UP|DOWN BY arithmetic-expression-3); format renumbered because 2023 inserted function-pointer-assignment. Companion SR on STRONG restriction also identical.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.35.2-25",
+   "to": [
+    "SR-14.9.39.3-26"
+   ],
+   "verdict": "SAME",
+   "reason": "Set-locale formats identical (2002 Format 10 = 2023 Format 11; same categories and TO operands). The LOCALE clause of SPECIAL-NAMES (LOCALE locale-name-1 IS external-locale-name/literal) exists in both editions.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.35.2-4",
+   "to": [
+    "SR-14.9.39.3-4"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 1 identical in both (index-name-1/identifier-1 TO arithmetic-expression-1/index-name-2/identifier-2); companion SR1-SR3 identical, so the admissible identifier-1 (class index or integer) is the same.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.35.2-5",
+   "to": [
+    "SR-14.9.39.3-5"
+   ],
+   "verdict": "SAME",
+   "reason": "Switch-setting format identical; both leave the set of alterable switches implementor-defined in the same words; no enumeration or referenced rule.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.35.2-6",
+   "to": [
+    "SR-14.9.39.3-6"
+   ],
+   "verdict": "SAME",
+   "reason": "Condition-setting format (TRUE/FALSE) identical; the companion FALSE rule (SR7) identical; conditional variable is the same notion in both.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.35.2-8",
+   "to": [
+    "SR-14.9.39.3-8"
+   ],
+   "verdict": "SAME",
+   "reason": "Object-reference-assignment format identical for identifier-3; 2023 only renames the TO operand class-name-1 to object-class-name-1, which does not touch identifier-3. 2023's new class message-tag is a separate class, so class object admits the same items for 2002 programs.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.36.2-7",
+   "to": [
+    "SR-14.9.40.3-7"
+   ],
+   "verdict": "SAME",
+   "reason": "SORT Format 1 identical in both, with THROUGH/THRU only in INPUT and OUTPUT PROCEDURE phrases; both band the rule FORMAT 1.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.38.2-3",
+   "to": [
+    "SR-14.9.42.3-3"
+   ],
+   "verdict": "SAME",
+   "reason": "2002 already has only STOP RUN [WITH ERROR|NORMAL STATUS [identifier-1|literal-1]] (STOP literal was gone), identical to 2023; literal-1 is the status operand in both. 2023 adds SR4 (no zero-length literal) which concerns a literal kind 2002 lacks.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.4.2-11",
+   "to": [
+    "SR-14.9.4.3-10"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "The 2002 rule is banded FORMATS 1 AND 2: Format 1 (on-overflow, CALL ... USING ... ON OVERFLOW) and Format 2 (on-exception). 2023 has a single Format 1 (Program) with ON EXCEPTION only; Annex E.2 item 1 removes the ON OVERFLOW phrase. The 2002 rule therefore also governs identifier-2 of a CALL ... ON OVERFLOW, a program the 2023 rule does not cover, so the 2023 verdict does not carry for that case. Probe: call-ovf.cob (BY REFERENCE pointer + ON OVERFLOW) is refused with COBOL1679 at --std 2002 (and at 2023 additionally COBOL0882 ON OVERFLOW removed); call-exc.cob refused COBOL1679 at both. So the compiler happens to enforce the 2002-only case, but that is evidence from this probe, not from the 2023 verdict.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.40.2-2",
+   "to": [
+    "SR-14.9.44.3-2"
+   ],
+   "verdict": "SAME",
+   "reason": "All three SUBTRACT formats identical (ROUNDED -> rounded-phrase only); rule banded FORMATS 1 AND 2 in both. Numeric data item: 2023 only adds numeric usages unavailable in 2002.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-14.8.45.2-6",
+   "to": [
+    "SR-14.9.49.3-6"
+   ],
+   "verdict": "SAME",
+   "reason": "USE Format 1 (file-exception) identical in both editions; the rule is banded FORMAT 1 in both and concerns only the EXCEPTION|ERROR choice there.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-6.1.2.1-3",
+   "to": [
+    "SR-6.2.3.2-3"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "The rule ranges over the enumeration of floating indicators in the clause's table. 2002's table has four entries: *>, >>, the literal continuation indicators, and >>D (floating debugging indicator, obsolete in 2002). 2023's table has only the first three: the debugging indicator was removed (the compiler cites 'removed 2014'). So the 2002 rule also requires >>D to be written on one line, a case the 2023 rule cannot cover. Probe float-d.cob: >>D accepted with obsolete warning COBOL0903 and run (prints OK) at --std 2002; refused COBOL0902 at --std 2023.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-7.1.2.2-16",
+   "to": [
+    "SR-7.2.3.3-13"
+   ],
+   "verdict": "SAME",
+   "reason": "The LEADING/TRAILING ==partial-word-1== BY ==partial-word-2== alternative is identical in both formats; the companion rules (one text-word / zero or one text-word, no directive lines) are identical. 2023's removal (E.2) of text-1/literal-3/word-1 operands affects the other REPLACING alternative, not partial-words. The literal kinds named (alphanumeric, boolean, national) exist in both editions.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-8.3.1.2.4.2-4",
+   "to": [
+    "SR-8.3.3.5.3-4"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 2 NX literal in both; hexadecimal digits defined identically in both ('0' through '9' and 'A' through 'F', hexadecimal-alphanumeric clause). 2023 makes the sequence optional (zero-length NX\"\") and raises the length limit, neither of which bears on what characters a sequence may contain.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-8.3.1.2.5.2-1",
+   "to": [
+    "SR-8.3.3.6.3-1"
+   ],
+   "verdict": "DIFFERENT",
+   "reason": "The rule is a general licence ('whenever literal appears in a format') bounded by item b ('shall not be specified where a syntax rule prohibits it'), so its content is the set of prohibiting syntax rules elsewhere, and that set changed. In 2002 the MOVE rules prohibit only SPACE to numeric/numeric-edited, so SR1 licenses MOVE QUOTE / HIGH-VALUE / LOW-VALUE TO a numeric item (archaic but legal). 2023 MOVE SR5 prohibits every alphanumeric figurative constant to numeric except the digit-only ALL case (Annex E.2 item 1 removal). A 2023-conforming reading of SR1 rejects a program the 2002 rule permits. Probe fig-hv.cob (MOVE QUOTE TO N, N PIC 9(4)): compiles and runs (DONE) at --std 2002; refused COBOL0902 at --std 2023. The compiler gets both right, but through the MOVE edition switch, not the 2023 SR1 verdict. Note this is adjacent to the MOVE figurative behaviour switch the mechanical filter was meant to exclude: the filter missed it because the coupling is through the generic 'a syntax rule' pointer, not a named reference.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-8.3.1.2.5.2-3",
+   "to": [
+    "SR-8.3.3.6.3-3"
+   ],
+   "verdict": "SAME",
+   "reason": "Format 6 (ALL literal-1) identical; 2023 SR2 adds 'nor a zero-length literal', a literal kind 2002 lacks. The 2023 MOVE SR5 carve-out (digit-only ALL literal to integer) could be read as reaching multi-digit ALL literals, but the probes show the compiler holds SR3 at both editions: fig-all.cob (MOVE ALL \"12\" TO N) and fig-cmp.cob (IF N = ALL \"12\") refused COBOL0902 at --std 2002 and 2023 alike; fig-one.cob (MOVE ALL \"7\") runs (7777) at both, with an obsolete warning at 2023. The requirement this rule states is the same in both.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-8.4.2.8.2-2",
+   "to": [
+    "SR-8.4.3.8.3-2"
+   ],
+   "verdict": "SAME",
+   "reason": "General format identical (SELF | [class-name-1 OF] SUPER; 2023 renames class-name-1 to object-class-name-1). All seven syntax rules correspond one to one; 'receiving operand' is the same notion.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  },
+  {
+   "rule-id": "2002-SR-8.7.5.2-4",
+   "to": [
+    "SR-8.7.5.2-3"
+   ],
+   "verdict": "SAME",
+   "reason": "Both editions have IS > and IS GREATER THAN. 2023 moves the NOT forms into Format 2 and adds <>, and states NOT > separately (its SR4); the abbreviation '>' for GREATER THAN is unchanged.",
+   "read": "sample-k0/k0-4-read.json (seed 20261115)"
+  }
+ ]
+}

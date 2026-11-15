@@ -467,6 +467,38 @@ def candidates_path(year: int) -> pathlib.Path:
     return inventory_schema.REPO / "docs" / "rearchitecture" / f"spec-lineage-candidates-{year}.json"
 
 
+# -- the rule stage: KEPT records written by rule, from the candidate pairing and its screen (kb/Work PB5589) -------------
+
+#: The `source` of every change record the rule stage writes (`audit_batch.py change-batch --edition` with no audit run):
+#: a pair of the candidate pairing that no trigger of its edition's screen marks (lineage_screen.py). The view refuses a
+#: record of this source on a rule the committed screen marks (`rule_stage_refusals`), so a screen that grows a trigger
+#: withdraws, by name, every record it no longer admits.
+RULE_STAGE_SOURCE = "lineage-rule-stage"
+
+
+def screen_path(year: int) -> pathlib.Path:
+    """The committed screen of the older edition `year`'s candidate pairs (lineage_screen.py --write)."""
+    return inventory_schema.REPO / "docs" / "rearchitecture" / f"spec-lineage-triggers-{year}.json"
+
+
+def rule_stage_refusals(rows: Iterable[dict[str, Any]], screen: dict[str, Any] | None) -> list[str]:
+    """Why a rule-stage record of `rows` (an older edition's) no longer stands: its rule is marked by the committed
+    `screen` (None when the edition has none: then no rule-stage record may exist), by trigger and detail."""
+    marks = (screen or {}).get("marks", {})
+    out = []
+    for r in rows:
+        nxt = r.get("next") or {}
+        if nxt.get("source") != RULE_STAGE_SOURCE:
+            continue
+        if screen is None:
+            out.append(f"{r['rule-id']}: a rule-stage record, and its edition has no screen (lineage_screen.py)")
+        elif r["rule-id"] in marks:
+            why = "; ".join(f"{k}: {v}" for k, v in marks[r["rule-id"]].items())
+            out.append(f"{r['rule-id']}: a rule-stage {nxt.get('kind')} record on a rule the screen marks ({why}): "
+                       f"withdraw it; the pair is judged with what marks it")
+    return out
+
+
 def candidates_document(year: int) -> dict[str, Any]:
     """The candidate pairing of the held edition `year` with its next linked held edition, as committed."""
     ed = edition(year)
