@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.1-L2.7",
  "rule-digest": "3cda3003ccd4",
+ "test-ref": "conformance:wiseowl/cases/XII.2@1985-COPY-STATEMENT/pb5473-copy-unqualified-text-name; conformance:wiseowl/cases/XII.2@1985-COPY-STATEMENT/pb5473-copy-every-text-qualified",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
