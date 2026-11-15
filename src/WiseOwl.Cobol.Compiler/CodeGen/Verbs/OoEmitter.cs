@@ -293,8 +293,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         ? $"={op.Literal}"
                         : op.Item?.ExternalItemIdentity() ?? "!")));
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(f.ExternalName!)}, "
-                    + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusExternalIdentity)}, "
-                    + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyExternalIdentity)}, LinageRef: {linage}, "
+                    + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts))}, "
+                    + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts))}, LinageRef: {linage}, "
                     + $"SelectFingerprint: {CsLiteral(f.SelectFingerprint ?? throw new InvalidOperationException($"OoEmitter: the EXTERNAL file '{f.ExternalName}' has no bound entry identity (BackendAnswers writes one for every EXTERNAL file)"))}), {selfMask});   // §2023:14.8.4.2 / §2023:14.8.4.4 / §2023:12.4.5.3 GR1");
             }
         }

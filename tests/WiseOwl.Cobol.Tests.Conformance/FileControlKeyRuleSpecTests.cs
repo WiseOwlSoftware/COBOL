@@ -288,7 +288,11 @@ public sealed class FileControlKeyRuleSpecTests
         {
             var entryOnly = Diagnostics(
                 Relative("DYNAMIC", "        RELATIVE KEY IS W-RK.", record, working, EntryOnlyBody), edition);
-            Assert.Contains(entryOnly, e => e.Contains(citation, StringComparison.Ordinal));
+            // COBOL-2002 prints no OCCURS ban on the relative key (§2002:12.3.4.13.2 SR1 says only "may be qualified"), and its operand
+            // names a table element by its subscripts (§2002:5.1.3): the unsubscripted element is §2002:8.4.1.2.2 SR5's omitted
+            // subscript (kb/Work PB5602).
+            string expected = edition == 2002 && citation.EndsWith("SR1", StringComparison.Ordinal) ? "§2002:8.4.1.2.2 SR3, SR5" : citation;
+            Assert.Contains(entryOnly, e => e.Contains(expected, StringComparison.Ordinal));
             Assert.DoesNotContain(entryOnly, e => e.Contains("§2023:12.4.5.13 SR", StringComparison.Ordinal));
         }
     }

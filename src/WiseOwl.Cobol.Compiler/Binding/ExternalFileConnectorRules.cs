@@ -70,11 +70,11 @@ internal static class ExternalFileConnectorRules
             var conns = group.ToList();
             foreach (var f in conns)
             {
-                if (is2023 && f.FileStatusName is not null && f.FileStatusExternalIdentity is null)
+                if (is2023 && f.FileStatusName is not null && f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts) is null)
                     NotExternal(edition, externalName, f.ClauseOrEntryAt(f.FileStatusAt), "FILE STATUS", f.FileStatusName,
                         newIn2023, "ISO §2023:14.8.4.2; Annex E.2 item 9");
                 if (f.Organization == FileOrganization.Relative && f.RelativeKeyName is not null
-                    && f.RelativeKeyExternalIdentity is null)
+                    && f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts) is null)
                     NotExternal(edition, externalName, f.ClauseOrEntryAt(f.RelativeKeyAt), "RELATIVE KEY", f.RelativeKeyName,
                         EditionSeverity.Error, "ISO " + Cite(edition, "§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)"));
                 if (f.Padding is { DataName: { } pad, Item: not null } p && p.Item.ExternalItemIdentity() is null)
@@ -98,7 +98,7 @@ internal static class ExternalFileConnectorRules
             // FILE STATUS (VCR 18, new in 2023): if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming
             // the same corresponding external data item (§2023:12.4.5.3 GR1 i)).
             if (is2023 && conns.Any(f => f.FileStatusName is not null))
-                SameItem(edition, conns, f => f.FileStatusExternalIdentity, f => f.ClauseOrEntryAt(f.FileStatusAt),
+                SameItem(edition, conns, f => f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts), f => f.ClauseOrEntryAt(f.FileStatusAt),
                     DiagnosticCatalog.ExternalFileStatusConsistency, newIn2023,
                     $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
                     + "specify FILE STATUS naming the same corresponding external data item "
@@ -107,7 +107,7 @@ internal static class ExternalFileConnectorRules
 
             // RELATIVE KEY: for an external RELATIVE file, every corresponding SELECT names the same external data item.
             if (conns.Any(f => f.Organization == FileOrganization.Relative) && conns.Any(f => f.RelativeKeyName is not null))
-                SameItem(edition, conns, f => f.RelativeKeyExternalIdentity, f => f.ClauseOrEntryAt(f.RelativeKeyAt),
+                SameItem(edition, conns, f => f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts), f => f.ClauseOrEntryAt(f.RelativeKeyAt),
                     DiagnosticCatalog.ExternalRelativeKeyConsistency, EditionSeverity.Error,
                     $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
                     + "shall specify RELATIVE KEY naming the same external data item (ISO "

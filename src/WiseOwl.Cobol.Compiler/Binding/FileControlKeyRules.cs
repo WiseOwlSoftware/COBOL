@@ -905,8 +905,6 @@ internal static class FileControlKeyRules
     /// 2023 id and the 2002 clause whose syntax rules lack it, for <c>FileControlKeyRuleDriftTests</c>.</summary>
     internal static readonly (string RuleId, string Clause2002)[] Absent2002 =
     [
-        ("SR-12.4.5.12.3-1", "12.3.4.12.2"),
-        ("SR-12.4.5.6.3-1", "12.3.4.5.2"),
         ("SR-12.4.5.13.3-1", "12.3.4.13.2"),
     ];
 
