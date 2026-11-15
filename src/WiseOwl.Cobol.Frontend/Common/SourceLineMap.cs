@@ -23,8 +23,26 @@ public readonly record struct SourceOrigin(string File, int Line)
 /// one, as in every editor, and a supplementary-plane character counts one (kb/Work PB2983), whereas a resultant column
 /// is a UTF-16 index of the resultant text, which is what the parser reports. The spans carry that conversion: the
 /// reference-format stage that bears them splits a span at each tab and at each supplementary-plane character, so within
-/// a span one resultant unit is exactly one physical position.</summary>
-public readonly record struct OriginSpan(int ResultColumn, SourceOrigin Origin, int SourceColumn);
+/// a span one resultant unit is exactly one physical position.
+/// <para><see cref="Layout"/> is where the stretch's text was WRITTEN, when that is not where it stands (kb/Work PB5313): the
+/// words of a pseudo-text-2 that a COPY or REPLACE replacement places into the resultant text stand at the position of the
+/// text they replace — their <see cref="Origin"/>, which every diagnostic and EXCEPTION-LOCATION names (kb/Work PB1801) —
+/// but each "begins in the same area of the resultant program as it appears in pseudo-text-2" (§1985:XII.2.4 GR9), so the
+/// reference-format area of the text is that of the place it was written. Null when the two are one place.</para></summary>
+public readonly record struct OriginSpan(int ResultColumn, SourceOrigin Origin, int SourceColumn, SourcePoint? Layout = null)
+{
+    /// <summary>The place whose reference-format area the stretch's first character takes: <see cref="Layout"/>, or the
+    /// stretch's own origin.</summary>
+    public SourcePoint LaidOutAt => Layout ?? new SourcePoint(Origin, SourceColumn);
+
+    /// <summary>This stretch rebased <paramref name="delta"/> resultant units further on (each one physical position, within
+    /// a span), at resultant column <paramref name="resultColumn"/>.</summary>
+    public OriginSpan Advanced(int delta, int resultColumn) => new(resultColumn, Origin, SourceColumn + delta,
+        Layout is { } layout ? layout with { Column = layout.Column + delta } : null);
+}
+
+/// <summary>A physical place: 0-based physical <paramref name="Column"/> of the line <paramref name="Origin"/> names.</summary>
+public readonly record struct SourcePoint(SourceOrigin Origin, int Column);
 
 /// <summary>
 /// THE ORIGIN OF ONE RESULTANT LINE PIECE (kb/Work PB1801): its spans in resultant-column order. The resultant text is
@@ -80,8 +98,7 @@ public sealed class LineOrigin
     {
         int k = 0;
         while (k + 1 < _spans.Length && _spans[k + 1].ResultColumn <= column) k++;
-        var span = _spans[k];
-        return new OriginSpan(column, span.Origin, span.SourceColumn + Math.Max(column - span.ResultColumn, 0));
+        return _spans[k].Advanced(Math.Max(column - _spans[k].ResultColumn, 0), column);
     }
 
     /// <summary>The diagnostic location of 0-based resultant <paramref name="column"/> of this piece — the file, line
@@ -157,6 +174,12 @@ public sealed class SourceLineMap
         line >= 1 && line <= _origins.Length
             ? _origins[line - 1].Locate(column)
             : new SourceOrigin(fallbackFile, line).ToLocation(column);
+
+    /// <summary>The stretch that holds 0-based resultant <paramref name="column"/> of RESULTANT line <paramref name="line"/>
+    /// (1-based), rebased to start there (<see cref="LineOrigin.PointAt"/>) — its origin AND the place it was laid out at
+    /// (<see cref="OriginSpan.LaidOutAt"/>); null when the line is outside the map.</summary>
+    public OriginSpan? PointAt(int line, int column) =>
+        line >= 1 && line <= _origins.Length ? _origins[line - 1].PointAt(column) : null;
 }
 
 /// <summary>Text under transformation together with its per-line origins (kb/Work PB82, PB1801): <see cref="Lines"/>
@@ -209,8 +232,7 @@ public sealed class MappedText
     public LineOrigin PointAt(int pos)
     {
         int k = LineIndexAt(pos);
-        var at = Lines[k].PointAt(pos - LineStarts[k]);
-        return new LineOrigin(at.Origin, at.SourceColumn);
+        return new LineOrigin([Lines[k].PointAt(pos - LineStarts[k]) with { ResultColumn = 0 }]);
     }
 
     /// <summary>THE diagnostic location of character position <paramref name="pos"/> — the file, line and column the
@@ -280,10 +302,27 @@ public sealed class OriginWriter
             int nl = s.IndexOf('\n');
             if (nl < 0)
             {
-                WriteText(s, at);
+                WriteText(s, at, null);
                 return;
             }
-            WriteText(s[..nl], at);
+            WriteText(s[..nl], at, null);
+            EndPiece(at, 0);
+            s = s[(nl + 1)..];
+        }
+    }
+
+    /// <summary>Append <paramref name="written"/>, text written ELSEWHERE that this stage places at <paramref name="at"/>
+    /// (kb/Work PB5313): every piece originates at <paramref name="at"/>, as <see cref="Append"/>'s text does, and each
+    /// character is laid out where <paramref name="written"/> holds it (<see cref="OriginSpan.Layout"/>) — the words of a
+    /// pseudo-text-2 a replacement places, which keep the areas they were written in (§1985:XII.2.4 GR9).</summary>
+    public void AppendLaidOut(MappedText written, LineOrigin at)
+    {
+        var s = written.Text.AsSpan();
+        for (int piece = 0; ; piece++)
+        {
+            int nl = s.IndexOf('\n');
+            WriteText(nl < 0 ? s : s[..nl], at, written.Lines[piece]);
+            if (nl < 0) return;
             EndPiece(at, 0);
             s = s[(nl + 1)..];
         }
@@ -354,19 +393,32 @@ public sealed class OriginWriter
 
     /// <summary>Write <paramref name="run"/> (no newline), text this stage composes: one stretch from the start of
     /// <paramref name="at"/>, each character a position further than the one before it, and the second unit of a
-    /// surrogate pair standing at its first unit's position (kb/Work PB3031).</summary>
-    private void WriteText(ReadOnlySpan<char> run, LineOrigin at)
+    /// surrogate pair standing at its first unit's position (kb/Work PB3031). <paramref name="layout"/>, when given, is where
+    /// the run was written (<see cref="AppendLaidOut"/>): each character is laid out at the place it holds there.</summary>
+    private void WriteText(ReadOnlySpan<char> run, LineOrigin at, LineOrigin? layout)
     {
         if (run.IsEmpty) return;
         var start = at.PointAt(0);
-        AddSpan(start with { ResultColumn = _column });
-        if (CharacterPositions.HasSurrogate(run))
+        // The stretch beginning at unit `unit` of the run, `position` character positions past its start.
+        OriginSpan Stretch(int unit, int position) => new(_column + unit, start.Origin, start.SourceColumn + position,
+            layout?.PointAt(unit).LaidOutAt);
+        if (layout is null && !CharacterPositions.HasSurrogate(run))
+            AddSpan(Stretch(0, 0));
+        else
         {
+            // A stretch begins at the run's start, at the second unit of a surrogate pair (two units, one position), and
+            // wherever the layout's own stretches do; AddSpan folds a point that merely continues the stretch before it.
+            var layoutSpans = layout is null ? default : layout.Spans;
+            int next = 1;   // the layout stretch the run has not yet reached
             int position = 0;   // the characters before the one at unit i
             for (int i = 0; i < run.Length; position++)
             {
+                bool begins = i == 0;
+                for (; next < layoutSpans.Length && layoutSpans[next].ResultColumn <= i; next++)
+                    begins |= layoutSpans[next].ResultColumn == i;
+                if (begins) AddSpan(Stretch(i, position));
                 int units = CharacterPositions.UnitsAt(run, i);
-                if (units == 2) AddSpan(new OriginSpan(_column + i + 1, start.Origin, start.SourceColumn + position));
+                if (units == 2) AddSpan(Stretch(i + 1, position));
                 i += units;
             }
         }
@@ -379,7 +431,14 @@ public sealed class OriginWriter
         if (_spans.Count > 0)
         {
             var prev = _spans[^1];
-            if (prev.Origin == span.Origin && prev.SourceColumn + (span.ResultColumn - prev.ResultColumn) == span.SourceColumn)
+            int delta = span.ResultColumn - prev.ResultColumn;
+            if (prev.Origin == span.Origin && prev.SourceColumn + delta == span.SourceColumn
+                && (prev.Layout, span.Layout) switch
+                {
+                    (null, null) => true,
+                    ({ } p, { } s) => p.Origin == s.Origin && p.Column + delta == s.Column,
+                    _ => false,
+                })
                 return;   // the same stretch, continued
         }
         _spans.Add(span);

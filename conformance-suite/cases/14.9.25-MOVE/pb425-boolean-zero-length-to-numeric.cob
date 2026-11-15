@@ -15,7 +15,7 @@
 *> (Its mirror image is pinned on the positive side: tests/conformance/2002/pb425_zero_length_literal_move
 *> compiles STRICT at 2002 and the same source compiles strict at 2023, where `MOVE SPACE TO PIC 9(3)` is
 *> the §2023:14.9.25.3 SR5 removal COBOL0902 — SR5 names only figurative constants written in the source.)
-*> Below 2002 the boolean literal itself is the rejection (COBOL0900, boolean-data-2002), a different
+*> Below 2002 the boolean literal itself is the rejection (COBOL0900, boolean-literal-2002), a different
 *> rule, so 85 is deliberately not in the reject-at list.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB425-B-ZL-NUM.

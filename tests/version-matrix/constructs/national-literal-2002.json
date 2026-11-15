@@ -1,0 +1,13 @@
+{
+ "id": "national-literal-2002",
+ "status": "active",
+ "description": "The national literal N\"...\" and its hexadecimal form NX\"...\" (ISO §2023:8.3.3.5: \"National literals are of the class and category national\", 8.3.3.5.1). A COBOL-2002 introduction, QUOTED: ANSI X3.23-1985 says \"Every literal belongs to one of two types, nonnumeric or numeric\" (§1985:IV.4.2.2.2). Gated position-blind on the TOKEN by LiteralScreen.GateFormat (kb/Work PB5416), because a literal stands in positions that seed no item (an FD VALUE OF, a level-88 VALUE, a SPECIAL-NAMES literal). Its own row, apart from national-data-2002, so the edition diagnostic names the literal and not the PICTURE N / USAGE NATIONAL data the program may not use (kb/Work PB5535).",
+ "display": "the national literal N\"...\"",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.3.3.5 (National literals); §2023:8.3.3.5.1; §1985:IV.4.2.2.2 (a COBOL-85 literal is nonnumeric or numeric)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 catalog national/boolean; the literal leg of national-data-2002 (kb/Work PB5535)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMNATL.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY N\"AB\".\n    STOP RUN.\n"
+}
