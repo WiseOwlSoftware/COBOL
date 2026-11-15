@@ -63,6 +63,7 @@ public sealed partial class FileControlBinder
                 file = new FileModel { CobolName = name, SelectName = name };
                 _host.State.Files.Declare(name, file);
             }
+            if (DescriptionRepeated(file, name, "file description entry")) continue;
             file.HasFd = true;
             file.Records.AddRange(records);
             // §2023:13.18.33.4 GR3: "Multiple level 1 entries subordinate to a FD or SD entry represent implicit
@@ -168,6 +169,7 @@ public sealed partial class FileControlBinder
                 sdFile = new FileModel { CobolName = sdName, SelectName = sdName };
                 _host.State.Files.Declare(sdName, sdFile);
             }
+            if (DescriptionRepeated(sdFile, sdName, "sort-merge file description entry")) continue;
             sdFile.HasFd = true;
             sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§2023:13.4.6 SR3/SR4)
             // ⛔ The SD arm does NOT inherit §2023:13.4.5.3 SR3's permission to omit the record descriptions — that is a
@@ -193,6 +195,22 @@ public sealed partial class FileControlBinder
                 // enforcement site covering FD AND SD via the shared grammar rule; P2.6 / Table-7 row 7.1.)
             }
         }
+    }
+
+    /// <summary>⛔ ISO §2023:8.4.2.1 — "<i>In order to use a resource, a statement shall contain a reference that uniquely
+    /// identifies that resource</i>": a file-name has no qualifier, so a SECOND file description entry or sort-merge file
+    /// description entry of one file-name (FD twice, SD twice, or an FD and an SD) leaves every reference to the file
+    /// ambiguous (kb/Work PB5541). It is refused under <c>COBOL4250</c>, the one refusal of a second declaration of a name
+    /// that cannot be qualified (<c>DataBinder.CheckUnqualifiableDeclaration</c>); the first description stands, and the
+    /// repeat is not attached (its records stay bound as storage, its clauses are not read). The SELECT half is
+    /// <c>COBOL2634</c>. Both arms of <see cref="BindFileSection"/> ask it before they attach.</summary>
+    private bool DescriptionRepeated(FileModel file, string name, string entry)
+    {
+        if (!file.HasFd) return false;
+        Edition.Error(DiagnosticCatalog.SpecialNameDeclaredTwice,
+            $"the file-name '{name}' is described a second time by this {entry} — no qualifier can tell the two descriptions "
+            + "apart, so no reference to the file could uniquely identify one (ISO §2023:8.4.2.1); the first stands");
+        return true;
     }
 
     /// <summary>Whether one written FD clause belongs in this entry, reporting it when it does not (kb/Work PB1238).
