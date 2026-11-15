@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-1",
+ "rule-digest": "4814c7f75604",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#CheckElementaryOnlyClauses",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-p-scaling-legal-forms; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-sr1-group-picture",
+ "notes": "§2002:13.16.38.2 SR1 reaches a record description entry under a CD (§2002:A.1.1.2): a PICTURE-less group over PICTURE'd elementaries compiles (LENGTH 10, §2002:15.39.3 RV3) and a group with PICTURE X(2) is refused COBOL2191. pinned cobol.exe (tree dc1f2dcce8) --std 2002 --run matched the derived .out."
+}

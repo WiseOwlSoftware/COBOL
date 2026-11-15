@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.4.3-2",
+ "rule-digest": "f5eda9fa4ad0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
+ "test-ref": "conformance:cases/12.2.4@2002-SOURCE-COMPUTER-PARAGRAPH/g2src02_no_source_computer",
+ "notes": "§2002:12.2.4.3 GR2 makes the compiling computer the source computer when neither the unit nor a container has the paragraph; the source computer has no other observable effect, and the golden shows a paragraph-less program and its paragraph-less contained program compile and run at --std 2002 (MATCH)."
+}

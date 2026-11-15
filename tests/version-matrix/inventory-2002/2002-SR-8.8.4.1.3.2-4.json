@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.3.2-4",
+ "rule-digest": "cf0b66506a1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+ "test-ref": "conformance:cases/8.8.4.1.3@2002-CLASS-CONDITION/g2-class-boolean-on-numeric; conformance:cases/8.8.4.1.3@2002-CLASS-CONDITION/g2-class-boolean-on-numeric-edited",
+ "notes": "§2002:8.8.4.1.3.2 SR4 prohibits BOOLEAN over a numeric or numeric-edited operand. Both 2002 negative cases (PIC 9(4) and PIC ZZ9, usage display so that SR3 does not apply) are refused COBOL2201 at the class test at --std 2002."
+}

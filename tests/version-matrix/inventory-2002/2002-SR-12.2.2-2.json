@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.2-2",
+ "rule-digest": "c0d748690e33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindMethodData",
+ "test-ref": "conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2-configuration-section-in-method",
+ "notes": "§2002:12.2.2 SR2 forbids a configuration section in a method definition; a bare CONFIGURATION SECTION header in method M is refused at --std 2002 with COBOL2644 at that line, while the same class without it compiles."
+}

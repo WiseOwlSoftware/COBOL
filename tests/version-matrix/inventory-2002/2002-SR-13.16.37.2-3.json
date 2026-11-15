@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.37.2-3",
+ "rule-digest": "9cd18dabb0db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.16.37@2002-PAGE-CLAUSE/g2002-page-phrases-with-limit; conformance:cases/13.16.37@2002-PAGE-CLAUSE/g2002-page-phrase-without-limit",
+ "notes": "§2002:13.16.37.2 SR3 grants HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL and FOOTING when integer-1 is given: an RD with all five and LIMIT 10 compiles and each takes effect (PH line 2, first body line 3, CH page advance past 5, detail advance past 8, PF line 10, per §2002:13.16.33.3 GR5b and §2002:13.16.55.3 GR8); FOOTING with only integer-2 is refused COBOL2709. pinned cobol.exe (tree dc1f2dcce8) --std 2002 --run matched the derived .out."
+}

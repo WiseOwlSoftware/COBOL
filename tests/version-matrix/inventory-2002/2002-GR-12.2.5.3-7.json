@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.5.3-7",
+ "rule-digest": "47415846481b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabetic; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabeticUpper; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabeticLower; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#ConditionRenderer; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ClassificationArg",
+ "test-ref": "conformance:cases/12.2.5@2002-OBJECT-COMPUTER-PARAGRAPH/g2obj02_classification_cd_record",
+ "notes": "Same text as the 2023 twin; at 2002 the operands include communication-section items. Under CHARACTER CLASSIFICATION IS tr-TR, UPPER-CASE/LOWER-CASE and ALPHABETIC/-LOWER/-UPPER follow LC_CTYPE (§2002:12.2.5.3 GR7, §2002:8.8.4.1.3.3 GR2 b1/c1/d1) for a CD field, the record under the CD and a working-storage item; --std 2002 run MATCH, control without the clause prints the native results."
+}

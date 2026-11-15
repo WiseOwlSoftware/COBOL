@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.3.2-1",
+ "rule-digest": "55eae079c8ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PrototypeUnitRules.cs#ScreenBody; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs#OoReparent; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs#BindClassData; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindMethodData",
+ "test-ref": "conformance:cases/13.3@2002-FILE-SECTION/g2-file-section-placement; conformance:cases/13.3@2002-FILE-SECTION/g2-file-section-in-method; conformance:cases/13.3@2002-FILE-SECTION/g2-file-section-in-interface",
+ "notes": "§2002:13.3.2 SR1 grants the file section in program, function, factory and instance definitions and forbids it in a method and an interface definition: at --std 2002 each permitted element's FD writes and reads back its own record (P=[PROG] F=[FUNC] C=[FACT] O=[INST], matching the derivation), and the method and interface placements are refused with COBOL1519."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.19.3-1",
+ "rule-digest": "3198cc0382c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Empty; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Enabled",
+ "test-ref": "conformance:cases/7.2.19@2002-TURN-DIRECTIVE/g2tn01_default_checking_off",
+ "notes": "§2002:7.2.19.3 GR1 default '>>TURN EC-ALL CHECKING OFF' with §2002:14.5.12.1 (no exception raised when checking is not enabled): with no TURN a STRING overflow runs no EC-OVERFLOW-STRING declarative and leaves EXCEPTION-STATUS spaces, while after >>TURN ... CHECKING ON the same STRING runs it; the --std 2002 run matched the derived six lines."
+}

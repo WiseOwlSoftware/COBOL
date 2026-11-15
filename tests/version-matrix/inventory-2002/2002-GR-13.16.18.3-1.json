@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.18.3-1",
+ "rule-digest": "aba83a0a35b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry",
+ "test-ref": "conformance:cases/13.16.18@2002-ENTRY-NAME-CLAUSE/g2ent01_filler_ws_cd_record; conformance:cases/13.15-Report-group-description/pb1226_report_filler_entry_name",
+ "notes": "§2002:13.16.18.3 GR1: FILLER names data items in working storage and in a CD record (accepted; the output matched the derivation at --std 2002) and report items (pb1226)."
+}
