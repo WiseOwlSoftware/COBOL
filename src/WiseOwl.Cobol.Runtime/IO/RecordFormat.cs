@@ -119,6 +119,9 @@ public sealed class RecordFormat
     private readonly RecordPlan[] _plans;
     private readonly int _selectorOffset;
 
+    /// <summary>What a selector returns when no record description entry is selected (SELECT WHEN GR4: I-O status 45).</summary>
+    public const int NoSelection = -1;
+
     /// <summary>The CODE-SET conversion of alphanumeric characters this file applies item by item, or null.</summary>
     private readonly CodeSetConversion? _codeSet;
 

@@ -563,10 +563,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             ? "new char[] { " + string.Join(", ", map.Select(c => $"(char){(int)c}")) + " }"
             : "null";
         string key = FileKeyExpr(file);
-        w.Line($"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRecordFormat)}({key}, new {nameof(RecordFormat)}({kindsExpr}, new {nameof(RecordPlan)}[] {{ {plans} }}, {selector}, {codeSet}));");
+        w.Line($"{RuntimeApi.FileRegisterRecordFormat(key, $"new {nameof(RecordFormat)}({kindsExpr}, new {nameof(RecordPlan)}[] {{ {plans} }}, {selector}, {codeSet})")};");
         if (records.Count <= 1) return;
         var area = places.RecordArea(file);
-        w.Line($"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRecordSelector)}({key}, (string __sw) =>");
+        w.Line($"{RuntimeApi.FileRegisterRecordSelector(key, "(string __sw) =>")}");
         w.Line("{");
         w.Indent();
         if (area is not null) EmitImageInto(area, "__sw", storesIntoOwnItem: false);
@@ -577,7 +577,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             if (sw.Condition is not { } cond || places.Of(cond.Parent) is not { } parent) continue;
             w.Line($"if ({Cond.Render(new BoundCondition88(parent, cond))}) return {i};   // SELECT WHEN {sw.ConditionName} of '{records[i].CobolName}'");
         }
-        w.Line("return -1;   // no record description entry selected: I-O status 45 (§2023:13.18.51.4 GR4)");
+        w.Line($"return {nameof(RecordFormat)}.{nameof(RecordFormat.NoSelection)};   // no record description entry selected: I-O status 45 (§2023:13.18.51.4 GR4)");
         w.Outdent();
         w.Line("});");
     }

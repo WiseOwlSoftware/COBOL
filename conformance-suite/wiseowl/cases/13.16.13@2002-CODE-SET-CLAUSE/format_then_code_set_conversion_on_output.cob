@@ -9,7 +9,7 @@
 *> 13.18.13.4 GR5 (2002 13.16.13.3 GR5): "If a FORMAT clause is also specified for the file, the logical order of processing for each data item is: formatting first, then code-set
 *> conversion during output operations; code-set conversion first, then formatting during input operations." F-NUM is formatted to "-12" (GR8) and the alphabet EBC (the
 *> EBCDIC code-name, CCSID 37) then replaces each character: the file read without either clause holds A = C1, - = 60, 1 = F1, 2 = F2, whose ordinal positions
-*> (FUNCTION ORD, the code unit plus 1) are 194, 97, 242 and 243. GR1 and GR2 (the alphabet is the one the medium holds after OPEN) are the same bytes.
+*> (FUNCTION ORD, the code unit plus 1) are 194, 097, 242 and 243 (a PIC 999 field shows them so). GR1 and GR2 (the alphabet is the one the medium holds after OPEN) are the same bytes.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. FORD.
 ENVIRONMENT DIVISION.

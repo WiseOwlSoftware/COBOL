@@ -853,6 +853,7 @@ const WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MaxSubscriptLevels = 3 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth = 30 -> int
 const WiseOwl.Cobol.Runtime.IO.FileStatusCode.RecordIdentificationFailure = "45" -> string!
+const WiseOwl.Cobol.Runtime.IO.RecordFormat.NoSelection = -1 -> int
 const WiseOwl.Cobol.Runtime.Repository.CobolPrototypeDescriptionAttribute.ReturningItem = -1 -> int
 const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 2 -> int
 const WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.MaxUnits = 65536 -> int

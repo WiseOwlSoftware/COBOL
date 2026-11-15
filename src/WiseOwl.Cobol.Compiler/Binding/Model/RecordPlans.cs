@@ -1,10 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.IO;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>One step of a record description entry's <see cref="RecordPlanModel"/>: a window of its byte image and what the item
 /// there is — the compile-time twin of the runtime's <c>RecordStep</c>, from which the emitter renders it.</summary>

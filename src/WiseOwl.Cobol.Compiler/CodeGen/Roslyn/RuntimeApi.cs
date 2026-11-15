@@ -1789,6 +1789,16 @@ internal static class RuntimeApi
     public static string FileRegisterCodeSet(string name, string toNative) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterCodeSet)}({name}, {toNative})";
 
+    /// <summary>The file's record format registration (ISO §2023:13.18.24 FORMAT clause, §2023:13.18.51 SELECT WHEN clause; kb/Work PB5578):
+    /// <c>CobolFile.RegisterRecordFormat</c> over the <c>RecordFormat</c> construction expression <paramref name="format"/>.</summary>
+    public static string FileRegisterRecordFormat(string name, string format) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRecordFormat)}({name}, {format})";
+
+    /// <summary>The OPENING of the SELECT WHEN selector registration, <c>CobolFile.RegisterRecordSelector(name, lambdaHeader</c>: the lambda's
+    /// body and closing <c>});</c> are written by the caller, which compiles the clauses' conditions into it.</summary>
+    public static string FileRegisterRecordSelector(string name, string lambdaHeader) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRecordSelector)}({name}, {lambdaHeader}";
+
     /// <summary>The SELECT-spelled file-name (ISO §2023:15.28.4 r1c/r2b — kb/Work PB63) as the registration's trailing
     /// named argument; empty when the caller has none.</summary>
     private static string SelectNameArg(string? selectName) => selectName is null ? "" : $", selectName: {selectName}";

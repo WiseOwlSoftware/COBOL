@@ -280,11 +280,6 @@ public sealed class DerivedVerdictDriftTests
             "Annex A.4.2 ACCEPT/DISPLAY screen handling is Not claimed (CONFORMANCE.md §5, §4 item 4)");
 
     [Fact]
-    public void NoFormatOrSelectWhenConditionedRow_Diverges() =>
-        AssertHeldAtTheDerivedVerdict("format-select-when-only",
-            "Annex A.4.8 FORMAT and SELECT WHEN file handling is Not claimed (CONFORMANCE.md §5)");
-
-    [Fact]
     public void NoDeclinedOoOptionalItemRow_Diverges() =>
         AssertHeldAtTheDerivedVerdict("oo-optional-items-only",
             "Annex A.4.10 items 1 and 3 are Not claimed; item 2 IS supported (CONFORMANCE.md §5, kb/Work PB285)");
@@ -479,41 +474,6 @@ public sealed class DerivedVerdictDriftTests
     }
 
     [Fact]
-    public void TheFormatSelectWhenSelector_IsStillSharp()
-    {
-        var (ids, _) = Select("format-select-when-only");
-        Assert.InRange(ids.Count, 30, 55);   // 37 when it landed; 39 with the selection arm (R43)
-
-        // The TEXT arm must stay live — a clause-only predicate drops all three.
-        foreach (string id in (string[])["SR-13.4.5.3-6", "GR-13.18.13.4-5", "SR-14.9.27.3-9"])
-            Assert.Contains(id, ids);
-        // The Annex A.1 arm: obligations whose cross-reference points INTO a declined clause. These are the
-        // first DOC rows in the inventory to carry any verdict; audit_annex_a1.py applies the same A.1-preamble
-        // exclusion so §7's counter and the inventory cannot give two answers about one item.
-        foreach (string id in (string[])["DOC-A.1-84", "DOC-A.1-85", "DOC-A.1-173"])
-            Assert.Contains(id, ids);
-
-        // ⛔ The A.1 arm is keyed on `kinds: [DOC]`, and FMT-13.16.2's cross-reference table also cites
-        // "13.18.51, SELECT WHEN clause". It is the higher-level construct A.4.1 NOTE 1 makes NOT optional, and
-        // it carries a dozen live clauses besides. If it returns, the kind filter has been lost.
-        Assert.DoesNotContain("FMT-13.16.2", ids);
-        Assert.DoesNotContain("FMT-13.4.5.2", ids);
-        // The CODE-SET no-SELECT-WHEN branches are the behaviour WITHOUT the module, implemented today in
-        // FileControlBinder.BindCodeSetClause. Excluding on the word CODE-SET would have dropped three of the module's
-        // OWN rules instead, because excludes apply to every arm — which is why the pattern is narrow.
-        foreach (string id in (string[])["SR-13.18.13.3-3", "GR-13.18.13.4-3"])
-            Assert.DoesNotContain(id, ids);
-        // THE SELECTION ARM (kb/Work R43): a record description entry being SELECTED is SELECT WHEN's own
-        // mechanism. I-O status 45 has no producer without it (PB1518), and CODE-SET GR4 is declined jointly
-        // with A.4.13 — its FILE-phrase branch is the only other content it has (PB1255).
-        Assert.Contains("GR-9.1.13.7-5", ids);
-        Assert.Contains("GR-13.18.13.4-4", ids);
-        // One name in a list of several — content survives entirely.
-        foreach (string id in (string[])["GR-13.18.49.4-1", "GR-13.18.57.4-1", "SR-13.16.3-13", "GR-14.9.24.4-2"])
-            Assert.DoesNotContain(id, ids);
-    }
-
-    [Fact]
     public void TheOoOptionalItemsSelector_IsStillSharp()
     {
         var (ids, _) = Select("oo-optional-items-only");
@@ -699,17 +659,17 @@ public sealed class DerivedVerdictDriftTests
         }
 
         // A DOC row §7 does not carry at all must stay out: nothing has been determined about it, and a MISSING
-        // determination is not a NEGATIVE one. Item 85 (FORMAT clause exclusions — A.1-optional, withdrawn with
-        // the unclaimed A.4.8) is the anchor now: since doc-rows-2 (2026-09-25) every optional item that CAN
+        // determination is not a NEGATIVE one. Item 41 (CRT status 9xxx; kb/Work PB5578 moved the anchor off item 85, which has a §7 row since A.4.8 was claimed — A.1-optional, withdrawn with
+        // the unclaimed screen module A.4.2) is the anchor now: since doc-rows-2 (2026-09-25) every optional item that CAN
         // arise has a §7 row. Item 7 held this anchor until 2026-09-24, when kb/Work PB1522 step 3 wrote its
         // 'Not provided.' row and the selector took it with no edit to the predicate; item 67 held it until
         // 2026-09-25, when doc-rows-2 wrote its R44-only row — which opens with the determination, not "Not
         // provided", so the selector does NOT take it. Both moves are asserted below so they are visible.
-        Assert.DoesNotContain("DOC-A.1-85", ids);
-        Assert.False(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-85"),
-            "item 85 is the anchor for 'optional, but undetermined' — if §7 has grown a row for it, this "
+        Assert.DoesNotContain("DOC-A.1-41", ids);
+        Assert.False(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-41"),
+            "item 41 is the anchor for 'optional, but undetermined' — if §7 has grown a row for it, this "
             + "assertion's subject moved and another optional item with no determination must take its place");
-        Assert.Equal("optional", byId["DOC-A.1-85"].Requirement);
+        Assert.Equal("optional", byId["DOC-A.1-41"].Requirement);
         Assert.DoesNotContain("DOC-A.1-67", ids);
         Assert.True(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-67"));
         Assert.Equal("optional", byId["DOC-A.1-67"].Requirement);
