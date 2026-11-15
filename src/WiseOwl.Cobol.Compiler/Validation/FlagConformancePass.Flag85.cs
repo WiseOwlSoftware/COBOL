@@ -263,10 +263,11 @@ internal sealed partial class FlagConformancePass
     }
 
     /// <summary>Whether the unit — or the method — has standard arithmetic specified: its effective OPTIONS paragraph names
-    /// ARITHMETIC IS STANDARD (any standard mode); absent or NATIVE is native arithmetic in effect (§2002:8.8.1.2).</summary>
+    /// ARITHMETIC IS STANDARD; absent or NATIVE is native arithmetic in effect (§2002:8.8.1.2), and the 2014 modes
+    /// STANDARD-BINARY / STANDARD-DECIMAL use no native arithmetic (§2014:7.3.13.3 GR2).</summary>
     private bool StandardArithmeticInEffect() =>
         _currentData is { } data
-        && data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native;
+        && data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic == ArithmeticMode.Standard;
 
     private static bool IsNativeUsage(Usage usage) =>
         UsageFamilies.IsFixedWidthBinary(usage)

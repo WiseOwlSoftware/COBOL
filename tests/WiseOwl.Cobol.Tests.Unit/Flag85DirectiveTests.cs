@@ -130,10 +130,10 @@ public sealed class Flag85DirectiveTests
         "       01 B1 USAGE BINARY-LONG.\n" +
         "       01 F1 USAGE FLOAT-LONG.\n";
 
-    private static string Program(string directive, string body, bool standard = false) =>
+    private static string Program(string directive, string body, bool standard = false, string mode = "STANDARD") =>
         "       IDENTIFICATION DIVISION.\n" +
         "       PROGRAM-ID. PB5600T.\n" +
-        (standard ? "       OPTIONS.\n           ARITHMETIC IS STANDARD.\n" : "") +
+        (standard ? "       OPTIONS.\n           ARITHMETIC IS " + mode + ".\n" : "") +
         "       DATA DIVISION.\n" +
         "       WORKING-STORAGE SECTION.\n" + Data +
         "       PROCEDURE DIVISION.\n" +
@@ -142,7 +142,7 @@ public sealed class Flag85DirectiveTests
         "           " + body + "\n" +
         "           STOP RUN.\n";
 
-    private static IReadOnlyList<string> Compile(string source)
+    private static IReadOnlyList<string> Compile(string source, int dialect = 2002)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_Flag85_");
         try
@@ -150,7 +150,7 @@ public sealed class Flag85DirectiveTests
             string src = Path.Combine(dir, "flag85.cob");
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, "flag85.dll"), DialectLevel: 2002, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
+                src, Path.Combine(dir, "flag85.dll"), DialectLevel: dialect, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             return r.Warnings;
         }
@@ -294,9 +294,22 @@ public sealed class Flag85DirectiveTests
         Assert.Equal(0, Flags("COBOL7391", Compile(Program(">>FLAG-NATIVE-ARITHMETIC ON", operation, standard: true))));
 
     [Fact]
-    public void FlagNativeArithmetic_IsASeparateDirective_FromFlag85()
+    public void FlagNativeArithmetic_IsASeparateDirective_FromFlag85_And_NamesOnlyItsDirective()
     {
         Assert.Equal(0, Flags("COBOL7391", Compile(Program(">>FLAG-85 ALL ON", "ADD B1 TO N.", standard: true))));
         Assert.Equal(0, Flags("COBOL7390", Compile(Program(">>FLAG-NATIVE-ARITHMETIC ON", "ADD B1 TO N.", standard: true))));
+        // The message names the directive only: the format admits no operand word (review finding R1-3).
+        Assert.DoesNotContain("FLAG-NATIVE-ARITHMETIC FLAG-NATIVE-ARITHMETIC", string.Join("\n",
+            Compile(Program(">>FLAG-NATIVE-ARITHMETIC ON", "ADD B1 TO N.", standard: true))));
     }
+
+    /// <summary>§2014:7.3.13.3 GR2 enables flagging only "If ARITHMETIC IS STANDARD has been specified or implied": under
+    /// STANDARD-DECIMAL (STANDARD-BINARY is declined at bind, COBOL0806) no operation uses native arithmetic (§2014:8.8.1.2), so nothing is flagged at
+    /// --std 2014 (review finding R1-1).</summary>
+    [Theory]
+    [InlineData("STANDARD-DECIMAL", 0)]
+    [InlineData("STANDARD", 1)]
+    public void FlagNativeArithmetic_At2014_FlagsOnlyUnderArithmeticIsStandard(string mode, int expected) =>
+        Assert.Equal(expected, Flags("COBOL7391", Compile(
+            Program(">>FLAG-NATIVE-ARITHMETIC ON", "COMPUTE N = B1 + 1.", standard: true, mode: mode), 2014)));
 }

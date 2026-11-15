@@ -295,7 +295,8 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         var info = FlagOptions.Info(option);
         _sink.Report(new EditionDiagnostic(FlagDirectiveLine.WarningCode(info.Directive), EditionSeverity.Warning,
             FlagDirectiveLine.ConstructId(info),
-            $"{info.Change} — flagged by >>{FlagDirectiveLine.DirectiveWord(info.Directive)} {info.Word}",
+            $"{info.Change} — flagged by >>{FlagDirectiveLine.DirectiveWord(info.Directive)}"
+            + (info.Word == FlagDirectiveLine.DirectiveWord(info.Directive) ? "" : " " + info.Word),
             where, info.Citation));
     }
 
