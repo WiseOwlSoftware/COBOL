@@ -726,7 +726,7 @@ public static partial class ConditionalCompilationProcessor
         var (name, kind, operand, over) = define;
         // §2023:7.3.11.3 SR1 (with §2023:7.3.3 SR7, SR9): the name shall not be a compiler-directive word — the ONE §2023:8.12
         // representation, asked of the same screen the defined condition uses (kb/Work PB1366).
-        if (CompilerDirectiveWords.IsReserved(name))
+        if (CompilerDirectiveWords.IsReserved(name, dialectLevel))
         {
             diag.DirectiveWordAsName(name, "a DEFINE directive", "ISO §2023:7.3.11.3 SR1");
             return apply ? DefineEffect.RefusalOf(name) : null;
@@ -777,7 +777,7 @@ public static partial class ConditionalCompilationProcessor
                 return new DefineEffect(name, "");
             }
             default:
-                if (EvaluateOperandText(operand, evaluator, diag, $">>DEFINE {name}") is not { } v)
+                if (EvaluateOperandText(operand, evaluator, diag, $">>DEFINE {name}", defineValue: true) is not { } v)
                     return DefineEffect.RefusalOf(name);
                 AssignDefine(name, v, over, defines, diag);
                 return new DefineEffect(name, operand);
@@ -800,14 +800,20 @@ public static partial class ConditionalCompilationProcessor
 
     /// <summary>Fragment-parse and evaluate one compile-time operand to a <see cref="CtValue"/>, or null (a
     /// syntax error is reported as COBOL1619; a formation error is reported by the evaluator).</summary>
+    /// <param name="defineValue">The operand is the value of a <c>&gt;&gt;DEFINE</c>, whose format admits a boolean
+    /// EXPRESSION only from COBOL-2023 (kb/Work PB5601); an EVALUATE subject or WHEN object admits one from 2002.</param>
     private static CtValue? EvaluateOperandText(string text, CompileTimeExpressionEvaluator evaluator,
-        DirectiveDiag diag, string where)
+        DirectiveDiag diag, string where, bool defineValue = false)
     {
         if (ParseOperandFragment(text, diag, where, compiled: true) is not { } frag) return null;
         var operand = frag.compileTimeOperand();
         diag.FlagArithmetic(operand);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b) — evaluated context
         diag.GateBooleanOperators(operand);
-        return evaluator.EvaluateOperand(operand, where);
+        // A refusal of the DEFINE format still evaluates the operand, so every violation of it is reported, not the first
+        // (as the operator gates above report and continue); the directive then defines nothing.
+        bool admitted = !defineValue || diag.GateDefineBooleanExpression(operand);
+        var value = evaluator.EvaluateOperand(operand, where);
+        return admitted ? value : null;
     }
 
     /// <summary>Fragment-parse a compile-time operand WITHOUT evaluating it — the syntax check of a directive in an omitted
@@ -980,6 +986,24 @@ public static partial class ConditionalCompilationProcessor
         public void GateBooleanOperators(Antlr4.Runtime.Tree.IParseTree fragment)
         {
             if (bag is not null) BooleanOperatorGate.Check(edition, new BagSink(bag, At), fragment);
+        }
+
+        /// <summary>The DEFINE format's own introduction gate (kb/Work PB5601): <c>boolean-expression-1</c> is an operand
+        /// alternative of the DEFINE general format only in §2023:7.3.11.2 (SR4, GR7); §2002:7.2.9.1 and §2014:7.3.9.1 print
+        /// arithmetic-expression-1, literal-1, PARAMETER and OFF, though a compile-time boolean expression is still admitted in
+        /// an EVALUATE directive and a constant conditional expression (§2002:7.2.6) — so this is asked at the DEFINE operand
+        /// alone, not through <see cref="GateBooleanOperators"/>' per-operator gate. A boolean LITERAL is literal-1 and is not
+        /// an expression (the grammar enters <c>booleanExpression</c> only for an operator or a parenthesized literal).
+        /// Returns false, reported through the ONE <see cref="ConstructRegistry"/> funnel, when the edition lacks the
+        /// alternative: the directive then matches no format and defines nothing.</summary>
+        public bool GateDefineBooleanExpression(CobolParserCore.CompileTimeOperandContext operand)
+        {
+            if (operand.booleanExpression() is null
+                || ConstructRegistry.IsAvailable(edition, Constructs.DefineBooleanExpression2023)) return true;
+            if (bag is not null)
+                ConstructRegistry.Check(edition, new BagSink(bag, At), Constructs.DefineBooleanExpression2023,
+                    "the operand of a DEFINE directive");
+            return false;
         }
 
         /// <summary>The logical-operator introduction gate over an evaluated constant-conditional-expression

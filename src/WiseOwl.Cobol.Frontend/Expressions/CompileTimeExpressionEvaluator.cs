@@ -44,6 +44,7 @@ public sealed class CompileTimeExpressionEvaluator
     private readonly CtOperandVocabulary _vocab;
     private readonly bool _decimalPointIsComma;
     private readonly CompileTimeArithmetic _arithmetic;
+    private readonly EditionInfo _edition;
     private readonly int _literalDigits;
 
     /// <param name="edition">The targeted edition — it selects the §2023:7.3.6.3 GR2 arithmetic mode
@@ -66,6 +67,7 @@ public sealed class CompileTimeExpressionEvaluator
         EditionInfo edition, Func<string, CtValue?> resolveName, ICtDiagnostics diag, CtOperandVocabulary vocab,
         bool decimalPointIsComma, Func<string, bool>? isRefusedName = null)
     {
+        _edition = edition;
         _arithmetic = CompileTimeArithmetic.For(edition);
         _literalDigits = edition.MaxDigits;
         _resolveName = resolveName;
@@ -547,7 +549,7 @@ public sealed class CompileTimeExpressionEvaluator
         string name = d.cobolWord().GetText();
         // §2023:7.3.8.4.3 SR1 (kb/Work PB1366): "Compilation-variable-name-1 shall not be the same as a compiler-directive
         // word" — the same screen as the DEFINE's own name slot, asked of the ONE §2023:8.12 representation.
-        if (WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.IsReserved(name))
+        if (WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.IsReserved(name, _edition.Year))
         {
             _diag.Report(CtDiagCode.DirectiveWordAsName, $"{where}: '{name}' is a compiler-directive word (ISO §2023:8.12) and "
                 + "shall not be used as a compilation-variable-name in a defined condition (ISO §2023:7.3.8.4.3 SR1)");
