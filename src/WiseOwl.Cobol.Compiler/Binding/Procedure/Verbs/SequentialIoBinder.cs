@@ -205,8 +205,9 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             return BoundRejected.Reported(ctx.Edition);
         // The WRITE lock/RETRY phrases (§2023:14.9.51 Format 1/2 — [retry-phrase] [WITH LOCK | WITH NO LOCK]) bind
         // for EVERY organization; the emitter routes a lock-relevant statement through the governed runtime entry.
-        BoundRecordLock wlock = fileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §2023:14.9.51 SR22 → COBOL1512
-        RetrySpec? wretry = fileLock.BindVerbRetry(w.retryPhrase());                                    // §2023:14.7.9 / §2023:14.9.51 GR16
+        // The pair is ONE retryLockPhrases element in whichever place the edition prints it (kb/Work PB5620).
+        BoundRecordLock wlock = fileLock.CheckRecordLockPhrase(file, w.retryLockPhrases()?.recordLockPhrase(), "WRITE");   // §2023:14.9.51 SR22 → COBOL1512
+        RetrySpec? wretry = fileLock.BindVerbRetry(w.retryLockPhrases()?.retryPhrase());                                    // §2023:14.7.9 / §2023:14.9.51 GR16
         if (!file.IsSequential) return keyedIo.BindWrite(w, file, record, wlock, wretry, bindFrom);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
         // §2023:14.9.51.3 SR2 — "If the organization of the write file is sequential, format 1 shall be specified."
@@ -386,8 +387,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         if (!ctx.Validation.ScreenReportFileReference(file, "REWRITE", "ISO §2023:14.9.35.3 SR11 — \"File-name-1 shall "
                 + "not reference a report file or a sort-merge file description entry\""))
             return BoundRejected.Reported(ctx.Edition);
-        BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §2023:14.9.35 SR4 → COBOL1512
-        RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryPhrase());                                      // §2023:14.7.9 / §2023:14.9.35 GR11
+        BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.retryLockPhrases()?.recordLockPhrase(), "REWRITE");   // §2023:14.9.35 SR4 → COBOL1512
+        RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryLockPhrases()?.retryPhrase());                                      // §2023:14.7.9 / §2023:14.9.35 GR11
         if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record, rlock, rretry, bindFrom);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
         // §2023:14.9.35.3 SR2, arm (a) — "Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be
         // specified for a REWRITE statement that references a file with SEQUENTIAL ORGANIZATION". This arm

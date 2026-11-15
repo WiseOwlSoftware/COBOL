@@ -347,6 +347,8 @@ public static class Constructs
     public const string ValueTableFormat2002 = "value-table-format-2002";
     public const string WordLength632023 = "word-length-63-2023";
     public const string WriteBeforeAndAfterAdvancing2023 = "write-before-and-after-advancing-2023";
+    public const string WriteLockPhrasesAfterEndOfPage2002 = "write-lock-phrases-after-end-of-page-2002";
+    public const string WriteLockPhrasesBeforeEndOfPage2014 = "write-lock-phrases-before-end-of-page-2014";
     public const string WriteRewriteFilePhrase2002 = "write-rewrite-file-phrase-2002";
     public const string ZeroLengthLiteral2014 = "zero-length-literal-2014";
 }
