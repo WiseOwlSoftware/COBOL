@@ -1,4 +1,4 @@
-## At --std 85, a sum counter named by LINAGE, RECORD DEPENDING, RECORD KEY or ALTERNATE RECORD KEY is refused under the 1985 rule
+## Entry 3653 — 2026-11-14 22:17 PST — At --std 85, a sum counter named by LINAGE, RECORD DEPENDING, RECORD KEY or ALTERNATE RECORD KEY is refused under the 1985 rule
 
 PB5361. The refusals were right and the citations were not. Probed on the base at `--std 85` with a CF FINAL sum counter `KTOT`
 named by each clause: LINAGE and RECORD DEPENDING ON (already routed to the clause's own rules by PB5310) cited
@@ -16,3 +16,4 @@ Goldens: four refusals at 85 whose `expect` is the 1985 citation, one per clause
 from `specs/ANSI_COBOL_1985.md` and a row in force at 85 with none is refused (`RecordClauseRuleDriftTests`); the callers of the raw
 refusal are pinned (`ReportItemOperandDriftTests`). No inventory row moves: the 1985 rules are KEPT bridges to 2023 rows that stay
 CONFORMS. Registered, not fixed: the other 85 refusals of these tables (RELATIVE KEY, FILE STATUS) still cite 2023 text.
+
