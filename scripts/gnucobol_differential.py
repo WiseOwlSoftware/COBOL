@@ -264,19 +264,49 @@ def write_baseline(path: str, results: list[dict], record: str) -> None:
             fh.write(f"{r['id']}\t{r['tier']}\t{r['verdict']}\n")
 
 
-def diff_baseline(base: dict[str, tuple[str, str]], results: list[dict], path: str) -> int:
+def wrapper_files(src: str, only: str) -> list[str]:
+    """The `.at` wrapper files under `src` that `--only` selects: those whose file name starts with `only` (every one
+    when `only` is empty). The ONE spelling of the selection, shared by `select_cases`'s refusal and the run's printout."""
+    return sorted(x for x in os.listdir(src) if x.endswith('.at') and x.startswith(only))
+
+
+def in_scope(case_id: str, only: str) -> bool:
+    """Is this manifest row a case of a wrapper `--only` selects? A case id is `<wrapper stem>:<line>`
+    (gnucobol_extract.parse_file), so the row's wrapper file is `<stem>.at`, the file name `wrapper_files` matches."""
+    return (case_id.rsplit(':', 1)[0] + '.at').startswith(only)
+
+
+def select_cases(src: str, only: str) -> tuple[list[dict], str]:
+    """THE POPULATION THIS RUN IS ENTITLED TO JUDGE (kb/Work PB5673): the cases of the wrappers `only` selects, and the
+    error that refuses a selection which selects no case ('' when it selects some). An empty selection is never a
+    green run: it would print `0 PER-CASE FLIP(S)`, the line the battery reads as the leg's pass, having compared nothing."""
+    groups = gx.differential_cases(src, only)
+    if groups:
+        return groups, ''
+    return groups, (f"!! --only {only!r} selects no case. --only is a prefix of a wrapper FILE name (`syn_file`, not a "
+                    f"case id like `syn_file:108`). Wrapper files under {src}: {', '.join(wrapper_files(src, '')) or 'none'}")
+
+
+def diff_baseline(base: dict[str, tuple[str, str]], results: list[dict], path: str, only: str = '') -> int:
     """Print the PER-CASE diff and return the number of VERDICT FLIPS (0 = clean).
 
     NEW / REMOVED cases are reported but are NOT flips: they mean the fetched corpus changed, which is a
     legitimate event the compiler did not cause. Conflating the two is how a corpus refresh would either mask
     a real regression or manufacture 1300 false ones.
+
+    Under `--only` the run judges only the wrappers it selected, so the manifest it compares with is those wrappers'
+    rows alone (`in_scope`): the other rows were not run, and reporting them REMOVED said the corpus had changed when
+    the run had been filtered (kb/Work PB5673). The heading says the run is filtered.
     """
+    if only:
+        base = {i: v for i, v in base.items() if in_scope(i, only)}
     cur = {r['id']: r for r in results}
     flips = [(i, base[i][1], cur[i]['verdict']) for i in sorted(base.keys() & cur.keys())
              if base[i][1] != cur[i]['verdict']]
     new, gone = sorted(cur.keys() - base.keys()), sorted(base.keys() - cur.keys())
 
-    print(f'\n=== PER-CASE DIFF vs {path} ===')
+    scope = f" (FILTERED: --only {only!r}, the {len(base)} manifest row(s) of the selected wrappers)" if only else ''
+    print(f'\n=== PER-CASE DIFF vs {path}{scope} ===')
     if new or gone:
         print(f'  corpus changed: {len(new)} NEW case(s), {len(gone)} REMOVED — not flips, but explain them.')
         for i in new[:10]:
@@ -294,7 +324,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--exe', default='src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe')
     ap.add_argument('--src', default='tests/external/gnucobol/tests/testsuite.src')
-    ap.add_argument('--only', default='')
+    ap.add_argument('--only', default='',
+                    help="run only the .at wrapper files whose NAME starts with this prefix (`syn_file`, not a case id "
+                         "like `syn_file:108`); the per-case diff then compares those wrappers' manifest rows alone, "
+                         "a prefix that selects no case is an error, and --write-baseline is refused")
     ap.add_argument('--jobs', type=int, default=max(2, (os.cpu_count() or 4) - 2))
     ap.add_argument('--report', default='tests/external/gnucobol-differential-report.json')
     ap.add_argument('--baseline', default='tests/external/gnucobol-verdict-baseline.tsv',
@@ -308,6 +341,22 @@ def main() -> int:
     a = ap.parse_args()
     if a.write_baseline and not a.record.strip():
         ap.error('--write-baseline needs --record "<which battery, which adjudication licensed the moved rows>"')
+    if a.write_baseline and a.only:
+        ap.error('--write-baseline cannot be combined with --only: a filtered run would rewrite the manifest with '
+                 'its subset alone and drop every other row; regenerate from an unfiltered run')
+
+    # The population is settled before a compile is started: a corpus that is absent, or a selection that selects
+    # nothing, ends the run here rather than after the evidence control.
+    if not os.path.isdir(a.src):
+        print(f'!! corpus absent: {a.src}\n   run python scripts/external_corpus.py ensure (GPL, never committed).',
+              file=sys.stderr)
+        return 2
+    # THE population, from the ONE definition — pre-filtered, so `len(payload)` IS `cases run` and the
+    # progress counter below stops counting groups it will silently drop (PB209).
+    groups, refusal = select_cases(a.src, a.only)
+    if refusal:
+        print(refusal, file=sys.stderr)
+        return 2
 
     if not os.path.exists(a.exe):
         print(f'!! compiler not found: {a.exe}', file=sys.stderr); return 2
@@ -326,16 +375,7 @@ def main() -> int:
         return 4
     print('evidence control: accept and reject are distinguishable on this build.')
 
-    if not os.path.isdir(a.src):
-        print(f'!! corpus absent: {a.src}\n   run python scripts/external_corpus.py ensure (GPL, never committed).',
-              file=sys.stderr)
-        return 2
-
-    # THE population, from the ONE definition — pre-filtered, so `len(payload)` IS `cases run` and the
-    # progress counter below stops counting groups it will silently drop (PB209).
-    groups = gx.differential_cases(a.src, a.only)
-    print(f'external corpus population: {len(groups)} case(s) from '
-          f'{len([x for x in os.listdir(a.src) if x.endswith(".at") and x.startswith(a.only)])} .at wrapper(s) '
+    print(f'external corpus population: {len(groups)} case(s) from {len(wrapper_files(a.src, a.only))} .at wrapper(s) '
           f'- gnucobol_extract.differential_cases')
 
     # The cases' work directory goes when the run ends, whatever the way out: every result it holds is in `results`
@@ -409,7 +449,7 @@ def main() -> int:
         print(f'\n!! NO VERDICT BASELINE at {a.baseline} — this run CANNOT claim zero per-case flips.\n'
               f'   Create it deliberately: --write-baseline', file=sys.stderr)
         return 5
-    return 6 if diff_baseline(base, results, a.baseline) else 0
+    return 6 if diff_baseline(base, results, a.baseline, a.only) else 0
 
 
 if __name__ == '__main__':

@@ -7,8 +7,9 @@ using WiseOwl.Cobol.Frontend.Diagnostics;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
-/// The WiseOwl COBOL <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> migration-flagging directive stage (ISO §2023:7.3.14 /
-/// §2023:7.3.15; greenfield-only — the legacy pipeline keeps consuming the words via
+/// The WiseOwl COBOL <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> / <c>&gt;&gt;FLAG-85</c> /
+/// <c>&gt;&gt;FLAG-NATIVE-ARITHMETIC</c> migration-flagging directive stage (ISO §2023:7.3.14 / §2023:7.3.15;
+/// §2002:7.2.11 / §2002:7.2.12; greenfield-only — the legacy pipeline keeps consuming the words via
 /// <see cref="ConditionalCompilationProcessor"/>'s <c>KnownIgnoredDirectives</c>): parses each surviving
 /// <c>&gt;&gt;FLAG-nn { ALL | option… } { ON | OFF }</c> line of the FINAL preprocessed text into a
 /// <see cref="FlagEvent"/> (via the ONE <see cref="FlagDirectiveLine"/> parser), reports a malformed operand, and
@@ -41,10 +42,7 @@ public static class FlagDirectiveProcessor
             // *> why` used to be rejected as a malformed option list.
             if (!CompilerDirectiveLine.TryParse(lines[i], out var line)) continue;
 
-            FlagDirective directive;
-            if (line.Word == "FLAG-02") directive = FlagDirective.Flag02;
-            else if (line.Word == "FLAG-14") directive = FlagDirective.Flag14;
-            else continue;
+            if (FlagDirectiveLine.OfWord(line.Word) is not { } directive) continue;
 
             string operand = line.Operand;
             int at = CompilerDirectiveLine.IndicatorIndex(lines[i]);
@@ -58,8 +56,7 @@ public static class FlagDirectiveProcessor
             // SUPPORTED and merely flagged, never rejected/removed). This stage collects the options.
 
             if (FlagDirectiveLine.TryParse(directive, operand, out var options, out bool on, out string? error))
-                events.Add(directive == FlagDirective.Flag02 ? Constructs.Flag02Directive2014 : Constructs.Flag14Directive2023,
-                    i + 1, new FlagEvent(i + 1, directive, on, options));
+                events.Add(FlagDirectiveLine.Row(directive), i + 1, new FlagEvent(i + 1, directive, on, options));
             else
                 ReportMalformed(directive, error, diagnostics, loc);
 
@@ -74,7 +71,8 @@ public static class FlagDirectiveProcessor
     /// and nothing applied. <paramref name="word"/> is the directive word (<c>FLAG-02</c> / <c>FLAG-14</c>).</summary>
     internal static void CheckOperand(string word, string operand, DiagnosticBag diagnostics, SourceLocation loc)
     {
-        var directive = CobolKeywords.Same(word, "FLAG-02") ? FlagDirective.Flag02 : FlagDirective.Flag14;
+        var directive = FlagDirectiveLine.OfWord(word)
+            ?? throw new ArgumentException($"'{word}' is not a migration-flagging directive word", nameof(word));
         if (!FlagDirectiveLine.TryParse(directive, operand, out _, out _, out string? error))
             ReportMalformed(directive, error, diagnostics, loc);
     }
@@ -83,6 +81,6 @@ public static class FlagDirectiveProcessor
     private static void ReportMalformed(FlagDirective directive, string? error, DiagnosticBag diagnostics, SourceLocation loc) =>
         diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FlagDirectiveMalformed.Code,
             $">>{FlagDirectiveLine.DirectiveWord(directive)} is malformed: {error} "
-            + $"(ISO §2023:7.3.{(directive == FlagDirective.Flag02 ? "14" : "15")}.2)",
+            + $"({FlagDirectiveLine.FormatCitation(directive)})",
             loc, default);
 }

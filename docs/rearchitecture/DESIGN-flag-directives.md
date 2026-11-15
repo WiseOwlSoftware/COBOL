@@ -1,4 +1,4 @@
-# DESIGN — FLAG-02 / FLAG-14 migration-flagging directives (§2023:7.3.14 / §2023:7.3.15)
+# DESIGN — FLAG-02 / FLAG-14 / FLAG-85 / FLAG-NATIVE-ARITHMETIC migration-flagging directives (§2023:7.3.14 / §2023:7.3.15; §2002:7.2.11 / §2002:7.2.12)
 
 > **Status: IMPLEMENTED (P13 Wave D).** All 17 option-detectors (FLAG-14 b–m, FLAG-02 b–f) + the 2 directive-word
 > edition gates are landed; `FlagConformancePass` + the frontend collection + the two frontend-inline options are the
@@ -309,3 +309,41 @@ SAME commit; the wave-local gate is fresh build + characterization + the FLAG un
 Because flagging is a Warning (never fatal), a golden asserts on stderr/warning text, not exit code. The
 comprehensive gate (full Conformance + the NIST guard) runs once pre-merge; the GnuCOBOL differential is a triage
 net (flagging adds warnings, never rejects — expect zero accept/reject flips).
+
+## 6. FLAG-85 and FLAG-NATIVE-ARITHMETIC (§2002:7.2.11 / §2002:7.2.12; kb/Work PB5600)
+
+The two COBOL-2002 directives (obsolete in 2014, removed in 2023 by Annex E.2 item 21 — rows `flag-85-directive-window` and
+`flag-native-arithmetic-directive-window`) ride the SAME three seams as FLAG-02 / FLAG-14: they are two more values of
+`FlagDirective`, their options two more groups of `FlagOption`, and `FlagDirectiveProcessor` / `FlagState` /
+`FlagConformancePass` serve them with no second mechanism. The 2023 text carries no general format for either, so the
+operand grammar is the 2002 one (rendered PDF p.71 and p.73): `>> FLAG-85 { ALL | |option…| } { ON | OFF }` (ALL and ON
+un-underlined, hence the defaults, §2002:5.1.5.2) and `>> FLAG-NATIVE-ARITHMETIC { ON | OFF }` (no option brace: any word
+but ON/OFF is COBOL1622). Both rows are `directiveOperand.form = stage` (owner `FlagDirectiveProcessor`, so the omitted-branch
+check of `StageOperandChecks` applies) and carry `directivePlacement` (SR1, between clauses / between statements). One
+directive-word table (`FlagDirectiveLine.DirectiveWord / OfWord / Row / FormatCitation / WarningCode / ConstructId`) replaces
+the two-valued tests the FLAG-02/14 code carried. Two warning codes, one per directive as before: COBOL7390 (FLAG-85) and
+COBOL7391 (FLAG-NATIVE-ARITHMETIC); a flagged construct is always a Warning.
+
+The detectors are `FlagConformancePass.Flag85.cs` (a partial of the one pass), each a parse-node test or a resolved-item test
+through the unit's name scope (never a spelling match):
+
+| Option | Construct (§2002:7.2.11.3 GR4) | Test |
+|---|---|---|
+| b CORRESPONDING | ADD / MOVE / SUBTRACT CORRESPONDING, "subscripting with other than a constant … on any of the operands" | a `subscriptItem` of a dataReference of the statement that is not an integer literal (ALL, an identifier, an index-name expression) |
+| c DE-EDITING | a de-editing MOVE (§2002:14.8.24.3 GR3) | sending item numeric-edited, a receiver numeric or numeric-edited |
+| d DIVIDE | DIVIDE … REMAINDER, unsigned quotient, signed divisor or dividend | the GIVING item's `PicInfo.HoldsSign` is false and the other operands' is true |
+| e FUNCTION-ARGUMENT | FUNCTION RANDOM followed by a parenthesized expression, as an argument of a multi-arithmetic-argument function | RANDOM with an argument list inside the nearest enclosing function call whose `IntrinsicCatalog` row takes two or more numeric arguments |
+| f MOVE | an alphanumeric literal or data item of more than 31 characters moved to a numeric item | decoded literal length, or `ImageWidth` of an alphanumeric / group item |
+| g NUMVAL | NUMVAL and NUMVAL-C | the function name |
+| h SET | a condition-setting SET that references a variable-length group item | the condition-name's conditional variable (`Condition88.Parent`) is a group holding an OCCURS DEPENDING table |
+| i, j STANDARD-1 / -2 | the ALPHABET clause that specifies it | the `alphabetDefinition` token |
+| k ZERO-LENGTH | a READ that could return a zero-length item; any statement referencing a data item that could be zero-length | `FileModel.VaryMin == 0`; `DataItem.MinimumLengthIsZero` (the first half of §2023:8.5.4), once per statement |
+
+FLAG-NATIVE-ARITHMETIC (§2002:7.2.12.3 GR2–GR4): under `ARITHMETIC IS STANDARD` (any standard mode, the unit's or the
+method's own OPTIONS paragraph) an arithmetic statement, a report SUM clause or an arithmetic expression with an operator
+(outermost only) whose operand is described with usage binary-char/-short/-long/-double or float-short/-long/-extended
+(COMP-1 / COMP-2 included) is flagged (§2002:8.8.1.3); under native arithmetic nothing is (GR4).
+
+`DirectiveStateRegistry` carries both rows through `FlagDirectiveProcessor` / `FlagEvents`. PUSH and POP exist only at 2023
+and both directives were removed there, so no source holds a PUSH and one of them; `DirectiveStateStackTests` drives the
+stack over the stage's events directly for the two rows.

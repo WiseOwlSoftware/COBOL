@@ -370,7 +370,7 @@ public sealed class Frontend
             throw new InvalidOperationException(
                 "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");
 
-        // >>FLAG-02 / >>FLAG-14 (ISO §2023:7.3.14 / §2023:7.3.15): collect the per-option ON/OFF toggle events on the FINAL
+        // >>FLAG-02 / >>FLAG-14 / >>FLAG-85 / >>FLAG-NATIVE-ARITHMETIC (ISO §2023:7.3.14 / §2023:7.3.15; §2002:7.2.11 / §2002:7.2.12): collect the per-option ON/OFF toggle events on the FINAL
         // text (each event line is directly comparable to a flagged construct's token Start.Line — the >>TURN
         // anchoring discipline). Line-count preserving like the stages above.
         (text, var flagEvents) = FlagDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
@@ -422,7 +422,7 @@ public sealed class Frontend
 
     /// <summary>The ISO §2023:7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the
     /// dedicated stages above — ONE list, in the order those stages run (PUSH / POP / TURN for the site scan,
-    /// then TURN, PROPAGATE, REF-MOD-ZERO-LENGTH, FLAG-02 / FLAG-14, COBOL-WORDS, LEAP-SECOND). A new directive
+    /// then TURN, PROPAGATE, REF-MOD-ZERO-LENGTH, FLAG-02 / FLAG-14 / FLAG-85 / FLAG-NATIVE-ARITHMETIC, COBOL-WORDS, LEAP-SECOND). A new directive
     /// with behavior is one entry here plus its stage.
     /// <para>PUSH and POP are here for their POSITION and their OPS: §2023:7.3.22.3 SR4 and §2023:7.3.20.3 SR4 are rules
     /// about WHERE they are written, and only the final line frame can say (kb/Work PB595), and
@@ -436,7 +436,8 @@ public sealed class Frontend
     /// <c>CompilerDirectiveCatalogDriftTests</c> asserts the subset relation.</summary>
     public static readonly IReadOnlySet<string> LeftDirectives = new HashSet<string>(CobolKeywords.Comparer)
     {
-        "TURN", "PUSH", "POP", "PROPAGATE", "REF-MOD-ZERO-LENGTH", "FLAG-02", "FLAG-14", "COBOL-WORDS", "LEAP-SECOND",
+        "TURN", "PUSH", "POP", "PROPAGATE", "REF-MOD-ZERO-LENGTH", "FLAG-02", "FLAG-14", "FLAG-85", "FLAG-NATIVE-ARITHMETIC",
+        "COBOL-WORDS", "LEAP-SECOND",
     };
 
     private static int CountLines(string s) => s.Count(c => c == '\n');
