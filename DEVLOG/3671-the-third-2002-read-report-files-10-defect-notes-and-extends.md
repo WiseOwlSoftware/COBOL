@@ -1,4 +1,4 @@
-## The third 2002 read report files 10 defect notes and extends the adjudication
+## Entry 3671 — 2026-11-15 02:52 PST — The third 2002 read report files 10 defect notes and extends the adjudication
 
 **What was read.** The third pass of the 2002 read found 41 defect cases (the files are under `E:/COBOL-coord/scratch/op-20261114/read-2002/out`): 10 new groups, 6 extensions of open notes, 1 owner-decision facility, 3 conditional items and 3 dropped groups. Only `kb/Work/` and this entry change.
 
@@ -20,3 +20,4 @@
 **Adjudication PB5625 extended.** Three more open readings, each in `kb/Work/PB5625/2026-11-15-read-2002-c.md`: SET index-name outside the table range (§2002:14.8.35.3 against the informative §2002:F.2), the class of a USAGE NATIONAL numeric item (six more rows), and LOWER-CASE and UPPER-CASE with no locale (Annex D). Ten rows were added to its `inventory_rows`.
 
 **Dropped.** Read cases matched only because they carry a defect key with an empty field, refuter cases upheld with the compiler outcome right, and the 25 communication-facility rows (all different because 2023 has no communication facility, none compiler-wrong).
+
