@@ -190,9 +190,9 @@ def default_base(repo: pathlib.Path = REPO) -> str:
     raise SystemExit("⛔ no base: neither origin/main nor main is a ref here — pass --base REF")
 
 
-def check(base: str, schema, at: Any = inventory_at, now: Any = inventory) -> int:
+def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revisions: Any = None) -> int:
     """THE GATE'S WITNESS LOSS AUDIT: every HELD edition's rows at `base` (`at(base, year)`) against the working tree's
-    (`now(year)`; the self-test plants both). kb/Work PB5675: an older edition's chained row closes on a witness of its
+    (`now(year)`; the self-test plants both, and `revisions`, the comparison that reads git's renames). kb/Work PB5675: an older edition's chained row closes on a witness of its
     own, its `test-ref`, so losing it is the same loss as a newest row's. An older edition whose store `base` does not
     hold yet has nothing to lose and is said so."""
     losses: list[WitnessLoss] = []
@@ -207,7 +207,7 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory) -> in
             print(f"  ⓘ the {year} store does not exist at {base[:12]}: nothing of it to lose")
             continue
         after = now(year)
-        got, gone = compare_revisions(before, after, base, None, schema)
+        got, gone = (revisions or compare_revisions)(before, after, base, None, schema)
         losses += got
         vanished += gone
         erased += compare_statements(before, after, schema)
@@ -427,12 +427,15 @@ def self_test(schema) -> int:
             "next": {"kind": "KEPT", "to": ["X"], "source": "self-test"}}
     base_rows = {y: ([kept] if y == older else [row]) for y in HELD}
     head_rows = {**base_rows, older: [{**kept, "test-ref": ""}]}
+
+    def no_git(b: list[dict[str, Any]], a: list[dict[str, Any]], *_: Any) -> tuple[list[WitnessLoss], list[str]]:
+        return compare(b, a, schema)   # hermetic: no rename record is read for a planted row
     with contextlib.redirect_stdout(io.StringIO()) as seen:
-        red = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: head_rows[y])
+        red = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: head_rows[y], no_git)
     verify(f"an older ({older}) row's own witness, lost between base and head, turns WITNESS LOSS red",
            red == 1 and f"LOST     {kept['rule-id']} test-ref" in seen.getvalue(), "" if red == 1 else seen.getvalue()[-200:])
     with contextlib.redirect_stdout(io.StringIO()):
-        green = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: base_rows[y])
+        green = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: base_rows[y], no_git)
     verify("and the same rows unchanged are green", green == 0)
 
     # A RE-SPELLING (kb/Work PB3177): the same test file, moved, cited under its new name.
