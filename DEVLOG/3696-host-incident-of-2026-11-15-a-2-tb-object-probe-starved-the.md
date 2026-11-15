@@ -1,4 +1,4 @@
-## Host incident of 2026-11-15: a 2 TB object probe starved the host; PB5695 and PB5696 filed
+## Entry 3696 — 2026-11-15 13:03 PST — Host incident of 2026-11-15: a 2 TB object probe starved the host; PB5695 and PB5696 filed
 
 Between 12:38 and 12:43 PST a witness writer of the 2002 golden lane (slug `g2002-15-57-ord`) ran a probe whose class `G2BIG`
 holds an OBJECT WORKING-STORAGE table of about 2 TB (`05 E PIC X(1000) OCCURS 2000000000`) and invokes `NEW` on it. It compiled
@@ -15,3 +15,4 @@ it, one mechanism for `--run` and the conformance harness.
 Interim guard, not the fix: since 12:50 PST the operator session runs a watchdog that kills a `dotnet.exe` or `cobol.exe`
 user-program process whose commit passes 12 GB, and every fleet brief carries a HOST SAFETY rule. Gates that ran in the window
 may have shown infrastructure reds.
+
