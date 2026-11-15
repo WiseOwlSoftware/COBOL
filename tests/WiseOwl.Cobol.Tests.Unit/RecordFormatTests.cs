@@ -164,6 +164,21 @@ public sealed class RecordFormatTests
     }
 
     [Fact]
+    public void SelectedIsNational_AsksTheEntryTheClausesSelect()
+    {
+        // §2023:14.9.40.4 GR7 b: with several entries and SELECT WHEN clauses, the short-record fill is the SELECTED entry's.
+        var national = new RecordPlan(4, new RecordStep(RecordStepKind.Raw, 0, 4)) { National = true };
+        var plain = new RecordPlan(4, new RecordStep(RecordStepKind.Raw, 0, 4));
+        var format = new RecordFormat(RecordFormatKinds.None, [national, plain], selectorOffset: 0)
+        {
+            Select = image => image[0] == 'N' ? 0 : image[0] == 'P' ? 1 : -1,
+        };
+        Assert.True(format.SelectedIsNational("N..."));
+        Assert.False(format.SelectedIsNational("P..."));
+        Assert.False(format.SelectedIsNational("?..."));   // none selected: the statement that writes it is refused with 45
+    }
+
+    [Fact]
     public void AnExternalNumberThatIsNoValue_IsNotRepresentable()
     {
         var p = Zoned(3, signed: true);

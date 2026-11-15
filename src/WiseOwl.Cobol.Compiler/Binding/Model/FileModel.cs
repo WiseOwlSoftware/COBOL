@@ -1065,9 +1065,10 @@ public sealed class FileModel
     /// file (<i>"If the file referenced by file-name-3 contains only fixed-length records"</i>) and its MERGE twin
     /// (§2023:14.9.24.4 GR13 a) names file-name-4; the printed name is a slip of the standard, so the GIVING side reads the
     /// record descriptions of the GIVING file.</para>
-    /// <para>⚠ DETERMINATION — arm b) (several record descriptions WITH a SELECT WHEN clause, the clause choosing the
-    /// description) cannot arise: SELECT WHEN is Annex A.4.8's declined module (<c>COBOL1705</c>), refused at bind,
-    /// so a file with several record descriptions always takes c).</para></summary>
+    /// <para>⚠ arm b) (several record descriptions WITH a SELECT WHEN clause, the clause choosing the description) is decided at RUN time —
+    /// <c>RuntimeApi.ShortRecordFillNational</c> asks <c>CobolFile.SelectedRecordIsNational</c> of the record being transferred, because the
+    /// selected entry depends on the record (kb/Work PB5578; docs/conformance/3/D-SMF.md). This member answers every file that has no such
+    /// selection.</para></summary>
     public bool ShortRecordFillNational => Records is [{ } only] && IsNationalRecord(only);
 
     /// <summary>⛔ THE ONE ANSWER TO "IS THIS RECORD DESCRIPTION NATIONAL?" — the standard's own wording, "described as a
