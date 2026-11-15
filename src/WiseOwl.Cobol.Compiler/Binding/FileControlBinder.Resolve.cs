@@ -37,15 +37,14 @@ public sealed partial class FileControlBinder
             // descriptions (ISO §2023:12.4.5.12 SR2 / §2023:12.4.5.6 SR2), possibly IN/OF-qualified (§2023:8.4.2.2 — same-named
             // keys under different areas, IX215A); RELATIVE KEY is OUTSIDE the record (ISO §2023:12.4.5.13 SR3) —
             // a plain name lookup.
-            // ⛔ THE KEY CLAUSES KEEP THEIR OWN SELECTION, and it is not the uniqueness rule: SR2 puts the key
-            // INSIDE one of this file's record descriptions, so where §2023:8.4.2.2 leaves several candidates the one
-            // in a record of THIS file is the one the clause means, and an operand that resolves outside them is
-            // the case SR2's own FileControlKeyRules row reports. What changed with kb/Work PB489 is only WHERE
-            // the candidates come from — the one §2023:8.4.2.2 resolver, so the file-name qualifier (§2023:8.4.2.2.2
-            // Format 1's file-report-qualifier) works here too, instead of a private record-subtree walk.
-            // ⛔ AND THE SELECTION IS COUNTED (kb/Work PB978): SR2 narrows the set to this file's records when any
-            // survivor lies there, and what remains must be ONE — two same-named keys in this file's records, or
-            // two outside them with none inside, are §2023:8.4.2.2.3 SR1's ambiguity, never the first declared.
+            // ⛔ THE KEY CLAUSES RESOLVE THROUGH THE ONE QUALIFIED-REFERENCE RESOLUTION, then SR2 judges the item
+            // (kb/Work PB5566). SR2 puts the key INSIDE one of this file's record descriptions, but that is a
+            // constraint on the referenced item, never a disambiguation: a name declared twice in the program is
+            // refused unqualified (§2023:8.4.2.2.3 SR1; §1985:IV.4.3.8.1 SR3, whose qualification the RECORD KEY clause
+            // allows: §1985:IX.2.7.3 SR1 "Data-name-1 may be qualified"), whether or not one of the two lies in this
+            // file's records. The candidates come from the one resolver (kb/Work PB489), so the file-name qualifier
+            // (§2023:8.4.2.2.2 Format 1's file-report-qualifier) works here too, and an operand that resolves
+            // outside the file's records is the case SR2's own FileControlKeyRules row reports.
             HashSet<string> refusedKeys = new(CobolNames.Comparer);
             DataItem? InRecords(string keyName, IReadOnlyList<string> quals, string face, Editions.DiagnosticCursor at)
             {
@@ -57,7 +56,7 @@ public sealed partial class FileControlBinder
                 // resolve through their own SR2 selection and now ask it too (feedback_two_arm_dispatch).
                 if (_host.State.Clauses.RefusedClauseOperands.Contains(keyName)) { refusedKeys.Add(keyName); return null; }
                 var cands = _host.QualifiedCandidates(keyName, quals, Model.Scope.Program);
-                var inFile = cands.Where(i => RecordLayout.IsInRecordOfFile(file, i));
+                bool inFile = cands.Any(i => RecordLayout.IsInRecordOfFile(file, i));
                 using var __ = Edition.At(at);
                 string written = DataBinder.WrittenQualified(keyName, quals);
                 // A name the REPORT SECTION declares is not "nothing described" either (kb/Work PB3768's sibling arm):
@@ -69,7 +68,7 @@ public sealed partial class FileControlBinder
                 // At COBOL-85 a sum counter is not refused here: §1985:XIII.3.9.3 SR10d makes it a data-name wherever it is written, so
                 // it is the key's operand and SR2's own row ("within a record description entry associated with the file-name",
                 // §1985:IX.2.7.3 SR2 / §1985:IX.2.5.3 SR2) reports it outside this file's records (kb/Work PB5361).
-                if (inFile.Count == 0 && cands.Count != 1)
+                if (!inFile && cands.Count != 1)
                 {
                     if (_host.ReportSection.ReportItemOperandRefused(cands, $"{face} '{written}'", keyName, quals, out var counter))
                     {
@@ -78,7 +77,7 @@ public sealed partial class FileControlBinder
                     }
                     if (counter is not null) return counter;
                 }
-                var hit = _host.UniqueOrReportAmbiguous(inFile.Count > 0 ? inFile : cands, face, written, out bool ambiguous);
+                var hit = _host.UniqueOrReportAmbiguous(cands, face, written, out bool ambiguous);
                 if (ambiguous && hit is null) refusedKeys.Add(keyName);
                 return hit;
             }
