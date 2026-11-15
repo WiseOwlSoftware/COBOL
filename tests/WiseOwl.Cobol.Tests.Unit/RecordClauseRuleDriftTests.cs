@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -207,8 +208,49 @@ public sealed class RecordClauseRuleDriftTests
             // ⛔ THE SUBJECT CARRIES A REAL RECORD AND A REAL DEPENDING ITEM, so a message that renders their names,
             // size and section is exercised down the branch a program actually reads rather than down a fallback.
             var subject = new RecordClauseSubject(record, 3, 7, depending);
-            Assert.Contains(rule.Citation, rule.Message(file, clause, subject));
+            Assert.Contains(rule.Citation, rule.Render(file, clause, subject, new EditionContext(2023)));
+            // ...and at COBOL-85 it names the 1985 rule where the row has one, never the 2023 clause (kb/Work PB5361).
+            string at85 = rule.Render(file, clause, subject, new EditionContext(85));
+            if (rule.Of1985 is { } r85)
+            {
+                Assert.Contains(r85.Citation, at85);
+                Assert.DoesNotContain("§2023", at85);
+            }
+            else Assert.Contains(rule.Citation, at85);
         }
+    }
+
+    /// <summary>⛔ THE 1985 DESIGNATIONS ARE RE-DERIVED FROM <c>specs/ANSI_COBOL_1985.md</c> (kb/Work PB5361), as the 2023 rows are
+    /// from the 2023 text: each <see cref="RecordClauseRule.Of1985"/> and each LINAGE rule names a NUMBERED syntax rule of the
+    /// "Syntax Rules" subsection its clause names, quoting a span the 2023 text does not print, so a 1985 designation can be
+    /// neither an inherited 2023 clause nor a drifted ordinal. A row with none must be one 1985 does not print (Since above 85).</summary>
+    [Fact]
+    public void Every1985Designation_QuotesItsOwnNumberedRuleOfTheClauseItCites()
+    {
+        var lines = File.ReadAllLines(TestRepo.Specs("ANSI_COBOL_1985.md"));
+        static string Bare(string l) => l.Replace("║", "").Trim();
+        string text2023 = SpecClauseText.Norm(string.Join(' ', SpecClauseText.Lines()));
+        var designations = RecordClauseRules.Catalog.Where(r => r.Of1985 is not null).Select(r => r.Of1985!.Value)
+            .Concat([FileControlBinder.LinageOperandRule, FileControlBinder.LinageFootingRule]).ToList();
+        Assert.True(designations.Count >= 9, $"only {designations.Count} 1985 designations — the table lost rules.");
+        foreach (var rule in designations)
+        {
+            string subsection = "### " + rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " Syntax Rules";
+            string numbered = $"({rule.Ordinal}) ";
+            bool found = false;
+            for (int i = 0; i < lines.Length && !found; i++)
+            {
+                if (Bare(lines[i]) != subsection) continue;
+                for (int j = i + 1; j < lines.Length && !Bare(lines[j]).StartsWith('#'); j++)
+                    if (Bare(lines[j]).StartsWith(numbered, StringComparison.Ordinal)
+                        && SpecClauseText.Norm(lines[j]).Contains(SpecClauseText.Norm(rule.RuleText)))
+                        found = true;
+            }
+            Assert.True(found, $"§1985:{rule.Clause} has no numbered syntax rule {rule.Ordinal} containing \"{rule.RuleText}\".");
+            Assert.DoesNotContain(SpecClauseText.Norm(rule.RuleText), text2023);
+        }
+        Assert.All(RecordClauseRules.Catalog.Where(r => r.Of1985 is null), r => Assert.True(r.Since > 85,
+            $"{r.RuleId} is in force at COBOL-85 but names no 1985 rule — its refusal would cite the 2023 clause."));
     }
 
     /// <summary>⛔ SR6 STATES THREE OBLIGATIONS — ELEMENTARY, UNSIGNED INTEGER, AND THE SECTION — and the table has a

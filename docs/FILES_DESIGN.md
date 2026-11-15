@@ -1284,7 +1284,7 @@ file KINDS it is screened over (`FileKinds` — one flag per §2023:12.4.5.10.3 
 CLAUSE it is stated about (`FileKeyRole`, whose `Entry` member is the rule stated about the entry itself), three
 predicates (precondition · violation · message) and an optional diagnostic code. `FileControlBinder.ResolveFiles` calls `Screen(file, Edition)` once per declared
 file, after the keys resolve. A rule COBOL-85 states differently is a row of the companion `Rules1985` catalog, screened only
-below COBOL-2002 (§1985:IX.2.7.3 SR3 and §1985:IX.2.5.3 SR3, a key naming a group that holds an OCCURS DEPENDING ON table, kb/Work PB5445); COBOL-2002's wider "variable-length data item" (§2002:13.16.36.3 GR8) is the `Rules2002` catalog, screened at 2002 alone. One-report-per-file is then a consequence of *where* the screen runs, not a set it
+below COBOL-2002 (§1985:IX.2.7.3 SR3 and §1985:IX.2.5.3 SR3, a key naming a group that holds an OCCURS DEPENDING ON table, kb/Work PB5445); A 1985 row that is the SAME obligation as a 2023 row under the 1985 numbering and wording (the SR2 category and location rows of both key clauses, §1985:IX.2.7.3 SR2 and §1985:IX.2.5.3 SR2) names it in `Supersedes`, and `Rules85` drops the superseded 2023 row, so a refusal at `--std 85` cites the rule its edition prints (kb/Work PB5361). COBOL-2002's wider "variable-length data item" (§2002:13.16.36.3 GR8) is the `Rules2002` catalog, screened at 2002 alone. One-report-per-file is then a consequence of *where* the screen runs, not a set it
 has to carry, and the diagnostic is positioned at the offending CLAUSE (`FileModel.RecordKeyAt` /
 `AlternateKeyClause.At` / `RelativeKeyAt`) or, for an absent clause, at the entry (`FileModel.EntryAt`).
 An absent clause is modelled as an operand with a null name, so a rule that requires a clause BECAUSE OF something
@@ -1947,6 +1947,16 @@ settled while the file description entry is being read. SR5 and SR9 are decidabl
 travel with their formats' other rules in one table rather than being split across two sites for the sake of a
 few nanoseconds. The clause's source position is captured at bind time on `FileModel.RecordClauseAt` — the
 `RecordKeyAt` pattern — so a post-build report still points at the clause.
+
+**The citation is the edition's own (kb/Work PB5361).** A `RecordClauseRule` row carries `Of1985`, the same obligation under
+§1985:VII.3.8.3's numbering (`Rule1985`, the one type that chooses between a 1985 designation and a 2023 one, also used by
+`FileControlBinder`'s LINAGE operand rules, §1985:VII.3.7.3 SR1/SR3), and its `Message` is the body alone: `Render` appends the
+citation `CitationAt(edition)` names, the 1985 rule below COBOL-2002 and the 2023 one above. A row 1985 does not print
+(`Since` above 85) has no `Of1985`, and `RecordClauseRuleDriftTests` re-derives every designation from `specs/ANSI_COBOL_1985.md`
+and refuses a row in force at 85 with none. A sum counter named by one of these clauses at COBOL-85 is the clause's data-name
+(§1985:XIII.3.9.3 SR10d), reaches the clause's own rules through `ReportSectionBinder.ReportItemOperandRefused` (the one ask the
+clause arms make, in place of the 2023 section rule §2023:13.8.6.2.3), and is refused under the 1985 rule it breaks;
+`ReportItemOperandDriftTests` pins the callers of the raw refusal.
 
 **The quantities are the standard's own, each is written down once, and every one is in BYTES.** GR3 sizes a
 record by *"the number of bytes required to store the logical record, regardless of the types of characters
