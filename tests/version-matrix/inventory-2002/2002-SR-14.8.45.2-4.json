@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.8.45.2-4",
+ "rule-digest": "a3844145acff",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.49.3-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('nondeclarative procedure' and procedure-names in a declarative section) names the same units in 2002; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Read §2002:14.5.12.1.2, 14.5.12.1.3 and 14.5.12.2 (fatal and non-fatal processing, incompatible data); the 2023 text adds the PERFORM WHEN arm, the SORT/MERGE and I-O status arms and APPLY COMMIT, none writable in 2002. The rule limits references into a declarative section to PERFORM; it does not rest on exception processing. No dependence; evidence unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "SR-14.9.49.3-4": "a3844145acff"
+  }
+ }
+}

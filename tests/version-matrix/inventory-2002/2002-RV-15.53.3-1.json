@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-RV-15.53.3-1",
+ "rule-digest": "a210acd92b14",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.66.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "national coded character set",
+    "answer": "Same words in §2002:4 (entry 4.128) and §2023:3.125; RV1 converts to 'its corresponding national coded character set representation', the same target set in both editions, and the correspondence is implementor-defined in both."
+   },
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)",
+    "answer": "RV1 converts 'each alphanumeric character' (a code value of the alphanumeric coded character set, §2002:4 (entries 4.26, 4.29)). 2023 leaves 'character' undefined but means the same unit; the implementor-defined correspondence is per character in both, so the returned value the rule governs is unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.6.4 (changed), §2002:14.6.6 (changed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "NATIONAL-OF is a national function: it performs no arithmetic and has no size error, so 8.8.1.x (§2002:8.8.1.1 governs arithmetic expressions), 14.6.4 and 14.6.6 do not reach it. §2002:15.1 (item 3) states national functions are 'represented in the national coded character set in effect when the function is referenced at runtime', the same as 2023 15.1 (2002 adds only that the definition gives the length, which RV4 does); RV1 rests on nothing that differs."
+   }
+  },
+  "source": "lineage-reads-2002/q-41.json",
+  "digests": {
+   "RV-15.66.4-1": "a210acd92b14"
+  }
+ }
+}

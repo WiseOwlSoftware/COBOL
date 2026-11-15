@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-10.6.2-5",
+ "rule-digest": "c177e4c1344a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-10.7.3-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "property",
+    "answer": "§2002:4 (4.140) 'A name that may be used to qualify an object reference to get a value from or pass a value to an object' vs §2023:3.137 'can be used': editorial, the same object properties; the rule turns on the PROPERTY phrase of METHOD-ID, identical in both; no change."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "Read §2002:9.3.5 (binding by name, no resolution signature), 14.6.4 and 14.6.6 (size error, arithmetic). END METHOD method-name-1 must match the METHOD-ID name and is omitted for a PROPERTY method; it matched on 'method' and 'corresponding METHOD-ID' and rests on neither binding nor arithmetic. No change; pb988 cases at 2002 stand."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "SR-10.7.3-5": "c177e4c1344a"
+  }
+ }
+}

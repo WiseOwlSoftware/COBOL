@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-26",
+ "rule-digest": "e6b9188d7136",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.63.3-35"
+  ],
+  "bridge": true,
+  "answers": {
+   "held": {
+    "flag": "S1 (adopt-2002): its witness was refused at 2002 for a report VALUE operand list, which the rule names",
+    "answer": "The S1 refusal is gone at the pinned compiler: re-run now at --std 2002, pb506_report_operand_lists_2002 (a report VALUE operand list over COLUMNS) PASS against its .out, pb565_report_vertical_repetition PASS, and pb506-report-value-not-repeating / -operand-count refuse COBOL2012 as the rule requires (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt). The hold is answered by evidence at 2002."
+   },
+   "communication-reach": {
+    "flag": "clause 13.16.61 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "SR26 is a FORMAT 4 (report-section) rule on a multi-operand VALUE (§2002:13.16.61.2 SR26); a CD record's VALUE is format 1 with one literal. No CD reach."
+   }
+  },
+  "source": "lineage-reads-2002/q-22.json",
+  "digests": {
+   "SR-13.18.63.3-35": "e6b9188d7136"
+  }
+ }
+}

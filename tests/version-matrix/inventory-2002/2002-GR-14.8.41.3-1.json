@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.41.3-1",
+ "rule-digest": "48146abb243f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.45.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule speaks of a declarative (USE) procedure, which is a declarative section in both editions; §2002:4 (entry 4.150) already covers one section ('one or more successive ... sections'), and §2023:3.145 only spells out the single paragraph/section case. Same units, scope unchanged. 'the USE procedure' is the USE BEFORE REPORTING declarative section."
+   },
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 (entry 4.163) defines report as the printed output described in the report section; 2023 drops the entry and the term rests on the RD entry and REPORT clause (§2023:13.18.46.1). In both editions a report is exactly what one RD describes, so the rule governs the same report groups and RDs."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "GR-14.9.45.4-1": "48146abb243f"
+  }
+ }
+}

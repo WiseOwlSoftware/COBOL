@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-12.2.5.3-10",
+ "rule-digest": "f2982f8000fe",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "source unit",
+    "answer": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. The containment test for PROGRAM COLLATING SEQUENCE is the same. The scope and the evidence do not change."
+   },
+   "definition-dropped": {
+    "flag": "initial program (newer: D.6.4.3)",
+    "answer": "The screen matched 'initial program' inside 'the initial program collating sequences' (§2002:12.2.5.3 GR10). There 'initial' qualifies the program collating sequences. It is not the term defined in §2002:4 (4.106 'A program that is placed into the initial state every time the program is called'), so that definition has no bearing on the rule."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "GR-12.3.6.4-10": "f2982f8000fe"
+  }
+ }
+}

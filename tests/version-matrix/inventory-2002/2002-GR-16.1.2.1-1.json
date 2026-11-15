@@ -1,0 +1,34 @@
+{
+ "rule-id": "2002-GR-16.1.2.1-1",
+ "rule-digest": "d12c76170660",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-16.2.2.2-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "normalized": {
+    "flag": "normalized",
+    "answer": "Exact words compared: the normative sentence is identical; the differences are curly vs straight quotes around \"someFactoryMethodName\"/\"FactoryObject\" and a transcription backslash after aFactoryObject, all inside the NOTE. No change in requirement; GR-16.2.2.2-1 is the right pointer."
+   },
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "The rule's 'class of the object' is the object-orientation sense (§2002:4 4.33 = §2023:3.32), not class of a data item. Scope unchanged."
+   },
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "2002 4.121 method matches 2023 9.3.4 (procedural entity of a class); FactoryObject is the same BASE instance method in both. No change."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "§2002:9.3.5 binds by method-name alone; 2023 9.3.6 requires 'an exact match between the method invocation and the method resolution signature' (overloading). FactoryObject takes no parameters and returns one object reference, so name binding and exact-match binding pick the same method; pb1548_standard_class_base matches its golden at --std 2002. No change."
+   }
+  },
+  "source": "lineage-reads-2002/q-44.json",
+  "digests": {
+   "GR-16.2.2.2-1": "d5a82ce87551"
+  }
+ }
+}

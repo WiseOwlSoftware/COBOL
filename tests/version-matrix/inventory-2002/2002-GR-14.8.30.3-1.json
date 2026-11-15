@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.30.3-1",
+ "rule-digest": "857e8aecf30e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.32.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule's input/output procedure is the procedure-name-1 [THRU procedure-name-2] range of SORT/MERGE in both editions; §2002:4 (entry 4.150) ('one or more successive paragraphs or sections') names the same range that §2023:3.145 does. Scope unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Read §2002:14.5.12.1.1 through §2002:14.5.12.2 against §2023:14.6.13.1.1 through §2023:14.6.13.2. The 2002 differences are: no MERGE/SORT, fatal-EC-I-O or PERFORM WHEN steps in fatal processing (§2023:14.6.13.1.3 (items 2-4) are 2023-only), the 2002 non-fatal wording, and the incompatible-data text. EC-FLOW-RELEASE is Fatal in the 2002 table. The RELEASE executed outside a SORT is not itself a MERGE or SORT statement, so 2023's item 2 does not reach it, and 2002 item 2 (declarative; RESUME continues) governs as in 2023. The witness pb349_sort_merge_flow_ec (accept [2002]) raises it from the main line with no SORT active and MATCHes at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-30.json",
+  "digests": {
+   "GR-14.9.32.4-1": "857e8aecf30e"
+  }
+ }
+}

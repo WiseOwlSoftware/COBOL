@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-13.16.35.3-2",
+ "rule-digest": "dc95a53e8508",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.37.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2); type | for type declaration (newer: 8.5.3)",
+    "answer": "Read §2002:4 'report': 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and identifies a report by its RD and the REPORT clause (§2023:13.18.46.1). Same entity in both, so the rule governs the same report description entries and report groups in 2002; scope and evidence unchanged. The rule's 'type' is 'the type of report group' (the report-group TYPE clause, §2002:13.16.55 format 2), not the type that §2002:4 defines for a type declaration ('A template that contains all the characteristics of a data item and its subordinates', the same words as §2023:8.5.3.1); the dropped definition cannot change which programs the rule governs."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+    "answer": "Invoked only by the word 'type'. §2002:8.5.3 (TYPEDEF types), §2002:8.5.4 (zero-length items) and §2002:14.5.8 (alignment of data in a receiving item) do not bear on NEXT GROUP or LINE-COUNTER; the rule does not rest on their 2002 text, and the evidence already shown at --std 2002 stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-16.json",
+  "digests": {
+   "GR-13.18.37.4-2": "dc95a53e8508"
+  }
+ }
+}

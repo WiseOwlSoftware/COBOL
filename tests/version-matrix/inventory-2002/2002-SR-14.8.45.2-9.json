@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.8.45.2-9",
+ "rule-digest": "de200ff25211",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.49.3-9"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule uses 'procedure division' (the division), never the defined term 'procedure'; §2002:4 (entry 4.150) 'One or more successive paragraphs or sections in the procedure division' vs §2023:3.145 does not touch what the division is. Scope and evidence unchanged."
+   },
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 (entry 4.163) defines report as the printed output described in the report section; 2023 drops the entry and the term rests on the RD entry and REPORT clause (§2023:13.18.46.1). In both editions a report is exactly what one RD describes, so the rule governs the same report groups and RDs. Identifier-1 must reference a report group of such an RD in both editions."
+   }
+  },
+  "source": "lineage-reads-2002/q-34.json",
+  "digests": {
+   "SR-14.9.49.3-9": "de200ff25211"
+  }
+ }
+}

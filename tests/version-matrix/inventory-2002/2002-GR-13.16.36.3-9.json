@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-9",
+ "rule-digest": "d5e58f031103",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.38.4-9"
+  ],
+  "bridge": true,
+  "answers": {
+   "communication-reach": {
+    "flag": "clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "A CD record can hold a format 2 OCCURS (probe cdodo.cob at 2002: accepted, LENGTH 5 with N=3), but GR9 applies only when 'the associated file description or sort-merge description entry contains the VARYING phrase of the RECORD clause' (§2002:13.16.36.3 GR9); a CD entry has no RECORD clause, so the rule never applies to a CD record. Scope unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/p-03.json",
+  "digests": {
+   "GR-13.18.38.4-9": "d5e58f031103"
+  }
+ }
+}

@@ -1,0 +1,34 @@
+{
+ "rule-id": "2002-GR-11.6.3-1",
+ "rule-digest": "2965d0d14286",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-11.7.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 10027 has the same rule split by '## Page 240': page break only. Re-read §2002:11.6.3 GR1: unchanged."
+   },
+   "definition-changed": {
+    "flag": "property",
+    "answer": "§2002:4 (4.140) object property: 'A name that may be used to qualify an object reference to get a value from or pass a value to an object'; 2023 says 'can be used'. Same concept; a) still covers GET/SET PROPERTY methods, shown by oo_property_methods at 2002."
+   },
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 (4.121) method: 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes methods in 9.3.4 instead. Same entity; GR1 names the method a method definition declares in both."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "Read §2002:9.3.5: 2002 binds by method-name alone ('if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound'); 2023 9.3.6 adds signature matching (overloading). GR1 fixes the name; with one method per name the two resolutions bind the same method, so the witness as_name.cob (INVOKE by the externalized literal at 2002) shows the 2002 behaviour. Overload resolution is not part of GR1."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "GR-11.7.4-1": "2965d0d14286"
+  }
+ }
+}

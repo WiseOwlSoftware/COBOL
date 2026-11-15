@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.24.2-9",
+ "rule-digest": "3a0f6596d08c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.25.3-11"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "The flag fires on 'CORRESPONDING'. MOVE is not an arithmetic statement (§2002:14.6.6 lists ADD, COMPUTE, DIVIDE, MULTIPLY, SUBTRACT) and has no size error (§2002:14.6.4), so neither changed clause reaches it; the rule is a keyword equivalence and the pairing is §2002:14.6.5. Scope and the l1_move_corr_equivalence evidence at 2002 are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-28.json",
+  "digests": {
+   "SR-14.9.25.3-11": "3a0f6596d08c"
+  }
+ }
+}

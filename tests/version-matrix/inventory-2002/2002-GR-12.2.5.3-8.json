@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-12.2.5.3-8",
+ "rule-digest": "b748453c303e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. Character classification classifies code values of the alphanumeric and national coded character sets (4.26/4.29), the 2023 alphanumeric/national characters; no change of scope."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "§2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination) are flagged by the word 'initial state' in GR8. GR8 rests only on WHEN a runtime module enters its initial state, and §2002:14.5.2.1.2.1 gives the same three activation events word for word as §2023:14.6.2.3.2 (2023 only adds INITIALIZE-clause fill and dynamic tables, 2002 only the communication section initialization, neither touching classification); 14.5.3 and 14.5.10 are not used. Scope unchanged; the reader's cc_locale/pb111 runs at 2002 stand."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "GR-12.3.6.4-8": "b748453c303e"
+  }
+ }
+}

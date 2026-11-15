@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-RV-15.13.3-2",
+ "rule-digest": "0d528dce6a2b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.15.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "invocation",
+    "answer": "§2002:4 (4.123) defines invocation as method invocation, as 2023 3.121 does; RV2's 'every invocation of the CHAR function' uses the word for a function reference in both editions, so neither definition decides it."
+   },
+   "definition-dropped": {
+    "flag": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 (4.26-4.31) define character and character position in storage senses; RV2 means a member of the program collating sequence and its ordinal position, which neither edition's definitions change (2023 still defines character position, 3.30)."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "§2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.6 (standard arithmetic, its intermediate item, exponentiation) govern evaluation of arithmetic; this rule evaluates nothing, so PB5575's 32/31-digit difference cannot change its observable result. §2002:15.1 differs from 2023 15.2 only in the length sentence and the type-determines-use sentence; the representation sentence (coded character set in effect at runtime) is the same, and RV2's choice among characters sharing a position does not rest on either."
+   }
+  },
+  "source": "lineage-reads-2002/q-37.json",
+  "digests": {
+   "RV-15.15.4-2": "0d528dce6a2b"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.34.3-8",
+ "rule-digest": "6ad429e2b247",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.37.4-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "index",
+    "answer": "§2002:4 (4.102) index 'A storage area or a register, the content of which refers to a particular element in a table' vs 2023 3.102 'conceptual data item': a change of model, not of which index-names are associated with identifier-1 (the INDEXED phrase, same in both); no change."
+   }
+  },
+  "source": "lineage-reads-2002/q-31.json",
+  "digests": {
+   "GR-14.9.37.4-8": "6ad429e2b247"
+  }
+ }
+}

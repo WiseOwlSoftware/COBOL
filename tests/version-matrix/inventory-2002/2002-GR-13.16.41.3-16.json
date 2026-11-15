@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-13.16.41.3-16",
+ "rule-digest": "49f6bbfd2769",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.43.4-16"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "zero-length item",
+    "answer": "§2002:4 (4.188) 'An item whose minimum permitted length is zero and whose length at execution time is zero' and §2023:3.177 'element of data whose minimum permitted length is zero and whose length at runtime is zero' are the same. §2002:8.5.4 item 4 lists this case explicitly (a variable-length logical record of zero characters). The scope does not change."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+    "answer": "8.5.4 (2002) is the list that contains exactly this record (item 4), so the rule's term is defined in 2002 as GR16 uses it; the 2023 additions to that list are other kinds of item. 8.5.3 (types) names nothing GR16 uses. The witnessed space fill comes from the implicit MOVE, §2002:14.8.24.3 GR1 ('If identifier-1 is a zero-length item, it is as if literal-1 were specified as the figurative constant SPACE'), and §2002:14.5.8 rule 5 (space fill to the right). That is the behaviour shown by pb721_zero_length_record_2002 and the four-edition Theory, so the evidence holds at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-18.json",
+  "digests": {
+   "GR-13.18.43.4-16": "49f6bbfd2769"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-13.16.3.2-5",
+ "rule-digest": "f786b6dbefb5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.3.3-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The 'last character' of a screen input field is the screen-item sense (4.27, graphic character), which §2023:3.93 keeps as graphic character; the screen section is declined at both editions."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "§2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination) are flagged by the word 'termination': GR5 speaks of normal termination of the ACCEPT screen statement (§2002:13.16.3.2 GR5), not run unit termination or a transfer of control, so it rests on none of the three clauses; the screen section is declined at 2002 in any case."
+   }
+  },
+  "source": "lineage-reads-2002/q-11.json",
+  "digests": {
+   "GR-13.18.3.3-5": "f786b6dbefb5"
+  }
+ }
+}

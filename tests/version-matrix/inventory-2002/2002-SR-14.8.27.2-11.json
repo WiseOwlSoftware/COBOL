@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.27.2-11",
+ "rule-digest": "c8805f26442b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.28.3-12"
+  ],
+  "bridge": true,
+  "answers": {
+   "band-formats": {
+    "flag": "band-formats None against [[1]]",
+    "answer": "2002 SR11 sits in the unbanded list but names procedure-name-1, which exists only in the out-of-line format (§2002:14.8.27.1 Format 1), the 2023 format 1 that SR-14.9.28.3-12 is banded to. Same reach."
+   }
+  },
+  "source": "lineage-reads-2002/p-15.json",
+  "digests": {
+   "SR-14.9.28.3-12": "c8805f26442b"
+  }
+ }
+}

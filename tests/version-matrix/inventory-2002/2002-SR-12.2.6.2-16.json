@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-16",
+ "rule-digest": "db2d00ce3d9d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-16"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); national character (newer: undefined); native alphanumeric character set (newer: undefined)",
+    "answer": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. SR16's ordinals count positions in a character set in that sense. 'national character' (§2002:4: \"A character in a national character set\") is the same notion 2023 uses with its kept 'national character set' entry (§2023:3.125); this compiler's national set is UTF-16 in both editions. 'native alphanumeric character set' (§2002:4: \"The computer's alphanumeric coded character set\") is 2023's native character set (3.128) restricted to alphanumeric; for this compiler both are UTF-16, so e2)'s 'native alphanumeric ordinal exists' governs the same ordinals; covered at --std 2002 by pb1557/pb1091."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "Not dependent: SR16 is a compile-time rule on SYMBOLIC CHARACTERS ordinals; it involves no SIZE ERROR phrase or arithmetic statement (§2002:14.6.4, 14.6.6), and the integer-1 ordinal is a literal, not an arithmetic result."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "SR-12.3.7.3-16": "db2d00ce3d9d"
+  }
+ }
+}

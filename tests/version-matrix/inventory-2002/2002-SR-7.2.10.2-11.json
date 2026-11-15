@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-7.2.10.2-11",
+ "rule-digest": "a66007fa20f8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-7.3.13.3-11"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "boolean expression",
+    "answer": "§2002:4 (4.22) 'One or more boolean operands separated by boolean operators' and §2023:3.23 say the same; 2023's boolean operators also include the shift operators (§2023:8.8.2), a widening only. At 2002 a boolean operand of >>EVALUATE is formed by §2002:7.2.6.1 SR1 of boolean literals and is category boolean by SR11 itself, so the programs the rule governs are unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
+    "answer": "The rule assigns categories; §2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.6 (arithmetic) change how an arithmetic expression is evaluated, not its category; §2002:8.8.2 (read: 2023's text less shifts) changes no category; §2002:8.8.4.1.1 and 8.8.4.2.4 (relation and abbreviated combined conditions) are format-2 matters, not this format-1 rule. No dependency."
+   },
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). The category of an operand is fixed by its form (§2002:7.2.10.2 SR11: an arithmetic expression is numeric, a boolean expression boolean), not by the mode that evaluates it, so the switch cannot change which programs the rule refuses. Re-run now at --std 2002: n_sr11_numalnum, n_sr11_boolnum, n_sr11_alnat refused (COBOL1619); eval_basic.cob prints BOOLEXPR-OK (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-evalbasic-2002.log)."
+   }
+  },
+  "source": "lineage-reads-2002/q-02.json",
+  "digests": {
+   "SR-7.3.13.3-11": "a66007fa20f8"
+  }
+ }
+}

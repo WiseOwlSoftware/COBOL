@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.41.3-13",
+ "rule-digest": "c5df70fcbc31",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.43.4-13"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "variable-occurrence data item (newer: undefined)",
+    "answer": "§2002:4 defines variable-occurrence data item as 'A table element that is repeated a variable number of times'; 2023 no longer defines it but uses it in the same words. In 2002 only an OCCURS DEPENDING table is such an item (2023's dynamic-capacity tables are a widening, already noted), so the rule reaches the same 2002 data; arm c) is shown at --std 2002 by rec.cob (3 and 6 byte records)."
+   }
+  },
+  "source": "lineage-reads-2002/q-18.json",
+  "digests": {
+   "GR-13.18.43.4-13": "c5df70fcbc31"
+  }
+ }
+}

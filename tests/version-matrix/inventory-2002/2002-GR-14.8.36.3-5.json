@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-5",
+ "rule-digest": "482464f5c7c8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 23984 has the same rule split by '## Page 612': page break only. Re-read §2002:14.8.36.3 GR5: unchanged."
+   },
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; 2023 3.33 says 'the specific clauses' with the same note. GR5 governs keys of class alphabetic, alphanumeric and national, and those classes are formed the same way in 2002, so the governed keys do not change."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
+    "answer": "GR5 fixes only which collating sequence applies; the comparison itself is §2002:8.8.4.1.1.6/8.8.4.1.1.8 (standard or locale-based on the program collating sequence), the same in substance as 2023. Numeric keys and boolean expressions are not touched by GR5, so the 2002 arithmetic differences do not reach it."
+   }
+  },
+  "source": "lineage-reads-2002/q-32.json",
+  "digests": {
+   "GR-14.9.40.4-5": "482464f5c7c8"
+  }
+ }
+}

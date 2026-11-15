@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-12.2.5.3-12",
+ "rule-digest": "d81749d55b46",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-12"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "The rule matches on 'initial state'. §2002:14.5.2.1.2.1 says the program collating sequences are determined before data is placed in the initial state, word for word as §2023:14.6.2.3.2, and its three activation occasions are the same; what differs (2002 initializes the communication section, 2023 adds the INITIALIZE clause and dynamic tables) is about data, not collating-sequence timing. 'Terminat'/transfer-of-control text (§2002:14.5.10, 14.5.3) is not named by the rule; 14.5.10 item 5 (locale reset at termination implementor-defined) does not touch when LC_COLLATE is read during execution. Scope and the pb64t1_locale_declare evidence at 2002 are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "GR-12.3.6.4-12": "d81749d55b46"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-12.2.6.3-6",
+ "rule-digest": "0caaa152f1b7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "alphanumeric coded character set; national coded character set",
+    "answer": "§2002:4 gives both definitions ('...usage display and alphanumeric literals'; '...data items described as usage national and for national literals') in the same words as §2023:3.10 and 3.125. The obligation, 'associating each character with an ordinal position within the character set', has the same object in both editions, and the twin goldens pass at --std 2002."
+   },
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined); native national coded character set (newer: undefined)",
+    "answer": "§2002:4 defines the four senses of character (for example 'A code value that constitutes the coded representation of a letter') and coded character set ('A set of unambiguous rules that establishes a character set', after ISO/IEC 10646-1); 2023 uses the same notions without defining them. §2002:4 defines native national coded character set as 'The computer's national coded character set', which is what 2023's undefined use means. The ordinal-position obligation therefore covers the same two sets, and the dropped definitions do not change its scope."
+   }
+  },
+  "source": "lineage-reads-2002/q-08.json",
+  "digests": {
+   "GR-12.3.7.4-6": "0caaa152f1b7"
+  }
+ }
+}

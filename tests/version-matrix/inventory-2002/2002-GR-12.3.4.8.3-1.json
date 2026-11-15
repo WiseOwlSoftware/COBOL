@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-12.3.4.8.3-1",
+ "rule-digest": "2eb2e733b8fd",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.9.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "type | for type declaration (newer: 8.5.3)",
+    "answer": "The rule's 'type' is 'the type of record locking' (a kind of locking), not the type that §2002:4 defines for a type declaration ('A template that contains all the characteristics of a data item and its subordinates', the same words as §2023:8.5.3.1); the dropped definition cannot change which programs the rule governs."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+    "answer": "Invoked only by the word 'type'. §2002:8.5.3 (TYPEDEF types), §2002:8.5.4 (zero-length items) and §2002:14.5.8 (alignment of data in a receiving item) do not bear on record locking or the SHARING clause; the rule does not rest on their 2002 text, and the evidence already shown at --std 2002 stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-08.json",
+  "digests": {
+   "GR-12.4.5.9.4-1": "2eb2e733b8fd"
+  }
+ }
+}

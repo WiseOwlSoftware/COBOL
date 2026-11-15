@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-RV-15.54.3-3",
+ "rule-digest": "52cfff92b3e2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.67.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "Read §2002:8.8.1.1 (evaluation order and the exponentiation exceptions, mode-independent), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 (32-digit standard intermediate) and §2002:8.8.1.3.1.3 (rounding to 31 digits on compare, on a function argument with no equivalent expression, on a store without ROUNDED), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (the same six function types; 2002 15.1 says the definition gives an alphanumeric/national function's character positions). The sign rule (CR, DB, minus) does not depend on precision or on the 15.1 wording. Under ARITHMETIC IS STANDARD at --std 2002 NUMVAL(' 12.5 CR') and NUMVAL('12.5-') are both -12.5 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/stdfn23.cob (output stdfn23.2002.txt))."
+   }
+  },
+  "source": "lineage-reads-2002/q-41.json",
+  "digests": {
+   "RV-15.67.4-2": "52cfff92b3e2"
+  }
+ }
+}

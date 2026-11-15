@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.14.3-1",
+ "rule-digest": "8bc1c4007618",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.15.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "null (newer: 8.4.3.7.1)",
+    "answer": "§2002:4 defines null for a pointer and an object reference; GR1 b) uses the pointer sense, 'the predefined address NULL', which §2002:8.4.2.10.3 GR1 defines for a data-pointer exactly as 2023 does. The governed operands (data-pointers) are unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Arm c) does rest on §2002:14.5.12.1.3: EC-STORAGE-NOT-ALLOC is NF (§2002:14.5.12.1.5), so unchecked 'processing proceeds as indicated for the statement' and checked runs the USE declarative and then continues; 14.5.12.1.2 (fatal) and 14.5.12.2 do not reach it. Both paths shown at --std 2002: l1c10 (TURN ON) re-run MATCH, and probe free-unchecked.cob prints R=SAME P=NULL END, as 2002 requires."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "GR-14.9.15.4-1": "8bc1c4007618"
+  }
+ }
+}

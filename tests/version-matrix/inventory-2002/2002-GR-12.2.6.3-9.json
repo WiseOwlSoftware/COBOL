@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-12.2.6.3-9",
+ "rule-digest": "eb1c566f75ff",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-9"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. In GR9, 'character' is a member of the program collating sequence (4.26/4.29). The term picks out the same characters in both, so the scope and the evidence do not change."
+   }
+  },
+  "source": "lineage-reads-2002/p-01.json",
+  "digests": {
+   "GR-12.3.7.4-9": "eb1c566f75ff"
+  }
+ }
+}

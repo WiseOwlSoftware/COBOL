@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.31.2-6",
+ "rule-digest": "761aed7e40ae",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.33.3-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "communication-reach": {
+    "flag": "clause 13.16.31 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "SR6 governs screen description entries only (§2002:13.16.31.2 SR6); the CD's record entries are data description entries whose level numbers SR2 governs. No CD reach; the screen section is declined at --std 2002 (a42-screen-occurs re-run now: COBOL1560, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt)."
+   }
+  },
+  "source": "lineage-reads-2002/q-15.json",
+  "digests": {
+   "SR-13.18.33.3-6": "761aed7e40ae"
+  }
+ }
+}

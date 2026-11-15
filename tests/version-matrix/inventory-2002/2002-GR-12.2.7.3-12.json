@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-12.2.7.3-12",
+ "rule-digest": "1b6daa12bd84",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.8.4-12"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "§2002:15 and 15.1 differ from 2023 only in wording that 2023 moved (the per-function size sentences become the type sentence of §2023:15.2) and in 2023 additions (file-name and variable-length-group arguments, renumbering). The rule decides whether a name resolves to a user-defined function or an intrinsic one; it does not rest on what a type or argument kind is. Scope and the p09-udf-shadow / p09-no-repo evidence at 2002 are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-08.json",
+  "digests": {
+   "GR-12.3.8.4-12": "1b6daa12bd84"
+  }
+ }
+}

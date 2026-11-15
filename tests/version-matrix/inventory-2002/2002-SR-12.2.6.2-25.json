@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-25",
+ "rule-digest": "26725017ac62",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-29"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "alphanumeric group item",
+    "answer": "§2002:4 (4.11) 'Any group item except for' a strongly-typed, bit or national group item; §2023:3.11 also excludes a variable-length group item, which 2002 does not have. The set of 2002 groups that qualify is the same; and the CURSOR clause is declined at 2002 (COBOL1560) whatever data-name-1's description."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "SR-12.3.7.3-29": "26725017ac62"
+  }
+ }
+}

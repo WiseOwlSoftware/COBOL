@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-11.7.3-1",
+ "rule-digest": "136fbf638ec1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-11.8.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item; interface | of an object",
+    "answer": "The rule's 'class' is the object-orientation class (§2002:4: 'The entity that defines common behavior and implementation for zero, one, or more objects'), not the class of a data item, so that definition does not apply. Interface of an object (§2002:4) differs from 2023 only in 'may' against 'can'. Neither changes what the rule governs."
+   },
+   "cross-reference": {
+    "flag": "9.3.11",
+    "answer": "I read §2002:9.3.11. A word diff with §2023:9.3.11 is empty apart from the heading level ('The implementing class shall implement all the method specifications'), so the scope is unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "GR-11.8.4-1": "136fbf638ec1"
+  }
+ }
+}

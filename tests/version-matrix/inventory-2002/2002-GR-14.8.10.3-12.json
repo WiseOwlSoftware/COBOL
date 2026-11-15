@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-14.8.10.3-12",
+ "rule-digest": "ca4c0586e9f1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.11.4-13"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 20203 has the same rule split by '## Page 513': page break only. Re-read §2002:14.8.10.3 GR12 (FORMAT 2, screen): unchanged."
+   },
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 defines character in four senses (4.26-4.29); the rule's 'character positions' of overlapping screen items is the screen-item sense. The difference in definitions cannot change scope: the whole DISPLAY screen format is processor-dependent (§2002:B.3) and declined at --std 2002 (COBOL1707/COBOL1560)."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Read §2002:14.5.12.1.3: EC-SCREEN-FIELD-OVERLAP is NF in the 2002 table, and non-fatal handling ignores it when checking is off and runs a declarative otherwise, as in 2023 (2023 adds only the PERFORM WHEN path). None of it is reached at 2002 because the statement is refused at compile time under the §2002:3.1.5 licence; scope unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-25.json",
+  "digests": {
+   "GR-14.9.11.4-13": "ca4c0586e9f1"
+  }
+ }
+}

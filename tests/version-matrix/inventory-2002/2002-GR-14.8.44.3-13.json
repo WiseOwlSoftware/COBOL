@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-13",
+ "rule-digest": "692699d986a3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.48.4-13"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. 'Characters examined' are code values in identifier-1's storage (4.29), counted per character position as in 2023; no change of scope."
+   }
+  },
+  "source": "lineage-reads-2002/p-06.json",
+  "digests": {
+   "GR-14.9.48.4-13": "692699d986a3"
+  }
+ }
+}

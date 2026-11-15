@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.40.2-5",
+ "rule-digest": "3a0f6596d08c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.44.3-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "SUBTRACT CORRESPONDING is an arithmetic statement (§2002:14.6.6) with size error (§2002:14.6.4), both changed in 2023. The rule only makes CORR and CORRESPONDING equivalent; 2002 arithmetic and size-error processing apply identically to both spellings, so neither difference changes what the rule governs. The 2002 witness l1_subtract_corr_word_equivalence compares the spellings and holds in any arithmetic mode; scope and evidence unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "SR-14.9.44.3-5": "3a0f6596d08c"
+  }
+ }
+}

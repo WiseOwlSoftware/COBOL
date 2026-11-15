@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-7.2.2-9",
+ "rule-digest": "2e732b6fc777",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-7.3.3-9"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 3039 differs only in the NOTE ('may optionally' for 2002's 'can optionally'), which states no requirement. Re-read against §2002:7.2.2 SR9: IMP reserved, its syntax implementor-defined if defined; unchanged."
+   },
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch (DialectBehavior CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs) selects the arithmetic mode for compile-time arithmetic expressions in directives and constant entries; §2002:7.2.2 SR9 involves no expression, so the switch cannot reach it. Its behaviour at --std 2002 is shown: d_imp.cob re-run now at 2002 refuses >>IMP (rc 65, COBOL0001), and pb1366 shows IMP reserved (COBOL2650) at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-01.json",
+  "digests": {
+   "SR-7.3.3-9": "2e732b6fc777"
+  }
+ }
+}

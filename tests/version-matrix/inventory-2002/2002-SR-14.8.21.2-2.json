@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.8.21.2-2",
+ "rule-digest": "dbf4bda6c6db",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.22.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "normalized": {
+    "flag": "normalized",
+    "answer": "Exact 2002 words 'Identifier-3, ... , identifier-n' against 2023's 'Identifier-3, … , identifier-n': only the ellipsis character differs, the requirement 'shall reference an elementary item described implicitly or explicitly as usage display or national' (§2002:14.8.21.2 SR2) is the same, and SR-14.9.22.3-2 is the right pointer."
+   },
+   "behaviour-switch": {
+    "flag": "inspect-before-from-first-eligible-position",
+    "answer": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). This syntax rule is decided at compile time and the switch changes only the run-time region (InspectBinder.BindPhrases into BoundInspect.BeforeFromLeftmost); it refuses nothing at any edition (VERSION_CHANGE_REFERENCE row 7.65), so the rule's 2002 behaviour is the evidence-2002 the read names, unchanged by the switch."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "SR-14.9.22.3-2": "3413f99d53fd"
+  }
+ }
+}

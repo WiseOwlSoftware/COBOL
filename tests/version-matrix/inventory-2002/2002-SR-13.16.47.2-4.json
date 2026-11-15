@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-13.16.47.2-4",
+ "rule-digest": "7df608c4cd20",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.49.3-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "type | for type declaration (newer: 8.5.3)",
+    "answer": "Here the TYPE clause is format 1, a reference to a type declaration, so the term applies. §2002:4 type (for type declaration) 'A template that contains all the characteristics of a data item and its subordinates' is word for word §2023:8.5.3.1's first sentence; the meaning of 'a TYPE clause that references the record' is the same, so the scope is unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+    "answer": "§2002:8.5.3 ('A type is referenced in a data description entry by specifying the TYPE clause') is what SR4 rests on, and it is the 2023 text; 2023 adds only equivalence details (EXTERNAL/STRONG presence, bit positions) that do not bear on a TYPE naming its enclosing record. §2002:8.5.4 and §2002:14.5.8 are not involved. The witness l1c27-same-as-type-of-enclosing-record is refused (COBOL1557) at --std 2002, so evidence stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-18.json",
+  "digests": {
+   "SR-13.18.49.3-4": "7df608c4cd20"
+  }
+ }
+}

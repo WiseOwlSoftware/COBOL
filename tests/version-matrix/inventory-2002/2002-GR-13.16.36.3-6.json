@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-6",
+ "rule-digest": "8fab31d1c5a9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.38.4-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 15002 has the same rule with a '## Page 374' marker before d): page break only. Re-read §2002:13.16.36.3 GR6 (FORMAT 1): it governs only a screen item's occurrences; unchanged."
+   },
+   "communication-reach": {
+    "flag": "clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "No reach: GR6 applies only 'If the description of a screen item includes the OCCURS clause'; a CD record entry is a data description entry, never a screen description entry, so a format 1 OCCURS under a CD is outside this rule (it is governed by the other format 1 rules). Scope stays the screen section, licensed and declined at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-17.json",
+  "digests": {
+   "GR-13.18.38.4-6": "8fab31d1c5a9"
+  }
+ }
+}

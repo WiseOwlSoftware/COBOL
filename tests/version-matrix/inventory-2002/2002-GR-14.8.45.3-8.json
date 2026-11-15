@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-14.8.45.3-8",
+ "rule-digest": "fe4c0afca299",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure; runtime element",
+    "answer": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('declarative procedure') names the same units in 2002; scope and evidence unchanged. 'Runtime element': §2002:4 (4.167) 'The executable unit resulting from compiling a source element' vs §2023:3.159 'code and data produced by the compilation': the same element."
+   },
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 (4.163) 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the REPORT clause (13.18.46) names reports of the report section. The named report group belongs to the same report in both; no change."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Read §2002:14.5.12.1.2, 14.5.12.1.3 and 14.5.12.2 (fatal and non-fatal processing, incompatible data); the 2023 text adds the PERFORM WHEN arm, the SORT/MERGE and I-O status arms and APPLY COMMIT, none writable in 2002. Format 2 USE BEFORE REPORTING is a report-writer declarative invoked before a report group, not an exception declarative; the rule does not rest on 14.5.12. No change. Read §2002:9.3.5: 2002 binds a method by name only (no method resolution signature or overloading, which 2023 9.3.6 adds). The rule matched only on 'is invoked' (a declarative), not a method invocation. No dependence."
+   }
+  },
+  "source": "lineage-reads-2002/q-34.json",
+  "digests": {
+   "GR-14.9.49.4-8": "fe4c0afca299"
+  }
+ }
+}

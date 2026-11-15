@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.39.3-2",
+ "rule-digest": "67bcb1449751",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.43.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. 'One character data item' is one character position of identifier-3's usage (4.29/4.31), display or national, the same unit 2023 uses."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
+    "answer": "The flag comes from the words 'as literal-1' matching the pattern for the AS literal of a constant entry; GR2 (§2002:14.8.39.3 GR2) concerns a figurative constant in STRING and involves no arithmetic, so §2002:8.8.1.1/8.8.1.3.1/8.8.1.3.6 do not govern it."
+   }
+  },
+  "source": "lineage-reads-2002/q-32.json",
+  "digests": {
+   "GR-14.9.43.4-2": "67bcb1449751"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-16",
+ "rule-digest": "3bb39d340d72",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.44.3-16"
+  ],
+  "bridge": true,
+  "answers": {
+   "communication-reach": {
+    "flag": "clause 13.16.42 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "REDEFINES does reach CD records below level 1 (§2002:13.16.42.2 SR4 bars it only at level 1 there), but SR16's condition, a data-name-2 described with ANY LENGTH, cannot arise in a CD record: ANY LENGTH 'may be specified only in an elementary level 1 entry in the linkage section' (§2002:13.16.2.2 SR1). The rule's CD population is empty; l1c24-redefines-any-length-target re-run now at 2002 refuses COBOL5980 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt). Probing the CD reach found a sibling defect outside this rule (field 'lead')."
+   }
+  },
+  "source": "lineage-reads-2002/p-12.json",
+  "digests": {
+   "SR-13.18.44.3-16": "3bb39d340d72"
+  }
+ }
+}

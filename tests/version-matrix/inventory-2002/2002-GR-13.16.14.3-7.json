@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.14.3-7",
+ "rule-digest": "2d0d656e194a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.14.4-7"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (the per-line horizontal counter of report items) is the same in 2002 and the reader's 2002 witnesses stand."
+   }
+  },
+  "source": "lineage-reads-2002/q-12.json",
+  "digests": {
+   "GR-13.18.14.4-7": "2d0d656e194a"
+  }
+ }
+}

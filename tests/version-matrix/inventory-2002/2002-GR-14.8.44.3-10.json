@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-10",
+ "rule-digest": "bc53c66e242b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.48.4-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. Delimiter characters are code values in storage (4.29), matched position by position; the same in 2023."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
+    "answer": "The flag came from 'compared' in GR10. §2002:8.8.2 (boolean expressions), 8.8.4.1.1 (relation conditions) and 8.8.4.2.4 (abbreviated combined relations) do not govern UNSTRING delimiter matching: §2002:14.8.44.3 GR9 makes a match the presence of all the delimiter's characters in contiguous positions in the given order, an identity test, not a relation condition with padding or a collating sequence; the same words are in 2023, so scope is unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "GR-14.9.48.4-10": "bc53c66e242b"
+  }
+ }
+}

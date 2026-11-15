@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-13.16.25.2-4",
+ "rule-digest": "2ba710c1eb78",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.27.3-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 defines method as 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 drops the entry and describes methods at §2023:9.3.4, whose text is word for word §2002:9.3.4. The rule's 'method definition' denotes the same source element in both editions, so the entries GLOBAL is forbidden in (factory, instance, method definitions) are unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "§2002:9.3.5 (Method invocation) binds an invocation by method-name up the inheritance hierarchy at runtime; 2023 renumbers it 9.3.6 and adds parametric polymorphism (signature resolution, 2023 9.3.5). The rule restricts where GLOBAL may be written and does not depend on how an invocation is bound; the 2002 refusals (COBOL1520) remain the evidence."
+   }
+  },
+  "source": "lineage-reads-2002/q-15.json",
+  "digests": {
+   "SR-13.18.27.3-4": "2ba710c1eb78"
+  }
+ }
+}

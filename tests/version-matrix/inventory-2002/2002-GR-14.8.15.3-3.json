@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.15.3-3",
+ "rule-digest": "e5737149427c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "Read §2002:4 'report': 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and identifies a report by its RD and the REPORT clause (§2023:13.18.46.1). Same entity in both, so the rule governs the same report description entries and report groups in 2002; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
+    "answer": "Invoked by 'compared'. The comparison is the CONTROL clause's test 'for equality with the corresponding prior control' (§2002:13.16.15.3 GR3), between a control data item and a prior control of the same description; equality there is the ordinary relation-condition comparison of like operands (e.g. §2002:8.8.4.1.1.6.1 'The operands are determined to be equal if all pairs of corresponding alphanumeric characters are equal'), which does not differ from 2023 for such operands, and no boolean expression (§2002:8.8.2) or abbreviated combined relation (§2002:8.8.4.2.4) is involved. The dependent behaviour, including the collating-sequence case, is shown at --std 2002 by pb1131_control_break_collating_85 (MATCH)."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "GR-14.9.16.4-3": "e5737149427c"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-14",
+ "rule-digest": "f27fdd64a4dd",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.60.3-15"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "object reference (newer: 9.3.2)",
+    "answer": "2002: 'An explicitly- or implicitly-defined data item that contains a reference to an object' (§2002:4); 2023 9.3.2 says the same and adds what the value identifies (§2023:9.3.2). The rule governs entries with an explicit USAGE OBJECT REFERENCE clause, which both texts count as object references; scope unchanged. pb183-usage-objref-file-section re-run now at 2002: COBOL1725 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt)."
+   },
+   "communication-reach": {
+    "flag": "clause 13.16.58 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "SR14 names the file section only (§2002:13.16.58.2 SR14); a CD record is in the communication section, so the rule does not reach it (2002 has no corresponding ban for a CD record, and SR14 does not supply one)."
+   }
+  },
+  "source": "lineage-reads-2002/q-21.json",
+  "digests": {
+   "SR-13.18.60.3-15": "f27fdd64a4dd"
+  }
+ }
+}

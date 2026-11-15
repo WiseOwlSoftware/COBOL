@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.42.3-4",
+ "rule-digest": "075a352448fb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.46.4-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('declarative procedure' entered by an implicit TERMINATE) names the same units in 2002; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The rule names the TERMINATE statement and the return from a declarative (§2002:14.5.3 item 3, a declarative section entered and left as in 2023); it does not rest on run unit termination or initial state. No change. Depends in part: the declarative is entered because the implicit TERMINATE raises EC-REPORT-INACTIVE, fatal in 2002's table 14, so dispatched by §2002:14.5.12.1.2 item 2, the same USE arm as 2023; the arms 2023 adds cannot arise in 2002, and RESUME NEXT STATEMENT keeps the declarative from completing normally (§2002:14.5.12.1.1), so no abnormal termination follows. Shown at --std 2002: l1c33_terminate_resume_next_implicit rerun now, output MATCH (probes-a-12/terminate-resume-2002.txt)."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "GR-14.9.46.4-4": "075a352448fb"
+  }
+ }
+}

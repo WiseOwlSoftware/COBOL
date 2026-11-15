@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-7.2.17.3-4",
+ "rule-digest": "9e1b80626d2c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.3.21.4-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301): before 2023 compile-time arithmetic expressions use standard arithmetic (§2002:7.2.5.2 GR1 'Standard arithmetic shall be used for all arithmetic operations'), and such expressions occur only in DEFINE and EVALUATE directives, constant conditional expressions and constant entries (§2002:7.2.5); its only call sites are the >>DEFINE/>>IF/>>EVALUATE evaluator and the constant-entry binder (git grep CompileTimeArithmetic in src). This directive's format carries only keywords or comment-text, no compile-time arithmetic expression, so the switch cannot reach the rule; >>PROPAGATE takes only ON or OFF. At --std 2002 the default is OFF as §2002:7.2.17.3 GR4 requires: l1c21_propagate_default_off (re-run this session) matches its .out, nothing propagating from the raising program without a directive."
+   }
+  },
+  "source": "lineage-reads-2002/q-03.json",
+  "digests": {
+   "GR-7.3.21.4-4": "9e1b80626d2c"
+  }
+ }
+}

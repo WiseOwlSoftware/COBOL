@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-7.2.18.2-4",
+ "rule-digest": "ea453b6ec6f6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.3.24.3-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301): before 2023 compile-time arithmetic expressions use standard arithmetic (§2002:7.2.5.2 GR1 'Standard arithmetic shall be used for all arithmetic operations'), and such expressions occur only in DEFINE and EVALUATE directives, constant conditional expressions and constant entries (§2002:7.2.5); its only call sites are the >>DEFINE/>>IF/>>EVALUATE evaluator and the constant-entry binder (git grep CompileTimeArithmetic in src). This directive's format carries only keywords or comment-text, no compile-time arithmetic expression, so the switch cannot reach the rule; >>SOURCE FORMAT takes only FIXED or FREE. At --std 2002 a directive on line 1 is accepted in either form: written in free form (column 1) by srcfmt-first-free.cob (FIRST-LINE-FREE) and srcfmt-first-free-to-fixed.cob (FREE-FORM-FIRST-TO-FIXED), written in fixed form (program-text area) by srcfmt-first-fixed.cob (FIRST-LINE-FIXED-FORM), all run this session; pb1361 (directive after comment lines, not on line 1) matches its .out at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-03.json",
+  "digests": {
+   "GR-7.3.24.3-4": "ea453b6ec6f6"
+  }
+ }
+}

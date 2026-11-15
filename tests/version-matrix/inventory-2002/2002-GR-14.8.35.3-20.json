@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-20",
+ "rule-digest": "b1d6eb135b58",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.39.4-23"
+  ],
+  "bridge": true,
+  "answers": {
+   "band-formats": {
+    "flag": "band-formats [10] against [[11]]",
+    "answer": "Renumbering only: 2002 Format 10 (set-locale) is 2023 Format 11 (set-locale), the same diagram and TO operands; the a)-c) TO forms are the same. No 2002 format is outside the 2023 band."
+   }
+  },
+  "source": "lineage-reads-2002/p-05.json",
+  "digests": {
+   "GR-14.9.39.4-23": "b1d6eb135b58"
+  }
+ }
+}

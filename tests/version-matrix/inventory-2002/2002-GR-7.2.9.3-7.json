@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-7.2.9.3-7",
+ "rule-digest": "5a1703223cf0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.3.11.4-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). A single numeric literal operand of DEFINE is a literal, not an arithmetic expression (§2002:7.2.9.3 GR5), so literal-1 never enters the arithmetic mode the switch selects. Re-run now at --std 2002: eval_basic.cob prints DEF-NUM-OK, DEF-ALNUM-OK, DEF-BOOL-OK, DEF-NAT-OK and DEF-FRAC-OK (1.5 kept, where an arithmetic expression would be truncated to its integer part by §2002:7.2.5.2 GR2) (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-evalbasic-2002.log)."
+   }
+  },
+  "source": "lineage-reads-2002/q-02.json",
+  "digests": {
+   "GR-7.3.11.4-8": "5a1703223cf0"
+  }
+ }
+}

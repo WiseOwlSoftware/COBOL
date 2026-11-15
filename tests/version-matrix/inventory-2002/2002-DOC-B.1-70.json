@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-DOC-B.1-70",
+ "rule-digest": "fbf40cc0eabf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "DOC-A.1-91"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "Here 'method' is plain English: the manner of enabling and disabling keys. It is not the object-orientation term that §2002:4 defines as 'A procedural entity defined by a method definition'. No method definition or invocation is involved, so the definition does not touch the item."
+   },
+   "cross-reference": {
+    "flag": "9.2.2",
+    "answer": "I read §2002:9.2.2. A word diff with §2023:9.2.2 is empty apart from the heading level, including 'The implementor shall specify the method, if one exists, for enabling and disabling function keys', so the scope is unchanged. The screen facility is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (the reader's licence-2002), so nothing a 2002 program can show changes."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "§2002:9.3.5 Method invocation is flagged only because the word 'method' matched. The item does not depend on method invocation in any way, so its requirement does not rest on that clause's 2002 text."
+   }
+  },
+  "source": "lineage-reads-2002/q-44.json",
+  "digests": {
+   "DOC-A.1-91": "fbf40cc0eabf"
+  }
+ }
+}

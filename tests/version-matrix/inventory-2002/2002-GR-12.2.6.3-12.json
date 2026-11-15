@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-12.2.6.3-12",
+ "rule-digest": "59771e7c597f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-12"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "The rule's 'class' is the class-name of the CLASS clause (a set of data values tested by a class condition), not class of a data item; the 2002 and 2023 rule texts are word-identical. Scope unchanged."
+   },
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "2002 4.26 'A code value that constitutes the coded representation of a letter, digit, symbol...' and 4.29 'A single code value of a coded character set' are the senses the rule uses ('the actual character within the relevant native character set'); 2023 has no 'character' entry but uses the same meaning. The reader's probe hvclass.cbl (multi-character literal, descending THRU) gives the same result at 2002 and 2023. No change."
+   }
+  },
+  "source": "lineage-reads-2002/p-01.json",
+  "digests": {
+   "GR-12.3.7.4-12": "59771e7c597f"
+  }
+ }
+}

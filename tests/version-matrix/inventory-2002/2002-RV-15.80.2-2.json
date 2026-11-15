@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-RV-15.80.2-2",
+ "rule-digest": "d1fed63a4f40",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.99.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "source unit",
+    "answer": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. 'a contained source unit' in RV2 means the same, and pb120_when_compiled_contained runs clean at 2002. The scope and the evidence do not change."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "§2002:8.8.1.1 to 8.8.1.3.6 govern the evaluation of arithmetic expressions (§2002:8.8.1.1 'The following rules apply regardless of the mode of arithmetic that is in effect'), and 15/15.1 the kinds of function; WHEN-COMPILED takes no argument and does no arithmetic, so PB5575 cannot reach it. §2002:15.1 item 1 (alphanumeric function, 'The number of character positions in this data item is specified in the function definition') is met by RV1's 21 positions. RV2 says which compilation's date is returned and does not rest on the changed 15/15.1 text."
+   }
+  },
+  "source": "lineage-reads-2002/q-43.json",
+  "digests": {
+   "RV-15.99.3-2": "d1fed63a4f40"
+  }
+ }
+}

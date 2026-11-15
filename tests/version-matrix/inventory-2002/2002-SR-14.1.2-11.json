@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-14.1.2-11",
+ "rule-digest": "51870388b15e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.2.2-11"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule uses 'procedure division' (the division), never the defined term 'procedure'; §2002:4 (entry 4.150) 'One or more successive paragraphs or sections in the procedure division' vs §2023:3.145 does not touch what the division is. Scope and evidence unchanged."
+   },
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 (entry 4.121) defines method as a procedural entity of a class definition; 2023 drops the entry and relies on 9.3.4, whose text is word for word §2002:9.3.4. The same source elements are methods in both editions, so the rule governs the same programs. A method prototype is a method definition inside an interface definition (§2002:9.3.6), the same in 2023."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "§2002:9.3.5 differs from §2023:9.3.6 only in method RESOLUTION: 2023 adds signature matching and overload steps, 2002 binds by method-name alone. This rule restricts where a name may be written at compile time and does not rest on how an invocation is resolved; scope and evidence unchanged. A method prototype's procedure division holds only its header in both editions; resolution of an invocation against it is not what SR11 governs."
+   }
+  },
+  "source": "lineage-reads-2002/q-23.json",
+  "digests": {
+   "SR-14.2.2-11": "51870388b15e"
+  }
+ }
+}

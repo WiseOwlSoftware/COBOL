@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.13.3-1",
+ "rule-digest": "41ad90faaa49",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.14.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "GR1 uses 'procedure-name' and 'procedure division'; a procedure-name names a paragraph or section in both editions, and §2002:4 (entry 4.150) ('one or more successive paragraphs or sections') includes the single paragraph that §2023:3.145 spells out. The EXIT points the rule governs are the same; scope unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "GR-14.9.14.4-1": "41ad90faaa49"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-13.16.13.2-2",
+ "rule-digest": "96ba9ae6d00d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.13.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "national coded character set",
+    "answer": "§2002:4 (entry 4.128) and §2023:3.125 define national coded character set in the same words. Which alphabets define one is fixed by §2002:12.2.6.3 (Table 7), whose rows equal the 2023 Table 6; the rule governs the same alphabet-names. Scope and evidence unchanged."
+   },
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)",
+    "answer": "2002 defines 'character' in four senses (4.26-4.29) and 'coded character set' (4.40, after ISO/IEC 10646-1); 2023 leaves them undefined. The rule names an alphabet that defines a national coded character set, a property Table 7 assigns per ALPHABET operand (§2002:12.2.6.3); no sense of 'character' changes which alphabet qualifies."
+   }
+  },
+  "source": "lineage-reads-2002/q-12.json",
+  "digests": {
+   "SR-13.18.13.3-2": "96ba9ae6d00d"
+  }
+ }
+}

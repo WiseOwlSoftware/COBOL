@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-5",
+ "rule-digest": "250094792e1c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.38.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "The screen matched the word 'corresponding' ('the data values for corresponding table elements are moved', §2002:13.16.36.3 GR5), which here means matching table elements, not the CORRESPONDING phrase of the arithmetic statements; the rule describes a move, not an ADD, COMPUTE, DIVIDE, MULTIPLY or SUBTRACT (§2002:14.6.4), and does not rest on 14.6.4 or 14.6.6. The screen section is declined at --std 2002 (a42-screen-occurs re-run now: COBOL1560, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt)."
+   },
+   "communication-reach": {
+    "flag": "clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "GR5 applies 'During a DISPLAY screen or an ACCEPT screen statement that references a screen item' (§2002:13.16.36.3 GR5); a CD record is not a screen item. No CD reach."
+   }
+  },
+  "source": "lineage-reads-2002/q-17.json",
+  "digests": {
+   "GR-13.18.38.4-5": "250094792e1c"
+  }
+ }
+}

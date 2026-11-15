@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.27.2-10",
+ "rule-digest": "a46721c7731b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.28.3-9"
+  ],
+  "bridge": true,
+  "answers": {
+   "band-formats": {
+    "flag": "band-formats None against [[1, 2]]",
+    "answer": "The 2002 PERFORM has two formats, out-of-line and inline (§2002:14.8.27.1), with one unbanded syntax-rule list; they are 2023 formats 1 and 2 phrase for phrase (2023 adds UNTIL EXIT and format 3, both absent from 2002). The 2023 band FORMATS 1 AND 2 therefore reaches every 2002 PERFORM; no 2002 format falls outside it. SR10 is a capacity rule for varying-phrase in either format."
+   }
+  },
+  "source": "lineage-reads-2002/p-15.json",
+  "digests": {
+   "SR-14.9.28.3-9": "a46721c7731b"
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-7.2.9.3-1",
+ "rule-digest": "856ecae72655",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.3.11.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
+    "answer": "Read §2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.1.1 (standard intermediate data item, 'a precision of 32 decimal digits', rounding to 31; the PB5575 gap is the compiler's 34). They govern the evaluation of an arithmetic expression only. Matched by 'constant entry'; GR1 permits a reference to the variable (in directives, a defined condition, a constant entry with FROM) and does not say how an expression is evaluated. No dependence."
+   },
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). GR1 says where a compilation variable may be used; it evaluates nothing. g1_uses.cob re-run now at --std 2002 prints USES-OK, EVAL-V (rerun.log)."
+   }
+  },
+  "source": "lineage-reads-2002/q-01.json",
+  "digests": {
+   "GR-7.3.11.4-1": "856ecae72655"
+  }
+ }
+}

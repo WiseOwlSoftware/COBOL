@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-12.3.6.2-5",
+ "rule-digest": "6d3deb9a964c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.6.4.3-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule's term is report file, defined identically (§2002:9.1.19 = §2023:9.1.22) as a sequential output file whose FD carries a REPORT clause; the dropped 'report' definition does not change which files it governs."
+   }
+  },
+  "source": "lineage-reads-2002/q-09.json",
+  "digests": {
+   "SR-12.4.6.4.3-5": "6d3deb9a964c"
+  }
+ }
+}

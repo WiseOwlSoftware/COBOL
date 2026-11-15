@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.22.3-9",
+ "rule-digest": "f733d4900cb8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.23.4-9"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 'method: A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes the same entity in 9.3.4 instead of its definitions clause. GR9 speaks of 'the invoked method', the same entity."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "§2002:9.3.5 binds a method by name only (\"if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound\"); 2023 9.3.6 adds signature matching (overloading). In 2002 the invoked method is the one of that name, so GR9's requirement (the omitted-argument condition true in it, for OMITTED and for omitted trailing arguments) applies to the same method a 2002 program can have; 2023's signature resolution only adds choices among overloads 2002 cannot declare. pb757_invoke_omitted passes at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-28.json",
+  "digests": {
+   "GR-14.9.23.4-9": "f733d4900cb8"
+  }
+ }
+}

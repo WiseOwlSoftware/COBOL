@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-7.2.2-10",
+ "rule-digest": "a242996b78c2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-7.3.3-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). The rule refuses three literal forms in a directive; that is decided on the literal's form, apart from any arithmetic operation. Re-run now at --std 2002: d_lit_cat, d_lit_fig, d_lit_float, e_if_fig, e_if_float refused (COBOL1619, each naming SR10), d_lit_ok.cob prints OK (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q01-2002.log)."
+   }
+  },
+  "source": "lineage-reads-2002/q-01.json",
+  "digests": {
+   "SR-7.3.3-10": "a242996b78c2"
+  }
+ }
+}

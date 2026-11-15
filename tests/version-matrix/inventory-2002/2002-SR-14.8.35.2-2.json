@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.35.2-2",
+ "rule-digest": "b393da6fdb8b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.39.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item; index",
+    "answer": "'index' §2002:4 (4.102 'A storage area or a register, the content of which refers to a particular element in a table') vs 2023 3.102 'conceptual data item' is wording only; 'a data item of class index' is category index (§2002:8.5.2.6 'An elementary data item explicitly or implicitly described as usage index', or an index function), the same Table 3 row as 2023. The open 2002 usage-national reading (PB5625) cannot make an item class index. Scope unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-31.json",
+  "digests": {
+   "SR-14.9.39.3-2": "b393da6fdb8b"
+  }
+ }
+}

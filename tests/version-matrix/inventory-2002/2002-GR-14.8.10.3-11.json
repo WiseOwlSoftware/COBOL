@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.10.3-11",
+ "rule-digest": "f8532245846b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.11.4-12"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. Here 'alphanumeric character positions' on the screen is the storage/presentation sense (4.31) and a screen item's characters are graphic characters (4.27), as in 2023; the whole screen DISPLAY is declined at both editions, so no 2002 program is governed differently."
+   }
+  },
+  "source": "lineage-reads-2002/q-25.json",
+  "digests": {
+   "GR-14.9.11.4-12": "f8532245846b"
+  }
+ }
+}

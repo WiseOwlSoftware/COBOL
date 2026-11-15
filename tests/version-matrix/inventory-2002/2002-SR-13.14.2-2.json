@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.14.2-2",
+ "rule-digest": "88470f620c31",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.16.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "communication-reach": {
+    "flag": "clause 13.14 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "A CD may be followed by record description entries built from 13.14 (§2002:A.1.1.2), but 'Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49' (§2002:13.16.31.2 SR2), so no level 77 entry exists under a CD and this rule (§2002:13.14.2 SR2, level 77 only) has no CD population. The reader's cd77.cob shows the 77 under a CD refused; pb485-level-77-filler/-unnamed re-run now at 2002 refuse COBOL1747 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt)."
+   }
+  },
+  "source": "lineage-reads-2002/p-10.json",
+  "digests": {
+   "SR-13.16.3-2": "88470f620c31"
+  }
+ }
+}

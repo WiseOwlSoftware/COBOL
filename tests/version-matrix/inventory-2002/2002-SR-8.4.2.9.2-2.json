@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-8.4.2.9.2-2",
+ "rule-digest": "1e09a74064cf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.9.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "null (newer: 8.4.3.7.1); object reference (newer: 9.3.2)",
+    "answer": "§2002:8.4.2.7 'NULL is a predefined object reference that contains the null object reference value' is word for word §2023:8.4.3.7.1, and the §2002:4 object reference ('explicitly- or implicitly-defined data item that contains a reference to an object') matches §2023:9.3.2. So what the rule excludes (universal object references, NULL) is the same in 2002, and the reader's 2002 probes stand."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "SR-8.4.3.9.3-2": "1e09a74064cf"
+  }
+ }
+}

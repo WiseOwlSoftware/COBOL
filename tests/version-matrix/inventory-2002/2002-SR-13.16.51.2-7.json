@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.51.2-7",
+ "rule-digest": "0655ec83ded2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.53.3-7"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
+    "answer": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). SR7 governs how operands are written (parentheses, §2002:13.16.51.2 SR7), a compile-time check; no value is computed."
+   }
+  },
+  "source": "lineage-reads-2002/q-19.json",
+  "digests": {
+   "SR-13.18.53.3-7": "0655ec83ded2"
+  }
+ }
+}

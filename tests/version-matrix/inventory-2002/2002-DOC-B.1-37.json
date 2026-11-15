@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-DOC-B.1-37",
+ "rule-digest": "d9f177364cbc",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "DOC-A.1-45"
+  ],
+  "bridge": true,
+  "answers": {
+   "cross-reference": {
+    "flag": "9.2.4",
+    "answer": "I read §2002:9.2.4. It is word for word §2023:9.2.4, including 'The implementor shall specify any keys that change the position of the cursor', so the scope is unchanged. The screen facility is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (the reader's licence-2002), so nothing a 2002 program can show changes."
+   }
+  },
+  "source": "lineage-reads-2002/q-44.json",
+  "digests": {
+   "DOC-A.1-45": "d9f177364cbc"
+  }
+ }
+}

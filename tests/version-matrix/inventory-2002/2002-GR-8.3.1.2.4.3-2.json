@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-8.3.1.2.4.3-2",
+ "rule-digest": "70b02872227a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.5.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class national is the same class; the rule assigns it to a literal (8.3.1.2), not through the data-item definition. Scope unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/p-07.json",
+  "digests": {
+   "GR-8.3.3.5.4-2": "70b02872227a"
+  }
+ }
+}

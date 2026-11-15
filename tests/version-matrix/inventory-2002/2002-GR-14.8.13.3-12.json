@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.13.3-12",
+ "rule-digest": "f4c5919c2e2d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.14.4-7"
+  ],
+  "bridge": true,
+  "answers": {
+   "band-formats": {
+    "flag": "band-formats [6] against [[4]]",
+    "answer": "2002 Format 6 (procedure) is 2023 Format 4, both EXIT {PARAGRAPH | SECTION}; the number moved because 2023 dropped 2002's Format 3 (EXIT METHOD) and Format 4 (EXIT FUNCTION), which this band does not reach. §2002:14.8.13.2 SR11 equals §2023:14.9.14.3 SR9 and §2002:14.8.13.3 GR11/GR12 equal §2023:14.9.14.4 GR6/GR7. Same format reached; no split."
+   }
+  },
+  "source": "lineage-reads-2002/p-05.json",
+  "digests": {
+   "GR-14.9.14.4-7": "f4c5919c2e2d"
+  }
+ }
+}

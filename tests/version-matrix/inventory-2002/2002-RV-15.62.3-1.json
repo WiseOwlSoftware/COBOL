@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-RV-15.62.3-1",
+ "rule-digest": "6284cbd577f8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.75.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "Read §2002:8.8.1.1 (evaluation order and the exponentiation exceptions, mode-independent), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 (32-digit standard intermediate) and §2002:8.8.1.3.1.3 (rounding to 31 digits on compare, on a function argument with no equivalent expression, on a store without ROUNDED), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (the same six function types; 2002 15.1 says the definition gives an alphanumeric/national function's character positions). RANDOM has no equivalent arithmetic expression and §2002:15.3.1 exempts RANDOM without an argument from the same-value rule; the [0,1) bound is not a digit-count property. Under ARITHMETIC IS STANDARD at --std 2002, seeds 0..2000 and their next draws are all in [0,1) (RANDOM-BAD=00000, E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/stdfn23.cob (output stdfn23.2002.txt))."
+   }
+  },
+  "source": "lineage-reads-2002/q-42.json",
+  "digests": {
+   "RV-15.75.4-1": "6284cbd577f8"
+  }
+ }
+}

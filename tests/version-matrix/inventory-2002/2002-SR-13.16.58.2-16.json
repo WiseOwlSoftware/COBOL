@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-16",
+ "rule-digest": "f80bfa699057",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.60.3-17"
+  ],
+  "bridge": true,
+  "answers": {
+   "communication-reach": {
+    "flag": "clause 13.16.58 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "A CD's records are ordinary record description entries (§2002:A.1.1.2), never screen description entries; this rule governs only screen description entries (screen section), so no CD entry is reached. The screen section stays declined at --std 2002 (re-run now: a42-screen-usage PASS, COBOL1560, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt). (§2002:13.16.58.2 SR16.)"
+   }
+  },
+  "source": "lineage-reads-2002/q-21.json",
+  "digests": {
+   "SR-13.18.60.3-17": "f80bfa699057"
+  }
+ }
+}
