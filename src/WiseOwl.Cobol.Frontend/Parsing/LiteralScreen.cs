@@ -29,6 +29,10 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// rules that parse a sign as a separate token (<c>signedNumericLiteral</c>, <c>signedIntegerLiteral</c>): a sign
 /// separated from its digits is refused (<c>COBOL2155</c>; kb/Work PB1445). Not a token rule, but a rule of the
 /// literal as written, so it rides the same walk and every future signed slot is screened with no arm.</item>
+/// <item>the DIGIT CAPACITY of a fixed-point numeric literal — §2023:8.3.3.3.2, the implementor "shall allow for
+/// fixed-point numeric literals of 1 through 31 digits in length", the edition's <see cref="EditionInfo.MaxDigits"/>
+/// (<see cref="EditionInfo.DigitCapacityExcess"/> → <c>COBOL0801</c> / <c>COBOL0802</c>; kb/Work PB5529), asked of the
+/// literal NODE (<see cref="NumericLiteralOf"/>) because a comma-decimal literal is several tokens.</item>
 /// <item>the CLOSING DELIMITER — a literal its line ends inside, not continued (§2023:6.3.5 1), §2023:6.4.2;
 /// <see cref="ReportUnterminated(IEnumerable{IToken}, Action{IToken, DiagnosticDescriptor, string})"/> →
 /// <c>COBOL5563</c>, kb/Work PB3245). Asked of the TOKENS before the parse rather than by this walk, for the reason given
@@ -76,7 +80,9 @@ public static class LiteralScreen
     /// tree's screen has it.
     /// <paramref name="gateFormats"/> asks the edition question (<see cref="GateFormat"/>) too — false for a directive
     /// in an OMITTED branch, whose text is held to the syntax of §2023:7.2.1 but is not compiled, so no construct it uses is
-    /// introduced by it (the same posture as the directive's own gate and the boolean-operator gate).</summary>
+    /// introduced by it (the same posture as the directive's own gate and the boolean-operator gate). The digit capacity of a numeric literal
+    /// (<see cref="ScreenDigitCapacity"/>) is an edition and implementor-limit question, so it is asked only under it: §2023:8.3.3.3.2
+    /// makes 31 digits a minimum an implementor shall allow, not a syntax rule, and an omitted branch is not compiled.</summary>
     public static bool Run(IParseTree tree, EditionInfo edition, IDiagnosticSink sink, bool gateFormats, ClientWrittenTokens? clientWritten = null)
     {
         clientWritten ??= ClientWrittenTokens.FlaggedOnly;
@@ -95,6 +101,8 @@ public static class LiteralScreen
                 continue;
             }
             if (SignedSlot(node) is ({ } sign, { } first)) clean &= ScreenSign(node, sign, first, sink);
+            if (gateFormats && node is ParserRuleContext rule && NumericLiteralOf(rule) is { } numeric && !clientWritten.Contains(rule.Start))
+                clean &= ScreenDigitCapacity(rule, numeric, edition, sink);
             for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
         }
         return clean;
@@ -118,6 +126,38 @@ public static class LiteralScreen
             (sign.Symbol, s.numericLiteralCore().Start),
         _ => (null, null),
     };
+
+    /// <summary>The text of the FIXED-POINT numeric literal <paramref name="node"/> is, or null when it is none: the
+    /// grammar node <c>numericLiteralCore</c>, the one rule of every numeric LITERAL slot (a VALUE, a level-88 value, a
+    /// CONSTANT, a MOVE source, an operand, …) and the node of a comma-decimal literal, which lexes as three tokens, so a
+    /// literal is one count however many tokens it was. A floating-point literal is not the capacity's subject
+    /// (§2023:8.3.3.3.3 has its own exponent range, asked by the binder). Neither is a bare INTEGERLIT token, which a
+    /// digits-only user-defined word (a paragraph-name, a level-number) is too, nor the <c>integer-n</c> slots
+    /// (<c>integerLiteral</c>, <c>signedIntegerLiteral</c>): <c>DYNAMIC LENGTH LIMIT IS</c> over the implementor maximum
+    /// is legal and reported (COBOL2027, <c>DynamicLengthTests</c>; kb/Work PB463), whatever the digits it is written in.</summary>
+    private static string? NumericLiteralOf(ParserRuleContext node) =>
+        node is CobolParserCore.NumericLiteralCoreContext core && core.FLOATLIT() is null && core.COMMA_FLOATLIT() is null
+            ? core.GetText() : null;
+
+    /// <summary>⛔ THE DIGIT CAPACITY OF A FIXED-POINT NUMERIC LITERAL, asked of the literal as written, whatever position
+    /// it stands in (kb/Work PB5529): §2023:8.3.3.3.2, "The implementor shall allow for fixed-point numeric literals of 1
+    /// through 31 digits in length", which this compiler makes its limit, 18 digits at COBOL-85 (<see cref="EditionInfo.MaxDigits"/>).
+    /// It was asked per position, by the procedure-division expression binder alone, so a VALUE, level-88, CONSTANT or
+    /// FD VALUE OF literal went unasked. The count is the digits written, leading zeros included, the way the PICTURE
+    /// rule counts digit positions.</summary>
+    private static bool ScreenDigitCapacity(ParserRuleContext node, string text, EditionInfo edition, IDiagnosticSink sink)
+    {
+        int digits = text.Count(char.IsAsciiDigit);
+        if (edition.DigitCapacityExcess(digits) is not { } excess) return true;
+        using var _ = sink.At(ExpansionToken.CursorOf(node.Start));
+        string written = WrittenSource.Of(node);
+        Error(sink, excess, excess == DiagnosticCatalog.DigitCapacityOver31
+            ? $"the numeric literal '{written}' has {digits} digits; this compiler limits a fixed-point numeric literal to the 31 "
+              + "digits §2023:8.3.3.3.2 requires an implementor to allow"
+            : $"the numeric literal '{written}' has {digits} digits; COBOL-85 limits fixed-point items and literals to 18 "
+              + $"digits — 19–31 digits require --std 2002 or later (targeting COBOL-{edition.Year})");
+        return false;
+    }
 
     /// <summary>§2023:8.3.3.3.2 rule 2 over a signed literal slot (kb/Work PB1445, generalizing PB553's one screened slot):
     /// the sign is the literal's leftmost character only when it ABUTS the digits — the ONE contiguity test,
