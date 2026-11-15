@@ -1,4 +1,4 @@
-## Notes of the Mythos lane, 2026-11-15 (second): PB5728, the week's quota exception, PB5680 answered
+## Entry 3708 — 2026-11-15 15:36 PST — Notes of the Mythos lane, 2026-11-15 (second): PB5728, the week's quota exception, PB5680 answered
 
 Filed: PB5728 (`kb/Work/PB5728.md`, defect, process only, area tests/gate, severity MINOR). A Linux gate removed its directory and ended while its self-test's process tree (`filter_population.py --self-test` and its `dotnet test --list-tests` child) lived on for 43 hours; both processes were ended by hand, and the note asks whether the EXIT path ends the legs' process trees as `on_signal` does and why the `--list-tests` call has no time bound. Evidence: the process listing of 2026-11-15 14:26 PST quoted in the note, from `E:/COBOL-coord/scratch/my-20261115/process-findings-20261115-b.md`.
 
@@ -9,3 +9,4 @@ Filed: `kb/Work/PB5680/2026-11-15-answered-by-the-pb5692-sample.md`, and PB5680 
 Plan section 0 changed in three bullets only: WHO RUNS WHAT now names the loop on account 2 since 2026-11-14 17:49 PST, the operator's 2002 lanes and the Mythos session's 1985 work; ONE OWN-EDITION RULE FOR EVERY OLDER EDITION gains the PB5692 sentence (PB5683, PB5682); PRIORITY gains the week's spend-ahead sentence. No figure changed.
 
 None of these four changes closes an inventory row, and no code, script or inventory record was touched.
+
