@@ -1,4 +1,4 @@
-## Communication Section binder: an implicit CD field carries its PICTURE, and a pointer or object-reference record under a CD is out of line
+## Entry 3672 — 2026-11-15 02:56 PST — Communication Section binder: an implicit CD field carries its PICTURE, and a pointer or object-reference record under a CD is out of line
 
 Two fixes in `CommunicationSectionBinder`, both reproduced on this build before the change.
 
@@ -9,3 +9,4 @@ Two fixes in `CommunicationSectionBinder`, both reproduced on this build before 
 Goldens: `pb5617-cd-implicit-field-by-reference-and-returning` (INVOKE RETURNING, INVOKE USING, CALL BY REFERENCE with TEXT LENGTH and STATUS KEY) and `pb5604-output-cd-pointer-records` (ALLOCATE, SET, CALL, INVOKE, RAISE and the SET LOCALE formats through CD pointer, program-pointer and object-reference records), each accepted at 2002 and refused at 85 (`wiseowl/diagnostics`). The 13 rows re-verdicted CONFORMS in the 2002 inventory are listed in the notes' landing files (kb/Work/PB5604, PB5617).
 
 Lead, not fixed: `ImplicitRegisters.cs` (line 84) and `FileControlBinder.FileSection.cs` (line 351) also build an implicit item with a bare `PicInfo`; not probed.
+
