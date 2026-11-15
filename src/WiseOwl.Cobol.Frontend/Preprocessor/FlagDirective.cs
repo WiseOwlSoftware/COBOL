@@ -4,8 +4,11 @@ using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>Which migration-flagging directive an option belongs to — <c>&gt;&gt;FLAG-02</c> (§2023:7.3.14, the
-/// 2002↔2014 incompatibilities) or <c>&gt;&gt;FLAG-14</c> (§2023:7.3.15, the 2014↔2023 incompatibilities).</summary>
-public enum FlagDirective { Flag02, Flag14 }
+/// 2002↔2014 incompatibilities), <c>&gt;&gt;FLAG-14</c> (§2023:7.3.15, the 2014↔2023 incompatibilities),
+/// <c>&gt;&gt;FLAG-85</c> (§2002:7.2.11, the 1985↔2002 incompatibilities) or <c>&gt;&gt;FLAG-NATIVE-ARITHMETIC</c>
+/// (§2002:7.2.12, native arithmetic under standard arithmetic). The last two exist in the COBOL-2002 and COBOL-2014
+/// directive sets only (Annex E.2 item 21 removed both at 2023).</summary>
+public enum FlagDirective { Flag02, Flag14, Flag85, FlagNativeArithmetic }
 
 /// <summary>
 /// Every flaggable option of <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> (ISO §2023:7.3.14.4 / §2023:7.3.15.4 GR4). The
@@ -37,6 +40,22 @@ public enum FlagOption
     Flag14ValueFigConLength,
     Flag14ValueZero,
     Flag14WriteEndOfPage,
+
+    // ── FLAG-85 (§2002:7.2.11.3 GR4 b–k) ──
+    Flag85Corresponding,
+    Flag85DeEditing,
+    Flag85Divide,
+    Flag85FunctionArgument,
+    Flag85Move,
+    Flag85Numval,
+    Flag85Set,
+    Flag85Standard1,
+    Flag85Standard2,
+    Flag85ZeroLength,
+
+    // ── FLAG-NATIVE-ARITHMETIC (§2002:7.2.12.3 GR1–GR4): the directive selects no option, so it has the one
+    //    option its ON/OFF toggles ──
+    FlagNativeArithmeticOperation,
 }
 
 /// <summary>One flaggable option's static identity: which directive owns it, the general-format WORD that selects
@@ -106,6 +125,41 @@ public static class FlagOptions
         new(FlagOption.Flag14WriteEndOfPage, FlagDirective.Flag14, "WRITE-END-OF-PAGE",
             "ISO §2023:7.3.15.4 GR4 m",
             "a WRITE that allows an END-OF-PAGE phrase (the file has a LINAGE clause) but omits it (2014↔2023)"),
+
+        new(FlagOption.Flag85Corresponding, FlagDirective.Flag85, "CORRESPONDING",
+            "ISO §2002:7.2.11.3 GR4 b",
+            "an ADD, MOVE or SUBTRACT CORRESPONDING statement with a subscript other than a constant on an operand (1985↔2002)"),
+        new(FlagOption.Flag85DeEditing, FlagDirective.Flag85, "DE-EDITING",
+            "ISO §2002:7.2.11.3 GR4 c; §2002:14.8.24.3 GR3",
+            "a de-editing MOVE: a numeric-edited sending operand and a numeric or numeric-edited receiving item (1985↔2002)"),
+        new(FlagOption.Flag85Divide, FlagDirective.Flag85, "DIVIDE",
+            "ISO §2002:7.2.11.3 GR4 d",
+            "a DIVIDE … REMAINDER whose quotient has no sign while the divisor or the dividend has one (1985↔2002)"),
+        new(FlagOption.Flag85FunctionArgument, FlagDirective.Flag85, "FUNCTION-ARGUMENT",
+            "ISO §2002:7.2.11.3 GR4 e",
+            "FUNCTION RANDOM followed immediately by a parenthesized arithmetic expression, as an argument of a function that allows several arithmetic expressions (1985↔2002)"),
+        new(FlagOption.Flag85Move, FlagDirective.Flag85, "MOVE",
+            "ISO §2002:7.2.11.3 GR4 f",
+            "a MOVE of an alphanumeric literal or data item of more than 31 characters to a numeric data item (1985↔2002)"),
+        new(FlagOption.Flag85Numval, FlagDirective.Flag85, "NUMVAL",
+            "ISO §2002:7.2.11.3 GR4 g",
+            "a reference to the NUMVAL or NUMVAL-C intrinsic function (1985↔2002)"),
+        new(FlagOption.Flag85Set, FlagDirective.Flag85, "SET",
+            "ISO §2002:7.2.11.3 GR4 h",
+            "a condition-setting SET statement that references a variable-length group item (1985↔2002)"),
+        new(FlagOption.Flag85Standard1, FlagDirective.Flag85, "STANDARD-1",
+            "ISO §2002:7.2.11.3 GR4 i",
+            "an ALPHABET clause that specifies STANDARD-1 (the character set is the current issue of the standard, 1985↔2002)"),
+        new(FlagOption.Flag85Standard2, FlagDirective.Flag85, "STANDARD-2",
+            "ISO §2002:7.2.11.3 GR4 j",
+            "an ALPHABET clause that specifies STANDARD-2 (the character set is the current issue of the standard, 1985↔2002)"),
+        new(FlagOption.Flag85ZeroLength, FlagDirective.Flag85, "ZERO-LENGTH",
+            "ISO §2002:7.2.11.3 GR4 k",
+            "a READ that could return a zero-length item, or a statement that references a data item that could be a zero-length item (1985↔2002)"),
+
+        new(FlagOption.FlagNativeArithmeticOperation, FlagDirective.FlagNativeArithmetic, "FLAG-NATIVE-ARITHMETIC",
+            "ISO §2002:7.2.12.3 GR2; §2002:8.8.1.3",
+            "an arithmetic operation that uses native arithmetic although standard arithmetic is in effect for the source unit (an operand of usage binary-char, binary-short, binary-long, binary-double, float-short, float-long or float-extended)"),
     ];
 
     private static readonly Dictionary<(FlagDirective, string), FlagOptionInfo> ByWord =
@@ -188,12 +242,20 @@ public static class FlagDirectiveLine
 
         var tokens = operand.SplitSpaces();
 
-        // The second pair of braces: a trailing ON/OFF, written or not, identically for both directives.
+        // The second pair of braces: a trailing ON/OFF, written or not, identically for every directive.
         int end = tokens.Length;
         if (end > 0 && CobolKeywords.Spelling(tokens[^1]) is var last && last is "ON" or "OFF")
         {
             on = last == "ON";
             end--;
+        }
+
+        // FLAG-NATIVE-ARITHMETIC prints no first pair of braces (§2002:7.2.12.1): ON or OFF and nothing else.
+        if (directive == FlagDirective.FlagNativeArithmetic)
+        {
+            if (end == 0) return true;
+            error = $"'{tokens[0]}' is not admissible: >>{DirectiveWord(directive)} takes only ON or OFF";
+            return false;
         }
 
         // The first pair of braces: ALL (un-underlined, so the default when no option is written) or the option list.
@@ -234,7 +296,62 @@ public static class FlagDirectiveLine
     private static string Repeated(string word) =>
         $"'{word}' is specified more than once (ISO §2023:5.2.6.4: any single alternative shall be specified only once)";
 
-    /// <summary>The directive's general-format word — <c>FLAG-02</c> / <c>FLAG-14</c>.</summary>
-    public static string DirectiveWord(FlagDirective directive) =>
-        directive == FlagDirective.Flag02 ? "FLAG-02" : "FLAG-14";
+    /// <summary>The directive's general-format word — the ONE spelling per <see cref="FlagDirective"/>.</summary>
+    public static string DirectiveWord(FlagDirective directive) => directive switch
+    {
+        FlagDirective.Flag02 => "FLAG-02",
+        FlagDirective.Flag14 => "FLAG-14",
+        FlagDirective.Flag85 => "FLAG-85",
+        FlagDirective.FlagNativeArithmetic => "FLAG-NATIVE-ARITHMETIC",
+        _ => throw new ArgumentOutOfRangeException(nameof(directive), directive, null),
+    };
+
+    /// <summary>The directive a compiler-directive word names, or null for a word that is none of the four. Keyed by
+    /// the Annex C fold (<see cref="CobolKeywords.Same"/>) over <see cref="DirectiveWord"/>, so the spelling lives once.</summary>
+    public static FlagDirective? OfWord(string word)
+    {
+        foreach (var d in Enum.GetValues<FlagDirective>())
+            if (CobolKeywords.Same(word, DirectiveWord(d))) return d;
+        return null;
+    }
+
+    /// <summary>The <c>constructs/</c> row id of the directive — the row whose edition window gates its word and whose
+    /// state <see cref="DirectiveStateRegistry"/> accounts for.</summary>
+    public static string Row(FlagDirective directive) => directive switch
+    {
+        FlagDirective.Flag02 => Constructs.Flag02Directive2014,
+        FlagDirective.Flag14 => Constructs.Flag14Directive2023,
+        FlagDirective.Flag85 => Constructs.Flag85DirectiveWindow,
+        FlagDirective.FlagNativeArithmetic => Constructs.FlagNativeArithmeticDirectiveWindow,
+        _ => throw new ArgumentOutOfRangeException(nameof(directive), directive, null),
+    };
+
+    /// <summary>The Warning code a construct flagged by an option of <paramref name="directive"/> carries — one code per
+    /// directive, the option's identity riding in the message, citation and <see cref="ConstructId"/>.</summary>
+    public static string WarningCode(FlagDirective directive) => directive switch
+    {
+        FlagDirective.Flag02 => Editions.Diagnostics.DiagnosticCatalog.Flag02Warning.Code,
+        FlagDirective.Flag14 => Editions.Diagnostics.DiagnosticCatalog.Flag14Warning.Code,
+        FlagDirective.Flag85 => Editions.Diagnostics.DiagnosticCatalog.Flag85Warning.Code,
+        FlagDirective.FlagNativeArithmetic => Editions.Diagnostics.DiagnosticCatalog.FlagNativeArithmeticWarning.Code,
+        _ => throw new ArgumentOutOfRangeException(nameof(directive), directive, null),
+    };
+
+    /// <summary>The suppress-key of an option's warning: <c>flag-02-move-to-same-name</c>, <c>flag-85-numval</c>, …
+    /// (the directive's word, lower-cased, then the option's word; FLAG-NATIVE-ARITHMETIC has the one key of its word).</summary>
+    public static string ConstructId(FlagOptionInfo info) =>
+        info.Directive == FlagDirective.FlagNativeArithmetic
+            ? DirectiveWord(info.Directive).ToLowerInvariant()
+            : $"{DirectiveWord(info.Directive).ToLowerInvariant()}-{info.Word.ToLowerInvariant()}";
+
+    /// <summary>The citation of the directive's general format — the clause a malformed operand violates, in the
+    /// edition that prints it (FLAG-85 and FLAG-NATIVE-ARITHMETIC are printed by the 2002 and 2014 texts only).</summary>
+    public static string FormatCitation(FlagDirective directive) => directive switch
+    {
+        FlagDirective.Flag02 => "ISO §2023:7.3.14.2",
+        FlagDirective.Flag14 => "ISO §2023:7.3.15.2",
+        FlagDirective.Flag85 => "ISO §2002:7.2.11.1",
+        FlagDirective.FlagNativeArithmetic => "ISO §2002:7.2.12.1",
+        _ => throw new ArgumentOutOfRangeException(nameof(directive), directive, null),
+    };
 }

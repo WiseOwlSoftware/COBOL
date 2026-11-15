@@ -10,7 +10,22 @@
   implementor latitude — writes the operands to its standard output at compile time, so WiseOwl COBOL parses and evaluates
   the operands and writes them at compile time (kb/Work PB807, PB1538; A.1 items 53–55 in §7 state the determination). The **>>FLAG-02 / >>FLAG-14**
   flagging directives (§2023:7.3.14 / §2023:7.3.15) are NOT in this set: they emit the warnings they request (COBOL1620 /
-  COBOL1621 — A.1 items 79 and 80 in §7). **Every one of these is edition-GATED**, which is the half that was missing until
+  COBOL1621 — A.1 items 79 and 80 in §7). The **>>FLAG-85 / >>FLAG-NATIVE-ARITHMETIC** directives (§2002:7.2.11 / §2002:7.2.12, COBOL-2002 and COBOL-2014 only)
+  are NOT in this set either, and are no longer parsed-and-ignored (kb/Work PB5600): `>>FLAG-85 { ALL | option… } { ON | OFF }`
+  and `>>FLAG-NATIVE-ARITHMETIC { ON | OFF }` are syntax-checked (COBOL1622 for a word the format does not print) and their
+  state is folded per option per line, ON from the line after the directive. The warning mechanism that §2002:7.2.11.3 GR1
+  and §2002:7.2.12.3 GR1 require, and that 2002 A.1 item 60 (FLAG-85) requires the implementor to document, is a compile-time
+  warning that does not change the compiled program: COBOL7390 for each construct a FLAG-85 option covers (CORRESPONDING: an
+  ADD, MOVE or SUBTRACT CORRESPONDING with a subscript that is not a numeric literal; DE-EDITING: a MOVE of a numeric-edited
+  item to a numeric or numeric-edited item; DIVIDE: DIVIDE … REMAINDER with an unsigned quotient and a signed divisor or
+  dividend; FUNCTION-ARGUMENT: FUNCTION RANDOM with a parenthesized argument inside a function whose catalog row takes
+  several numeric arguments; MOVE: an alphanumeric literal or item of more than 31 characters to a numeric item; NUMVAL:
+  FUNCTION NUMVAL / NUMVAL-C; SET: a condition-setting SET whose condition-name belongs to a group holding an OCCURS DEPENDING
+  table; STANDARD-1 / STANDARD-2: the ALPHABET clause naming it; ZERO-LENGTH: a READ of a file whose smallest record can be
+  empty, or a statement referencing an item whose minimum length is zero, once per statement), and COBOL7391 for an arithmetic
+  statement, a SUM clause or an arithmetic expression with an operator whose operand is described with usage binary-char,
+  -short, -long, -double, float-short, -long or -extended (COMP-1, COMP-2) while ARITHMETIC IS STANDARD is in effect for the
+  source element (§2002:8.8.1.3). **Every one of these is edition-GATED**, which is the half that was missing until
   kb/Work PB725: the roster is the `directiveWords` column of `tests/version-matrix/constructs/`, inverted by
   `CompilerDirectiveCatalog` and checked once, where `ConditionalCompilationProcessor` recognizes a `>>` word
   (`>>SOURCE FORMAT` one stage earlier, in `ReferenceFormatProcessor`, which consumes its line first). Recognizing
