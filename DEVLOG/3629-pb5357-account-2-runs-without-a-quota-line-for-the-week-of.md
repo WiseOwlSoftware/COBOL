@@ -1,2 +1,4 @@
-## PB5357: account 2 runs without a quota line for the week of 2026-11-14 (owner)
+## Entry 3629 — 2026-11-14 16:44 PST — PB5357: account 2 runs without a quota line for the week of 2026-11-14 (owner)
+
 The owner removed the quota line on account 2 from 2026-11-14 09:00 PST to its reset on 2026-11-21 09:00 PST and approved Mythos there for COBOL work where it is the right tool. Account 1's plan is unchanged, and the plan of 2026-11-11 applies again on account 2 after its reset; the note is `kb/Work/PB5357/2026-11-14-account2-week-unrestricted.md`.
+
