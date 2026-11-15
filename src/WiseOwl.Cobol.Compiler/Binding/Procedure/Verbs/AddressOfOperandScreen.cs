@@ -21,12 +21,14 @@ using Core = CobolParserCore;
 ///   <item>SR1 (second sentence) — "shall not be defined in the working-storage or file section of an object or a
 ///         factory object" → <see cref="DiagnosticCatalog.AddressOfObjectData"/>. (Its first sentence, the four
 ///         admitted sections, is the resolver's: a SCREEN SECTION or REPORT SECTION entry, a constant-name and a
-///         special register identify no data item here.)</item>
+///         special register identify no data item here. COBOL 2002's fifth section, the communication section,
+///         is the one the resolver cannot tell from the four, so §2002:8.4.2.11.2 SR1 is screened here →
+///         <see cref="DiagnosticCatalog.AddressOfOperandKind"/>, kb/Work PB5606.)</item>
 ///   <item>SR2 — an object reference, or an elementary item subordinate to a strongly-typed group item;
 ///         SR3 — a CONSTANT RECORD item or one subordinate to it; SR6 — a dynamic-length elementary item, an element
 ///         of or item under a dynamic-capacity table, an item under a group that contains a dynamic-length
 ///         elementary item → <see cref="DiagnosticCatalog.AddressOfOperandKind"/>.</item>
-///   <item>SR4 — a bit item must have literal subscripts and reference-modification positions and sit on a byte
+///   <item>SR4 (2002: SR3) — a bit item must have literal subscripts and reference-modification positions and lengths, and sit on a byte
 ///         boundary → <see cref="DiagnosticCatalog.AddressOfBitAlignment"/>, through the ONE static-start walk
 ///         CALL, INVOKE and the function-identifier already spend (<see cref="ParameterConformance.BitStartOf"/>).</item>
 /// </list>
@@ -50,6 +52,16 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
             Report(DiagnosticCatalog.AddressOfObjectData, text,
                 "is defined in the working-storage or file section of an object or a factory object, so it shall not "
                 + "be the identifier-1 of ADDRESS OF (ISO §2023:8.4.3.11.3 SR1)");
+            ok = false;
+        }
+
+        // SR1, first sentence, where a fifth data section exists: §2023:8.4.3.11.3 SR1 and §2002:8.4.2.11.2 SR1 list
+        // the same four sections, and COBOL 2002's communication section is not one of them (kb/Work PB5606).
+        if (item.Section is EntrySection.Communication)
+        {
+            Report(DiagnosticCatalog.AddressOfOperandKind, text,
+                "is defined in the communication section, which is not one of the file, working-storage, local-storage "
+                + "or linkage sections its identifier-1 shall reference (ISO §2002:8.4.2.11.2 SR1)");
             ok = false;
         }
 
@@ -91,19 +103,20 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
         if (BitLayout.IsBitItem(item) && operand.SubscriptedPlace is { } place)
         {
             Place proof = operand.RefMod is { } rm ? new RefModPlace(place, rm.Start, rm.Length) : place;
-            var start = ParameterConformance.BitStartOf(proof);
+            var rule = BitAlignmentRule.For(BitAlignmentStatement.AddressOf, ctx.Edition.Edition.Year);
+            var start = ParameterConformance.BitStartOf(proof, rule.WholeRefMod);
             switch (start.Fault)
             {
                 case ParameterConformance.BitStartFault.NonLiteralRefMod:
                     Report(DiagnosticCatalog.AddressOfBitAlignment, text,
-                        "is a bit item whose reference-modification leftmost position is not a fixed-point numeric "
-                        + "literal or an arithmetic expression of such literals without exponentiation (ISO §2023:8.4.3.11.3 SR4 a))");
+                        "is a bit item whose reference-modification leftmost position or length is not a fixed-point numeric "
+                        + $"literal or an arithmetic expression of such literals without exponentiation (ISO {rule.Clause} a))");
                     ok = false;
                     break;
                 case ParameterConformance.BitStartFault.NonLiteralSubscript:
                     Report(DiagnosticCatalog.AddressOfBitAlignment, text,
                         "is a bit item whose subscripts are not fixed-point numeric literals or arithmetic "
-                        + "expressions of such literals without exponentiation (ISO §2023:8.4.3.11.3 SR4 a))");
+                        + $"expressions of such literals without exponentiation (ISO {rule.Clause} a))");
                     ok = false;
                     break;
                 default:
@@ -111,7 +124,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
                     {
                         Report(DiagnosticCatalog.AddressOfBitAlignment, text,
                             $"is a bit item that starts at bit {bits} of its record, so it is not aligned on a byte "
-                            + "boundary (ISO §2023:8.4.3.11.3 SR4 b) and §2023:8.5.1.6.3)");
+                            + $"boundary (ISO {rule.Clause} b) and {rule.AlignmentClause})");
                         ok = false;
                     }
                     break;

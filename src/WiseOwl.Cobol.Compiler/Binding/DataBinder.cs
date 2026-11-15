@@ -2874,6 +2874,15 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             ExpandType(pending);
         }
 
+        // §2002:13.16.47.2 SR7 words the same four sections as §2023:13.18.49.3 SR7, and COBOL 2002's communication
+        // section is not one of them (kb/Work PB5606): a CD's record item or interface area is no SAME AS target.
+        if (target.Section is EntrySection.Communication)
+        {
+            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS '{targetName}' shall "
+                + "reference an item described in the file, working-storage, local-storage, or linkage section, "
+                + "and it is in the communication section (ISO §2002:13.16.47.2 SR7)");
+            return false;
+        }
         // §2023:13.18.49.3 SR7: data-name-1 shall reference an elementary item or a level-1 group item (of the
         // file / working-storage / local-storage / linkage section; a level-66 RENAMES alias is neither).
         if (target.Level == 66 || target.HasSubordinates && target.Level != 1)
