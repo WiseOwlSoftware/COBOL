@@ -82,7 +82,7 @@ public sealed partial class FileControlBinder
                 else if (clause.blockContainsClause() is { } bcc)
                     BindBlockContainsClause(bcc, name, file);   // ISO §2023:13.18.10 — the integers are screened; the values are what the 1985 agreement rule compares
                 else if (clause.codeSetClause() is { } cs)
-                    BindCodeSetClause(cs, file, records);   // ISO §2023:13.18.13 (kb/Work PB110)
+                    BindCodeSetClause(cs, file);   // ISO §2023:13.18.13 (kb/Work PB110)
                 else if (clause.formatClause() is { } fmt)
                     BindFormatClause(fmt, file);   // ISO §2023:13.18.24 / §2002:13.16.22 — the kinds travel on FileModel.Format; its rules are ResolveRecordFormatPass's
                 else if (clause.linageClause() is { } lc)
@@ -539,7 +539,7 @@ public sealed partial class FileControlBinder
     /// alphabet's remapped ordinals; UTF-8 / UCS-4 as variable-width medium encodings) is the DOCUMENTED A.3
     /// item 27 non-support (COBOL1672 — "dependent upon a device capable of supporting the specified code";
     /// CONFORMANCE.md §2 row 27), never a silent identity.</summary>
-    private void BindCodeSetClause(Core.CodeSetClauseContext cs, FileModel file, IReadOnlyList<DataItem> records)
+    private void BindCodeSetClause(Core.CodeSetClauseContext cs, FileModel file)
     {
         using var _ = Edition.At(cs);
         var (alnumName, natName) = ChoiceIndicators.AlphabetPair(Edition, cs.codeSetForPhrase(),
@@ -564,11 +564,9 @@ public sealed partial class FileControlBinder
                 + "(ISO §2023:13.18.13.3 SR2)");
             return;
         }
-        // SR3 — record description entries and no SELECT WHEN (none exists in this grammar): one class only.
-        if (records.Count > 0 && alnumName is not null && natName is not null)
-            Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, "CODE-SET: if any record description entries are "
-                + "associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or "
-                + "alphabet-name-2 may be specified, but not both (ISO §2023:13.18.13.3 SR3)");
+        // SR3 — "one class only" when record description entries are associated and no SELECT WHEN clause is specified: a fact about the
+        // entries' SELECT WHEN clauses, which this FD walk has not bound, so it is CheckCodeSetRecordItemsPass's (it reads CodeSetBothAlphabets).
+        file.CodeSetBothAlphabets = alnumName is not null && natName is not null;
         // GR2/GR6 — which conversion the set asks for. ONE question, asked of the SET (CodedCharacterSet.Medium)
         // rather than answered from a list of phrase names here: an identity correspondence over the whole
         // one-byte channel converts byte-for-byte and needs nothing; a single-byte code whose correspondence this

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding.Passes;
@@ -80,7 +81,16 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
             // specified": with them the alphabets convert the items of the SELECTED record description entry, each by its own usage
             // (GR4), so no entry need be all one usage (kb/Work PB5578).
             if (!file.HasSelectWhen)
+            {
+                if (file.CodeSetBothAlphabets && file.WrittenRecords.Any())
+                {
+                    using var at = binder.Edition.At(file.FdClauses[FileDescriptionIdentity.CodeSet].At);
+                    binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, "CODE-SET: if any record description entries are "
+                        + "associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or "
+                        + "alphabet-name-2 may be specified, but not both (ISO §2023:13.18.13.3 SR3)");
+                }
                 foreach (var rec in file.WrittenRecords) CheckCodeSetRecordItem(binder, rec, wantNational);
+            }
             if (binder.Edition.DialectLevel < 2002) CheckCodeSetReportItems(binder, file, wantNational);
         }
     }

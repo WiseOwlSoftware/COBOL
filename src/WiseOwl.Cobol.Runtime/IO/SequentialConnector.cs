@@ -2146,8 +2146,10 @@ public sealed partial class SequentialConnector : FileConnector
     {
         if (MutationOpenModeGuard() is { } notIO) return Status = notIO;   // '49' §2023:14.9.35.4 GR3 / §2023:14.9.10.4 GR1
         if (!PrevOpWasSuccessfulRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
-        // A file with a FORMAT clause is never opened I-O (§2023:14.9.27.3 SR9: "The I-O phrase shall not be specified if the FORMAT clause is specified"), so
-        // no REWRITE reaches it: the rewrite arms below translate nothing.
+        // A file with a FORMAT clause is never opened I-O (§2023:14.9.27.3 SR9: "The I-O phrase shall not be specified if the FORMAT clause is specified"), but a file whose
+        // SELECT WHEN clauses and CODE-SET clause make it translate by record plan is: its record crosses the medium translated here too, as at WRITE
+        // (§2023:13.18.13.4 GR4, GR6 b; §2023:13.18.51.4 GR1 names REWRITE).
+        if (Format is not null && ExternalRecord(ref image, ref length, ref national, ref extents) is { } untranslated) return Status = untranslated;
         // §2023:13.18.43.4 GR13 — the number of bytes in the record: data-name-1's content (a), else the bytes in the
         // record (b/c), which the compiler passes for a fixed-length file. −1 is the image's own length.
         int len = length >= 0 ? length : IsVarying ? image.Length : RecordWidth;

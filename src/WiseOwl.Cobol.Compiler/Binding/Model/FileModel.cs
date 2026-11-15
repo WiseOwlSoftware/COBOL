@@ -515,6 +515,11 @@ public sealed class FileModel
     /// (kb/Work PB536). This property is the only thing that travels between the two.</para></summary>
     public bool? CodeSetRecordClass { get; set; }
 
+    /// <summary>The CODE-SET clause names both alphabet-name-1 and alphabet-name-2 (§2023:13.18.13.2); §2023:13.18.13.3 SR3 admits that only for a file
+    /// with no record description entry or with SELECT WHEN clauses (<see cref="HasSelectWhen"/>), which
+    /// <c>CheckCodeSetRecordItemsPass</c> asks once the entries are bound.</summary>
+    public bool CodeSetBothAlphabets { get; set; }
+
     /// <summary>The kinds of data item the FD's FORMAT clause (ISO §2023:13.18.24; ISO/IEC 1989:2002 §13.16.22) selects for formatting
     /// — BIT, CHARACTER and NUMERIC, any combination (§2023:5.2.6.4's choice indicators) — or null without the clause. The runtime's
     /// <see cref="WiseOwl.Cobol.Runtime.IO.RecordFormat"/> performs the formatting; the emitter registers this beside the
