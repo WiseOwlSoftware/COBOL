@@ -61,7 +61,11 @@ A ninth pass serves the 1985 transcription, not the change records (kb/Work PB49
     python scripts/spec/audit_batch.py seed    --state NEW --upstream DIR --decisions BATCH [--inherit route,map,verify]
                                                                                    # a run checking a batch's decisions:
                                                                                    # then plan its recheck and refute
-    python scripts/spec/audit_batch.py results --state DIR                        # DIR/results.json: each rule's disposition
+    python scripts/spec/audit_batch.py import-reads --edition 2002 --reads DIR [--asked DIR] [--record DIR] --state NEW
+                                                                                   # a run from a fleet's reads (kb/Work
+                                                                                   # PB5597): the tracked read records,
+                                                                                   # its map and verify passes; no model
+    python scripts/spec/audit_batch.py results --state DIR                       # DIR/results.json: each rule's disposition
     python scripts/spec/audit_batch.py misprint-leads --state DIR                 # DIR/misprint-leads.json: each misprint
                                                                                    # the misprints pass reports
     python scripts/spec/audit_batch.py change-batch --edition 1985 --state DIR --out FILE  # every DECIDED change
@@ -70,7 +74,10 @@ A ninth pass serves the 1985 transcription, not the change records (kb/Work PB49
                                                                                    # no adjudication outranks
                                                                                    # (any older edition; a record for a
                                                                                    # pair lineage_screen.py flags answers
-                                                                                   # each flag, kb/Work PB5589)
+                                                                                   # each flag, kb/Work PB5589; a KEPT
+                                                                                   # one has a witness at its own
+                                                                                   # edition; each failing record is
+                                                                                   # refused alone, PB5597)
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
 RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written by `plan`: custom id -> the item, every input its prompt
@@ -711,7 +718,10 @@ def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
             row["verify"] = got and got["verdict"]
             row["disposition"] = UNVERIFIED if got is None else CARRIES if got["verdict"] == "UPHELD" else DISPUTED
         if row["disposition"] == CARRIES:
-            row["change"] = {"kind": change_kinds().chained.name, "to": row["rules_2023"]}   # the same requirement: no reason
+            # The same requirement: no reason. A map answer that answers the lineage screen's flags on its pair, or names
+            # its own source (an imported read, `import_reads`), carries both into the change (kb/Work PB5597).
+            row["change"] = {"kind": change_kinds().chained.name, "to": row["rules_2023"],
+                             **{k: a[k] for k in ("answers", "source") if a.get(k)}}
         elif (adj := adjudicate.get(it["id"])) is not None:
             row["adjudicate"] = adj["verdict"]
             said = {n: got for n, by_id in checks.items() if (got := by_id.get(it["id"])) is not None}
@@ -1204,7 +1214,11 @@ def change_batch(a: argparse.Namespace) -> int:
     A record follows only from a decision of a read (kb/Work PB5589: two blind samples proved a script cannot decide that
     two editions' identical words state one requirement), so the command without `--state` is refused by name. A record for
     a pair the edition's lineage screen flags (lineage_screen.py) stands only when its decision answers each flag by the
-    trigger's name (`next.answers`); a batch that holds one that does not is refused whole, naming each."""
+    trigger's name for the flag's detail (`next.answers`), and, for an edition whose schema entry names
+    `own-edition-evidence` (2002), a KEPT record only when every rule it carries into has a conformance-suite witness
+    that runs at the record's OWN edition (lineage_reads.Witnesses; owner 2026-11-14: "2002 spec covers 2002 rules").
+    Each record that fails either is REFUSED ALONE, never the batch (kb/Work PB5597, branch
+    review R2-4 of PB5589): it is left out, listed with every reason in `<out>.refused.json`, and the rest are written."""
     if not a.state:
         raise SystemExit(f"{TOOL}: change-batch --edition {a.edition} needs --state, the audit run whose decisions it "
                          "writes: a change record follows only from a read decision, never from a screen or a pairing")
@@ -1215,16 +1229,107 @@ def change_batch(a: argparse.Namespace) -> int:
     state = pathlib.Path(a.state)
     held = read_store(inventory_dir(ed, pathlib.Path(a.repo)))
     records = change_records(ed, dispositions(state), a.source or f"audit-{a.edition}/{state.name}", held)
-    if refused := lineage_screen.unanswered(records, lineage_screen.committed(a.edition)):
-        raise SystemExit(f"{TOOL}: change-batch --edition {a.edition}: {len(refused)} record(s) leave a flag of the lineage "
-                         "screen unanswered; nothing is written:\n  " + "\n  ".join(refused))
+    screen = lineage_screen.committed(a.edition)
+    chained = change_kinds().chained.name
+    holds = ed.own_evidence and any(r["next"]["kind"] == chained for r in records)
+    w = witnesses_of(ed.next_held) if holds else None
+    if holds:
+        import lineage_reads  # noqa: PLC0415  (the one check of a KEPT record's targets)
+        lin = lineage_reads.Lineage.of(ed)
+        imported = json.loads((state / READS).read_text(encoding="utf-8")) if (state / READS).exists() else None
+        licences = {rid: r.licence for s in lineage_reads.load(a.edition, pathlib.Path(imported["record"]))
+                    for rid, r in s.reads.items()} if imported else {}
+    kept, refused = [], []
+    for r in records:
+        why = lineage_screen.unanswered([r], screen)
+        if r["next"]["kind"] == chained and holds:
+            why += [f"{r['rule-id']}: {reason}: {detail}" for reason, detail in lineage_reads.kept_problems(
+                ed, r["rule-id"], r["next"]["to"], licences.get(r["rule-id"]), lin, w)]
+        (refused if why else kept).append({"rule-id": r["rule-id"], "reasons": why} if why else r)
     out = pathlib.Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    write_atomic(out, json.dumps({"batch": f"lineage-change:{state.name}", "records": records}, indent=1,
+    write_atomic(out, json.dumps({"batch": f"lineage-change:{state.name}", "records": kept}, indent=1,
                                  ensure_ascii=False) + "\n")
-    kinds = collections.Counter(r["next"]["kind"] for r in records)
-    print(f"change-batch: {len(records)} change record(s) {dict(sorted(kinds.items()))} -> {out}\n"
+    refused_file = out.with_name(out.stem + ".refused.json")
+    write_atomic(refused_file, json.dumps({"refused": refused}, indent=1, ensure_ascii=False) + "\n")
+    kinds = collections.Counter(r["next"]["kind"] for r in kept)
+    print(f"change-batch: {len(kept)} change record(s) {dict(sorted(kinds.items()))} -> {out}; refused {len(refused)} "
+          f"(a flag unanswered {sum(1 for x in refused if any('lineage screen' in y for y in x['reasons']))}, the "
+          f"targets or the evidence {sum(1 for x in refused if any('lineage screen' not in y for y in x['reasons']))}) -> "
+          f"{refused_file}\n"
           f"  validate: python scripts/spec/record_verdicts.py --edition {a.edition} --dry-run {out}", flush=True)
+    return 0
+
+
+def witnesses_of(newer: int) -> Any:
+    """The next edition's rules' suite witnesses, where each runs (lineage_reads.Witnesses.of: the generator's reading of
+    the suite). A module attribute, so the self-test plants its own."""
+    import lineage_reads  # noqa: PLC0415  (the own-edition evidence rule)
+    return lineage_reads.Witnesses.of(newer)
+
+
+#: An audit run IMPORTED from reads (`import_reads`) names its read records here; its passes are the reads', never a
+#: model's: no plan, submit, retry, collect or withdraw runs in it, and no Message Batches call is made on its path.
+READS = "reads.json"
+
+
+def import_reads(year: int, reads: pathlib.Path, asked: pathlib.Path | None, record: pathlib.Path,
+                 state: pathlib.Path) -> int:
+    """`import-reads` (kb/Work PB5597): the reads of an older edition's rules, made elsewhere (a fleet's reader and
+    refuter files, DESIGN-spec-conformance-review.md section 10.6), become (1) the tracked READ RECORDS
+    (`lineage_reads.import_records`: each slice verbatim with its sources' digests, under `record`) and (2) an audit
+    run's state, as `seed` starts a run from decisions made elsewhere: its map pass is each reader's answer (SAME, or
+    DIFFERS for a DIFFERENT; a DOUBTFUL leaves the rule unanswered, OPEN), with the answers to the lineage screen's flags
+    the read gives and its record as its source, and its verify pass each refuter's (UPHELD; REFUTED for an OVERTURNED;
+    UNSURE for a DOUBTFUL). `dispositions` then makes a SAME its refuter upheld CARRIES, and `change-batch --state` writes
+    it, refusing alone each record with a flag unanswered or no witness at its own edition. The decisions of every read
+    rule (kept, refused by reason, the work items) are written beside it (`reads-decisions.json`), a generated view."""
+    import lineage_reads  # noqa: PLC0415
+    import lineage_screen  # noqa: PLC0415
+    if state.exists() and any(state.iterdir()):
+        raise SystemExit(f"{TOOL}: {state} is not empty: an imported run starts empty")
+    ed = edition(year)
+    if ed.next_held is None:
+        raise SystemExit(f"{TOOL}: import-reads --edition {year}: the newest held edition has no change records")
+    by_rule = {r["id"]: r for r in ed.rules()}
+    written = lineage_reads.import_records(year, reads, asked, record, set(by_rule))
+    slices = lineage_reads.load(year, record)
+    if unknown := sorted(rid for s in slices for rid in s.reads if rid not in by_rule):   # an earlier import's record
+        raise SystemExit(f"{TOOL}: {len(unknown)} read rule(s) of {record} are no rule of the {year} catalog: {unknown[:5]}")
+    decisions = lineage_reads.decide(ed, slices, lineage_screen.committed(year), None, lineage_reads.Lineage.of(ed))
+    state.mkdir(parents=True)
+    write_atomic(state / READS, json.dumps({"edition": year, "record": str(record.resolve()),
+                                            "slices": sorted(s.name for s in slices)}, indent=1) + "\n")
+    m, v = Pass(state, "map"), Pass(state, "verify")
+    reads = [(s, r) for s in slices for r in s.reads.values()]
+    write_plan(m, [{"id": r.rule_id, "rule": quoted_rule(by_rule[r.rule_id]), "read": s.name} for s, r in reads])
+    write_plan(v, [{"id": r.rule_id, "read": s.name} for s, r in reads if r.verdict == SAME])
+    m.answers_dir.mkdir(parents=True, exist_ok=True)
+    v.answers_dir.mkdir(parents=True, exist_ok=True)
+    decided = {d.rule_id: d for d in decisions}
+    for s, r in reads:
+        # A DOUBTFUL read, and a SAME for a rule the pairing does not pair (its `to` a pointer: the work item
+        # own-verdict-from-pointer, review R1-2), leave the rule OPEN: no change record can follow from them.
+        if r.verdict == "DOUBTFUL" or decided[r.rule_id].work == lineage_reads.OWN_VERDICT_FROM_POINTER:
+            continue
+        answer = {"verdict": SAME if r.verdict == SAME else DIFFERS, "rules_2023": list(r.to), "reason": r.reason,
+                  "source": lineage_reads.source_of(year, s.name),
+                  **({"answers": decided[r.rule_id].answers} if decided[r.rule_id].answers else {})}
+        write_atomic(m.answer_file(custom_id("map", r.rule_id)),
+                     json.dumps({"id": r.rule_id, "answer": answer}, indent=1, ensure_ascii=False))
+        if (f := s.refutes.get(r.rule_id)) is not None:
+            verdict = {"UPHELD": "UPHELD", "OVERTURNED": "REFUTED", "DOUBTFUL": "UNSURE"}[f.verdict]
+            write_atomic(v.answer_file(custom_id("verify", r.rule_id)),
+                         json.dumps({"id": r.rule_id, "answer": {"verdict": verdict, "reason": f.reason}}, indent=1,
+                                    ensure_ascii=False))
+    summary = lineage_reads.summary(decisions)
+    write_atomic(state / "reads-decisions.json", json.dumps(
+        {"edition": year, "summary": summary, "decisions": [d.row() for d in decisions]}, indent=1,
+        ensure_ascii=False) + "\n")
+    print(f"import-reads: {len(slices)} slice(s) ({len(written)} written or rewritten under {record}); {summary['rules']} "
+          f"rule(s): kept before the evidence check {summary['kept']}, refused {summary['refused-by-reason']}, work "
+          f"{summary['work']} -> {state}\n"
+          f"  then: python scripts/spec/audit_batch.py change-batch --edition {year} --state {state} --out BATCH", flush=True)
     return 0
 
 
@@ -1280,6 +1385,15 @@ def build_parser() -> argparse.ArgumentParser:
     cb.add_argument("--source", help="an audit run's next.source (default: audit-<edition>/<the state directory's name>)")
     cb.add_argument("--repo", default=str(spec_pdf.REPO),
                     help="the repository whose store's adjudications outrank the run's records")
+    ir = sub.add_parser("import-reads", help="start a run from the reads of an older edition's rules (a fleet's reader "
+                                             "and refuter files): the tracked read records, and the run's map and "
+                                             "verify passes, for change-batch --state")
+    common(ir, key=False, pass_arg=False)
+    ir.add_argument("--edition", type=int, required=True, help="the older held edition the reads decide")
+    ir.add_argument("--reads", required=True, help="the directory of <slice>-read.json and <slice>-refute.json files")
+    ir.add_argument("--asked", help="the directory of the slices' inputs (<slice>.json: the flags each slice asked)")
+    ir.add_argument("--record", help="where the read records are written (default: tests/version-matrix/"
+                                     "lineage-reads-<edition>/, tracked; a scratch directory for a dry run)")
     return ap
 
 
@@ -1315,7 +1429,14 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         return 0
     if a.cmd == "seed":
         return seed(state, pathlib.Path(a.upstream), pathlib.Path(a.decisions), a.inherit.split(","))
+    if a.cmd == "import-reads":
+        import lineage_reads  # noqa: PLC0415
+        return import_reads(a.edition, pathlib.Path(a.reads), pathlib.Path(a.asked) if a.asked else None,
+                            pathlib.Path(a.record) if a.record else lineage_reads.reads_dir(a.edition), state)
     p = Pass(state, a.pass_name)
+    if (state / READS).exists() and a.cmd != "status":
+        raise SystemExit(f"{TOOL}: {state} was imported from reads ({READS}): its {p.name} pass holds the reads' answers, "
+                         "which no model answers")
     if p.inherited and a.cmd != "status":
         raise SystemExit(f"{TOOL}: {state} reads its {p.name} pass from {p.dir.parent} ({UPSTREAM}): {a.cmd} it there")
     if p.seeded and a.cmd != "status":

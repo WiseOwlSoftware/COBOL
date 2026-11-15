@@ -3,6 +3,7 @@
 pending-clause diff and its flags (a judged clause by its judgment, an unjudged one fail-closed), each mechanism on its
 planted pair, an unplaced behaviour, the regression fixture's two expectations, a record's answers to the flags, and the
 committed document."""
+import re
 import sys
 
 import fixtures as F
@@ -121,14 +122,32 @@ def case_05_a_record_on_a_flagged_pair_answers_each_flag(expect):
     refused = L.unanswered([{"rule-id": "2002-GR-9.2.1.3-1", "next": kept}], doc)
     expect("a record on a flagged pair whose decision answers no flag is refused, naming each trigger",
            len(refused) == 1 and "band-formats" in refused[0] and "cross-reference" in refused[0])
-    expect("one that answers every flag stands", L.unanswered([{"rule-id": "2002-GR-9.2.1.3-1", "next": {**kept, "answers": {
-        "band-formats": "the 2002 rule governs format 1 alone", "cross-reference": "8.4.2 states the same thing"}}}], doc) == [])
+    flags = doc["marks"]["2002-GR-9.2.1.3-1"]
+
+    def answer(name, detail=None):
+        return {"flag": flags[name] if detail is None else detail, "answer": f"the 2002 rule still states it ({name})"}
+
+    both = {"band-formats": answer("band-formats"), "cross-reference": answer("cross-reference")}
+    expect("one that answers every flag, each for the flag's detail as the screen gives it, stands",
+           L.unanswered([{"rule-id": "2002-GR-9.2.1.3-1", "next": {**kept, "answers": both}}], doc) == [])
     expect("one that answers one flag of two is refused for the other",
            any("cross-reference" in e for e in L.unanswered([{"rule-id": "2002-GR-9.2.1.3-1", "next": {
-               **kept, "answers": {"band-formats": "the 2002 rule governs format 1 alone"}}}], doc)))
+               **kept, "answers": {"band-formats": answer("band-formats")}}}], doc)))
+    moved = {**both, "cross-reference": answer("cross-reference", "a clause the screen named before")}
+    refused_moved = L.unanswered([{"rule-id": "2002-GR-9.2.1.3-1", "next": {**kept, "answers": moved}}], doc)
+    expect("R2-2: an answer to the same trigger for ANOTHER detail is no answer: a changed flag needs a new one",
+           len(refused_moved) == 1 and L.CHANGED_FLAG in refused_moved[0] and "cross-reference" in refused_moved[0])
+    expect("a bare sentence (the shape before the answer named its flag) answers nothing",
+           len(L.unanswered([{"rule-id": "2002-GR-9.2.1.3-1", "next": {**kept, "answers": {
+               "band-formats": "governs format 1", "cross-reference": "the same"}}}], doc)) == 1)
     expect("a record on an unflagged pair needs no answer; a row with no record is no finding",
            L.unanswered([{"rule-id": "2002-GR-9.5.1.3-1", "next": {**kept, "to": ["GR-9.5.1.3-1"]}},
                          {"rule-id": "2002-GR-9.2.1.3-1", "next": {}}], doc) == [])
+    stored = [{"rule-id": "2002-GR-9.2.1.3-1", "next": {**kept, "answers": moved}},
+              {"rule-id": "2002-GR-9.2.1.3-1", "next": {**kept, "answers": both}}]
+    owed = L.owed_records(stored, doc)
+    expect("R2-1: a STORED record the screen now asks another question is OWED a re-read (listed), and one that answers "
+           "every flag as it reads is not", len(owed) == 1 and "owed a re-read" in owed[0] and "cross-reference" in owed[0])
 
 
 def case_06_the_committed_document(expect):
@@ -137,6 +156,24 @@ def case_06_the_committed_document(expect):
     expect.equal("each flag by rule and trigger", set(doc["marks"]["2002-GR-9.4.1.3-2"]),
                  {"definition-changed", "behaviour-switch", "held"})
     expect("what the table owes", any("8.7" in o for o in doc["owed"]))
+
+
+def case_07_a_pattern_holding_a_control_character_is_refused_at_load(expect):
+    planted = {"triggers": [{"name": "reach", "mechanism": "construct-reach", "reason": "r",
+                             "params": {"confined": "\b(?:only) in the file section", "clauses": ["13.14"]}}]}
+    try:
+        L.triggers(planted)
+        expect("R2-3: a parameter a JSON \\b decoded to a backspace is refused at load, naming the trigger and the place",
+               False)
+    except SystemExit as e:
+        expect("R2-3: a parameter a JSON \\b decoded to a backspace is refused at load, naming the trigger and the place",
+               "reach" in str(e) and "params.confined" in str(e) and "U+0008" in str(e))
+    live = {t["name"]: t for t in L.load_table(2002)["triggers"]}
+    confined = re.compile(live["communication-reach"]["params"]["confined"], re.I)
+    expect("the live 2002 table's communication-reach confinement matches a rule its text confines to another section "
+           "(it never matched while the JSON held \\b, a backspace)",
+           confined.search("The clause shall be specified only in the file section.") is not None
+           and confined.search("The clause may be specified in any entry.") is None)
 
 
 if __name__ == "__main__":

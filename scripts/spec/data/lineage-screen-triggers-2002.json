@@ -132,7 +132,7 @@
      "13.14"
     ],
     "clause-pattern": "13\\.16\\.\\d+",
-    "confined": "\b(?:only|shall be specified only) in the (?:file|working-storage|local-storage|linkage|report|screen) section"
+    "confined": "\\b(?:only|shall be specified only) in the (?:file|working-storage|local-storage|linkage|report|screen) section"
    },
    "source": "§2002:A (the communication facility; §2002:G.2 item 1, obsolete) and the 2002 catalog's FMT-13.14 rows",
    "reason": "the rule governs entries a 2002 CD entry can hold (the communication section, §2002:A), a reach its words do not show"

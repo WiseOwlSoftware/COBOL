@@ -484,9 +484,12 @@ jobs:
       - name: Lineage candidates — every older held edition's pairing is this run's (lineage.py --candidates --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/lineage.py --candidates --check
-      - name: Lineage screen — each screened edition's flags are this run's, every stored record answers its flags, no caught fixture pair unflagged (lineage_screen.py --check)
+      - name: Lineage screen — each screened edition's flags are this run's, no caught fixture pair unflagged, stored records owed a re-read listed (lineage_screen.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/lineage_screen.py --check
+      - name: Lineage reads — every read record interprets, every stored record from a read is its decision, every own-edition KEPT record still witnessed there (lineage_reads.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/lineage_reads.py --check
       - name: Catalog coverage — each held ISO edition's rule blocks hold the ordinals the transcription prints (audit_catalog_coverage.py --held --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/audit_catalog_coverage.py --held --check
