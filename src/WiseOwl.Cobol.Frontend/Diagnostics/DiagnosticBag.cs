@@ -95,6 +95,16 @@ public sealed class DiagnosticBag
         _diagnostics.AddRange(merged);
     }
 
+    /// <summary>Move the diagnostics at index <paramref name="tailStart"/> and after (reported last) to stand at index
+    /// <paramref name="to"/> (at or before <paramref name="tailStart"/>), in their order: a gate whose answer waited on a later
+    /// stage reads where the stage that found the text would have reported it (kb/Work PB5588).</summary>
+    public void MoveTail(int tailStart, int to)
+    {
+        var tail = _diagnostics.GetRange(tailStart, _diagnostics.Count - tailStart);
+        _diagnostics.RemoveRange(tailStart, tail.Count);
+        _diagnostics.InsertRange(to, tail);
+    }
+
     /// <summary>
     /// Report a diagnostic using a descriptor and format arguments.
     /// </summary>

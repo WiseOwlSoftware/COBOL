@@ -31,6 +31,15 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     /// until the whole text is read, and then <see cref="OnSourceDebuggingLines"/> reports the ones it turns out are source.</summary>
     private readonly Dictionary<SourceOrigin, int> _debuggingLinesBetweenLiteralParts = [];   // each line's indicator column
 
+    /// <summary>The floating comment indicators <see cref="SurvivingFloatingComments"/> found in the text the text stages finished
+    /// with, held until <see cref="ReportSurvivingFloatingComments"/> learns which lines the program compiles as comment
+    /// (kb/Work PB5588).</summary>
+    private readonly List<SurvivingFloatingComment> _survivingFloatingComments = [];
+
+    /// <summary>One <c>*&gt;</c> that survived the text stages: the line of the text the lexer reads it on (what the debugging
+    /// comment treatment is decided in), where the source wrote it, and whether a character stands directly before it.</summary>
+    internal readonly record struct SurvivingFloatingComment(int TextLine, string File, int Line, int Column, bool Unseparated);
+
     private EditionInfo Edition => EditionInfo.Of(dialectLevel, permissive);
 
     private static Common.SourceLocation At(string file, int line, int column = 0) =>
@@ -49,6 +58,30 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     /// source has none (row <c>floating-comment-indicator-2002</c>). Gated once per compilation, at its first use.</summary>
     public void OnFloatingComment(string file, int line, int column)
         => GateOnce(ref _floatingCommentFlagged, Constructs.FloatingCommentIndicator2002, file, line, column);
+
+    /// <summary>A COBOL-85 <c>*&gt;</c> that survived COPY, REPLACE and the directive stages into the text the lexer reads
+    /// (<see cref="SurvivingFloatingComments"/>). It is held, not reported: whether it is program text is decided later, by
+    /// <c>DebuggingLineRewriter</c>, which makes a debugging section's and a debugging line's text comment when no WITH
+    /// DEBUGGING MODE applies (§1985:XV.2.1.3 GR2, §1985:VI.4.3.4 GR5), and a comment line may hold any character
+    /// (§1985:III, "Comment Line").</summary>
+    internal void NoteSurvivingFloatingComment(SurvivingFloatingComment comment) => _survivingFloatingComments.Add(comment);
+
+    /// <summary>The COBOL-2002 introduction gate (<see cref="OnFloatingComment"/>, and COBOL2495 for an unseparated one), asked of
+    /// every noted <c>*&gt;</c> that is program text: every one not on a line in <paramref name="commentTextLines"/>, the lines
+    /// of the text <c>DebuggingLineRewriter</c> made comment. The reports stand at index <paramref name="placeAt"/> of the bag,
+    /// where the lex and parse that ran since reported nothing yet: the text stages found the indicator, so it reads before
+    /// the lexer's and the parser's own reports, as it did when the gate ran in them.</summary>
+    internal void ReportSurvivingFloatingComments(IReadOnlySet<int> commentTextLines, int placeAt)
+    {
+        int reported = diagnostics.Diagnostics.Count;
+        foreach (var c in _survivingFloatingComments)
+        {
+            if (commentTextLines.Contains(c.TextLine)) continue;
+            OnFloatingComment(c.File, c.Line, c.Column);
+            if (c.Unseparated) OnUnseparatedFloatingComment(c.File, c.Line, c.Column);
+        }
+        diagnostics.MoveTail(reported, placeAt);
+    }
 
     /// <summary>A floating literal continuation indicator (§2023:6.2.3.1, §2023:6.5 4)) — introduced with the floating
     /// indicators at COBOL-2002 (row <c>floating-literal-continuation-2002</c>). Gated once per compilation, at its
