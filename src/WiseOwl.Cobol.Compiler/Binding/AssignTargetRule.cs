@@ -34,6 +34,12 @@ using WiseOwl.Cobol.Runtime;
 ///   <item>Anything else — three or more operands, a literal before another operand, or a leading word that
 ///   is not a provided device class — is COBOL2256.</item>
 /// </list>
+/// <para>⛔ THREE OF THE REFUSALS ARE DEFERRED, NOT REPORTED (kb/Work PB5587): the figurative-constant and numeric-literal arms of SR4 and the list
+/// of COBOL2256 are the 2023 rules of an entry whose format the 1985 sort-merge entry does not share — §1985:XI.2.3.2
+/// prints <c>ASSIGN TO {implementor-name-1 | literal-1} …</c> and §1985:XI.2.3.3 carries no restriction of literal-1 — and
+/// whether the entry is a sort-merge file's is known only when its SD is read, after this reader has run. They are
+/// recorded on <see cref="FileModel.EntryShapeFindings"/> and <see cref="FileControlKeyRules.Screen"/>, which knows the kind and
+/// the edition, reports them.</para>
 /// </summary>
 internal static class AssignTargetRule
 {
@@ -47,15 +53,15 @@ internal static class AssignTargetRule
     /// runtime — reporting COBOL2256 for a list the determination does not allow. On a refused list the LAST
     /// operand is returned so binding continues on a plausible shape under an already-failed compile.</summary>
     public static string Resolve(EditionContext edition, LiteralEnvironment env, Core.AssignTargetContext[] targets,
-        string fileName)
+        FileModel file)
     {
-        if (targets.Length == 1) return Text(edition, env, targets[0]);
+        if (targets.Length == 1) return Text(edition, env, targets[0], file);
         var first = targets[0];
         bool deviceLed = first.cobolWord() is not null && DeviceClasses.Contains(first.GetText());
-        if (targets.Length == 2 && deviceLed) return Text(edition, env, targets[1]);
+        if (targets.Length == 2 && deviceLed) return Text(edition, env, targets[1], file);
         using (edition.At(targets[1]))
-            edition.Error(DiagnosticCatalog.AssignTargetListNotAllowed,
-                $"SELECT {fileName}: the ASSIGN clause's TO phrase lists {targets.Length} operands ("
+            file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignTargetListNotAllowed, edition.Cursor,
+                $"SELECT {file.CobolName}: the ASSIGN clause's TO phrase lists {targets.Length} operands ("
                 + string.Join(" ", targets.Select(t => t.GetText())) + "); ISO §2023:12.4.5.2 SR5 leaves the "
                 + "allowable specification of device-name-1 and literal-1 to the implementor, and this "
                 + "implementation allows ONE operand naming the file, or a device class ("
@@ -63,8 +69,8 @@ internal static class AssignTargetRule
                 + "naming the file (docs/CONFORMANCE.md §7 DOC-A.1-71)"
                 + (targets.Length == 2 ? (first.cobolWord() is null
                     ? " — here the first operand is a literal, not a device class"
-                    : $" — here '{first.GetText()}' is not a device class this implementation provides") : ""));
-        return Text(edition, env, targets[^1]);
+                    : $" — here '{first.GetText()}' is not a device class this implementation provides") : "")));
+        return Text(edition, env, targets[^1], file);
     }
 
     /// <summary>The physical name one operand gives. literal-1 is screened against §2023:12.4.5.2 SR4 — "an alphanumeric
@@ -72,8 +78,17 @@ internal static class AssignTargetRule
     /// expression folds to its equivalent literal, §2023:8.8.3.3 GR3; the hexadecimal-alphanumeric X"..." is an alphanumeric
     /// literal, §2023:8.3.3.2.2). A refused literal yields "" under an already-failed compile. A WORD is read by
     /// <see cref="WordText"/>.</summary>
-    private static string Text(EditionContext edition, LiteralEnvironment env, Core.AssignTargetContext t)
+    private static string Text(EditionContext edition, LiteralEnvironment env, Core.AssignTargetContext t, FileModel file)
     {
+        if (t.numericLiteral() is { } num)
+        {
+            // A numeric literal is no alphanumeric literal (SR4), and like the figurative constant that refusal belongs to the
+            // entry's FORMAT: §1985:XI.2.3.3 has no rule making literal-1 nonnumeric, so Screen decides (kb/Work PB5587).
+            using (edition.At(num))
+                file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor,
+                    $"ASSIGN TO {num.GetText()}: literal-1 shall be an alphanumeric literal (ISO §2023:12.4.5.2 SR4)"));
+            return "";
+        }
         if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord());
         void Refuse(string why) =>
             Report(edition, nn, $"ASSIGN TO {nn.GetText()}: literal-1 {why} (ISO §2023:12.4.5.2 SR4)");
@@ -94,7 +109,11 @@ internal static class AssignTargetRule
         }
         else if (nn.figurativeConstant() is not null)
         {
-            Refuse("shall not be a figurative constant");
+            // §2023:12.4.5.2 SR4's figurative-constant arm is a rule of the entry's FORMAT, and the 1985 sort-merge entry
+            // carries none (§1985:XI.2.3.3): the file's kind is not known until its SD is read, so Screen decides.
+            using (edition.At(nn))
+                file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor,
+                    $"ASSIGN TO {nn.GetText()}: literal-1 shall not be a figurative constant (ISO §2023:12.4.5.2 SR4)"));
             return "";
         }
         else
