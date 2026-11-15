@@ -1,4 +1,4 @@
-## Numeric-literal digit capacity is asked once, of the literal as written (PB5529)
+## Entry 3646 — 2026-11-14 20:42 PST — Numeric-literal digit capacity is asked once, of the literal as written (PB5529)
 
 The edition's digit limit for a fixed-point numeric literal (COBOL0802 above 18 at COBOL-85, COBOL0801 above 31) was asked
 per position, by `ExpressionBinder.CheckLiteral`, for a procedure-division literal only. Re-probe on the base build:
@@ -18,3 +18,4 @@ at 85), `pb5529-value-over-31-digits` (COBOL0801 at every edition). Left: the co
 question of a CONSTANT operand, so a CONSTANT literal over 31 digits draws COBOL1547 beside COBOL0801 (named in the report).
 
 Review round 1 (R1-1): the capacity screen ran in an OMITTED conditional-compilation branch too, refusing a 32-digit `>>DEFINE` there with COBOL0801 where the base compiled it. §2023:8.3.3.3.2 makes 31 digits a minimum an implementor shall allow, not a syntax rule, so `LiteralScreen.Run` now asks the capacity only under `gateFormats` (a compiled branch), like the format gates. Test: `DirectiveLiteralScreenTests.NumericLiteralDigitCapacity_IsAskedInACompiledBranchOnly`. Five stale binder comments that still named the edition digit cap were corrected (R1-2).
+
