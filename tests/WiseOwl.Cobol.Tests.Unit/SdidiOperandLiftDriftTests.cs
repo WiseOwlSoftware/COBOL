@@ -67,7 +67,7 @@ public sealed class SdidiOperandLiftDriftTests
             + "operation is rounded by DecOperand (ISO 8.8.1.5.2 r1), not narrowed by the native Widen funnel (kb/Work PB2966).");
 
         string power = Body(src, "private NumX Power(");
-        int standard = power.IndexOf("return new NumX(RuntimeApi.DecPow(", StringComparison.Ordinal);
+        int standard = power.IndexOf("RuntimeApi.DecPow(", StringComparison.Ordinal);   // formed, cut to the standard intermediate data item when it is one (kb/Work PB5575), returned
         int powerFunnel = power.IndexOf("b = DeU(b);", StringComparison.Ordinal);
         Assert.True(standard >= 0 && powerFunnel > standard,
             "Power must take the standard-mode DecPow return BEFORE `b = DeU(b)` (kb/Work PB2966).");
@@ -90,7 +90,7 @@ public sealed class SdidiOperandLiftDriftTests
         {
             if (!line.Contains("DecOperandExact(")) continue;
             if (line.Contains("private string DecOperandExact(")) continue;                // the declaration
-            if (line.Contains("!LiftRounds(x) ? DecOperandExact(x)")) continue;           // DecOperand's own pass-through, guarded by the ONE predicate (kb/Work PB3018)
+            if (line.Contains("!LiftRounds(x) ? SidiOperand(x, DecOperandExact(x))")) continue;          // DecOperand's own pass-through, guarded by the ONE predicate (kb/Work PB3018)
             // The nested quotient's operand (kb/Work PB3538 review finding R2-1): exact except an unsigned-wide value,
             // and read only by the third round-to-odd consumer, DecDivTruncatedToOdd (checked below).
             if (line.Contains("private string DecQuotientOperand(NumX x) => x.U ? DecOperand(x) : DecOperandExact(x);")) continue;

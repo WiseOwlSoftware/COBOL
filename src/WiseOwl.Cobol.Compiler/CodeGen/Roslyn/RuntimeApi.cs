@@ -1147,6 +1147,16 @@ internal static class RuntimeApi
     public static string DecLiftRoundedUnsigned(string unsigned, int scale, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromUnsigned)}({unsigned}, {scale}, {modeExpr})";
 
+    /// <summary>A value as the standard intermediate data item of ARITHMETIC IS STANDARD holds it — <c>CobolDec.ToSidi</c>:
+    /// truncated to 32 significant digits, in the 10^-999 to 10^1000 - 10^968 range (§2002:8.8.1.3.1.1; kb/Work PB5575),
+    /// inexact being a size error under INTERMEDIATE ROUNDING IS PROHIBITED (<paramref name="modeExpr"/>).</summary>
+    public static string DecToSidi(string value, string modeExpr) => $"{value}.{nameof(CobolDec.ToSidi)}({modeExpr})";
+
+    /// <summary>A standard intermediate data item ROUNDED to 31 digits — <c>CobolDec.ToSidiRounded</c> — where the rounding rules
+    /// of standard arithmetic apply (§2002:8.8.1.3.1.3: a comparison, a function argument with no equivalent expression, a move
+    /// to a resultant without ROUNDED).</summary>
+    public static string DecToSidiRounded(string value, string modeExpr) => $"{value}.{nameof(CobolDec.ToSidiRounded)}({modeExpr})";
+
     /// <summary>The §2023:8.8.1.5.1 implementor-defined float→SDIDI conversion of a floating-point DATA ITEM's value -
     /// <c>CobolDec.FromBinary64</c>: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE
     /// ROUNDING mode (§2023:8.8.1.5.2 r1; kb/Work PB1606).</summary>

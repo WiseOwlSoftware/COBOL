@@ -59,6 +59,8 @@ WiseOwl.Cobol.Runtime.AsyncMessaging
 WiseOwl.Cobol.Runtime.CellPointer.Extent.get -> int?
 WiseOwl.Cobol.Runtime.CellPointer.Extent.init -> void
 WiseOwl.Cobol.Runtime.CobolDec.AdjustedExponent.get -> int
+WiseOwl.Cobol.Runtime.CobolDec.ToSidi(WiseOwl.Cobol.Runtime.CobolRounding intermediate = WiseOwl.Cobol.Runtime.CobolRounding.Truncation) -> WiseOwl.Cobol.Runtime.CobolDec
+WiseOwl.Cobol.Runtime.CobolDec.ToSidiRounded(WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
 WiseOwl.Cobol.Runtime.CobolDec.TruncateToSignificantDigits(int digits) -> WiseOwl.Cobol.Runtime.CobolDec
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision.CobolDecWithPrecision() -> void
@@ -859,6 +861,8 @@ WiseOwl.Cobol.Runtime.StorageCell.VarGroupAt(int fixedAt, int width, int dynBase
 const WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeBoolean = "figurative-boolean" -> string!
 const WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeSpace = "figurative-space" -> string!
 const WiseOwl.Cobol.Runtime.AsyncMessaging.UnboundedCapacity = 2147483647 -> int
+const WiseOwl.Cobol.Runtime.CobolDec.SidiDigits = 32 -> int
+const WiseOwl.Cobol.Runtime.CobolDec.SidiRoundedDigits = 31 -> int
 const WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MaxSubscriptLevels = 3 -> int
 const WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth = 30 -> int

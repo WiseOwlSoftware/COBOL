@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-18",
+ "rule-digest": "26176452f443",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#LowestKey; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IsActive",
+ "test-ref": "conformance:cases/14.9.30-READ/pb344_read_previous_indexed_2002; conformance:cases/14.9.30-READ/pb344_read_previous_indexed_2014",
+ "notes": "§2002:14.8.29.3 GR18c2: a PREVIOUS READ selects the first existing record whose key value is less than or equal to the file position indicator, and with no such record GR18 sets '10' and the at end condition. IndexedConnector.SelectSequentialRecord, after an OPEN at --std 2002 and 2014, seeks the last key at most the indicator OPEN set, LowestKey (§2002:14.8.26.3 GR12), instead of the first existing record (kb/Work PB5639, which overturned PB344). The goldens pb344_read_previous_indexed_2002 and _2014: P1 is AT END '10' for a file whose lowest key is K002, and P5 makes a record keyed LOW-VALUES available."
+}

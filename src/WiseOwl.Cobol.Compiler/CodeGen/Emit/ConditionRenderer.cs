@@ -507,7 +507,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // PB1606) and a fixed operand lifts EXACTLY (CobolDec.From), preserving decimal precision that a
         // native (double)-rounded compare would lose. A native STANDARD-DECIMAL intermediate (.Dec) also lands here.
         if (l.Dec || rr.Dec || l.Real || rr.Real)
-            return $"CobolDec.Compare({num.DecOperand(l)}, {num.DecOperand(rr)}) {r.Op} 0";
+            return $"CobolDec.Compare({num.SidiRounded(l, num.DecOperand(l))}, {num.SidiRounded(rr, num.DecOperand(rr))}) {r.Op} 0";   // §2002:8.8.1.3.1.3 situation 1
         // An UNSIGNED-WIDE operand (a 16-byte unsigned COMP-5 read or the HIGHEST-ALGEBRAIC fold literal —
         // kb/Work R10) compares by algebraic VALUE over the full [0, 2^128) range: CobolNum.CompareU's overload
         // set covers U-vs-U and either mixed order, so the comparison never narrows through the Int128 funnel
@@ -721,7 +721,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // exponent, and never a landing that could overflow (kb/Work PB84 — `IF 9 ** TWO + (180 - 90) IS
             // NOT POSITIVE`, NIST NC250A, was a Roslyn CS0019 on `CobolDec > 0`).
             : v.Dec
-            ? s.Kind switch { 'P' => $"{RuntimeApi.DecSign(v.Expr)} > 0", 'N' => $"{RuntimeApi.DecSign(v.Expr)} < 0", _ => $"{RuntimeApi.DecSign(v.Expr)} == 0" }
+            ? s.Kind switch { 'P' => $"{RuntimeApi.DecSign(num.SidiRounded(v, v.Expr))} > 0", 'N' => $"{RuntimeApi.DecSign(num.SidiRounded(v, v.Expr))} < 0", _ => $"{RuntimeApi.DecSign(num.SidiRounded(v, v.Expr))} == 0" }   // a sign test compares the item to zero: §2002:8.8.1.3.1.3 situation 1
             : s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
         return s.Negated ? $"!({test})" : $"({test})";
     }
