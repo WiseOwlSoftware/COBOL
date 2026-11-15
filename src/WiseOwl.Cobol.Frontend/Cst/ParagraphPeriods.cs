@@ -60,10 +60,11 @@ public static class ParagraphPeriods
             [typeof(Core.RepositoryParagraphContext)] = new("12.3.8.2", "REPOSITORY",
                 "one separator period, after the last specifier", null),
             // §2023:12.3.5.2: `SOURCE-COMPUTER. [ computer-name-1 ] .` — §2023:12.3.5.3 SR1 lets the second period go only when
-            // the name is not written. Superset-parsed so the name's prediction commits (kb/Work PB3370).
+            // the name is not written; at 2002 the WITH DEBUGGING MODE clause holds the period too (§2002:12.2.4.2 SR1, kb/Work
+            // PB5609). Superset-parsed so the name's prediction commits (kb/Work PB3370).
             [typeof(Core.SourceComputerParagraphContext)] = new("12.3.5.2", "SOURCE-COMPUTER",
-                "a second separator period after computer-name-1, which only a paragraph without the name may omit "
-                + "(§2023:12.3.5.3 SR1)", null),
+                "a second separator period after computer-name-1 and the WITH DEBUGGING MODE clause, which only a "
+                + "paragraph with neither may omit (§2023:12.3.5.3 SR1, §2002:12.2.4.2 SR1)", null),
             // §2023:12.3.6.2: `OBJECT-COMPUTER. [ computer-name-1 ] [ clauses ] .` — §2023:12.3.6.3 SR4 lets the second period go
             // only when neither the name nor a clause is written (kb/Work PB3370, SOURCE-COMPUTER's twin).
             [typeof(Core.ObjectComputerParagraphContext)] = new("12.3.6.2", "OBJECT-COMPUTER",

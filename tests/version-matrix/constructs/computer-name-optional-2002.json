@@ -1,10 +1,10 @@
 {
  "id": "computer-name-optional-2002",
  "status": "active",
- "description": "OBJECT-COMPUTER clauses WITHOUT computer-name-1 — ISO §2023:12.3.6.2 makes computer-name-1 optional and lets the clauses (PROGRAM COLLATING SEQUENCE, CHARACTER CLASSIFICATION) follow the paragraph's period directly. X3.23-1985 hung the clauses (MEMORY SIZE, PROGRAM COLLATING SEQUENCE, SEGMENT-LIMIT) off a REQUIRED computer-name, so the name-less clause form is a 2002 relaxation; the empty paragraph (and SOURCE-COMPUTER's, §2023:12.3.5.2) was legal at 85 already. Parsed at every edition (superset-parse / bind-narrow) so the below-2002 rejection is this named gate rather than `unexpected 'PROGRAM'`. kb/Work PB78.",
- "display": "an OBJECT-COMPUTER clause without computer-name-1",
+ "description": "A clause of SOURCE-COMPUTER or OBJECT-COMPUTER WITHOUT computer-name-1. ISO 2002 makes computer-name-1 optional before the clauses: §2002:12.2.4.1 prints SOURCE-COMPUTER's WITH DEBUGGING MODE clause in a bracket of its own, and ISO §2023:12.3.6.2 lets the OBJECT-COMPUTER clauses (PROGRAM COLLATING SEQUENCE, CHARACTER CLASSIFICATION) follow the paragraph's period directly. X3.23-1985 hung every clause (WITH DEBUGGING MODE; MEMORY SIZE, PROGRAM COLLATING SEQUENCE, SEGMENT-LIMIT) off a REQUIRED computer-name, so the name-less clause form is a 2002 relaxation; the empty paragraph (and SOURCE-COMPUTER's, §2023:12.3.5.2) was legal at 85 already. Parsed at every edition (superset-parse / bind-narrow) so the below-2002 rejection is this named gate rather than `unexpected 'PROGRAM'`. kb/Work PB78 (OBJECT-COMPUTER), PB5609 (SOURCE-COMPUTER).",
+ "display": "a SOURCE-COMPUTER or OBJECT-COMPUTER clause without computer-name-1",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:12.3.6.2 (OBJECT-COMPUTER: [computer-name-1] before the clause set) — 2002 relaxation of the '85 required-name format",
+ "citation": "§2002:12.2.4.1 (SOURCE-COMPUTER: [computer-name-1] [WITH DEBUGGING MODE]) and ISO §2023:12.3.6.2 (OBJECT-COMPUTER: [computer-name-1] before the clause set) — 2002 relaxation of the '85 required-name formats",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

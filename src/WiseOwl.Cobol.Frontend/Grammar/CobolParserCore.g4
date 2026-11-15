@@ -540,12 +540,18 @@ programPrototypeName
 // SOURCE-COMPUTER. [computer-name-1] . (ISO §2023:12.3.5.2 — computer-name-1 is OPTIONAL; §2023:12.3.5.3 SR1: without it the
 // second period may be omitted). ⛔ THE FORMAT IS CLOSED (kb/Work PB830; RENDERED from the printed page — PDF p314 /
 // folio 284): after the optional name there is NOTHING but the period. The empty paragraph was legal in X3.23-1985
-// too; the '85 WITH DEBUGGING MODE clause hung off a REQUIRED name, and is modelled here as its own clause so the
-// deleted-2002 gate reads a NODE (VersionConformancePass ParseArm.VisitDebuggingModeClause) — a name-less
-// `SOURCE-COMPUTER. WITH DEBUGGING MODE.` stays illegal at every edition ('85 required the name, 2002 deleted the
-// clause). Everything else after the name is the error production, refused BY NAME by ClosedFormatPass
-// (COBOL1970). It used to be `computerAttributes : ~DOT+`, an UNGATED token sink that accepted
-// `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` at every edition in silence.
+// too. The WITH DEBUGGING MODE clause is modelled as its own clause so its edition gate reads a NODE
+// (VersionConformancePass ParseArm.VisitDebuggingModeClause: obsolete 2002, removed 2014 — §2014:12.3.4.1 prints
+// `SOURCE-COMPUTER. [ computer-name-1 ] .`).
+// ⛔ THE CLAUSE STANDS WITH OR WITHOUT THE NAME (kb/Work PB5609). §1985:VI.4.3.2 hangs it off a REQUIRED name,
+// `[ computer-name [ WITH DEBUGGING MODE ] . ]`, but §2002:12.2.4.1 (rendered, PDF p212 / folio 190) prints two
+// INDEPENDENT brackets, `SOURCE-COMPUTER. [ computer-name-1 ] [ WITH DEBUGGING MODE ] .`, so the name-less
+// `SOURCE-COMPUTER. WITH DEBUGGING MODE.` is legal at 2002. The grammar parses the superset; the name-less clause is
+// the 2002 relaxation `computer-name-optional-2002` (VisitSourceComputerParagraph, COBOL0900 below 2002), the
+// OBJECT-COMPUTER clauses' twin. It was a nested `(computerName debuggingModeClause?)?`, the 1985 shape at every
+// edition, and the name-less clause drew a bare COBOL1971 at 2002. Everything else after the name or the clause is the
+// error production, refused BY NAME by ClosedFormatPass (COBOL1970). It used to be `computerAttributes : ~DOT+`, an
+// UNGATED token sink that accepted `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` at every edition in silence.
 // ⛔ THE SECOND PERIOD IS A PUNCTUATION SUPERSET (kb/Work PB3370): `DOT?` even after a computer-name, and the period
 // §2023:12.3.5.3 SR1 does not let go is refused BY NAME by ClosedFormatPass through ParagraphPeriods (COBOL3408). It is
 // what makes the optional name's prediction COMMIT: when the name's paragraph and the configuration section's error
@@ -560,14 +566,15 @@ programPrototypeName
 // rather than readable only as a name-less paragraph and an unrecognized `XYZ "LIT"` paragraph, and the tie goes to
 // the name.
 sourceComputerParagraph
-    : SOURCE_COMPUTER DOT (computerName debuggingModeClause? unrecognizedClause?)? DOT?
+    : SOURCE_COMPUTER DOT ((computerName debuggingModeClause? | debuggingModeClause) unrecognizedClause?)? DOT?
     ;
 
 // X3.23-1985 `WITH DEBUGGING MODE` (the '85 debug facility's compile-time switch; WITH is not underlined). Obsolete at
 // 2002 and removed at 2014 (owner decision kb/Work R61) — VCR row 7.9, `debugging-mode-removed-2014`. Its presence also
 // decides the USE FOR DEBUGGING posture (ConfigurationSlice.DebuggingModeDeclared, VCR row 7.17) and keeps the unit's fixed-form
 // debugging lines as source (DebuggingLineRewriter, which reads the clause from the TOKENS: a change to this rule's
-// shape — the optional WITH, the clause's place after the computer-name — is a change to DeclaresMode there).
+// shape — the optional WITH, the clause's place in the paragraph, after the name or without one — is a change to
+// DeclaresMode there).
 debuggingModeClause
     : WITH? DEBUGGING MODE
     ;

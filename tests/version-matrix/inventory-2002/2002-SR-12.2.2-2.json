@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.2-2",
+ "rule-digest": "c0d748690e33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen",
+ "test-ref": "conformance:cases/12.2.2@2002-CONFIGURATION-SECTION/pb5609-method-debugging-mode-without-name",
+ "notes": "Same words as the 2023 twin (§2023:12.3.3 SR2), but 2002's configuration section has a form 2023 lacks: SOURCE-COMPUTER ... WITH DEBUGGING MODE, with or without computer-name-1 (§2002:12.2.4.1). A method whose configuration section writes the name-less clause is now refused by this rule (COBOL2644, a method definition shall not contain a CONFIGURATION SECTION) after the obsolete warning COBOL0903, where it was the grammar's parse error COBOL1971 (kb/Work PB5609); the named form already reached COBOL2644."
+}
