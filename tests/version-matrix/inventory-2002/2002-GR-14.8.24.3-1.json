@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-14.8.24.3-1",
+ "rule-digest": "9e06d67317e9",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#Materialize",
+ "notes": "kb/Work PB5678: at --std 2002 (golden-2002-2 re-probe on main 63ab0c4ece, repro g2mvd2.cob) MOVE of a PIC XBX \"A B\" sender to two receivers stores [A    ] in each, X/X \"A/B\" stores [A//  ], NBN stores [C    ]: the frozen temporary re-edits the sender, where GR1 moves its content [A B  ], [A/B  ], [C D  ]."
+}
