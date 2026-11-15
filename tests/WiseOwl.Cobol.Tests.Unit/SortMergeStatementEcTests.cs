@@ -260,9 +260,25 @@ public sealed class SortMergeStatementEcTests
             CobolSort.Close(sd);
         }
         static BoundStatement Node(Type t) => (BoundStatement)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(t);
-        Assert.True(EcEmitter.VerbDisposes(Node(typeof(BoundSort))));
-        Assert.True(EcEmitter.VerbDisposes(Node(typeof(BoundMerge))));
-        Assert.False(EcEmitter.VerbDisposes(Node(typeof(BoundRelease))));
+        Assert.True(EcEmitter.VerbDisposes(Node(typeof(BoundSort)), 2023));
+        Assert.True(EcEmitter.VerbDisposes(Node(typeof(BoundMerge)), 2023));
+        Assert.False(EcEmitter.VerbDisposes(Node(typeof(BoundRelease)), 2023));
+    }
+
+    /// <summary>§2023:14.6.13.1.3 2) exists only from 2023 (kb/Work PB5612; VCR row 7.80): §2014:14.6.12.1.2 2) and
+    /// §2002:14.5.12.1.2 2) run the declarative and then terminate the run unit, so below 2023 no SORT or MERGE guard,
+    /// and no implicit-transfer hook, hands a fatal condition to the verb.</summary>
+    [Theory]
+    [InlineData(2002, false)]
+    [InlineData(2014, false)]
+    [InlineData(2023, true)]
+    public void TheVerbDisposesItsFatalConditions_OnlyFrom2023(int dialectLevel, bool disposes)
+    {
+        static BoundStatement Node(Type t) => (BoundStatement)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(t);
+        Assert.Equal(disposes, EcEmitter.VerbDisposes(Node(typeof(BoundSort)), dialectLevel));
+        Assert.Equal(disposes, EcEmitter.VerbDisposes(Node(typeof(BoundMerge)), dialectLevel));
+        Assert.Equal(disposes, EcEmitter.SortMergeDisposesFatalConditions(dialectLevel));
+        Assert.False(EcEmitter.VerbDisposes(Node(typeof(BoundRelease)), dialectLevel));
     }
 
     /// <summary>§2023:14.9.40.4 GR9 / §2023:14.9.24.4 GR7, GR12 raise -FILE-OPEN only for a file "in an open mode": a

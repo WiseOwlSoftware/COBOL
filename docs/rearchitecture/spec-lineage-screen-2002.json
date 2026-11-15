@@ -99,7 +99,7 @@
  ],
  "counts": {
   "pairs": 1770,
-  "marked": 1230,
+  "marked": 1258,
   "ambiguous": 2,
   "normalized": 38,
   "absent-from-2014": 29,
@@ -107,7 +107,7 @@
   "definition-dropped": 359,
   "cross-reference": 28,
   "pending-clause": 621,
-  "behaviour-switch": 194,
+  "behaviour-switch": 244,
   "held": 6,
   "band-formats": 84,
   "clause-identity": 1767,
@@ -3885,6 +3885,10 @@
    "2002-GR-14.8.33.3-17",
    "2002-GR-14.8.33.3-3",
    "2002-GR-14.8.35.3-24",
+   "2002-GR-14.8.36.3-1",
+   "2002-GR-14.8.36.3-19",
+   "2002-GR-14.8.36.3-21",
+   "2002-GR-14.8.36.3-23",
    "2002-GR-8.3.1.2.1.3-2",
    "2002-SR-11.2.2-9",
    "2002-SR-11.5.2-4",
@@ -3893,6 +3897,10 @@
    "2002-SR-12.3.6.2-9",
    "2002-SR-13.14.2-15",
    "2002-SR-13.16.36.2-17",
+   "2002-SR-14.8.23.2-10",
+   "2002-SR-14.8.23.2-3",
+   "2002-SR-14.8.23.2-5",
+   "2002-SR-14.8.23.2-7",
    "2002-SR-14.8.27.2-12",
    "2002-SR-14.8.27.2-4",
    "2002-SR-14.8.33.2-2",
@@ -3900,6 +3908,9 @@
    "2002-SR-14.8.35.2-22",
    "2002-SR-14.8.35.2-25",
    "2002-SR-14.8.35.2-8",
+   "2002-SR-14.8.36.2-11",
+   "2002-SR-14.8.36.2-2",
+   "2002-SR-14.8.36.2-7",
    "2002-SR-7.1.2.2-16",
    "2002-SR-7.1.2.2-3",
    "2002-SR-7.1.3.2-2",
@@ -3944,7 +3955,7 @@
    "behaviour-switch": {
     "DIFFERENT": 0,
     "DOUBTFUL": 0,
-    "SAME": 6
+    "SAME": 17
    },
    "held": {
     "DIFFERENT": 0,
@@ -5506,38 +5517,50 @@
    "definition-dropped": "method (newer: 9.3.4)",
    "pending-clause": "§2002:9.3.5 (changed)"
   },
+  "2002-GR-14.8.23.3-1": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
   "2002-GR-14.8.23.3-10": {
-   "definition-changed": "procedure"
+   "definition-changed": "procedure",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.23.3-11": {
    "definition-changed": "procedure",
-   "pending-clause": "§2002:9.3.5 (changed)"
+   "pending-clause": "§2002:9.3.5 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.23.3-13": {
-   "definition-dropped": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)"
+   "definition-dropped": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.23.3-2": {
-   "definition-dropped": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)"
+   "definition-dropped": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.23.3-3": {
    "absent-from-2014": "its whole text is not in the 2014 transcription",
    "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions",
    "deferral": "the rules for "
   },
   "2002-GR-14.8.23.3-4": {
    "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions",
    "deferral": "the rules for "
   },
   "2002-GR-14.8.23.3-5": {
    "definition-changed": "class | of a data item",
-   "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)"
+   "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.23.3-6": {
-   "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)"
+   "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.23.3-9": {
    "definition-changed": "procedure",
-   "pending-clause": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)"
+   "pending-clause": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.24.3-3": {
    "definition-changed": "de-editing"
@@ -5772,47 +5795,82 @@
    "definition-dropped": "null (newer: 8.4.3.7.1); object reference (newer: 9.3.2)",
    "band-formats": "band-formats [12] against [[13]]"
   },
+  "2002-GR-14.8.36.3-1": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
   "2002-GR-14.8.36.3-10": {
-   "definition-changed": "procedure"
+   "definition-changed": "procedure",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.36.3-13": {
    "definition-changed": "procedure",
-   "pending-clause": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)"
+   "pending-clause": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.36.3-15": {
    "absent-from-2014": "its whole text is not in the 2014 transcription",
-   "definition-dropped": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)"
+   "definition-dropped": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.36.3-16": {
    "definition-changed": "procedure",
-   "pending-clause": "§2002:9.3.5 (changed), §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)"
+   "pending-clause": "§2002:9.3.5 (changed), §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-GR-14.8.36.3-17": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.36.3-18": {
    "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed), §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions",
    "deferral": "the rules for "
+  },
+  "2002-GR-14.8.36.3-19": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-GR-14.8.36.3-2": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-GR-14.8.36.3-20": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-GR-14.8.36.3-21": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-GR-14.8.36.3-22": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-GR-14.8.36.3-23": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.36.3-3": {
    "definition-changed": "procedure",
-   "pending-clause": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)"
+   "pending-clause": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.36.3-4": {
-   "pending-clause": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)"
+   "pending-clause": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.36.3-5": {
    "absent-from-2014": "its whole text is not in the 2014 transcription",
    "definition-changed": "class | of a data item",
-   "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)"
+   "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.36.3-6": {
-   "definition-dropped": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)"
+   "definition-dropped": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.36.3-7": {
    "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed), §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions",
    "deferral": "the rules for "
   },
   "2002-GR-14.8.36.3-8": {
    "definition-changed": "procedure",
-   "pending-clause": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)"
+   "pending-clause": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-14.8.37.3-11": {
    "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)"
@@ -6210,14 +6268,14 @@
   },
   "2002-GR-7.2.17.3-1": {
    "pending-clause": "§2002:9.3.5 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-7.2.17.3-3": {
    "pending-clause": "§2002:9.3.5 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-7.2.17.3-4": {
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, sort-merge-disposes-its-fatal-conditions"
   },
   "2002-GR-7.2.18.2-2": {
    "pending-clause": "§2002:6 (changed, undecided)",
@@ -7659,8 +7717,36 @@
   "2002-SR-14.8.22.2-7": {
    "definition-dropped": "object reference (newer: 9.3.2)"
   },
+  "2002-SR-14.8.23.2-10": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.23.2-11": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.23.2-12": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.23.2-2": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.23.2-3": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.23.2-5": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.23.2-6": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.23.2-7": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.23.2-8": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
   "2002-SR-14.8.23.2-9": {
-   "definition-dropped": "report (newer: 13.18.46.2)"
+   "definition-dropped": "report (newer: 13.18.46.2)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-SR-14.8.24.2-2": {
    "definition-dropped": "type | for type declaration (newer: 8.5.3)",
@@ -7858,8 +7944,39 @@
   "2002-SR-14.8.35.2-9": {
    "definition-dropped": "object reference (newer: 9.3.2)"
   },
+  "2002-SR-14.8.36.2-10": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.36.2-11": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.36.2-12": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.36.2-15": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.36.2-2": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.36.2-3": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.36.2-4": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.36.2-5": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.36.2-7": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
   "2002-SR-14.8.36.2-8": {
-   "definition-dropped": "report (newer: 13.18.46.2)"
+   "definition-dropped": "report (newer: 13.18.46.2)",
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
+  },
+  "2002-SR-14.8.36.2-9": {
+   "behaviour-switch": "sort-merge-disposes-its-fatal-conditions"
   },
   "2002-SR-14.8.37.2-6": {
    "definition-changed": "class | of a data item",
@@ -8170,7 +8287,7 @@
    "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.17.2-1": {
-   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode, sort-merge-disposes-its-fatal-conditions"
   },
   "2002-SR-7.2.19.2-1": {
    "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",

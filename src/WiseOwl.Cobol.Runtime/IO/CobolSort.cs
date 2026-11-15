@@ -76,7 +76,11 @@ public static class CobolSort
     /// is the RELEASE or the RETURN — and neither is anything raised by a statement of an input or output procedure.
     /// ⛔ But the SEQUENCING those statements trigger is marked (kb/Work PB3339): a RELEASE that fills the memory limit
     /// makes the store sort a run, and a RETURN reads the merge of runs, and both are the SORT's or MERGE's own sequence
-    /// operation done incrementally (<see cref="SortWork"/>), not the RELEASE's or the RETURN's.</summary>
+    /// operation done incrementally (<see cref="SortWork"/>), not the RELEASE's or the RETURN's.
+    /// <para>The mark is set at EVERY edition; whether it DECIDES is the emitter's (kb/Work PB5612): item 2) exists only from
+    /// 2023, so <c>EcEmitter.VerbDisposes</c> consults it only where
+    /// <see cref="DialectBehavior.SortMergeStatementDisposesItsFatalConditions"/> is active, and at 2002 and 2014 a marked
+    /// condition takes the general fatal procedure (§2014:14.6.12.1.2, §2002:14.5.12.1.2) like every other statement's.</para></summary>
     private static bool RaisedByTheStatement(CobolFatalException e)
     {
         e.RaisedBySortMerge = true;

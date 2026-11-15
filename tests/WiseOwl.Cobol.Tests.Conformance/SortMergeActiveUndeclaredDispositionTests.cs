@@ -17,7 +17,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// order chose — EC-SORT-MERGE-ACTIVE where it is enabled, the EC-FLOW name where only that is.</item>
 /// <item>A format 1 SORT executed in an output procedure raises the same EC-SORT-MERGE-ACTIVE, but the executed statement
 /// IS a SORT, so §2023:14.6.13.1.3 2) hands the condition to the SORT's own rules: the inner SORT terminates and the run unit
-/// continues.</item>
+/// continues. Only from 2023 (kb/Work PB5612; VCR row 7.80): §2014:14.6.12.1.2 and §2002:14.5.12.1.2 have no such item, so
+/// below 2023 the same raise is fatal like any statement's and the run unit terminates abnormally.</item>
 /// </list></summary>
 public sealed class SortMergeActiveUndeclaredDispositionTests
 {
@@ -62,8 +63,8 @@ public sealed class SortMergeActiveUndeclaredDispositionTests
         return $"      >>TURN {turn} CHECKING ON\n" + string.Join("\n", lines);
     }
 
-    private static (int Exit, string Stdout, string Stderr) Run(string id, string turn, string procs) =>
-        new WiseOwlCobolCompiler(2002).CompileAndRunExit(Program(id, turn, procs));
+    private static (int Exit, string Stdout, string Stderr) Run(string id, string turn, string procs, int edition = 2002) =>
+        new WiseOwlCobolCompiler(edition).CompileAndRunExit(Program(id, turn, procs));
 
     private const string InputProcedureReturn = """
         IP1.
@@ -127,11 +128,24 @@ public sealed class SortMergeActiveUndeclaredDispositionTests
         Assert.Equal("", stdout);
     }
 
-    /// <summary>A format 1 SORT executed (PERFORMed) in the output procedure with no USE procedure: EC-SORT-MERGE-ACTIVE
-    /// is disposed of by the verb (§2023:14.6.13.1.3 2)): the inner SORT ends without running its procedures, the output
-    /// procedure carries on and the run unit continues to a normal end, the outer SORT's record still returned.</summary>
+    /// <summary>A format 1 SORT executed (PERFORMed) in the output procedure with no USE procedure, at 2023:
+    /// EC-SORT-MERGE-ACTIVE is disposed of by the verb (§2023:14.6.13.1.3 2)): the inner SORT ends without running its
+    /// procedures, the output procedure carries on and the run unit continues to a normal end, the outer SORT's record
+    /// still returned.</summary>
     [Fact]
-    public void NestedSortInTheOutputProcedure_NoUse_TerminatesOnlyTheInnerSort()
+    public void NestedSortInTheOutputProcedure_NoUse_TerminatesOnlyTheInnerSort() =>
+        NestedSortInTheOutputProcedure(2023, "PB1571UN1", disposedByTheVerb: true);
+
+    /// <summary>The same program below 2023 (kb/Work PB5612): §2014:14.6.12.1.2 4) and §2002:14.5.12.1.2 4), with checking
+    /// enabled and no declarative, terminate the run unit abnormally naming the condition, and the output procedure's own
+    /// DISPLAY never runs.</summary>
+    [Theory]
+    [InlineData(2002, "PB1571UN2")]
+    [InlineData(2014, "PB1571UN3")]
+    public void NestedSortInTheOutputProcedure_NoUse_BelowTheVerbRule_TerminatesTheRunUnit(int edition, string id) =>
+        NestedSortInTheOutputProcedure(edition, id, disposedByTheVerb: false);
+
+    private static void NestedSortInTheOutputProcedure(int edition, string id, bool disposedByTheVerb)
     {
         const string procs = """
             IP1.
@@ -153,9 +167,17 @@ public sealed class SortMergeActiveUndeclaredDispositionTests
             OG.
                 DISPLAY "OG MUST NOT RUN".
             """;
-        var (exit, stdout, stderr) = Run("PB1571UN1", "EC-SORT-MERGE-ACTIVE", procs);
-        Assert.Equal(0, exit);
-        Assert.Equal("OP1 AFTER INNER\nGOT BBB\nDONE", stdout.Replace("\r\n", "\n"));
-        Assert.Equal("", stderr);
+        var (exit, stdout, stderr) = Run(id, "EC-SORT-MERGE-ACTIVE", procs, edition);
+        if (disposedByTheVerb)
+        {
+            Assert.Equal(0, exit);
+            Assert.Equal("OP1 AFTER INNER\nGOT BBB\nDONE", stdout.Replace("\r\n", "\n"));
+            Assert.Equal("", stderr);
+            return;
+        }
+        Assert.Equal(1, exit);
+        Assert.Contains("abnormal run-unit termination", stderr);
+        Assert.Contains("EC-SORT-MERGE-ACTIVE", stderr);
+        Assert.Equal("", stdout);
     }
 }

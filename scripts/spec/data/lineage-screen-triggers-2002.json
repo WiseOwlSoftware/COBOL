@@ -362,6 +362,15 @@
    ],
    "why": "the SELECT WHEN clause, §2002:13.16.49, evaluated for every WRITE and REWRITE (§2002:14.8.33, §2002:14.8.47) of a FORMAT or CODE-SET file"
   },
+  "sort-merge-disposes-its-fatal-conditions": {
+   "sections": [
+    "7.2.17",
+    "14.5.12",
+    "14.8.23",
+    "14.8.36"
+   ],
+   "why": "the fatal exception procedure of §2002:14.5.12.1.2, which has no item for a MERGE or SORT statement (§2023:14.6.13.1.3 2) is new), as it reaches the MERGE and SORT statements (§2002:14.8.23, §2002:14.8.36) and automatic propagation (§2002:7.2.17)"
+  },
   "compile-time-arithmetic-mode": {
    "sections": [
     "7.2",

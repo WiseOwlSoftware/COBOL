@@ -3,7 +3,7 @@
 *> rules: [GR-13.18.43.4-14, GR-13.18.43.4-19, GR-14.6.13.1.3-2,
 *>    GR-14.9.24.4-6, GR-14.9.24.4-7, GR-14.9.24.4-8, GR-14.9.24.4-12,
 *>    GR-14.9.40.4-9, GR-14.9.40.4-10, GR-14.9.40.4-12, GR-14.9.40.4-13]
-*> accept: [2002]
+*> accept: [2023]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -27,6 +27,10 @@
       *> MERGE or SORT statement, then the rules for those statements apply" -- the
       *> declarative runs and the statement is terminated; the run unit continues
       *> (docs/CONFORMANCE.md 3, D-SMA), so D-V completes NORMALLY and still returns.
+      *> ONLY AT 2023: item 2) is new in 2023 (kb/Work PB5612, VCR row 7.80); the
+      *> 2014 and 2002 fatal-exception procedures run the declarative and then
+      *> terminate the run unit, so this program is a 2023 witness and the
+      *> per-edition goldens are pb5612_*_by_edition.
       *> The EC-I-O family now reaches the implicit transfers too (GR12 a).
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT, in execution order --

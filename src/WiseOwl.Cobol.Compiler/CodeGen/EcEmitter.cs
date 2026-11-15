@@ -639,7 +639,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                 // continues after it (VerbDisposes; kb/Work PB1036), so on that guard the fatal default applies only
                 // to an unmarked condition.
                 EmitSelection(ecExpr, $"{{ __af{id}.Dispatched = true; throw; }}",
-                    fatalWhen: VerbDisposes(ec.Inner) ? $"!__af{id}.RaisedBySortMerge" : null);
+                    fatalWhen: VerbDisposes(ec.Inner, ctx.Data.DialectLevel) ? $"!__af{id}.RaisedBySortMerge" : null);
             }
         }
         return false;   // conservative: the catch can resume past an inner transfer
@@ -654,8 +654,20 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// decides, because the rule keys on the statement that EXECUTED: <c>CobolSort</c> sets it on whatever its
     /// statement entries raise (an EC-SORT-MERGE-* condition, an EC-LOCALE-* one from a locale-collated key), while a
     /// condition from a statement of an input or output procedure — or the same EC-SORT-MERGE names raised by a
-    /// RELEASE or RETURN — arrives unmarked and keeps 5)/7).</summary>
-    internal static bool VerbDisposes(BoundStatement inner) => inner is BoundSort or BoundMerge;
+    /// RELEASE or RETURN — arrives unmarked and keeps 5)/7).
+    /// <para>⛔ ONLY FROM 2023 (kb/Work PB5612; VCR row 7.80, <see cref="DialectBehavior.SortMergeStatementDisposesItsFatalConditions"/>):
+    /// §2014:14.6.12.1.2 and §2002:14.5.12.1.2 have no such item — a fatal exception condition runs the applicable declarative
+    /// and "If execution of the declarative completes normally the execution of the run unit is terminated abnormally", so at
+    /// <c>--std 2002</c> and <c>2014</c> the SORT/MERGE guard keeps the general fatal disposition like every other statement's.
+    /// <see cref="SortEmitter"/>'s implicit-transfer hooks ask this one predicate too
+    /// (<see cref="SortMergeDisposesFatalConditions"/>).</para></summary>
+    internal static bool VerbDisposes(BoundStatement inner, int dialectLevel) =>
+        inner is BoundSort or BoundMerge && SortMergeDisposesFatalConditions(dialectLevel);
+
+    /// <summary>Does the edition compiled for hand a SORT/MERGE's own fatal conditions (its raises and the fatal status of
+    /// an implicit transfer) to the verb's rules — §2023:14.6.13.1.3 2) — rather than to the general fatal procedure?</summary>
+    internal static bool SortMergeDisposesFatalConditions(int dialectLevel) =>
+        DialectBehaviors.IsActive(DialectBehavior.SortMergeStatementDisposesItsFatalConditions, dialectLevel);
 
     // ── RAISE (§2023:14.9.29) ─────────────────────────────────────────────────────────────────────────────────────
 
