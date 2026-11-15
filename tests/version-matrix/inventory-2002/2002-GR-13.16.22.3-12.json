@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.22.3-12",
+ "rule-digest": "d64052639b72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#CheckFormat",
+ "test-ref": "conformance:wiseowl/cases/13.18.24-FORMAT-clause/format_external_file_disagreement",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.22.3 GR12 (COBOL6847)."
+}

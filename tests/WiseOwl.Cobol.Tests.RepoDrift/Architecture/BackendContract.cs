@@ -58,6 +58,7 @@ internal static class BackendContract
             "Model.RecordKey.RecordKeyName", "Model.RecordKeySource.Name",
             "Model.RenamesInfo.FromName", "Model.RenamesInfo.FromQualifiers",
             "Model.RenamesInfo.ThruName", "Model.RenamesInfo.ThruQualifiers", "Model.ReportClauseName.Name",
+            "Model.SelectWhenSpec.ConditionName",   // condition-name-1 of a SELECT WHEN clause as written (kb/Work PB5578)
             "Model.VaryingRecordInfo.DependingName", "Model.VaryingRecordInfo.DependingQualifiers",
             // a parameterized definition's published skeleton and an expansion's identity: externalized names and words (kb/Work PB2104)
             "Model.ExpansionIdentity.ActualIdentities", "Model.ExpansionIdentity.DefinitionIdentity",

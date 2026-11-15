@@ -93,21 +93,16 @@ fileDescriptionClause
     | unrecognizedDataClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
-// FORMAT clause (§2023:13.18.24.2, printed general format p403 — RENDERED, not read off the OCR).
+// FORMAT clause (§2023:13.18.24.2, printed general format p403 — RENDERED, not read off the OCR; ISO/IEC 1989:2002 §13.16.22).
 //
-// ⛔ RECOGNIZE-ONLY. The FORMAT clause is item 1) of Annex A.4.8, an OPTIONAL language element this
-// implementation does NOT claim (docs/CONFORMANCE.md §5). A.4.1: "An implementation shall accept the syntax
-// and provide the functionality for an optional element only when support for that language element is
-// claimed by the implementor" — so the clause is parsed in order to be REFUSED BY NAME at bind
-// (DataBinder → COBOL1705), never bound and never silently ignored. Compiling it inert would change
-// which bytes reach the medium (§2023:13.18.24.4 GR1/GR2) — a wrong answer, not a missing facility, which is why
-// this is an Error and not the additive-facility warning band (COBOL1560/1578/1579/1580).
+// Annex A.4.8 item 1), CLAIMED (kb/Work PB5578): the clause is bound (FileControlBinder.BindFormatClause), its syntax rules are
+// ResolveRecordFormatPass's (COBOL7342) and its introduction gate is VersionConformancePass.VisitFormatClause (COBOL0900 at COBOL-85).
 //
 // SHAPE: `FORMAT { | BIT | CHARACTER | NUMERIC | } DATA`. The three alternatives are enclosed in CHOICE
 // INDICATORS (the `|` bars just inside the braces), so §2023:5.2.6.4 makes them ONE OR MORE, each at most once,
 // IN ANY ORDER — `FORMAT BIT CHARACTER DATA` is legal source, not a syntax error. `DATA` is NOT underlined
 // in the printed format: an optional word. The "each at most once" half is a §2023:5.2.6.4 syntax rule an EBNF
-// `+` cannot express; it is not enforced separately because the whole clause is refused either way.
+// `+` cannot express; ChoiceIndicators.AtMostOnce reads it at bind (BindFormatClause).
 formatClause
     : FORMAT (BIT | CHARACTER | NUMERIC)+ DATA?
     ;
@@ -402,7 +397,7 @@ dataDescriptionClause
     | anyLengthClause
     | dynamicLengthClause
     | groupUsageClause   // COBOL-2002 §2023:13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
-    | selectWhenClause   // ISO §2023:13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOL1705)
+    | selectWhenClause   // ISO §2023:13.18.51 / §2002:13.16.49 — Annex A.4.8 item 2), claimed (kb/Work PB5578); introduction-gated by VersionConformancePass.VisitSelectWhenClause, screened by ResolveRecordFormatPass (COBOL7343)
     | validationClause   // ISO §2023:13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitValidationClause (COBOL0900 below 2002, kb/Work PB5007) and refused by name at 2002 and later (COBOL1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
     | unrecognizedDataClause   // ⛔ LAST — the error production above; refused BY NAME by ClosedFormatPass (COBOL1941)
     ;
@@ -418,10 +413,8 @@ alignedClause
 
 // SELECT WHEN clause (§2023:13.18.51.2, printed general format p481 — RENDERED).
 //
-// ⛔ RECOGNIZE-ONLY, the twin of formatClause above: item 2) of Annex A.4.8, an OPTIONAL element this
-// implementation does not claim (docs/CONFORMANCE.md §5), parsed so it can be REFUSED BY NAME at bind
-// (COBOL1705). An inert SELECT WHEN would select the WRONG record description entry
-// (§2023:13.18.51.4 GR1/GR2) with a status-45 failure path — a wrong answer, so Error, not the warning band.
+// Annex A.4.8 item 2), CLAIMED, the twin of formatClause above (ISO/IEC 1989:2002 §13.16.49): recorded on the entry by DataBinder.BindSelectWhen
+// (SR1: level 01), resolved and screened by ResolveRecordFormatPass (SR2 - SR6, COBOL7343), gated by VersionConformancePass.VisitSelectWhenClause.
 //
 // SHAPE: `SELECT WHEN { condition-name-1 | OTHER }`. Plain braces, NO choice indicators: exactly one of the
 // two. SELECT, WHEN and OTHER are underlined (required words); condition-name-1 is a user-defined word.

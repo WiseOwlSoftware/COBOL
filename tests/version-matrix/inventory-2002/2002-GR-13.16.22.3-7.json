@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.22.3-7",
+ "rule-digest": "a7f8ee0c9ae9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ExternalRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#InternalRecord",
+ "test-ref": "conformance:cases/13.18.24-FORMAT-clause/format_roundtrip_character_numeric; conformance:cases/13.18.24-FORMAT-clause/format_roundtrip_bit",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.22.3 GR7: an item no kind selects is transferred as is."
+}

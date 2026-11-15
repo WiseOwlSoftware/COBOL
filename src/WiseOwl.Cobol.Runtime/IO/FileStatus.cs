@@ -107,6 +107,11 @@ public static class FileStatusCode
     /// the record being replaced (§2023:14.9.35 GR16).</summary>
     public const string RecordSizeViolation = "44";
 
+    /// <summary>45 — record identification failure (§2023:9.1.13.7 item 5, a logic error): no record description entry was selected
+    /// for processing with the FORMAT clause or the CODE-SET clause, because the condition of no SELECT WHEN clause was true
+    /// (§2023:13.18.51.4 GR4). The statement is unsuccessful and the medium is unchanged.</summary>
+    public const string RecordIdentificationFailure = "45";
+
     /// <summary>71 — a line-sequential WRITE (ISO §2023:14.9.51.4 GR23) or REWRITE (§2023:14.9.35.4 GR17 d) whose record area
     /// contains a character outside the implementor-defined line sequential character set. The statement is
     /// UNSUCCESSFUL and, per §2023:9.1.13.10 item 1, "the record area remains unchanged" — nothing reaches the medium.

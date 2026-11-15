@@ -410,7 +410,7 @@
           "pattern": "\\bON EXCEPTION\\b|\\bimperative-statement-[12]\\b|\\bEC-DATA-INCOMPATIBLE\\b"
         },
         {
-          "$arm": "Annex A.1 — owner decision R42 (2026-09-24): an obligation whose cross-reference points INTO a declined A.4.2 clause is withdrawn by A.1's preamble; keyed on the clause arm, like format-select-when-only's",
+          "$arm": "Annex A.1 — owner decision R42 (2026-09-24): an obligation whose cross-reference points INTO a declined A.4.2 clause is withdrawn by A.1's preamble; keyed on the clause arm",
           "xref-sections": [
             "9.2",
             "13.9",
@@ -457,118 +457,6 @@
         "LOCAL-STORAGE, SCREEN, and WORKING-STORAGE",
         "the only clauses that may be specified"
       ]
-    },
-    "format-select-when-only": {
-      "verdict": "DOCUMENTED-NON-SUPPORT",
-      "decision": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
-      "$selector": [
-        "A rule is SOLELY conditioned on A.4.8 when the FORMAT clause (§13.18.24) or the SELECT WHEN clause",
-        "(§13.18.51) is the ONLY thing it is about, so nothing survives when neither clause can be written. Both",
-        "cross-references were re-derived at the source rather than inherited: §13.18.24 IS the FORMAT clause and",
-        "§13.18.51 IS the SELECT WHEN clause. No defect of the kb/Work PB260 kind here.",
-        "",
-        "THE CLAUSE ARM carries 31 of the 37 rows — every rule of both clauses, general formats included. A.4.1",
-        "NOTE 1 cannot narrow them: it is scoped to A.4 entries that SHOW a higher-level construct ('For some",
-        "optional elements, higher-level language constructs are shown to provide context'), and A.4.8's two entries",
-        "show none — unlike A.4.9 item 8, 'PICTURE clause, format 2: locale (13.18.40)', which is the shape NOTE 1",
-        "governs.",
-        "",
-        "⛔ THE TEXT ARM IS DELIBERATELY NARROW, AND BROAD-REQUIRES + EXCLUDES IS THE WRONG SHAPE HERE. PB198's",
-        "predicate selects widely on the mode phrase and subtracts the mixed rules. That cannot work for this",
-        "module, and the reason is measured: the obvious discriminator — co-mention of the CODE-SET clause, which IS",
-        "supported — appears on BOTH sides. It is in four rules that MUST stay selected (GR-13.18.51.4-1, -3, -5 and",
-        "DOC-A.1-173) and in two that MUST stay out (GR-13.18.13.4-3, GR-13.18.13.4-4). An excludes-pattern on",
-        "CODE-SET would silently drop three of the module's OWN rules, because excludes apply to every arm. So the",
-        "judgement lives in a tight pattern and `excludes-patterns` is empty — empty because nothing needs",
-        "excluding, not because nothing was examined; seventeen near-misses were read and are named below.",
-        "",
-        "TEXT ARM — the pure conditional 'if a/the FORMAT clause is [also] specified'. Three rules elsewhere are",
-        "governed entirely by that antecedent: SR-13.4.5.3-6 (an FD with FORMAT shall specify variable-length",
-        "records), GR-13.18.13.4-5 (the format-then-code-set ordering), SR-14.9.27.3-9 (OPEN I-O barred with",
-        "FORMAT).",
-        "",
-        "⛔ THERE IS NO MATCHING 'SELECT WHEN IS SPECIFIED' ARM, ON PURPOSE. The symmetric phrasing appears in the",
-        "CODE-SET clause exclusively in its NEGATED form — 'no SELECT WHEN clauses are specified' (SR-13.18.13.3-3)",
-        "and 'do not contain a SELECT WHEN clause' (GR-13.18.13.4-3) — the branch describing what happens WITHOUT",
-        "the module, which is live code today (DataBinder.BindCodeSetClause).",
-        "",
-        "⚖ THE SELECTION ARM (kb/Work R43, 2026-09-24) — record-description SELECTION is the SELECT WHEN mechanism,",
-        "so 'a record description entry is/was selected' reaches the two rules that speak of it from outside the",
-        "module's clauses. GR-9.1.13.7-5 (I-O status 45, 'no record description entry was selected for processing')",
-        "has no producer while A.4.8 is declined (PB1518). GR-13.18.13.4-4 (PB1255) is declined JOINTLY: its a)",
-        "is SELECT WHEN selection (A.4.8), its b) — 'If there are no record description entries associated with the",
-        "file, the record description used for conversion is the description of the identifier or literal specified",
-        "in the FROM phrase of a WRITE or REWRITE statement specifying the FILE phrase' — is A.4.13, also Not",
-        "claimed, and its c)/d) speak of 'the selected record description entry', which only a) or b) creates. The",
-        "earlier reading that it 'keeps content for a file with no record description entries' was a real clause",
-        "answering a different question: that content IS the FILE phrase's FROM operand. The row is stamped here",
-        "because selection is its first and defining branch; one row, one determination (NoTwoSelectors).",
-        "",
-        "THE A.1 ARM is `xref-sections`, keyed on the SAME clause numbers as the clause arm. DOC-A.1-84, -85 and",
-        "-173 are Annex A.1 documentation obligations whose cross-reference points INTO a declined clause",
-        "('(13.18.24, FORMAT clause, General rule 10)'). ⛔ THE LICENCE IS A.1'S OWN PREAMBLE, not an inference from",
-        "the Annex A.4.8 module's §4.2.7 non-claim: 'Required: The element shall be provided by the implementor. When the element is part of a feature",
-        "that is optional or processor-dependent, the item is not required if the optional or processor-dependent",
-        "feature is not implemented.' (--check OK) — which answers DOC-A.1-84's own 'This item is required' head-on",
-        "where the §4.2.7/A.4.1 route only answers it indirectly. §4.2.5 ¶1 and A.4.1's closing line corroborate.",
-        "  ⚠ These are the FIRST DOC rows in the inventory to carry any verdict, and they are stamped by the DERIVED",
-        "  lane rather than the A.1 lane deliberately: the A.1 lane closes a DOC row on a §7 determination plus a",
-        "  witness golden, and a row that CANNOT arise has no determination to make. `audit_annex_a1.py` was taught",
-        "  the same A.1-preamble exclusion in the same change set, so CONFORMANCE.md §7's counter and the inventory",
-        "  cannot give two answers about one item. The arm derives from `sections` rather than hard-coding the two",
-        "  clause numbers a second time, so the next declined module gets it free.",
-        "",
-        "⚠ DRIFT HAZARD, PINNED IN THE TEST: FMT-13.16.2 (the data description entry's general format) carries",
-        "'13.18.51, SELECT WHEN clause' in its cross-reference table, and FMT-13.4.5.2 the FORMAT clause. Both are",
-        "the higher-level constructs A.4.1 NOTE 1 expressly makes NOT optional — and independently, both carry a",
-        "dozen other clauses that are live surface, which is this selector's own survival test. The A.1 arm's",
-        "`kinds: [DOC]` is what holds them out.",
-        "",
-        "SEVENTEEN NEAR-MISSES, the selector's complement, recorded as data because a predicate is evidence only",
-        "about what it RETURNED (GR-9.1.13.7-5 and GR-13.18.13.4-4 were two more until the selection arm):",
-        "SR-13.18.13.3-3, GR-13.18.13.4-3 (the CODE-SET no-SELECT-WHEN branches, implemented today); GR-13.18.43.4-2 (RECORD sizing); SR-13.18.44.3-3 (REDEFINES, two arms); GR-13.18.49.4-1 (SAME AS),",
-        "GR-13.18.57.4-1 (TYPE) and SR-13.16.3-13 (CONSTANT RECORD) — one name in a list of several;",
-        "GR-14.9.35.4-20 / GR-14.9.51.4-14 (a qualifier on a measurement, not the rule's condition);",
-        "GR-14.9.24.4-2/-13, GR-14.9.40.4-7/-16 (MERGE/SORT, where sub-item a) is the whole rule); FMT-13.4.5.2 and",
-        "FMT-13.16.2.",
-        "",
-        "MEASURED 2026-09-02: 37 selected of 4,311 — 31 by clause, 3 by text, 3 by the A.1 arm. ALL 37 are blank",
-        "and GAP, so this selector changes NO existing verdict."
-      ],
-      "arms": [
-        {
-          "$arm": "clause — both A.4.8 clauses are optional entire",
-          "sections": [
-            "13.18.24",
-            "13.18.51"
-          ]
-        },
-        {
-          "$arm": "text — rules elsewhere governed entirely by 'if a FORMAT clause is specified'",
-          "pattern": "\\bif\\s+(?:a|the)\\s+FORMAT\\s+clause\\s+is\\s+(?:also\\s+)?specified\\b",
-          "excludes-kinds": [
-            "FMT"
-          ]
-        },
-        {
-          "$arm": "selection — a record description entry being SELECTED is what SELECT WHEN does (§13.18.51); kb/Work R43 / PB1518 (I-O status 45) and PB1255 (CODE-SET GR4, jointly with A.4.13 — see $selector)",
-          "pattern": "\\brecord description entry\\s+(?:is|was)\\s+selected\\b",
-          "excludes-kinds": [
-            "FMT"
-          ]
-        },
-        {
-          "$arm": "Annex A.1 — a documentation obligation citing a declined clause; keyed on the clause arm",
-          "xref-sections": [
-            "13.18.24",
-            "13.18.51"
-          ],
-          "kinds": [
-            "DOC"
-          ]
-        }
-      ],
-      "excludes-patterns": []
     },
     "oo-optional-items-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",

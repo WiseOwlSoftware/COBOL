@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.13.2-3",
+ "rule-digest": "dcaf6ae1636e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckCodeSetRecordItemsPass.cs#Run; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal",
+ "test-ref": "conformance:cases/13.18.13-CODE-SET/select_when_code_set_mixed_usage",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.13.2 SR3: the all-usage-display rule applies only without SELECT WHEN clauses (CheckCodeSetRecordItemsPass)."
+}

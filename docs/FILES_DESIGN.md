@@ -1729,8 +1729,9 @@ WRITE status for a sequential file; the keyed '02' case waits on kb/Work PB994 (
 and GR16 (GIVING), and their MERGE twins §2023:14.9.24.4 GR2 and GR13, space-fill a record with fewer character positions than the fixed
 length of the receiving file: with the NATIONAL space when there is one record description and it is a national data
 item or an elementary item of usage national and category numeric, numeric-edited or boolean (a), and with the
-alphanumeric space otherwise (c); arm b) needs SELECT WHEN, which Annex A.4.8 declines. `FileModel.ShortRecordFillNational`
-is that one test, over the file's own record descriptions. It is NOT the connector's `NationalRecordArea`, which is
+alphanumeric space otherwise (c); arm b), several record descriptions with SELECT WHEN clauses, takes the national space when the SELECTED
+entry is described as national (decided at run time, `CobolFile.SelectedRecordIsNational`; see the FORMAT and SELECT WHEN section). `FileModel.ShortRecordFillNational`
+is that one test, over the file's own record descriptions, and `RuntimeApi.ShortRecordFillNational` its one emitter. It is NOT the connector's `NationalRecordArea`, which is
 §2023:14.9.30.4 GR15's per-record-area test for the READ's own fill (any national record description of the FD, so a
 `PIC 9(3) USAGE NATIONAL` record got the alphanumeric space and a two-record FD with one national record the
 national one). `RecordFill.Fit` is the one right-fill both use; the USING release calls `CobolSort.FillTo` with the
@@ -2822,14 +2823,10 @@ failure branches were fired once before it was trusted.
 
 ## Declined optional elements of the I-O statements and the file description entry
 
-One Annex A.4 module of the file-handling surface (A.4.8) is an OPTIONAL language element (§2023:4.2.7) for which this
-implementation claims NO support (A.4.13, the FILE phrase of WRITE and REWRITE, is claimed: see the section after this one), per the owner's documented-non-support decision recorded in
-`docs/CONFORMANCE.md` §5. They are **recognized and refused by name at bind**, never parse-errored and never
-compiled inert:
-
-| Module | Elements | Where it parses | Refusal |
-| --- | --- | --- | --- |
-| A.4.8 | FORMAT clause (§2023:13.18.24) on an FD; SELECT WHEN clause (§2023:13.18.51) on a record description entry | `formatClause` in `fileDescriptionClause`; `selectWhenClause` in `dataDescriptionClause` (`Core/CobolData.g4`) | `COBOL1705`, from `DataBinder` — the FD clause loop and `BindEntry` |
+No Annex A.4 module of the file-handling surface is declined now: A.4.13 (the FILE phrase of WRITE and REWRITE, kb/Work PB5579; see the
+section after this one) and A.4.8 (FORMAT and SELECT WHEN, kb/Work PB5578; see "FORMAT and SELECT WHEN" below) are claimed. The
+rationale below is why an optional element whose support is NOT claimed is **recognized and refused by name at bind** (never
+parse-errored and never compiled inert), and it stays the design for any such element (`EditionContext.Declined`).
 
 **Why recognize-and-refuse, and why an ERROR rather than the accept-inert band.** Annex A.4.1: *"An
 implementation shall accept the syntax and provide the functionality for an optional element only when
@@ -3079,7 +3076,7 @@ category.
 - Sections 13.18.13 CODE-SET, 13.18.34 LINAGE, 13.18.43 RECORD VARYING DEPENDING ON, 13.18.41 implicit default record.
 - Section 9.1.6 fixed file attributes (the attributes fixed when a physical file is created), with 14.9.27.4 GR10 (the OPEN statement's comparison against them and its '39'), GR17 and GR18 (the two cases in which the OPEN statement CREATES the file), 9.1.13.6 item 7 (the '39' status itself) and Annex A.1 items 50 and 129 (the two required, required-to-be-documented validated-set determinations — DELETE FILE's and OPEN's, which are not the same answer). See D10.
 - Sections 14.9.30 READ, 14.9.35 REWRITE, 14.9.41 START, 14.9.51 WRITE, 14.9.10 DELETE and DELETE FILE, 14.9.40 and 14.9.24 SORT and MERGE, 8.8.4.2.4 numeric-key value compare, 8.8.4.2.7 alphanumeric compare with shorter-operand space-extension, 14.9.49 USE statement (declarative).
-- Section 4.2.7 optional language elements and Annex A.4 (A.4.1 general + NOTE 1, A.4.8 items 1–2) — the declined-element section above; §2023:13.18.24 FORMAT clause and §2023:13.18.51 SELECT WHEN clause are the two A.4.8 clauses; §2023:14.9.51.2 / §2023:14.9.35.2 carry the A.4.13 FILE phrase, claimed ("The FILE phrase of WRITE and REWRITE").
+- Section 4.2.7 optional language elements and Annex A.4 (A.4.1 general + NOTE 1) — the declined-element section above; §2023:14.9.51.2 / §2023:14.9.35.2 carry the A.4.13 FILE phrase, claimed ("The FILE phrase of WRITE and REWRITE"). §2023:13.18.24 FORMAT clause and §2023:13.18.51 SELECT WHEN clause, the two A.4.8 clauses, are claimed: see "FORMAT and SELECT WHEN" below.
 
 ## Open questions — RESOLVED (`DESIGN.md` §15 #3 + §18, owner-confirmed 2026-06-08)
 
@@ -3095,3 +3092,30 @@ category.
 - Q2: indexed and relative persistence loads the whole file into memory on OPEN and flushes on CLOSE, fine for batch and NIST but not for multi-gigabyte files. Scope v1 to in-memory plus a later pluggable on-disk B-plus-tree or SQLite-backed backend?
 - Q4 — **RESOLVED: implemented, not deferred.** LINE SEQUENTIAL status 06 landed with the GR15 remainder machinery, and 09 landed with kb/Work PB329 together with the Annex A.1 item 115 determination it delegates to (`docs/CONFORMANCE.md` DOC-A.1-115) and the WRITE-side '71' arm (14.9.51.4 GR23) that had never existed. See the LINE SEQUENTIAL edge-case notes above.
 - Q5 minor: confirm SAME AREA buffer-only and SAME SORT-MERGE AREA are acceptable no-ops in a managed runtime.
+
+## FORMAT and SELECT WHEN (ISO §2023:13.18.24, §2023:13.18.51; §2002:13.16.22, §2002:13.16.49; kb/Work PB5578)
+
+Annex A.4.8 is CLAIMED. ISO/IEC 1989:2002 requires both clauses (§2002:3.1 makes only the communication facility optional), and 2014 and 2023 carry the same rules.
+
+**Binding.** `FileModel.Format` (`RecordFormatKinds`: BIT, CHARACTER, NUMERIC, any combination, each once — `ChoiceIndicators`) is the FD clause; `DataItem.SelectWhen` (`SelectWhenSpec`) is the
+01-level clause, SR1 screened where the entry binds (`DataBinder.BindSelectWhen`). `ResolveRecordFormatPass` (after `ResolveFilesPass`) resolves each condition-name to its
+`Condition88` and screens FORMAT SR1 - SR3 and the RECORD clause rule (`COBOL7342`), SELECT WHEN SR2 - SR6 (`COBOL7343`), and the layouts it cannot plan (`COBOL7344`:
+a table with OCCURS DEPENDING ON or a dynamic table in a translated record, and a FORMAT file with no record description entry, whose items would be the READ INTO or
+WRITE FROM operand's, GR2 c). OPEN I-O of a FORMAT file (§2023:14.9.27.3 SR9) and the FROM identifier of a WRITE or REWRITE (SR2, SR3) are screened by the statement binders;
+the external file connector's agreement of FORMAT clauses (GR12) by `ExternalFileConnectorRules`. A file is **translated by record plan** (`FileModel.TranslatesByRecord`) when
+it has a FORMAT clause, or SELECT WHEN clauses over a CODE-SET clause (§2023:13.18.13.3 SR3 lifts its all-DISPLAY rule for such a file, and GR4 converts item by item).
+
+**The plan.** `RecordPlans.Of(record)` lays a record description entry out as contiguous steps of its byte image (`RecordStep`: raw bytes, display text, zoned, national-numeric, numeric
+(binary/packed), float, bit run), every occurrence of a table a step of its own. The emitter registers one `RecordPlan` per entry, in the order written, with the FORMAT kinds, the CODE-SET
+alphabet and the selector's offset (`RecordFormat`, `SequentialIoEmitter.EmitRecordFormatRegistration`); a file with several entries also registers the SELECT WHEN selector, the clauses' level-88
+conditions compiled in order over the internal image the runtime hands it (stored into the file's record area, which every record of the file overlays).
+
+**The engine.** `RecordFormat` (runtime) is the one translation between the internal image and the medium form, item by item over the SELECTED entry: `ToExternal` on a WRITE (selection by the
+selector, FORMAT then the alphabet — §2023:13.18.13.4 GR5), `ToInternal` on a READ (the selector sees the conditional variable restored from the medium, then the alphabet, then FORMAT).
+The connector calls it at exactly the two places a record crosses the medium: the top of each write entry (`SequentialConnector.ExternalRecord`), so every size rule below it (the RECORD
+clause's bounds, the line character set, the framing) is about the record ON THE MEDIUM, and the one read (`InternalRecord`). SORT and MERGE USING and GIVING reach it through the connector.
+No selected entry is I-O status 45 (`FileStatusCode.RecordIdentificationFailure`, §2023:9.1.13.7 item 5).
+
+**The representation (GR10, Annex A.1 item 84; docs/conformance/7/DOC-A.1-84.md).** A selected item is TEXT of fixed width: a numeric item its sign (always, when signed: GR8) and its unscaled digits
+zero-filled to the digits its representation holds, a float item a sign and a 17- (binary64) or 9- (binary32) significant-digit exponent form, a bit item one `0` or `1` for each bit; a character item
+itself; everything else as it is (GR7). The filler bits of a byte of bit items come back as zero and a signed zero as positive (item 85).

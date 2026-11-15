@@ -870,7 +870,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// inert. The severity decision is NOT here — it is the descriptor's, read by the ONE declined-element
     /// seam <see cref="EditionContext.Declined"/> (feedback_one_mechanism_per_job); this helper only supplies
     /// the statement-shaped half (bind to a no-op), which is why it is reachable solely from
-    /// Warning-severity descriptors. A REFUSE-severity decline (COBOL1705/1706) calls
+    /// Warning-severity descriptors. A REFUSE-severity decline (COBOL1706) calls
     /// <c>Declined</c> directly at its own site and yields <see cref="BoundUnsupported"/>, not a no-op.</summary>
     private BoundStatement BindUnsupportedFacility(DiagnosticDescriptor d)
     {

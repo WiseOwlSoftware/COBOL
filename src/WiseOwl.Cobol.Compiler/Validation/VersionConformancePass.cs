@@ -2348,6 +2348,23 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The FD FORMAT clause (ISO §2023:13.18.24; ISO/IEC 1989:2002 §13.16.22) — a COBOL-2002 introduction: §2023:8.9 reserves FORMAT
+        /// from 2002, and at COBOL-85 the word is a user-defined name. Parse-arm: the clause is recognised at the file description entry and
+        /// its syntax rules are the binder's (<c>ResolveRecordFormatPass</c>, kb/Work PB5578).</summary>
+        public override object? VisitFormatClause(CobolParserCore.FormatClauseContext ctx)
+        {
+            _p.Check(Constructs.FormatClause2002, "the FORMAT clause");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The SELECT WHEN clause of a record description entry (ISO §2023:13.18.51; ISO/IEC 1989:2002 §13.16.49) — a COBOL-2002
+        /// introduction. The level screen (SR1) and SR2 - SR6 are the binder's (kb/Work PB5578).</summary>
+        public override object? VisitSelectWhenClause(CobolParserCore.SelectWhenClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.SelectWhenClause2002, "the SELECT WHEN clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The FD CODE-SET clause's NATIONAL half (ISO §2023:13.18.13.2; kb/Work PB110) — alphabet-name-2 and the
         /// FOR phrases entered at 2002 with the national repertoire; the '85 format was the single-name IS form.</summary>
         public override object? VisitCodeSetClause(CobolParserCore.CodeSetClauseContext ctx)

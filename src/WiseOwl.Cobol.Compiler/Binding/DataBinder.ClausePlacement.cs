@@ -198,7 +198,7 @@ internal static class ClausePlacementRules
             [DataClauseKind.AnyLength] = "§2023:13.18.2.3 — AnyLengthValidateUnit (linkage, elementary)",
             [DataClauseKind.DynamicLength] = "§2023:13.18.19.3 — BindEntry's DYNAMIC LENGTH block",
             [DataClauseKind.GroupUsage] = "§2023:13.18.29.3 SR1 — UsageInheritanceGroup / UsageInheritanceElementary",
-            [DataClauseKind.SelectWhen] = "Annex A.4.8 — declined by name in BindEntry (COBOL1560 family)",
+            [DataClauseKind.SelectWhen] = "§2023:13.18.51.3 SR1 — DataBinder.BindSelectWhen (level 01 only); SR2 - SR6 are ResolveRecordFormatPass's",
             [DataClauseKind.Validation] = "§2023:13.18.64 family — validation clauses have no §2023:13.16.3 placement rule",
             [DataClauseKind.Unrecognized] = "not a clause — refused by name (COBOL1941)",
         };

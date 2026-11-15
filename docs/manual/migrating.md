@@ -59,7 +59,6 @@ change them.
 | `JSON GENERATE`, `JSON PARSE`, `XML GENERATE`, `XML PARSE` | COBOL0313 | not supported; generate or parse the text in a .NET host that calls the program |
 | SCREEN SECTION, `ACCEPT` and `DISPLAY` of a screen | COBOL1560, COBOL1707 | not supported (Annex A.4.2 is not claimed); move the screen handling to the host |
 | `EXEC SQL`, `EXEC CICS` and other embedded-language blocks | COBOL5818, once per block, at its `EXEC` | run the vendor's precompiler first and compile the COBOL it writes; the compiler has no precompiler; a block with no `END-EXEC` before the period that ends its sentence is COBOL5842 instead, once, at its `EXEC`. `EXEC` and `END-EXEC` are not reserved words, so a data item may still be named so, and a program that names one is read as COBOL throughout |
-| `FORMAT` and `SELECT WHEN` clauses | COBOL1705 | not supported (Annex A.4.8 is not claimed) |
 | a class that inherits from more than one class | COBOL0849 | not supported (Annex A.4.10 item 1 is not claimed); an interface may inherit from several |
 
 For example, a program that writes `ENTRY "OTHER"` is refused:

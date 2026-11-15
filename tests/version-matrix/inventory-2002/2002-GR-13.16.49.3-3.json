@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.49.3-3",
+ "rule-digest": "193564231247",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordFormatRegistration",
+ "test-ref": "conformance:cases/13.18.51-SELECT-WHEN-clause/select_when_selects_record",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.49.3 GR3: evaluated in order until true; OTHER always true."
+}
