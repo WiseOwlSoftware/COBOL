@@ -309,6 +309,9 @@ internal sealed class BinderDriver
         // The run unit's rules for an EXTERNAL file connector's file control entries, at every edition: their agreement
         // and the externality of the items their clauses name (ExternalFileConnectorRules; kb/Work PB5069).
         ExternalFileConnectorRules.Check(units, edition);
+        // The external RECORD half of the data-name uniqueness rule, over every source element of the group (kb/Work PB5427).
+        ExternalRecordNameRules.Check([.. units.Select(u => new ExternalRecordNameRules.Element(u, u.Data)),
+            .. classes.SelectMany(c => new[] { new ExternalRecordNameRules.Element(null, c.Data), new ExternalRecordNameRules.Element(null, c.FactoryData) })], edition);
         // The OO analogue (M2-OO-1i): an OBJECT/FACTORY file connector is scoped to its class, not a program unit,
         // so the program loop above never sees it. A factory or instance file keys per object (a minted key held
         // in a __fkey field — see QualifyClassFiles); an EXTERNAL class file keys

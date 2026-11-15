@@ -9644,6 +9644,19 @@ public static class DiagnosticCatalog
         + "is about the declarations, so an item no statement references is refused too.",
         "ISO §2023:8.4.2.1; ISO §1985:IV.4.3.8.1; ISO §1985:X.4.6.3 SR2");
 
+    /// <summary>COBOL7282 — a data-name names an external record and also an item subordinate to an external record (kb/Work PB5427).
+    /// §2023:8.4.2.1: "The same name shall not be used both as the name of an external record and as the name of any other
+    /// external data item described in the run unit." (§1985:IV.4.3.8.1 SR4 bounds it to the programs contained within or
+    /// containing the program that describes the record.)</summary>
+    public static readonly DiagnosticDescriptor ExternalRecordNameNotUnique = new(
+        "COBOL7282", "external-record-name-not-unique", EditionSeverity.Error,
+        "A data-name is the name of an external record and also the name of another external data item. §2023:8.4.2.1: "
+        + "\"The same name shall not be used both as the name of an external record and as the name of any other external data "
+        + "item described in the run unit.\" §1985:IV.4.3.8.1 SR4 limits the 1985 rule to the programs contained within or "
+        + "containing the program which describes that external data record. The rule is about the declarations, so an item "
+        + "no statement references is refused too.",
+        "ISO §2023:8.4.2.1; ISO §1985:IV.4.3.8.1 SR4");
+
     /// <summary>COBOL6863 — two INDEXED BY declarations of one program spell the same index-name, at a dialect that requires it
     /// unique (kb/Work PB5073). §1985:VI.5.8.3 SR14: "Index-name-1 must be a unique word within the program." COBOL-2002 and
     /// later qualify an index-name like a data-name, so the rule is the 1985 dialect's alone.</summary>

@@ -271,7 +271,7 @@ internal sealed class OdoResolvePass : IBindPass
     /// entry containing the EXTERNAL clause, data-name-1 shall reference a data item possessing the external
     /// attribute that is described in the same data division". The TABLE's side is the record entry's own clause
     /// (or the EXTERNAL type it is "subject to the same rules" as, §2023:13.18.22.4 GR3); data-name-1's is the
-    /// <see cref="HasExternalAttribute"/> attribute.</para></summary>
+    /// <see cref="DataBinder.IsInExternalRecord"/> attribute.</para></summary>
     private static string? DependingAttributeFault(DataBinder binder, DataItem table, DataItem dep)
     {
         // A sum counter (kb/Work PB5310) is a global name when its report is (§2023:13.18.27.4 GR1), whatever its register's root.
@@ -280,17 +280,10 @@ internal sealed class OdoResolvePass : IBindPass
             return $"the table's record '{table.Root.CobolName}' is global and data-name-1 is not a global name — \"If "
                 + "the OCCURS clause is specified in an entry subordinate to one containing the GLOBAL clause, "
                 + "data-name-1, if specified, shall be a global name\" (ISO §2023:13.18.38.3 SR18)";
-        if ((table.Root.HasExternalClause || table.Root.ExternalFromType) && !HasExternalAttribute(binder, dep.Root))
+        if ((table.Root.HasExternalClause || table.Root.ExternalFromType) && !DataBinder.IsInExternalRecord(dep.Root, binder.State.Files))
             return $"the table's record '{table.Root.CobolName}' is EXTERNAL and data-name-1 does not possess the "
                 + "external attribute — \"data-name-1 shall reference a data item possessing the external attribute "
                 + "that is described in the same data division\" (ISO §2023:13.18.38.3 SR21)";
         return null;
     }
-
-    /// <summary>Does <paramref name="record"/> possess the external attribute? ISO §2023:8.6.3: a working-storage record
-    /// "is given the external attribute by the presence of the EXTERNAL clause in its data description entry" (or
-    /// by an EXTERNAL type, §2023:13.18.22.4 GR3), and "If the EXTERNAL clause is included in the file description entry,
-    /// its records and their subordinate data items attain the external attribute".</summary>
-    private static bool HasExternalAttribute(DataBinder binder, DataItem record) =>
-        record.HasExternalClause || record.ExternalFromType || binder.State.Files.Declared.Any(f => f.IsExternal && f.Records.Contains(record));
 }

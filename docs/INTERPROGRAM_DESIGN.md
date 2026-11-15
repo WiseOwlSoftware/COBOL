@@ -117,6 +117,17 @@ and SR3 is its function twin. The complement is pinned as hard as the
 refusals (`DefinitionNameUniquenessTests`): two different containers may EACH contain a program of one name,
 and two outermost programs may share the declared word under different `AS` literals.
 
+**The EXTERNAL half of the data-name uniqueness rule** (COBOL7282, kb/Work PB5427) is a rule about names across source elements,
+so it lives with the group's other run-unit rules and not in the per-element GLOBAL screen (`DataBinder.ScreenGlobalNameUniqueness`,
+COBOL6862): `ExternalRecordNameRules.Check`, at the end of the group bind beside `ExternalFileConnectorRules.Check`. §2023:8.4.2.1:
+*"The same name shall not be used both as the name of an external record and as the name of any other external data item described in
+the run unit."* Two descriptions of one external record share a name (that is the EXTERNAL clause), so what it refuses is an external
+record's name reused for an item subordinate to an external record, in the same source element or another. **The reach is the
+edition's**: below COBOL-2002 the text is *"any program contained within or containing the program which describes that external data
+record"* (§1985:IV.4.3.8.1 SR4), so only a program and its containers and containees are compared; from COBOL-2002 it is the run unit,
+which a compilation group stands for, so every program, and a class's object and factory halves, are compared. Separately compiled
+programs are the run time's (`ExternalTable`).
+
 **FORMATION is the mapping's other half, and it lives in the same place** (`WiseOwl.Cobol.Runtime.ExternalizedNames`,
 DOC-A.1-68; kb/Work PB1539): `Form` removes a name's leading and trailing SPACES, `Same` / `Comparer` ignore case.
 Both sides of every lookup ask it — the bind-time AS screen (`ExternalizedName.Screen`, which warns COBOL2642
