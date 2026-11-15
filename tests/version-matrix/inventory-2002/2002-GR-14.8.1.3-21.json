@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-14.8.1.3-21",
+ "rule-digest": "6edc8d76c69f",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "test-ref": "conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-positioned",
+ "notes": "Own verdict from the read lineage-reads-2002/t-erased.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.1.4-21, witnessed at 2002 by the cases test-ref names. The read: Words identical but for 'general rule' capitalisation. The referenced GR25 differs (2023 adds the exception-checking PERFORM arm, 2002 GR25b/c is the declarative-only form), and the 2023 non-support licence is 4.2.7; neither matters because the facility is declined at 2002 too, and 2002 licenses that through its own processor-dependent list (B.3 item 1). The refusal holds at --std 2002. Note: the diagnostic text cites the 2023 licence (§2023:4.2.7, Annex A.4.2) even at --std 2002; the 2002 licence is 3.1.5/B.3 item 1 (a wording point for CONFORMANCE.md, not a behaviour defect). Cited: §2002:14.8.1.3 GR21; §2002:B.3; §2002:3.1.5."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.10.2-1",
+ "rule-digest": "b3ff9d8f8021",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplay",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/l1_display_admitted_classes; conformance:cases/13.18.60-USAGE/l1-display-pointer-operand; conformance:cases/13.18.60-USAGE/l1-display-program-pointer-operand; conformance:cases/14.9.11-DISPLAY/l1-display-object-reference-operand",
+ "notes": "Own verdict from the read lineage-reads-2002/t-changed.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.11.3-1, witnessed at 2002 by the cases test-ref names. The read: Format 1 of DISPLAY is the same in both editions (identifier-1/literal-1 ..., UPON, WITH NO ADVANCING, END-DISPLAY). The only differing word is 2023's message-tag class, which does not exist in 2002 (grep count 0). A communication-section item can be identifier-1 in 2002, but none is of class object or pointer, so no extra case. The twin's negative witnesses are refused at 2002 with the same diagnostic. Cited: §2002:14.8.10.2 SR1."
+}

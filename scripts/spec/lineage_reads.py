@@ -700,9 +700,9 @@ def kept_problems(ed: Edition, rid: str, to: Iterable[str], licence: str | None,
 
 #: Why an unpaired rule's upheld SAME is not yet its own verdict (`own_verdict_problems`), beside the evidence's own
 #: NO_OWN_WITNESS and NO_LICENCE.
-NO_POINTER, POINTER_OPEN, POINTERS_DISAGREE, NO_OWN_CITATION, NO_REGISTER_ENTRY = (
+NO_POINTER, POINTER_OPEN, POINTERS_DISAGREE, NO_OWN_CITATION, NO_REGISTER_ENTRY, NO_CODE_LOCATION = (
     "no pointer", "pointer verdict does not resolve", "pointers disagree", "no own-edition citation",
-    "no register entry of its own")
+    "no register entry of its own", "no code location")
 #: How an own verdict's `notes` open (`own_verdict`), naming its read record: what makes a STORED own verdict
 #: read-derived to the audit (`stored_errors`), as `next.source` does a KEPT record; no list of such rows exists.
 OWN_LEAD = "Own verdict from the read"
@@ -743,6 +743,9 @@ def own_verdict_problems(ed: Edition, read: Read, lin: Lineage, w: Witnesses) ->
                                 f"the older text's licence; licence-{ed.year}: {why}"))
     else:
         probe = _anchor_probe(read, lin, verdicts[read.to[0]])
+        if "code-location" in _schema().requires(probe["verdict"]) and not _locations(read, w):
+            out.append((NO_CODE_LOCATION, f"the pointers {list(read.to)} name no code location, which the verdict "
+                                          f"{probe['verdict']} requires"))
         if _schema().anchor_obliged(probe) and rid not in _schema().register_items():
             out.append((NO_REGISTER_ENTRY, f"kind {probe['kind']} with verdict {probe['verdict']} owes its own "
                                            f"determination {_schema().anchor_for(probe)} (docs/conformance/), which "
@@ -765,6 +768,13 @@ def _resolving() -> set[str]:
     return _schema().resolving
 
 
+def _locations(read: Read, w: Witnesses) -> list[str]:
+    """The pointer rows' code locations an own verdict carries: each but one in an anchored file (the register), which
+    is the pointer's own determination, never this row's."""
+    return list(dict.fromkeys(loc for t in read.to for loc in w.locations.get(t, [])
+                              if loc.partition("#")[0] not in _schema().anchored_files))
+
+
 def _anchor_probe(read: Read, lin: Lineage, verdict: str) -> dict[str, str]:
     """The row an own verdict would write, as the schema's register-anchor rule reads it (`anchor_for`,
     `anchor_obliged`): its rule, its catalog kind and the verdict."""
@@ -783,9 +793,7 @@ def own_verdict(ed: Edition, read: Read, lin: Lineage, w: Witnesses) -> dict[str
     verdict = w.verdicts[read.to[0]]
     probe = _anchor_probe(read, lin, verdict)
     own_anchor = [schema.anchor_for(probe)] if schema.anchor_obliged(probe) else []   # its own, never the pointer's
-    # A pointer's location in an anchored file (the register) is the pointer's own determination, never this row's.
-    locations = dict.fromkeys([*own_anchor, *(loc for t in read.to for loc in w.locations.get(t, [])
-                                              if loc.partition("#")[0] not in schema.anchored_files)])
+    locations = dict.fromkeys([*own_anchor, *_locations(read, w)])
     notes = (f"{OWN_LEAD} {source_of(ed.year, read.slice)}: a SAME its refuter UPHELD, for a rule with no candidate "
              f"pair; the verdict of its pointer {', '.join(read.to)}, witnessed at {ed.spelling} by the cases "
              f"test-ref names. The read: {read.reason.strip()} Cited: {'; '.join(dict.fromkeys(own_citations(ed, read)))}.")

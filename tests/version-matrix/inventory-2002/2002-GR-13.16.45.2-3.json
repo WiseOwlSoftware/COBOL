@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.45.2-3",
+ "rule-digest": "2d8050ca4efa",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.47-REQUIRED/a42-screen-required",
+ "notes": "Own verdict from the read lineage-reads-2002/t-near.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.47.3-3, witnessed at 2002 by the cases test-ref names. The read: Words identical except 'non-zero'/'nonzero'. The 2023 row is DOCUMENTED-NON-SUPPORT; 2002 licenses the same decline: the screen section is processor-dependent (B.3 item 1) and 3.1.5 lets an implementation not implement processor-dependent elements it does not claim; the named compile-time diagnostic is the warning mechanism 3.1.5 requires. Same reading as q-18 for GR1, GR2, GR4-GR7. Cited: §2002:13.16.45.2 GR3; §2002:3.1.5; §2002:B.3."
+}

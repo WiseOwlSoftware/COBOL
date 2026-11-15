@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.13.2-10",
+ "rule-digest": "cf15dd291e7b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/BinderContext.cs#EnterConstruct",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb403_exit_placement_context_2002",
+ "notes": "Own verdict from the read lineage-reads-2002/u-23.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.14.3-8, witnessed at 2002 by the cases test-ref names. The read: The slice pointer SR-14.9.14.3-7 is EXIT PROGRAM's placement rule, not this one; the real counterpart is SR-14.9.14.3-8, used here. 2023 adds the exception-checking PERFORM (absent from 2002), so the 2002 rule is the 2023 rule's inline half and the compiler's InPerform check refuses every non-inline position at 2002. Cited: §2002:14.8.13.2 SR10."
+}

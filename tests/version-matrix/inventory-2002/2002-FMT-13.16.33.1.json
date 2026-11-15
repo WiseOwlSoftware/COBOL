@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.33.1",
+ "rule-digest": "6c0f8c872b53",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportLineClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportLineOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportRelativeSign; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolScreen.g4#screenLineClause",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb1001_line_next_page; conformance:cases/13.18.14-COLUMN/pb1221_report_keyword_prefixes; conformance:cases/13.18.35-LINE/pb1221-line-prefix-not-printed",
+ "notes": "Own verdict from the read lineage-reads-2002/u-52.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.35.2, witnessed at 2002 by the cases test-ref names. The read: Both formats identical in the two editions, including the three-way keyword brace and the brace of operands with its ellipsis. Report leg runs at 2002 with expected output; screen leg is declined under the 2002 processor-dependent licence. No CD reach. Cited: §2002:13.16.33; §2002:13.16.33.2 SR1; §2002:13.16.33.2 SR2; §2002:B.3; §2002:3.1.5."
+}

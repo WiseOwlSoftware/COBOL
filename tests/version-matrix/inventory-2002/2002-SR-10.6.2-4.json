@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-10.6.2-4",
+ "rule-digest": "88f47e91e5dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenClass",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988_end_markers",
+ "notes": "Own verdict from the read lineage-reads-2002/u-08.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-10.7.3-4, witnessed at 2002 by the cases test-ref names. The read: The only difference is the term: 2002's 'class-name (for object orientation)' is defined with the words 2023 uses for object-class-name; the END marker format is identical (END CLASS class-name-1). Nothing a program can show differs. Cited: §2002:10.6.2 SR4; §2002:8.3.1.1.1.3."
+}

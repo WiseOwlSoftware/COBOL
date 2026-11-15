@@ -456,7 +456,7 @@ def case_12_an_own_verdict_from_a_pointer_is_written_and_audited_like_a_kept_rec
                     verdicts={t: "CONFORMS" for t in [*twins, "GR-8.1-1", "GR-8.1-2", F.twin(ids["refusal"]),
                                                       F.twin(ids["late"])]}
                     | {F.twin(ids["declined"]): "DOCUMENTED-NON-SUPPORT", "GR-8.1-3": "DOCUMENTED-NON-SUPPORT"})
-    w.locations = {F.twin(ids["ok"]): ["src/A.cs#M", "docs/CONFORMANCE.md#GR-4.1.3-1"]}
+    w.locations = {t: ["src/A.cs#M"] for t in w.verdicts} | {F.twin(ids["ok"]): ["src/A.cs#M", "docs/CONFORMANCE.md#GR-4.1.3-1"]}
     lin = F.lineage(ids.values(), unpaired=tuple(ids.values()))
     got = {next(n for n, r in ids.items() if r == d.rule_id): d for d in R.decide(ED, [s], None, w, lin)}
     expect("an unpaired SAME its refuter UPHELD, its pointer accepted at 2002, is an own verdict with nothing blocking it",
@@ -474,6 +474,9 @@ def case_12_an_own_verdict_from_a_pointer_is_written_and_audited_like_a_kept_rec
            [r for r, _ in got["bare"].refused] == [R.NO_OWN_CITATION])
     expect("pointers whose verdicts differ block the own verdict: it states one",
            R.POINTERS_DISAGREE in [r for r, _ in got["disagree"].refused])
+    bare_w = F.witnesses(accepted={F.twin(ids["ok"]): ["2002"]}, verdicts={F.twin(ids["ok"]): "CONFORMS"})
+    expect("a pointer that names no code location blocks a CONFORMS own verdict, which requires one",
+           [r for r, _ in R.own_verdict_problems(ED, s.reads[ids["ok"]], lin, bare_w)] == [R.NO_CODE_LOCATION])
     rec = R.own_verdict(ED, s.reads[ids["ok"]], lin, w)
     expect.equal("the record: the pointer's verdict and code (not its register anchor), ONLY its cases accepted at 2002, "
                  "notes opening with the read record", (rec["verdict"], rec["code-location"], rec["test-ref"]),

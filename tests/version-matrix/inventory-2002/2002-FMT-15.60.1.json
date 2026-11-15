@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.60.1",
+ "rule-digest": "954e8495cc1b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+ "test-ref": "conformance:cases/15.73-PI/l1-pi-argument-list",
+ "notes": "Own verdict from the read lineage-reads-2002/u-55.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.73.2, witnessed at 2002 by the cases test-ref names. The read: The 2002 general format of PI is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused. FUNCTION PI () is accepted at 2002 as at 2023 under the project's adjudicated PB5163 reading of the 2002 function-identifier format. Cited: §2002:15.60; §2002:8.4.2.2.2 SR6."
+}

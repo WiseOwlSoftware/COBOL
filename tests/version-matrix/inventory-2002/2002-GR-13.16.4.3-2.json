@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.4.3-2",
+ "rule-digest": "7089036a5d70",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.4-BACKGROUND-COLOR/a42-screen-background-color",
+ "notes": "Own verdict from the read lineage-reads-2002/u-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.4.4-2, witnessed at 2002 by the cases test-ref names. The read: Words differ only in 'data-item' / 'data item'; the format (identifier-1 | integer-1) is identical. The row is DOCUMENTED-NON-SUPPORT; 2002 licenses it (screen section processor-dependent; B.3 item 2 also names BACKGROUND-COLOR) and the compiler declines it at --std 2002. Cited: §2002:13.16.4.3 GR2; §2002:3.1.5; §2002:B.3."
+}

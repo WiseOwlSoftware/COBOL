@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-DOC-B.1-15",
+ "rule-digest": "4762c25df18e",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ProbeSiblingModule",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/w59h_non_cobol_names_not_found",
+ "notes": "Own verdict from the read lineage-reads-2002/u-36.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer DOC-A.1-15, witnessed at 2002 by the cases test-ref names. The read: The item text differs only in clause numbers and the capital of 'General rule'. GR3b's sentence is word-identical; 2002's GR3b sends an unlocated program to GR3g where 2023 sends it to GR3h (2023 inserted the external-items check as 3e), the same disposition (ON OVERFLOW/ON EXCEPTION, else declarative). The DNS ground (condition absent: no non-COBOL program can be called) holds at 2002, and 2002's 3.1.2 states the licence directly. Cited: §2002:B.1; §2002:3.1.2; §2002:14.8.4.3 GR3."
+}

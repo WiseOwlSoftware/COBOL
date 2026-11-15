@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.40.1",
+ "rule-digest": "bde02c86fbf8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#subtractStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#receivingArithmeticOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindSubtractCorresponding; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sendingOperand; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticGivingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticPhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand",
+ "test-ref": "conformance:cases/14.9.2-ADD/phrase_order_arithmetic; conformance:cases/14.9.44-SUBTRACT/pb2144-subtract-from-two-giving",
+ "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-14.9.44.2, witnessed at 2002 by the cases test-ref names. The read: 2002 writes the bare word ROUNDED where 2023 writes rounded-phrase (ROUNDED [MODE IS ...], §2023:14.7.4). The 2002 rule is the 2023 rule restricted to plain ROUNDED; at --std 2002 the compiler refuses ROUNDED MODE (S1-lists COBOL0803), as 2002 requires. Cited: §2002:14.8.40.1."
+}

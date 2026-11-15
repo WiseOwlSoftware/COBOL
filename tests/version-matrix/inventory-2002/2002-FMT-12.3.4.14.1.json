@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.3.4.14.1",
+ "rule-digest": "291517f58b37",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileReserveClause; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules.Slots",
+ "test-ref": "conformance:cases/12.4.5.14-RESERVE/l1c24-reserve-missing-integer",
+ "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.5.14.2, witnessed at 2002 by the cases test-ref names. The read: Identical format with no data operand; probe confirms at 2002. Cited: §2002:12.3.4.14."
+}

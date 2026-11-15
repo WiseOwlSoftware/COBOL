@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.3.1",
+ "rule-digest": "2caadff63e0e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inputOutputSection; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#environmentDivision; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/12.4-Input-output-section/l1c16_io_section_paragraphs; conformance:cases/12.4-Input-output-section/l1c16-io-control-before-file-control",
+ "notes": "Own verdict from the read lineage-reads-2002/u-45.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; witnesses hold at 2002. Cited: §2002:12.3.1."
+}

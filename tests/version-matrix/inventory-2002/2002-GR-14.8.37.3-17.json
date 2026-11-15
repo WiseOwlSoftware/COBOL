@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.37.3-17",
+ "rule-digest": "40636abe6c52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartFail; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartKeyPhrase; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Resolve; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AlternateValue; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#RecordArea",
+ "test-ref": "conformance:cases/14.9.41-START/pb355_start_length_past_operand; conformance:cases/14.9.41-START/pb355_start_length_national_past_operand; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/file_collating_seq; conformance:cases/14.9.41-START/pb370_start_indexed_reverse; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source; conformance:cases/14.9.41-START/pb3334_start_indexed_tree_operators",
+ "notes": "Own verdict from the read lineage-reads-2002/u-28.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.41.4-17, witnessed at 2002 by the cases test-ref names. The read: The 2002 rule lacks only 2023's SUPPRESS WHEN sentence (a 2023 element) and cites 8.8.4.1.1.6 / 8.8.4.1.1.8 for 8.8.4.2.7 / 8.8.4.2.9: the equal-length comparison is the same in both. 2002 is a subset; its scope is covered by pointer witnesses that pass at 2002. Cited: §2002:14.8.37.3 GR17."
+}

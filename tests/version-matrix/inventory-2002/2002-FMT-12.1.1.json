@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.1.1",
+ "rule-digest": "557eb5ec18df",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#environmentDivision; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.2-Environment-division-structure/l1c08-env-division-section-order",
+ "notes": "Own verdict from the read lineage-reads-2002/u-41.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.2.1, witnessed at 2002 by the cases test-ref names. The read: The format is word for word the 2023 format; the similarity below 1 comes only from the HTML anchor after the 2023 catalog text. The two section formats are separate rules (12.2, 12.3). The pointer row's two tests (accept [85] and default) were run at --std 2002 and give the pointer's results. Cited: §2002:12.1.1."
+}

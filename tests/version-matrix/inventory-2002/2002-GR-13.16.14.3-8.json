@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.14.3-8",
+ "rule-digest": "f3c82cdee658",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms",
+ "notes": "Own verdict from the read lineage-reads-2002/u-14.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.14.4-8, witnessed at 2002 by the cases test-ref names. The read: Same words (NOTE renumbered 'NOTE 2' in 2023, informative). Horizontal counter rules GR7/GR9 identical; report section only. Cited: §2002:13.16.14.3 GR8."
+}

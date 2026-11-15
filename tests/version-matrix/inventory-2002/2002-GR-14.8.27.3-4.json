@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.27.3-4",
+ "rule-digest": "9f49abd9b65e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_perform_thru_inverted",
+ "notes": "Own verdict from the read lineage-reads-2002/u-25.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.28.4-6, witnessed at 2002 by the cases test-ref names. The read: Identical rule; NOTE 'may'/'can' only. Operands are procedure-names (no CD reach). Cited: §2002:14.8.27.3 GR4."
+}

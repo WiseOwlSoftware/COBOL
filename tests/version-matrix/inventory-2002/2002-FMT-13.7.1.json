@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.7.1",
+ "rule-digest": "bb367e3081cc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantEntry",
+ "test-ref": "conformance:cases/13.2-Data-division-structure/pb1226_report_section_constant; conformance:cases/13.2-Data-division-structure/pb1226-rd-without-report-group; conformance:cases/13.2-Data-division-structure/pb1226-rd-constant-entry-only",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.8.2, witnessed at 2002 by the cases test-ref names. The read: Identical diagram. 2002's term table lists 77-level-entry (not in the diagram), which changes nothing. Cited: §2002:13.7.3."
+}

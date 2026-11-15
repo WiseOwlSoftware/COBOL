@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.3.2-3",
+ "rule-digest": "c9eb755fe2ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb590_boolean_class_condition; conformance:cases/8.8.4.4-Simple-class-condition/pb590-boolean-class-usage-bit",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.8.4.4.3-3, witnessed at 2002 by the cases test-ref names. The read: 2002 says 'If the NUMERIC phrase is not specified'; 2023 enumerates alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, class-name-1 because 2023 adds float/range phrases. The 2002 format's non-NUMERIC alternatives are exactly that enumeration, so the requirement is the same for every 2002 program; the second sentence is word-identical. Cited: §2002:8.8.4.1.3.2 SR3; §2002:8.8.4.1.3."
+}

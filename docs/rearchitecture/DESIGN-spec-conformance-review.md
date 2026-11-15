@@ -1824,7 +1824,9 @@ they are). The check, shared by the writer, `decide` (with witnesses), `widen` a
 4. the read cites the row's own edition (`no own-edition citation`), for the record's notes;
 5. a rule whose catalog kind owes a register determination for the verdict (`Schema.anchor_obliged`: a DOC row's
    `docs/CONFORMANCE.md#<rule-id>`) has one of its OWN in the register (`no register entry of its own`); the pointer's
-   determination is another edition's and is never copied (its anchored locations are dropped from the record).
+   determination is another edition's and is never copied (its anchored locations are dropped from the record);
+6. the pointers name a code location where the verdict requires one (`Schema.requires`; `no code location`): the
+   writer would refuse the batch whole for one such record, so the check refuses the row alone.
 The record is the edition store's own-verdict shape: `verdict` the pointers' one verdict; `code-location` the pointer
 rows' (the register anchor of its own, where owed, first); `test-ref` ONLY the pointers' cases that witness the rule at
 the edition (`Witnesses.judged`, the one judgment `evidence` reads, so what is checked and what is cited are one set: an

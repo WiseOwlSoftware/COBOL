@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-9",
+ "rule-digest": "04a0f73ee607",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundOpenFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#FileOpen; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#OpenTape; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#NoRewindPhraseEffect",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind; conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind_85",
+ "notes": "Own verdict from the read lineage-reads-2002/u-25.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.27.4-11, witnessed at 2002 by the cases test-ref names. The read: 'physical file'/'file' only. Cited: §2002:14.8.26.3 GR9."
+}

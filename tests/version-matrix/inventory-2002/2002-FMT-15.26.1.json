@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.26.1",
+ "rule-digest": "b287465ddf72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance:cases/15.31.3-Returned-value-rules/exception_file_n",
+ "notes": "Own verdict from the read lineage-reads-2002/u-53.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.31.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; a row witness that uses the function runs at 2002. Cited: §2002:15.26."
+}

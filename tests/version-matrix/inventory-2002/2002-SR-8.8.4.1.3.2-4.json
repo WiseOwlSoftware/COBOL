@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.3.2-4",
+ "rule-digest": "cf0b66506a1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb590_boolean_class_condition; conformance:cases/8.8.4.4-Simple-class-condition/pb590-boolean-class-numeric-operand",
+ "notes": "Own verdict from the read lineage-reads-2002/t-none.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.8.4.4.3-5, witnessed at 2002 by the cases test-ref names. The read: The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical. 2002 format has NUMERIC, ALPHABETIC(-LOWER/-UPPER), BOOLEAN, alphabet-name-1, class-name-1; 2023 only adds float/range phrases, which this rule does not name. Categories numeric and numeric-edited are the same in both. No CD or debugging reach (a procedure-division condition). Cited: §2002:8.8.4.1.3.2 SR4."
+}

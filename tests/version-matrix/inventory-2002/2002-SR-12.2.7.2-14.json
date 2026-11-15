@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.7.2-14",
+ "rule-digest": "1c08d3830c61",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RepositoryResolver.cs#ReportUnanswered; src/WiseOwl.Cobol.Compiler/Binding/RepositoryResolver.cs#ResolveProgram; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Configuration.cs#BindProgramSpecifier",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype; conformance:cases/10.6-COBOL-compilation-group/pb894_program_prototype_2002; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2103_prototype_group_split_across_units; conformance:cases/12.3.8-REPOSITORY/pb1086-program-specifier-no-information",
+ "notes": "Own verdict from the read lineage-reads-2002/u-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.3.8.3-14, witnessed at 2002 by the cases test-ref names. The read: The program-specifier's AS literal is literal-4 in 2002 and literal-3 in 2023 (renumbering only). Same three alternatives. Cited: §2002:12.2.7.2 SR14; §2002:12.2.7.1."
+}

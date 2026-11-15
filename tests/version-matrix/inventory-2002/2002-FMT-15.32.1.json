@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.32.1",
+ "rule-digest": "6744f796569b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family; conformance:cases/15.42-FRACTION-PART/l1-fraction-part-arity",
+ "notes": "Own verdict from the read lineage-reads-2002/u-54.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.42.2, witnessed at 2002 by the cases test-ref names. The read: The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.32 -> 15.42). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023. Cited: §2002:15.32."
+}

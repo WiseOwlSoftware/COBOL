@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.37.1",
+ "rule-digest": "e432f09c46c2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageWidth; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageSubclause",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1059_page_columns_width; conformance:cases/13.18.14-COLUMN/pb1059_page_width_only; conformance:cases/13.18.39-PAGE/pb1059_page_last_control_heading; conformance:cases/13.18.39-PAGE/pb1059-page-phrase-without-limit; conformance:cases/13.18.39-PAGE/pb3751-page-limit-mixed-alternatives",
+ "notes": "Own verdict from the read lineage-reads-2002/u-52.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.39.2, witnessed at 2002 by the cases test-ref names. The read: General format identical. RD only. Pointer witnesses hold at 2002. Cited: §2002:13.16.37."
+}

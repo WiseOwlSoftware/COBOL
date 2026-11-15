@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-3",
+ "rule-digest": "8a86ec8c10d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsExternal; src/WiseOwl.Cobol.Compiler/Binding/Passes/GateFileRecordByteSurfacePass.cs#GateFileRecordByteSurfacePass; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Ptr.cs#ForceStringCanonical",
+ "test-ref": "conformance:cases/9.1.5-Sharing-file-connectors/oo_external_file_shared; conformance:cases/14.9.27-OPEN/pb327_national_fd_record",
+ "notes": "Own verdict from the read lineage-reads-2002/u-25.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.27.4-5, witnessed at 2002 by the cases test-ref names. The read: 'file-name' vs 'file-name-1' only. Cited: §2002:14.8.26.3 GR3."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.13.3-9",
+ "rule-digest": "d67ed2a03c61",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerform; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#F3Region",
+ "test-ref": "conformance:cases/14.9.14-EXIT/exit_perform_multilevel; conformance:cases/14.9.14-EXIT/exit_perform_cycle",
+ "notes": "Own verdict from the read lineage-reads-2002/u-23.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.14.4-5, witnessed at 2002 by the cases test-ref names. The read: Slice pointer GR-14.9.14.4-7 (EXIT SECTION) is wrong; word-identical 2023 text is GR-14.9.14.4-5 a). The exception-checking condition is vacuous at 2002. Cited: §2002:14.8.13.3 GR9."
+}

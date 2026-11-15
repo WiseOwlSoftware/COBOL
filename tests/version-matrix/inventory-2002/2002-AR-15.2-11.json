@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.2-11",
+ "rule-digest": "34d76b69c2c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer AR-15.3-12, witnessed at 2002 by the cases test-ref names. The read: 'ordering table ... may be used' versus 'cultural ordering table ... is used': the function's own rules (STANDARD-COMPARE) decide the use in both editions, so no program shows the difference. Cited: §2002:15.2 AR11."
+}

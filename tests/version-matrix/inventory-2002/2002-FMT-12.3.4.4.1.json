@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.3.4.4.1",
+ "rule-digest": "fa29eb57a6dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#accessModeClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#accessMode; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_random_dynamic; conformance:cases/12.4.5-File-control/l1c12_access_mode_sequential_default",
+ "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.5.5.1, witnessed at 2002 by the cases test-ref names. The read: The slice gave no pointer, but the 2023 twin exists with the identical format at §2023:12.4.5.5.1 (catalog row FMT-12.4.5.5.1, CONFORMS); the 2023 heading nesting (12.4.5.4 heading, 12.4.5.5 General) explains the missed pairing. The row's two goldens run at 2002 and pass. Cited: §2002:12.3.4.4.1; §2002:12.3.4.4."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.20.1",
+ "rule-digest": "95b6af8ad96c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicArgs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+ "test-ref": "conformance:cases/15.25-DAY-TO-YYYYDDD/l1_day_to_yyyyddd_format; conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window; conformance:cases/15.25-DAY-TO-YYYYDDD/l1-day-to-yyyyddd-arity4; conformance:cases/15.25-DAY-TO-YYYYDDD/l1-day-to-yyyyddd-no-function-word",
+ "notes": "Own verdict from the read lineage-reads-2002/u-53.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.25.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; all row witnesses hold at 2002. Cited: §2002:15.20."
+}
