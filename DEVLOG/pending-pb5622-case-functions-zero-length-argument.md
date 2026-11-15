@@ -1,6 +1,6 @@
 ## PB5622: UPPER-CASE, LOWER-CASE and REVERSE raise EC-ARGUMENT-FUNCTION on an argument that is zero-length at run time
 
-A group whose only content is an `OCCURS 0 TO n DEPENDING ON` table at 0 occurrences is a zero-length item (§2023:8.5.4 item 2).
+A group whose only content is an `OCCURS 0 TO n DEPENDING ON` table at 0 occurrences is a zero-length item (§2023:8.5.4 item 1; §2002:8.5.4 item 1, "variable-occurrence data item").
 §2002:15.65.2 AR1, §2002:15.78.2 AR1 and their 2023 twins (§2023:15.78.3, §2023:15.97.3, §2023:15.57.3 AR1) require at least one
 character position, and §2002:15.2 AR13 / §2023:15.3 AR14 make a violating argument set EC-ARGUMENT-FUNCTION. The static MinWidth
 screen cannot see a run-time width, and `CobolIntrinsics.UpperCase`, `LowerCase`, `Reverse` and the two `CobolLocale` carriers

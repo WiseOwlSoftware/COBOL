@@ -10,8 +10,8 @@
       *> sentence). §2002:15.2 AR13 makes an incorrect argument value set EC-ARGUMENT-FUNCTION. Judged on the 2002 text
       *> at --std 2002.
       *> The argument is a group whose only subordinate is a table OCCURS 0 TO 5 DEPENDING ON CNT, so at CNT = 0 it is
-      *> a zero-length item (§2023:8.5.4 item 2, 'A group data item containing only a subordinate zero-length
-      *> item'; FUNCTION LENGTH reads 0): the static MinWidth screen cannot see it, only the run does. The legs:
+      *> a zero-length item (§2002:8.5.4 item 1, 'A group data item containing only a variable-occurrence data item in which the number of
+      *> occurrences is zero'; FUNCTION LENGTH reads 0): the static MinWidth screen cannot see it, only the run does. The legs:
       *>   LEN        0 - the argument really is zero-length at run time, so the probe is what it claims
       *>   -OFF       checking OFF: the condition is set and the function reference yields the zero-length value
       *>              (docs/CONFORMANCE.md DOC-A.1-90: the returned length derives from the rejected argument); a
