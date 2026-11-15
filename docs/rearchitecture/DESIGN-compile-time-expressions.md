@@ -96,7 +96,7 @@ PARAMETER and OFF, though a compile-time boolean expression stays admitted in an
 conditional expression (§2002:7.2.6). The gate is the construct row `define-boolean-expression-2023`, asked at the DEFINE operand
 alone by `DirectiveDiag.GateDefineBooleanExpression` (a compiled branch, as every operand gate); a refused operand is a
 refused DEFINE. A boolean LITERAL is literal-1 in every edition. (2) "Shall not be the same as a compiler-directive word"
-asks the targeted edition's own §8.12 table (`CompilerDirectiveWords.IsReserved(word, edition)`): §2002:8.12, §2014:8.12 and
+asks the targeted edition's own clause-8.12 table (`CompilerDirectiveWords.IsReserved(word, edition)`): §2002:8.12, §2014:8.12 and
 §2023:8.12 are three lists, each word carrying the window of editions that print it.
 
 **A refused `>>DEFINE` is reported once** (kb/Work PB3119). A `>>DEFINE` in a compiled branch that is malformed, names

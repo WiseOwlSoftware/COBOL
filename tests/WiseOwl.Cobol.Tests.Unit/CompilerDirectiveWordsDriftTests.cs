@@ -20,7 +20,7 @@ public sealed partial class CompilerDirectiveWordsDriftTests
     [GeneratedRegex(@"^#+ 8\.12 Compiler-directive words", RegexOptions.Multiline)]
     private static partial Regex ClauseHeading();
 
-    /// <summary>The §8.12 table of <paramref name="edition"/>, read from the specification itself: every cell of the pipe
+    /// <summary>The clause-8.12 table of <paramref name="edition"/>, read from the specification itself: every cell of the pipe
     /// table between the clause heading and the "In addition to the above list" sentence.</summary>
     private static HashSet<string> SpecTable(int edition)
     {
@@ -30,7 +30,7 @@ public sealed partial class CompilerDirectiveWordsDriftTests
             2002 => TestRepo.Specs("ISO_COBOL_2002.md"),
             2014 => TestRepo.Specs("ISO_COBOL_2014.md"),
             2023 => TestRepo.Specs("ISO_COBOL_2023.md"),
-            _ => throw new ArgumentOutOfRangeException(nameof(edition), edition, "no §8.12 table held for this edition"),
+            _ => throw new ArgumentOutOfRangeException(nameof(edition), edition, "no clause-8.12 table held for this edition"),
         };
         Assert.True(File.Exists(path), $"the ISO transcription is missing: {path}");
         string text = File.ReadAllText(path);
@@ -114,7 +114,7 @@ public sealed partial class CompilerDirectiveWordsDriftTests
     [InlineData("EC-IMP-SOMETHING")]
     public void ExceptionNames_AreReserved(string name) => Assert.True(CompilerDirectiveWords.IsReserved(name, 2023));
 
-    /// <summary>An exception-name an edition has not introduced is no exception-name of its §8.12 (the catalog's own
+    /// <summary>An exception-name an edition has not introduced is no exception-name of its clause 8.12 (the catalog's own
     /// <c>IntroducedIn</c>: EC-MCS is a 2023 level-2 name).</summary>
     [Fact]
     public void ExceptionName_IsReservedFromItsIntroducingEdition()

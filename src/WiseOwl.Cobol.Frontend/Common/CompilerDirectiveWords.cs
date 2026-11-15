@@ -29,7 +29,7 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// </summary>
 public static class CompilerDirectiveWords
 {
-    /// <summary>One word of the tables: the first edition whose §8.12 prints it and the last one that does.</summary>
+    /// <summary>One word of the tables: the first edition whose clause 8.12 prints it and the last one that does.</summary>
     private readonly record struct Entry(string Word, int From, int Through);
 
     private const int Last = int.MaxValue;
@@ -88,13 +88,13 @@ public static class CompilerDirectiveWords
     /// <summary>The reading side: word to the entry's window.</summary>
     private static readonly Dictionary<string, Entry> ByWord = Table.ToDictionary(e => e.Word, CobolNames.Comparer);
 
-    /// <summary>The words of the §8.12 table of <paramref name="edition"/> (2002, 2014 or 2023), in no printed order; empty
+    /// <summary>The words of the clause-8.12 table of <paramref name="edition"/> (2002, 2014 or 2023), in no printed order; empty
     /// below 2002, which has no compiler directives.</summary>
     public static IReadOnlyList<string> Of(int edition) =>
         [.. Table.Where(e => e.From <= edition && edition <= e.Through).Select(e => e.Word)];
 
     /// <summary>True when <paramref name="word"/> is reserved in compiler directives at <paramref name="edition"/> (the
-    /// targeted edition's year): a word of that edition's §8.12 table, or an exception-name of the edition's
+    /// targeted edition's year): a word of that edition's clause-8.12 table, or an exception-name of the edition's
     /// exception-condition clause (§2023:14.6.13.1; the <c>EC-USER-</c> family and the <c>EC-IMP-suffix</c> FORM included:
     /// §2023:8.12 reserves the family whether or not an implementor defines a member). Case-insensitive, like every COBOL
     /// word (§2023:8.3.1).</summary>

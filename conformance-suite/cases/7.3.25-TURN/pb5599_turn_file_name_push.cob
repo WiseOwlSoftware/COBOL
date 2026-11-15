@@ -8,7 +8,7 @@
       *> kb/Work PB5599 - a user-defined word that duplicates a
       *> compiler-directive word is interpreted as that word rather than
       *> as file-name-1, and which words those are is the edition's own
-      *> §8.12. PUSH is on §2023:8.12 only, so at 2002 and 2014 it is a
+      *> clause 8.12. PUSH is on §2023:8.12 only, so at 2002 and 2014 it is a
       *> file-name (the directive is accepted) and at 2023 the directive
       *> matches no format (COBOL0718,
       *> wiseowl/diagnostics/pb5599_turn_file_name_push.json).
