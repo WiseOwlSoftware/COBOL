@@ -1,0 +1,5 @@
+## PB5150: subordinates of a GLOBAL record are global names for the declaration-uniqueness screen
+
+PB5150 asked whether two same-named subordinates of GLOBAL records of one source element are a violation, as the pb1047 golden expected only a reference-time COBOL1639. Re-probe on a Debug build: with no reference the program compiled. The standard decides: §2023:8.4.2.1 forbids one name for an item possessing the global attribute and another data item of the element, and §2023:13.18.27.4 GR1 makes every data-name subordinate to a global name global (both checked with cite.py). §2023:8.4.6.2.1 3) b) 1. only chooses between elements, so it does not license the pair.
+
+Fix: `DataBinder.ScreenGlobalNameUniqueness` decides "global" from the item's root (`IsGlobalRecord(item.Root)`) instead of only for the record itself. Goldens: pb1047-two-globals-one-element-ambiguous now expects COBOL6862; new negative `pb5150-global-subordinate-name-reused-by-local-record` and positive `pb5150_global_subordinate_name_unique_beside_other_names` (output AB, S). No inventory rows closed. Sibling left open: a GLOBAL on a REDEFINES entry (GR3) is not consulted by the screen.
