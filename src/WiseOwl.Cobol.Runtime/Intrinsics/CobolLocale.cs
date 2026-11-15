@@ -145,19 +145,33 @@ public static class CobolLocale
     /// <summary>UPPER-CASE under the module's CHARACTER CLASSIFICATION (§2023:15.97.4 r3 — a locale in effect for character
     /// classification; §2023:12.3.6.4 GR7a): <paramref name="facts"/> null is the coded character set's correspondence —
     /// the implementor's (r4), <see cref="string.ToUpperInvariant"/> — exactly what the function without any locale
-    /// did before T5.</summary>
+    /// did before T5. A zero-length argument violates §2023:15.97.3 AR1 (<see cref="CobolIntrinsics.UpperCase(string)"/>).</summary>
     public static string UpperCase(string? s, LocaleFacts? facts)
     {
         facts = facts?.Require(LocaleCategory.Ctype, "FUNCTION UPPER-CASE under the CHARACTER CLASSIFICATION", "ISO §2023:15.97.4 r3 / §2023:12.3.6.4 GR7a");
-        return facts is null || !facts.HasCultureData ? (s ?? "").ToUpperInvariant() : facts.TextInfo.ToUpper(s ?? "");
+        if (string.IsNullOrEmpty(s)) return CobolIntrinsics.CaseArgumentZeroLength("UPPER-CASE", "15.97.3");
+        return facts is null || !facts.HasCultureData ? s.ToUpperInvariant() : facts.TextInfo.ToUpper(s);
     }
 
-    /// <summary>LOWER-CASE under the module's CHARACTER CLASSIFICATION (§2023:15.57.4 r3; r4 when none).</summary>
+    /// <summary>LOWER-CASE under the module's CHARACTER CLASSIFICATION (§2023:15.57.4 r3; r4 when none). A zero-length
+    /// argument violates §2023:15.57.3 AR1. The function's entry: an internal ANYCASE fold reads <see cref="FoldLower"/>.</summary>
     public static string LowerCase(string? s, LocaleFacts? facts)
     {
         facts = facts?.Require(LocaleCategory.Ctype, "FUNCTION LOWER-CASE under the CHARACTER CLASSIFICATION", "ISO §2023:15.57.4 r3 / §2023:12.3.6.4 GR7a");
-        return facts is null || !facts.HasCultureData ? (s ?? "").ToLowerInvariant() : facts.TextInfo.ToLower(s ?? "");
+        return string.IsNullOrEmpty(s) ? CobolIntrinsics.CaseArgumentZeroLength("LOWER-CASE", "15.57.3") : FoldLowerCore(s, facts);
     }
+
+    /// <summary>The LOWER-CASE correspondence (§2023:15.57.4 r3 / r4) as a FOLD: the ANYCASE matchers of FIND-STRING and
+    /// SUBSTITUTE fold arguments that may be zero length (FIND-STRING returns zero for one, §2023:15.37.4 r5), which is no
+    /// §2023:15.57.3 violation, so they read this and never the function's own entry <see cref="LowerCase(string?, LocaleFacts?)"/>.</summary>
+    internal static string FoldLower(string? s, LocaleFacts? facts)
+    {
+        facts = facts?.Require(LocaleCategory.Ctype, "FUNCTION LOWER-CASE under the CHARACTER CLASSIFICATION", "ISO §2023:15.57.4 r3 / §2023:12.3.6.4 GR7a");
+        return FoldLowerCore(s ?? "", facts);
+    }
+
+    private static string FoldLowerCore(string s, LocaleFacts? facts) =>
+        facts is null || !facts.HasCultureData ? s.ToLowerInvariant() : facts.TextInfo.ToLower(s);
 
     // ── resolution ─────────────────────────────────────────────────────────────────────────────────────────────
 

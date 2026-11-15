@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.78.2-1",
+ "rule-digest": "248e8624b5f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#CaseArgumentZeroLength; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.78@2002-UPPER-CASE-FUNCTION/pb5622-upper-lower-zero-length-2002",
+ "notes": "§2002:15.78.2 AR1 (UPPER-CASE; LOWER-CASE's rule is the same sentence): a zero-length argument at run time sets EC-ARGUMENT-FUNCTION (§2002:15.2 AR13) in all three carriers (CobolIntrinsics.UpperCase/LowerCase, and CobolLocale.UpperCase/LowerCase under a LOCALE phrase or CHARACTER CLASSIFICATION); the ANYCASE matchers of FIND-STRING, SUBSTITUTE and NUMVAL-C fold through CobolLocale.FoldLower, which is no function reference. With checking off the result is the zero-length value (row DOC-A.1-90). kb/Work PB5622."
+}
