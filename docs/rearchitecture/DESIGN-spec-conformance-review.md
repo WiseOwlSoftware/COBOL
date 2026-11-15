@@ -1629,3 +1629,69 @@ number, so a general format's notation is part of its key (the first seed, by `c
 `{character-1} ...` with 2023's `[character-1] ...`, a change of meaning: branch review R1-3). On 2026-11-11, 2002 to
 2023: 1,771 paired (1,730 exact, 41 normalized, 2 with two candidates), 1,519 unpaired; 1985 to 2023: none paired
 (2,274 unpaired: no 1985 rule is word for word a 2023 rule). The adjudication of the 2002 change records starts there, and the 1985 to 2002 records after it link 2002.
+
+
+### 10.5 The rule stage: which candidate pairs are KEPT by rule (kb/Work PB5589, PB5584, PB5574)
+
+**Why a word-identical pair is not yet a KEPT record.** A pair of the candidate pairing (§10.4) has the same construct, kind
+and words in both editions and can still state a different requirement. Its meaning can rest on text no catalog row holds
+(a PENDING clause of the older catalog: §2002:8.8.1.3.2 truncates a sum to 32 significant digits and 2023 has no such
+clause, so every 2002 rule computed by standard arithmetic means something else), on a definition the newer edition
+changed or no longer gives, on a behaviour the compiler switches between the editions, on a band of formats 2023 split,
+or on a context 2023 removed (a 2002 rule that also governs the records under a CD entry). The K0 blind sample measured
+it: of 100 pairs that passed every flag v2 knew, 16 were DIFFERENT, every one a loss of scope.
+
+**The triggers are data.** `scripts/spec/lineage_screen.py` screens an older edition's pairs by one table per edition,
+`scripts/spec/data/rule-stage-triggers-<year>.json`. Each `triggers` row names a trigger, its `mechanism`, its `params`,
+its `source` (the field, clause or register it reads) and the `reason` an excluded pair is listed with. The mechanisms are
+the only code (`MECHANISMS`: `pair-targets`, `pair-match`, `absent-from`, `text-pattern`, `definitions`, `pending-clause`,
+`behaviour-switch`, `listed`, `field-differs`, `construct-reach`, `clause-identity`; and the view mechanisms `target-state`
+and `target-band`). A new trigger an existing mechanism computes is a table row. A row with `"excludes": false` is
+MEASURED: committed and scored, never a refusal. A row whose `mechanism` is null is a NAMED EMPTY SLOT: the writer refuses
+to write while one exists. For 2002 the rows are T0 (`target-state`, `target-band`, `ambiguous`), T1 `pending-clause`,
+T2 `behaviour-switch`, T3 `definition-changed` and `definition-dropped`, T4 `cross-reference`, T5 `communication-reach`,
+T6 `removed-element` (§2002:G.2 items 1-3, §2002:G.1 item 4), T7 `band-formats`, T8 `deferral`, T9 `normalized` and
+`absent-from-2014` (the whole text, not a probe), the S1 `held` rows, and `clause-identity`, measured only: it bars 83 of
+the sample's 84 SAME pairs.
+
+**T1, the pending-clause diff (P0).** Each pending clause of the catalog (`outside-denominator.pending-clauses`) is
+compared with its newer counterpart: the table's `pending` judgment where it names one, else the newer clause of the same
+title nearest in words. The comparison is word by word on the clause's own body; where either side's own body is only an
+anchor over its subclauses (2023's 9.1.13 over 9.1.13.1), it is the two subtrees. A clause is identical, near (ratio 0.90
+or more), changed, or removed (no counterpart). A changed or removed clause, and a near one the table judges, marks every
+pair whose rule lies under a clause it `governs` (component-wise, `section_matches`) or whose text matches a pattern it
+`invokes`. On 2026-11-14 the 89 clauses of 2002 are 10 identical, 43 near, 30 changed and 6 removed, and T1 marks 540 of
+the 1,543 eligible pairs.
+
+**T3, the definitions, keyed by sense.** A term is keyed by its words and its domain (2002's `class (of a data item)`,
+2023's `<of a data item>` on the line under `**class**`), so the homonyms of one word are compared sense by sense. A pair
+is marked when its rule uses a term whose newer definition differs, or that the newer definitions clause does not define;
+the screen file records where the newer text defines a dropped term instead (the clause titled with it, or whose body
+opens by defining it).
+
+**T2, the behaviour switch, is automatic.** The compiler facts carry each dialect behaviour's `changedIn`
+(`DocumentedFactsDriftTests`). A behaviour that changed after the older edition and by the newer one must be placed in the
+table's `behaviours` (the older clauses it sits in), and `--check` fails naming one that is not.
+
+**The committed screen** is `docs/rearchitecture/spec-lineage-triggers-<year>.json`: the pending diff (each clause's class,
+ratio, counterpart and differing word runs), the definitions map, each text trigger's marks by rule, the measured marks,
+and the labels' result. The gate's LINEAGE SCREEN audit (`lineage_screen.py --check`) fails when it is stale, when the
+table no longer fits the texts (a changed or removed pending clause with no judgment, a judgment of an identical clause, a
+behaviour of the window with no clause), when a DIFFERENT pair of the regression fixture is unmarked, or when a stored
+rule-stage record sits on a rule the screen marks.
+
+**The regression fixture** is `tests/version-matrix/rule-stage-labels-<year>.json`: every labelled pair a blind sample read
+whole (SAME or DIFFERENT, with the read that decided it). Every DIFFERENT pair must stay marked by an excluding trigger; a
+SAME pair an excluding trigger marks is listed as the screen's cost. A later sample's labels are added, never replaced.
+
+**The KEPT writer** is `audit_batch.py change-batch --edition YEAR`, one writer for every older edition
+(`change_records(ed, ...)`). With `--state` it writes an audit run's decided records (1985). Without it, it writes the rule
+stage (`lineage_screen.rule_stage`): one KEPT record per pair no excluding trigger marks, text or view, with the source
+`lineage-rule-stage` (`RULE_STAGE_SOURCE`), and lists every other pair with each trigger's reason (`--exclusions`).
+`record_verdicts.py --edition YEAR` records the batch. A rule-stage record stands only while the committed screen marks
+nothing of its rule, so a trigger added later withdraws, by name, every record it no longer admits.
+
+**Measured on 2026-11-14 (2002).** The writer writes 461 KEPT records and refuses 1,309 pairs. T5 to T8 over v2's 674 keep
+524. T3's keying by sense excludes 59 of those 524 (the senses of `class`, `character`, `interface` and `property`), and the
+whole-text `absent-from-2014` excludes 4 more. The fixture's 16 DIFFERENT pairs are all marked; 20 of its 84 SAME pairs are
+marked. No 2002 rule-stage record is stored until a fresh blind sample of the written set passes (PB5574).
