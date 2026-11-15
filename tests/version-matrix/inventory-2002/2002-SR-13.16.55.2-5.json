@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.55.2-5",
+ "rule-digest": "a7eda9e258d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#SuperordinateWithRepresentationClause",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-cd-usage-group",
+ "notes": "§2002:13.16.55.2 SR5: no group superordinate to a TYPE subject shall contain a GROUP-USAGE, SIGN or USAGE clause; record A under an output CD carries USAGE DISPLAY and X TYPE TT is subordinate to it, so X (line 25) must be refused. Refused at --std 2002 with COBOL1538 at that line, as derived (pinned cobol.exe (tree dc1f2dcce8) --std 2002)."
+}

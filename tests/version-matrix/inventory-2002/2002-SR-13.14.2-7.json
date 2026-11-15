@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-7",
+ "rule-digest": "76154300747a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#ScreenFileRecordEntryNames",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-fd-external-filler-record; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-fd-global-unnamed-record; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-ws-filler-external; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-ws-unnamed-global",
+ "notes": "Per §2002:13.14.2 SR7 a FILLER record under FD EXTERNAL, an unnamed record under FD GLOBAL, and FILLER EXTERNAL / unnamed GLOBAL level-1 working-storage entries are each refused at the entry (COBOL2404). Pinned build dc1f2dcce8 --std 2002 matched all four."
+}

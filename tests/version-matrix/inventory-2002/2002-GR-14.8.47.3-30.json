@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-30",
+ "rule-digest": "b6d57aa1dfd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_indexed_keys",
+ "notes": "§2002:14.8.47.3 GR30: a successful WRITE releases the record area and the record is subsequently accessible by any of its record keys. Records K02/B01/AAAA, K01/B03/BBBB, K03/B02/CCCC are written out of key order under dynamic access (allowed by GR35; status 00 per GR10). Matched at --std 2002 with the pinned build of dc1f2dcce8 (g2_write_indexed_keys)."
+}

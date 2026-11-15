@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-8",
+ "rule-digest": "e6ceecb2575b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ReduceArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Oo/ActivationDescriptions.cs#OfValue; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call02_cd_single_identifier_argument; conformance:cases/14.9.4-CALL/pb613_gr8_one_reduction; conformance:cases/14.9.4-CALL/pb3760_literal_and_expression_arguments",
+ "notes": "§2002:14.8.4.3 GR8: a CD record item written alone is an identifier (BY REFERENCE per GR9a, callee stores seen: QA=XYZ MC=0042), while (MC) is an expression passed BY CONTENT (MC-EXPR=0005). --std 2002 run matched."
+}

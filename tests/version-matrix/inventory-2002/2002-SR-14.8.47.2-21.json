@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-21",
+ "rule-digest": "29af532c5dad",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#writeStatement",
+ "notes": "kb/Work PB5620: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) the 2002 Format 1 phrase order (END-OF-PAGE before WITH LOCK) is a parse error COBOL2269 for the legal MANUAL statement, so the AUTOMATIC refusal is the parser's, not SR21's."
+}

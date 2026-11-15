@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.44.3-2",
+ "rule-digest": "c96f77fb34c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
+ "test-ref": "conformance:cases/13.16.44@2002-REPORT-CLAUSE/g2-report-clause-one-each",
+ "notes": "§2002:13.16.44.3 GR2 with its CLOSE consequence §2002:14.8.6.3 GR5: closing a report file while one of its reports is still active completes (status 00) and sets EC-REPORT-NOT-TERMINATED, while closing a file whose report was terminated raises nothing. --std 2002 run of g2-report-clause-one-each matched."
+}

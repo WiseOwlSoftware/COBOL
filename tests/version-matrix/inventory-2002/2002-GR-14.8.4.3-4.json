@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-4",
+ "rule-digest": "deb93ebb7679",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#StoreReturn; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#StoreReturnGroup; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ReturningDelivery; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ReturningArgText",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call03_overflow_transitivity_returning",
+ "notes": "§2002:14.8.4.3 GR4 places the result into identifier-3, which §2002:14.8.4.2 SR7 lets be a communication-section item: R=0021 after a CALL ... ON OVERFLOW and MC=0042 into a CD record item after a CALL ... ON EXCEPTION. --std 2002 run matched."
+}

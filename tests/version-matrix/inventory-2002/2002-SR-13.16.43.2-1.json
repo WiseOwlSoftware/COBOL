@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.43.2-1",
+ "rule-digest": "eb27fc6f99e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-thru-cd-and-ws",
+ "notes": "§2002:13.16.43.2 SR1 grants any number of RENAMES entries for a record: three 66 entries after a working-storage record and three after a record under an output CD (§2002:A.1.1) are accepted and each addresses its range. --std 2002 run of g2-renames-thru-cd-and-ws matched the derived output."
+}

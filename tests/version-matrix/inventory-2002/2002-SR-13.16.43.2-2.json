@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.43.2-2",
+ "rule-digest": "cd3af502388c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RenamesEntry.cs#ScreenRenamesPlacement; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-after-other-record; conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-thru-cd-and-ws; conformance:cases/8.5.1.3.2-Level-numbers/pb1283-renames-entry-mid-record",
+ "notes": "§2002:13.16.43.2 SR2 requires a record's RENAMES entries to immediately follow its last entry: a 66 entry for record A written after record B under a CD is refused at --std 2002 (COBOL1655 at the 66 line), a mid-record 66 entry in working storage is refused (COBOL2740), and entries written right after their record are accepted (g2-renames-thru-cd-and-ws matched)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-15",
+ "rule-digest": "05ecd6e001a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeLocaleEdited; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2pic01_cd_record_picture",
+ "notes": "Per §2002:13.16.38.3 GR15 a format 2 item is fixed-point numeric-edited: INITIALIZE of the CD record REPLACING NUMERIC-EDITED BY 7 replaces the LOCALE item L4 (10 spaces + 7.00 under en-US) and leaves numeric K1. The --std 2002 run matched."
+}

@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-12.3.4.4.3-2",
+ "rule-digest": "762981f4f2a5",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape",
+ "notes": "kb/Work PB5602: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) a subscripted RECORD KEY (legal at 2002) is refused COBOL2024, so the subscripted key-of-reference arm of GR2 c) cannot run."
+}

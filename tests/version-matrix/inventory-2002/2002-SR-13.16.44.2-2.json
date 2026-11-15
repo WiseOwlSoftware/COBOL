@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.44.2-2",
+ "rule-digest": "18ae91ec379d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportClauseNameRule; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportClauseNames",
+ "test-ref": "conformance:cases/13.16.44@2002-REPORT-CLAUSE/g2-report-clause-one-each; conformance:cases/13.14-Report-description/pb1285-report-in-two-clauses",
+ "notes": "§2002:13.16.44.2 SR2 lets each report-name appear in one REPORT clause: three reports each named once (two in one clause, one in another) are accepted and initiated at --std 2002 (g2-report-clause-one-each matched), and a report-name in two clauses is refused (pb1285, COBOL2714)."
+}

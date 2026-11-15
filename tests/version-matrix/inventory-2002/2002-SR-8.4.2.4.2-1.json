@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.4.2-1",
+ "rule-digest": "16994cd24e32",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationReceiveStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#receivingIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticOperandRole.cs#IsReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers",
+ "test-ref": "conformance:cases/8.4.2.4@2002-INLINE-METHOD-INVOCATION/g2imi01-receive-into-inline-method-invocation",
+ "notes": "§2002:8.4.2.4.2 SR1 bars an inline method invocation as a receiving operand, which at 2002 includes RECEIVE ... INTO identifier-1 (§2002:A.2.5.3 GR3); g2imi01 (otherwise legal: input CD, alphanumeric PIC X(10) returning item) is refused at --std 2002 with COBOL2269 on the RECEIVE line, and the same program INTO a PIC X(10) item compiles."
+}

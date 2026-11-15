@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.10.3-9",
+ "rule-digest": "3db83c9988e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.2.10@2002-EVALUATE-DIRECTIVE/g2ev05_other_debugging_lines",
+ "notes": "§2002:7.2.10.3 GR9 does the same for format 2 (EVALUATE TRUE, WHEN 1 = 2 FALSE): the WHEN OTHER D line and source line are included and the WHEN text-1 lines omitted; lines 3-4 (F2-OTH-DLINE, F2-OTH-SRC) matched at --std 2002."
+}

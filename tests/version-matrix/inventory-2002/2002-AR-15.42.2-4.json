@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.42.2-4",
+ "rule-digest": "54eb4443769a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction",
+ "test-ref": "conformance:cases/15.42@2002-LOCALE-TIME-FUNCTION/g2002-locale-time-function",
+ "notes": "§2002:15.42.2 AR4 - §2002:15.42.2 AR4: locale-name-1 of LOCALE-TIME is a SPECIAL-NAMES locale (FR, GER, USA, XX declared); every use compiles and runs, so every output line witnesses the granted form accepted (the undeclared-name refusal is pb64t4-locale-function-name-undeclared, refuse-at 2002). Expected lines derived from the 2002 text before the run; G2LTM01 at --std 2002 on the pinned build (tree dc1f2dcce8) printed exactly the derived .out."
+}

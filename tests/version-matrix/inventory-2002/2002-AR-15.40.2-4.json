@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.40.2-4",
+ "rule-digest": "54eb4443769a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLocaleFunction; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#ResolveLocaleName",
+ "test-ref": "conformance:cases/15.40@2002-LOCALE-COMPARE-FUNCTION/g2lc01-locale-compare",
+ "notes": "§2002:15.40.2 AR4 with §2002:12.2.6.3 GR5: locale-names declared by SPECIAL-NAMES LOCALE clauses are accepted as locale-name-1 and the program runs; an undeclared name is refused (COBOL1664, g2lc02). The --std 2002 run matched."
+}

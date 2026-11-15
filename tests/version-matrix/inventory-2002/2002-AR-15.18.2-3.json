@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.18.2-3",
+ "rule-digest": "53d334d7b273",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateToYyyymmdd; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "conformance:cases/15.18@2002-DATE-TO-YYYYMMDD-FUNCTION/g2-date-to-yyyymmdd-arguments",
+ "notes": "§2002:15.18.2 AR3 'If argument-2 is omitted, the function shall be evaluated as though 50 were specified for argument-2': the general format admits argument-3 only after argument-2, so each pair omits argument-3 too and both take the same year of execution (§2002:15.18.2 AR5); (600101) = (600101, 50), (760101) = (760101, 50), (770101) = (770101, 50) -> SAME x3, in any year. YY 60 separates 50 from 0 in 2010-2049; in 2026 YY 76/77 sit on the window edge (max-year 2076), so a default of 49 or 51 would change OMIT2B or OMIT2C. Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

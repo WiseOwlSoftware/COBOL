@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-SR-13.16.47.2-7",
+ "rule-digest": "00fdc5435c02",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "notes": "kb/Work PB5606: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) SAME AS naming a COMMUNICATION SECTION record compiles and runs at --std 2002."
+}

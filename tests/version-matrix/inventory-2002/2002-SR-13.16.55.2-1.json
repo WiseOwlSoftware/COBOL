@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.55.2-1",
+ "rule-digest": "1c045e6c963a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CloneItem",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-same-as-subject",
+ "notes": "§2002:13.16.55.2 SR1 forbids a SAME AS in type-name-1's subordinates that references the subject; WS-REC (01 TYPE T, working storage) is the subject and T-B of T is SAME AS WS-REC, so the program must be refused at T-B (line 25). At --std 2002 (pinned cobol.exe, tree dc1f2dcce8) it is refused with COBOL1557 at that line, as derived."
+}

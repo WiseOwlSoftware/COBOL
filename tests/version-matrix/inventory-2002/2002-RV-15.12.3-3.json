@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.12.3-3",
+ "rule-digest": "f875187936ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/15.12@2002-BYTE-LENGTH-FUNCTION/g2-byte-length-argument-kinds",
+ "notes": "§2002:15.12.3 RV3 'shall include the number of implicit filler positions, if any, in argument-1'; §2002:8.5.1.5.3 generates filler 'Following a bit data item within an alphanumeric group item ... as needed to advance alignment to a required natural boundary for the next item' and after a last bit item to fill an integral number of characters, and places a bit item not following a same-level bit item 'at the first bit position of the first available byte'. F-G = F-B1 1 bit | filler 7 | F-A1 8 bits | F-B2 1 bit | filler 7 = 24 bits -> FILL=3; without the interior filler it would be 10 bits -> ... Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

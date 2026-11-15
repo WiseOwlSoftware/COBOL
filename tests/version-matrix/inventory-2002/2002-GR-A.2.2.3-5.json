@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.2.2.3-5",
+ "rule-digest": "17d883e02e9e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Disable; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOne; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#LockedTerminalChanged; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#FindTerminal; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#Deliver; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#TakeFromTerminal",
+ "test-ref": "conformance:cases/A.2.2@2002-DISABLE-STATEMENT/g2002-disable-io-terminal-path",
+ "notes": "DISABLE I-O TERMINAL at --std 2002 closes the path between terminal DESK1 and the program: a SEND then answers 10 with no action until ENABLE, a repeat answers 15, an unknown terminal 21 (§2002:A.2.2.3 GR5, Table A.1). The golden ran at --std 2002 on the pinned build dc1f2dcce8 and matched its derived .out."
+}

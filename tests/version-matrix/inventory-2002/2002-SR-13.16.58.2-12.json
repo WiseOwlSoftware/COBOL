@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-12",
+ "rule-digest": "fbcaf116bf53",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsPictureless; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageInheritancePass.cs#UsageInheritancePass; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_usage_representation",
+ "notes": "A CD record item with no USAGE takes NATIONAL for an N picture and DISPLAY otherwise (§2002:13.16.58.2 SR12; records under an output CD, §2002:A.1.2.2 SR9): N PIC N(2) is 4 bytes 00 51 00 52, D PIC X(3) and Z PIC 9(3) are 3 bytes holding XYZ and 123. G2USG01 at --std 2002 matched the derived output."
+}

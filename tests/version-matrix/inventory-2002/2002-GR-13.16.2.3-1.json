@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-13.16.2.3-1",
+ "rule-digest": "19286e982d55",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#BoundaryLength",
+ "notes": "kb/Work PB5621: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) BY REFERENCE, an ANY LENGTH formal bound to an ODO group takes the group's maximum length (5 at N=0 and at N=2); the BY CONTENT arm (g2-any-length-zero-length-by-content, lengths 0 and 3) is correct."
+}

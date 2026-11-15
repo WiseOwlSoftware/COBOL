@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.15.2-1",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#DeliberatelyUnscreened; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.15@2002-COS-FUNCTION/g2-cos-class-numeric-operands",
+ "notes": "§2002:15.15.2 AR1 'Argument-1 shall be of class numeric' with §2002:15.2 type 9: literal 0, binary S9(4) COMP 1, S9 display -1, 9V9 0.5, PACKED-DECIMAL -2.00, expression W-ONE + 2 = 3, input-CD MESSAGE COUNT item = 4 must be accepted. §2002:15.15.3 RV1 'the approximation of the cosine of argument-1', COMPUTE ROUNDED into +9.9(6): cos 0 -> +1.000000, cos 1 = 0.540302306 -> +0.540302 (also cos -1), cos 0.5 = 0.877582562 -> +0.877583, cos -2 = -0.416146837 -> -0.416147, cos 3 = -0.989992497 -> -0.989992, cos 4 = -0.653643621 -> -0.653644. Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

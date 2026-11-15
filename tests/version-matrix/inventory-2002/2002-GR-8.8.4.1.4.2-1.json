@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.4.1.4.2-1",
+ "rule-digest": "00693ae5b6b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderMembershipTest; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RangeCollateArg; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#UnscaledAtScale",
+ "test-ref": "conformance:cases/8.8.4.1.4@2002-CONDITION-NAME-CONDITION/g2_condition_name_values",
+ "notes": "§2002:8.8.4.1.4.2 GR1: a range condition-name tests whether the value 'falls in this range, including the end values'. Ran g2_condition_name_values.cob --std 2002 --run with the pinned exe matched the derivation at --std 2002 with the pinned build of tree dc1f2dcce8."
+}
