@@ -1,0 +1,16 @@
+## Entry 3691 — 2026-11-15 11:11 PST — PB5625 adjudicated: four 2002 readings recorded as conformance determinations, defect PB5674 and diagnostic defect PB5676 filed
+
+**The adjudication.** kb/Work PB5625 held four open readings of the 2002 text. The lead session decided all four on 2026-11-15. Its adjudication and the later supplement for reading D are both copied unchanged into `kb/Work/PB5625/`. This landing puts all four on record and lands PB5625. No compiler source, test, golden or inventory record changes. Every citation written was run through `cite.py --check` and answered OK; the one quotation too short to check had its clause confirmed with `--find`.
+
+**A.** A reference to a parameterized interface or class that the REPOSITORY lists without EXPANDS is refused. At 2014 and 2023 that is the standard's own rule (§2014:12.3.7.3 GR7 and GR1; §2023:12.3.8.4 GR7 and GR1). At 2002 it is a determination for a gap in the text (`docs/conformance/3/D-PARAMETERIZED-UNEXPANDED.md`): §2002:12.2.7.3 GR7 grants the name, and no rule gives it a meaning. The branch review (R1-1) caught a first draft that stretched the determination to 2014. The 2002 class text (§2002:9.3.12, §2002:12.2.7.3 GR1 and GR5) has the same gap, so the determination covers both. COBOL0859 and its class sibling COBOL0813 still cite §2023 rules at `--std 2002`; that is filed with PB4950. The INVOKE arm, COBOL0823, says a listed class is "neither a resolvable data item nor a class" and gives no ground. That is new diagnostic defect **PB5676**.
+
+**B.** At 2002 a PIC 9 or PIC 1 item of USAGE NATIONAL is class and category numeric or boolean. §2002:8.5.2.7 item 3 is recorded as a defect in the text (`D-USAGE-NATIONAL-CLASS-2002.md`).
+
+**C.** With checking not enabled, SET of an index outside its table stores the value (`D-SET-INDEX-UNCHECKED.md`, §2002:B.1 item 51). GnuCOBOL 3.2.0 does the same, measured in WSL. With checking enabled the compiler is wrong. Under `>>TURN EC-BOUND-SUBSCRIPT CHECKING ON` at `--std 2002`, `SET IX TO 11` on a 10-entry table printed `S2=11` and ran no declarative. §2002:14.8.35.3 GR2a.1 and GR3b require IX to stay at 3 and the condition to be raised. A control program with an out-of-range subscript reference does raise it. This is new defect **PB5674**, which takes rows `2002-GR-14.8.35.3-2` and `-3`. The GR3a arm (a non-integer UP BY amount) already conforms.
+
+**D.** With no locale in effect, 2002 states no case correspondence for LOWER-CASE and UPPER-CASE, so the .NET invariant mapping is WiseOwl's documented choice (`D-CASE-MAPPING.md`, extended). The check the adjudication required ran over all 600 Annex D pairs. LOWER-CASE maps 596 as listed and UPPER-CASE maps 586 of 587. The supplement explains the five exceptions; none is a defect of the functions:
+- Three pairs (the two D.2.2 pairs and a reversed duplicate) have a lowercase first member, which LOWER-CASE does not replace.
+- U+0130 is one of the two letters the invariant table maps to itself (with U+0131). The determination now names both, for every edition.
+
+The reversed duplicate (U+0256, U+0189) on page 724 of the 2002 PDF is recorded as a defect in the 2002 text. The functions apply the forward pair (U+0189, U+0256). GnuCOBOL 3.2.0, measured, stores national data as UTF-16 bytes and cases only the basic Latin letters.
+
