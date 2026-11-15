@@ -898,6 +898,8 @@ internal sealed class VersionConformancePass
         /// is the whole answer there. The number is an <c>integerLiteral</c>, so it is unsigned and
         /// integral by the grammar; zero is §2023:5.5 1)'s question for SEGMENT-LIMIT (<c>IntegerOperandRules.Slots</c>),
         /// so only the upper bound can be broken there.</summary>
+        private const int MaxSegmentNumberDigits = 2;
+
         private void ScreenSegmentNumber(CobolParserCore.IntegerLiteralContext? number, int min, int max, string construct,
             string where, string rule)
         {
@@ -908,6 +910,20 @@ internal sealed class VersionConformancePass
                 ? Segmentation.MeaningKept(_p._edition) : ConstructRegistry.IsAvailable(_p._edition, construct);
             if (!asked) return;
             string text = number.GetText();
+            // THE SPELLING IS PART OF THE RULE (kb/Work PB5379): §1985:III.2 "A segment-number may be expressed either as a one or
+            // two digit number", so 010, 001 and 000000000000000010 are no segment-number though their VALUE is in range; the
+            // level-number's form rule (LevelNumberPass.VisitLevelNumber, COBOL1746) is the model. One place for the SEGMENT-LIMIT
+            // clause and both section-header forms.
+            if (text.Length > MaxSegmentNumberDigits)
+            {
+                using var _form = Sink.At(number);
+                _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.SegmentNumberOutOfRange.Code, EditionSeverity.Error,
+                    DiagnosticCatalog.SegmentNumberOutOfRange.Id,
+                    $"{where}: the segment-number {text} is not a one or two digit number — §1985:III.2: \"A segment-number may be "
+                    + "expressed either as a one or two digit number\"", where,
+                    DiagnosticCatalog.SegmentNumberOutOfRange.IsoSection));
+                return;
+            }
             int value = Segmentation.ValueOf(number);
             if (value <= max && (value >= min || value == 0)) return;   // a zero below min is the SEGMENT-LIMIT slot's COBOL2386
             using var _ = Sink.At(number);
