@@ -1,0 +1,1 @@
+**2026-11-15, resume unit:** branch `worktree-wf_5f2b837e-b54-2` ABANDONED: superseded. PB5543 is `status: landed` on origin/main ed86914443, which carries both pb5543 conformance cases and the LiteralEnvironment change; its only files main lacks are its unstamped DEVLOG/pending-*.md entries, whose landings main already stamped, so nothing unique is left on it.

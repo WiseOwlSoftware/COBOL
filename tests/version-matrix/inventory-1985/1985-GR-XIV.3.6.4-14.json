@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-14",
  "rule-digest": "ebbdfce32cd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ScreenSendAdvancing; src/WiseOwl.Cobol.Runtime/Communication/McsStore.cs#Transmit; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send",
+ "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-14",
+ "notes": "§1985:XIV.3.6.4 GR14: \"On a device where vertical positioning is applicable and the ADVANCING phrase is not specified, automatic advancing will be provided by the implementor to act as if the user had specified AFTER ADVANCING 1 LINE.\" The PB5373 class 2 refuter OVERTURNED the proposed derivation to a test (pb5373-class2.jsonl, OVERTURNED-NEEDS-TEST): the same two messages sent with no ADVANCING to D1 and with AFTER ADVANCING 1 LINE to D2 must leave byte-identical device files, under GR14 if positioning applies and under GR12 (\"the MCS will ignore the vertical positioning specified or implied\") if not. The test compares D1.out and D2.out byte for byte (\"D1 D2 IDENTICAL\") and shows D1's lines (section 3.3: one delimited line a message); it matched at --std 85 on the records-85-held build. The refuter's second point, reconciling DRV-GR-14.9.11.4-11 (\"applicable\") with section 3.3 (\"not applicable\"), does not change this row: its expectation holds under both. Previous verdict: none (test owed). Recorded 2026-11-14 by records-85-held.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -56,9 +56,11 @@
       "NEW: derived, never written. lineage.py (`next_errors`, `state_of`) reads this through inventory_schema.ChangeRecord;",
       "no code spells a kind. `digests` (kb/Work PB5256, branch review R1-4) maps each `to` rule to the `rule-digest` of",
       "the text the record was decided against; the writer stamps it, and a target whose text has since changed under its",
-      "id makes the record STALE (`lineage.stale_targets`), as a store record's own `rule-digest` does for its rule."
+      "id makes the record STALE (`lineage.stale_targets`), as a store record's own `rule-digest` does for its rule.",
+      "`answers` (kb/Work PB5589) maps each trigger of the lineage screen that flags the pair to why the read decision",
+      "still holds; lineage_screen.unanswered refuses a record on a flagged pair that leaves a flag unanswered."
     ],
-    "keys": ["kind", "edition", "to", "digests", "bridge", "reason", "source"],
+    "keys": ["kind", "edition", "to", "digests", "bridge", "reason", "answers", "source"],
     "verdict-fields": ["verdict", "code-location", "test-ref", "derivation"],
     "kinds": {
       "KEPT": {"meaning": "the next edition states the same requirement", "to": true, "reason": false, "chained": true},
@@ -1315,7 +1317,7 @@
       "owner: 2026-10-08": "kb/Work PB1636 — the owner signed the 32 drafted derivations as one batch (answer 'Sign all 32')",
       "owner: 2026-10-23": "kb/Work PB3539 — the owner chose option (i), document a violation of §12.4.6.4.4 GR3 as undefined (answer 'Document as undefined'); kb/Work PB1636 — the owner signed the last drafted derivation, DRV-GR-12.4.5.9.4-2 (answer 'Sign it')",
       "claude: 2026-11-12": "kb/Work PB5373 — how a 1985 rule with no reachable witness closes: the rows of its classes 1 and 2",
-      "claude: 2026-11-14": "kb/Work PB5373 — its class 2 rows read after the orchestrator's cobol-refuter pass (tests/version-matrix/derivation-refutations/pb5373-class2.jsonl), signed by the operator session (Claude Mythos 5.2): DRV-1985-GR-XIV.3.6.4-16 and DRV-1985-GR-VI.3.4.4-1, each on an UPHELD record"
+      "claude: 2026-11-14": "kb/Work PB5373 — its class 2 rows read after the orchestrator's cobol-refuter pass (tests/version-matrix/derivation-refutations/pb5373-class2.jsonl), signed by the operator session (Claude Mythos 5.2): DRV-1985-GR-XIV.3.6.4-16 and DRV-1985-GR-VI.3.4.4-1, each on an UPHELD record; and DRV-1985-GR-XIV.3.6.4-17 and -18, restated on GR2 by the 2026-11-14 held-row adjudication and signed by the records-85-held registrar session (Claude Opus 5.5), each on the UPHELD record of its own cobol-refuter pass (tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl)"
     },
     "undefined-list": "tests/version-matrix/annex-a2-undefined.json",
     "$refusals": [

@@ -15,7 +15,12 @@ THE INVARIANT, in two directions:
 
   COVERAGE (the registration wave of 2026-08-31). Every inventory row whose verdict is DEFECTIVE is claimed, in
   `inventory_rows`, by a LIVE note (a status that is not terminal); and every `inventory_rows` claim names a rule-id the
-  inventory has. `tests/version-matrix/inventory/` says which spec rules the compiler does not yet
+  inventory has, in ANY edition it holds (kb/Work PB5094): a rule-id names its edition (the catalogs' ids are unique
+  across editions, `Schema.catalog`), so a claim resolves against every held edition's view, each joined from that
+  edition's catalog (`inventory_view.edition_views`), and a 1985 or 2002 defect note claims its open rows as a 2023 note
+  does. COVERAGE is still asked of the NEWEST edition's rows alone (`coverage_rows`): the older editions' defective rows
+  are claimed in their notes' prose until PB5094's second half moves them into `inventory_rows`, and widening it is
+  then the one argument `live_problems` passes. `tests/version-matrix/inventory/` says which spec rules the compiler does not yet
   implement correctly, `kb/Work/` says what is left to do, and nothing held them together: measured 2026-08-31, of 138
   rows verdicted PARTIAL / NOT-IMPLEMENTED / DIVERGES, 131 were invisible to `work.py next`. The link is the NOTE→ROW
   direction on purpose: a note that lands keeps naming its rows, so a landed note whose rows were never re-verdicted turns
@@ -104,8 +109,8 @@ def landed_notes_that_say_nothing(notes: Iterable[Note], terminal: Collection[st
 
 
 def closed_rows_the_inventory_denies(notes: Iterable[Note], rows: Iterable[Row]) -> list[str]:
-    """Rows a note claims to have CLOSED that the inventory does not agree are closed: no such rule-id, or the row's
-    computed `state` is still GAP. A claim on a note that has NOT landed is checked too: a row named as closed is a
+    """Rows a note claims to have CLOSED that the inventory does not agree are closed: no such rule-id in any held edition,
+    or the row's computed `state` (an older edition's through its change record) is still GAP. A claim on a note that has NOT landed is checked too: a row named as closed is a
     factual claim whatever the note's status, and a wrong one is worth catching before the landing inherits it."""
     known = {r["rule-id"]: r for r in rows}
     bad: list[str] = []
@@ -113,7 +118,7 @@ def closed_rows_the_inventory_denies(notes: Iterable[Note], rows: Iterable[Row])
         for claim in _list(n, "closes_rows"):
             row = known.get(claim)
             if row is None:
-                bad.append(f"{n['_file']}: closes_rows names '{claim}', which is not a rule-id in the inventory — a "
+                bad.append(f"{n['_file']}: closes_rows names '{claim}', which is not a rule-id of any held edition's inventory — a "
                            "claim that satisfies nothing while looking like a closed row")
             elif row.get("state") != "OK":
                 bad.append(f"{n['_file']}: closes_rows names '{claim}', whose verdict is "
@@ -134,10 +139,10 @@ def unclaimed_defective_rows(rows: Iterable[Row], notes: Iterable[Note], defecti
 
 
 def claims_naming_no_row(rows: Iterable[Row], notes: Iterable[Note]) -> list[str]:
-    """A claim on a rule-id the inventory does not have. A typo here is worse than useless: it satisfies nothing while
+    """A claim on a rule-id no held edition's inventory has (`rows` are every held edition's). A typo here is worse than useless: it satisfies nothing while
     LOOKING like ownership, so the row it meant to claim stays uncovered and the note reads as done."""
     known = {r["rule-id"] for r in rows}
-    return [f"{n['_file']}: inventory_rows names '{claim}', which is not a rule-id in the inventory"
+    return [f"{n['_file']}: inventory_rows names '{claim}', which is not a rule-id of any held edition's inventory"
             for n in sorted(notes, key=lambda n: (n["_file"]))
             for claim in sorted(_list(n, "inventory_rows"))
             if claim not in known]
@@ -173,23 +178,37 @@ def population_findings(notes: list[Note], rows: list[Row], defective: Collectio
     return out
 
 
-def problems(notes: list[Note], rows: list[Row], defective: Collection[str], terminal: Collection[str]) -> list[str]:
-    """Every finding for a LIVE register against the inventory: the population first, then both directions."""
+def problems(notes: list[Note], rows: list[Row], defective: Collection[str], terminal: Collection[str],
+             coverage_rows: list[Row] | None = None) -> list[str]:
+    """Every finding for a LIVE register against the inventory: the population first, then both directions. `rows` are
+    every held edition's (a claim resolves in any of them); `coverage_rows`, the rows whose defective verdicts must be
+    claimed, are all of `rows` unless named."""
+    covered = rows if coverage_rows is None else coverage_rows
     return (population_findings(notes, rows, defective, terminal)
             + landed_notes_that_say_nothing(notes, terminal)
             + closed_rows_the_inventory_denies(notes, rows)
-            + unclaimed_defective_rows(rows, notes, defective, terminal)
+            + unclaimed_defective_rows(covered, notes, defective, terminal)
             + claims_naming_no_row(rows, notes))
+
+
+def held_rows(schema: Any) -> tuple[list[Row], list[Row]]:
+    """THE ROWS THE REGISTER IS CHECKED AGAINST (kb/Work PB5094): every held edition's view, each joined from its own
+    catalog, so an open row with no store file is a row (a claim on it resolves), and the newest edition's, whose
+    defective rows the coverage check holds claimed."""
+    import inventory_view  # noqa: PLC0415  (the one view of the inventory, kb/Work PB4992)
+
+    views = inventory_view.edition_views(schema)
+    return [r for rows in views.values() for r in rows], views[schema.newest.year]
 
 
 def live_problems(notes: list[Note], terminal: Collection[str]) -> list[str]:
     """The findings for the repository's own inventory and schema (`work.py check` calls this with its own
     TERMINAL_STATUSES: the vocabulary has one home, and importing it from here would load `work.py` twice)."""
     import inventory_schema  # noqa: PLC0415  (this directory's; imported here so --self-test needs neither file)
-    import inventory_view  # noqa: PLC0415  (the one view of the inventory, kb/Work PB4992)
 
     schema = inventory_schema.load_schema()
-    return problems(notes, inventory_view.inventory(schema=schema), schema.defective, terminal)
+    rows, newest = held_rows(schema)
+    return problems(notes, rows, schema.defective, terminal, coverage_rows=newest)
 
 
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -281,6 +300,24 @@ def self_test() -> int:
             unclaimed([note("PB1", "defect", "open", rows=["GR-1.1-99"]), note("PB2", "defect", "open", rows=["GR-1.1-3"])])),
            (1, 1))
 
+    # ── a claim on an older edition's row (kb/Work PB5094) ───────────────────────────────────────────────────────
+    editions = cover + [row("1985-GR-VI.1.1-1", "PARTIAL", "GAP"), row("2002-GR-14.8.1.3-1", "", "GAP"),
+                        row("2002-GR-14.8.1.3-2", "CONFORMS", "OK")]
+    expect("a note claiming an OPEN 2002 row (no store file: the row is its catalog's) resolves",
+           claims_naming_no_row(editions, [note("PB1", "defect", "open", rows=["2002-GR-14.8.1.3-1"])]), [])
+    expect("a 1985 claim resolves by the same rows",
+           claims_naming_no_row(editions, [note("PB1", "defect", "open", rows=["1985-GR-VI.1.1-1"])]), [])
+    expect("a 2002 id its catalog lacks, and an id of an edition not held, each fail by name",
+           [c.split("'")[1] for c in claims_naming_no_row(editions, [note("PB1", "defect", "open",
+                                                                         rows=["2002-GR-14.8.1.3-99", "2014-GR-1.1-1"])])],
+           ["2002-GR-14.8.1.3-99", "2014-GR-1.1-1"])
+    expect("a closed 2002 row is closed by its own state, and an open one is denied",
+           (denies([note("PB1", "defect", "landed", ["2002-GR-14.8.1.3-2"])], editions),
+            denies([note("PB1", "defect", "landed", ["2002-GR-14.8.1.3-1"])], editions)), (0, 1))
+    expect("coverage is asked of `coverage_rows`: an older edition's defective row outside them needs no claim",
+           (len(unclaimed_defective_rows(cover, [], defective, terminal)),
+            len(unclaimed_defective_rows(editions, [], defective, terminal))), (2, 3))
+
     # ── population, the schema and the live register ─────────────────────────────────────────────────────────────
     expect("an empty register and inventory is a finding per missing observation, never a pass",
            len(population_findings([], [], defective, terminal)), 7)
@@ -301,6 +338,23 @@ def self_test() -> int:
     import inventory_schema  # noqa: PLC0415
 
     schema_defective = inventory_schema.load_schema().defective
+
+    # The live rows (kb/Work PB5094): a 2002 rule with no store file, and a 1985 rule, are rows a claim resolves to; an
+    # id the 2002 catalog lacks is not. Each arm fails while the rows are the newest edition's alone.
+    live_schema = inventory_schema.load_schema()
+    live_rows, live_newest = held_rows(live_schema)
+    stored = {pth.stem for pth in (Path(__file__).resolve().parents[2] / live_schema.edition(2002).store).glob("*.json")}
+    open_2002 = next(r["id"] for r in live_schema.edition(2002).rules() if r["id"] not in stored)
+    first_1985 = live_schema.edition(1985).rules()[0]["id"]
+    expect("live: a note claiming an open 2002 row with no store file, and a 1985 row, raises no finding",
+           claims_naming_no_row(live_rows, [note("PB1", "defect", "open", rows=[open_2002, first_1985])]), [])
+    expect("live: a 2002 id the catalog lacks is named",
+           [c.split("'")[1] for c in claims_naming_no_row(live_rows, [note("PB1", "defect", "open",
+                                                                          rows=["2002-GR-99.99-1"])])],
+           ["2002-GR-99.99-1"])
+    expect("live: coverage rows are the newest edition's, all of whose ids are unprefixed",
+           (len(live_newest) < len(live_rows), all(not r["rule-id"][:4].isdigit() for r in live_newest)), (True, True))
+
     expect("the schema's defective verdicts are derived from its `resolves` flags, and PARTIAL is one",
            ("PARTIAL" in schema_defective, "CONFORMS" in schema_defective, "" in schema_defective), (True, False, False))
     print(f"=== WORK-INVENTORY SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")

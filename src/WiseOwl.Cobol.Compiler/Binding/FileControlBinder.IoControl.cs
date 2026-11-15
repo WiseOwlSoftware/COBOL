@@ -462,7 +462,9 @@ public sealed partial class FileControlBinder
         using var reportAt = Edition.At(at);
         if (_host.State.Reports.EntriesNamed(name, quals) is [var (report, _), ..] && _host.State.Reports.Depth(report) < fileDepth
             && !dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) <= _host.State.Reports.Depth(report)))
-            return _host.ReportSection.ReportEntryReferenceRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals);
+            // At COBOL-85 a sum counter is a data-name, not refused (it returns false with its counter), and the operand then
+            // resolves as written (kb/Work PB5361).
+            return _host.ReportSection.ReportItemOperandRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals, out _);
         if (global is not null && !dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) < fileDepth))
         {
             ApplyCommitRule($"'{global.CobolName}' is a file of a containing source element declared with the GLOBAL clause, "
