@@ -1629,3 +1629,80 @@ number, so a general format's notation is part of its key (the first seed, by `c
 `{character-1} ...` with 2023's `[character-1] ...`, a change of meaning: branch review R1-3). On 2026-11-11, 2002 to
 2023: 1,771 paired (1,730 exact, 41 normalized, 2 with two candidates), 1,519 unpaired; 1985 to 2023: none paired
 (2,274 unpaired: no 1985 rule is word for word a 2023 rule). The adjudication of the 2002 change records starts there, and the 1985 to 2002 records after it link 2002.
+
+
+### 10.5 The lineage screen: the pairs whose identical words govern more in the older edition (kb/Work PB5589, PB5584, PB5574)
+
+**What decides a pair.** A pair of the candidate pairing (§10.4) has the same construct, kind and words in two editions.
+That does not make it one requirement: each edition's rule is judged on its own edition's text, at its own `--std`
+(owner, 2026-11-14: "2002 spec covers 2002 rules"). Every pair is decided by a READ: an agent reads the 2002 rule in the
+2002 text, and a refuter attacks the decision. A change record follows only from such a decision, through the one writer
+of an older edition's change records, `audit_batch.py change-batch --edition YEAR --state DIR` (`change_records(ed, ...)`);
+the command without `--state` is refused by name, for every edition. Two blind samples of 100 pairs each measured why:
+the first, of pairs no flag then known marked, held 16 that were not the same requirement; the second, of pairs v3's
+triggers left unmarked, held 13 that were not and 3 doubtful. No script decides a pair.
+
+**What the screen does.** `scripts/spec/lineage_screen.py` FLAGS the pairs whose identical words are known to govern more
+in 2002 than the words alone show. In 2002 terms, a flagged rule:
+- rests on a 2002 clause no catalog row holds (a PENDING clause: §2002:8.8.1.3.2 truncates a sum to 32 significant
+  digits, so a 2002 rule computed by standard arithmetic carries that truncation);
+- uses a term §2002:4 defines, keyed by its sense (`class (of a data item)`), whose definition the other edition words
+  otherwise or does not give;
+- sits in a clause where the compiler applies a behaviour by edition (`DialectBehaviors`, read from the compiler facts);
+- governs a band of formats that is not its counterpart's (`band-formats`);
+- governs entries a 2002 CD entry can hold (§2002:A, the communication section: the CD entry and the clauses its formats
+  name), unless its text confines it to another section;
+- names an element §2002:G marks obsolete or archaic (the communication facility, debugging lines and DEBUGGING MODE,
+  PADDING CHARACTER, ON OVERFLOW of CALL);
+- defers to rules it does not state ("the rules for", "except as specified");
+- names a clause by number, pairs with two rules, matches only after typography is erased, or does not appear whole in
+  the 2014 text;
+- is held by evidence no text shows (the S1 run's refusal of a construct the rule names).
+
+A flag is a question the read must answer. A change record for a flagged pair stands only when its decision answers each
+flag by the trigger's name, with why the 2002 rule still states that requirement (`next.answers`, the schema's change
+record key). The writer refuses a batch that holds a record leaving a flag unanswered, and the gate's LINEAGE SCREEN audit
+(`lineage_screen.py --check`, also a step of CI's audits job) refuses such a stored record (`unanswered`). An UNFLAGGED
+pair is not thereby the same requirement: it is read like every other.
+
+**The triggers are data.** One table per older edition, `scripts/spec/data/lineage-screen-triggers-<year>.json`. Each
+`triggers` row names a trigger, its `mechanism`, its `params`, its `source` and the `reason` its flag gives. The
+mechanisms are the only code (`MECHANISMS`: `pair-targets`, `pair-match`, `absent-from`, `text-pattern`, `definitions`,
+`pending-clause`, `behaviour-switch`, `listed`, `field-differs`, `construct-reach`, `clause-identity`), each with a planted
+case in `scripts/selftests/spec/lineage_screen/`. A trigger an existing mechanism computes is a row. A row with
+`"measured-only": true` is scored against the labels and flags nothing: whole-clause identity is one, because it marks 83
+of the first sample's 84 SAME pairs.
+
+**The pending-clause diff (P0).** Each pending clause of the 2002 catalog (`outside-denominator.pending-clauses`) is
+compared with its counterpart: the table's `pending` judgment where it names one, else the clause of the same title
+nearest in words. The comparison is word by word on the clause's own body; where either side's own body is only an
+anchor over its subclauses, it is the two subtrees. A clause is identical, near (ratio 0.90 or more), changed, or
+removed (no counterpart). A changed or removed clause, and a near one the table judges, flags every pair whose rule lies
+under a clause the judgment `governs` (component-wise, `section_matches`) or whose text matches a pattern it `invokes`.
+On 2026-11-14 the 89 clauses of 2002 are 10 identical, 43 near, 30 changed and 6 removed.
+
+**Unknown fails closed.** A changed or removed pending clause the table does not judge flags every pair under its own
+clause number and every pair whose text names its title (`undecided_judgment`); a dialect behaviour that applies
+differently at 2002 and 2023 and that the table places in no 2002 clause flags every pair. Each is listed as OWED
+(`undecided`: the screen file's `owed`, printed by `--check`) and neither turns the gate red: a flag already asks the read
+the question the missing judgment would have narrowed, so a compiler change that adds a behaviour costs the next landing
+only the regeneration of the committed screen, `--write`, which is mechanical. A judgment that a clause governs nothing
+(empty `governs` and `invokes`, with its `why`) is a decision and flags nothing. On 2026-11-14 the table judges 25 of the
+36 changed or removed clauses and promotes 1 near one; 11 are owed.
+
+**The committed screen** is `docs/rearchitecture/spec-lineage-screen-<year>.json`: the pending diff (each clause's class,
+ratio, counterpart and differing word runs), the definitions map, each trigger's flags by rule, the measured-only marks,
+the fixture's result and what the table owes. `--check` fails when it is stale, when the table no longer fits the texts
+(a judgment of an identical or non-pending clause, a judgment with no why, a behaviour placed that does not differ), when
+a stored record leaves a flag unanswered, or when a `caught` fixture pair is unflagged.
+
+**The regression fixture** is `tests/version-matrix/lineage-screen-labels-<year>.json`: samples of pairs read blind and
+whole, each labelled SAME, DIFFERENT or DOUBTFUL by the read that decided it, each sample with its expectation. `caught`
+(the first sample, 16 DIFFERENT of 100): the triggers were built from it, and `--check` fails when any of its DIFFERENT
+pairs goes unflagged. `known-misses` (the second sample, 13 DIFFERENT and 3 DOUBTFUL of 100): `--check` reports how many
+the triggers flag, a measure that grows when a trigger row is added, and fails on none. The fixture pins what the screen
+catches, never that it suffices. A later sample is added as a sample of its own.
+
+**Measured on 2026-11-14 (2002).** Of 1,770 candidate pairs the screen flags 1,220. The first sample's 16 DIFFERENT pairs
+are all flagged; of the second sample's 16 known misses, 3 are flagged (by the fail-closed judgments); 30 of the 168 SAME
+pairs of both samples are flagged.

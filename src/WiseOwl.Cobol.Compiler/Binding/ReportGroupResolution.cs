@@ -34,13 +34,13 @@ using WiseOwl.Cobol.Runtime;
 /// <para><b>Why the ambiguity is diagnosed HERE and not at the call sites.</b> One rule, one place. The callers
 /// differ only in what a MISS means (GENERATE falls back to the report-name form for summary reporting, SR2;
 /// USE and the SUM clause's UPON operand have no fallback), so <see cref="Resolve"/> owns Found/Ambiguous and
-/// hands <c>None</c> back for the caller's own SR. On Ambiguous the first candidate is still returned so the bind can continue without a
-/// cascade — the diagnostic has already fired.</para>
+/// hands <c>None</c> back for the caller's own SR. On Ambiguous NO candidate is returned (<c>report</c> and <c>group</c> are null):
+/// the diagnostic has already fired, and a caller can only stop, never go on with a first candidate by omission (kb/Work PB5542).</para>
 /// </summary>
 internal static class ReportGroupResolution
 {
     /// <summary>The outcome of a report-group lookup. <c>Ambiguous</c> is ALREADY DIAGNOSED (COBOL1920) and
-    /// carries the first candidate for error recovery; <c>None</c> carries nothing and leaves the "this is not a
+    /// carries no group — the caller stops; <c>None</c> carries nothing and leaves the "this is not a
     /// report group" diagnostic to the caller, whose syntax rule differs per statement.</summary>
     public enum Match { Found, Ambiguous, None }
 
@@ -79,15 +79,19 @@ internal static class ReportGroupResolution
         }
         if (scope is not null) found = scope.State.Reports.NearestInScope(found, f => f.Report);
         if (found.Count == 0) return Match.None;
-        (report, group) = found[0];
-        if (found.Count == 1) return Match.Found;
+        if (found.Count == 1)
+        {
+            (report, group) = found[0];
+            return Match.Found;
+        }
+        var first = found[0].Report;
         var extra = found.Skip(1);
 
         // §2023:8.4.2.2.3 SR1 — the reference does not preclude ambiguity. Name every report that carries the group
         // so the fix (which qualifier to write) is in the message.
-        string owners = string.Join(", ", new[] { report.Name }
+        string owners = string.Join(", ", new[] { first.Name }
             .Concat(extra.Select(e => e.Report.Name)).Select(n => $"'{n}'"));
-        string example = preferred is not null && found.Any(f => ReferenceEquals(f.Report, preferred)) ? preferred.Name : report.Name;
+        string example = preferred is not null && found.Any(f => ReferenceEquals(f.Report, preferred)) ? preferred.Name : first.Name;
         edition.Error(DiagnosticCatalog.ReportGroupReferenceAmbiguous, $"{where}: report group '{head}' is "
             + $"described in more than one report description entry ({owners}) — qualify the reference "
             + $"(e.g. '{head} OF {example}'), since uniqueness shall be established through qualification "

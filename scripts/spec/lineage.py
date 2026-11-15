@@ -85,6 +85,11 @@ def next_errors(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[
     errs += stale_targets(nxt, to, targets)
     if not (nxt.get("source") or "").strip():
         errs.append("next.source names the audit run or the adjudication that decided it")
+    if "answers" in nxt and not (isinstance(nxt["answers"], dict) and nxt["answers"]
+                                 and all(isinstance(k, str) and isinstance(v, str) and v.strip()
+                                         for k, v in nxt["answers"].items())):
+        errs.append("next.answers maps each flag of the lineage screen (a trigger's name) to why the decision holds, "
+                    "every answer a non-empty sentence, and is omitted when the pair is flagged by none (kb/Work PB5589)")
     if kind is None:
         return errs
     if kind.to and not to:
@@ -257,6 +262,9 @@ def self_test() -> int:
     ok(any("is not one of" in e for e in errs(row(kind="DEPRECATED"))), "a kind the schema does not name is refused")
     ok(any("unknown key" in e for e in errs(row(evidence="§2023:13.18.38.3 SR1"))),
        "a record carrying a key the schema does not name (its evidence is read from the catalogs) is refused")
+    ok(errs(row(answers={"band-formats": "the 2002 rule governs format 1 only, as the 2023 rule does"})) == []
+       and all(any("next.answers" in e for e in errs(row(answers=bad))) for bad in ({}, {"band-formats": " "}, ["x"])),
+       "a record's answers to the lineage screen's flags are a non-empty map of trigger to a sentence (kb/Work PB5589)")
     ok(any("holds no verdict" in e for e in errs(dict(row(), verdict="CONFORMS"))),
        "a KEPT rule holding a verdict of its own is refused: the chain's newest rule holds it")
     moved = {**targets, "SR-13.18.38.3-1": dict(targets["SR-13.18.38.3-1"], **{"rule-digest": "d-other"})}
