@@ -48,15 +48,15 @@ internal static class FileEntryIdentity
         static string Suppress(SuppressWhenOperand? s) => s is null ? ""
             : $"{s.Form}/{s.Class}/{s.FigurativeKind}/{s.Characters.Length}:{s.Characters}";
         // g) "The same specification of COLLATING SEQUENCE clauses": the file-level clause's alphabet-names, and each
-        // key-level clause's alphabet-name-3 against the KEY POSITION it names (P = the prime key, A<i> = the i-th
-        // alternate), so the rule compares what the clause says about the file's keys; sorted, because the clauses'
+        // key-level clause's alphabet-name-3 against the KEY POSITION it names (P = the prime key, A:<name> = the
+        // alternate that key names, never its place among the ALTERNATE RECORD KEY clauses: their order is not part of the specification), so the rule compares what the clause says about the file's keys; sorted, because the clauses'
         // order in the entry is not part of their specification.
         // The operand is matched by the key ITEM the binder resolved it to (kb/Work PB1075 — a qualified operand).
         string KeyPosition(CollatingKeyOperand k)
         {
             if (k.Key is not null && ReferenceEquals(f.PrimeKey, k.Key)) return "P";
             int i = k.Key is null ? -1 : f.AlternateKeys.FindIndex(a => ReferenceEquals(a.Key, k.Key));
-            return i >= 0 ? $"A{i}" : CobolNames.UpperFold(k.Name);
+            return i >= 0 ? $"A:{CobolNames.UpperFold(k.Key!.RecordKeyName ?? k.Key.Segments[0].CobolName ?? k.Name)}" : CobolNames.UpperFold(k.Name);
         }
         string fileColl = f.FileLevelCollating is { } fc ? $"{(fc.Alnum is { } an ? CobolNames.UpperFold(an) : null)}/{(fc.Nat is { } nn ? CobolNames.UpperFold(nn) : null)}" : "";
         string keyColl = string.Join(",", f.KeyLevelCollating
@@ -85,7 +85,11 @@ internal static class FileEntryIdentity
             new("COLL", "the COLLATING SEQUENCE clauses", $"{fileColl};{keyColl}"),
             new("KEY", "the RECORD KEY clause", f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item) : ""),
             new("ALT", "the ALTERNATE RECORD KEY clauses",
-                string.Join(",", f.AlternateKeyNames.Select(a => $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}"))),
+                // §2023:12.4.5.3 GR1 k) and §1985:IX.2.3.4 GR1 name the alternate keys' number, descriptions and DUPLICATES
+                // phrases, not their order, and §1985:IX.2.3.3 SR1 lets the clauses appear in any order: sorted like COLL.
+                string.Join(",", f.AlternateKeyNames
+                    .Select(a => $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}")
+                    .Order(StringComparer.Ordinal))),
             new("SHARE", "the sharing mode", $"{f.Sharing}"),
             new("LOCK", "the lock mode", f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : ""),
             // §1985:VII.2.7.4 GR6 / §2002:12.3.4.3 GR1 h) "The same specification of the PADDING CHARACTER clause" (kb/Work
