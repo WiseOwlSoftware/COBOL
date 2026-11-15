@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: g2acc03_subscripted_key_access
       *> rules: [2002-GR-12.3.4.4.3-2, 2002-GR-12.3.4.4.3-3]
+      *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
