@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.10.2-1",
+ "rule-digest": "b3ff9d8f8021",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplay",
+ "test-ref": "conformance:cases/13.18.60-USAGE/l1-display-pointer-operand; conformance:cases/13.18.60-USAGE/l1-display-program-pointer-operand; conformance:cases/14.9.11-DISPLAY/l1-display-object-reference-operand; conformance:cases/14.9.11-DISPLAY/l1_display_admitted_classes",
+ "notes": "§2002:14.8.10.2 SR1 forbids a class object or class pointer identifier-1 (a prohibiting SR, so refusals witness it): a pointer, a program-pointer and an object reference operand are each refused at --std 2002 with COBOL1694 (run now), and l1_display_admitted_classes matched its .out at --std 2002."
+}

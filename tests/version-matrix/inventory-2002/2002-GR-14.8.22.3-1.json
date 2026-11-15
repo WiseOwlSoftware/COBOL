@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.22.3-1",
+ "rule-digest": "b50f98249abc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#RequireNonNull",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv08-activating-runtime-element",
+ "notes": "§2002:14.8.22.3 GR1 makes the program, function or method instance executing INVOKE the activating runtime element, and GR7e returns control to the end of the INVOKE in it: at --std 2002 the program, method MA of instance A (MA-OUT A after invoking instance B and SELF) and a user-defined function each resume after their INVOKE, matching P1 / MA-IN A / MB B / MB A / MA-OUT A / P2 / F-IN / MB F / F-OUT / R=7 / P3."
+}

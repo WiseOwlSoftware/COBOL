@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-1",
+ "rule-digest": "bff533cd4871",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#ReadNotOpenForInput",
+ "test-ref": "conformance:cases/14.8.29@2002-READ-STATEMENT/g2_read_not_open_47",
+ "notes": "§2002:14.8.29.3 GR1 sets '47' and makes the READ unsuccessful on a connector not open in input or I-O mode, and GR4 leaves the INTO target unchanged. g2_read_not_open_47 at --std 2002 matched: 47 on all seven arms, W=KEEP, and 10 on the I-O and INPUT controls."
+}

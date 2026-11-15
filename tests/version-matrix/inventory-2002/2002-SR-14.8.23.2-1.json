@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.23.2-1",
+ "rule-digest": "65ac9903672d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenDeclarativePlacement; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs#Spans",
+ "test-ref": "conformance:cases/14.8.23@2002-MERGE-STATEMENT/g2mrg01-merge-anywhere-but-declaratives; conformance:cases/14.8.23@2002-MERGE-STATEMENT/g2mrg02-merge-in-declaratives",
+ "notes": "§2002:14.8.23.2 SR1 forbids MERGE only in the declaratives portion: at --std 2002 MERGEs written inside a MERGE output procedure and a SORT input procedure (not executed, §2002:14.8.23.3 GR8) are accepted and the executed MERGEs give the ascending merge (M=A001..D004, S=Y008 S=Z009, G=A001..D004), while a MERGE in a USE procedure is refused COBOL2700 at its line."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.45.2-12",
+ "rule-digest": "d57cdd9c5925",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#EC",
+ "test-ref": "conformance:cases/14.8.45@2002-USE-STATEMENT/g2_use_ec_synonym",
+ "notes": "§2002:14.8.45.2 SR12: USE AFTER EC EC-SIZE-TRUNCATION and USE AFTER EXCEPTION CONDITION EC-SIZE-ZERO-DIVIDE each select their own condition, FUNCTION EXCEPTION-STATUS naming it (§2002:15.28.2 RV1), and RESUME AT NEXT STATEMENT continues. Matched at --std 2002 on the dc1f2dcce8 build."
+}

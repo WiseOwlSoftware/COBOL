@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.37.3-8",
+ "rule-digest": "6deed1a0d7f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart",
+ "test-ref": "conformance:cases/14.8.37@2002-START-STATEMENT/g2-start-relative-no-key",
+ "notes": "§2002:14.8.37.3 GR8: a relative START with no KEY phrase acts as KEY IS EQUAL TO the RELATIVE KEY. With records 1, 3 and 4, RK=3 gives status 00 and READ NEXT returns R003. RK=2 raises the invalid key condition with status 23 (GR9 c), §2002:9.1.12.4), as derived. The --std 2002 run matched."
+}

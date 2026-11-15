@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-14",
+ "rule-digest": "98fb4dbdf3bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteLine",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1m8_rewrite_unsuccessful_no_update",
+ "notes": "§2002:14.8.33.3 GR14: an unsuccessful REWRITE updates nothing and leaves the record area; with the 2002 statuses '49' GR2, '43' GR4, '23' GR20, '21' GR21, '23' GR22, '22' GR24 c the widened l1m8 (accept [2002, 2023]) ran at --std 2002 equal to its .out."
+}

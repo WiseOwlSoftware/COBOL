@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.15.3-4",
+ "rule-digest": "e9eee2f60d6b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed",
+ "test-ref": "conformance:cases/14.8.15@2002-GENERATE-STATEMENT/g2-generate-first-and-later; conformance:cases/14.8.15@2002-GENERATE-STATEMENT/g2-generate-contained-report-global-fd",
+ "notes": "§2002:14.8.15.3 GR4: the first GENERATE prints RH, PH, CH major to minor, then DE. An RH alone on its page advances the page with PAGE-COUNTER incremented (PH 2) or, WITH RESET, set to 1 (PH 1). The --std 2002 run matched the derived 23 lines."
+}

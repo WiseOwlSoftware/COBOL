@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.34.2-5",
+ "rule-digest": "6e556488aeab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckSearchAllFormat2; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearchAll",
+ "test-ref": "conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-all-cd-keys; conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-all-cd-no-key",
+ "notes": "§2002:14.8.34.2 SR5 requires the KEY phrase on identifier-1's OCCURS; SEARCH ALL of a keyed table under an output CD at --std 2002 prints FOUND B / AT END CTAB as derived, and a KEY-less CD table is refused COBOL1964."
+}

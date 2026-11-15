@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.17.3-1",
+ "rule-digest": "eb0f3f77f67a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#ProfileAt; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitRaisingStage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitPropagationPickup; src/WiseOwl.Cobol.Runtime/Exceptions/EcCheckingProfile.cs#Enabled; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#TakeRaisedPropagation; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#TakePropagatedObject; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#IsForThisActivation; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SetPropagatingLast; src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#ActivatingActivation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#DrainPending; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitActivationSite; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ResumeTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#EmitStatement; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitActivationReturned",
+ "test-ref": "conformance:cases/14.8.17@2002-GOBACK-STATEMENT/g2-goback-called-as-exit-program",
+ "notes": "§2002:14.8.17.3 GR1 via §2002:14.8.13.3 GR3 and GR6: a called program's GOBACK returns to the CALL with shared data changed (AFTER-1 7) and the header's RETURNING result (AFTER-2 42), and its RAISING is raised in the enabled activator (CAUGHT-IN-CALLER); the --std 2002 run matched."
+}

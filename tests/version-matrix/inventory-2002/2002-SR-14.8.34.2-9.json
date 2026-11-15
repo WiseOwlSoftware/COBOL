@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.34.2-9",
+ "rule-digest": "3c507b9f67a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckPrecedingKeys; src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckConditionNameSide; src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs#KeyItems",
+ "test-ref": "conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-all-cd-keys; conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-all-cd-skips-key; conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-all-cd-condname-skips-key",
+ "notes": "§2002:14.8.34.2 SR9 requires every preceding KEY data-name (or its condition-name) to be referenced; on a CD table with KEY K1 K2 the --std 2002 run prints FOUND P / FOUND R / FOUND Q / AT END CT2 for K1 alone, K1 AND K2, K1-TWO AND K2, and K2 alone or K2-TWO alone is refused COBOL1965."
+}

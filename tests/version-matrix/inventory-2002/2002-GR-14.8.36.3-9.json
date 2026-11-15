@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-9",
+ "rule-digest": "9e5b54ba532c",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#RaisedByTheStatement",
+ "notes": "kb/Work PB5612: at --std 2002 (golden-2002-3 re-probe on main 63ab0c4ece, repro g9.cob) a SORT executed in the range of a SORT's input procedure, with EC-SORT-MERGE-ACTIVE checking on and no declarative, is skipped and the run unit continues (exit 0, AFTER-INNER printed); the fatal condition with no declarative terminates the run unit abnormally (§2002:14.5.12.1.2)."
+}

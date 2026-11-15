@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-25",
+ "rule-digest": "652aca95e633",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindSetLastException; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs",
+ "test-ref": "conformance:cases/14.8.35@2002-SET-STATEMENT/g2-set-last-exception-off",
+ "notes": "§2002:14.8.35.3 GR25: SET LAST EXCEPTION TO OFF nulls EXCEPTION-OBJECT and clears the last exception status; at --std 2002 EXCEPTION-STATUS goes from EC-OVERFLOW-STRING to spaces, and after RAISE of an object from NONNULL/EXCEPTION-OBJECT to NULL/spaces (§2002:15.28.2 RV1, §2002:14.5.12.1.4), the five lines as derived."
+}

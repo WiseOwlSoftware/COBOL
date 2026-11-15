@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.29.2-2",
+ "rule-digest": "e390dc3542b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckPhraseOperandIsNotRecordArea",
+ "test-ref": "conformance:cases/14.8.29@2002-READ-STATEMENT/g2rd01_read_into_own_record_area",
+ "notes": "§2002:14.8.29.2 SR2 with §2002:14.8.29.3 GR3 (a file's records share one record area): READ G2F INTO R2, R2 the file's second record, is refused with COBOL6827 at the READ line at --std 2002; INTO a working-storage item compiles."
+}

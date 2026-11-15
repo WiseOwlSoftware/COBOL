@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-2",
+ "rule-digest": "50d6f624421e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-length-and-scan",
+ "notes": "§2002:14.8.21.3 GR2: inspection runs left to right from the leftmost position: CHARACTERS BEFORE \"12\" over A12C21D12EF tallies 1, FIRST \"AA\" over AAAA gives XYAA, format 3 with AFTER gives 02 [ABQBA], LEADING \"A\" over AABA tallies 2. The --std 2002 run of g2-inspect-length-and-scan matched the derived output."
+}

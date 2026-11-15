@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.15.2-2",
+ "rule-digest": "54a875244ae1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportGenerateNeedsControl",
+ "test-ref": "conformance:cases/14.8.15@2002-GENERATE-STATEMENT/g2-generate-first-and-later",
+ "notes": "§2002:14.8.15.2 SR2: GENERATE R-G on an RD with CONTROL is accepted and, per GR2, prints [CFK B] [CHK C] and no detail; the --std 2002 run matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.27.3-9",
+ "rule-digest": "01107cbd3836",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitVarying; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformLoop; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#InitVaryingTarget",
+ "test-ref": "conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf21_varying_sequence",
+ "notes": "§2002:14.8.27.3 GR9: BY omitted = 1, the a-e sequences (TEST BEFORE/AFTER with and without AFTER), the negative augment, immediate effect of changes to the induction and augment variables, and per-use identification of identifier-4; g2prf21's ten derived lines matched at --std 2002."
+}

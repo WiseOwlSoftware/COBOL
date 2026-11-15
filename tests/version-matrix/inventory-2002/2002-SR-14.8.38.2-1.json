@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.38.2-1",
+ "rule-digest": "97efd82e38f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#StatementPosition; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#EndsImperativeRun",
+ "test-ref": "conformance:cases/14.9.42-STOP/pb397-stop-not-last; conformance:cases/14.8.38@2002-STOP-STATEMENT/g2-stop-last-before-conditional",
+ "notes": "§2002:14.8.38.2 SR1: a STOP must be the last statement in its consecutive sequence of imperative statements. STOP RUN followed by DISPLAY in one IF phrase is refused COBOL2968 at --std 2002. STOP RUN followed by a conditional IF with no END-IF (§2002:14.4) is accepted and prints BEFORE, as derived."
+}

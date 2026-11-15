@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-15",
+ "rule-digest": "a9a612d8c239",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-tally-replace-transitive",
+ "notes": "§2002:14.8.21.3 GR15: FIRST carries to following operands (XYAB, QRABAB also in a CD record), ALL ends FIRST's reach (XYZAYZ), and LEADING carries (AABA to XXBA). The --std 2002 run of g2-inspect-tally-replace-transitive matched the derived output."
+}

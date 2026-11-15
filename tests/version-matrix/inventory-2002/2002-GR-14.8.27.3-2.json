@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.27.3-2",
+ "rule-digest": "a8c49df0ee59",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureQuiet",
+ "test-ref": "conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf20_inline_outofline_set",
+ "notes": "§2002:14.8.27.3 GR2: the out-of-line set runs from the first statement of procedure-name-1 to the last of procedure-name-2 (or procedure-name-1), and the inline and out-of-line forms function identically; g2prf20 (basic, THRU, THRU TIMES, section, inline twin, VARYING twin) matched its derived output at --std 2002."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-16",
+ "rule-digest": "385b23bc37c0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#AfterUseProcedure; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#TerminationLanding; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Runtime/IO/SortFileTable.cs#ActiveFormat1Sort; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#UseProcedureExited",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/g2-sort-use-not-normal",
+ "notes": "§2002:14.8.36.3 GR16 with §2002:14.5.12.1.1 (a RESUME means the declarative does not complete normally). A USE procedure run by an OPEN in the input procedure ends in RESUME AT L1-LANDED, so the SORT is terminated and the next SORT does not run inside the old range: L1-USE=35 / L1-LANDED / L2-OUT=Y / L2-OUT=Z / L2-AFTER / DONE. The --std 2002 run matched, and a mutant that leaves the SORT active loses the L2-OUT lines."
+}

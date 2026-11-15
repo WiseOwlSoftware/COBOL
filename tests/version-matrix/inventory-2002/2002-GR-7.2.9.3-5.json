@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.9.3-5",
+ "rule-digest": "c3124953995e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Frontend/Expressions/SoleOperand.cs",
+ "test-ref": "conformance:cases/7.2.9@2002-DEFINE-DIRECTIVE/g2df05_single_numeric_literal",
+ "notes": "§2002:7.2.9.3 GR5 keeps a single numeric literal out of the 7.2.5 expression path, so 1.5 and -2.75 keep their fractions while 1.5 + 0 is truncated to 1 (§2002:7.2.5.2 GR2); --std 2002 run on the pinned build matched."
+}

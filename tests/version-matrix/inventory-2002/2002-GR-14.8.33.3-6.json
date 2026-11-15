@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-6",
+ "rule-digest": "1004688f839e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/g2rw07_from_move_then_rewrite",
+ "notes": "§2002:14.8.33.3 GR6: REWRITE FROM = MOVE by the MOVE rules then REWRITE without FROM; g2rw07 at --std 2002 reads back [AB   ] (space fill), [01234] (de-edited from 1,234, §2002:14.8.24.3 GR3) and [00042] (literal), as derived."
+}

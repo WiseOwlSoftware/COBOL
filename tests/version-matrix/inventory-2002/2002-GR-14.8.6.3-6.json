@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.6.3-6",
+ "rule-digest": "5d7f59e11cc8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#IsOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseReelUnit",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo06_absent_optional_lock",
+ "notes": "§2002:14.8.6.3 GR6: for an absent OPTIONAL input file (OPEN 05) no end-of-file or unit processing is done and the indicator is unchanged: CLOSE UNIT succeeds and the file stays open with the next READ 10 (§2002:14.8.29.3 GR18 b); CLOSE WITH LOCK is 00 and the re-OPEN 38 (§2002:14.8.26.3 GR24), against a no-lock control re-OPEN of 05. g2clo06 matched at --std 2002."
+}

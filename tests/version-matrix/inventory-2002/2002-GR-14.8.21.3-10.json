@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-10",
+ "rule-digest": "92494d7b3b23",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-tally-replace-transitive",
+ "notes": "§2002:14.8.21.3 GR10: the counter is not initialized: preset values 03, 05, 10 and CD-record counters 01 and 10 are incremented (04, 07, 13, 05, 13) in formats 1 and 3. The --std 2002 run of g2-inspect-tally-replace-transitive matched the derived output."
+}

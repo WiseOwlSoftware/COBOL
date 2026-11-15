@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.45.2-3",
+ "rule-digest": "61ac9f5cba3d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand",
+ "test-ref": "conformance:cases/14.8.45@2002-USE-STATEMENT/g2_use_declarative_references",
+ "notes": "§2002:14.8.45.2 SR3: a declarative that references only declarative procedures (PERFORM, GO TO) and reaches a nondeclarative one only by RESUME AT (the exemption; §2002:14.8.31.3 GR3) compiles without COBOL2375 and runs START / D1 ENTERED / D1-NOTE / ND-P; the violating form is the documented warning D-DECLREF (docs/conformance/3/D-DECLREF.md), not pinnable on an accepted program (kb/Work PB5461). Matched at --std 2002 on the dc1f2dcce8 build."
+}

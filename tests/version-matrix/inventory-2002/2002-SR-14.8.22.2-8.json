@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-8",
+ "rule-digest": "21a4843694f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitUniversalInvoke",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv01-cd-identifier-2-and-single-identifier-args; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv03-cd-identifier-2-numeric",
+ "notes": "Same text as the 2023 twin. At --std 2002, alphanumeric PIC X(5) and national PIC N(5) record items under a CD entry name the method (1=HI, 2=HI), and a PIC 9(5) CD record item is refused COBOL0866 at its line (§2002:14.8.22.2 SR8)."
+}

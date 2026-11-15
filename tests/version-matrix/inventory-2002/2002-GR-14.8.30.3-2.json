@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.30.3-2",
+ "rule-digest": "c14b4dfa4dee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Release; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+ "test-ref": "conformance:cases/14.8.30@2002-RELEASE-STATEMENT/g2rel01_release_from_senders_2002; conformance:cases/14.8.30@2002-RELEASE-STATEMENT/g2rel02_release_figurative_to_numeric_2002",
+ "notes": "§2002:14.8.30.3 GR2: each RELEASE hands its record to the sort's initial phase; G2REL01 at --std 2002 returns all six released records in key order, including 3333 released without FROM, matching the derived .out."
+}

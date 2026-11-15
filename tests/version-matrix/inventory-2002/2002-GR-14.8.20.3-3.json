@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.20.3-3",
+ "rule-digest": "a43bbf5551f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenModeIfOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenModeIfOpen; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportFileModeError",
+ "test-ref": "conformance:cases/14.8.20@2002-INITIATE-STATEMENT/g2-initiate-file-mode",
+ "notes": "§2002:14.8.20.3 GR3: INITIATE on a never-opened report file sets EC-REPORT-FILE-MODE and takes no action (PAGE-COUNTER preset 7 stays 7; the following TERMINATE raises EC-REPORT-INACTIVE per §2002:14.8.42.3 GR1), while OPEN OUTPUT and OPEN EXTEND let INITIATE set PAGE-COUNTER to 1 with no exception. The --std 2002 run of g2-initiate-file-mode matched the derived output."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.33.2-1",
+ "rule-digest": "8f78f52fbe5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckPhraseOperandIsNotRecordArea; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#IoPhraseOperandIsRecordArea",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/g2rw01_from_own_record; conformance:cases/14.8.33@2002-REWRITE-STATEMENT/g2rw02_from_other_record_of_fd",
+ "notes": "§2002:14.8.33.2 SR1 forbids identifier-1 naming record-name-1's storage; REWRITE R FROM R and REWRITE A FROM B (two 01s of one FD, implicit redefinitions per §2002:13.16.31.3 GR3) are each refused COBOL6827 at the REWRITE line at --std 2002 (g2rw01, g2rw02), as derived."
+}

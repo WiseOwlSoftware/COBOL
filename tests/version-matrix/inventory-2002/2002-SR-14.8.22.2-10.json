@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-10",
+ "rule-digest": "924c3eb76f9b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#IsClassUnit",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv04-sr10-instance-ws-by-reference; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv05-sr10-factory-ws-by-reference; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv06-sr10-instance-file-section-by-reference; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv07-sr10-instance-ws-universal-receiver",
+ "notes": "§2002:14.8.22.2 SR10 prohibits identifier-3 (a BY REFERENCE argument) in a factory or instance object's file or working-storage section; at --std 2002 instance WS, factory WS and instance file-section items BY REFERENCE, and instance WS bare through a universal receiver (BY REFERENCE assumed, §2002:14.8.22.2 SR6), are each refused COBOL4269 at the INVOKE line. HOLD while kb/Work PB5610 (open, claims this row) is unresolved."
+}

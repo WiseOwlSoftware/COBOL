@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.30.3-4",
+ "rule-digest": "74064b98ee35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
+ "test-ref": "conformance:cases/14.8.30@2002-RELEASE-STATEMENT/g2rel01_release_from_senders_2002",
+ "notes": "§2002:14.8.30.3 GR4: RELEASE FROM is MOVE by the 2002 MOVE rules then RELEASE; in G2REL01 at --std 2002 RELEASE SRT-REC FROM CA and MOVE CA + RELEASE both give [11  ], FROM ALL \"7\" to PIC 9(4) gives 7777 (§2002:14.8.24.3 GR4b), and identifier-1 stays available (GR5), matching the derived .out."
+}

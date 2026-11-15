@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.7.2-2",
+ "rule-digest": "aa92eb6b8d97",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#CceRelation; src/WiseOwl.Cobol.Frontend/Expressions/CtValue.cs#RelationalEquals",
+ "test-ref": "conformance:cases/7.2.7@2002-CONSTANT-CONDITIONAL-EXPRESSION/g2cce01_nonnumeric_relation",
+ "notes": "§2002:7.2.7.2 GR2: alphanumeric and national CCE relations compare character by character with no collating sequence, case-sensitively, and 'If the literals are of unequal length they are not equal' (\"AB\" = \"AB \" FALSE), with the 2002 IS [NOT] EQUAL TO / IS [NOT] = operators (§2002:7.2.7.1 SR1a2); --std 2002 on the pinned build printed the ten derived lines."
+}

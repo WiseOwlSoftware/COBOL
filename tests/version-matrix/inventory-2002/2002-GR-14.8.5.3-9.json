@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-14.8.5.3-9",
+ "rule-digest": "ad4667928197",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitProgramClass; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+ "notes": "kb/Work PB5685: at --std 2002 (golden-2002-3 re-probe on main 63ab0c4ece, repro g2can07_cancel_active_report_close.cob) CANCEL of a subprogram whose report R-1 is active performs the implicit CLOSE without raising EC-REPORT-NOT-TERMINATED: FUNCTION EXCEPTION-STATUS after the CANCEL is spaces, where §2002:14.8.5.3 GR9 (an implicit CLOSE statement) with §2002:14.8.6.3 GR5 derives EC-REPORT-NOT-TERMINATED."
+}

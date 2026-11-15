@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.28.3-2",
+ "rule-digest": "a05abf4fd8ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaiseObject; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SetObject",
+ "test-ref": "conformance:cases/14.8.28@2002-RAISE-STATEMENT/g2rai01_raise_object_and_name",
+ "notes": "§2002:14.8.28.3 GR2: RAISE identifier-1 sets EXCEPTION-OBJECT to that object, compared by identity across two instances, both inside the declarative and after it. g2rai01 lines DECL-OA, R1, DECL-OA2 and R2 matched at --std 2002."
+}

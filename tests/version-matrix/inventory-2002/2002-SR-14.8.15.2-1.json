@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.15.2-1",
+ "rule-digest": "50f64bd1a05f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve",
+ "test-ref": "conformance:cases/14.8.15@2002-GENERATE-STATEMENT/g2-generate-first-and-later; conformance:cases/14.8.15@2002-GENERATE-STATEMENT/g2-generate-non-detail-group",
+ "notes": "§2002:14.8.15.2 SR1: data-name-1 names a detail group and may be qualified by a report-name. GENERATE DET OF R-G prints [DE A 2] (GR5b) and GENERATE PH-A is refused COBOL0899, both at --std 2002 on the pinned build."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-21",
+ "rule-digest": "974c5c06afbf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#IoStatusClass",
+ "test-ref": "conformance:cases/14.8.29@2002-READ-STATEMENT/g2_read_at_end_transfer",
+ "notes": "§2002:14.8.29.3 GR21 a to d: status '10'; with AT END, the imperative runs and the USE procedure does not; without AT END, the USE procedure runs; with no handler, control goes to the end of the READ; NOT AT END is ignored in each case. g2_read_at_end_transfer at --std 2002 matched."
+}

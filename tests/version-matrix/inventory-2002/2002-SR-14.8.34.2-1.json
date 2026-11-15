@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.34.2-1",
+ "rule-digest": "2282c423761b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveSearchTable; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSearchIdentifier1; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveTableOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#Identifier1",
+ "test-ref": "conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-nested-unsubscripted; conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-identifier-1-subscripted; conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-identifier-1-refmod; conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-identifier-1-no-indexed",
+ "notes": "§2002:14.8.34.2 SR1 forbids a subscripted or reference-modified identifier-1 and one whose OCCURS lacks INDEXED; at --std 2002 SEARCH E(OX) is refused COBOL0900, SEARCH E(1:1) and SEARCH of a table without INDEXED COBOL2075, and the unsubscripted nested SEARCH E (outer occurrence from the WHEN subscripts, §2002:14.8.34.3 GR1) prints FOUND OX=2 IX=2 / AT END B OX=2 as derived."
+}

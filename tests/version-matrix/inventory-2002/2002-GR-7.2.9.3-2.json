@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.9.3-2",
+ "rule-digest": "7a52d4721da2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CompilationVariableEvent.cs#DefinitionAt; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantFrom",
+ "test-ref": "conformance:cases/7.2.9@2002-DEFINE-DIRECTIVE/g2df02_off_defined_condition_redefine",
+ "notes": "§2002:7.2.9.3 GR2 permits, after OFF, a defined condition and a redefinition: IS NOT DEFINED is TRUE and IS DEFINED FALSE after OFF (§2002:7.2.7.3.3), and a redefinition with or without OVERRIDE (§2002:7.2.9.2 SR2) makes the name usable again (REDEFINED-5, OVERRIDE-XY); --std 2002 run on the pinned build matched."
+}

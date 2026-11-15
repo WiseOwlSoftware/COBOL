@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.32.2-1",
+ "rule-digest": "e390dc3542b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckPhraseOperandIsNotRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn",
+ "test-ref": "conformance:cases/14.9.34-RETURN/pb5077-return-into-own-record-area",
+ "notes": "§2002:14.8.32.2 SR1 forbids INTO the file's own record area; pb5077-return-into-own-record-area (refuse-at [85, 2002]) is refused COBOL6827 at its RETURN SF INTO SR line at --std 2002."
+}

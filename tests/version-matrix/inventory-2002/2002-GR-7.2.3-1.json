@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.3-1",
+ "rule-digest": "65b2b980ba84",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.2@2002-COMPILER-DIRECTIVES/g2cd06_directive_lines_not_replaced",
+ "notes": "§2002:7.2.3 GR1 'A compiler directive line is not affected by the replacing action of a COPY statement or a REPLACE statement': COPY REPLACING word-1 CVW, literal-3 \"OLD\" and pseudo-text ==ALL ON== rewrite source lines but leave DEFINE, FLAG-85 and FLAG-NATIVE-ARITHMETIC lines intact, and REPLACE leaves a DEFINE line intact; --std 2002 on the pinned build printed the seven derived lines."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.15.2-4",
+ "rule-digest": "721526fd0771",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+ "test-ref": "conformance:cases/14.8.15@2002-GENERATE-STATEMENT/g2-generate-contained-report-local-fd; conformance:cases/14.8.15@2002-GENERATE-STATEMENT/g2-generate-contained-report-global-fd",
+ "notes": "§2002:14.8.15.2 SR4: GENERATE R-1 in a contained program is refused COBOL2392 when FD RPT lacks GLOBAL and runs ([CHF] [CFF]) when it has GLOBAL; both at --std 2002."
+}

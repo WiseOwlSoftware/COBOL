@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.30.2-3",
+ "rule-digest": "e888b9f7c537",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
+ "test-ref": "conformance:cases/14.8.30@2002-RELEASE-STATEMENT/g2rel01_release_from_senders_2002; conformance:cases/14.8.30@2002-RELEASE-STATEMENT/g2rel02_release_figurative_to_numeric_2002",
+ "notes": "§2002:14.8.30.2 SR3 defers to the 2002 MOVE rules (§2002:14.8.24.2 SR5 forbids only SPACE to numeric; SR8 table 17). G2REL01 at --std 2002 accepts CD record senders and the edition-neutral ALL \"7\" (7777); G2REL02 at --std 2002 accepts RELEASE of the numeric record FROM QUOTE, HIGH-VALUE and ALL \"A\" (2002-only; refused COBOL0902 at 2023) and returns N=3, matching each derived .out."
+}
