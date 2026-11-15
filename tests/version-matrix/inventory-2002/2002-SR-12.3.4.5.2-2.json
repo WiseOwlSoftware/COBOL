@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.5.2-2",
+ "rule-digest": "da1f07753f11",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenOperandOccurrence",
+ "test-ref": "conformance:cases/12.3.4.12@2002-RECORD-KEY-CLAUSE/pb5602-indexed-keys-subscripted-2002; conformance-test:FileControlKeyRuleSpecTests.IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb",
+ "notes": "§2002:12.3.4.5.2 SR2: the alternate key is an alphanumeric or national item within a record of the file; all occurrences of data-name-2 are of one category. The same rows as the RECORD KEY clause; the golden's ALTERNATE RECORD KEY A(1) is a subscripted element of the record's table (kb/Work PB5602)."
+}

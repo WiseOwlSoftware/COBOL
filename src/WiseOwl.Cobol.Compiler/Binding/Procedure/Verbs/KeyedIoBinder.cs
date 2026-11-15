@@ -148,7 +148,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 // identifier-1", which no RECORD KEY clause names; asked of Item it inherited the key's answer and
                 // `READ IXF KEY IS IX-KEY(1:3)` compiled clean and read on the whole key.
                 else if (keyPlace.DenotedItem is not { } keyItem
-                    || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem) is not { } ki)
+                    || keyPlace.ConstantOccurrence() is not { } keyOccurrence
+                    || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence) is not { } ki)
                 {
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                         + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §2023:14.9.30.3 SR11)");
@@ -387,7 +388,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // site at all: the indexed arm rejected an OCCURS operand only as a SIDE EFFECT of RecordLayout.OffsetOf
         // bailing out, under SR6's message — a sentence that is FALSE of an item which does begin at the key's
         // leftmost position — and the relative arm, which never calls OffsetOf, did not reject it at all.
-        bool operandUnderOccurs = operand is not null && Model.RecordLayout.IsSubjectToOccurs(operand.Item);
+        // COBOL-2002 prints no such rule (§2002:14.8.37.2 SR4 says only "may be qualified"): its operand names a table element by its
+        // subscripts (§2002:5.1.3), which the key identity below compares (kb/Work PB5602).
+        bool operandUnderOccurs = operand is not null && !ctx.Edition.SubscriptedClauseOperands
+            && Model.RecordLayout.IsSubjectToOccurs(operand.Item);
         if (operandUnderOccurs)
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{operand!.Item.CobolName}' is subject to an "
                 + "OCCURS clause; data-name-1 shall not be (ISO §2023:14.9.41.3 SR4)");
@@ -415,11 +419,13 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // characters spell (§2023:12.4.5.13.4 GR1 makes 1 the first legal one). §2023:8.4.3.3.4 GR5 makes that slice "a
             // unique data item that is a subset of the data item referenced by identifier-1" — not it — and
             // §2023:13.18.45.4 GR1 makes a non-THROUGH level-66 alias another data item over the same storage.
-            if (operand is not null && !ReferenceEquals(operand.DenotedItem, file.RelativeKeyItem))
+            if (operand is not null && (!ReferenceEquals(operand.DenotedItem, file.RelativeKeyItem)
+                    || operand.ConstantOccurrence() is not { } writtenOccurrence
+                    || !writtenOccurrence.SequenceEqual(file.RelativeKeySubscripts)))
                 ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': data-name-1 shall be the RELATIVE KEY "
                     + $"item '{file.RelativeKeyItem?.CobolName ?? "(none)"}' (ISO §2023:14.9.41.3 SR5)");
             bool operandImplied = operand is null;
-            operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.Places.ResolveItem(rk) : null;
+            operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.Places.ResolveOccurrence(rk, file.RelativeKeySubscripts) : null;
             // ⛔ GR8's SUBSTITUTION HAS NO OPERAND, SO THE STATEMENT HAS NO MEANING (kb/Work PB236, row
             // GR-14.9.41.4-8). §2023:14.9.41.4 GR8: "If the KEY phrase is omitted, the START statement behaves as
             // though KEY IS EQUAL TO data-name-1 had been specified, where data-name-1 is the name of the key
@@ -458,8 +464,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // description declares and which therefore satisfies neither arm; asked of Item it inherited the
             // base item's answer and `START IXF KEY IS = K(1:2)` compiled clean.
             if (operand.DenotedItem is not { } keyItem
-                || (Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem)
-                    ?? Model.RecordLayout.GenericKeyIndex(file, keyItem)) is not { } ki)
+                || operand.ConstantOccurrence() is not { } keyOccurrence
+                || (Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence)
+                    ?? Model.RecordLayout.GenericKeyIndex(file, keyItem, keyOccurrence)) is not { } ki)
             {
                 string written = kp?.dataReference()?.GetText() ?? operand.Item.CobolName ?? "data-name-1";
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{written}' is neither a "
@@ -475,7 +482,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             namedKey = sourcePrime;
         else
         {
-            operand = file.PrimeKey?.Item is { } pk ? ctx.Refs.Places.ResolveItem(pk) : null;
+            operand = file.PrimeKey is { Item: { } pk } primeKey ? ctx.Refs.Places.ResolveOccurrence(pk, primeKey.Subscripts) : null;
             primeKeyImplied = true;
         }
         if (operand is null && namedKey is null)

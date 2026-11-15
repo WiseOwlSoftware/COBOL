@@ -56,6 +56,10 @@ public sealed class AlternateKeyClause
     /// set.</summary>
     public required string Name { get; init; }
     public required IReadOnlyList<string> Qualifiers { get; init; }
+
+    /// <summary>The integer-literal subscripts written on data-name-1 (COBOL-2002, §2002:12.3.4.5.2 SR1; kb/Work PB5602); empty
+    /// for the SOURCE form and at every other edition.</summary>
+    public IReadOnlyList<int> Subscripts { get; init; } = [];
     public bool Duplicates { get; init; }
 
     /// <summary>The SOURCE phrase (§2023:12.4.5.6.2's second key form), or null for the data-name-1 form.</summary>
@@ -97,6 +101,10 @@ public sealed class KeySourceOperand
 {
     public required string Name { get; init; }
     public required IReadOnlyList<string> Qualifiers { get; init; }
+
+    /// <summary>The integer-literal subscripts written on this data-name-2 (COBOL-2002, §2002:12.3.4.12.2 SR1 "may be qualified" with
+    /// §2002:5.1.3's subscription; kb/Work PB5602); empty at every other edition.</summary>
+    public IReadOnlyList<int> Subscripts { get; init; } = [];
     public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; init; }
     public DataItem? Item { get; set; }
 }
@@ -126,15 +134,20 @@ public sealed class PaddingCharacterSpec
 /// special case of the other.</summary>
 public sealed class RecordKey
 {
-    private RecordKey(string? recordKeyName, IReadOnlyList<DataItem> segments) =>
-        (RecordKeyName, Segments) = (recordKeyName, segments);
+    private RecordKey(string? recordKeyName, IReadOnlyList<DataItem> segments, IReadOnlyList<int> subscripts,
+                      IReadOnlyList<IReadOnlyList<int>> segmentSubscripts) =>
+        (RecordKeyName, Segments, Subscripts, _segmentSubscripts) = (recordKeyName, segments, subscripts, segmentSubscripts);
 
-    /// <summary>The data-name-1 form's key: the one item.</summary>
-    public static RecordKey OfItem(DataItem item) => new(null, [item]);
+    private readonly IReadOnlyList<IReadOnlyList<int>> _segmentSubscripts;
+
+    /// <summary>The data-name-1 form's key: the one item, and — written subscripted at COBOL-2002 (§2002:5.1.3) — the one
+    /// occurrence of it the integer-literal <paramref name="subscripts"/> select (kb/Work PB5602).</summary>
+    public static RecordKey OfItem(DataItem item, IReadOnlyList<int> subscripts) => new(null, [item], subscripts, [subscripts]);
 
     /// <summary>The SOURCE form's key: record-key-name-1 over its resolved data-name-2 items, in order.</summary>
-    public static RecordKey OfSource(string recordKeyName, IReadOnlyList<DataItem> segments) =>
-        segments.Count > 0 ? new(recordKeyName, segments)
+    public static RecordKey OfSource(string recordKeyName, IReadOnlyList<DataItem> segments,
+                                     IReadOnlyList<IReadOnlyList<int>> segmentSubscripts) =>
+        segments.Count > 0 ? new(recordKeyName, segments, [], segmentSubscripts)
             : throw new ArgumentException("a SOURCE phrase names at least one data-name-2", nameof(segments));
 
     /// <summary>record-key-name-1 for a SOURCE-form key; null for data-name-1's.</summary>
@@ -150,6 +163,21 @@ public sealed class RecordKey
     /// <summary>data-name-1's item, or null for a SOURCE-form key, which no data item IS.</summary>
     public DataItem? Item => IsSourceForm ? null : Segments[0];
 
+    /// <summary>The integer-literal subscripts data-name-1 was written with (COBOL-2002), outermost table level first; empty
+    /// for an unsubscripted key and for the SOURCE form, whose data-name-2 operands each carry their own
+    /// (<see cref="OccurrenceOf"/>).</summary>
+    public IReadOnlyList<int> Subscripts { get; }
+
+    /// <summary>The occurrence of <see cref="Segments"/>[<paramref name="segment"/>] the key names: the integer-literal subscripts
+    /// its data-name-1 or data-name-2 was written with (COBOL-2002; empty at every other edition).</summary>
+    public IReadOnlyList<int> OccurrenceOf(int segment) => _segmentSubscripts[segment];
+
+    /// <summary>True when this is the data-name-1 key of exactly <paramref name="item"/> at exactly the occurrence
+    /// <paramref name="occurrence"/> selects — the identity §2002:14.8.29.2 SR10 and §2002:14.8.37.2 SR6 a) ask of an operand,
+    /// where <c>K(1)</c> and <c>K(2)</c> are two different keys.</summary>
+    public bool Names(DataItem item, IReadOnlyList<int> occurrence) =>
+        !IsSourceForm && ReferenceEquals(Segments[0], item) && Subscripts.SequenceEqual(occurrence);
+
     /// <summary>The key's length in bytes — the sum of its segments' (a national position is two bytes, D-N1).</summary>
     public int ByteWidth => Segments.Sum(s => s.ByteWidth);
 
@@ -159,7 +187,7 @@ public sealed class RecordKey
     public DataItem CategorySource => Segments[0];
 
     /// <summary>The key as a diagnostic names it.</summary>
-    public string Face => RecordKeyName ?? Segments[0].CobolName ?? "";
+    public string Face => RecordKeyName ?? (Segments[0].CobolName ?? "") + (Subscripts.Count == 0 ? "" : $"({string.Join(", ", Subscripts)})");
 }
 
 /// <summary>Which of the shapes ISO §2023:12.4.5.6.3 SR7 names a SUPPRESS WHEN literal-1 was written in.</summary>
@@ -339,6 +367,11 @@ public sealed class FileModel
     /// (kb/Work PB489, the shape measured on the LINAGE clause).</summary>
     public IReadOnlyList<string> FileStatusQualifiers { get; set; } = [];
 
+    /// <summary>The integer-literal subscripts written on the FILE STATUS data-name, outermost table level first — COBOL-2002 only
+    /// (§2002:5.1.3: data-name-n "including qualification and subscription if needed"; §2002:12.3.4.7.2 SR1 says only "may be
+    /// qualified"); empty at every other edition, which refuses the subscript (kb/Work PB5602).</summary>
+    public IReadOnlyList<int> FileStatusSubscripts { get; set; } = [];
+
     /// <summary>The source position of the FILE STATUS clause's data-name — where its post-build resolution
     /// reports (the operand resolves only once the data forest is indexed).</summary>
     public WiseOwl.Cobol.Editions.DiagnosticCursor FileStatusAt { get; set; }
@@ -399,6 +432,11 @@ public sealed class FileModel
     /// named key items under different areas of the record are legal and selected by qualification (ISO
     /// §2023:8.4.2.2; IX215A's three IX-FD3-KEY items). Empty = unqualified, and always empty for the SOURCE form.</summary>
     public IReadOnlyList<string> RecordKeyQualifiers { get; set; } = [];
+
+    /// <summary>The integer-literal subscripts written on the RECORD KEY data-name, outermost table level first — COBOL-2002 only
+    /// (§2002:5.1.3; §2002:12.3.4.12.2 SR1 "may be qualified"); empty at every other edition and for the SOURCE form
+    /// (kb/Work PB5602). The resolved key carries them (<see cref="RecordKey.Subscripts"/>).</summary>
+    public IReadOnlyList<int> RecordKeySubscripts { get; set; } = [];
 
     /// <summary>The resolved prime record key (ISO §2023:12.4.5.12) — data-name-1's item, or the SOURCE phrase's
     /// data-name-2 items in order; null when the clause is absent or an operand references nothing describable.</summary>
@@ -522,6 +560,10 @@ public sealed class FileModel
     /// <summary>The RELATIVE KEY data-name's IN/OF qualifier words, innermost first (ISO §2023:8.4.2.2) — see
     /// <see cref="FileStatusQualifiers"/> for why a clause operand keeps them (kb/Work PB489).</summary>
     public IReadOnlyList<string> RelativeKeyQualifiers { get; set; } = [];
+
+    /// <summary>The integer-literal subscripts written on the RELATIVE KEY data-name, outermost table level first — COBOL-2002
+    /// only (§2002:5.1.3; §2002:12.3.4.13.2 SR1 "may be qualified"); see <see cref="FileStatusSubscripts"/> (kb/Work PB5602).</summary>
+    public IReadOnlyList<int> RelativeKeySubscripts { get; set; } = [];
 
     /// <summary>The source position of the RELATIVE KEY clause's data-name-1 — where §2023:12.4.5.13.3's three syntax
     /// rules report (screened post-build, once the operand resolves).</summary>
@@ -1251,6 +1293,10 @@ public sealed class CollatingKeyOperand
 
     /// <summary>The operand's IN/OF qualifier words, innermost first (ISO §2023:8.4.2.2).</summary>
     public required IReadOnlyList<string> Qualifiers { get; init; }
+
+    /// <summary>The integer-literal subscripts written on the operand (COBOL-2002, §2002:5.1.3; kb/Work PB5602) — the key it names is
+    /// the one written with the same subscripts. Empty at every other edition.</summary>
+    public IReadOnlyList<int> Subscripts { get; init; } = [];
 
     /// <summary>The record key the operand names — data-name-1's, or a SOURCE-form key by its record-key-name —
     /// set post-build by <c>FileControlBinder.ResolveFileCollating</c>; null when it names no key of the file

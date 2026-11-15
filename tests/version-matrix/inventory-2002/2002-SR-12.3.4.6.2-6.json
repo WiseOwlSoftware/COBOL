@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.6.2-6",
+ "rule-digest": "23b7145acfb7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveFileCollating; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#CollatingKeyNamed",
+ "test-ref": "conformance:cases/12.3.4.6@2002-COLLATING-SEQUENCE-CLAUSE/pb5602-collating-key-subscripted-2002",
+ "notes": "§2002:12.3.4.6.2 SR6: the alphabet of a key-level COLLATING SEQUENCE clause is national when the key's class is national, alphanumeric otherwise (SpecialNames.CollatingAlphabetFault over RecordKey.CategorySource). The operand names the key by its written subscripts (CollatingKeyOperand.Subscripts, RecordKey.Names), so OF K(2) is the RECORD KEY K(2); the golden's reversed alphabet orders the sequential WRITEs and READs (kb/Work PB5602)."
+}

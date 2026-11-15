@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.12.3-3",
+ "rule-digest": "20512ccb1bfb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#KeyWindow; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#KeyEntry",
+ "test-ref": "conformance:cases/12.3.4.12@2002-RECORD-KEY-CLAUSE/pb5602-indexed-keys-subscripted-2002",
+ "notes": "§2002:12.3.4.12.3 GR3: the key's data description and relative location within a record are those the file was created with. The key is registered at its byte window in the record (RecordLayout.KeyWindowOf, with the occurrence a subscripted K(2) selects, OccurrenceDisplacement), and the external-file identity compares that location. The golden writes a file by K(2), closes and reopens it, and reads it back by the same key (kb/Work PB5602)."
+}

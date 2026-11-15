@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.55.2-14",
+ "rule-digest": "dbd0684be112",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupCensus",
+ "test-ref": "conformance:cases/13.16.15@2002-CONTROL-CLAUSE/pb5602-control-subscripted-2002",
+ "notes": "§2002:13.16.55.2 SR14: at most one CONTROL HEADING and one CONTROL FOOTING for each control data item or FINAL. The census counts a group per ControlLevel, so two footings of T-C(1, 2) and T-C(2, 3) are two levels and legal; the golden has one footing for each of the three levels (kb/Work PB5602)."
+}

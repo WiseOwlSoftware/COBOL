@@ -55,8 +55,8 @@ internal static class PlaceTablePass
             foreach (var control in report.Controls)
                 if (control.Item is { } item)
                     control.Place = control.Operand?.RefModStart is { } start
-                        ? refs.RefMods.ResolveItemRefMod(item, start, control.Operand.RefModLength)
-                        : table.Of(item);
+                        ? refs.RefMods.ResolveItemRefMod(item, control.Operand.Subscripts, start, control.Operand.RefModLength)
+                        : table.OccurrenceOf(item, control.Operand?.Subscripts ?? []);
         return table;
     }
 }

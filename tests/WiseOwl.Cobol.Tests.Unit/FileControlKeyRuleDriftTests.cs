@@ -469,6 +469,32 @@ public sealed class FileControlKeyRuleDriftTests
         }
     }
 
+    /// <summary>⛔ THE 2023 OCCURS BANS COBOL-2002 DOES NOT HAVE (kb/Work PB5602): each row <c>FileControlKeyRules.Absent2002</c> names is a
+    /// 2023 row of <see cref="FileControlKeyRules.Catalog"/>, and the 2002 syntax rules of the clause it names carry neither its
+    /// sentence nor any "subject to any OCCURS" ban — the 2002 clause says only that the operand "may be qualified", and §2002:5.1.3
+    /// makes a data-name-n operand one "including qualification and subscription if needed". If the 2002 text ever printed the ban, this
+    /// fails and the row must stay in force at 2002.</summary>
+    [Fact]
+    public void TheRowsAbsentAt2002_AreTheOccursBans_AndTheCobol2002ClauseCarriesNoSuchRule()
+    {
+        var lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2002.md"));
+        Assert.NotEmpty(FileControlKeyRules.Absent2002);
+        foreach (var (ruleId, clause2002) in FileControlKeyRules.Absent2002)
+        {
+            var row = Assert.Single(FileControlKeyRules.Catalog, r => r.RuleId == ruleId);
+            Assert.Contains("subject to any OCCURS clauses", row.RuleText);
+            int at = Array.FindIndex(lines, l => l.Trim() == $"###### {clause2002} Syntax rules");
+            Assert.True(at >= 0, $"§2002:{clause2002} has no Syntax rules subsection.");
+            var rules = new List<string>();
+            for (int j = at + 1; j < lines.Length && !lines[j].StartsWith('#'); j++) rules.Add(lines[j]);
+            string text = Norm(string.Join(' ', rules));
+            Assert.DoesNotContain("subject to any OCCURS", text, StringComparison.Ordinal);
+            Assert.DoesNotContain(Norm(row.RuleText), text, StringComparison.Ordinal);
+            Assert.Contains("may be qualified", text, StringComparison.Ordinal);
+        }
+        Assert.DoesNotContain(FileControlKeyRules.Absent2002, a => FileControlKeyRules.Catalog2002.Any(r => r.RuleId == a.RuleId));
+    }
+
     /// <summary>⛔ PROVE THE SET ARITHMETIC CAN FAIL before the rows are trusted: <see cref="FileKinds"/>'s
     /// members shall be the one-hot bits <c>FileControlKeyRules.KindOf</c> computes from a
     /// <see cref="FileOrganization"/>, or a row's set would silently miss the kind it names. Every organization

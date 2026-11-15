@@ -9660,6 +9660,39 @@ public static class DiagnosticCatalog
         + "no statement references is refused too.",
         "ISO §2023:8.4.2.1; ISO §1985:IV.4.3.8.1 SR4");
 
+    /// <summary>COBOL7354 — a subscript written on a data-name-n clause operand is not one integer literal (kb/Work PB5602).
+    /// COBOL-2002 reads a clause's data-name-n as "a user-defined word, including qualification and subscription if needed"
+    /// (§2002:5.1.3), so <c>RECORD KEY IS K(2)</c> and <c>CONTROL IS T-C(1)</c> are legal there; the clause then names ONE data
+    /// item whose place is fixed when the program is compiled (a record key's "relative location within a record shall be the
+    /// same as that used when the file was created", §2002:12.3.4.12.3 GR3; a control's prior control "having the same data
+    /// description as the corresponding data item", §2002:13.16.15.3 GR3), so each subscript is an integer literal — the form
+    /// a reference modifier's positions already take in the same clause (§2002:13.16.15.2 SR4). The choice is the
+    /// implementor's (docs/conformance/3/D-CLAUSE-SUBSCRIPT.md). 2014 and later forbid the subscript outright
+    /// (§2014:13.18.16.2 SR3; COBOL2024).</summary>
+    public static readonly DiagnosticDescriptor ClauseOperandSubscriptNotLiteral = new(
+        "COBOL7354", "clause-operand-subscript-not-literal", EditionSeverity.Error,
+        "A subscript written on a clause's data-name-n operand is not an integer literal. COBOL-2002 admits a subscripted "
+        + "data-name-n (§2002:5.1.3 \"including qualification and subscription if needed\"), and the clause then identifies one "
+        + "data item whose location is fixed when the program is compiled — a record key's location shall be the same as when the "
+        + "file was created (§2002:12.3.4.12.3 GR3), a control's prior control has the same data description as its data item "
+        + "(§2002:13.16.15.3 GR3). Write each subscript as an integer literal. This is an implementor choice, recorded in "
+        + "docs/conformance/3/D-CLAUSE-SUBSCRIPT.md.",
+        "ISO §2002:5.1.3; ISO §2002:12.3.4.12.3 GR3; ISO §2002:13.16.15.3 GR3");
+
+    /// <summary>COBOL7355 — an integer-literal subscript on a data-name-n clause operand selects no occurrence (kb/Work PB5602):
+    /// below one, above the OCCURS clause's maximum, or on a dynamic-capacity table, whose occurrences have no compile-time
+    /// location. §2002:8.4.1.2.3 GR2: "The lowest possible occurrence number represented by a subscript is 1 … The highest
+    /// permissible occurrence number for any given dimension of the table is the maximum number of occurrences of the item as
+    /// specified in the associated OCCURS clause." A subscript in an executed statement raises EC-BOUND-SUBSCRIPT at run time;
+    /// a clause operand names its item at compile time, so the violation is a compile-time error.</summary>
+    public static readonly DiagnosticDescriptor ClauseOperandSubscriptOutOfRange = new(
+        "COBOL7355", "clause-operand-subscript-out-of-range", EditionSeverity.Error,
+        "An integer-literal subscript on a clause's data-name-n operand selects no occurrence of the table. §2002:8.4.1.2.3 GR2: "
+        + "the lowest occurrence number is 1 and the highest is the maximum number of occurrences specified in the associated "
+        + "OCCURS clause. A dynamic-capacity table has no fixed maximum, so the location of one of its occurrences is not known "
+        + "when the program is compiled.",
+        "ISO §2002:8.4.1.2.3 GR2");
+
     /// <summary>COBOL6863 — two INDEXED BY declarations of one program spell the same index-name, at a dialect that requires it
     /// unique (kb/Work PB5073). §1985:VI.5.8.3 SR14: "Index-name-1 must be a unique word within the program." COBOL-2002 and
     /// later qualify an index-name like a data-name, so the rule is the 1985 dialect's alone.</summary>
