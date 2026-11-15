@@ -122,6 +122,19 @@
     }
   },
   "enabledPlugins": {
-    "brent-tools@brentrector-claude-skills": true
+    "brent-tools@brentrector-claude-skills": true,
+    "superpowers@claude-plugins-official": false
+  },
+  "skillOverrides": {
+    "brent-tools:automating-agent-guardrails": "user-invocable-only",
+    "brent-tools:claude-cloud-sessions": "user-invocable-only",
+    "brent-tools:cross-platform": "user-invocable-only",
+    "brent-tools:devlog": "user-invocable-only",
+    "brent-tools:engineering-standards": "user-invocable-only",
+    "brent-tools:roslyn-analysis": "user-invocable-only",
+    "brent-tools:spec-compliance-audit": "user-invocable-only",
+    "brent-tools:variant-analysis": "user-invocable-only",
+    "anthropic-skills:xlsx": "off",
+    "obfuscate": "off"
   }
 }
