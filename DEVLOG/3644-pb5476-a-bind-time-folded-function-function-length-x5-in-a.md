@@ -1,4 +1,4 @@
-## PB5476: a bind-time-folded function (FUNCTION LENGTH (X5)) in a class condition is a function-identifier at COBOL-85
+## Entry 3644 — 2026-11-14 20:17 PST — PB5476: a bind-time-folded function (FUNCTION LENGTH (X5)) in a class condition is a function-identifier at COBOL-85
 
 **Mechanism.** `FUNCTION LENGTH (X5) IS NUMERIC` compiled and printed T at `--std 85`, while `FUNCTION NUMVAL ("1") IS NUMERIC` was refused (COBOL6918). §1985:VI.6.3.1.2 GR5: "If identifier-1 is a function-identifier, it must reference an alphanumeric function". The binder folds LENGTH of a fixed item to `BoundNumericLiteral { FunctionValue: true }`, and `ConditionBinder.CheckClassConditionOperand` computed its `function` flag from `BoundComputedOperand { Expr: BoundIntrinsicCall }` only, so `UsageDisplay1985` failed open (function false, usage null).
 
@@ -11,3 +11,4 @@
 **Sweep.** The other readers of `{ Expr: BoundIntrinsicCall }` (MoveBinder `senderIsFunction`, OoBinder, RelationComparability) are not class-condition screens and are unchanged.
 
 **Review round 1 (R1-1).** The reviewer found the flag still read the tree shape for the third lowering of a function-identifier, FUNCTION LENGTH of a variable-length group (`BoundComputedOperand { FunctionValue: true, Expr: BoundBinary }`), which compiled `IS NUMERIC` at 85 and printed T. The `function` flag now also reads `BoundComputedOperand { FunctionValue: true }`, the binder's statement (kb/Work PB3678). Goldens added: `pb5476-odo-function-length-numeric-at-85` (COBOL6918 at 85) and `pb5476_odo_function_length_numeric_2002` (T from 2002).
+
