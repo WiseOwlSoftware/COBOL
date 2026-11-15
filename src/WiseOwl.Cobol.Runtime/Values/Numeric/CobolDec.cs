@@ -350,7 +350,14 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// zero base with a non-positive exponent (§2023:8.8.1.2 r6a), and a negative base with a non-integer exponent
     /// (§2023:8.8.1.2 r6c). Every step is range-checked at the decimal128 bounds (§2023:8.8.1.5.2 r2, via the ONE
     /// <see cref="Round34Wide"/> clamp).</summary>
-    public static CobolDec Pow(CobolDec b, CobolDec e, CobolRounding mode, bool standardIntermediate = false)
+    public static CobolDec Pow(CobolDec b, CobolDec e, CobolRounding mode) => PowDeveloped(b, e, mode, standardIntermediate: false);
+
+    /// <summary><see cref="Pow"/> under ARITHMETIC IS STANDARD: every multiplication of an integer power's development is a
+    /// standard intermediate data item, truncated to 32 digits (§2002:8.8.1.3.6 rules 2c and 2d, each multiplication per
+    /// §2002:8.8.1.3.4; <see cref="MulStep"/>), so <c>B ** 3</c> is <c>(B * B) * B</c> (kb/Work PB5575 review finding R1-1).</summary>
+    public static CobolDec PowStandard(CobolDec b, CobolDec e, CobolRounding mode) => PowDeveloped(b, e, mode, standardIntermediate: true);
+
+    private static CobolDec PowDeveloped(CobolDec b, CobolDec e, CobolRounding mode, bool standardIntermediate)
     {
         bool eInt = TryIntegerValue(e, out long eBoundProbe, out bool eNegative, out bool eEven);
         if (b.Sig == 0)

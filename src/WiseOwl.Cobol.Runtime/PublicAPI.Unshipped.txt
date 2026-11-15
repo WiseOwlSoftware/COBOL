@@ -1232,3 +1232,4 @@ static readonly WiseOwl.Cobol.Runtime.MessageTag.Null -> WiseOwl.Cobol.Runtime.M
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+static WiseOwl.Cobol.Runtime.CobolDec.PowStandard(WiseOwl.Cobol.Runtime.CobolDec b, WiseOwl.Cobol.Runtime.CobolDec e, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec

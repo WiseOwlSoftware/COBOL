@@ -115,7 +115,7 @@ public sealed class StandardIntermediateDataItemTests
         // §2002:8.8.1.3.6 rule 2c: B ** 3 is ((B * B) * B), each multiplication truncated to 32 digits (§2002:8.8.1.3.4).
         // By hand (decimal, precision 32, round-down): B*B = 96.636535477422589672232728616631; times B = 949.97467433864546250475409034044.
         var b = Digits("9830388368595748906828836075983", -30);
-        var cube = CobolDec.Pow(b, new CobolDec(3, 0), CobolRounding.Truncation, standardIntermediate: true).ToSidi();
+        var cube = CobolDec.PowStandard(b, new CobolDec(3, 0), CobolRounding.Truncation).ToSidi();
         Assert.Equal(Digits("94997467433864546250475409034044", -29), cube);
     }
 }
