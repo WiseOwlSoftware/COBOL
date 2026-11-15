@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.55.3-4",
+ "rule-digest": "5e752c606109",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsBased; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription",
+ "test-ref": "conformance:cases/13.18.57-TYPE/l1c34_type_subject_based",
+ "notes": "§2002:13.16.55.3 GR4: the subject's own BASED clause applies; V TYPE T BASED and VG TYPE TG BASED become based items addressing Y (V=[HELLO], Y=[WORLD], G2=[RLD], Y=[ABRLD]). The case is accepted at 2002 and ran at --std 2002 (pinned cobol.exe (tree dc1f2dcce8) --std 2002): output matches."
+}

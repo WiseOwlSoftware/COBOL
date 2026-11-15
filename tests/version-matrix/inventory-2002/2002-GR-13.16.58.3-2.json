@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-2",
+ "rule-digest": "baf5a0706f3d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#Truncation; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_usage_representation",
+ "notes": "In an output CD record (§2002:A.1.2.2 SR9) items of usage BINARY, COMP and PACKED-DECIMAL are stored differently but used by value (§2002:13.16.58.3 GR2): B + C + PD = -14813 and B = C. G2USG01 at --std 2002 matched the derived output."
+}

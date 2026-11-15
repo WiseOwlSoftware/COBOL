@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.11.2-1",
+ "rule-digest": "15e398a4ff6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.11@2002-BOOLEAN-OF-INTEGER-FUNCTION/g2-boolean-of-integer-arguments",
+ "notes": "§2002:15.11.2 AR1 'Argument-1 shall be a positive integer' with §2002:15.2 type 5 (integer = integer data item or always-integral arithmetic expression): arg-1 as literal 5/544/1/255, binary S9(4) COMP 11, expression W-I*2+1 = 23 and the input-CD MESSAGE COUNT item 6 (§2002:A.1.2.3 GR2k) are accepted. §2002:15.11.3 RV1 'same bit configuration as the binary representation of the value of argument-1 ... zero-filled or truncated on the left': 5,8 -> 00000101; 544,6 -> 100000; 1,1 -> 1; 255,8 -> 11111111; 11,10 -> 0000001011; 23,5 -> 10111; 6,4 -> 0110. Lines LIT..CD all pin AR1 (each line's ... Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

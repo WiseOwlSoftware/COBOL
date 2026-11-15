@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.10.3-1",
+ "rule-digest": "124f5134c0cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Flush",
+ "test-ref": "conformance:cases/7.2.10@2002-EVALUATE-DIRECTIVE/g2ev01_copy_operand_forms",
+ "notes": "§2002:7.2.10.3 GR1 subjects EVALUATE-directive text words to the 2002 COPY matching rules: literal-3, word-1 and text-1 (identifier) REPLACING operands and text-words on debugging lines (§2002:7.1.2.3 GR9, GR10c) are replaced inside the included WHEN text-1; GR1-LIT3-OK / W1-OK / TX-OK / GR1-DLINE-OK matched at --std 2002 (the REPLACE-on-D-line leg is line 1 of g2ev05_other_debugging_lines)."
+}

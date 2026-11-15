@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-27",
+ "rule-digest": "c45a4855de19",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#NextSequentialSlot; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#RelativeStore; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Edge",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb739_shared_extend_write_2002",
+ "notes": "§2002:14.8.47.3 GR27: two file connectors sharing a relative file in extend mode return ascending, not necessarily consecutive, relative key values. Matched at --std 2002 with the pinned build of dc1f2dcce8 (pb739_shared_extend_write_2002)."
+}

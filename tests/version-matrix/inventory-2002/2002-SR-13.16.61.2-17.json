@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-17",
+ "rule-digest": "cd2275685bb7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Compare; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveTableValuesPass.cs#ScreenTableValueGeometry",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr17-back-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr17-max-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr17-count-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr17-back-ws; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr17-max-ws; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr17-count-ws; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-record-table; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-ws-float-table",
+ "notes": "§2002:13.16.61.2 SR17: a TO element preceding its FROM element (one and two dimensions), a subscript-2 beyond its maximum and a wrong subscript-2 count are refused (COBOL1587, COBOL1945) in CD records and working-storage at --std 2002; legal TO phrases run with odometer order (TE=[PPQ], C=[AABB])."
+}

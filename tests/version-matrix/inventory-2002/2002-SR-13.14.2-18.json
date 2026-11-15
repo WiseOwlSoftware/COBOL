@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-SR-13.14.2-18",
+ "rule-digest": "6139619154f7",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "notes": "kb/Work PB5577: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) every PRESENT WHEN in a data description is refused COBOL1708 (the VALIDATE decline), the legal level-05 one included, so no refusal shows SR18."
+}

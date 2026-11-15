@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.4.1.7.3-2",
+ "rule-digest": "d88d89b4e862",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted",
+ "notes": "§2002:8.8.4.1.7.3 GR2: 'When used, NOT and the keyword OMITTED specify one condition to be executed for truth value.' Method TWO tests 'IF B IS NOT OMITTED': with B omitted (INVOKE O \"TWO\" USING N) NOT OMITTED is false -> 'TWO A=007 B OMITTED'; with B present (USING N W4) it is true -> 'TWO A=007 B=WXYZ'; through the universal receiver U the omitted B again -> 'TWO A=007 B OMITTED'. Ran the existing conformance-suite/cases/8.4.3.2-Function-identifier/pb757_invoke_omitted.cob --std 2002 --source-format free --run with the pinned exe matched the derivation at --std 2002 with the pinned build of tree dc1f2dcce8."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-14",
+ "rule-digest": "8cfc8e4f9d50",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegisterTypeDecl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-typedef-level-1; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-typedef-level-5",
+ "notes": "Per §2002:13.14.2 SR14 a level-1 named TYPEDEF is accepted and its TYPE users in working storage and in an input-CD record behave as PIC X(3) (V1=[ABC] CT=[XYZ]); a level-5 TYPEDEF in the CD record is refused (COBOL1529). Pinned build dc1f2dcce8 --std 2002 matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-16",
+ "rule-digest": "56a91d11b9fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-condition-name",
+ "notes": "§2002:13.16.61.3 GR16 in a CD record: 88s on signed numeric S2 test numerically (-12 true, +12 false, SET TO TRUE stores \"999-\") and on numeric-edited B1 alphanumerically (\"   \" after MOVE 0, \"007\" after MOVE 7). Run with the pinned compiler (tree dc1f2dcce8) at --std 2002: output equals the derived golden."
+}

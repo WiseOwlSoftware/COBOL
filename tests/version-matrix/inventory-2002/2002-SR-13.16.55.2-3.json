@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.55.2-3",
+ "rule-digest": "98760a624803",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DeclaresStrongType; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckStrongTypeDeclarationsPass.cs#CheckStrongTypeDeclarationsPass",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-cd-strong-renames",
+ "notes": "§2002:13.16.55.2 SR3: a subject of a STRONG type shall not be renamed in whole or in part; CD-REC (TYPE T, T STRONG) is a record under an output CD and 66 CD-RN RENAMES T-A renames part of it, so the RENAMES entry (line 29) must be refused. Refused at --std 2002 with COBOL5992 at that line, as derived (pinned cobol.exe (tree dc1f2dcce8) --std 2002)."
+}

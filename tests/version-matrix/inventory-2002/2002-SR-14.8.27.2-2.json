@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.27.2-2",
+ "rule-digest": "641e31ca6f07",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#CountOperand; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingLevel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandClassScreen",
+ "test-ref": "conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf01_cd_operands; conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf02_varying_cd_alphanumeric; conformance:cases/14.8.27@2002-PERFORM-STATEMENT/g2prf03_times_cd_noninteger",
+ "notes": "§2002:14.8.27.2 SR2 with GR7/GR9: MESSAGE COUNT as the TIMES count (3 -> N=0003) and a CD record item varied BY TEXT LENGTH (1,3,5,7) run as derived at --std 2002 (g2prf01 matched); VARYING the alphanumeric SQ (COBOL2120) and a 9V9 TIMES count (COBOL1646) are refused."
+}

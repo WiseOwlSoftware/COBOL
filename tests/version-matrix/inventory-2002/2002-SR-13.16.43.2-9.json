@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.43.2-9",
+ "rule-digest": "afcc363b65d4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#StartBitOf; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-bit-fraction; conformance:cases/13.18.45-RENAMES/pb1284-renames-bit-area-fractional; conformance:cases/13.18.45-RENAMES/pb1284_renames_bit_whole_bytes",
+ "notes": "§2002:13.16.43.2 SR9 requires a THROUGH area of whole bytes: two one-bit items renamed under a CD record (2 bits) and a 5-bit working-storage span are refused at --std 2002 (COBOL2562), and whole-byte bit spans are accepted (pb1284_renames_bit_whole_bytes matched)."
+}

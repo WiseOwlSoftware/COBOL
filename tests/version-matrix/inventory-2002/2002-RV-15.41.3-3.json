@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.41.3-3",
+ "rule-digest": "a6cbe9559a1b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Date",
+ "test-ref": "conformance:cases/15.41@2002-LOCALE-DATE-FUNCTION/g2002-locale-date-function",
+ "notes": "§2002:15.41.3 RV3 - RV3: the returned length is that of the locale-formatted string: LENGTH(LOCALE-DATE(D FR)) = 10 (\"19/08/2026\"), LENGTH(LOCALE-DATE(D USA)) = 9 (\"8/19/2026\"), shown in PIC 99 as 10 and 09. Expected lines derived from the 2002 text before the run; G2LDT01 at --std 2002 on the pinned build (tree dc1f2dcce8) printed exactly the derived .out."
+}

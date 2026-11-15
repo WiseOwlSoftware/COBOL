@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.41.3-2",
+ "rule-digest": "634cfa72f441",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Date; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#DateFormat",
+ "test-ref": "conformance:cases/15.41@2002-LOCALE-DATE-FUNCTION/g2002-locale-date-function",
+ "notes": "§2002:15.41.3 RV2 - RV2: the date 20260819 rendered by the locale d_fmt: fr-FR dd/MM/yyyy -> 19/08/2026, de-DE dd.MM.yyyy -> 19.08.2026, en-US M/d/yyyy -> 8/19/2026; a national argument-1 N\"20260819\" names the same date -> 19/08/2026 (function type alphanumeric; S PIC X(12) shows the value space-padded to 12). Expected lines derived from the 2002 text before the run; G2LDT01 at --std 2002 on the pinned build (tree dc1f2dcce8) printed exactly the derived .out."
+}

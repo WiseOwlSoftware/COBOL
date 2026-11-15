@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.3-8",
+ "rule-digest": "738441f8464e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#Register; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.3.4@2002-FILE-CONTROL-ENTRY/g2seq01_sequential_format_padding",
+ "notes": "§2002:12.3.4.3 GR8: the 2002 sequential format, which carries PADDING CHARACTER (obsolete, §2002:12.3.4.10), defines a sequential connector: with the literal and the data-name forms, records return in WRITE order including an EXTEND (§2002:12.3.4.4.3 GR2a), then AT END 10. g2seq01 run at --std 2002 matched the derived 10 lines, with the COBOL0903 obsolete warnings."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-15",
+ "rule-digest": "546f82a9c692",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#OdoResolvePass",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-record-tables; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-odo-equal-bounds",
+ "notes": "§2002:13.16.36.2 SR15: OCCURS 0 TO 5 (integer-1 = 0, integer-2 greater) is accepted in the CD record and the table holds 2, 0 and 3 occurrences (F1 [AB   ]; F2 [     ], TVG a zero-length sender by 13.16.36.3 GR8a; F3 3); OCCURS 3 TO 3 (integer-2 not greater than integer-1) is refused. Matched at --std 2002 on the pinned build of dc1f2dcce8 (F1-F3 of the accepted case; g2-occurs-cd-odo-equal-bounds refused COBOL0850)."
+}

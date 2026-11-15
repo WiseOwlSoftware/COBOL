@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-1",
+ "rule-digest": "4d4f91402a3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#At; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RefReceiving",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2occ01_cd_record_occurs",
+ "notes": "Per §2002:13.16.36.3 GR1 every clause but OCCURS applies to each occurrence: in a CD record (§2002:A.1.1) T1 PIC X(2) OCCURS 3 truncates per occurrence (PQRSTU), T2 JUSTIFIED RIGHT OCCURS 2 justifies each (\"  A BC\"), T3 PIC 9V9 aligns each (2350). The --std 2002 run matched the derived output."
+}

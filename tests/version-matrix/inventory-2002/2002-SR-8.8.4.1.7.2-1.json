@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.7.2-1",
+ "rule-digest": "5d1317b12203",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison",
+ "test-ref": "conformance:cases/8.8.4.1.7@2002-OMITTED-ARGUMENT-CONDITION/g2-omitted-not-formal",
+ "notes": "§2002:8.8.4.1.7.2 SR1: 'Data-name-1 shall be a formal parameter defined in the source element in which this condition is specified.' A prohibiting SR that grants no form, so a refusal is its evidence. Ran g2-omitted-not-formal.cob --std 2002 --run with the pinned exe matched the derivation at --std 2002 with the pinned build of tree dc1f2dcce8."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-9",
+ "rule-digest": "9067f9ac28f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PicInfo.IndexItem; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Sr1Refusal; docs/CONFORMANCE.md#DOC-A.1-211; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_usage_representation",
+ "notes": "A USAGE INDEX item in an output CD record holds the occurrence number: SET from index 4 and back selects TE(4) = D, and its 8-byte image ends 04 (§2002:13.16.58.3 GR9, DOC-A.1-211). G2USG01 at --std 2002 matched the derived output."
+}

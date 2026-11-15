@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.62.3-2",
+ "rule-digest": "e565aaf52c56",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
+ "test-ref": "conformance:cases/15.62@2002-RANDOM-FUNCTION/g2rnd01-random-reseed",
+ "notes": "§2002:15.62.3 RV2: one seed always yields one sequence (seed 7 as a literal and as SEED + 1; seeds 0..500 each twice, MISMATCH=0). The --std 2002 run matched."
+}

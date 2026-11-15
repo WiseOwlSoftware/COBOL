@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-6",
+ "rule-digest": "2bfb36905509",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; docs/CONFORMANCE.md#DOC-A.1-208; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#Truncation; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_usage_representation",
+ "notes": "An S9(4) COMP item in an output CD record has the implementor's COMP format, identical to BINARY (DOC-A.1-208): 2 bytes FB 2E for -1234 (§2002:13.16.58.3 GR6). G2USG01 at --std 2002 matched the derived output."
+}

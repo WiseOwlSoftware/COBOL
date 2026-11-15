@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.4.1.4.2-3",
+ "rule-digest": "10127fa11ae6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderCondition88; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderMembershipTest",
+ "test-ref": "conformance:cases/8.8.4.1.4@2002-CONDITION-NAME-CONDITION/g2_condition_name_values",
+ "notes": "§2002:8.8.4.1.4.2 GR3: true 'if one of the values corresponding to condition-name-1 equals the value of its associated conditional variable'. Ran g2_condition_name_values.cob --std 2002 --run with the pinned exe matched the derivation at --std 2002 with the pinned build of tree dc1f2dcce8."
+}

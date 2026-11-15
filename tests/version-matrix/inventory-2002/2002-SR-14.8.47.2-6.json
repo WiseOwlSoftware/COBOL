@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-6",
+ "rule-digest": "9b663a6699cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_from_valid_move_sender",
+ "notes": "SR6 defers validity to the 2002 MOVE rules. §2002:14.8.24.2 SR5 bars only SPACE from a numeric receiver and §2002:8.3.1.2.5.2 SR3 bars ALL literal-1 from a numeric item only when literal-1 is longer than one character, so WRITE R1 (PIC 9(3)) FROM ALL \"7\" is valid; by §2002:14.8.47.3 GR3 it is MOVE ALL \"7\" TO R1 then WRITE R1, and §2002:8.3.1.2.5.3 GR2b repeats the character to the item's three positions: ALL-7=777. A numeric integer item CN of a CD record is a valid sender per Table 17 (§2002:14.8.24.2 SR8, Numeric integer to Numeric: Yes): CD-CN=456. Matched at --std 2002 with the pinned build of dc1f2dcce8 (g2_write_from_valid_move_sender)."
+}

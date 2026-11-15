@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.9.2-1",
+ "rule-digest": "eda999577bef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#OoRepositoryProperties; src/WiseOwl.Cobol.Compiler/Binding/ObjectPropertyResolver.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.2.9@2002-OBJECT-PROPERTY/g2opr01_property_named_in_repository; conformance:cases/8.4.2.9@2002-OBJECT-PROPERTY/g2opr02-property-not-in-repository",
+ "notes": "§2002:8.4.2.9.2 SR1: with PROPERTY BAL in the REPOSITORY, MOVE 1234 TO BAL OF A then DISPLAY BAL OF A prints BAL=1234 (g2opr01, --std 2002 matched); the same program without the PROPERTY specifier is refused with COBOL0843 at the first BAL OF A (g2opr02)."
+}
