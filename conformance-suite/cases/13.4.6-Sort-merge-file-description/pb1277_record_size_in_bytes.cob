@@ -2,7 +2,7 @@
 *> id: pb1277_record_size_in_bytes
 *> rules: [GR-13.4.6.4-1, GR-13.18.43.4-1, GR-13.18.43.4-3,
 *>    GR-13.18.43.4-4, GR-13.18.43.4-5, GR-13.18.43.4-8,
-*>    GR-13.18.43.4-9]
+*>    GR-13.18.43.4-9, 2002-GR-13.16.41.3-1, 2002-GR-13.16.41.3-4]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

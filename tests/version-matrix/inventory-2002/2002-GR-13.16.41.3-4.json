@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.41.3-4",
+ "rule-digest": "54e8530f3776",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes",
+ "notes": "kb/Work PB5578: §2002:13.16.41.3 GR4: a record whose last item ends inside a byte (USAGE BIT) includes that whole byte in its size (pb1277's FB record, accepted at 2002)."
+}

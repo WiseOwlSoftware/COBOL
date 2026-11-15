@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-6",
+ "rule-digest": "94d72537c9fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#SelectedIsNational; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/pb5578_sort_merge_short_record_select_when_fill; conformance:cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill",
+ "notes": "kb/Work PB5578: §2002:14.8.36.3 GR6: a short record released from a USING file to a fixed-length SD is filled by arm a) (one national description), b) (several descriptions with SELECT WHEN, a CODE-SET or FORMAT file, §2002:13.16.49.3 GR1: the selected description decides, SU) or c) (alphanumeric); docs/conformance/3/D-SMF.md."
+}

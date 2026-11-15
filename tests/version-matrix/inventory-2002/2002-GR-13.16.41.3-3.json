@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.41.3-3",
+ "rule-digest": "45b90bd2604f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize",
+ "test-ref": "conformance:cases/13.16.41@2002-RECORD-CLAUSE/pb5578_record_size_variable_occurrence_maximum; conformance:cases/13.16.41@2002-RECORD-CLAUSE/pb5578-record-size-variable-occurrence-over; conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes",
+ "notes": "kb/Work PB5578: §2002:13.16.41.3 GR3: a record's size is in bytes whatever its characters (pb1277: a national position is two bytes) and a variable-occurrence table counts at its maximum: FO-N PIC 9 + FO-T OCCURS 1 TO 4 is 5 bytes, so RECORD CONTAINS 5 is accepted and 4 refused COBOL2010 (§2002:13.16.41.2 SR2)."
+}
