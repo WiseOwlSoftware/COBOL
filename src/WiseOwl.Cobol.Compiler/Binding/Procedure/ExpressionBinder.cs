@@ -1363,8 +1363,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7.4 GR14 a) — the comma form
-    /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and edition-gate the digit count
-    /// (ISO §2023:8.3.3.3.2 — 1..18 at COBOL-85, 1..31 at 2002+). The ONE literal chokepoint for the expression paths.</summary>
+    /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and bound a floating-point literal's
+    /// exponent. The ONE literal chokepoint for the expression paths. The digit count (ISO §2023:8.3.3.3.2 — 1..18 at
+    /// COBOL-85, 1..31 at 2002+) is not asked here: it is a property of the literal as written, asked once for every
+    /// position by <c>LiteralScreen</c> (kb/Work PB5529).</summary>
     public string CheckLiteral(string text)
     {
         text = ctx.Data.SpecialNames.NormalizeNumericLiteral(text);
@@ -1398,8 +1400,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     + "1E-6176 to 9.99E+6144 (ISO §2023:8.3.3.3.3 r3; §2023:8.8.1.5.2 r2; CONFORMANCE.md §7)");
             return text;
         }
-        int digits = text.Count(char.IsAsciiDigit);
-        ctx.Edition.CheckDigitCapacity(digits, $"numeric literal '{text}'");
         return text;
     }
 
