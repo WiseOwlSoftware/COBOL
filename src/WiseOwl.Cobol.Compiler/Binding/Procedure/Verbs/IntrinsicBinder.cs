@@ -222,7 +222,31 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>FUNCTION call as a MOVE sending operand (the <c>BindMove</c> hook) — and the operand shape every
     /// general-operand channel shares: the bound expression wrapped as a <see cref="BoundComputedOperand"/> (a
     /// LENGTH fold surfaces as its literal; an error stays a loud named operand).</summary>
-    public BoundOperand IntrinsicOperand(Core.FunctionCallContext fc) => OperandOf(BindIntrinsic(fc), functionValue: true);
+    public BoundOperand IntrinsicOperand(Core.FunctionCallContext fc) => ScreenIdentifierPlacement(fc, BindIntrinsic(fc));
+
+    /// <summary>⛔ A NUMERIC OR INTEGER FUNCTION-IDENTIFIER WRITTEN WHERE AN IDENTIFIER STANDS IS AN EDITION INTRODUCTION (kb/Work PB5108).
+    /// "A function-identifier which references an integer or numeric function may be used only in an arithmetic expression"
+    /// (§1985:IV.4.3.8.3.3 SR4, the 1989 Amendment 1 text restated by §1989:A.2.3 GR2 and GR3), so at COBOL-85 `MOVE FUNCTION SQRT (4) TO N`,
+    /// `DISPLAY FUNCTION LENGTH (W)`, `PERFORM FUNCTION INTEGER (2.5) TIMES` and an `ADD FUNCTION LENGTH (W) TO Y` operand are no
+    /// COBOL-85 source: each position prints an identifier, and the function is no arithmetic expression there. ISO/IEC 1989:2002
+    /// Annex F.2 item 60 removed the restriction ("Numeric and integer functions may now be used anywhere a numeric sender is
+    /// allowed"; §2002:F.2), so the edge is the construct row <c>numeric-function-identifier-operand-2002</c>, asked of the
+    /// ONE function-identifier-as-identifier door (<see cref="IntrinsicOperand"/>) and of the arithmetic verbs' operand wrapper
+    /// (<c>ExpressionBinder.BindArithmeticStatementOperand</c>), never of a function inside an arithmetic expression (COMPUTE, a
+    /// relation operand, a subscript), which is the one place SR4 admits it. An ALPHANUMERIC function is the identifier SR3
+    /// admits wherever an identifier is, and stays legal. Returns the operand the function is, so the door reads once.</summary>
+    internal BoundOperand ScreenIdentifierPlacement(Core.FunctionCallContext fc, BoundExpr bound)
+    {
+        var operand = OperandOf(bound, functionValue: true);
+        if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.NumericFunctionIdentifierOperand2002)
+            && IntrinsicResultType.OperandCategory(operand) is PicCategory.Numeric)
+        {
+            using var _ = ctx.Edition.At(fc);
+            ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.NumericFunctionIdentifierOperand2002,
+                $"{DataBinder.WrittenText(fc)} as an identifier operand");
+        }
+        return operand;
+    }
 
     /// <summary>The operand a bound expression is. <paramref name="functionValue"/> is true when the expression is a bound
     /// FUNCTION-IDENTIFIER (the word FUNCTION written or omitted, §2023:8.4.3.2.3 SR2) and false for an arithmetic expression:

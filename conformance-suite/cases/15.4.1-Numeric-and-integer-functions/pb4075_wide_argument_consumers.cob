@@ -1,10 +1,13 @@
       *>--- conformance-case
       *> id: pb4075_wide_argument_consumers
       *> rules: [RV-15.4.1-1, DOC-A.1-123]
-      *> accept: [85, 2002, 2014, 2023]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> kb/Work PB5108: accepted from 2002 only. Legs 1 and 2 DISPLAY a numeric function, which X3.23-1985
+      *> Amendment 1 admits only in an arithmetic expression (IV 4.3.8.3.3 SR4; 2002 Annex F.2 item 60 removed
+      *> that), and the 39-digit value has no 85 data item to hold it (18 digits, VI 6.4.4).
       *> kb/Work PB4075 (docs/CONFORMANCE.md DOC-A.1-123): a
       *> FUNCTION argument that is an arithmetic expression of 39 to
       *> 77 digits reaches MEAN and the binary64-family functions as

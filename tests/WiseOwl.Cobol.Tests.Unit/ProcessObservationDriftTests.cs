@@ -465,9 +465,11 @@ public sealed class ProcessObservationDriftTests
     [Fact]
     public void TheDurableFlushLine_IsTheMedianAndWorstOfTheProbes_OrSaysItWasNotProbed()
     {
-        Assert.Equal("durable flush on the run volume: median 30.0 ms, worst 160.0 ms of 3 probes",
-            HostLoad.DescribeFlushes([TimeSpan.FromMilliseconds(160), TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(30)]));
-        Assert.Equal("durable flush on the run volume: not probed", HostLoad.DescribeFlushes([]));
+        Assert.Equal("durable flush on the run volume: median 30.0 ms, worst 160.0 ms of 3 probes; write-through append: median 2.0 ms, worst 7.0 ms of 3 probes",
+            HostLoad.DescribeFlushes([TimeSpan.FromMilliseconds(160), TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(30)],
+                [TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(7), TimeSpan.FromMilliseconds(2)]));
+        Assert.Equal("durable flush on the run volume: not probed", HostLoad.DescribeFlushes([], [TimeSpan.FromMilliseconds(1)]));
+        Assert.Equal("durable flush on the run volume: not probed", HostLoad.DescribeFlushes([TimeSpan.FromMilliseconds(1)], []));
         Assert.Contains("not probed (", HostLoad.DurableFlushLine(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "absent")),
             StringComparison.Ordinal);
     }
@@ -480,7 +482,7 @@ public sealed class ProcessObservationDriftTests
         try
         {
             string line = HostLoad.DurableFlushLine(dir);
-            Assert.Contains($"of {HostLoad.FlushProbes} probes", line, StringComparison.Ordinal);
+            Assert.Contains($"of {HostLoad.FlushProbes} probes; write-through append: median ", line, StringComparison.Ordinal);
             Assert.Empty(Directory.GetFileSystemEntries(dir));
         }
         finally { ScratchDirectory.Remove(dir); }

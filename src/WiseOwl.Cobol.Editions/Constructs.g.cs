@@ -167,6 +167,7 @@ public static class Constructs
     public const string NextSentenceArchaic2023 = "next-sentence-archaic-2023";
     public const string NotEqualOperator2014 = "not-equal-operator-2014";
     public const string NucleusMoveDisplay = "nucleus-move-display";
+    public const string NumericFunctionIdentifierOperand2002 = "numeric-function-identifier-operand-2002";
     public const string NumvalCAnycaseKeyword2002 = "numval-c-anycase-keyword-2002";
     public const string NumvalCLocalePhrase2002 = "numval-c-locale-phrase-2002";
     public const string ObjectView2002 = "object-view-2002";

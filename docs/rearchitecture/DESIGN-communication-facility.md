@@ -243,7 +243,17 @@ output. A statement that transmits to a device:
 
 1. writes each message positionally at the device's committed end, `DeviceEnds[device]`, and sets the file's length to the end of what
    it wrote, so any tail a dead or refused statement left past the committed end is overwritten or cut;
-2. flushes the device to the medium (`RandomAccess.FlushToDisk`, the call `HandlePageMedium.Sync` makes);
+2. makes the device durable on the medium with ONE write-through write (kb/Work PB5147): the device is opened
+   `FileOptions.WriteThrough` (`FILE_FLAG_WRITE_THROUGH` on Windows, `O_SYNC` elsewhere), whose write returns once its
+   bytes and the size change it makes are on the medium ("A write-through request via FILE_FLAG_WRITE_THROUGH also causes
+   NTFS to flush any metadata changes ... that result from processing the request", CreateFile, "Caching Behavior"). A
+   statement that CREATES the device also flushes it (`RandomAccess.FlushToDisk`) and syncs the MCS directory
+   (`HostFile.SyncDirectory`) once, because an empty file's name is metadata a write-through write is not documented to
+   carry. The cut `SetLength` makes when a dead tail was longer is not written through and needs not be: a tail a power loss
+   keeps lies past the committed end, which the next run unit's first statement cuts. A flush per statement, the barrier
+   this replaced, asks the volume to flush its whole write cache, and on GitHub's Windows runners its median ran from 4 ms to
+   830 ms a call between merge groups against CM102M's 544 sends; `McsDeviceBarrierDriftTests` keeps every flush of the MCS
+   under a device's creation and every device write on a write-through handle;
 3. sets `DeviceEnds[device]` to the new length in the same store statement;
 4. completes the store statement.
 
