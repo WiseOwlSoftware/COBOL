@@ -64,10 +64,14 @@ A ninth pass serves the 1985 transcription, not the change records (kb/Work PB49
     python scripts/spec/audit_batch.py results --state DIR                        # DIR/results.json: each rule's disposition
     python scripts/spec/audit_batch.py misprint-leads --state DIR                 # DIR/misprint-leads.json: each misprint
                                                                                    # the misprints pass reports
-    python scripts/spec/audit_batch.py change-batch --state DIR --out FILE        # every DECIDED change record (KEPT,
-                                                                                   # CHANGED, REMOVED; record_verdicts.py
-                                                                                   # --edition 1985) no adjudication
-                                                                                   # outranks
+    python scripts/spec/audit_batch.py change-batch --edition 1985 --state DIR --out FILE  # every DECIDED change
+                                                                                   # record (KEPT, CHANGED, REMOVED;
+                                                                                   # record_verdicts.py --edition 1985)
+                                                                                   # no adjudication outranks
+    python scripts/spec/audit_batch.py change-batch --edition 2002 --out FILE [--exclusions FILE]
+                                                                                   # THE RULE STAGE (no audit run): a KEPT
+                                                                                   # record per candidate pair no trigger of
+                                                                                   # lineage_screen.py marks (kb/Work PB5589)
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
 RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written by `plan`: custom id -> the item, every input its prompt
@@ -112,7 +116,7 @@ import citation  # noqa: E402  (THE citation format and the 1985 regions, kb/Wor
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes)
 from extract_rule_catalog import catalog_path  # noqa: E402  (each held edition's catalog: the schema's `editions.of`)
-from inventory_schema import ChangeRecord, edition, load_schema  # noqa: E402  (the 1985 edition and its change record)
+from inventory_schema import ChangeRecord, Edition, edition, load_schema  # noqa: E402  (each edition and its change record)
 from inventory_store import inventory_dir, read_store  # noqa: E402  (the 1985 store, whose adjudications outrank the run)
 from message_batches import (CACHE_MIN_SHARERS, DEFAULT_MODEL, BatchRun, cached_system, cached_text,  # noqa: E402
                              make_client, reply_text, usd, write_atomic)  # noqa: E402  (THE batch state)
@@ -722,16 +726,17 @@ def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
     return out
 
 
-def change_records(disp: dict[str, dict[str, Any]], source: str,
+def change_records(ed: Edition, disp: dict[str, dict[str, Any]], source: str,
                    held: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
-    """Every DECIDED change record of the run (each rule's `change`: the chained kind, KEPT, for a CARRIES rule, and the
-    adjudicate pass's decision once its check upheld it) as record_verdicts records of the 1985 edition's change record
+    """THE ONE WRITER of an older edition's change records, for every edition `ed` (kb/Work PB5589): every DECIDED change
+    record of `disp` (each rule's `change`: for an audit run, the chained kind, KEPT, for a CARRIES rule, and the
+    adjudicate pass's decision once its check upheld it; for the rule stage, `lineage_screen.rule_stage`'s KEPT records)
+    as record_verdicts records of `ed`'s change record
     (the schema's `next`): into the 2023 rules it names, its reason only when it states one (one stored form,
     lineage.next_errors), the run as its source, or a seeded decision's own (kb/Work PB4993, PB4995;
     DESIGN-spec-conformance-review.md section 10.2). A contested or unadjudicated rule is the fleet's, and not in it; nor
     is a rule whose record in the store (`held`, by rule id) another source decided: a fleet adjudication outranks the
     audit's detection, so re-running the batch never reverts one (kb/Work PB5008)."""
-    ed = edition(1985)
     held = held or {}
     return [{"rule-id": rid, "next": {"kind": c["kind"], "edition": ed.next_held, "to": c["to"], "bridge": ed.bridged,
                                       **({"reason": c["reason"]} if c.get("reason") else {}), "source": own}}
@@ -1193,6 +1198,39 @@ def canary_proven(p: Pass, st: dict[str, Any]) -> bool:
 
 # -- command line ---------------------------------------------------------------------------------------------------------
 
+def change_batch(a: argparse.Namespace) -> int:
+    """`change-batch`: the edition's decided change records as one record_verdicts batch, from the audit run `--state`, or,
+    with none, from the rule stage (every candidate pair no trigger marks, `lineage_screen.rule_stage`)."""
+    ed = edition(a.edition)
+    if ed.next_held is None:
+        raise SystemExit(f"{TOOL}: change-batch --edition {a.edition}: the newest held edition has no change records")
+    held = read_store(inventory_dir(ed, pathlib.Path(a.repo)))
+    excluded: dict[str, dict[str, str]] = {}
+    if a.state:
+        state = pathlib.Path(a.state)
+        label = state.name
+        records = change_records(ed, dispositions(state), a.source or f"audit-{a.edition}/{state.name}", held)
+    else:
+        import lineage  # noqa: PLC0415  (the rule stage's source)
+        import lineage_screen  # noqa: PLC0415  (the rule stage: the screen and its triggers)
+        if a.source:
+            raise SystemExit(f"{TOOL}: the rule stage's records carry their own source ({lineage.RULE_STAGE_SOURCE})")
+        label = f"rule-stage-{a.edition}"
+        disp, excluded = lineage_screen.rule_stage(lineage_screen.Screen.of(a.edition))
+        records = change_records(ed, disp, lineage.RULE_STAGE_SOURCE, held)
+        if a.exclusions:
+            write_atomic(pathlib.Path(a.exclusions), json.dumps(excluded, indent=1, ensure_ascii=False, sort_keys=True) + "\n")
+    out = pathlib.Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    write_atomic(out, json.dumps({"batch": f"lineage-change:{label}", "records": records}, indent=1,
+                                 ensure_ascii=False) + "\n")
+    kinds = collections.Counter(r["next"]["kind"] for r in records)
+    print(f"change-batch: {len(records)} change record(s) {dict(sorted(kinds.items()))} -> {out}"
+          + (f"; refused {len(excluded)} pair(s)" if not a.state else "") + "\n"
+          f"  validate: python scripts/spec/record_verdicts.py --edition {a.edition} --dry-run {out}", flush=True)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="The edition audit's Message Batches passes (restartable).")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1238,12 +1276,16 @@ def build_parser() -> argparse.ArgumentParser:
     sd.add_argument("--decisions", required=True, help="the record_verdicts batch file of the decisions to check")
     sd.add_argument("--inherit", default="route,map,verify",
                     help="the passes the new run reads from the upstream run, comma-separated (default: route,map,verify)")
-    cb = sub.add_parser("change-batch", help="write every decided change record as a record_verdicts batch")
-    common(cb, key=False, pass_arg=False)
+    cb = sub.add_parser("change-batch", help="write every decided change record as a record_verdicts batch: an audit "
+                                             "run's (--state), or the rule stage's (no --state)")
+    cb.add_argument("--edition", type=int, required=True, help="the older held edition whose change records are written")
+    cb.add_argument("--state", help="the audit run whose decided records are written; without it, the rule stage's KEPT "
+                                    "records (lineage_screen.rule_stage)")
     cb.add_argument("--out", required=True, help="the batch file to write")
-    cb.add_argument("--source", help="each record's next.source (default: audit-1985/<the state directory's name>)")
+    cb.add_argument("--exclusions", help="the rule stage: also write every pair it refuses, with each trigger's reason")
+    cb.add_argument("--source", help="an audit run's next.source (default: audit-<edition>/<the state directory's name>)")
     cb.add_argument("--repo", default=str(spec_pdf.REPO),
-                    help="the repository whose 1985 store's adjudications outrank the run's records")
+                    help="the repository whose store's adjudications outrank the run's records")
     return ap
 
 
@@ -1259,6 +1301,8 @@ def print_status(p: Pass, st: dict[str, Any]) -> None:
 
 def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = make_client) -> int:
     a = build_parser().parse_args(argv)
+    if a.cmd == "change-batch":
+        return change_batch(a)
     state = pathlib.Path(a.state)
     if a.cmd == "results":
         disp = dispositions(state)
@@ -1267,17 +1311,6 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         print(f"results: {dict(sorted(collections.Counter(d['disposition'] for d in disp.values()).items()))}; decided "
               f"{dict(sorted(decided.items()))}; contested {sum(1 for d in disp.values() if d.get('contested'))} "
               f"-> {state / 'results.json'}", flush=True)
-        return 0
-    if a.cmd == "change-batch":
-        held = read_store(inventory_dir(edition(1985), pathlib.Path(a.repo)))
-        records = change_records(dispositions(state), a.source or f"audit-1985/{state.name}", held)
-        out = pathlib.Path(a.out)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        write_atomic(out, json.dumps({"batch": f"lineage-change:{state.name}", "records": records}, indent=1,
-                                     ensure_ascii=False) + "\n")
-        kinds = collections.Counter(r["next"]["kind"] for r in records)
-        print(f"change-batch: {len(records)} change record(s) {dict(sorted(kinds.items()))} -> {out}\n"
-              f"  validate: python scripts/spec/record_verdicts.py --edition 1985 --dry-run {out}", flush=True)
         return 0
     if a.cmd == "misprint-leads":
         leads = misprint_leads(state)

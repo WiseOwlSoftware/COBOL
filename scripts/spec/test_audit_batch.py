@@ -350,7 +350,7 @@ def main() -> int:
               results[same_rule]["disposition"] == "DISPUTED" and results[same_rule]["verify"] == "REFUTED"
               and sorted(d["disposition"] for d in results.values()) == ["DISPUTED", "OWN-ROW", "OWN-ROW"])
         kept = root / "kept.json"
-        code, out = run(["change-batch", *base, "--out", str(kept)], fake)
+        code, out = run(["change-batch", "--edition", "1985", *base, "--out", str(kept)], fake)
         check("change-batch writes no record while no SAME is upheld and nothing is adjudicated (kb/Work PB4993)",
               code == 0 and json.loads(kept.read_text(encoding="utf-8"))["records"] == [])
         planted = {"1985-SR-VI.5.8.3-1": {"disposition": A.CARRIES, "rules_2023": ["SR-13.18.38.3-1"],
@@ -359,7 +359,7 @@ def main() -> int:
                    "1985-GR-VI.5.8.4-1": {"disposition": A.OWN_ROW, "rules_2023": [],
                                           "change": {"kind": "REMOVED", "to": [], "reason": "the module is deleted"}},
                    "1985-GR-VI.5.8.4-2": {"disposition": A.OWN_ROW, "rules_2023": []}}
-        recs = A.change_records(planted, "audit-1985/planted")
+        recs = A.change_records(inventory_schema.edition(1985), planted, "audit-1985/planted")
         schema = inventory_schema.load_schema()
         targets = {"SR-13.18.38.3-1": {"rule-id": "SR-13.18.38.3-1", "state": "OK", "editions": "85,2002,2014,2023",
                                        "rule-digest": "d1"}}
@@ -595,7 +595,7 @@ def main() -> int:
         run(["collect", "--pass", "recheck", *sbase, *key], fake)
         code, out = run(["results", *sbase], fake)
         sbatch = root / "seeded-change.json"
-        code, out = run(["change-batch", *sbase, "--out", str(sbatch), "--repo", str(root / "repo-seeded")], fake)
+        code, out = run(["change-batch", "--edition", "1985", *sbase, "--out", str(sbatch), "--repo", str(root / "repo-seeded")], fake)
         srec = {r["rule-id"]: r["next"] for r in json.loads(sbatch.read_text(encoding="utf-8"))["records"]}
         check("a seeded decision its recheck upholds keeps its own source in the change batch, never the run's (review "
               "wseeddec R1-2)", code == 0 and srec[inspect_rule]["source"] == "adjudicate-712/slice-01"
@@ -632,7 +632,7 @@ def main() -> int:
               and "change" not in final[same_rule])
         batch = root / "change-batch.json"
         empty_repo = root / "repo-none"
-        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
+        code, out = run(["change-batch", "--edition", "1985", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
         records = json.loads(batch.read_text(encoding="utf-8"))["records"]
         check("the change batch records each decided change once, bridged to the next held edition, and no contested rule",
               [r["rule-id"] for r in records] == [inspect_rule]
@@ -643,13 +643,13 @@ def main() -> int:
         (store / f"{inspect_rule}.json").write_text(json.dumps({"rule-id": inspect_rule, "rule-digest": "0", "next": {
             "kind": "KEPT", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True, "source": "adjudication PB0"}}),
             encoding="utf-8", newline="\n")
-        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
+        code, out = run(["change-batch", "--edition", "1985", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
         check("a rule a fleet adjudication decided keeps that record: the run's batch never reverts it (kb/Work PB5008)",
               json.loads(batch.read_text(encoding="utf-8"))["records"] == [])
         (store / f"{inspect_rule}.json").write_text(json.dumps({"rule-id": inspect_rule, "rule-digest": "0", "next": {
             "kind": "KEPT", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True, "source": "planted"}}),
             encoding="utf-8", newline="\n")
-        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
+        code, out = run(["change-batch", "--edition", "1985", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
         check("a rule the run itself recorded is recorded again with its new decision",
               [r["rule-id"] for r in json.loads(batch.read_text(encoding="utf-8"))["records"]] == [inspect_rule])
         grow = A.Pass(root / "run9", "drafts")
