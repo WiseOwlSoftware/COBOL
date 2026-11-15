@@ -12,10 +12,14 @@ byte-identical copy in `scripts/cloud/setup-env.sh`:
 Left alone on purpose: .NET 11.0 (SDK 11.0.100) is GA. `bump` does not write it, and `latest` reports it as a warning,
 not a red: moving to it changes `global.json` and every TargetFramework, the owner's decision (kb/Work PB1754).
 
-This change carries the hosts' update: winget for gh and uv on the Windows dev box, `scripts/wsl/setup-wsl.sh` in WSL,
-and in WSL the git-core PPA's git 2.56.1 (`sudo apt-get install git`, which needs the owner's password). The update runs
-with no fleet in flight, because a gate started on a branch whose manifest differs from the host stops
-NOT RUN [toolchain] (kb/Work PB5459, still open: the procedure itself is not yet a loop unit).
+The hosts were updated with this change, on 2026-11-14, after the orchestrator loop had stopped and no gate was running:
+on the Windows dev box, winget installed gh 2.104.0 and uv 0.13.8; in WSL, `scripts/wsl/setup-wsl.sh` installed gh
+2.104.0 and uv 0.13.8, and the git-core PPA's git 2.56.1. The gh MSI's UAC prompt and WSL's `sudo apt-get install git`
+needed the owner, who ran them. The update waited for a stopped loop because a gate started on a branch whose manifest
+differs from the host stops NOT RUN [toolchain] (kb/Work PB5459, still open: the procedure itself is not yet a loop
+unit). `python scripts/toolchain.py check --scope host` then printed GREEN on both halves: Windows `... git-windows
+2.56.0, gh 2.104.0, jq 1.8.2, uv 0.13.8, semgrep 1.185.0 ===` and WSL `... git-linux 2.56.1, gh 2.104.0, jq 1.8.2,
+uv 0.13.8, semgrep 1.185.0 ===`.
 
 Evidence: `python scripts/toolchain.py bump` printed `=== TOOLCHAIN: BUMPED — 1 tool(s) ... ===` (git-linux 2.56.0 to
 2.56.1) on 2026-11-14; `python scripts/toolchain.py latest` then printed `=== TOOLCHAIN: LATEST — every tool is at its
