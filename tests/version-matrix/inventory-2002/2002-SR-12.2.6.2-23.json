@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-23",
+ "rule-digest": "7fd16147b2a8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#CurrencySymbolExclusion; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#CurrencySymbolEquivalence",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb5647-currency-picture-symbol-long-s-2002; unit:CurrencySymbolExclusionDriftTests.ForTheEdition_ExcludesTheRuleCharacters",
+ "notes": "§2002:12.2.6.2 SR23 literal-8 excludes the digits, the letters A B C D E N P R S V X Z or their lowercase equivalents, the space and the special characters. kb/Work PB5647: CurrencySymbolEquivalence.Fold folds a character outside the repertoire to its invariant upper case only from 2014 (the implementor's additional-character specification, §2014:8.1.1), so at 2002 U+017F is no lowercase equivalent of S (case equivalence is between basic letters, §2002:8.1.2.1 GR3) and is a legal PICTURE SYMBOL; the key, the PICTURE fold and the exclusion test share the one function."
+}

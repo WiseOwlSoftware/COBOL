@@ -154,7 +154,7 @@ public static class PictureAnalyzer
         // '$' below and the symbol's STRING travels on PicInfo.CurrencyString.
         IReadOnlyDictionary<char, CurrencyDefinition> currencySet = currencies
             ?? new Dictionary<char, CurrencyDefinition>
-            { [char.ToUpperInvariant(currency)] = new(currency.ToString(), LiteralClass.Alphanumeric) };
+            { [CurrencySymbolEquivalence.Fold(currency, edition.DialectLevel)] = new(currency.ToString(), LiteralClass.Alphanumeric) };
 
         // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99". Every
         // repetition factor is VALIDATED here (§2023:13.18.40.3 SR6; at COBOL-85 also the symbol it follows,
@@ -652,7 +652,7 @@ public static class PictureAnalyzer
         if (cs == '$') return expanded;
         var a = expanded.ToCharArray();
         for (int i = 0; i < a.Length; i++)
-            if (char.ToUpperInvariant(a[i]) == cs) a[i] = '$';
+            if (a[i] == cs) a[i] = '$';   // the mask is the case-folded expansion, and cs a folded key
         return new string(a);
     }
 
@@ -919,12 +919,12 @@ public static class PictureAnalyzer
     /// implementor's equivalence, the invariant uppercase mapping at every edition (docs/CONFORMANCE.md DOC-A.1-43).</summary>
     internal static string FoldPictureCase(string picture, int dialectLevel)
     {
-        if (dialectLevel >= 2002) return picture.ToUpperInvariant();
-        return string.Create(picture.Length, picture, static (span, source) =>
+        return string.Create(picture.Length, (picture, dialectLevel), static (span, state) =>
         {
+            var (source, level) = state;
             for (int i = 0; i < source.Length; i++)
-                span[i] = source[i] is (< 'a' or > 'z') or 'a' or 'b' or 'p' or 's' or 'v' or 'x' or 'z' or 'c' or 'r' or 'd'
-                    ? char.ToUpperInvariant(source[i]) : source[i];
+                span[i] = level >= 2002 || source[i] is (< 'a' or > 'z') or 'a' or 'b' or 'p' or 's' or 'v' or 'x' or 'z' or 'c' or 'r' or 'd'
+                    ? CurrencySymbolEquivalence.Fold(source[i], level) : source[i];
         });
     }
 
@@ -1121,7 +1121,7 @@ public static class PictureAnalyzer
                 foreach (char mc in expanded)
                 {
                     char mu = char.ToUpperInvariant(mc);
-                    if (allChar1.Contains(mu) || mu is '9' or 'P' or 'V' or 'Z' || mu == pointSymbol || mu == cs) continue;
+                    if (mc == cs || allChar1.Contains(mu) || mu is '9' or 'P' or 'V' or 'Z' || mu == pointSymbol || mu == cs) continue;
                     edition.Error(DiagnosticCatalog.PictureEditingForSymbols, $"{where}: with a FOR (extended editing sign control) EDITING "
                         + $"phrase the PICTURE character-string may contain only character-1 and 9 {pointSymbol} {cs} P V Z "
                         + $"(ISO §2023:13.18.40.3 SR12b{(decimalPointIsComma ? "; SR13 — DECIMAL-POINT IS COMMA makes the comma the decimal point" : "")}; found '{mc}')");
@@ -1478,7 +1478,7 @@ public static class PictureAnalyzer
         }
         // Canonicalize the program's currency symbol to '$' (the ONE symbol kind the picture may use — the set
         // membership was classified by the caller) and uppercase is already folded by ExpandRepeats.
-        string canonical = string.Concat(expanded.Select(c => char.ToUpperInvariant(c) == cs ? '$' : c));
+        string canonical = string.Concat(expanded.Select(c => c == cs ? '$' : c));
         int plus = 0, dots = 0, csCount = 0, digitsLeft = 0, digitsRight = 0, zRun = 0;
         bool zOpen = true, sawDot = false;
         for (int i = 0; i < canonical.Length; i++)
