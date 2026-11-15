@@ -2,5 +2,5 @@
 between neighbour editions (PB5679's L7). Two of its placements do not, for new work: the record sits on the LATER
 edition's row and names the earlier rule (`from`, PB5679's L3), not on the older row as `next`; and an adjudication is
 held where it was made, with new work adjudicating the earliest member of a line (L5), not always on a chain's newest
-row. The stored records keep their `next` form until PB5682 (2002) and PB5683 (1985) migrate them
+row. The stored records keep their `next` form until the switch, PB5682, migrates every one of them in one change
 (DESIGN-spec-conformance-review.md section 10.7).
