@@ -24,12 +24,12 @@ internal sealed class ValidateEmitter(EmitContext ctx, ConditionRenderer cond, E
     /// <summary>"invalid on format" (§2023:14.9.50.4 GR5).</summary>
     private const int InvalidOnFormat = 1;
 
-    private const string FormatException = "EC-VALIDATE-FORMAT";
+    private const string FormatEc = "EC-VALIDATE-FORMAT";
 
     public void Emit(BoundValidate v)
     {
         var w = ctx.Writer;
-        if (!ec.EnabledHere(FormatException))
+        if (!ec.EnabledHere(FormatEc))
         {
             w.Line("// VALIDATE: no exception-name of the facility is enabled at this statement, so no stage has an effect (ISO §2023:14.9.50.4 GR5, GR6 e)");
             return;
@@ -52,7 +52,7 @@ internal sealed class ValidateEmitter(EmitContext ctx, ConditionRenderer cond, E
         // condition is set to exist". EC-VALIDATE-FORMAT is nonfatal, so execution continues as if it had not been set (GR6).
         w.Line("// VALIDATE — stage five, error indication (ISO §2023:14.9.50.4 GR6 e)");
         using (w.Block($"if ({string.Join(" || ", indicators.Values.Select(i => $"{i} == {InvalidOnFormat}"))})"))
-            ec.EmitConditionRaise(FormatException, "VALIDATE: an element is invalid on format (ISO §2023:14.9.50.4 GR6 e)");
+            ec.EmitConditionRaise(FormatEc, "VALIDATE: an element is invalid on format (ISO §2023:14.9.50.4 GR6 e)");
     }
 
     private void EmitFormat(IReadOnlyList<ValidateStep> steps, Dictionary<ValidateElement, string> indicators)

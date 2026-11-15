@@ -1,9 +1,9 @@
 {
  "rule-id": "SR-14.9.50.3-4",
  "rule-digest": "a8aa99431cbf",
- "verdict": "CONFORMS",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ValidateBinder.cs#ScreenValidateOperand",
  "test-ref": "conformance:cases/14.9.50-VALIDATE/pb3568-validate-66-level-operand",
  "editions": "2002,2014,2023",
- "notes": "SR4 is screened at bind: a 66-level operand draws COBOL4779. retired-witness: conformance-test:DeclinedFacilityTests.ValidateStatement_DrawsTheNamedNonSupportWarning_AndStillCompiles (the VALIDATE statement is implemented, COBOL1580 is retired, kb/Work PB5577) retired-witness: conformance-test:DeclinedFacilityTests.ValidateStatement_DrawsTheNamedNonSupportWarning_AndStillCompiles (the VALIDATE statement is implemented (kb/Work PB5577): COBOL1580, BindUnsupportedFacility, DeclinedFacilityBinder and the warning witnesses are deleted)"
+ "notes": "docs/CONFORMANCE.md section 5 row A.4.14 (VALIDATE, Not claimed) + section 4 item 3: this rule is IMPLEMENTED (kb/Work PB5577 stage S1; SR4 is screened at bind: a 66-level operand draws COBOL4779.) and witnessed by the refs of this row, but every rule of the VALIDATE statement carries the one derived verdict DOCUMENTED-NON-SUPPORT (inventory-schema.json derived-verdicts.validate-only) while the module is Not claimed; the verdict flips to CONFORMS when stage S5 claims the module (docs/rearchitecture/DESIGN-validate-facility.md section 6). retired-witness: conformance-test:DeclinedFacilityTests.ValidateStatement_DrawsTheNamedNonSupportWarning_AndStillCompiles (the VALIDATE statement is implemented, COBOL1580 is retired, kb/Work PB5577) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility (the VALIDATE statement is bound by ValidateBinder; BindUnsupportedFacility and DeclinedFacilityBinder are deleted, kb/Work PB5577) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/DeclinedFacilityBinder.cs#ScreenValidateOperand (the VALIDATE statement is bound by ValidateBinder; BindUnsupportedFacility and DeclinedFacilityBinder are deleted, kb/Work PB5577)"
 }

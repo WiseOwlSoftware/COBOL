@@ -1,9 +1,9 @@
 {
  "rule-id": "FMT-14.9.50.2",
  "rule-digest": "0a5e68b0bb40",
- "verdict": "CONFORMS",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ValidateBinder.cs#Bind",
  "test-ref": "conformance:cases/14.9.50-VALIDATE/pb5577-validate-format-stage; conformance:cases/14.9.50-VALIDATE/pb5577-validate-redefines-boolean",
  "editions": "2002,2014,2023",
- "notes": "The general format VALIDATE { identifier-1 } ... parses and binds: one implicit statement per identifier-1. retired-witness: conformance-test:DeclinedFacilityTests.ValidateStatement_DrawsTheNamedNonSupportWarning_AndStillCompiles (the VALIDATE statement is implemented, COBOL1580 is retired, kb/Work PB5577) retired-witness: conformance-test:DeclinedFacilityTests.ValidateStatement_DrawsTheNamedNonSupportWarning_AndStillCompiles (the VALIDATE statement is implemented (kb/Work PB5577): COBOL1580, BindUnsupportedFacility, DeclinedFacilityBinder and the warning witnesses are deleted)"
+ "notes": "docs/CONFORMANCE.md section 5 row A.4.14 (VALIDATE, Not claimed) + section 4 item 3: this rule is IMPLEMENTED (kb/Work PB5577 stage S1; The general format VALIDATE { identifier-1 } ... parses and binds: one implicit statement per identifier-1.) and witnessed by the refs of this row, but every rule of the VALIDATE statement carries the one derived verdict DOCUMENTED-NON-SUPPORT (inventory-schema.json derived-verdicts.validate-only) while the module is Not claimed; the verdict flips to CONFORMS when stage S5 claims the module (docs/rearchitecture/DESIGN-validate-facility.md section 6). retired-witness: conformance-test:DeclinedFacilityTests.ValidateStatement_DrawsTheNamedNonSupportWarning_AndStillCompiles (the VALIDATE statement is implemented, COBOL1580 is retired, kb/Work PB5577) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility (the VALIDATE statement is bound by ValidateBinder; BindUnsupportedFacility and DeclinedFacilityBinder are deleted, kb/Work PB5577) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/DeclinedFacilityBinder.cs#ScreenValidateOperand (the VALIDATE statement is bound by ValidateBinder; BindUnsupportedFacility and DeclinedFacilityBinder are deleted, kb/Work PB5577)"
 }

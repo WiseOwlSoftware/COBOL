@@ -342,29 +342,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="ExpandTableValue"/> has to fail loud on.</para></summary>
     private static IReadOnlyList<OccurrenceDim> SeedOccurrenceKey(Place place)
     {
-        // ⛔ THE SWITCH ASKS THE UNDECORATED PLACE, for the same reason BindInitializeTarget's does (kb/Work
-        // PB393): a reference modifier, an ODO extent or a group-image view decorates WHERE the members are
-        // READ, never where they LIVE, and a decorated place sent to a catch-all arm loses the subscripts
-        // identifier-1 actually wrote.
-        AccessPath? path = place.Undecorated switch
-        {
-            MemberPlace mp => mp.Path,
-            DynTablePlace dp => dp.Path,
-            _ => null,
-        };
-        if (path is null) return [];
+        // The one reader of the occurrence numbers the place's own reference pins: PlaceCursor.OccurrencePositions.
+        if (PlaceCursor.OccurrencePositions(place) is not { } positions) return [];
         var key = new List<OccurrenceDim>();
-        foreach (var seg in path.Segments)
-        {
-            Position? ix = seg switch
-            {
-                FixedTableSegment f => f.OneBasedIndex,
-                DynTableSegment d => d.OneBasedIndex,
-                _ => null,
-            };
-            if (ix is null) continue;
+        foreach (var ix in positions)
             key.Add(ix.Int32Literal is { } n ? new OccurrenceDim(null, n) : new OccurrenceDim(ix, null));
-        }
         return key;
     }
 

@@ -46,26 +46,11 @@ internal sealed class ValidateBinder(BinderContext ctx, StatementBinder host)
         return Expand(cursor, steps, written, OccurrenceKey(place)) ? new BoundValidate(place, steps) : null;
     }
 
-    /// <summary>The occurrence numbers identifier-1's own reference already pins, outermost first — the subscripts a REDEFINES view below it is
-    /// addressed by (<c>PlaceBuilder.PlaceForItem</c>) — or null when the place has no structural path to read them from (a view's window).</summary>
-    private static IReadOnlyList<Position>? OccurrenceKey(Place place)
-    {
-        AccessPath? path = place.Undecorated switch
-        {
-            MemberPlace mp => mp.Path,
-            DynTablePlace dp => dp.Path,
-            _ => null,
-        };
-        if (path is null) return place.DenotedItem is { SubscriptArity: 0 } ? [] : null;
-        var key = new List<Position>();
-        foreach (var segment in path.Segments)
-            switch (segment)
-            {
-                case FixedTableSegment f: key.Add(f.OneBasedIndex); break;
-                case DynTableSegment d: key.Add(d.OneBasedIndex); break;
-            }
-        return key;
-    }
+    /// <summary>The occurrence numbers identifier-1's own reference already pins (<see cref="PlaceCursor.OccurrencePositions"/>) — the subscripts a
+    /// REDEFINES view below it is addressed by (<c>PlaceBuilder.PlaceForItem</c>) — or null when the place has no structural path to read them from
+    /// (a view's window) and sits in a table, where no count of them is known.</summary>
+    private static IReadOnlyList<Position>? OccurrenceKey(Place place) =>
+        PlaceCursor.OccurrencePositions(place) ?? (place.DenotedItem is { SubscriptArity: 0 } ? [] : null);
 
     private int _loopVar;   // program-unique loop-counter ordinal
 

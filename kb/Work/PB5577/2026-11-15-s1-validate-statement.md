@@ -12,5 +12,5 @@ EC-VALIDATE names resolve, COBOL7363 refuses a part of an operand no cursor reac
 
 Not built (each registered in the design, section 6): the format check of an EDITED picture (needs a picture-conformance predicate the runtime does not have),
 the DEFAULT value, DESTINATION, CLASS and the 88-level VALID/INVALID entries, INVALID WHEN, PRESENT WHEN format 2, the held ODO count, RECORD VARYING padding,
-VALIDATE-STATUS. Eight 2023 rows moved from DOCUMENTED-NON-SUPPORT to CONFORMS; the 2002 rows of this note stay GAP (the 2002 inventory's change records are
+VALIDATE-STATUS. The 2023 rows of the statement keep DOCUMENTED-NON-SUPPORT (the derived verdict `validate-only` holds every rule of the statement there while A.4.14 is Not claimed; they flip at S5), with notes saying what is built; the 2002 rows of this note stay GAP (the 2002 inventory's change records are
 unclassified, kb/Work PB4996), so `closes_rows` stays empty.
