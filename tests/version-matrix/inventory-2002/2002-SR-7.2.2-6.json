@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.2-6",
+ "rule-digest": "d22f1d00665b",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#Build; src/WiseOwl.Cobol.Frontend/Common/CompilerDirectiveWords.cs#IsReserved",
+ "test-ref": "conformance:cases/7.3.11-DEFINE/pb5599_define_name_push; conformance:cases/7.3.11-DEFINE/pb5599_define_name_flag_85; unit:CompilerDirectiveWordsDriftTests.Table_IsEqualToTheSpecTable",
+ "notes": "§2002:7.2.2 SR6 'Compiler-directive words are identified in 8.12, Compiler-directive words'. The word TABLE is now each edition's own (kb/Work PB5599): at --std 2002 the table equals §2002:8.12 (CompilerDirectiveWordsDriftTests.Table_IsEqualToTheSpecTable reads the printed table), so '>>DEFINE FLAG-85 AS 1' is refused COBOL2650 and '>>DEFINE PUSH AS 1' is accepted. PARTIAL: §2002:8.12 also makes every exception-name of 14.5.12.1 a compiler-directive word, and the compiler's exception-name set is the 2023 Table 13 filtered only by EcInfo.IntroducedIn, which was never audited against §2002:14.5.12.1: it holds names the 2002 list lacks with IntroducedIn 2002 (for example EC-FUNCTION and its children, EC-DATA-NOT-FINITE, EC-DATA-OVERFLOW, EC-FLOW-SEARCH, EC-BOUND-TABLE-LIMIT, EC-OO-ARG-OMITTED), so they are wrongly reserved in a 2002 directive."
+}

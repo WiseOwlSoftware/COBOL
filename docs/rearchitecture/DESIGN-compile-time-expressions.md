@@ -33,7 +33,7 @@ expression evaluated by the compiler, never at run time. Admitted in:
 
 | Consumer | Spec | Operand kinds |
 |---|---|---|
-| `>>DEFINE cv AS …` | §2023:7.3.11 | arithmetic-expr, boolean-expr, literal, PARAMETER, OFF |
+| `>>DEFINE cv AS …` | §2023:7.3.11 | arithmetic-expr, boolean-expr (2023 only, below: COBOL0900), literal, PARAMETER, OFF |
 | `>>EVALUATE …` / `>>WHEN …` | §2023:7.3.13 | arithmetic-expr, boolean-expr, literal (subject/object/THRU range) |
 | `>>IF cce` / `>>ELSE` / `>>END-IF` | §2023:7.3.16 → §2023:7.3.8 | constant-conditional-expression |
 | `>>DISPLAY …` | §2023:7.3.12 | arithmetic-expr, boolean-expr, literal, PARAMETER, repeated, then UPON (§8a) |
@@ -89,6 +89,15 @@ conditional-compilation arms fragment-parse their operands in an omitted branch 
 categories, division, which WHEN matches — a compiled branch only, because an omitted branch's `Q` need not be a
 compilation variable). A `>>DEFINE` in an omitted branch is checked against its general format and its operand is
 parsed, but it applies nothing.
+
+**Two edition-keyed facts of the DEFINE** (kb/Work PB5601, PB5599). (1) `boolean-expression-1` is an operand of the DEFINE
+general format only from COBOL-2023 (§2023:7.3.11.2); §2002:7.2.9.1 and §2014:7.3.9.1 print arithmetic-expression-1, literal-1,
+PARAMETER and OFF, though a compile-time boolean expression stays admitted in an EVALUATE directive and a constant
+conditional expression (§2002:7.2.6). The gate is the construct row `define-boolean-expression-2023`, asked at the DEFINE operand
+alone by `DirectiveDiag.GateDefineBooleanExpression` (a compiled branch, as every operand gate); a refused operand is a
+refused DEFINE. A boolean LITERAL is literal-1 in every edition. (2) "Shall not be the same as a compiler-directive word"
+asks the targeted edition's own §8.12 table (`CompilerDirectiveWords.IsReserved(word, edition)`): §2002:8.12, §2014:8.12 and
+§2023:8.12 are three lists, each word carrying the window of editions that print it.
 
 **A refused `>>DEFINE` is reported once** (kb/Work PB3119). A `>>DEFINE` in a compiled branch that is malformed, names
 a compiler-directive word, or whose operand does not evaluate changes no table entry, and `ApplyDefine` returns it as a
@@ -465,6 +474,7 @@ admits no underscore in any alternative. Tracked as a REJECTS-LEGAL-SOURCE defec
   PARAMETER/OFF/OVERRIDE/SR2-1618 still green.
 * **Runtime COMPUTE-F2** — the mixed shift-with-binary forms now accepted and evaluated per rule 7b (was
   COBOL1569); goldens for the grouping.
-* **Conformance** — a 2002 `>>DEFINE`/`>>IF`/`>>EVALUATE` program (arithmetic + boolean operands), `.out` golden.
+* **Conformance** — a 2002 `>>DEFINE`/`>>IF`/`>>EVALUATE` program (arithmetic + boolean literal operands), `.out` golden; the
+  boolean-expression DEFINE operand is 2023 (`pb5601_define_boolean_expression`, refused below).
 * **Regression** — CONSTANT-entry goldens (`constant_entry.cob`) for the operand-source-clause wording;
   characterization; full legacy guard green.

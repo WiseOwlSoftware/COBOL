@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.19.2-1",
+ "rule-digest": "fee40bc7e4e9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn; src/WiseOwl.Cobol.Frontend/Common/CompilerDirectiveWords.cs#IsReserved",
+ "test-ref": "conformance:cases/7.3.25-TURN/pb5599_turn_file_name_push; conformance:cases/7.3.25-TURN/pb5599_turn_file_name_flag_85; unit:CompilerDirectiveWordsDriftTests.EditionKeyedWords",
+ "notes": "§2002:7.2.19.2 SR1 'Any user-defined word that duplicates a compiler-directive word is interpreted as a compiler-directive word rather than as file-name-1' with the word list of §2002:8.12 (not the 2023 list, kb/Work PB5599). Run at --std 2002 with this build: '>>TURN EC-I-O PUSH CHECKING ON' is accepted (PUSH is not on §2002:8.12; prints A, rc 0), '>>TURN EC-I-O FLAG-85 CHECKING ON' is refused COBOL0718 (FLAG-85 is on §2002:8.12); at --std 2023 the two swap, since §2023:8.12 lists PUSH and drops FLAG-85. The pre-existing pb1365-turn-file-name-is-directive-word (ON after EC-I-O, COBOL0718) holds the edition-stable words."
+}

@@ -8,9 +8,10 @@
       *> ISO/IEC 1989:2023 7.3.11.2 general format (kb/Work PB1367):
       *>   >>DEFINE compilation-variable-name-1 [AS] { { literal | arithmetic-expression | boolean-expression |
       *>   PARAMETER } [OVERRIDE] | OFF }
-      *> (cite.py --check 7.3.11.2 "OVERRIDE" -> OK). Every alternative is written here: AS present and omitted; a numeric
-      *> literal, an alphanumeric literal, an arithmetic expression (7.3.6: 2 * 3 + 1 = 7) and a boolean expression
-      *> (7.3.7: B"1100" B-OR B"0011" = B"1111"); OVERRIDE after a value; OFF with and without AS; PARAMETER with and
+      *> (cite.py --check 7.3.11.2 "OVERRIDE" -> OK). Every alternative the 2002 format prints is written here (the
+      *> boolean-expression alternative is a 2023 addition, so it is pb5601_define_boolean_expression's, kb/Work PB5601):
+      *> AS present and omitted; a numeric literal, an alphanumeric literal, a boolean literal (B"1111"), an arithmetic
+      *> expression (7.3.6: 2 * 3 + 1 = 7); OVERRIDE after a value; OFF with and without AS; PARAMETER with and
       *> without OVERRIDE, whose names have no value in the operating environment so 7.3.11.4 GR4 leaves them undefined.
       *> Each IF below selects the line that names the alternative it checks.
        IDENTIFICATION DIVISION.
@@ -21,7 +22,7 @@
        >>DEFINE A2 2
        >>DEFINE A3 AS "TXT"
        >>DEFINE A4 AS 2 * 3 + 1
-       >>DEFINE A5 AS B"1100" B-OR B"0011"
+       >>DEFINE A5 AS B"1111"
        >>DEFINE A6 AS 5
        >>DEFINE A6 AS 6 OVERRIDE
        >>DEFINE A7 7 OVERRIDE

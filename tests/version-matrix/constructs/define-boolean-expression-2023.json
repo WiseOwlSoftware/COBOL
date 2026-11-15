@@ -1,0 +1,12 @@
+{
+ "id": "define-boolean-expression-2023",
+ "description": "A compile-time boolean EXPRESSION (one with a B-AND / B-OR / B-XOR / B-NOT / B-SHIFT-* operator, or a parenthesized boolean literal) as the operand of a >>DEFINE directive - a COBOL-2023 addition. The 2002 and 2014 DEFINE general formats (§2002:7.2.9.1, §2014:7.3.9.1) admit arithmetic-expression-1, literal-1 or PARAMETER (and OFF); only the 2023 general format (§2023:7.3.11.2) adds boolean-expression-1, with its own syntax rule (§2023:7.3.11.3 SR4) and general rule (§2023:7.3.11.4 GR7). A compile-time boolean expression is still admitted in an EVALUATE directive and a constant conditional expression below 2023 (§2002:7.2.6), so the gate is asked at the DEFINE operand only; a boolean LITERAL (B\"1111\") is literal-1 and is admitted in every edition. The directive is refused (it defines nothing) below 2023, through the ONE ConstructRegistry funnel, by ConditionalCompilationProcessor.ApplyDefine (kb/Work PB5601).",
+ "display": "a boolean expression as the >>DEFINE operand",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:7.3.11.2 general format, §2023:7.3.11.3 SR4, §2023:7.3.11.4 GR7 (boolean-expression-1 added to the DEFINE format; absent from §2002:7.2.9.1 and §2014:7.3.9.1)",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "DEFINE directive operand (boolean-expression-1) - 2023 introduction",
+ "source": "       >>DEFINE V AS B\"1100\" B-OR B\"0011\"\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB5601DB.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n"
+}
