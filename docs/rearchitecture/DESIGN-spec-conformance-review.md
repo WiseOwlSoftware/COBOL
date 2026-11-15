@@ -1797,11 +1797,52 @@ with every reason in `<out>.refused.json`.
 `reads-decisions.json`, which the import writes into the run's state (a generated view of the read records, never tracked:
 rule 8): `needs-own-witness` when the reader or the refuter showed the compiler correct at the edition (its probe is the
 candidate witness), `defect` when it showed it wrong (the records worker matches it to a kb/Work note), `undecided` for a
-DOUBTFUL or when nobody showed the compiler, `uninterpretable` as above, and `own-verdict-from-pointer` for a SAME of an
-unpaired rule. No inventory record is written for any of them here: `record_verdicts.py --edition 2002` records each once its witness or its note exists.
+DOUBTFUL or when nobody showed the compiler, `uninterpretable` as above, and `own-verdict-from-pointer` for a SAME its
+refuter UPHELD of an unpaired rule. The refuter is read FIRST for an unpaired rule as for a paired one: an unpaired SAME
+with no refuter record is refused `no refuter record`, a DOUBTFUL refuter makes it `undecided` and an OVERTURNED one its
+refuter's work item (until 2026-11-15 the pairing was asked first, and 133 overturned or doubtful pointer SAMEs of the
+dry run were counted `own-verdict-from-pointer`). No inventory record is written for any of them by the import:
+`record_verdicts.py --edition 2002` records each once its witness or its note exists, and the own verdicts through the
+next step.
+
+**The own verdict from a pointer** (`python scripts/spec/audit_batch.py own-verdict-batch --edition YEAR --state RUN
+--out BATCH`, beside `change-batch`; the edition is a parameter, as for every step). An unpaired rule is never KEPT: no
+pairing says the pointer states its requirement. But a SAME its refuter upheld says the older text states what the
+pointer states, so the row may take the pointer's verdict AS ITS OWN, on evidence at its own edition. From an imported
+run (it refuses a run `import-reads` did not write) it writes one record_verdicts batch of every `own-verdict-from-pointer`
+row that `lineage_reads.own_verdict_problems` holds nothing against, and lists every other row with its reasons in
+`<out>.refused.json` (and the rows whose store already holds a verdict or a change record as `recorded-already`, left as
+they are). The check, shared by the writer, `decide` (with witnesses), `widen` and the audit:
+1. the read names a pointer (`no pointer`), and every pointer's verdict resolves (`pointer verdict does not resolve`) and
+   all agree (`pointers disagree`): the record states one verdict;
+2. EVERY pointer has a witness at the edition of the kind the rule needs: `Witnesses.evidence`, the very check a KEPT
+   record passes (`no own-edition witness`, `no 2002 licence stated`); a pointer with several targets is witnessed in
+   each, or the row stays work;
+3. a DOCUMENTED-NON-SUPPORT pointer is declined at the edition only with the read's licence (`licence_problem`, as for
+   a KEPT record), and here whatever the witness: the own record states the decline itself, so even a pointer witnessed
+   by an accepted case needs the older text's permission to decline;
+4. the read cites the row's own edition (`no own-edition citation`), for the record's notes;
+5. a rule whose catalog kind owes a register determination for the verdict (`Schema.anchor_obliged`: a DOC row's
+   `docs/CONFORMANCE.md#<rule-id>`) has one of its OWN in the register (`no register entry of its own`); the pointer's
+   determination is another edition's and is never copied (its anchored locations are dropped from the record).
+The record is the edition store's own-verdict shape: `verdict` the pointers' one verdict; `code-location` the pointer
+rows' (the register anchor of its own, where owed, first); `test-ref` ONLY the pointers' cases that witness the rule at
+the edition (`Witnesses.judged`, the one judgment `evidence` reads, so what is checked and what is cited are one set: an
+accepted case; a diagnosis only where the evidence table or a licensed decline allows one); `notes` opening `Own verdict
+from the read lineage-reads-<year>/<slice>.json:`, then the read's reason and its citations of the edition.
+
+**How the audit knows an own verdict came from a read, with no second register.** The notes' opening names the read
+record (`lineage_reads.OWN_SOURCE`), as `next.source` does for a KEPT record. `--check` holds every stored own verdict so
+opened to the KEPT standing (`own_stored_errors`): the named record holds a read of the rule, a SAME its refuter UPHELD,
+of a rule with no candidate pair; `own_verdict_problems` holds nothing against it now; its verdict is still each
+pointer's; every pointer case its `test-ref` cites still witnesses the rule at the edition, and each pointer is
+witnessed by one of them. A narrowed band, a rewritten read, a pointer whose verdict changes or a pairing that now
+pairs the rule turns it red, each named. A later record that restates the notes without the opening takes the row out of
+the audit's read-derived set: it is then an own verdict on that record's own evidence, as any other.
 
 **The band widening.** `python scripts/spec/lineage_reads.py widen --edition 2002 --state RUN --out PLAN` plans, for each
-read rule refused only for its evidence, what each target lacking a witness of the kind the rule needs can do at the
+read rule refused only for its evidence (a KEPT-refused row, or an own verdict from a pointer that only its evidence
+blocks: the plan row's `for`, so one `widen --apply` feeds both writers), what each target lacking a witness of the kind the rule needs can do at the
 edition (`case_status`: `widen`, a case accepted or flagged elsewhere; `widen-refusal`, a refusal test refused elsewhere;
 `band`, a case citing a rule whose band lacks the edition, which the generator would refuse; `missing`), and classes each
 row `widenable` (a widening gives every lacking target a witness of the right kind: a refusal or a flag helps only a

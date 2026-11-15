@@ -42,11 +42,18 @@ showed the compiler (or the read is DOUBTFUL), and `uninterpretable` when the ju
 reading turns into one of those. The list is generated into the audit run's state (`reads-decisions.json`), never tracked:
 it is a view of the read records, not a register (CLAUDE.md rule 8). `record_verdicts.py --edition YEAR` records each
 once a witness or a note exists.
+AN OWN VERDICT FROM A POINTER: a SAME its refuter UPHELD, of a rule no candidate pair pairs (its `to` a nearest-rule
+pointer), is the work item `own-verdict-from-pointer`. `audit_batch.py own-verdict-batch` writes its record, the
+pointers' one verdict with their code and only their cases that witness the rule at the edition (`own_verdict`), once
+`own_verdict_problems` holds nothing against it: every pointer witnessed at the edition by the KEPT record's own
+evidence check (`Witnesses.judged`), one resolving verdict, a declined facility's licence, a citation of the edition,
+and a register entry of its own where the rule's kind owes one. Its notes open with `OWN_LEAD` and the read record,
+which is how the audit knows it came from a read.
 
 THE AUDIT (`--check`, the gate's LINEAGE READS): every read record loads and normalizes; every stored change record whose
 source names a read record is that record's decision (the read SAME, the refuter UPHELD, the same `to`), and every rule it
-carries into still has a witness at the edition. A later change that narrows a witness's band, or rewrites a read,
-turns it red. (A flag the screen raises AFTER a record is stored is the screen's change, listed as owed by
+carries into still has a witness at the edition; every stored own verdict from a read is held to the same standing
+(`own_stored_errors`). A later change that narrows a witness's band, or rewrites a read, turns it red. (A flag the screen raises AFTER a record is stored is the screen's change, listed as owed by
 lineage_screen.py --check, never red: kb/Work PB5597, branch review R2-1 of PB5589.)
 """
 from __future__ import annotations
@@ -137,6 +144,8 @@ class Read:
     answers: dict[str, list[tuple[str | None, str]]]
     #: The read's `licence-2002` as written (None when absent or empty): `licence_problem` decides whether it is one.
     licence: str | None = None
+    #: Each citation the read names, as written (`cite`): an own verdict's notes carry those of the row's own edition.
+    citations: tuple[str, ...] = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -234,12 +243,12 @@ def normal_read(slice_name: str, case: Any) -> Read:
     verdict = case.get("verdict")
     if verdict not in READ_VERDICTS:
         raise _fail(slice_name, rid, f"the reader's verdict {verdict!r} is not one of {READ_VERDICTS}")
-    _citations(case, slice_name, rid)
+    cites = tuple(c["cite"].strip() for c in _citations(case, slice_name, rid))
     licence = _text(case, "licence-2002", slice_name, rid, required=False)
     return Read(rid, slice_name, tuple(to), verdict, _text(case, "reason", slice_name, rid),
                 _text(case, "probe", slice_name, rid, required=False), _judgment(case, slice_name, rid),
                 _flag_answers(case, slice_name, rid),
-                licence.strip() if licence and licence.strip() else None)
+                licence.strip() if licence and licence.strip() else None, cites)
 
 
 def normal_refute(slice_name: str, case: Any) -> Refute:
@@ -552,8 +561,10 @@ class Witnesses:
     that runs at the edition on a green tree passes there."""
 
     def __init__(self, cases: dict[str, CaseInfo], refs: dict[str, list[str]], bands: dict[str, list[str]],
-                 verdicts: dict[str, str] | None = None):
+                 verdicts: dict[str, str] | None = None, locations: dict[str, list[str]] | None = None):
         self.cases, self.refs, self.bands, self.verdicts = cases, refs, bands, verdicts or {}
+        #: Each next-edition rule's `code-location` entries: what an own verdict from a pointer names (`own_verdict`).
+        self.locations = locations or {}
         #: (the generator module, its inputs): what `entries` builds manifest entries with; None for planted witnesses.
         self.generator: tuple[Any, Any] | None = None
 
@@ -582,7 +593,8 @@ class Witnesses:
         rows = inventory_view.inventory(newer, schema)
         refs = {r["rule-id"]: schema.split(r.get("test-ref", "") or "", schema.test_ref_sep) for r in rows}
         bands = {r["rule-id"]: schema.split(r.get("editions", "") or "", schema.editions_sep) for r in rows}
-        out = cls(cases, refs, bands, {r["rule-id"]: r.get("verdict") or "" for r in rows})
+        out = cls(cases, refs, bands, {r["rule-id"]: r.get("verdict") or "" for r in rows},
+                  {r["rule-id"]: schema.split(r.get("code-location", "") or "", schema.code_location_sep) for r in rows})
         out.generator = (g, inputs)
         return out
 
@@ -634,27 +646,33 @@ class Witnesses:
         return [k for k in self.suite_cases(rule) if k in self.cases and self.cases[k].committed
                 and spelling in self.cases[k].accept]
 
+    def judged(self, ed: Edition, diagnosable: bool, t: str, licence: str | None,
+               table: EvidenceTable) -> tuple[list[str], tuple[str, str] | None]:
+        """THE ONE JUDGMENT of a next-edition rule `t`'s witnesses at `ed` for an older rule (review R1-1): the suite cases
+        that witness it there of the kind the older rule needs, and why there is none (None when there is). A case
+        accepted there always witnesses; a diagnosis there only when the rule is `diagnosable` (`EvidenceTable.
+        diagnosable`: a diagnosed kind granting no form), or for a declined facility whose read states a licence
+        `licence_problem` accepts. `evidence` (the check of a KEPT record and of an own verdict) and `own_verdict` (the
+        test-ref it writes) both read it, so what is checked and what is cited are one set."""
+        sp = ed.spelling
+        accepted = self.accepted_at(t, sp)
+        diagnoses = [k for k in self.at(t, sp) if k not in accepted]
+        declined = self.verdicts.get(t) == table.declined
+        why_not = licence_problem(ed, licence) if diagnoses and declined and not diagnosable else None
+        keys = accepted + (diagnoses if diagnosable or (declined and why_not is None) else [])
+        if keys:
+            return keys, None
+        if diagnoses and declined:
+            return [], (NO_LICENCE, f"{t} is {table.declined} and only a diagnosis at {sp} shows the decline; "
+                                    f"licence-{ed.year}: {why_not}")
+        return [], (NO_OWN_WITNESS, f"{t}: no conformance-suite case runs and passes at {sp}" + (
+            " (only a diagnosis, which witnesses no rule that grants a form or states a behaviour)" if diagnoses else ""))
+
     def evidence(self, ed: Edition, diagnosable: bool, to: Iterable[str], licence: str | None,
                  table: EvidenceTable) -> list[tuple[str, str]]:
-        """Why each rule of `to` has no witness at `ed` of the kind the older rule needs (review R1-1): a case accepted
-        there always is; a diagnosis there only when the rule is `diagnosable` (`EvidenceTable.diagnosable`: a diagnosed
-        kind granting no form), or for a declined facility whose read states a licence `licence_problem` accepts.
-        Empty when the evidence is at the row's own edition."""
-        sp, out = ed.spelling, []
-        for t in to:
-            if self.accepted_at(t, sp):
-                continue
-            diagnoses = self.at(t, sp)
-            if diagnoses and diagnosable:
-                continue
-            if diagnoses and self.verdicts.get(t) == table.declined:
-                if why := licence_problem(ed, licence):
-                    out.append((NO_LICENCE, f"{t} is {table.declined} and only a diagnosis at {sp} shows the decline; "
-                                            f"licence-{ed.year}: {why}"))
-                continue
-            out.append((NO_OWN_WITNESS, f"{t}: no conformance-suite case runs and passes at {sp}" + (
-                " (only a diagnosis, which witnesses no rule that grants a form or states a behaviour)" if diagnoses else "")))
-        return out
+        """Why each rule of `to` has no witness at `ed` of the kind the older rule needs (`judged`). Empty when the
+        evidence is at the row's own edition."""
+        return [why for t in to if (why := self.judged(ed, diagnosable, t, licence, table)[1]) is not None]
 
     def missing(self, ed: Edition, to: Iterable[str], diagnosable: bool, table: EvidenceTable,
                 licence: str | None = None) -> list[str]:
@@ -678,6 +696,142 @@ def kept_problems(ed: Edition, rid: str, to: Iterable[str], licence: str | None,
     return out
 
 
+# -- an own verdict from a pointer --------------------------------------------------------------------------------------
+
+#: Why an unpaired rule's upheld SAME is not yet its own verdict (`own_verdict_problems`), beside the evidence's own
+#: NO_OWN_WITNESS and NO_LICENCE.
+NO_POINTER, POINTER_OPEN, POINTERS_DISAGREE, NO_OWN_CITATION, NO_REGISTER_ENTRY = (
+    "no pointer", "pointer verdict does not resolve", "pointers disagree", "no own-edition citation",
+    "no register entry of its own")
+#: How an own verdict's `notes` open (`own_verdict`), naming its read record: what makes a STORED own verdict
+#: read-derived to the audit (`stored_errors`), as `next.source` does a KEPT record; no list of such rows exists.
+OWN_LEAD = "Own verdict from the read"
+OWN_SOURCE = re.compile(rf"\A{OWN_LEAD} (lineage-reads-(\d+)/([A-Za-z0-9][A-Za-z0-9_.-]*)\.json)")
+
+
+def own_citations(ed: Edition, read: Read) -> list[str]:
+    """The read's citations of the row's own edition, as written (citation.py, the one parser): each a citation of
+    `ed` that parses."""
+    import citation  # noqa: PLC0415  (THE citation format)
+    out = []
+    for c in read.citations:
+        found = list(citation.scan(c))
+        if found and found[0].start == 0 and not found[0].error and found[0].edition == ed.year:
+            out.append(c)
+    return out
+
+
+def own_verdict_problems(ed: Edition, read: Read, lin: Lineage, w: Witnesses) -> list[tuple[str, str]]:
+    """THE ONE CHECK of an own verdict from a pointer (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6),
+    shared by `decide`, the writer (`audit_batch.py own-verdict-batch`), `widen` and the audit: the read names a pointer;
+    every pointer's verdict resolves and all agree (the record states ONE verdict); a declined facility
+    (DOCUMENTED-NON-SUPPORT) is declined at the edition only with the read's licence (`licence_problem`), whatever its
+    witness; the read cites the row's own edition; and EVERY pointer has a witness at the edition of the kind the rule
+    needs (`Witnesses.evidence`, the same check a KEPT record passes). Empty when the record may be written."""
+    rid = read.rule_id
+    if not read.to:
+        return [(NO_POINTER, f"{rid}: the read names no next-edition rule, so no verdict and no witness to carry")]
+    out = w.evidence(ed, lin.diagnosable(rid), read.to, read.licence, lin.table)
+    verdicts = {t: w.verdicts.get(t, "") for t in read.to}
+    if open_ := [t for t, v in verdicts.items() if v not in _resolving()]:
+        out.append((POINTER_OPEN, f"{open_}: a pointer's verdict {[verdicts[t] for t in open_]} does not resolve"))
+    elif len(set(verdicts.values())) > 1:
+        out.append((POINTERS_DISAGREE, f"the pointers' verdicts differ ({verdicts}): an own verdict states one"))
+    elif lin.table.declined in verdicts.values() and not any(r == NO_LICENCE for r, _ in out) \
+            and (why := licence_problem(ed, read.licence)):
+        out.append((NO_LICENCE, f"the pointers are {lin.table.declined}: declining the facility at {ed.spelling} needs "
+                                f"the older text's licence; licence-{ed.year}: {why}"))
+    else:
+        probe = _anchor_probe(read, lin, verdicts[read.to[0]])
+        if _schema().anchor_obliged(probe) and rid not in _schema().register_items():
+            out.append((NO_REGISTER_ENTRY, f"kind {probe['kind']} with verdict {probe['verdict']} owes its own "
+                                           f"determination {_schema().anchor_for(probe)} (docs/conformance/), which "
+                                           "the register does not hold: the pointer's is another edition's"))
+    if not own_citations(ed, read):
+        out.append((NO_OWN_CITATION, f"{rid}: the read cites nothing of {ed.year} that parses: {list(read.citations)}"))
+    return out
+
+
+_SCHEMA: list[Any] = []
+
+
+def _schema() -> Any:
+    if not _SCHEMA:
+        _SCHEMA.append(inventory_schema.load_schema())
+    return _SCHEMA[0]
+
+
+def _resolving() -> set[str]:
+    return _schema().resolving
+
+
+def _anchor_probe(read: Read, lin: Lineage, verdict: str) -> dict[str, str]:
+    """The row an own verdict would write, as the schema's register-anchor rule reads it (`anchor_for`,
+    `anchor_obliged`): its rule, its catalog kind and the verdict."""
+    return {"rule-id": read.rule_id, "kind": lin.kinds.get(read.rule_id, ""), "verdict": verdict}
+
+
+def own_verdict(ed: Edition, read: Read, lin: Lineage, w: Witnesses) -> dict[str, Any]:
+    """The record_verdicts record of an own verdict from a pointer whose `own_verdict_problems` are empty, in the
+    edition store's own-verdict shape: the pointers' one verdict; `code-location` the pointer rows'; `test-ref` ONLY the
+    pointers' cases that witness the rule at the edition (`Witnesses.judged`: an accepted case, a diagnosis only where
+    the check allows one); `notes` opening `OWN_LEAD` and the read record (what the audit recognises), then the read's
+    reason and its citations of the edition."""
+    schema = _schema()
+    diagnosable = lin.diagnosable(read.rule_id)
+    keys = dict.fromkeys(k for t in read.to for k in w.judged(ed, diagnosable, t, read.licence, lin.table)[0])
+    verdict = w.verdicts[read.to[0]]
+    probe = _anchor_probe(read, lin, verdict)
+    own_anchor = [schema.anchor_for(probe)] if schema.anchor_obliged(probe) else []   # its own, never the pointer's
+    # A pointer's location in an anchored file (the register) is the pointer's own determination, never this row's.
+    locations = dict.fromkeys([*own_anchor, *(loc for t in read.to for loc in w.locations.get(t, [])
+                                              if loc.partition("#")[0] not in schema.anchored_files)])
+    notes = (f"{OWN_LEAD} {source_of(ed.year, read.slice)}: a SAME its refuter UPHELD, for a rule with no candidate "
+             f"pair; the verdict of its pointer {', '.join(read.to)}, witnessed at {ed.spelling} by the cases "
+             f"test-ref names. The read: {read.reason.strip()} Cited: {'; '.join(dict.fromkeys(own_citations(ed, read)))}.")
+    return {"rule-id": read.rule_id, "verdict": verdict,
+            **({"code-location": schema.code_location_sep.join(locations)} if locations else {}),
+            "test-ref": schema.test_ref_sep.join(f"conformance:{k}" for k in keys), "notes": notes}
+
+
+def own_stored_errors(ed: Edition, row: dict[str, Any], src: re.Match[str], by_slice: dict[str, "Slice"],
+                      w: Witnesses | None, lin: Lineage) -> list[str]:
+    """Why a STORED own verdict whose notes name its read (`OWN_SOURCE`) no longer stands as one: the read is tracked,
+    a SAME its refuter UPHELD, of a rule with no candidate pair; `own_verdict_problems` holds nothing against it now; its
+    verdict is still its pointers'; and (with `w`) each pointer case its test-ref cites still witnesses the rule at the
+    edition, and each pointer is witnessed by one of them."""
+    rid = row["rule-id"]
+    if int(src.group(2)) != ed.year:
+        return [f"{rid}: its notes name the read {src.group(1)}, of another edition"]
+    s = by_slice.get(src.group(3))
+    read = s.reads.get(rid) if s else None
+    f = s.refutes.get(rid) if s else None
+    if read is None:
+        return [f"{rid}: its own verdict names the read {src.group(1)}, which holds no read of the rule"]
+    if read.verdict != "SAME" or f is None or f.verdict != "UPHELD":
+        return [f"{rid}: its read is {read.verdict} and its refuter {f.verdict if f else 'absent'}: an own verdict from "
+                "a read needs a SAME the refuter UPHELD"]
+    if rid in lin.pairs:
+        return [f"{rid}: the rule has a candidate pair: its read writes a KEPT record, not an own verdict"]
+    if w is None:
+        return []
+    errs = [f"{rid}: its verdict {row.get('verdict')} is no longer its pointer {t}'s {v or 'none'}"
+            for t in read.to if (v := w.verdicts.get(t, "")) != row.get("verdict")]
+    if problems := own_verdict_problems(ed, read, lin, w):
+        return errs + [f"{rid}: {why}: {d}" for why, d in problems]
+    schema = _schema()
+    cited = {ref.partition(":")[2].strip() for ref in schema.split(row.get("test-ref", "") or "", schema.test_ref_sep)
+             if ref.partition(":")[0] == "conformance"}
+    diagnosable = lin.diagnosable(rid)
+    for t in read.to:
+        witnessing = set(w.judged(ed, diagnosable, t, read.licence, lin.table)[0])
+        if stale := sorted((cited & set(w.suite_cases(t))) - witnessing):
+            errs.append(f"{rid}: it cites {stale}, which no longer witness {t} at {ed.spelling}")
+        if not cited & witnessing:
+            errs.append(f"{rid}: no case it cites witnesses its pointer {t} at {ed.spelling}")
+    return errs
+
+
 # -- what a read becomes ------------------------------------------------------------------------------------------------
 
 @dataclasses.dataclass(frozen=True)
@@ -697,7 +851,6 @@ class Decision:
     @property
     def kept(self) -> bool:
         return self.work is None and not self.refused
-
     def row(self) -> dict[str, Any]:
         out: dict[str, Any] = {"rule-id": self.rule_id, "slice": self.slice, "to": list(self.to), "source": self.source}
         if self.kept:
@@ -706,6 +859,8 @@ class Decision:
                 out["answers"] = self.answers
         elif self.work:
             out.update({"outcome": "work", "kind": self.work, "probe": self.probe, "why": self.why})
+            if self.refused:   # an own verdict's blockers (`own_verdict_problems`)
+                out["blocked"] = [{"reason": r, "detail": d} for r, d in self.refused]
         else:
             out.update({"outcome": "refused", "refused": [{"reason": r, "detail": d} for r, d in self.refused]})
         return out
@@ -759,11 +914,6 @@ def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
                 if rid in s.disputed:
                     kind, why = UNDECIDED, "the refuter disputes the reader's DIFFERENT"
                 out.append(Decision(**base, work=kind, probe=r.probe or (r.compiler.text if r.compiler else None), why=why))
-            elif rid not in lin.pairs:
-                out.append(Decision(**base, work=OWN_VERDICT_FROM_POINTER, probe=r.probe,
-                                    why=f"a SAME for a rule with no candidate pair (its `to` {list(r.to)} is a pointer); "
-                                        f"refuter: {f.verdict if f else 'none'}: record its own verdict, citing the "
-                                        "pointer's witness once it runs at the edition"))
             elif f is None:
                 out.append(Decision(**base, refused=((NO_REFUTER, "no refuter has attacked the SAME"),)))
             elif f.verdict == "DOUBTFUL":
@@ -771,6 +921,15 @@ def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
             elif f.verdict == "OVERTURNED":
                 kind, why = work_of(f.compiler or r.compiler, f.probe or r.probe, "refuter" if f.compiler else "reader")
                 out.append(Decision(**base, work=kind, probe=f.probe or r.probe, why="the refuter OVERTURNED the SAME; " + why))
+            elif rid not in lin.pairs:
+                # A SAME its refuter UPHELD, for a rule no candidate pair pairs (its `to` a nearest-rule pointer): never
+                # KEPT; its own verdict follows from the pointer once each target is witnessed at the edition
+                # (`own_verdict_problems`, checked when `witnesses` is given; `own_verdict` writes the record).
+                out.append(Decision(**base, work=OWN_VERDICT_FROM_POINTER, probe=r.probe,
+                                    refused=tuple(own_verdict_problems(ed, r, lin, witnesses)) if witnesses else (),
+                                    why=f"a SAME its refuter upheld, for a rule with no candidate pair (its `to` "
+                                        f"{list(r.to)} is a pointer): its own verdict, citing the pointer's witness at "
+                                        "the edition"))
             else:
                 answers, unanswered = answers_for(r, s.asked.get(rid, {}), flags.get(rid, {}))
                 refused = [(FLAG_UNANSWERED, u) for u in unanswered]
@@ -819,7 +978,8 @@ def case_status(c: CaseInfo | None, sp: str, bands: dict[str, list[str]]) -> str
 
 
 def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses, lin: Lineage) -> dict[str, Any]:
-    """For each read rule refused ONLY for its evidence (a SAME, upheld, every flag answered, the pairing's targets), each
+    """For each read rule refused ONLY for its evidence (a SAME, upheld, every flag answered, the pairing's targets; or an
+    own verdict from a pointer, `own_verdict_problems`, its row's `for`), each
     target that lacks a witness of the kind the rule needs: its suite cases and what each can do at `ed`
     (`case_status`). A widening helps a target when it would give it such a witness: an ACCEPTED case always; a
     diagnosis (a flag or a refusal) only for a kind the evidence table names, or a declined facility (review R1-1). A row
@@ -828,7 +988,9 @@ def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses, lin: Lineag
     cases: dict[str, dict[str, Any]] = {}
     rows = []
     for d in decisions:
-        if d.work or not d.refused or any(r != NO_OWN_WITNESS for r, _ in d.refused):
+        # A KEPT-refused row, and an own verdict from a pointer (`own_verdict_problems`), blocked only for its evidence.
+        if d.work not in (None, OWN_VERDICT_FROM_POINTER) or not d.refused \
+                or any(r != NO_OWN_WITNESS for r, _ in d.refused):
             continue
         kind = lin.kinds.get(d.rule_id, "")
         lacking = [t for t in d.to if w.evidence(ed, lin.diagnosable(d.rule_id), [t], None, lin.table)]
@@ -843,6 +1005,7 @@ def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses, lin: Lineag
                            or cases[k]["status"] == WIDEN_REFUSAL and diagnosis_counts for k in ks)
             per_rule[t] = ks
         rows.append({"rule-id": d.rule_id, "to": list(d.to), "kind": kind, "cases": per_rule,
+                     "for": OWN_VERDICT_FROM_POINTER if d.work else KEPT,
                      "state": "widenable" if lacking and all(helps.values()) else "needs-own-witness"})
     return {"edition": ed.year, "rows": rows, "cases": cases,
             "counts": {"rows": dict(sorted(collections.Counter(r["state"] for r in rows).items())),
@@ -1025,7 +1188,8 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
     the record (whose digests `load` verified against its content) holds a read of the rule, the read is a SAME its
     refuter UPHELD, and the record is KEPT. For an edition whose records close on own-edition evidence, every stored KEPT
     record, whatever its source, also passes `kept_problems`: the pairing's targets, each witnessed at the edition (with
-    `w`) by a case of the kind the rule needs."""
+    `w`) by a case of the kind the rule needs. A stored OWN verdict whose notes name its read (`OWN_SOURCE`, written by
+    `own_verdict`) is held to the same standing (`own_stored_errors`), at every edition."""
     by_slice = {s.name: s for s in slices}
     prefix = f"lineage-reads-{ed.year}/"
     errs = []
@@ -1033,6 +1197,8 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
         nxt = r.get("next") or {}
         src = nxt.get("source") or ""
         if not nxt.get("kind"):
+            if r.get("verdict") and (own := OWN_SOURCE.match(r.get("notes") or "")):
+                errs += own_stored_errors(ed, r, own, by_slice, w, lin)
             continue
         rid, licence = r["rule-id"], None
         if src.startswith(prefix):
@@ -1072,11 +1238,14 @@ def check(years: list[int]) -> int:
         rows = inventory_view.inventory(y)
         from_reads = [r for r in rows if ((r.get("next") or {}).get("source") or "").startswith(f"lineage-reads-{y}/")]
         kept = [r for r in rows if (r.get("next") or {}).get("kind") == KEPT]
-        w = Witnesses.of(ed.next_held) if ed.own_evidence and kept else None
+        own = [r for r in rows if not (r.get("next") or {}).get("kind") and r.get("verdict")
+               and OWN_SOURCE.match(r.get("notes") or "")]
+        w = Witnesses.of(ed.next_held) if (ed.own_evidence and kept) or own else None
         errs = stored_errors(ed, rows, slices, w, Lineage.of(ed))
         print(f"{y}: {len(slices)} read record(s), {sum(len(s.reads) for s in slices)} rule(s) read, each record's "
               f"digests verified; {len(from_reads)} stored record(s) from reads; {len(kept)} KEPT record(s)"
-              + (", each held to the pairing and a witness at its own edition" if ed.own_evidence else ""))
+              + (", each held to the pairing and a witness at its own edition" if ed.own_evidence else "")
+              + f"; {len(own)} own verdict(s) from reads, each held to its read and its pointers' witnesses")
         for e in errs:
             print(f"  ⛔ {e}")
         if errs:

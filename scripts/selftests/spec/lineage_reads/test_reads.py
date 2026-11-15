@@ -437,6 +437,69 @@ def case_11_a_rule_that_grants_a_form_needs_an_accepted_case(expect):
            [r for r, _ in got.refused] == [R.NO_OWN_WITNESS])
 
 
+def case_12_an_own_verdict_from_a_pointer_is_written_and_audited_like_a_kept_record(expect):
+    ids = {n: f"2002-GR-4.1.3-{i}" for i, n in enumerate(
+        ("ok", "half", "refusal", "overturned", "doubtful", "declined", "bare", "disagree", "late"), 1)}
+    two = {**F.read(ids["half"]), "to": ["GR-8.1-1", "GR-8.1-2"]}
+    mixed = {**F.read(ids["disagree"]), "to": ["GR-8.1-1", "GR-8.1-3"]}
+    s = R.normal_slice("u-01", F.record("u-01", [
+        F.read(ids["ok"]), two, F.read(ids["refusal"]), F.read(ids["overturned"]), F.read(ids["doubtful"]),
+        F.read(ids["declined"], **{"licence-2002": "none"}), F.read(ids["bare"], citations="§2023:1.1 GR1"), mixed,
+        F.read(ids["late"])],
+        [F.refute(ids[n]) for n in ("ok", "half", "refusal", "declined", "bare", "disagree", "late")]
+        + [F.refute(ids["overturned"], "OVERTURNED", **{"compiler-at-2002": "wrong: prints 3"}),
+           F.refute(ids["doubtful"], "DOUBTFUL")]))
+    twins = {F.twin(ids[n]): ["2002", "2023"] for n in ("ok", "overturned", "doubtful", "bare")}
+    w = F.witnesses(accepted=twins | {"GR-8.1-1": ["2002"], "GR-8.1-2": ["2023"], "GR-8.1-3": ["2002"],
+                                      F.twin(ids["late"]): ["2023"]},
+                    diagnosed={F.twin(ids["refusal"]): ["2002"], F.twin(ids["declined"]): ["2002"]},
+                    verdicts={t: "CONFORMS" for t in [*twins, "GR-8.1-1", "GR-8.1-2", F.twin(ids["refusal"]),
+                                                      F.twin(ids["late"])]}
+                    | {F.twin(ids["declined"]): "DOCUMENTED-NON-SUPPORT", "GR-8.1-3": "DOCUMENTED-NON-SUPPORT"})
+    w.locations = {F.twin(ids["ok"]): ["src/A.cs#M", "docs/CONFORMANCE.md#GR-4.1.3-1"]}
+    lin = F.lineage(ids.values(), unpaired=tuple(ids.values()))
+    got = {next(n for n, r in ids.items() if r == d.rule_id): d for d in R.decide(ED, [s], None, w, lin)}
+    expect("an unpaired SAME its refuter UPHELD, its pointer accepted at 2002, is an own verdict with nothing blocking it",
+           got["ok"].work == R.OWN_VERDICT_FROM_POINTER and got["ok"].refused == ())
+    expect("a pointer with SEVERAL targets, one of them unwitnessed at 2002, blocks the own verdict by that target",
+           [r for r, _ in got["half"].refused] == [R.NO_OWN_WITNESS] and "GR-8.1-2" in got["half"].refused[0][1])
+    expect("a REFUSAL is no witness of a general (behaviour) rule's pointer: no own-edition witness",
+           [r for r, _ in got["refusal"].refused] == [R.NO_OWN_WITNESS] and "only a diagnosis" in got["refusal"].refused[0][1])
+    expect("an OVERTURNED SAME of an unpaired rule is its refuter's work item, never an own verdict (a defect here)",
+           got["overturned"].work == R.DEFECT)
+    expect.equal("a SAME its refuter calls DOUBTFUL is undecided, never an own verdict", got["doubtful"].work, R.UNDECIDED)
+    expect("a DOCUMENTED-NON-SUPPORT pointer with no 2002 licence blocks the own verdict",
+           R.NO_LICENCE in [r for r, _ in got["declined"].refused])
+    expect("a read citing nothing of its own edition blocks the own verdict",
+           [r for r, _ in got["bare"].refused] == [R.NO_OWN_CITATION])
+    expect("pointers whose verdicts differ block the own verdict: it states one",
+           R.POINTERS_DISAGREE in [r for r, _ in got["disagree"].refused])
+    rec = R.own_verdict(ED, s.reads[ids["ok"]], lin, w)
+    expect.equal("the record: the pointer's verdict and code (not its register anchor), ONLY its cases accepted at 2002, "
+                 "notes opening with the read record", (rec["verdict"], rec["code-location"], rec["test-ref"]),
+                 ("CONFORMS", "src/A.cs#M", f"conformance:cases/X/{F.twin(ids['ok'])}"))
+    expect("the notes name the read record and carry its 2002 citation",
+           R.OWN_SOURCE.match(rec["notes"]).group(1) == "lineage-reads-2002/u-01.json" and "§2002:1.1 GR1" in rec["notes"])
+    expect.equal("THE AUDIT: the stored own verdict stands", R.stored_errors(ED, [rec], [s], w, lin), [])
+    narrowed = F.witnesses(accepted={F.twin(ids["ok"]): ["2023"]}, verdicts={F.twin(ids["ok"]): "CONFORMS"})
+    expect("a stored own verdict whose case no longer runs at the edition is red",
+           any(R.NO_OWN_WITNESS in e for e in R.stored_errors(ED, [rec], [s], narrowed, lin)))
+    flipped = F.witnesses(accepted={F.twin(ids["ok"]): ["2002"]}, verdicts={F.twin(ids["ok"]): "DOCUMENTED-NON-SUPPORT"})
+    expect("a stored own verdict whose pointer's verdict changed is red",
+           any("is no longer its pointer" in e for e in R.stored_errors(ED, [rec], [s], flipped, lin)))
+    over = R.normal_slice("u-01", F.record("u-01", [F.read(ids["ok"])], [F.refute(ids["ok"], "OVERTURNED")]))
+    expect("a stored own verdict whose read was since OVERTURNED is red",
+           any("OVERTURNED" in e for e in R.stored_errors(ED, [rec], [over], w, lin)))
+    expect("a stored own verdict of a rule that has a candidate pair is red: its read writes a KEPT record",
+           any("candidate pair" in e for e in R.stored_errors(ED, [rec], [s], w, F.lineage([ids["ok"]]))))
+    expect.equal("an own verdict whose notes do not open with its read is not read-derived, and not held",
+                 R.stored_errors(ED, [{**rec, "notes": "hand-written"}], [s], narrowed, lin), [])
+    plan = R.widen_plan(ED, list(got.values()), w, lin)
+    expect.equal("widen plans the own verdicts blocked only by their evidence, as it plans the KEPT-refused rows",
+                 sorted((r["rule-id"], r["for"]) for r in plan["rows"]),
+                 sorted((ids[n], R.OWN_VERDICT_FROM_POINTER) for n in ("half", "refusal", "late")))
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))
