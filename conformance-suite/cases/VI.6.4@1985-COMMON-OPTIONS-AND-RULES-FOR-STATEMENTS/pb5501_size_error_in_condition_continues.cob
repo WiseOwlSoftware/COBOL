@@ -16,13 +16,15 @@
       *> a size error condition occurs and an ON SIZE ERROR phrase has
       *> not been specified, the program will continue". The 1985 text
       *> gives the relation no truth value, which is the implementor's
-      *> to choose (docs/CONFORMANCE.md DOC-A.1-70): a relation or sign
+      *> to choose (docs/conformance DOC-A.1-70): a relation or sign
       *> condition whose expression cannot be evaluated is false, and a
       *> logical NOT outside it inverts that.
       *>
       *> Only the program's continuing is the standard's: the truth
       *> values below are this implementation's determination, and a
-      *> condition with no size error (the last IF) keeps its true value.
+      *> condition with no size error (IF 7) keeps its true value. The
+      *> expression may sit inside a function argument (IF 8; the 1989
+      *> intrinsic function module).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5501A.
        DATA DIVISION.
@@ -43,5 +45,7 @@
            END-PERFORM.
            DISPLAY "N " N.
            IF B / 1 > 1 DISPLAY "7 T" ELSE DISPLAY "7 F".
+           IF FUNCTION INTEGER (B / Z) > 1 DISPLAY "8 T"
+               ELSE DISPLAY "8 F".
            DISPLAY "AFTER".
            STOP RUN.

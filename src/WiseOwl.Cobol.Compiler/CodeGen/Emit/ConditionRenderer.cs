@@ -65,14 +65,56 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// <summary>⛔ A COBOL-85 CONDITION WHOSE ARITHMETIC EXPRESSION RAISES A SIZE ERROR CONTINUES THE PROGRAM (kb/Work PB5501). The
     /// size error ends no statement here (a condition has no resultant to leave undefined), and 1985 says "the program will
     /// continue" (§1985:B.2.2 item 45), so the leaf evaluates to FALSE instead of reaching the run unit's fatal boundary
-    /// (<c>CobolSizeError.FalseWhenRaised</c>, the determination and its citations). Only an operand that is an
-    /// arithmetic expression can raise one; a plain item, a literal and a function value cannot, so their relations render
-    /// as they always did. From 2002 the condition is a fatal exception condition (§2023:14.7.5) and nothing is wrapped.</summary>
+    /// (<c>CobolSizeError.FalseWhenRaised</c>, the determination and its citations). Only an arithmetic operation can raise
+    /// one, and it can sit anywhere in an operand: the operand itself (<c>IF 5 / Z &gt; 1</c>) or an argument of a function
+    /// the operand calls, which the 1989 intrinsic function module lets be an arithmetic expression
+    /// (<c>IF FUNCTION INTEGER (B / Z) &gt; 1</c>), at any depth (<see cref="ArithmeticReach"/>). A relation none of whose
+    /// operands reaches one renders as it always did. From 2002 the condition is a fatal exception condition
+    /// (§2023:14.7.5) and nothing is wrapped.</summary>
     private string SizeErrorGuarded(string rendered, params BoundOperand[] operands) =>
         !DialectBehaviors.IsActive(DialectBehavior.UnphrasedSizeErrorIsFatal, ctx.Data.DialectLevel)
-        && operands.Any(o => o is BoundComputedOperand { Expr: BoundBinary or BoundPower or BoundNegate })
+        && operands.Any(ArithmeticReach.Reaches)
             ? RuntimeApi.SizeErrorFalse(rendered)
             : rendered;
+
+    /// <summary>Does an operand's evaluation perform an arithmetic operation (<c>+ - * /</c>, <c>**</c>, unary minus), the only
+    /// evaluation that raises a size error (§2023:14.7.5 cases 1, 2, 5, 7), whether written as the operand or inside a
+    /// function argument at any depth (kb/Work PB5501 review R1-1)? A visitor over the generated expression and operand
+    /// interfaces, so a bound node added tomorrow is a compile error here rather than a silent "cannot raise".</summary>
+    private sealed class ArithmeticReach : IBoundExprVisitor<bool>, IBoundOperandVisitor<bool>
+    {
+        private static readonly ArithmeticReach Instance = new();
+
+        public static bool Reaches(BoundOperand operand) => operand.Accept(Instance);
+
+        // ── Expressions ─────────────────────────────────────────────────────────────────────────────────────
+        public bool Visit(BoundBinary n) => true;
+        public bool Visit(BoundNegate n) => true;
+        public bool Visit(BoundPower n) => true;
+        public bool Visit(BoundIntrinsicCall n) => n.Args.Any(a => a.Accept(this));
+        public bool Visit(BoundUdfEvaluatedExpr n) => false;   // a value an earlier activation produced (no 1985 form)
+        public bool Visit(BoundNumLiteral n) => false;
+        public bool Visit(BoundNumRef n) => false;
+        public bool Visit(BoundIndexRef n) => false;
+        public bool Visit(BoundLinageCounterRef n) => false;
+        public bool Visit(BoundReportCounterRef n) => false;
+        public bool Visit(BoundReportVaryingRef n) => false;
+        public bool Visit(BoundOdoExtent n) => false;
+        public bool Visit(BoundExprError n) => false;
+
+        // ── Operands ────────────────────────────────────────────────────────────────────────────────────────
+        public bool Visit(BoundComputedOperand n) => n.Expr.Accept(this);
+        public bool Visit(BoundNumericLiteral n) => false;
+        public bool Visit(BoundFieldOperand n) => false;
+        public bool Visit(BoundFigurative n) => false;
+        public bool Visit(BoundStringLiteral n) => false;
+        public bool Visit(BoundOperandError n) => false;
+        public bool Visit(BoundAddressOperand n) => false;
+        public bool Visit(BoundCurrentRecord n) => false;
+        public bool Visit(BoundPredefinedNull n) => false;
+        public bool Visit(BoundAllLiteral n) => false;
+        public bool Visit(BoundBoolOperand n) => false;
+    }
 
     /// <summary>§2023:8.8.4.8 (kb/Work PB133 wave C) — the formal carrier's IsNull IS the omitted-argument
     /// condition; the CA10-checked GR12 raise lives in the carrier's accessors, never here (testing presence

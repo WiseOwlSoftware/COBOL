@@ -393,7 +393,8 @@ public sealed class SizeErrorDispositionTests
 
     /// <summary>kb/Work PB5501 — A COBOL-85 CONDITION WHOSE ARITHMETIC EXPRESSION RAISES A SIZE ERROR CONTINUES THE PROGRAM
     /// (§1985:B.2.2 item 45: "the program will continue"), and the leaf (a relation or a sign condition, its own NOT inside) is
-    /// FALSE (the determination, DOC-A.1-70); a logical NOT outside it inverts that. Each row ended the run unit
+    /// FALSE (the determination, DOC-A.1-70); a logical NOT outside it inverts that. The expression may be an operand or sit
+    /// inside a function argument at any depth. Each row ended the run unit
     /// (EC-SIZE-ZERO-DIVIDE, fatal) before PB5501.</summary>
     [Theory]
     [InlineData("IF B / Z > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]
@@ -405,6 +406,11 @@ public sealed class SizeErrorDispositionTests
     [InlineData("IF Z ** 0 = 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]       // §1985:VI.6.2.3 GR5a
     [InlineData("IF B / Z > 1 OR B = 5 DISPLAY \"T\" ELSE DISPLAY \"F\".", "T")] // a sibling leaf is untouched
     [InlineData("IF B / 1 > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "T")]          // control: no size error, the true value
+    // The arithmetic expression inside a function argument (the 1989 intrinsic function module; PB5501 review R1-1).
+    [InlineData("IF FUNCTION INTEGER (B / Z) > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]
+    [InlineData("IF NOT FUNCTION INTEGER (B / Z) > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "T")]
+    [InlineData("IF FUNCTION MAX (1 FUNCTION INTEGER (B / Z)) IS POSITIVE DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]
+    [InlineData("IF FUNCTION INTEGER (B / 1) > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "T")] // control
     public void Cobol85_SizeErrorInACondition_ContinuesWithTheLeafFalse(string body, string verdict)
     {
         var (exit, stdout, stderr) = Run(Prog85(body), dialectLevel: 85);
