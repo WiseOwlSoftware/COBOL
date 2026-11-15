@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.55.2-11",
+ "rule-digest": "c81d29334946",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#ReportControlRef",
+ "test-ref": "conformance:cases/13.16.15@2002-CONTROL-CLAUSE/pb5602-control-subscripted-2002; conformance:cases/13.18.57-TYPE/l1-type-ch-operand-omitted-two-controls",
+ "notes": "§2002:13.16.55.2 SR10/SR11: a TYPE CH/CF operand is one of the operands of the CONTROL clause, and may be omitted only with a one-operand CONTROL clause. ReportControlRef.SameOperandAs compares the whole written reference, now including the integer-literal subscripts of a COBOL-2002 operand (T-C(1, 2) and T-C(2, 3) are two controls); the golden's two subscripted footings bind to their own levels (kb/Work PB5602)."
+}

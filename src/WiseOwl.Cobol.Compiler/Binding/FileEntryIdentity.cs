@@ -17,22 +17,25 @@ internal static class FileEntryIdentity
     // elementary/group shape and byte extent, its §2023:14.8 conformance description (category, usage, PICTURE clause
     // identity, sign) and its byte offset within the record area (RecordLayout.OffsetOf, the same offset the
     // connector registers the key window at).
-    private static string KeyEntry(string name, DataItem? item) => item is null ? CobolNames.UpperFold(name)
-        : $"{CobolNames.UpperFold(name)}@{RecordLayout.OffsetOf(item)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"}"
+    // At COBOL-2002 the key may be written subscripted (§2002:5.1.3; kb/Work PB5602): K(1) and K(2) are two keys, so the written
+    // subscripts are part of the name and the occurrence's offset is the location.
+    private static string KeyEntry(string name, DataItem? item, IReadOnlyList<int> subscripts) => item is null ? CobolNames.UpperFold(name)
+        : $"{CobolNames.UpperFold(name)}{(subscripts.Count == 0 ? "" : $"({string.Join(",", subscripts)})")}"
+          + $"@{RecordLayout.OffsetOf(item, subscripts)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"}"
           + $":{(item.IsGroup ? "G" : "E")}{item.ByteWidth}:"
           + (ActivationDescriptions.Of(item, classes: null) is { } d ? $"{d.Category}/{d.Clauses}/{d.Positions}" : "-");
     // j)/k) "each data-name-6" / "each data-name-3": a SOURCE-form key is its record-key-name and every operand's
     // entry in the order specified, since that order IS the key (§2023:12.4.5.12.4 GR2).
-    private static string ClauseKey(string name, RecordKeySource? source, DataItem? item) => source is null
-        ? KeyEntry(name, item)
-        : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Name, o.Item)))}]";
+    private static string ClauseKey(string name, RecordKeySource? source, DataItem? item, IReadOnlyList<int> subscripts) => source is null
+        ? KeyEntry(name, item, subscripts)
+        : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Name, o.Item, o.Subscripts)))}]";
     // k) "the same SUPPRESS WHEN phrase" — the operand as the literal position read it (form, class, characters,
     // figurative kind), so `SUPPRESS WHEN "XX"` and `SUPPRESS WHEN SPACE` differ and an absent phrase is empty.
     private static string Suppress(SuppressWhenOperand? s) => s is null ? ""
         : $"{s.Form}/{s.Class}/{s.FigurativeKind}/{s.Characters.Length}:{s.Characters}";
 
     private static string AlternateEntry(AlternateKeyClause a) =>
-        $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}";
+        $"{ClauseKey(a.Name, a.Source, a.Item, a.Subscripts)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}";
 
     /// <summary>⛔ THE ONE §2023:12.4.5.3 GR1 IDENTITY of an external file connector's file control entry — the string two
     /// describers' <c>ExternalStore.Describe</c> registrations compare for EC-EXTERNAL-FILE-MISMATCH (§2023:14.8.4.4: "the
@@ -60,7 +63,7 @@ internal static class FileEntryIdentity
         {
             if (k.Key is not null && ReferenceEquals(f.PrimeKey, k.Key)) return "P";
             int i = k.Key is null ? -1 : f.AlternateKeys.FindIndex(a => ReferenceEquals(a.Key, k.Key));
-            return i >= 0 ? $"A:{CobolNames.UpperFold(k.Key!.RecordKeyName ?? k.Key.Segments[0].CobolName ?? k.Name)}" : CobolNames.UpperFold(k.Name);
+            return i >= 0 ? $"A:{CobolNames.UpperFold(k.Key!.Face)}" : CobolNames.UpperFold(k.Name);
         }
         string fileColl = f.FileLevelCollating is { } fc ? $"{(fc.Alnum is { } an ? CobolNames.UpperFold(an) : null)}/{(fc.Nat is { } nn ? CobolNames.UpperFold(nn) : null)}" : "";
         string keyColl = string.Join(",", f.KeyLevelCollating
@@ -87,7 +90,7 @@ internal static class FileEntryIdentity
             new("ORG", "the organization", $"{f.Organization}"),
             new("ACC", "the access mode", $"{f.AccessMode}"),
             new("COLL", "the COLLATING SEQUENCE clauses", $"{fileColl};{keyColl}"),
-            new("KEY", "the RECORD KEY clause", f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item) : ""),
+            new("KEY", "the RECORD KEY clause", f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item, f.RecordKeySubscripts) : ""),
             new("ALT", "the ALTERNATE RECORD KEY clauses",
                 // §2023:12.4.5.3 GR1 k) and §1985:IX.2.3.4 GR1 name the alternate keys' number, descriptions and DUPLICATES
                 // phrases, not their order, and §1985:IX.2.3.3 SR1 lets the clauses appear in any order: sorted like COLL.

@@ -84,8 +84,13 @@ internal enum FileKinds
 /// without excluding a SECOND clause that names the same item; 0 on every other role.</para></summary>
 internal readonly record struct FileKeyOperand(
     FileKeyRole Role, string ClauseFace, string? Name, DataItem? Item, DiagnosticCursor At,
-    SuppressWhenOperand? SuppressWhen = null, int Ordinal = 0, RecordKeySource? Source = null, int SourceIndex = -1)
+    SuppressWhenOperand? SuppressWhen = null, int Ordinal = 0, RecordKeySource? Source = null, int SourceIndex = -1,
+    IReadOnlyList<int>? Subscripts = null)
 {
+    /// <summary>The occurrence of <see cref="Item"/> the operand's integer-literal subscripts select (COBOL-2002, §2002:5.1.3;
+    /// kb/Work PB5602): empty when none was written.</summary>
+    public IReadOnlyList<int> Occurrence => Subscripts ?? [];
+
     /// <summary>The operand the clause-level rules ask: data-name-1, or the first data-name-2 of a SOURCE phrase.</summary>
     public bool IsClauseHead => SourceIndex <= 0;
 
@@ -377,7 +382,7 @@ internal static class FileControlKeyRules
             "data-name-1 and each data-name-2 shall be contained within the first n bytes of the record",
             FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
             f => f.RecordSizeVaries,
-            (f, op) => BeyondMinimum(f, op.Item) is not null,
+            (f, op) => BeyondMinimum(f, op.Item, op.Occurrence) is not null,
             (f, op) => BeyondMinimumMessage(f, op, "n", "ISO §2023:12.4.5.12.3 SR4")),
 
         // §2023:12.4.5.2 SR8 sentence 1, over the PRIME key clause. Screened on every organization EXCEPT indexed —
@@ -463,7 +468,7 @@ internal static class FileControlKeyRules
             "each data-name-1 and data-name-2 shall be contained within the first x bytes of the record",
             FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
             f => f.RecordSizeVaries,
-            (f, op) => BeyondMinimum(f, op.Item) is not null,
+            (f, op) => BeyondMinimum(f, op.Item, op.Occurrence) is not null,
             (f, op) => BeyondMinimumMessage(f, op, "x", "ISO §2023:12.4.5.6.3 SR5")),
 
         // SR7 — the SUPPRESS WHEN literal-1 (kb/Work PB1072). ONE numbered rule, THREE obligations, three rows with
@@ -743,8 +748,8 @@ internal static class FileControlKeyRules
     /// §2023:12.4.5.6.3 SR5 — "contained within the first n bytes of the record, where n equals the minimum record size
     /// specified for the file"; §2023:13.18.43.4 GR9 supplies the minimum a RECORD clause leaves unstated), else null.
     /// A key outside this file's records is SR2's to report, and is not measured here.</summary>
-    private static RecordLayout.KeyWindow? BeyondMinimum(FileModel f, DataItem? key) =>
-        RecordLayout.KeyWindowInFile(f, key) is { } w && w.MaxEnd > f.VaryMin ? w : null;
+    private static RecordLayout.KeyWindow? BeyondMinimum(FileModel f, DataItem? key, IReadOnlyList<int> occurrence) =>
+        RecordLayout.KeyWindowInFile(f, key, occurrence) is { } w && w.MaxEnd > f.VaryMin ? w : null;
 
     /// <summary>The key — the prime record key, or ANOTHER alternate record key clause — whose leftmost byte
     /// position is the position of <paramref name="op"/>'s item (§2023:12.4.5.6.3 SR4), rendered for the message, else
@@ -757,19 +762,19 @@ internal static class FileControlKeyRules
         // SR4's last sentence: "This restriction does not apply in the case where either key is specified using the
         // SOURCE phrase" — so a SOURCE-form subject has no rule here, and a SOURCE-form key is no other key to
         // coincide with (its clause's data-name-1 Item is null, and the prime's PrimeKey.Item is null).
-        if (op.Source is not null || RecordLayout.KeyWindowInFile(f, op.Item) is not { } mine) return null;
-        bool Same(DataItem? other) =>
-            RecordLayout.KeyWindowInFile(f, other) is { } w && w.Offset == mine.Offset && w.FollowsVariable == mine.FollowsVariable;
-        if (Same(f.PrimeKey?.Item)) return $"the prime record key '{f.RecordKeyName}'";
+        if (op.Source is not null || RecordLayout.KeyWindowInFile(f, op.Item, op.Occurrence) is not { } mine) return null;
+        bool Same(DataItem? other, IReadOnlyList<int> occurrence) =>
+            RecordLayout.KeyWindowInFile(f, other, occurrence) is { } w && w.Offset == mine.Offset && w.FollowsVariable == mine.FollowsVariable;
+        if (Same(f.PrimeKey?.Item, f.PrimeKey?.Subscripts ?? [])) return $"the prime record key '{f.RecordKeyName}'";
         for (int i = 0; i < f.AlternateKeyNames.Count; i++)
-            if (i != op.Ordinal && Same(f.AlternateKeyNames[i].Item))
+            if (i != op.Ordinal && Same(f.AlternateKeyNames[i].Item, f.AlternateKeyNames[i].Subscripts))
                 return $"another alternate record key '{f.AlternateKeyNames[i].Name}'";
         return null;
     }
 
     private static string BeyondMinimumMessage(FileModel f, FileKeyOperand op, string n, string citation)
     {
-        string where = BeyondMinimum(f, op.Item) switch
+        string where = BeyondMinimum(f, op.Item, op.Occurrence) switch
         {
             { FollowsVariable: true } w => $"follows a variable-length member of its record and can reach byte {w.MaxEnd}",
             { } w => $"occupies bytes {w.Offset + 1}..{w.MaxEnd} of the record",
@@ -897,7 +902,21 @@ internal static class FileControlKeyRules
     private static readonly FileControlKeyRule[] Rules85 =
         [.. Rules.Where(r => Rules1985.All(n => n.Supersedes != r.RuleId)), .. Rules1985];
 
-    private static readonly FileControlKeyRule[] Rules02 = [.. Rules, .. Rules2002];
+    /// <summary>⛔ THE 2023 ROWS COBOL-2002's TEXT DOES NOT PRINT (kb/Work PB5602): the OCCURS bans of the three key clauses. §2002:12.3.4.12.2 SR1,
+    /// §2002:12.3.4.5.2 SR1 and §2002:12.3.4.13.2 SR1 each say only "may be qualified" — a data-name-n at COBOL-2002 includes
+    /// subscription if needed (§2002:5.1.3) — so the key names the occurrence its integer-literal subscripts select, and an
+    /// unsubscripted table element is §2002:8.4.1.2.2 SR5's omitted subscript, which <c>DataBinder.ScreenOperandOccurrence</c> screens
+    /// once the operand resolves. The 2014 text added the ban (§2014:12.4.4.11.2 SR1 "shall not be subscripted"). The pair is the row's
+    /// 2023 id and the 2002 clause whose syntax rules lack it, for <c>FileControlKeyRuleDriftTests</c>.</summary>
+    internal static readonly (string RuleId, string Clause2002)[] Absent2002 =
+    [
+        ("SR-12.4.5.12.3-1", "12.3.4.12.2"),
+        ("SR-12.4.5.6.3-1", "12.3.4.5.2"),
+        ("SR-12.4.5.13.3-1", "12.3.4.13.2"),
+    ];
+
+    private static readonly FileControlKeyRule[] Rules02 =
+        [.. Rules.Where(r => Absent2002.All(a => a.RuleId != r.RuleId)), .. Rules2002];
 
     /// <summary>The table, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
     internal static IReadOnlyList<EntryClause> EntryClauseCatalog => EntryClauses;
@@ -1014,7 +1033,7 @@ internal static class FileControlKeyRules
         {
             var op = source.Operands[k];
             yield return new FileKeyOperand(role, face, op.Name, op.Item, op.At,
-                SuppressWhen: k == 0 ? suppressWhen : null, Ordinal: ordinal, Source: source, SourceIndex: k);
+                SuppressWhen: k == 0 ? suppressWhen : null, Ordinal: ordinal, Source: source, SourceIndex: k, Subscripts: op.Subscripts);
         }
     }
 
@@ -1034,7 +1053,7 @@ internal static class FileControlKeyRules
                     foreach (var op in SourceOperands(role, "RECORD KEY", pks, null, 0)) yield return op;
                 else
                     yield return new FileKeyOperand(role, "RECORD KEY", file.RecordKeyName, file.PrimeKey?.Item,
-                        file.RecordKeyAt);
+                        file.RecordKeyAt, Subscripts: file.RecordKeySubscripts);
                 break;
             case FileKeyRole.AlternateRecordKey:
                 // The clauses AS WRITTEN, not FileModel.AlternateKeys: a clause whose data-name-1 resolved to
@@ -1046,7 +1065,7 @@ internal static class FileControlKeyRules
                         foreach (var op in SourceOperands(role, "ALTERNATE RECORD KEY", aks, alt.SuppressWhen, i)) yield return op;
                     else
                         yield return new FileKeyOperand(role, "ALTERNATE RECORD KEY", alt.Name, alt.Item, alt.At,
-                            SuppressWhen: alt.SuppressWhen, Ordinal: i);
+                            SuppressWhen: alt.SuppressWhen, Ordinal: i, Subscripts: alt.Subscripts);
                 }
                 break;
             case FileKeyRole.RelativeKey:

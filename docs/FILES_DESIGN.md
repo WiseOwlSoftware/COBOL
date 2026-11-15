@@ -2074,6 +2074,19 @@ SR2 permits qualification even where it is unnecessary). So every clause that pr
 (§2023:13.18.34.2), FILE STATUS (§2023:12.4.5.8), RECORD KEY, ALTERNATE RECORD KEY, RELATIVE KEY, ASSIGN … USING,
 RECORD … DEPENDING ON — means exactly that reference, and exactly that resolution.
 
+**COBOL-2002's reading (kb/Work PB5602).** §2002:5.1.3 lists "User-defined word, including qualification and subscription if needed" as
+what a data-name-n operand is, and the 2002 clauses (FILE STATUS §2002:12.3.4.7.2 SR1, RECORD KEY §2002:12.3.4.12.2 SR1, ALTERNATE RECORD
+KEY §2002:12.3.4.5.2 SR1, RELATIVE KEY §2002:12.3.4.13.2 SR1, key COLLATING SEQUENCE §2002:12.3.4.6.2, READ/START KEY) say only "may be
+qualified"; the 2014 text added "shall not be subscripted" (§2014:12.4.4.11.2 SR1). At `EditionInfo.SubscriptedClauseOperands` (2002 alone) the
+capture is `DataBinder.ClauseDataNameSubscripted`, which keeps the subscripts as the integer literals the clause needs (a key's location is
+fixed, §2002:12.3.4.12.3 GR3; COBOL7354 otherwise; docs/conformance/3/D-CLAUSE-SUBSCRIPT.md), and `DataBinder.ScreenOperandOccurrence` judges them
+against the resolved item (§2002:8.4.1.2.2 SR2/SR3/SR5, §2002:8.4.1.2.3 GR2). The file model carries them beside the qualifiers
+(`FileStatusSubscripts`, `RelativeKeySubscripts`, `RecordKey.Subscripts`, `AlternateKeyClause.Subscripts`, `CollatingKeyOperand.Subscripts`); a place
+is `PlaceTable.OccurrenceOf` / `FileStatusOf` / `RelativeKeyOf`; a key's location is `RecordLayout.OffsetOf(item, occurrence)` /
+`KeyWindowOf(root, key, bytes, occurrence)` (the first occurrence's walk plus `OccurrenceDisplacement`), and a READ/START KEY operand is a key
+by `RecordKey.Names(item, Place.ConstantOccurrence())`. The 2023 OCCURS bans of the three key clauses and of FILE STATUS are not in force at
+2002 (`FileControlKeyRules.Absent2002`, drift-tested against the 2002 text).
+
 **What it replaced.** Each of those clauses captured its operand as `d.cobolWord()?.GetText() ?? d.GetText()` —
 the FIRST word of the written reference, every IN/OF qualifier discarded — and then resolved it with
 `ByName.TryGetValue(n, out var l) && l.Count > 0 ? l[0] : null`, the first declaration of that name in source

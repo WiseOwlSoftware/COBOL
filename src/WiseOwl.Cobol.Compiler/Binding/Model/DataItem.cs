@@ -455,6 +455,13 @@ public sealed class DataItem
         return CobolNames.UpperFold(string.Join(".", path));
     }
 
+    /// <summary>The identity of ONE OCCURRENCE of this item, for a COBOL-2002 clause operand written with integer-literal
+    /// subscripts (<c>RELATIVE KEY IS RK(2)</c>, §2002:5.1.3; kb/Work PB5602): <see cref="ExternalItemIdentity()"/> and the
+    /// occurrence the subscripts select, so two occurrences of one external table are two items. No subscripts is the item's
+    /// own identity.</summary>
+    public string? ExternalItemIdentity(IReadOnlyList<int> occurrence) =>
+        ExternalItemIdentity() is { } id ? occurrence.Count == 0 ? id : $"{id}({string.Join(",", occurrence)})" : null;
+
     /// <summary>True when this level-01 entry carries a CONSTANT RECORD clause (ISO §2023:13.18.15) — a STRUCTURED
     /// CONSTANT: its content is that of an INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT (§2023:13.18.15.4 GR1),
     /// which is NOT the ordinary initial state — a VALUE-less numeric-edited item holds its edited zero, no OPTIONS

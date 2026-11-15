@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-22",
+ "rule-digest": "b7f50ea6c256",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceTable.cs#RelativeKeyOf",
+ "test-ref": "conformance:cases/12.3.4.13@2002-RELATIVE-KEY-CLAUSE/pb5602-relative-key-file-status-subscripted-2002",
+ "notes": "§2002:14.8.29.3 GR22: a READ of a relative file moves the relative record number into the relative key data item by the MOVE rules. The store goes through PlaceTable.RelativeKeyOf, the occurrence a COBOL-2002 RELATIVE KEY RK(2) names; the golden shows RK(2) = 07 after the first READ NEXT with RK(1) and RK(3) untouched (kb/Work PB5602)."
+}

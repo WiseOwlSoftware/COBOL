@@ -50,6 +50,10 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <summary>The targeted ISO edition year (85 / 2002 / 2014 / 2023) — delegated to <see cref="Edition"/>.</summary>
     public int DialectLevel => Edition.Year;
 
+    /// <summary>Whether a data-name-n clause operand may be written subscripted — delegated to <see cref="Edition"/>
+    /// (<see cref="EditionInfo.SubscriptedClauseOperands"/>; kb/Work PB5602).</summary>
+    public bool SubscriptedClauseOperands => Edition.SubscriptedClauseOperands;
+
     /// <summary>The severity axis (VERSION_TEST_MATRIX_DESIGN §10 #1): strict (default) rejects removed
     /// constructs; permissive accepts them with a warning and the pre-removal semantics (the migration mode).
     /// Introduction gating (a construct NEWER than the edition, 0900) is an error on BOTH axes.</summary>
