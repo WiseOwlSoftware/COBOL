@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """THE RULE STAGE'S SCREEN: which candidate pairs of an older edition may be KEPT by rule (kb/Work PB5589, PB5584).
 
-    python scripts/spec/lineage_screen.py --self-test
+    python scripts/selftests/spec/lineage_screen/test_screen.py   # its cases (the case layout, kb/Work PB5428)
     python scripts/spec/lineage_screen.py --write [YEAR]       # docs/rearchitecture/spec-lineage-screen-<year>.json
     python scripts/spec/lineage_screen.py --check [YEAR]       # stale, or a judgment table that no longer fits: RED
     python scripts/spec/lineage_screen.py --measure YEAR --labels 'GLOB'   # each trigger against labelled sample reads
@@ -698,161 +698,6 @@ def table_errors(s: Screen) -> list[str]:
     return errs
 
 
-# -- the self-test --------------------------------------------------------------------------------------------------------
-
-def _planted() -> Screen:
-    def rule(rid: str, section: str, text: str, kind: str = "GR", **kw: Any) -> dict[str, Any]:
-        return {"id": rid, "section": section, "kind": kind, "subject": "S", "text": text, **kw}
-
-    older = [rule("2002-GR-9.1.1.3-1", "9.1.1.3", "The ADD statement uses standard arithmetic."),
-             rule("2002-GR-9.1.1.3-2", "9.1.1.3", "The ROUNDED phrase rounds."),
-             rule("2002-GR-9.2.1.3-1", "9.2.1.3", "A record is written; see 8.4.2.", **{"band-formats": [1, 2]}),
-             rule("2002-GR-9.3.1.3-1", "9.3.1.3", "An alphabet name is an old word here."),
-             rule("2002-GR-9.4.1.3-1", "9.4.1.3", "A sort file is read."),
-             rule("2002-GR-9.4.1.3-2", "9.4.1.3", "A sort file is merged."),
-             rule("2002-GR-9.5.1.3-1", "9.5.1.3", "A clean rule holds.")]
-    newer = [rule("GR-9.1.1.3-1", "9.1.1.3", "x"), rule("GR-9.1.1.3-2", "9.1.1.3", "x"),
-             rule("GR-9.2.1.3-1", "9.2.1.3", "x", **{"band-formats": [1]}), rule("GR-9.3.1.3-1", "9.3.1.3", "x"),
-             rule("GR-9.4.1.3-1", "9.4.1.3", "x"), rule("GR-9.4.1.3-2", "9.4.1.3", "x"),
-             rule("GR-9.5.1.3-1", "9.5.1.3", "x"), rule("GR-9.4.1.3-3", "9.4.1.3", "x")]
-    pairs = [{"rule-id": o["id"], "to": [n["id"]], "match": "exact"} for o, n in zip(older, newer)]
-    pairs[1]["match"] = "normalized"
-    old_cl = Clauses({"4": "Terms", "8.8": "Arithmetic", "8.9": "Status", "9.1.1.3": "General rules"},
-                     {"4": "4.1 alphabet name: An old word.\n4.2 sort file: A file sorted.",
-                      "8.8": "The sum is truncated to 32 digits.", "8.9": "Status 38 means locked.",
-                      "9.1.1.3": "text"}, ("4", "8.8", "8.9", "9.1.1.3"))
-    new_cl = Clauses({"3": "Terms", "3.1": "", "8.8": "Arithmetic", "8.9": "Status", "9.1.1.3": "General rules"},
-                     {"3": "", "3.1": "**sort file**\nfile that is sorted", "8.8": "The sum is exact to 34 digits.",
-                      "8.9": "Status 38 means locked.", "9.1.1.3": "text"}, ("3", "3.1", "8.8", "8.9", "9.1.1.3"))
-    table = {"definitions": {"older": "4", "newer": "3"},
-             "pending": {"8.8": {"governs": ["9.1"], "invokes": [r"\bstandard arithmetic\b"], "why": "planted"}},
-             "behaviours": {"b-2023": {"sections": ["9.4"], "why": "planted"}},
-             "holds": {"2002-GR-9.4.1.3-2": "a planted hold"},
-             "triggers": [{"name": t, "mechanism": m, "at": "text", "params": p, "source": "planted", "reason": "planted"}
-                          for t, m, p in (("pending-clause", "pending-clause", {}),
-                                          ("definition-dropped", "definitions", {"which": "dropped"}),
-                                          ("cross-reference", "text-pattern", {"pattern": r"\b\d+(?:\.\d+)+\b"}),
-                                          ("normalized", "pair-match", {"accept": ["exact"]}),
-                                          ("band-formats", "field-differs", {"field": "band-formats"}),
-                                          ("clause-identity", "clause-identity", {}),
-                                          ("behaviour-switch", "behaviour-switch", {}),
-                                          ("held", "listed", {"rows": "holds"}))]
-             + [{"name": "removed-context", "mechanism": None, "source": "PLAN-2002-v3-K0.md"}]}
-    cl = {2002: old_cl, 2023: new_cl}
-    return Screen(2002, 2023, {r["id"]: r for r in older}, {r["id"]: r for r in newer}, pairs, table, ["8.8", "8.9"],
-                  cl.__getitem__, lambda y: "", [{"id": "b-2023", "changedIn": 2023}, {"id": "b-2002", "changedIn": 2002}])
-
-
-def self_test() -> int:
-    fails: list[str] = []
-
-    def ok(cond: bool, what: str) -> None:
-        print(("  ok    " if cond else "  FAIL  ") + what)
-        if not cond:
-            fails.append(what)
-
-    s = _planted()
-    marks = text_marks(s)
-    ok(s.diff["8.8"]["class"] == CHANGED and s.diff["8.9"]["class"] == IDENTICAL
-       and s.diff["8.8"]["differs"] == [{"older": "truncated", "newer": "exact"}, {"older": "32", "newer": "34"}],
-       "the pending diff: a clause whose words changed is CHANGED with its differing words, an unchanged one IDENTICAL")
-    ok(set(marks["pending-clause"]) == {"2002-GR-9.1.1.3-1", "2002-GR-9.1.1.3-2"},
-       "a changed pending clause marks its dependents, by containment (9.1) and by invocation (standard arithmetic)")
-    unchanged = _planted()
-    unchanged.clauses(2023).own["8.8"] = unchanged.clauses(2002).own["8.8"]
-    unchanged.table["pending"] = {}
-    ok(text_marks(unchanged)["pending-clause"] == {} and table_errors(unchanged) == [],
-       "an unchanged pending clause marks nothing and needs no judgment")
-    unjudged = _planted()
-    unjudged.table["pending"] = {}
-    ok(any("does not judge what it governs" in e for e in table_errors(unjudged)),
-       "a changed pending clause the table does not judge is a drift finding, by name")
-    stale = _planted()
-    stale.table["pending"]["8.9"] = {"governs": [], "invokes": [], "why": "planted"}
-    ok(any("identical" in e for e in table_errors(stale)), "a judgment of an identical clause is a drift finding")
-    ok(marks["definition-dropped"] == {"2002-GR-9.3.1.3-1": "alphabet name (newer: undefined)"},
-       "the widened definition flag: a term the older text defines and the newer does not marks its user")
-    ok(set(marks["cross-reference"]) == {"2002-GR-9.2.1.3-1"} and set(marks["normalized"]) == {"2002-GR-9.1.1.3-2"},
-       "a text pattern and a pair's match each mark their planted row")
-    ok(set(marks["band-formats"]) == {"2002-GR-9.2.1.3-1"}, "a pair whose band-formats differ is marked")
-    ok(set(marks["clause-identity"]) == {"2002-GR-9.4.1.3-1", "2002-GR-9.4.1.3-2"}
-       and "1 row(s)" in marks["clause-identity"]["2002-GR-9.4.1.3-1"],
-       "whole-clause identity: a clause whose newer twin has a row no older rule pairs with marks every rule of it")
-    ok(set(marks["behaviour-switch"]) == {"2002-GR-9.4.1.3-1", "2002-GR-9.4.1.3-2"},
-       "a behaviour that changed after 2002 marks the rules of its clause; one that changed in 2002 marks nothing")
-    nob = _planted()
-    nob.table["behaviours"] = {}
-    ok(any("names no clause" in e for e in table_errors(nob)),
-       "a dialect behaviour of the window with no 2002 clause is a drift finding (the next one is automatic)")
-    ok(marks["held"] == {"2002-GR-9.4.1.3-2": "a planted hold"}, "a listed hold marks its row with its reason")
-    ok(empty_slots(s.table) == ["removed-context"], "a trigger with no mechanism is a named empty slot")
-    fixture = _planted()
-    fixture.labels = {"2002-GR-9.2.1.3-1": "DIFFERENT", "2002-GR-9.1.1.3-1": "SAME"}
-    ok(table_errors(fixture) == [] and label_findings(fixture, text_marks(fixture))["same-marked"]
-       == {"2002-GR-9.1.1.3-1": ["pending-clause"]}, "the regression fixture: a DIFFERENT pair a trigger marks passes, "
-       "and a SAME pair a trigger marks is listed as the screen's cost")
-    lost = _planted()
-    lost.labels = {"2002-GR-9.2.1.3-1": "DIFFERENT"}
-    lost.table["triggers"] = [t for t in lost.table["triggers"] if t["name"] not in ("band-formats", "cross-reference")]
-    ok(any("regression fixture" in e and "2002-GR-9.2.1.3-1" in e for e in table_errors(lost)),
-       "the regression fixture: dropping the triggers that catch a DIFFERENT pair fails --check, naming the pair")
-    measured = _planted()
-    measured.labels = {"2002-GR-9.2.1.3-1": "DIFFERENT"}
-    measured.table["triggers"] = [dict(t, excludes=False) if t["name"] in ("band-formats", "cross-reference") else t
-                                  for t in measured.table["triggers"]]
-    ok(any("regression fixture" in e for e in table_errors(measured))
-       and "2002-GR-9.2.1.3-1" in screen_document(measured)["measured"]
-       and "2002-GR-9.2.1.3-1" not in screen_document(measured)["marks"],
-       "a measured-only trigger (excludes: false) is committed under `measured`, bars nothing and catches no fixture row")
-    # THE KEPT WRITER: the rule stage over the planted pairs, then the one writer of change records (audit_batch).
-    writer = _planted()
-    try:
-        rule_stage(writer, {})
-        ok(False, "the rule stage refuses to write while the table has an empty slot")
-    except SystemExit:
-        ok(True, "the rule stage refuses to write while the table has an empty slot")
-    writer.table["triggers"] = [x for x in writer.table["triggers"] if x["mechanism"] is not None]
-    writer.table["triggers"].append({"name": "target-state", "mechanism": "target-state", "at": "view",
-                                     "params": {"accept": ["CONFORMS"]}, "reason": "planted view reason"})
-    ok_target = {"verdict": "CONFORMS", "state": "OK", "editions": "2002,2014,2023"}
-    disp, excluded = rule_stage(writer, {n: dict(ok_target, **{"rule-id": n}) for n in writer.newer_rules})
-    import audit_batch  # noqa: PLC0415  (the one writer of an older edition's change records)
-    recs = audit_batch.change_records(edition(2002), disp, RULE_STAGE_SOURCE)
-    ok([r["rule-id"] for r in recs] == ["2002-GR-9.5.1.3-1"]
-       and recs[0]["next"]["kind"] == "KEPT" and recs[0]["next"]["to"] == ["GR-9.5.1.3-1"]
-       and recs[0]["next"]["source"] == RULE_STAGE_SOURCE and recs[0]["next"]["edition"] == 2023,
-       "the writer writes a KEPT record for the one pair no trigger marks, into its target, from the rule stage")
-    ok("2002-GR-9.2.1.3-1" in excluded and excluded["2002-GR-9.2.1.3-1"]["band-formats"].startswith("planted (")
-       and len(excluded) == len(writer.pairs) - 1,
-       "the writer refuses every marked pair and lists it with each trigger's reason and detail")
-    _, refused = rule_stage(writer, {n: dict(ok_target, **{"rule-id": n}, verdict="PARTIAL") for n in writer.newer_rules})
-    ok("target-state" in refused["2002-GR-9.5.1.3-1"], "a view trigger refuses a pair whose target is not CONFORMS")
-    ok(rule_stage_refusals([{"rule-id": "2002-GR-9.2.1.3-1", "next": {"kind": "KEPT", "source": RULE_STAGE_SOURCE}},
-                                    {"rule-id": "2002-GR-9.5.1.3-1", "next": {"kind": "KEPT", "source": RULE_STAGE_SOURCE}},
-                                    {"rule-id": "2002-GR-9.2.1.3-1", "next": {"kind": "KEPT", "source": "an adjudication"}}],
-                                   screen_document(writer)) == [
-           "2002-GR-9.2.1.3-1: a rule-stage KEPT record on a rule the screen marks (cross-reference: 8.4.2; band-formats: "
-           "band-formats [1, 2] against [[1]]): withdraw it; the pair is judged with what marks it"],
-       "the LINEAGE SCREEN audit refuses a stored rule-stage record on a rule the committed screen marks, and no other")
-    ok(view_marks({"mechanism": "target-state", "params": {"accept": ["CONFORMS"]}}, s.pairs[:2], 2002, "2002",
-                  {"GR-9.1.1.3-1": {"verdict": "CONFORMS", "state": "OK"}, "GR-9.1.1.3-2": {"verdict": "", "state": "GAP"}})
-       == {"2002-GR-9.1.1.3-2": "GR-9.1.1.3-2 -/GAP"}
-       and view_marks({"mechanism": "target-band"}, s.pairs[:1], 2002, "2002",
-                      {"GR-9.1.1.3-1": {"editions": "2014,2023"}}) == {"2002-GR-9.1.1.3-1": "GR-9.1.1.3-1 band 2014,2023"},
-       "the view triggers: a target not CONFORMS and OK, and a band that does not name 2002, each mark the pair")
-    try:
-        triggers({"triggers": [{"name": "x", "mechanism": "nonesuch", "reason": "r"}]})
-        ok(False, "a trigger naming an unknown mechanism is refused")
-    except SystemExit:
-        ok(True, "a trigger naming an unknown mechanism is refused")
-    doc = screen_document(s)
-    ok(doc["counts"]["pending"] == {"identical": 1, "near": 0, "changed": 1, "removed": 0}
-       and doc["marks"]["2002-GR-9.4.1.3-2"].keys() == {"clause-identity", "behaviour-switch", "held"},
-       "the screen file holds each mark by rule and trigger, and the pending classes")
-    print(f"=== LINEAGE SCREEN SELF-TEST: {'PASS' if not fails else 'FAIL - ' + str(len(fails))} ===")
-    return 1 if fails else 0
-
-
 # -- the command line -----------------------------------------------------------------------------------------------------
 
 def screened_years() -> list[int]:
@@ -888,7 +733,6 @@ def measure(year: int, pattern: str, among: str | None) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="The rule stage's screen of an older edition's candidate pairs (kb/Work PB5589).")
-    ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--write", type=int, nargs="?", const=0, metavar="YEAR")
     ap.add_argument("--check", type=int, nargs="?", const=0, metavar="YEAR",
                     help="fail when the committed screen is stale or the judgment table no longer fits; with no YEAR, "
@@ -897,8 +741,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--labels", help="with --measure: a glob of labelled sample reads")
     ap.add_argument("--among", help="with --measure: a JSON list of rule ids to count the marks within")
     a = ap.parse_args(argv)
-    if a.self_test:
-        return self_test()
     if a.measure:
         return measure(a.measure, a.labels or "", a.among)
     if a.write is None and a.check is None:
