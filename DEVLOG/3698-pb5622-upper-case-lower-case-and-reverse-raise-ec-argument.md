@@ -1,4 +1,4 @@
-## PB5622: UPPER-CASE, LOWER-CASE and REVERSE raise EC-ARGUMENT-FUNCTION on an argument that is zero-length at run time
+## Entry 3698 — 2026-11-15 13:16 PST — PB5622: UPPER-CASE, LOWER-CASE and REVERSE raise EC-ARGUMENT-FUNCTION on an argument that is zero-length at run time
 
 A group whose only content is an `OCCURS 0 TO n DEPENDING ON` table at 0 occurrences is a zero-length item (§2023:8.5.4 item 1; §2002:8.5.4 item 1, "variable-occurrence data item").
 §2002:15.65.2 AR1, §2002:15.78.2 AR1 and their 2023 twins (§2023:15.78.3, §2023:15.97.3, §2023:15.57.3 AR1) require at least one
@@ -18,3 +18,4 @@ Three goldens, each with a checking-off leg (zero-length value), a checking-on l
 and `15.78.3-Argument-rule/pb5622-case-reverse-zero-length` (2014, 2023). Rows `2002-AR-15.65.2-1` and `2002-AR-15.78.2-1` closed
 (GAP 2258 to 2256 at 2002); the three 2023 rows gained the witness. No negative below 2002: 1985 refuses the `>>TURN` directive, not
 this rule.
+
