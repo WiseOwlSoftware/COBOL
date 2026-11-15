@@ -1055,7 +1055,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>⛔ THE CAPTURE OF A data-name-n OPERAND WHOSE COBOL-2002 RULE SAYS ONLY "MAY BE QUALIFIED" (kb/Work PB5602):
     /// <see cref="ClauseDataName"/>, except that at an edition that reads data-name-n as a user-defined word "including
-    /// qualification and subscription if needed" (<see cref="AdmitsSubscriptedDataName"/>, §2002:5.1.3) a SUBSCRIPT written
+    /// qualification and subscription if needed" (<see cref="EditionInfo.SubscriptedClauseOperands"/>, §2002:5.1.3) a SUBSCRIPT written
     /// on the operand is kept — as the integer literals the clause needs (COBOL7354 when it is anything else) — and not
     /// refused. The caller screens them against the item they select from once the operand resolves
     /// (<see cref="ScreenOperandOccurrence"/>). The other editions refuse a subscript exactly as <see cref="ClauseDataName"/>
@@ -1069,7 +1069,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return (written, none, []);
         }
         var (word, quals) = KeyReference(dref);
-        return (word, quals, AdmitsSubscriptedDataName(Edition) ? RefModBinder.ReadOperandSuffixes(dref).Subscript.Values : []);
+        return (word, quals, Edition.SubscriptedClauseOperands ? RefModBinder.ReadOperandSuffixes(dref).Subscript.Values : []);
     }
 
     private (string Base, IReadOnlyList<string> Quals) RefuseClauseOperand(Core.DataReferenceContext dref)
@@ -1181,7 +1181,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // not be subscripted", §2014:13.18.16.2 SR3). A caller whose 2002 rule is that sentence says so
         // (admitsSubscript2002); the subscript is then screened for the form the clause needs, and the item it selects
         // after resolution (ScreenOperandOccurrence).
-        if (subscripted && admitsSubscript2002 && AdmitsSubscriptedDataName(edition))
+        if (subscripted && admitsSubscript2002 && edition.SubscriptedClauseOperands)
         {
             if (sfx.Subscript.NonLiteral)
                 edition.Error(DiagnosticCatalog.ClauseOperandSubscriptNotLiteral,
@@ -1201,14 +1201,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             ReportReferenceModified(dref, clauseFace, edition);
         return !subscripted && !refModified;
     }
-
-    /// <summary>⛔ WHETHER THE EDITION READS A data-name-n OPERAND AS ONE THAT MAY BE SUBSCRIPTED (kb/Work PB5602): COBOL-2002
-    /// does — §2002:5.1.3's operand "a) User-defined word, including qualification and subscription if needed" — and its
-    /// file-control, report-description and TYPE clauses say only "may be qualified". COBOL-2014 and 2023 print the restriction
-    /// the clauses' rules carry (§2014:13.18.16.2 SR3 "shall not be subscripted"; §2023:13.18.16.3 SR3 "shall not be subject
-    /// to any OCCURS clauses"), and COBOL-85 keeps its own reading, which the register leaves open. ONE predicate, asked by
-    /// every clause that admits the subscript, so the next edition's reading is one change.</summary>
-    internal static bool AdmitsSubscriptedDataName(EditionContext edition) => edition.DialectLevel == 2002;
 
     /// <summary>⛔ THE SUBSCRIPTS OF A data-name-n CLAUSE OPERAND, SCREENED AGAINST THE ITEM THEY SELECT FROM (kb/Work PB5602),
     /// asked once the operand has resolved to <paramref name="item"/>: §2002:8.4.1.2.2 SR2 (a subscript only on a table

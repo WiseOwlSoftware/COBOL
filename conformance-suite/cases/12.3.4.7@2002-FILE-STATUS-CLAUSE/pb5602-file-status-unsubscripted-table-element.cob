@@ -4,7 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB5602 - FS is a table element written with no subscript in the FILE STATUS clause (§2002:8.4.1.2.2 SR5).
+      *> kb/Work PB5602 - FS is a table element written with no subscript in the FILE STATUS clause (§2002:8.4.1.2.2
+      *> SR5).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5602N5.
        ENVIRONMENT DIVISION.

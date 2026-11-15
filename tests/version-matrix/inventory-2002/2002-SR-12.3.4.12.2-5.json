@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.12.2-5",
+ "rule-digest": "cd9e8a84503c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordKey.CategorySource",
+ "test-ref": "conformance:cases/12.3.4.12@2002-RECORD-KEY-CLAUSE/pb5602-record-key-source-subscripted-2002; conformance-test:FileControlKeyRuleSpecTests.SourcePhraseOperandRules_ReachEachDataName2_Once",
+ "notes": "§2002:12.3.4.12.2 SR5: record-key-name-1 has the class and category of data-name-2. RecordKey.CategorySource is the first data-name-2 of the SOURCE phrase (SR2 makes every one the same category), read by the key rules and by the collating-sequence class screen; the golden's SOURCE operands are two occurrences of one table (kb/Work PB5602)."
+}

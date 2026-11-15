@@ -17,7 +17,10 @@
   would make the key's, the status's or the control's location a run-time quantity the connector registration and the prior-control
   save have no place for. Edition scope: COBOL-2002 only; COBOL-85 keeps its own reading of data-name-n, which the register leaves
   open.
-  Code sites: `DataBinder.AdmitsSubscriptedDataName` (the one edition predicate), `DataBinder.ScreenDataNameShape`,
-  `DataBinder.ScreenOperandOccurrence`, `ReportSectionBinder.ControlOperandRef`, `PlaceTable.OccurrenceOf`; pinned by
-  `conformance:cases/13.16.15@2002-CONTROL-CLAUSE/pb5602-control-subscripted-2002` and
-  `conformance:cases/12.3.4.13@2002-RELATIVE-KEY-CLAUSE/pb5602-relative-key-file-status-subscripted-2002`.
+  Code sites: `EditionInfo.SubscriptedClauseOperands` (the one edition predicate), `DataBinder.ScreenDataNameShape`,
+  `DataBinder.ScreenOperandOccurrence`, `ReportSectionBinder.ControlOperandRef`, `PlaceTable.OccurrenceOf`,
+  `RecordLayout.OffsetOf(DataItem, IReadOnlyList<int>)` (a key's location), `RecordKey.Names`; pinned by
+  `conformance:cases/13.16.15@2002-CONTROL-CLAUSE/pb5602-control-subscripted-2002`,
+  `conformance:cases/12.3.4.13@2002-RELATIVE-KEY-CLAUSE/pb5602-relative-key-file-status-subscripted-2002`,
+  `conformance:cases/12.3.4.12@2002-RECORD-KEY-CLAUSE/pb5602-indexed-keys-subscripted-2002` and
+  `conformance:cases/12.3.4.6@2002-COLLATING-SEQUENCE-CLAUSE/pb5602-collating-key-subscripted-2002`.

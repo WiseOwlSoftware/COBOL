@@ -4,7 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB5602 - the subscripted RELATIVE KEY and FILE STATUS operands of COBOL-2002 are refused at the other editions: §2014:12.4.4.12.2 SR1 ("Data-name-1 shall not be subscripted"), and COBOL-85 keeps its own reading of data-name-n.
+      *> kb/Work PB5602 - the subscripted RELATIVE KEY and FILE STATUS operands of COBOL-2002 are refused at the other
+      *> editions: §2014:12.4.4.12.2 SR1 ("Data-name-1 shall not be subscripted"), and COBOL-85 keeps its own reading
+      *> of data-name-n.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5602N6.
        ENVIRONMENT DIVISION.

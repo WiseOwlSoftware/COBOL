@@ -3642,12 +3642,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     // COBOL-2002 names an OCCURS item by its subscripted reference (§2002:8.4.1.2.2 SR5), so its SR3-equivalent
                     // is the written subscripts' own rules (kb/Work PB5602); the later editions' "subject to an OCCURS clause" is
                     // ControlOperandShapeViolation's first arm.
-                    else if (ctl.Item is { } occItem && DataBinder.AdmitsSubscriptedDataName(Edition) && !op.SubscriptRefused
+                    else if (ctl.Item is { } occItem && Edition.SubscriptedClauseOperands && !op.SubscriptRefused
                              && !DataBinder.ScreenOperandOccurrence(occItem, op.Subscripts, $"RD '{model.Name}': CONTROL operand",
                                  op.ToString(), Edition))
                     { /* reported by the screen */ }
                     else if (ctl.Item is { } ctlItem
-                             && ControlOperandShapeViolation(ctlItem, occursAdmitted: DataBinder.AdmitsSubscriptedDataName(Edition)) is { } shape)
+                             && ControlOperandShapeViolation(ctlItem, occursAdmitted: Edition.SubscriptedClauseOperands) is { } shape)
                         Edition.Error(shape.Code, $"RD '{model.Name}': CONTROL operand '{op}' {shape.Clause}");
                     // §2023:8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
                     // it is read through the ONE exclusion test so the two paths cannot drift (kb/Work PB205).
@@ -4741,7 +4741,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // subscription if needed"; §2014:13.18.16.2 SR3 ("shall not be subscripted") and §2023:13.18.16.3 SR3 took it away.
             // The same written reference names the level in a TYPE CH/CF operand and a RESET ON operand (§2002:13.16.55.2 SR10),
             // so all three admit it here, once. The prior control is one data item (GR3), so each subscript is an integer literal.
-            if (DataBinder.AdmitsSubscriptedDataName(Edition))
+            if (Edition.SubscriptedClauseOperands)
             {
                 if (sfx.Subscript.NonLiteral)
                 {

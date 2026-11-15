@@ -161,9 +161,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     private List<(int Offset, int Width, string Layout)>? KeyWindows(Binding.Model.RecordKey key, bool fixedForm)
     {
         var windows = new List<(int Offset, int Width, string Layout)>(key.Segments.Count);
-        foreach (var segment in key.Segments)
+        for (int i = 0; i < key.Segments.Count; i++)
         {
-            if (KeyWindow(segment, fixedForm) is not var (off, layout)) return null;
+            var segment = key.Segments[i];
+            if (KeyWindow(segment, key.OccurrenceOf(i), fixedForm) is not var (off, layout)) return null;
             windows.Add((off, segment.ByteWidth, layout));
         }
         return windows;
@@ -174,11 +175,11 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// the key's FIXED-run offset and the connector locates the key per record (kb/Work PB1025; docs/CONFORMANCE.md
     /// §3 D-KWV). ONE reader, <see cref="Binding.Model.RecordLayout.KeyWindowOf"/>, the same one the SORT/MERGE
     /// key and the §2023:12.4.5.12.3 SR4 / §2023:12.4.5.6.3 SR5 screens read. Null when the key has no locatable window.</summary>
-    private (int Offset, string Layout)? KeyWindow(Binding.Model.DataItem key, bool fixedForm)
+    private (int Offset, string Layout)? KeyWindow(Binding.Model.DataItem key, IReadOnlyList<int> occurrence, bool fixedForm)
     {
         var root = key;
         while (root.Parent is { } p) root = p;
-        if (Binding.Model.RecordLayout.KeyWindowOf(root, key, key.ByteWidth) is { FollowsVariable: true } win
+        if (Binding.Model.RecordLayout.KeyWindowOf(root, key, key.ByteWidth, occurrence) is { FollowsVariable: true } win
             && places.Of(root) is { } place)
             // ⛔ In a file of FIXED-length records (D-FRA (vi)) every record has the one fixed form, so the key sits at
             // ONE position — the fixed-run offset plus the MAXIMUM extent of every member that precedes it
@@ -187,7 +188,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             return fixedForm ? ((int)(win.MaxEnd - key.ByteWidth), "null")
                 : (win.Offset, RuntimeApi.ContiguousLayoutOf(PlaceRenderer.Read(place)));
         // Every other key keeps the area offset it has always registered (§2023:12.4.5.12.4 GR4's byte positions).
-        return Binding.Model.RecordLayout.OffsetOf(key) is { } off ? (off, "null") : null;
+        return Binding.Model.RecordLayout.OffsetOf(key, occurrence) is { } off ? (off, "null") : null;
     }
 
     /// <summary>The §2023:12.4.5.7 key collating sequence as a runtime <c>CobolCollation</c> expression — the program's

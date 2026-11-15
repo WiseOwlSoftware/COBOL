@@ -1,6 +1,7 @@
 *>--- conformance-case
 *> id: pb5602-relative-key-file-status-subscripted-2002
-*> rules: [2002-SR-12.3.4.13.2-1, 2002-SR-12.3.4.13.2-3, 2002-SR-12.3.4.7.2-1, 2002-GR-14.8.29.3-22]
+*> rules: [2002-SR-12.3.4.13.2-1, 2002-SR-12.3.4.13.2-3, 2002-SR-12.3.4.7.2-1, 2002-GR-14.8.29.3-22,
+*>    2002-GR-14.8.33.3-20, 2002-SR-14.8.37.2-5]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified
@@ -23,7 +24,14 @@
       *> moves 7 to RK(2) (PIC 9(2): "07"); the I-O status "00" goes to FS(1). RK(1) and RK(3) were set
       *> to zero and FS(2) to "ZZ" beforehand, and a status or key that landed in the wrong occurrence
       *> would show there. The second READ NEXT makes record 9 available. A random READ with RK(2) = 7
-      *> reads the record at slot 7. A random READ at 8 finds no record: invalid key, status "23".
+      *> reads the record at slot 7. A random READ at 8 finds no record: invalid key, status "23". START KEY IS
+      *> GREATER THAN RK(2) with RK(2) = 8 positions on the first record whose relative record number is greater
+      *> (§2002:14.8.37.2 SR5: for a relative file data-name-1 shall be the data item of the RELATIVE KEY clause, here
+      *> the occurrence RK(2)), so the next READ NEXT makes record 9 available and moves 9 to RK(2).
+      *> §2002:14.8.33.3 GR20: for a file in dynamic access "the operating environment logically replaces the record
+      *> identified by the relative key data item": with RK(2) = 9 a REWRITE of "YYY" replaces record 9 ("00"), a
+      *> READ at 9 then returns "YYY" and a READ at 7 still returns "AAA" (the other occurrences of RK stay zero).
+      *> cite.py: OK  §2002:14.8.33.3 GR20
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5602B.
        ENVIRONMENT DIVISION.
@@ -65,5 +73,22 @@
            MOVE 8 TO RK(2)
            READ F1
            DISPLAY "FS=" FS(1) " FS2=" FS(2)
+           MOVE 8 TO RK(2)
+           START F1 KEY IS GREATER THAN RK(2)
+           DISPLAY "S FS=" FS(1)
+           READ F1 NEXT
+           DISPLAY "FS=" FS(1) " RK=" RK(1) RK(2) RK(3) " R=" R1
+           CLOSE F1
+           OPEN I-O F1
+           MOVE 9 TO RK(2)
+           MOVE "YYY" TO R1
+           REWRITE R1
+           DISPLAY "RW FS=" FS(1)
+           MOVE 9 TO RK(2)
+           READ F1
+           DISPLAY "FS=" FS(1) " R=" R1
+           MOVE 7 TO RK(2)
+           READ F1
+           DISPLAY "FS=" FS(1) " R=" R1
            CLOSE F1
            STOP RUN.

@@ -31,8 +31,9 @@ public sealed partial class FileControlBinder
             if (file.FileStatusName is { } sn)
             {
                 file.FileStatusItem = _host.ResolveClauseOperand(sn, file.FileStatusQualifiers, "FILE STATUS", file.FileStatusAt);
-                ScreenClauseOperandOccurrence(file.FileStatusItem, file.FileStatusSubscripts, "FILE STATUS", sn, file.FileStatusQualifiers,
-                    file.FileStatusAt, v => file.FileStatusItem = v);
+                if (!ScreenClauseOperandOccurrence(file.FileStatusItem, file.FileStatusSubscripts, "FILE STATUS", sn, file.FileStatusQualifiers,
+                        file.FileStatusAt))
+                    file.FileStatusItem = null;
                 ScreenFileStatusItem(file);   // §2023:12.4.5.8.3 — the clause's own syntax rules over the resolved item
             }
             // Keyed organizations: RECORD KEY / ALTERNATE RECORD KEY name items WITHIN the file's record
@@ -87,26 +88,41 @@ public sealed partial class FileControlBinder
             // each data-name-2 of a SOURCE phrase is one segment of the concatenation (§2023:12.4.5.12.4 GR2 /
             // §2023:12.4.5.6.4 GR2), resolved by the same SR2 selection. A key any of whose operands references nothing
             // describable has no value to build, and that operand's SR2 row reports it.
-            RecordKey? KeyOf(string keyName, IReadOnlyList<string> quals, RecordKeySource? source, string face,
+            RecordKey? KeyOf(string keyName, IReadOnlyList<string> quals, IReadOnlyList<int> subscripts, RecordKeySource? source, string face,
                              Editions.DiagnosticCursor at, Action<DataItem?> dataName1)
             {
                 if (source is null)
                 {
                     var item = InRecords(keyName, quals, face, at);
+                    // COBOL-2002's key names the occurrence its integer-literal subscripts select (§2002:5.1.3), judged once the
+                    // item is known (§2002:8.4.1.2.2 SR2/SR3/SR5, §2002:8.4.1.2.3 GR2); a refusal makes it no key, with no cascade (kb/Work PB5602).
+                    if (!ScreenClauseOperandOccurrence(item, subscripts, face, keyName, quals, at))
+                    {
+                        refusedKeys.Add(keyName);
+                        item = null;
+                    }
                     dataName1(item);
-                    return item is null ? null : RecordKey.OfItem(item);
+                    return item is null ? null : RecordKey.OfItem(item, subscripts);
                 }
                 foreach (var op in source.Operands)
+                {
                     op.Item = InRecords(op.Name, op.Qualifiers, $"{face} SOURCE", op.At);
+                    if (!ScreenClauseOperandOccurrence(op.Item, op.Subscripts, $"{face} SOURCE", op.Name, op.Qualifiers, op.At))
+                    {
+                        refusedKeys.Add(op.Name);
+                        op.Item = null;
+                    }
+                }
                 return source.Operands.All(o => o.Item is not null)
-                    ? RecordKey.OfSource(source.Name, [.. source.Operands.Select(o => o.Item!)]) : null;
+                    ? RecordKey.OfSource(source.Name, [.. source.Operands.Select(o => o.Item!)],
+                        [.. source.Operands.Select(o => o.Subscripts)]) : null;
             }
             if (file.RecordKeyName is { } rk)
-                file.PrimeKey = KeyOf(rk, file.RecordKeyQualifiers, file.RecordKeySource, "RECORD KEY", file.RecordKeyAt, _ => { });
+                file.PrimeKey = KeyOf(rk, file.RecordKeyQualifiers, file.RecordKeySubscripts, file.RecordKeySource, "RECORD KEY", file.RecordKeyAt, _ => { });
             foreach (var clause in file.AlternateKeyNames)
             {
                 clause.SuppressWhen = ReadSuppressWhen(clause);
-                if (KeyOf(clause.Name, clause.Qualifiers, clause.Source, "ALTERNATE RECORD KEY", clause.At,
+                if (KeyOf(clause.Name, clause.Qualifiers, clause.Subscripts, clause.Source, "ALTERNATE RECORD KEY", clause.At,
                         item => clause.Item = item) is { } alt)
                     file.AlternateKeys.Add((alt, clause.Duplicates, KeySuppressionOf(alt, clause.SuppressWhen), clause));
             }
@@ -114,8 +130,9 @@ public sealed partial class FileControlBinder
             if (file.RelativeKeyName is { } rl)
             {
                 file.RelativeKeyItem = _host.ResolveClauseOperand(rl, file.RelativeKeyQualifiers, "RELATIVE KEY", file.RelativeKeyAt);
-                ScreenClauseOperandOccurrence(file.RelativeKeyItem, file.RelativeKeySubscripts, "RELATIVE KEY", rl, file.RelativeKeyQualifiers,
-                    file.RelativeKeyAt, v => file.RelativeKeyItem = v);
+                if (!ScreenClauseOperandOccurrence(file.RelativeKeyItem, file.RelativeKeySubscripts, "RELATIVE KEY", rl, file.RelativeKeyQualifiers,
+                        file.RelativeKeyAt))
+                    file.RelativeKeyItem = null;
             }
             if (file.Padding is { DataName: { } pn } pad)
             {
@@ -152,14 +169,13 @@ public sealed partial class FileControlBinder
     /// it once, by <see cref="DataBinder.ScreenOperandOccurrence"/>. A refusal makes the clause resolve to no item
     /// (<paramref name="clear"/>), so the rules judging the item stay silent and the refusal is the one verdict. Only an
     /// edition that admits the subscript asks (the others refused it at capture and reach the item as before).</summary>
-    private void ScreenClauseOperandOccurrence(DataItem? item, IReadOnlyList<int> subscripts, string face, string name,
-        IReadOnlyList<string> quals, Editions.DiagnosticCursor at, Action<DataItem?> clear)
+    private bool ScreenClauseOperandOccurrence(DataItem? item, IReadOnlyList<int> subscripts, string face, string name,
+        IReadOnlyList<string> quals, Editions.DiagnosticCursor at)
     {
-        if (item is null || !DataBinder.AdmitsSubscriptedDataName(Edition)) return;
+        if (item is null || !Edition.SubscriptedClauseOperands) return true;
         using var _ = Edition.At(at);
-        if (!DataBinder.ScreenOperandOccurrence(item, subscripts, face, DataBinder.WrittenQualified(name, quals) + WrittenSubscripts(subscripts),
-                Edition))
-            clear(null);
+        return DataBinder.ScreenOperandOccurrence(item, subscripts, face, DataBinder.WrittenQualified(name, quals) + WrittenSubscripts(subscripts),
+            Edition);
     }
 
     /// <summary>The subscripts as written, <c>(2, 1)</c>, for a diagnostic; empty for none.</summary>
@@ -199,7 +215,7 @@ public sealed partial class FileControlBinder
         // §2002:12.3.4.7.2 prints no such rule (SR1 "may be qualified", SR2 the two-character item): a COBOL-2002 FILE STATUS names the
         // occurrence its subscripts select (kb/Work PB5602), judged by DataBinder.ScreenOperandOccurrence.
         string? fault =
-            RecordLayout.IsSubjectToOccurs(item) && !DataBinder.AdmitsSubscriptedDataName(Edition)
+            RecordLayout.IsSubjectToOccurs(item) && !Edition.SubscriptedClauseOperands
                 ? "is subject to an OCCURS clause; data-name-1 shall not be subject to any OCCURS clauses "
                   + "(ISO §2023:12.4.5.8.3 SR1)"
             : SubjectToBased(item)

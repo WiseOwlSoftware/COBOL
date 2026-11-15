@@ -234,7 +234,11 @@ public sealed class FileControlKeyRuleSpecTests
         string[] p = parts.Split('|');
         foreach (int edition in AllEditions)
         {
-            string citation = CitationAt(citation2023, edition);
+            // COBOL-2002 prints no OCCURS ban on a key (§2002:12.3.4.12.2 SR1, §2002:12.3.4.5.2 SR1 say only "may be qualified"): its operand
+            // names a table element by its subscripts (§2002:5.1.3), so the unsubscripted element is §2002:8.4.1.2.2 SR5's omitted
+            // subscript (kb/Work PB5602).
+            string citation = edition == 2002 && name is "ix-record-key-occurs" or "ix-alternate-key-occurs"
+                ? "§2002:8.4.1.2.2 SR3, SR5" : CitationAt(citation2023, edition);
             int entryOnly = Diagnostics(Indexed(p[0], p[1], p[2], EntryOnlyBody), edition)
                 .Count(e => e.Contains(citation, StringComparison.Ordinal));
             int withVerb = Diagnostics(Indexed(p[0], p[1], p[2], WithKeyedVerbBody), edition)
@@ -620,6 +624,10 @@ public sealed class FileControlKeyRuleSpecTests
         string source = Indexed(keyClauses, SourceRecord, "", EntryOnlyBody);
         foreach (int edition in SourceEditions)
         {
+            // At COBOL-2002 a key's data-name-2 is a data-name-n that may be subscripted (§2002:12.3.4.12.2 SR1, §2002:5.1.3) and the OCCURS ban
+            // is not printed (kb/Work PB5602): an unsubscripted table element is §2002:8.4.1.2.2 SR5's omitted subscript (the golden
+            // pb5602-record-key-source-unsubscripted-table-element), so the SR1 rows are the 2014 and later editions'.
+            if (edition == 2002 && citation.EndsWith(" SR1", StringComparison.Ordinal)) continue;
             var hits = Diagnostics(source, edition).Where(e => e.Contains(citation, StringComparison.Ordinal)).ToList();
             Assert.True(hits.Count == 1, $"[{keyClauses.Replace('\n', ' ').Trim()}] @ {edition}: {citation} reported "
                 + $"{hits.Count}×: {string.Join(" | ", hits)}");

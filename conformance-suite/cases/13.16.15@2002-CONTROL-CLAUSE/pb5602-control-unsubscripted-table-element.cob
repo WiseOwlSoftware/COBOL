@@ -7,7 +7,8 @@
       *> kb/Work PB5602 - a COBOL-2002 CONTROL operand names ONE data item (the prior control of
       *> §2002:13.16.15.3 GR3 has "the same data description as the corresponding data item"), so
       *> a subscript is an integer literal that selects an occurrence (docs/conformance,
-      *> D-CLAUSE-SUBSCRIPT; §2002:8.4.1.2.3 GR2 bounds the occurrence number). T-C is a table element (two OCCURS clauses) written with no subscript: each table element reference shall be subscripted (§2002:8.4.1.2.2 SR5).
+      *> D-CLAUSE-SUBSCRIPT; §2002:8.4.1.2.3 GR2 bounds the occurrence number). T-C is a table element (two OCCURS
+      *> clauses) written with no subscript: each table element reference shall be subscripted (§2002:8.4.1.2.2 SR5).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5602N3.
        ENVIRONMENT DIVISION.

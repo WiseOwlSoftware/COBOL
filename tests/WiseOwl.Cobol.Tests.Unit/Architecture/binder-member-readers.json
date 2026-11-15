@@ -104,10 +104,6 @@
       "WiseOwl.Cobol.Binding.Validation.StatementValidation",
       "WiseOwl.Cobol.Validation.FlagConformancePass"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::AdmitsSubscriptedDataName": [
-      "WiseOwl.Cobol.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::AllItems": [
       "WiseOwl.Cobol.Binding.Passes.CheckStrongTypeDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.ClassifyRedefinesClassesPass",

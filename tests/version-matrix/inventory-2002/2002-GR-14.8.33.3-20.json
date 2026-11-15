@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-20",
+ "rule-digest": "be06855cf633",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#Rrn; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceTable.cs#RelativeKeyOf",
+ "test-ref": "conformance:cases/12.3.4.13@2002-RELATIVE-KEY-CLAUSE/pb5602-relative-key-file-status-subscripted-2002",
+ "notes": "§2002:14.8.33.3 GR20: a REWRITE of a relative file in random or dynamic access replaces the record the relative key data item identifies. The key is read through PlaceTable.RelativeKeyOf, the occurrence RK(2) a COBOL-2002 clause names; the golden rewrites record 9 and shows record 7 unchanged (kb/Work PB5602)."
+}

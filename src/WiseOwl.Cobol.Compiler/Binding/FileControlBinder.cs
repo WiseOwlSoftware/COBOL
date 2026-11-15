@@ -134,7 +134,7 @@ public sealed partial class FileControlBinder
                     }
                     else if (rkc.dataReference() is { } rk)
                     {
-                        (file.RecordKeyName, file.RecordKeyQualifiers) = _host.ClauseDataName(rk, "RECORD KEY");
+                        (file.RecordKeyName, file.RecordKeyQualifiers, file.RecordKeySubscripts) = _host.ClauseDataNameSubscripted(rk, "RECORD KEY");
                         using var __ = Edition.At(rk);
                         file.RecordKeyAt = Edition.Cursor;   // §2023:12.4.5.12.3 reports here, from ResolveFiles
                     }
@@ -149,12 +149,12 @@ public sealed partial class FileControlBinder
                     if (aks is not null || ak.dataReference() is not null)
                     {
                         var source = aks is null ? null : CaptureRecordKeySource(aks, "ALTERNATE RECORD KEY");
-                        var (an, aq) = source is null ? _host.ClauseDataName(ak.dataReference(), "ALTERNATE RECORD KEY")
-                            : (source.Name, (IReadOnlyList<string>)[]);
+                        var (an, aq, asub) = source is null ? _host.ClauseDataNameSubscripted(ak.dataReference(), "ALTERNATE RECORD KEY")
+                            : (source.Name, (IReadOnlyList<string>)[], (IReadOnlyList<int>)[]);
                         using var __ = Edition.At(aks?.recordKeyName() ?? (Antlr4.Runtime.ParserRuleContext)ak.dataReference());
                         var clause = new AlternateKeyClause
                         {
-                            Name = an, Qualifiers = aq, Duplicates = ak.DUPLICATES() is not null, Source = source,
+                            Name = an, Qualifiers = aq, Subscripts = asub, Duplicates = ak.DUPLICATES() is not null, Source = source,
                             At = Edition.Cursor,   // §2023:12.4.5.6.3 reports here, from ResolveFiles
                         };
                         file.AlternateKeyNames.Add(clause);
@@ -321,9 +321,9 @@ public sealed partial class FileControlBinder
         var operands = new List<KeySourceOperand>();
         foreach (var dref in src.dataReference())
         {
-            var (n, q) = _host.ClauseDataName(dref, $"{clause} SOURCE");
+            var (n, q, subscripts) = _host.ClauseDataNameSubscripted(dref, $"{clause} SOURCE");
             using var _ = Edition.At(dref);
-            operands.Add(new KeySourceOperand { Name = n, Qualifiers = q, At = Edition.Cursor });
+            operands.Add(new KeySourceOperand { Name = n, Qualifiers = q, Subscripts = subscripts, At = Edition.Cursor });
         }
         return new RecordKeySource { Name = keyName, Operands = operands };
     }
@@ -339,8 +339,8 @@ public sealed partial class FileControlBinder
             // Each key through the ONE data-name-n capture (kb/Work PB1075): qualified names are legal (§2023:8.4.2.2.1),
             // and SR6's "shall not be subscripted" is refused by name there.
             var keys = ctx.dataReference()
-                .Select(d => _host.ClauseDataName(d, "COLLATING SEQUENCE OF"))
-                .Select(k => new CollatingKeyOperand { Name = k.Base, Qualifiers = k.Quals })
+                .Select(d => _host.ClauseDataNameSubscripted(d, "COLLATING SEQUENCE OF"))
+                .Select(k => new CollatingKeyOperand { Name = k.Base, Qualifiers = k.Quals, Subscripts = k.Subscripts })
                 .ToList();
             file.KeyLevelCollating.Add(new KeyLevelCollatingClause(keys, ctx.cobolWord(0).GetText(), Edition.Cursor));
             _host.SpecialNames.UseAlphabetName(ctx, ctx.cobolWord(0).GetText());   // the clause's §2023:8.3.2.2 use (kb/Work PB3153)
@@ -488,13 +488,13 @@ public sealed partial class FileControlBinder
     {
         var readings = file.RecordKeyNameCandidates(k.Name, k.Qualifiers)
             .Plus(_host.QualifiedCandidates(k.Name, k.Qualifiers, Model.Scope.Program)
-                .Where(i => keys.Any(key => ReferenceEquals(key.Item, i)))
+                .Where(i => keys.Any(key => key.Names(i, k.Subscripts)))
                 .Select(KeyNameReading (i) => new KeyNameReading.DataName(i)));
         if (readings.Count > 0)
             return _host.UniqueOrReportAmbiguous(readings, $"file '{file.CobolName}': COLLATING SEQUENCE OF", written, out _) switch
             {
                 KeyNameReading.RecordKeyName rk => file.KeyAt(rk.KeyIndex),
-                KeyNameReading.DataName dn => keys.Single(key => ReferenceEquals(key.Item, dn.Item)),
+                KeyNameReading.DataName dn => keys.Single(key => key.Names(dn.Item, k.Subscripts)),
                 _ => null,
             };
         if (!file.DeclaresUnresolvedKeyNamed(k.Name, k.Qualifiers))

@@ -308,7 +308,11 @@ off-by-one through every later counter check.
   the procedure division uses (`RefModView`), reached by item instead of by parse context — so §2023:13.18.16.4 GR3's
   prior control is the §2023:8.4.3.3.4 GR5 unique data item, the SLICE. §2023:13.18.16.3's operand rules are all screened
   in one place: SR2 (asked only after resolution fails — a name also in ordinary storage resolves there), SR3,
-  SR4, SR5, SR6, SR7 and the subscript that SR3 + §2023:8.4.2.3.3 SR2 leave no legal spelling for; §2023:8.4.3.3.3 SR1 on a
+  SR4, SR5, SR6, SR7 and the subscript that SR3 + §2023:8.4.2.3.3 SR2 leave no legal spelling for — at COBOL-2002 alone the
+  operand MAY be subscripted (§2002:5.1.3; §2002:13.16.15.2 SR3 says only "may be qualified", and §2014:13.18.16.2 SR3 added the ban),
+  so `ReportControlRef` carries the integer-literal subscripts (`EditionInfo.SubscriptedClauseOperands`, COBOL7354 for any other
+  subscript, `DataBinder.ScreenOperandOccurrence` for the occurrence, docs/conformance/3/D-CLAUSE-SUBSCRIPT.md) and `PlaceTablePass`
+  builds the prior control's place of that occurrence (`PlaceTable.OccurrenceOf`; kb/Work PB5602); §2023:8.4.3.3.3 SR1 on a
   ref-modded operand reuses `RefModExclusion`, the one SR1 reader. (kb/Work PB205 — before it, `KeyReference`
   kept only the qualification suffix and TYPE/RESET kept only the base word, so `CX(1:3)` and `CX(4:3)` were one
   operand and every report broke on the whole item.)

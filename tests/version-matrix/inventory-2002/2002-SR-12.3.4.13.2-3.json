@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.13.2-3",
+ "rule-digest": "807b77371859",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
+ "test-ref": "conformance:cases/12.3.4.13@2002-RELATIVE-KEY-CLAUSE/pb5602-relative-key-file-status-subscripted-2002; conformance-test:FileControlKeyRuleSpecTests.RelativeKeyOperandRule_ReportsOnAnEntryOnlyProgram_AtEveryEdition",
+ "notes": "§2002:12.3.4.13.2 SR3: the relative key is not defined in a record description entry subordinate to the file-name. The FileControlKeyRules row SR-12.4.5.13.3-3 screens it at every edition; the golden's relative key RK(2) lies in working storage and is accepted (kb/Work PB5602)."
+}

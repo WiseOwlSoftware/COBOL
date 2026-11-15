@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.5.2-6",
+ "rule-digest": "cd9e8a84503c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordKey.CategorySource",
+ "test-ref": "conformance:cases/12.3.4.12@2002-RECORD-KEY-CLAUSE/pb5602-record-key-source-subscripted-2002; conformance-test:FileControlKeyRuleSpecTests.SourcePhraseOperandRules_ReachEachDataName2_Once",
+ "notes": "§2002:12.3.4.5.2 SR6: record-key-name-1 has the class and category of data-name-2; the same RecordKey.CategorySource as the RECORD KEY clause (kb/Work PB5602)."
+}
