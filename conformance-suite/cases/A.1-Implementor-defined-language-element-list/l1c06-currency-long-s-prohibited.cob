@@ -20,8 +20,10 @@
       *>   uppercase is the picture
       *> letter S excluded by SR22 b); it is refused with COBOL0891.
       *>   The bare
-      *> single-character form exists in every edition, so every edition
-      *>   rejects.
+      *> single-character form exists in every edition, but the implementor's
+      *>   prohibition of additional characters (§2014:8.1.1, §2023:8.1.2) exists from 2014, so
+      *>   2014 and 2023 reject; at 85 and 2002 the symbol is legal (kb/Work PB5647,
+      *>   pb5647-currency-bare-long-s-85).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C06G.
        ENVIRONMENT DIVISION.

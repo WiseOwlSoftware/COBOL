@@ -32,8 +32,8 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// EXECUTED", citing ANSI X3.23-1985 VII-2 1.3.5 / VII-51 4.6.4(5). Gating it therefore had no basis at 1985 or
 /// 2002 and was refuted at 1985; the 2023 rule stands at every edition. (Annex E.2 item 22, the INDEXED
 /// after-OPEN READ PREVIOUS change, is the opposite case and IS gated —
-/// <see cref="DialectBehavior.IndexedReadPreviousAfterOpenAtEnd"/> — because there the annex states what the
-/// prior RULE said, not that the prior text was missing.)</para>
+/// <see cref="DialectBehavior.IndexedReadPreviousAfterOpenAtEnd"/> — because the prior text is held and differs:
+/// the ordinary comparison against OPEN's lowest-ordinal position, §2002:14.8.29.3 GR18c2.)</para>
 /// </summary>
 internal static class UseTierEmitter
 {

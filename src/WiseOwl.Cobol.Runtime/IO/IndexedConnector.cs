@@ -403,9 +403,10 @@ public sealed class IndexedConnector : KeyedConnector
     /// <summary>Sequential <c>READ PREVIOUS</c> (COBOL-2002+; compiler-gated) — the same walk in reverse
     /// (§2023:14.9.30.4 GR21 d–g apply symmetrically, and GR26 makes a duplicate set's reverse order the reverse of
     /// its release order — the legacy ignored key-of-reference/arrival on PREVIOUS, brief §2.3 #5; this connector
-    /// orders both directions identically). Immediately after OPEN → at end at 2023, the first existing record
-    /// at 2002/2014 (<see cref="DialectBehavior.IndexedReadPreviousAfterOpenAtEnd"/>,
-    /// VERSION_CHANGE_REFERENCE row 29 — kb/Work PB344).</summary>
+    /// orders both directions identically). Immediately after OPEN → at end at 2023; at 2002/2014 the first record
+    /// whose key is less than or equal to the OPEN's lowest-ordinal position, which only a key of that lowest value
+    /// is (<see cref="DialectBehavior.IndexedReadPreviousAfterOpenAtEnd"/>, VERSION_CHANGE_REFERENCE row 29 —
+    /// kb/Work PB344, PB5639).</summary>
     public string ReadPrevious(out string image) => ReadSequential(out image, previous: true);
 
     /// <summary>ISO §2023:14.9.30.4 GR21's "When the file is an indexed file" SELECTION — rules d)/e)/f) over the key of
@@ -430,30 +431,36 @@ public sealed class IndexedConnector : KeyedConnector
         // before): a seek on the whole entry, the key and its ordinal.
         // ⛔ §2023:14.9.30.4 GR21 d) 3 — "If no such record is found or PREVIOUS is specified and the previous
         // operation on the file was an OPEN statement, the at end condition exists". THAT SENTENCE IS THE 2023
-        // RULE, and Annex E.2 item 22 is the informative record that 2023 AMENDED it: "READ PREVIOUS statement
-        // following an OPEN statement. Ensure that an at end condition occurs", justified by "the rule itself
-        // stated that the first record would be retrieved. The rule itself has been amended such that an at end
-        // condition would occur." So at 2002/2014 the after-OPEN case is DIRECTION-BLIND — the first existing
-        // record under the key of reference, exactly what NEXT yields and exactly what the relative block's own
-        // rule b) still says at every edition. (E.2 also mentions a prior NOTE that said at end normally
-        // exists; this document is drafted to the ISO/IEC Directives Part 2, under which a note carries no
-        // requirement, so the prior standard's normative content is the rule. And were the prior behaviour
-        // already at end, E.2 — the list of SUBSTANTIVE CHANGES potentially affecting existing programs —
-        // would have no item 22 to carry.) The edition is the COMPILING program's, baked on the connector at
-        // registration; kb/Work PB344, VERSION_CHANGE_REFERENCE row 29.
-        if (previous && _positioner == 'O'
-            && DialectBehaviors.IsActive(DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, Edition))
+        // RULE, and Annex E.2 item 22 is the informative record that 2023 AMENDED it ("READ PREVIOUS statement
+        // following an OPEN statement. Ensure that an at end condition occurs"). The prior text is held now
+        // (kb/Work PB5639, which overturned kb/Work PB344's derivation from the annex alone): at 2002 and 2014 the
+        // after-OPEN PREVIOUS is the ordinary comparison — §2002:14.8.29.3 GR18c2 / §2014:14.9.29.3 GR19c2 —
+        // "the first existing record in the physical file whose record number or key value is less than or equal to
+        // the file position indicator", and OPEN set that indicator to "the characters that have the lowest ordinal
+        // position in the collating sequence associated with the file" (§2002:14.8.26.3 GR12, §2014:14.9.26.3 GR12). Only a record whose
+        // key IS that lowest value qualifies, so the usual answer is at end (the standard's own NOTE: "normally get
+        // an at end condition for indexed"); 2023 makes it unconditional. The edition is the COMPILING program's,
+        // baked on the connector at registration; kb/Work PB344, VERSION_CHANGE_REFERENCE row 29.
+        bool afterOpenPrevious = previous && _positioner == 'O';
+        if (afterOpenPrevious && DialectBehaviors.IsActive(DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, Edition))
             return StoreStatus.Ok;
         bool composite = _refKey >= 0;
-        bool forward = !previous || _positioner == 'O';
+        bool forward = !previous;
         StoreStatus status;
         BTree.Cursor? cursor;
-        if (_positioner == 'O')
+        if (_positioner == 'O' && !previous)
             // §2023:14.9.27 GR14 — OPEN INPUT/I-O positions the FPI at the LOWEST record in the key of reference's
-            // collating sequence, so the first READ NEXT yields it — and, at 2002/2014, so does the first READ
-            // PREVIOUS, which is why this arm is reached for BOTH directions there (the gate above). The tree's first
-            // entry IS the lowest under its order, whatever weight the sequence gives the pad SPACE.
+            // collating sequence, so the first READ NEXT yields it. The tree's first entry IS the lowest under its
+            // order, whatever weight the sequence gives the pad SPACE.
             status = _st.Edge(_refKey, _orders, last: false, out cursor);
+        else if (afterOpenPrevious)
+        {
+            // §2002:14.8.29.3 GR18c2 with §2002:14.8.26.3 GR12: the FPI is the lowest-ordinal key, and PREVIOUS
+            // selects the last record whose key is less than or equal to it. A value holding a character with no byte
+            // image has no stored key to equal, so no record qualifies.
+            if (LowestKey() is not { } lowest) return StoreStatus.Ok;
+            status = _st.Seek(_refKey, _orders, lowest, SeekRelation.LessOrEqual, prefix: false, out cursor);
+        }
         else if (_positioner != 'R')
             status = _st.Seek(_refKey, _orders, _fpiKey, previous ? SeekRelation.LessOrEqual : SeekRelation.GreaterOrEqual,
                 prefix: composite, out cursor);
@@ -471,6 +478,17 @@ public sealed class IndexedConnector : KeyedConnector
         status = Resolve(cursor, _refKey, forward, part => keyOrder.Compare(part, f.KeyPart) == 0, out var adjacent);
         duplicateFollows = adjacent is not null;
         return status;
+    }
+
+    /// <summary>The key value an OPEN's file position indicator holds on an indexed file — "the characters that have the
+    /// lowest ordinal position in the collating sequence associated with the file" (§2002:14.8.26.3 GR12;
+    /// §2023:14.9.27.4 GR14) — over the key of reference's length: the key sequence's LOW-VALUE character repeated
+    /// (§2023:8.3.3.6.4 GR7), as the tree's channel bytes. Null when that character has no byte image.</summary>
+    private byte[]? LowestKey()
+    {
+        int length = _refKey < 0 ? _primeLen : _alts[_refKey].Len;
+        char low = SequenceOf(_refKey)?.LowValue ?? NativeCollatingSequence.LowValue;
+        return KeyBytes(new string(low, length));
     }
 
     /// <inheritdoc/>

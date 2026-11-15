@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.1.3-10",
+ "rule-digest": "9a3c84cc24eb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#SidiAtTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#DecBinary",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation",
+ "notes": "§2002:14.1.3 GR10: a BY VALUE argument is passed as if moved into a data item described as the formal; the arithmetic-expression argument is a standard intermediate data item (32 digits truncated per operation) rounded to 31 digits at that move (§2002:8.8.1.3.1.3 GR3). The witness CALL \"BVSUB\" USING BY VALUE (E2 / D3), formal PIC V9(31), displays .6666666666666666666666666666667, equal to COMPUTE XB = E2 / D3 (the 34-digit engine truncated to ...666)."
+}

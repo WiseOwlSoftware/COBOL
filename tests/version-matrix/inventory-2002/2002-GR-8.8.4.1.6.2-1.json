@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-8.8.4.1.6.2-1",
  "rule-digest": "d78746cc5823",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderSign; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#IsFormat2FloatSign",
- "test-ref": "conformance:cases/8.8.4.1.6@2002-SIGN-CONDITION/g2_sign_condition",
- "notes": "§2002:8.8.4.1.6.2 GR1: 'An operand is positive, if its value is greater than zero, negative if its value is less than zero, and zero if its value is equal to zero', and 'NOT and the next keyword specify one sign condition', so NOT POSITIVE is value <= 0, NOT NEGATIVE value >= 0, NOT ZERO value /= 0 (the NOTE). Ran g2_sign_condition.cob --std 2002 --run with the pinned exe matched the derivation at --std 2002 with the pinned build of tree dc1f2dcce8."
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderSign; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#SidiRounded; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#IsFormat2FloatSign",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation; conformance:cases/8.8.4.1.6@2002-SIGN-CONDITION/g2_sign_condition",
+ "notes": "§2002:8.8.4.1.6.2 GR1: 'An operand is positive, if its value is greater than zero, negative if its value is less than zero, and zero if its value is equal to zero', and 'NOT and the next keyword specify one sign condition', so NOT POSITIVE is value <= 0, NOT NEGATIVE value >= 0, NOT ZERO value /= 0 (the NOTE). Ran g2_sign_condition.cob --std 2002 --run with the pinned exe matched the derivation at --std 2002 with the pinned build of tree dc1f2dcce8. Under standard arithmetic the operand is a 32-digit item compared with zero: the witness IF B * 100 + 9 - B * 100 IS ZERO is true (the 33-digit sum is cut to 10^32, minus 10^32 is 0), where 34 digits gave 9."
 }
