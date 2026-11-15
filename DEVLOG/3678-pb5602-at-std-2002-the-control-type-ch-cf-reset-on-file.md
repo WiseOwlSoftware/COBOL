@@ -1,4 +1,4 @@
-## PB5602 - at --std 2002 the CONTROL, TYPE CH/CF, RESET ON, FILE STATUS, RELATIVE KEY, RECORD KEY, ALTERNATE RECORD KEY and key COLLATING SEQUENCE clauses take a subscripted data-name
+## Entry 3678 — 2026-11-15 05:42 PST — PB5602 - at --std 2002 the CONTROL, TYPE CH/CF, RESET ON, FILE STATUS, RELATIVE KEY, RECORD KEY, ALTERNATE RECORD KEY and key COLLATING SEQUENCE clauses take a subscripted data-name
 
 COBOL-2002 reads a clause's data-name-n as "a user-defined word, including qualification and subscription if needed"
 (§2002:5.1.3), and the 2002 clauses print only "may be qualified" (§2002:13.16.15.2 SR3, §2002:12.3.4.13.2 SR1,
@@ -45,3 +45,4 @@ The first gate run (000002) was RED on the 2002 arms of seven refusal goldens an
 The line-endings audit refused the first gate (a helper script wrote CRLF); every writer in this change states `newline=`.
 
 **Review round 1 (R1-1).** ControlLevelOf's second step (the operand's item by reference identity plus equal ref-mod) ignored the written subscripts, so at 2002 `TYPE CONTROL FOOTING T-C(2)` under `CONTROL IS T-C(1)` bound to T-C(1)'s level instead of being refused (§2002:13.16.55.2 SR10). The step now also requires equal Subscripts (RESET ON shares the lookup); golden pb5602-control-footing-other-occurrence refuses it with COBOL0899 at 2002.
+
