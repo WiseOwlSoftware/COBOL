@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: format_code_set_character_without_image_statuses_91_71
 *> rules: [GR-13.18.13.4-6, GR-13.18.24.4-8]
-*> accept: [2002, 2014, 2023]
+*> accept: [2023]
 *> constructs: [format-clause-2002]
 *> source-format: free
 *> portable: unverified
