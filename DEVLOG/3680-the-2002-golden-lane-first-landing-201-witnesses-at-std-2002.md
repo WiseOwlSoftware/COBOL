@@ -67,3 +67,13 @@ records that named it were wrong: the repros `r2c_reckey_subscripted_seq.cob` an
 the subscripted arms of GR2 c) and GR3 a) and b): an indexed file written QC, ZA, MB reads back as ZA, MB, QC under a
 RECORD KEY of IXS-K(2). `record_verdicts.py --edition 2002` re-recorded 2002-GR-12.3.4.4.3-2 and -3 CONFORMS, and GAP
 went from 2,323 to 2,321 at the merged head (2,321 GAP, CONFORMS 275, DIVERGES 10). Both rows leave PB5602's `inventory_rows`.
+
+**Merged with PB5620 (landed on main).** The queue bounced pull request #1710 DIRTY: main had landed PB5620, and the one
+conflict was `kb/Work/PB5620.md`'s `inventory_rows`, which this branch had widened with 2002-SR-14.8.47.2-21 and main's
+landing released. A landed note holds no claim, so main's frontmatter is taken. With PB5620's fix in, the DIVERGES
+record of -21 was the parser's refusal, not SR21's: at --std 2002 the MANUAL Format 1 repro now prints `W 00 N=2` and its
+AUTOMATIC twin is refused COBOL5993 at the WITH LOCK. Four goldens (14.8.47@2002) witness SR21 on both formats: the
+Format 1 pair `g2_write_sequential_lock_phrase_manual` / `_automatic_neg` (the 2002 phrase order), and the Format 2 pair
+`g2_write_random_lock_phrase_manual` / `_automatic_neg` the writers had held until PB5620 landed. `record_verdicts.py
+--edition 2002` re-recorded -21 CONFORMS; at the merged head the 2002 inventory is 2,282 GAP, CONFORMS 314, DIVERGES 9,
+PARTIAL 1.
