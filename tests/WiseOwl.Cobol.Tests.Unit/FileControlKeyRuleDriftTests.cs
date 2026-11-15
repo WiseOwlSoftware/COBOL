@@ -219,6 +219,8 @@ public sealed class FileControlKeyRuleDriftTests
         ("a RELATIVE KEY clause", new(@"RELATIVE KEY IS")),
         ("ORGANIZATION IS LINE SEQUENTIAL", new(@"\bLINE\b")),
         ("a RECORD DELIMITER clause", new(@"RECORD DELIMITER IS")),
+        // PADDING CHARACTER is no 2023 diagram's (2014 deleted it); its row is checked against the 1985 and 2002 diagrams below.
+        (PaddingFace, new(@"PADDING CHARACTER IS")),
         // `[ ORGANIZATION IS ] … SEQUENTIAL` on ONE line: Format 4 prints it bare, Format 3 inside the LINE/RECORD brace.
         ("ORGANIZATION IS SEQUENTIAL", new(@"ORGANIZATION IS \][^\n]*SEQUENTIAL")),
         ("ACCESS MODE IS SEQUENTIAL", new(@"ACCESS MODE IS")),          // every format that prints ACCESS prints SEQUENTIAL
@@ -276,7 +278,7 @@ public sealed class FileControlKeyRuleDriftTests
 
         var catalog = FileControlKeyRules.EntryClauseCatalog;
         Assert.Equal(DiagramOracle.Select(o => o.Face).Order(), catalog.Select(c => c.Face).Order());
-        foreach (var (face, regex) in DiagramOracle)
+        foreach (var (face, regex) in DiagramOracle.Where(o => o.Face != PaddingFace))
         {
             var row = catalog.Single(c => c.Face == face);
             foreach (var (format, block) in printed)
@@ -288,6 +290,54 @@ public sealed class FileControlKeyRuleDriftTests
         // The subset fact: no clause is carried by Format 4 without Format 3.
         Assert.All(catalog.Where(c => c.Carried.HasFlag(FileFormats.Format4)),
             c => Assert.True(c.Carried.HasFlag(FileFormats.Format3), c.Face));
+    }
+
+    private const string PaddingFace = "a PADDING CHARACTER clause";
+
+    /// <summary>⛔ THE PADDING CHARACTER ROW IS RE-DERIVED FROM THE 1985 AND 2002 DIAGRAMS (kb/Work PB5565), the two editions that
+    /// print it: only the sequential entry carries it, in the 1985 "General Format for File Control Entry" (the SEQUENTIAL FILE
+    /// block, not the RELATIVE, INDEXED or SORT OR MERGE block) and in §2002:12.3.4.1 Format 3 (not Formats 1, 2 or 4). The
+    /// 2023 text prints it in none (the oracle above skips it), and the table's one row says Format 3 alone.</summary>
+    [Fact]
+    public void PaddingClause_IsCarriedBySequentialFormatAlone()
+    {
+        var row = FileControlKeyRules.EntryClauseCatalog.Single(c => c.Face == PaddingFace);
+        Assert.Equal(FileFormats.Format3, row.Carried);
+        Assert.DoesNotContain("PADDING", string.Join(' ', PrintedFormats().Values));
+
+        var l85 = File.ReadAllLines(TestRepo.Specs("ANSI_COBOL_1985.md"));
+        string[] labels = ["<u>SEQUENTIAL FILE</u>:", "<u>RELATIVE FILE</u>:", "<u>INDEXED FILE</u>:", "<u>SORT OR MERGE FILE</u>:",
+            "<u>REPORT</u> <u>FILE</u>:"];
+        var at = new int[labels.Length];
+        int from = 0;
+        for (int k = 0; k < labels.Length; k++)
+        {
+            at[k] = Array.FindIndex(l85, from, l => l.Contains(labels[k], StringComparison.Ordinal));
+            Assert.True(at[k] >= from, $"the 1985 general format for the file control entry has no '{labels[k]}' block");
+            from = at[k] + 1;
+        }
+        for (int k = 0; k < 4; k++)
+        {
+            bool prints = l85.Skip(at[k]).Take(at[k + 1] - at[k]).Any(l => l.Contains("CHARACTER IS", StringComparison.Ordinal));
+            Assert.Equal(k == 0, prints);
+        }
+
+        var l02 = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2002.md"));
+        int region = Array.FindIndex(l02, l => l.Trim() == "###### 12.3.4.1 General format");
+        Assert.True(region >= 0);
+        var edges = new int[5];
+        for (int f = 0; f < 4; f++)
+        {
+            edges[f] = Array.FindIndex(l02, region, l => l.TrimStart().StartsWith($"Format {f + 1} (", StringComparison.Ordinal));
+            Assert.True(edges[f] >= 0, $"2002 Format {f + 1}");
+        }
+        edges[4] = Array.FindIndex(l02, edges[3], l => l.StartsWith("######", StringComparison.Ordinal));
+        Assert.True(edges[4] > edges[3]);
+        for (int f = 0; f < 4; f++)
+        {
+            bool prints = l02.Skip(edges[f]).Take(edges[f + 1] - edges[f]).Any(l => l.Contains("CHARACTER IS", StringComparison.Ordinal));
+            Assert.Equal(f == 2, prints);   // Format 3 is the sequential entry
+        }
     }
 
     /// <summary>The message a row ships names the row's OWN citation. A row whose sentence and whose printed §
