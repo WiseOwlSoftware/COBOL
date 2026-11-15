@@ -4,7 +4,9 @@
   "Identifier-3 and identifier-4 shall specify group data items and shall not be reference-modified."` → OK,
   rule 12), and GR2 makes a THROUGH alias exactly that (`--check 13.18.45.4 "When the THROUGH phrase is
   specified, data-name-1 defines an alphanumeric group item that includes all elementary items"` → OK, rule 2),
-  so the standard controls and the alias is admitted on either side. ADD and SUBTRACT CORRESPONDING still refuse
+  so the standard controls and the alias is admitted on either side (COBOL-2002 and later: at `--std 85`
+  §1985:VI.6.4.3 GR3 forbids level-number 66 in the description of either operand of all three CORRESPONDING
+  statements, and the compiler refuses it, kb/Work PB5105). ADD and SUBTRACT CORRESPONDING still refuse
   it, and the no-THROUGH form too, because their SR6 says "shall not be described with level-number 66".
   **The latitude is rule 1's qualifiers.** Rule 1 pairs items with "the same data-name and the same qualifiers, if
   any, up to, but not including, D1 and D2" (`--check 14.7.6` → OK, rule 1), and the alias is in no included
