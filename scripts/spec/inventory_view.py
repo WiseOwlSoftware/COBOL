@@ -243,11 +243,6 @@ def check() -> int:
         if not ed.newest:
             targets = {r["rule-id"]: r for r in inventory(ed.next_held, schema)}
             findings += [f"{year}: {r['rule-id']}: {e}" for r in v.rows for e in lineage.next_errors(r, ed, schema, targets)]
-            # kb/Work PB5589: a KEPT record the rule stage wrote stands only while the committed screen marks nothing of
-            # its rule, so a trigger added to the screen withdraws, by name, every record it no longer admits.
-            path = lineage.screen_path(year)
-            screen = json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
-            findings += [f"{year}: {e}" for e in lineage.rule_stage_refusals(v.rows, screen)]
             kinds = Counter((r["next"] or {}).get("kind") or "unclassified" for r in v.rows)
             line += (f"; change records {dict(sorted(kinds.items()))}; "
                      f"{len(lineage.new_rules(ed, v.rows, targets))} rule(s) of {ed.next_held} NEW (derived)")

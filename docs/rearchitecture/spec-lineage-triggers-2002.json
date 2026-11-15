@@ -4,7 +4,8 @@
   "DESIGN-spec-conformance-review.md section 10.5). `pending`: each pending clause against its newer counterpart",
   "(class, ratio, the differing word runs); `definitions`: the terms the newer definitions clause defines otherwise",
   "or not at all; `marks`: each pair a text trigger marks, by trigger, with its detail. The writer (audit_batch.py",
-  "change-batch --edition) refuses every marked pair; the view refuses a rule-stage KEPT record on a marked rule.",
+  "change-batch --edition) refuses every marked pair; the LINEAGE SCREEN audit refuses a stored rule-stage KEPT",
+  "record on a marked rule. `measured`: the marks of the triggers that exclude nothing (`excludes: false`).",
   "Regenerate: python scripts/spec/lineage_screen.py --write 2002; --check fails when it is stale."
  ],
  "edition": 2002,

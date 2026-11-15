@@ -19,8 +19,8 @@ nothing, and the writer refuses to write a batch while one exists (`empty_slots`
 would let through exactly the rows the hole was named for.
 
 Two kinds of trigger: `at: "text"` triggers read the two editions' texts and catalogs only, and their marks are COMMITTED
-(the screen file), so the inventory view can refuse a rule-stage KEPT record a newer screen marks without reading a
-transcription; `at: "view"` triggers read the next edition's computed rows (a target that is not CONFORMS and OK, a band
+(the screen file, `spec-lineage-triggers-<year>.json`), and the LINEAGE SCREEN audit refuses a stored rule-stage KEPT
+record (`RULE_STAGE_SOURCE`) on a rule the committed screen marks; `at: "view"` triggers read the next edition's computed rows (a target that is not CONFORMS and OK, a band
 that does not name the older edition), which move with every landing, so the writer evaluates them when it writes.
 
 The KEPT WRITER is `audit_batch.py change-batch --edition YEAR` with no `--state` (`rule_stage`): one record per pair that
@@ -48,7 +48,7 @@ from typing import Any, Callable, Iterable
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation  # noqa: E402  (THE region reader of each transcription)
 import inventory_schema  # noqa: E402  (the editions, the repository root, the component-wise clause test)
-import lineage  # noqa: E402  (the candidate pairing, RULE_STAGE_SOURCE)
+import lineage  # noqa: E402  (the candidate pairing's file)
 from inventory_schema import edition, section_matches  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -66,8 +66,34 @@ def table_path(year: int) -> pathlib.Path:
     return REPO / "scripts" / "spec" / "data" / f"rule-stage-triggers-{year}.json"
 
 
+#: The `source` of every change record the rule stage writes (`audit_batch.py change-batch --edition` with no audit run):
+#: a pair of the candidate pairing that no excluding trigger marks. The LINEAGE SCREEN audit refuses a stored record of this
+#: source on a rule the committed screen marks (`rule_stage_refusals`), so a trigger added to the table withdraws, by name,
+#: every record it no longer admits.
+RULE_STAGE_SOURCE = "lineage-rule-stage"
+
+
 def screen_path(year: int) -> pathlib.Path:
-    return lineage.screen_path(year)
+    """The committed screen of the older edition `year`'s candidate pairs (`--write`)."""
+    return REPO / "docs" / "rearchitecture" / f"spec-lineage-triggers-{year}.json"
+
+
+def rule_stage_refusals(rows: Iterable[dict[str, Any]], screen: dict[str, Any] | None) -> list[str]:
+    """Why a stored rule-stage record of `rows` (an older edition's) no longer stands: its rule is marked by the committed
+    `screen` (None when the edition has none: then no rule-stage record may exist), by trigger and detail."""
+    marks = (screen or {}).get("marks", {})
+    out = []
+    for r in rows:
+        nxt = r.get("next") or {}
+        if nxt.get("source") != RULE_STAGE_SOURCE:
+            continue
+        if screen is None:
+            out.append(f"{r['rule-id']}: a rule-stage record, and its edition has no screen (lineage_screen.py)")
+        elif r["rule-id"] in marks:
+            why = "; ".join(f"{k}: {v}" for k, v in marks[r["rule-id"]].items())
+            out.append(f"{r['rule-id']}: a rule-stage {nxt.get('kind')} record on a rule the screen marks ({why}): "
+                       f"withdraw it; the pair is judged with what marks it")
+    return out
 
 
 # -- the texts ------------------------------------------------------------------------------------------------------------
@@ -573,7 +599,8 @@ def screen_document(s: Screen) -> dict[str, Any]:
         "DESIGN-spec-conformance-review.md section 10.5). `pending`: each pending clause against its newer counterpart",
         "(class, ratio, the differing word runs); `definitions`: the terms the newer definitions clause defines otherwise",
         "or not at all; `marks`: each pair a text trigger marks, by trigger, with its detail. The writer (audit_batch.py",
-        "change-batch --edition) refuses every marked pair; the view refuses a rule-stage KEPT record on a marked rule.",
+        "change-batch --edition) refuses every marked pair; the LINEAGE SCREEN audit refuses a stored rule-stage KEPT",
+        "record on a marked rule. `measured`: the marks of the triggers that exclude nothing (`excludes: false`).",
         f"Regenerate: python scripts/spec/lineage_screen.py --write {s.year}; --check fails when it is stale."],
         "edition": s.year, "next": s.newer_year,
         "triggers": [{**{k: t.get(k) for k in ("name", "mechanism", "at", "source")}, "excludes": excluding(t)}
@@ -790,23 +817,23 @@ def self_test() -> int:
     ok_target = {"verdict": "CONFORMS", "state": "OK", "editions": "2002,2014,2023"}
     disp, excluded = rule_stage(writer, {n: dict(ok_target, **{"rule-id": n}) for n in writer.newer_rules})
     import audit_batch  # noqa: PLC0415  (the one writer of an older edition's change records)
-    recs = audit_batch.change_records(edition(2002), disp, lineage.RULE_STAGE_SOURCE)
+    recs = audit_batch.change_records(edition(2002), disp, RULE_STAGE_SOURCE)
     ok([r["rule-id"] for r in recs] == ["2002-GR-9.5.1.3-1"]
        and recs[0]["next"]["kind"] == "KEPT" and recs[0]["next"]["to"] == ["GR-9.5.1.3-1"]
-       and recs[0]["next"]["source"] == lineage.RULE_STAGE_SOURCE and recs[0]["next"]["edition"] == 2023,
+       and recs[0]["next"]["source"] == RULE_STAGE_SOURCE and recs[0]["next"]["edition"] == 2023,
        "the writer writes a KEPT record for the one pair no trigger marks, into its target, from the rule stage")
     ok("2002-GR-9.2.1.3-1" in excluded and excluded["2002-GR-9.2.1.3-1"]["band-formats"].startswith("planted (")
        and len(excluded) == len(writer.pairs) - 1,
        "the writer refuses every marked pair and lists it with each trigger's reason and detail")
     _, refused = rule_stage(writer, {n: dict(ok_target, **{"rule-id": n}, verdict="PARTIAL") for n in writer.newer_rules})
     ok("target-state" in refused["2002-GR-9.5.1.3-1"], "a view trigger refuses a pair whose target is not CONFORMS")
-    ok(lineage.rule_stage_refusals([{"rule-id": "2002-GR-9.2.1.3-1", "next": {"kind": "KEPT", "source": lineage.RULE_STAGE_SOURCE}},
-                                    {"rule-id": "2002-GR-9.5.1.3-1", "next": {"kind": "KEPT", "source": lineage.RULE_STAGE_SOURCE}},
+    ok(rule_stage_refusals([{"rule-id": "2002-GR-9.2.1.3-1", "next": {"kind": "KEPT", "source": RULE_STAGE_SOURCE}},
+                                    {"rule-id": "2002-GR-9.5.1.3-1", "next": {"kind": "KEPT", "source": RULE_STAGE_SOURCE}},
                                     {"rule-id": "2002-GR-9.2.1.3-1", "next": {"kind": "KEPT", "source": "an adjudication"}}],
                                    screen_document(writer)) == [
            "2002-GR-9.2.1.3-1: a rule-stage KEPT record on a rule the screen marks (cross-reference: 8.4.2; band-formats: "
            "band-formats [1, 2] against [[1]]): withdraw it; the pair is judged with what marks it"],
-       "the view refuses a stored rule-stage record on a rule the committed screen marks, and no other record")
+       "the LINEAGE SCREEN audit refuses a stored rule-stage record on a rule the committed screen marks, and no other")
     ok(view_marks({"mechanism": "target-state", "params": {"accept": ["CONFORMS"]}}, s.pairs[:2], 2002, "2002",
                   {"GR-9.1.1.3-1": {"verdict": "CONFORMS", "state": "OK"}, "GR-9.1.1.3-2": {"verdict": "", "state": "GAP"}})
        == {"2002-GR-9.1.1.3-2": "GR-9.1.1.3-2 -/GAP"}
@@ -886,6 +913,9 @@ def main(argv: list[str] | None = None) -> int:
         text = json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
         path = screen_path(y)
         errs = table_errors(s)
+        if a.check is not None:
+            import inventory_view  # noqa: PLC0415  (the stored records of the edition)
+            errs += rule_stage_refusals(inventory_view.inventory(y), doc)
         slots = empty_slots(s.table)
         print(f"{y} -> {s.newer_year}: pairs {len(s.pairs)}, marked {doc['counts']['marked']}; pending "
               f"{doc['counts']['pending']}" + (f"; EMPTY SLOT(S) {slots}: no batch is written" if slots else ""))

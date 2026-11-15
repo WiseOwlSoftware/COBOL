@@ -1211,13 +1211,12 @@ def change_batch(a: argparse.Namespace) -> int:
         label = state.name
         records = change_records(ed, dispositions(state), a.source or f"audit-{a.edition}/{state.name}", held)
     else:
-        import lineage  # noqa: PLC0415  (the rule stage's source)
-        import lineage_screen  # noqa: PLC0415  (the rule stage: the screen and its triggers)
+        import lineage_screen  # noqa: PLC0415  (the rule stage: the screen, its triggers and its source)
         if a.source:
-            raise SystemExit(f"{TOOL}: the rule stage's records carry their own source ({lineage.RULE_STAGE_SOURCE})")
+            raise SystemExit(f"{TOOL}: the rule stage's records carry their own source ({lineage_screen.RULE_STAGE_SOURCE})")
         label = f"rule-stage-{a.edition}"
         disp, excluded = lineage_screen.rule_stage(lineage_screen.Screen.of(a.edition))
-        records = change_records(ed, disp, lineage.RULE_STAGE_SOURCE, held)
+        records = change_records(ed, disp, lineage_screen.RULE_STAGE_SOURCE, held)
         if a.exclusions:
             write_atomic(pathlib.Path(a.exclusions), json.dumps(excluded, indent=1, ensure_ascii=False, sort_keys=True) + "\n")
     out = pathlib.Path(a.out)
