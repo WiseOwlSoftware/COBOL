@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.4.6.4-12",
  "rule-digest": "e3d26975d3a5",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c26_rewrite_relative_invalid_key; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1168_rs_rewrite_size_gr16; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1190_varying_advancing_bounds",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

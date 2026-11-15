@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.2.5.4-2",
  "rule-digest": "cd6159961e43",
+ "test-ref": "conformance:cases/10.7-End-markers/l1c08_end_marker_closes_unit",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

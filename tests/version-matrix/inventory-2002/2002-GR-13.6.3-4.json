@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.6.3-4",
  "rule-digest": "7cb64de820dd",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/udf_prototype; conformance:cases/13.7-Linkage-section/oo_method_redefines_linkage; conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value; conformance:cases/9.3.6-Method-invocation/pb1051_method_by_value_match",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

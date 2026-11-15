@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.36.2-3",
  "rule-digest": "7af61d2451db",
+ "test-ref": "conformance:cases/14.9.40-SORT/l1c29-sort-collating-slot2-alphanumeric; conformance:cases/14.9.40-SORT/l1c29-sort-collating-national-utf8",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

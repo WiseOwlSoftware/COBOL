@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-12.2.7.2-15",
  "rule-digest": "1a20c6d5df72",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/l1c24_repository_self_program_specifier; conformance:cases/12.3.8-REPOSITORY/pb3121_containing_definition_scope",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

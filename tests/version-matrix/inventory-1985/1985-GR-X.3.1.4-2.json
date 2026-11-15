@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.3.1.4-2",
  "rule-digest": "2ef6c6c884bd",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/l1c21_common_program_visibility",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

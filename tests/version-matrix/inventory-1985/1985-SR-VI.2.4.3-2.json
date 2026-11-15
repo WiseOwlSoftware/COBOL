@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.2.4.3-2",
  "rule-digest": "696eb790bddb",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-end-program-name-mismatch",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

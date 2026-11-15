@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-11.2.3-5",
  "rule-digest": "fb5823973c5d",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

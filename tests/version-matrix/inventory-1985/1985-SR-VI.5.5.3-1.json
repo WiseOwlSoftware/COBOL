@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.5.3-1",
  "rule-digest": "01543cf59596",
+ "test-ref": "conformance:cases/13.16-Data-description/pb1280-redefines-after-picture; conformance:cases/13.16-Data-description/pb1280-redefines-after-global",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

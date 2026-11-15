@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XII.3.3-7",
  "rule-digest": "1be1369141b4",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1353-replace-operand-content",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

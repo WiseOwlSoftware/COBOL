@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.2.4.4-8",
  "rule-digest": "f727b086773b",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb5069_external_entries_agree",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

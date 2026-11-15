@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.44.3-1",
  "rule-digest": "55b7063f400a",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_or_operands_equal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

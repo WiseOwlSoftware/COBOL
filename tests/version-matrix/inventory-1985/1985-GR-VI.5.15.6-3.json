@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.15.6-3",
  "rule-digest": "885aeaa7b740",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb206_value_size_alphanumeric; conformance:cases/13.18.63-VALUE/pb4610_value_size_numeric_edited; conformance:cases/VI.5.15@1985-VALUE-CLAUSE/pb5190_condition_name_value_fits; conformance:cases/13.18.63-VALUE/pb5215_group_condition_name_alphanumeric; conformance:cases/13.18.63-VALUE/pb207_group_value_area_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

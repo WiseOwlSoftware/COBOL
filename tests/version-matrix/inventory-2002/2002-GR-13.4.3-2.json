@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.4.3-2",
  "rule-digest": "4c876f33408e",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb154_cancel_cascade",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

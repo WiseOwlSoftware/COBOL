@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.10.2-6",
  "rule-digest": "4ca719a910e5",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-other-trailing-text-after-match",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

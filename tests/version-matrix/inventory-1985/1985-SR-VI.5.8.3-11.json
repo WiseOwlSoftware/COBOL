@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.8.3-11",
  "rule-digest": "50075d16c64b",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb1263_occurs_key_items_admitted",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

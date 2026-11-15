@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.37.2-8",
  "rule-digest": "d176754ff112",
+ "test-ref": "conformance:cases/14.9.41-START/pb352-start-length-non-indexed",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

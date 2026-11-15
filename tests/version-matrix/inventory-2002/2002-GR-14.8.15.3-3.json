@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.15.3-3",
  "rule-digest": "e5737149427c",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/pb1131_control_break_collating_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

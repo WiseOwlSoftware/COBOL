@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-8.4.2.13.3-1",
  "rule-digest": "086ddfb658c6",
+ "test-ref": "conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1153_counter_register_byte_length",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

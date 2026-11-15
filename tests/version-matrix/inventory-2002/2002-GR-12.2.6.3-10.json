@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.6.3-10",
  "rule-digest": "9a61ee8291f2",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb1093_alphabet_high_value_tail; conformance:cases/8.3.3.6-Figurative-constant-values/pb1759_high_value_is_the_highest_native_character",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

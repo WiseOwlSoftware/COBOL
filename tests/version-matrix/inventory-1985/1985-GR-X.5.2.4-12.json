@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.5.2.4-12",
  "rule-digest": "f39214107506",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb131_gr5_transitivity",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

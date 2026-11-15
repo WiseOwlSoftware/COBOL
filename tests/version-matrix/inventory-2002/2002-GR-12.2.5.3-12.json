@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.5.3-12",
  "rule-digest": "d81749d55b46",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t1_locale_declare",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

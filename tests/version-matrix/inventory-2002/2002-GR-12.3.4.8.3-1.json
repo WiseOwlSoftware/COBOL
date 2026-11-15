@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.3.4.8.3-1",
  "rule-digest": "2eb2e733b8fd",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/l1_lock_mode_omitted_sets_no_lock; conformance:cases/12.4.5.9-LOCK-MODE/gn1_lock_mode_omitted_implementor_default",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

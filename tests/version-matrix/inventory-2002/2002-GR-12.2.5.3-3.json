@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.5.3-3",
  "rule-digest": "0db19d0dcb21",
+ "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

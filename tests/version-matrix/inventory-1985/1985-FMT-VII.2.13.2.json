@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VII.2.13.2",
  "rule-digest": "6df16ec31572",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-one-file",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

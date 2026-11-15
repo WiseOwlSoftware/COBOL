@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VII.3.8.3-2",
  "rule-digest": "28be4b2b52e8",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb721-record-varying-below-minimum; conformance:cases/13.18.43-RECORD/pb721-record-varying-above-maximum",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
