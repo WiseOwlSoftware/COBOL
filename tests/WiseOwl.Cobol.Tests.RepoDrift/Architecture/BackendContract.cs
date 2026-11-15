@@ -206,7 +206,7 @@ internal static class BackendContract
             "Model.UsagePhraseRule.Words", "Model.VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup()",
             "Model.VariableLengthCompatibility.Mismatch()", "Model.VariableLengthCompatibility.PairRefusal()",
             "Model.VariableLengthCompatibility.Reason()",
-            "Model.FileModel.BeyondAssign", "Model.FileModel.EntryFace", "Model.FileModel.OrganizationFace", "Model.OccursKey.Written",
+            "Model.FileModel.BeyondAssign", "Model.FileModel.EntryShapeFindings", "Model.FileModel.EntryFace", "Model.FileModel.OrganizationFace", "Model.OccursKey.Written",
             "Model.PictureClauseIdentity.Phrases()", "Model.RaisingTarget.Spelled", "Model.RecordKey.Face",
             "Model.RedefinesClass.RejectReason", "Model.SameClause.Written", "Model.SuppressWhenOperand.Written",
             // a file description clause as written, which the external connector's agreement diagnostic shows (kb/Work PB5362)

@@ -661,6 +661,12 @@ internal static class FileControlKeyRules
         new("a RELATIVE KEY clause", FileFormats.Format2, f => f.RelativeKeyName is not null),
         new("ORGANIZATION IS LINE SEQUENTIAL", FileFormats.Format3, f => f.Organization is FileOrganization.LineSequential),
         new("a RECORD DELIMITER clause", FileFormats.Format3, f => f.RecordDelimiter is not null),
+        // ⛔ A CLAUSE NO 2023 DIAGRAM PRINTS (kb/Work PB5565): §1985:VII.2.3.2 and §2002:12.3.4.1 Format 3 print PADDING CHARACTER,
+        // and §1985:IX.2.3.2, §1985:VIII.2.3.2 and §2002:12.3.4.1 Formats 1 and 2 do not (the clause "specifies the character
+        // which is to be used for block padding on sequential files", §1985:VII.2.7.4 GR1). 2014 deleted it, so a 2014 or
+        // 2023 entry writes no clause of any format (FileControlBinder captures it as `InEdition`) and the version gate
+        // refuses it. DiagramOracle covers the 2023 rows; the 1985 and 2002 oracle is PaddingClause_IsCarriedBySequentialFormatAlone.
+        new("a PADDING CHARACTER clause", FileFormats.Format3, f => f.Padding is { InEdition: true }),
         // `RECORD SEQUENTIAL` and the bare `SEQUENTIAL` are one phrase (RECORD is an optional word, §2023:12.4.5.10.2).
         new("ORGANIZATION IS SEQUENTIAL", FileFormats.Format3 | FileFormats.Format4,
             f => f.OrganizationWritten && f.Organization is FileOrganization.Sequential),
@@ -938,6 +944,16 @@ internal static class FileControlKeyRules
                 + "file-name-1 in the FILE-CONTROL paragraph.\" (§1985:XI.2.3.2 prints SELECT file-name-1 ASSIGN TO and "
                 + "nothing else)");
         }
+        // ⛔ THE ASSIGN CLAUSE'S FORMAT-LEVEL REFUSALS (kb/Work PB5587): a figurative constant as literal-1 and a list the
+        // SR5 determination does not allow are 2023 rules (§2023:12.4.5.2 SR4, SR5). The 1985 sort-merge entry has neither
+        // (§1985:XI.2.3.2 prints `ASSIGN TO {implementor-name-1 | literal-1} …`, §1985:XI.2.3.3 restricts only what may
+        // follow the ASSIGN clause), so the entry's kind decides, here, where it is known.
+        if (!sortMerge1985)
+            foreach (var (code, cursor, message) in file.EntryShapeFindings)
+            {
+                using var at = edition.At(cursor);
+                edition.Error(code, message);
+            }
         // The entry's REQUIRED members first (§2023:12.4.5.1: a clause printed with no bracket): an entry that lacks its
         // ASSIGN clause is told so before any rule over the clauses it did write.
         foreach (var required in RequiredClauses)
