@@ -1,4 +1,4 @@
-## golden-2002-4: 108 own-edition witnesses at --std 2002 from 18 gl2002 files; 86 CONFORMS 2002 records; GAP 2169 -> 2084
+## Entry 3706 — 2026-11-15 15:26 PST — golden-2002-4: 108 own-edition witnesses at --std 2002 from 18 gl2002 files; 86 CONFORMS 2002 records; GAP 2169 -> 2084
 
 The fourth landing of the 2002 golden lane (gl2002, kb/Work PB5597). It integrates 18 of the lane's 85 writer files:
 6.1.2 floating indicators, 7.1.3 REPLACE, 7.2.19 TURN, 8.3.1.2.1 alphanumeric and 8.3.1.2.4 national literals, 8.7.5
@@ -47,3 +47,4 @@ note was corrected.
   value are unobservable.
 - 2002-GR-13.16.15.3-6: a zero-length CONTROL group needs a variable-occurrence entry, which SR5 forbids, so only a
   refusal could show it, and a refusal cannot witness a GR.
+
