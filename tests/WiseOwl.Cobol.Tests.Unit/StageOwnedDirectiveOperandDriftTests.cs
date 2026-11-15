@@ -28,6 +28,8 @@ public sealed class StageOwnedDirectiveOperandDriftTests : WiseOwlCobolTestBase
         ["TURN"] = [">>TURN EC-ALL CHECKING ON{0}"],
         ["FLAG-02"] = [">>FLAG-02 ALL ON{0}"],
         ["FLAG-14"] = [">>FLAG-14 ALL ON{0}"],
+        ["FLAG-85"] = [">>FLAG-85 ALL ON{0}"],
+        ["FLAG-NATIVE-ARITHMETIC"] = [">>FLAG-NATIVE-ARITHMETIC ON{0}"],
         ["COBOL-WORDS"] = [">>COBOL-WORDS UNDEFINE \"MOVE\"{0}"],
         ["DEFINE"] = [">>DEFINE FOO AS 1{0}"],
         ["IF"] = [">>IF 1 = 1{0}", ">>END-IF"],
@@ -38,6 +40,14 @@ public sealed class StageOwnedDirectiveOperandDriftTests : WiseOwlCobolTestBase
         ["END-EVALUATE"] = [">>EVALUATE 1", ">>WHEN 1", ">>END-EVALUATE{0}"],
         ["DISPLAY"] = [">>DISPLAY \"A\"{0}"],
     };
+
+    /// <summary>The newest edition at which the word is a directive — 2023 for every word but the two the 2023 text removed
+    /// (FLAG-85, FLAG-NATIVE-ARITHMETIC: Annex E.2 item 21), whose newest edition is 2014.</summary>
+    private static int DialectOf(string word)
+    {
+        var row = CompilerDirectiveCatalog.Find(word)!;
+        return new[] { 2023, 2014, 2002, 85 }.First(y => row.StatusAt(y) is not (ConstructAvailability.NotYetIntroduced or ConstructAvailability.Removed));
+    }
 
     private static IEnumerable<string> StageWords() =>
         ConstructRegistry.Entries
@@ -65,11 +75,12 @@ public sealed class StageOwnedDirectiveOperandDriftTests : WiseOwlCobolTestBase
         foreach (string word in StageWords())
         {
             Assert.True(Witness.TryGetValue(word, out var lines), $"no witness line for >>{word}");
-            if (Errors(lines!, "", format) is { Count: > 0 } conforming)
+            int dialect = DialectOf(word);
+            if (Errors(lines!, "", format, dialect) is { Count: > 0 } conforming)
                 bad.Add($">>{word}: its conforming operand is rejected — {conforming[0]}");
-            if (Errors(lines!, "   *> why", format) is { Count: > 0 } commented)
+            if (Errors(lines!, "   *> why", format, dialect) is { Count: > 0 } commented)
                 bad.Add($">>{word}: an inline comment after the operand is rejected — {commented[0]} (§2023:7.3.3 SR3/SR4)");
-            if (Errors(lines!, " ZZJUNK", format).Count == 0)
+            if (Errors(lines!, " ZZJUNK", format, dialect).Count == 0)
                 bad.Add($">>{word}: a word after the operand is accepted in silence (§2023:7.3.3 SR3/SR4)");
         }
 
@@ -78,7 +89,7 @@ public sealed class StageOwnedDirectiveOperandDriftTests : WiseOwlCobolTestBase
 
     /// <summary>Compile <paramref name="lines"/> with <paramref name="suffix"/> substituted into the witness line and return
     /// the error diagnostics the REAL front end reports (every stage, in order — never one stage called on its own).</summary>
-    private List<string> Errors(string[] lines, string suffix, InitialReferenceFormat format)
+    private List<string> Errors(string[] lines, string suffix, InitialReferenceFormat format, int dialect)
     {
         string indent = format == InitialReferenceFormat.Free ? "" : "       ";
         string text = string.Concat(lines.Select(l => indent + string.Format(l, suffix) + "\n"))
@@ -87,7 +98,7 @@ public sealed class StageOwnedDirectiveOperandDriftTests : WiseOwlCobolTestBase
         string path = Path.Combine(TempDir, "sodo.cob");
         File.WriteAllText(path, text);
         var bag = new DiagnosticBag();
-        new WiseOwl.Cobol.Frontend.Frontend { InitialFormat = format, DialectLevel = 2023 }.Parse(path, bag);
+        new WiseOwl.Cobol.Frontend.Frontend { InitialFormat = format, DialectLevel = dialect }.Parse(path, bag);
         return bag.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => $"{d.Code}: {d.Message}").ToList();
     }
 }
