@@ -1,4 +1,4 @@
-## The 2002 golden lane, third landing: 105 witnesses at --std 2002 for 14 more files, 2002 GAP 2,258 to 2,170
+## Entry 3700 — 2026-11-15 13:54 PST — The 2002 golden lane, third landing: 105 witnesses at --std 2002 for 14 more files, 2002 GAP 2,258 to 2,170
 
 The gl2002 lane (kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`. This landing integrates 14 of
 the lane's 85 input files: 7.2 compiler directives, 7.2.9 DEFINE, CLOSE, CANCEL (second part), UNSTRING, SORT, SEARCH,
@@ -46,3 +46,4 @@ defect-suspected rows.
 - 2002-GR-14.8.36.3-4: the order of equal keys is undefined.
 - 2002-GR-14.8.29.3-17 and -20: there is no reel/unit medium. The writers wrote DERIVATION records for these two, and
   they were dropped, since no 2002 derivation cell exists.
+
