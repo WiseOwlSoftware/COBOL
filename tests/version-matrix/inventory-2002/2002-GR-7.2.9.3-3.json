@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.9.3-3",
+ "rule-digest": "d13474cc8532",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#Standard2002",
+ "test-ref": "conformance:cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/pb5575-ct-arith-32-digit-truncation",
+ "notes": "§2002:7.2.9.3 GR3: OVERRIDE sets the compilation variable to the value of the operand, an expression's value being the 32-digit standard-arithmetic result (kb/Work PB5575). The witness overrides V3 = 5 with 2 / 3 * 3 and the later EVALUATE selects the value 1."
+}

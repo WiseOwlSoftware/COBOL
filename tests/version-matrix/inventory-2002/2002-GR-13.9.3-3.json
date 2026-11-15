@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.9.3-3",
+ "rule-digest": "a4be894fb380",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#Standard2002",
+ "test-ref": "conformance:cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/pb5575-ct-arith-32-digit-truncation",
+ "notes": "§2002:13.9.3 GR3: a constant-name written in another entry is an integer literal of the constant's value, which for an arithmetic-expression is the 32-digit standard-arithmetic result truncated to its integer part (§2002:7.2.5.2 GR1, GR2; kb/Work PB5575). The witness's 01 W1 PIC 9(2) VALUE K3, K3 = 100 / 7 * 7, displays 99."
+}
