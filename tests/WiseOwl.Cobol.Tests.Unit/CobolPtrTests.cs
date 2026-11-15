@@ -150,6 +150,24 @@ public sealed class CobolPtrTests
         Assert.True(naNan);
     }
 
+    // kb/Work PB5619 — the SDIDI lane keeps the value's own exponent: GR1 rounds 2 + 1E-20 up to 3 (a scale-6 landing read 2),
+    // GR2 answers a value at or below zero with NULL and no flag, and an integer past Int128 is GR5's not-available.
+    [Theory]
+    [InlineData("200000000000000000001", -20, 3, false, false)]   // 2.00000000000000000001 -> 3
+    [InlineData("25", -1, 3, false, false)]                       // 2.5 -> 3
+    [InlineData("3", 0, 3, false, false)]                         // integer, exact
+    [InlineData("1", -39, 1, false, false)]                       // 1E-39 -> 1 (0 < value < 1)
+    [InlineData("-5", -1, 0, true, false)]                        // -0.5 -> ceil 0 -> GR2 NULL, no flag
+    [InlineData("0", 0, 0, true, false)]                          // GR2
+    [InlineData("1", 40, 0, true, true)]                          // 10**40 -> GR5 not available
+    public void AllocateDec_CeilsAndClassifies(string sig, int exp, int cellLength, bool isNull, bool notAvail)
+    {
+        var p = CobolPtr.AllocateDec(new CobolDec(Int128.Parse(sig), exp), ' ', out bool na);
+        Assert.Equal(notAvail, na);
+        Assert.Equal(isNull, p.IsNull);
+        if (!isNull) Assert.Equal(cellLength, ((CellPointer)p).Cell.Ref.Length);
+    }
+
     // kb/Work PB151 — §2023:14.9.39.4 GR19 on a native-float amount: non-integral leaves the pointer UNCHANGED
     // (the old (long)(double) truncation bypassed the integrality raise); an integral double displaces.
     [Fact]

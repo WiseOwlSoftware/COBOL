@@ -1465,6 +1465,11 @@ internal static class RuntimeApi
     public static string PtrUpByAmount(string ptr, string scaled, string scale, bool down) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByAmount)}({ptr}, {scaled}, {scale}, {(down ? "true" : "false")})";
 
+    /// <summary>The SDIDI lane of <see cref="PtrAllocate"/> — <c>CobolPtr.AllocateDec</c> (kb/Work PB5619): the ceiling and the
+    /// storage-not-available outcomes run on the value's own exponent.</summary>
+    public static string PtrAllocateDec(string decExpr, string fillCharLiteral, string notAvailVar) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.AllocateDec)}({decExpr}, {fillCharLiteral}, out {notAvailVar})";
+
     /// <summary>The STANDARD-DECIMAL lane of <see cref="PtrUpByAmount"/> — <c>CobolPtr.UpByAmountDec</c> (kb/Work PB5619).</summary>
     public static string PtrUpByAmountDec(string ptr, string dec, bool down) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByAmountDec)}({ptr}, {dec}, {(down ? "true" : "false")})";

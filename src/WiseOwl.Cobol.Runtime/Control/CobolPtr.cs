@@ -271,6 +271,28 @@ public static class CobolPtr
         return Allocate((Int128)up, fill, out notAvail);
     }
 
+    /// <summary>The SDIDI lane of ALLOCATE (kb/Work PB5619): GR1's "rounded up to the next whole number" on the value's own
+    /// exponent, so a fraction of 1E-20 still rounds up; GR2's result at or below zero is NULL with no exception; an integral
+    /// request past <see cref="Int128"/> (or past what a cell can hold) is GR5's storage-not-available, never a size error.</summary>
+    public static ManagedPointer AllocateDec(CobolDec size, char fill, out bool notAvail)
+    {
+        notAvail = false;
+        if (size.Sig <= 0) return ManagedPointer.Null;           // GR2 — also ceil(-0.5) = 0
+        Int128 up;
+        if (size.Exp >= 0)
+        {
+            if (!CobolNum.WideningFits(size.Sig, size.Exp)) { notAvail = true; return ManagedPointer.Null; }
+            up = size.Exp == 0 ? size.Sig : size.Sig * Pow10.AsWide(size.Exp);
+        }
+        else if (-size.Exp > 38) up = 1;                          // 0 < value < 1 (Sig < 10^39): GR1 rounds up to 1
+        else
+        {
+            Int128 pow = Pow10.AsWide(-size.Exp);
+            up = size.Sig / pow + (size.Sig % pow != 0 ? 1 : 0);  // GR1
+        }
+        return Allocate(up, fill, out notAvail);
+    }
+
     /// <summary>FREE (ISO §2023:14.9.15 GR1): (a) a pointer addressing the START of storage obtained by ALLOCATE
     /// and not yet freed — release it (the cell's life ends, <see cref="StorageCell.End"/>, and its image is
     /// dropped; every dangling alias then fails loud at <see cref="Deref"/>, the "contents become undefined"

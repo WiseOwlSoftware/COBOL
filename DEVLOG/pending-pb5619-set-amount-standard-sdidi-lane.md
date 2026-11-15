@@ -22,3 +22,14 @@ control, accepted at 2002), `set-index-by-standard-sdidi-amount` (the index sibl
 2023 removed ARITHMETIC IS STANDARD, so the goldens stop at 2002.
 
 **Register.** Rows `2002-GR-14.8.35.3-16` and `-17` re-verdicted CONFORMS (batch pb5619-set-ptr-std-2002; GAP 2258 to 2256).
+
+**Review round 1.** The reviewer found two blocking points. (1) ALLOCATE arithmetic-expression-1 CHARACTERS kept the scale-6 landing:
+under ARITHMETIC IS STANDARD, `ONE + ONE + ONE / 10**20` (2 + 1E-20) lost its fraction before GR1's round-up and allocated 2 characters
+where 3 are required, and `10 ** 40` ended the run with EC-SIZE-OVERFLOW instead of GR5's storage-not-available. Fix: EmitAllocate reads
+`LandedAmount`, and a new `CobolPtr.AllocateDec` (the SDIDI twin of `AllocateReal`) rounds up on the value's own exponent, answers GR2 with
+NULL and an integer past Int128 with GR5; `CobolPtrTests.AllocateDec_CeilsAndClassifies` pins it. The goldens `allocate-standard-sdidi-amount`
+(2002) and `allocate-standard-below-2002` (refused at 85) pass. (2) START WITH LENGTH under STANDARD arithmetic had no golden: the golden
+`start-length-standard-sdidi-amount` (2002; fraction, 10 ** 40, 1 + 1 and a negative count: 23, 23, 00, 23) and its refusal
+`start-length-standard-below-2002` now pin it. The stale two-lane comments the review listed (SetEmitter, PtrEmitter, KeyedIoEmitter,
+NumericRenderer.Landed) are corrected.
+

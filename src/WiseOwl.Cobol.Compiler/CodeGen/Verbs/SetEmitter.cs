@@ -57,21 +57,22 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     private BoundSetTarget IdentifiedAtStore(BoundSetTarget t) =>
         t is SetPlaceTarget sp ? sp with { Place = debug.IdentifiedAtStore(sp.Place) } : t;
 
-    /// <summary>⛔ THE ONE SET-FAMILY AMOUNT LANDING at the emitter — the two-lane render that keeps an amount's
+    /// <summary>⛔ THE ONE SET-FAMILY AMOUNT LANDING at the emitter — the three-lane render (native double, SDIDI, scaled Int128) that keeps an amount's
     /// FRACTION and its FULL MAGNITUDE alive all the way into <see cref="CobolIndex"/>, where §2023:14.9.39.4's
     /// integrality / range / sign guards are written once (kb/Work PB459). Renders the amount temp and returns the
     /// C# condition text that is TRUE when the landing succeeded; the caller puts the statement's effect inside
     /// <c>if (…)</c> so the unsuccessful leg leaves every receiving operand unchanged.
     /// <para>The shape is <see cref="PtrEmitter.EmitSetPointerUpDown"/>'s, by construction: a NATIVE-FLOAT amount
     /// keeps its <c>double</c> so the integrality test runs on the double (kb/Work PB151 — an emitter-side
-    /// <c>(long)(double)</c> truncation bypasses the raise entirely), and every other amount arrives as its EXACT
+    /// <c>(long)(double)</c> truncation bypasses the raise entirely), an SDIDI amount (every arithmetic expression under a
+    /// standard mode, kb/Work PB5619) keeps its <c>CobolDec</c>, and every other amount arrives as its EXACT
     /// scaled <c>Int128</c> with its scale, so the divisibility test IS the integrality test and a magnitude past
     /// the 64-bit index carrier is a value the runtime can see rather than a wrap it cannot.</para>
     /// <para><paramref name="valueVar"/> is declared by the <c>out long</c> in the returned condition, so it is in
     /// scope for the whole enclosing block — the landed, guaranteed-integral occurrence number.</para></summary>
-    /// <param name="x">The rendered amount, BEFORE any narrowing. Funnelled through <c>Landed</c>/<c>DeU</c> here,
-    /// so an SDIDI intermediate (STANDARD-DECIMAL, or a native <c>**</c> — kb/Work PB84) and an unsigned-wide read
-    /// (kb/Work R10) each reach the exact <c>Int128</c> lane in ONE place rather than at every caller.</param>
+    /// <param name="x">The rendered amount, BEFORE any narrowing. Funnelled through <c>LandedAmount</c> here,
+    /// so an SDIDI intermediate (STANDARD-DECIMAL, or a native <c>**</c> — kb/Work PB84) keeps its own exponent and an unsigned-wide read
+    /// (kb/Work R10) reaches the exact <c>Int128</c> lane, each in ONE place rather than at every caller.</param>
     /// <param name="prefix">The generated temp's name stem, so the emitted C# still reads as the statement it came
     /// from (<c>__set…</c> / <c>__cap…</c> / <c>__pv…</c>).</param>
     public string LandAmount(NumX x, SetAmountRule rule, string detail, out string valueVar, string prefix)

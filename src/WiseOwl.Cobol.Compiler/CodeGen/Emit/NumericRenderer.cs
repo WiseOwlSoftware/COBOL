@@ -1485,7 +1485,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// intermediate consumer has no capacity check downstream, so a value past the carrier RAISES EC-SIZE-OVERFLOW
     /// here rather than becoming the low-order digits a STORE may take (kb/Work PB77/PB69/PB65/PB3019).</para>
     /// <para>NOTE — ALLOCATE's NATIVE-FLOAT lane does NOT come through here, and that is not an oversight:
-    /// <c>CobolPtr.AllocateReal</c> fuses GR1's <c>Math.Ceiling</c> with GR2's ≤ 0 ⇒ NULL and with the
+    /// <c>CobolPtr.AllocateReal</c> (and its SDIDI twin <c>AllocateDec</c>, kb/Work PB5619) fuses GR1's ceiling with GR2's ≤ 0 ⇒ NULL and with the
     /// storage-not-available outcomes that only the ALLOCATE statement defines, so a NaN or an over-wide request
     /// answers "not available" instead of raising (kb/Work PB151). Routing it through a checked emitter-side
     /// landing would trade that defined outcome for a size-error condition. The ROUNDING RULE is still written

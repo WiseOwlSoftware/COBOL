@@ -124,8 +124,8 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     /// statement lives in the runtime's <c>CobolPtr</c> — GR18's NULL trap, GR19's integrality test on the
     /// AMOUNT (EC-SIZE-ADDRESS) and GR20's range test on the RESULTING ADDRESS (EC-RANGE-PTR).
     /// <para>⛔ THREE lanes (NATIVE float, SDIDI under a standard mode — kb/Work PB5619 — and the exact scaled Int128), and the shape is <see cref="SetEmitter.LandAmount"/>'s by construction:
-    /// a NATIVE-FLOAT amount keeps its <c>double</c> so the integrality test runs on the double, and every other
-    /// amount arrives as its EXACT scaled <c>Int128</c> with its scale. The former third lane rendered
+    /// a NATIVE-FLOAT amount keeps its <c>double</c> so the integrality test runs on the double, an SDIDI amount keeps its
+    /// <c>CobolDec</c> so the test runs on its own exponent, and every other amount arrives as its EXACT scaled <c>Int128</c> with its scale. The former third lane rendered
     /// <c>long __ptrBy = (long)(…)</c>, which WRAPPED the magnitude GR20 rejects — measured,
     /// <c>SET P UP BY 18446744073709551618</c> displaced by 2 and <c>SET P UP BY 1844674407370955162.0</c>
     /// raised GR19's condition for an amount that IS an integer (kb/Work PB465).</para></summary>
@@ -193,16 +193,21 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             EmitStorageNotAvail(w, na);   // GR5c — data-name-2 and the based address already hold NULL
             return;
         }
-        NumX x = num.Landed(NumericRenderer.DeU(num.Render(s.Chars!, ReceiverContext.None)), ReceiverContext.None);   // kb/Work PB84
+        NumX x = num.LandedAmount(num.Render(s.Chars!, ReceiverContext.None));   // kb/Work PB84, PB5619 — an SDIDI keeps its own exponent: GR1 rounds its FRACTION up, GR5 answers its magnitude
         // GR1's round-UP per lane (kb/Work PB151/PB142). §2023:14.9.3.4 GR1 and §2023:14.7.9.3 GR1 (RETRY n TIMES) are the
         // standard's ONLY two "rounded up to the next whole number" clauses, so the scaled lane's round-up is
         // NumericRenderer.AlignRoundedUp — the one place that rule is written — and not a second local ceiling.
+        // The SDIDI lane (every arithmetic expression under a standard mode) stays inside CobolPtr.AllocateDec for the same
+        // reason: the value keeps its own exponent so a fraction 1E-20 above an integer still rounds up, and a request past
+        // Int128 is GR5's storage-not-available, never EC-SIZE-OVERFLOW (kb/Work PB5619).
         // The NATIVE-FLOAT lane stays inside CobolPtr.AllocateReal, which fuses the same ceiling with GR2's
         // ≤ 0 ⇒ NULL and the storage-not-available outcomes only ALLOCATE defines (the old `(long)(double)`
         // truncated 2.5 → 2, a silently undersized cell). Either way the size travels as the FULL Int128 — the
         // old `(long)` narrowing wrapped a 20-digit request into a small VALID allocation (the PB22 cast family).
         string alloc = x.Real
             ? RuntimeApi.PtrAllocateReal($"({x.Expr})", fill, na)
+            : x.Dec
+            ? RuntimeApi.PtrAllocateDec(x.Expr, fill, na)
             : RuntimeApi.PtrAllocate($"(global::System.Int128)({NumericRenderer.AlignRoundedUp(x)})", fill, na);
         w.Line(PlaceRenderer.Write(s.Returning!, alloc)
             + "   // ALLOCATE n CHARACTERS (ISO §2023:14.9.3.4 GR1/GR2/GR5" + (s.Initialized ? "/GR6" : "/GR8") + ")");

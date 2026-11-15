@@ -555,7 +555,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             // less than or equal to the length of the associated key, the I-O status value … is set to '23'". The
             // former int cast of `Align(expr, 0)` truncated 2.5 to 2 and wrapped 4294967297 to 1 before the connector's
             // bound test ran, so both positioned with '00'. The lanes are LandAmount's (SetEmitter): the exact
-            // scaled Int128 with its scale, or the native double — the fraction and the magnitude both survive.
+            // scaled Int128 with its scale, the SDIDI value, or the native double — the fraction and the magnitude both survive.
             string len = sta.Length is { } le
                 ? StartLength(num.LandedAmount(num.Render(le, ReceiverContext.None)), natBytes)
                 : RuntimeApi.StartKeyLengthWidth(sta.NamedKey?.ByteWidth ?? sta.Operand!.Item.ByteWidth);
