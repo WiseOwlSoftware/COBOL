@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-11.6.3-6",
+ "rule-digest": "dfbf13c8eba6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#ScreenPropertyMethodHeader",
+ "test-ref": "conformance:cases/13.16.40@2002-PROPERTY-CLAUSE/pb5598-active-class-property-2002",
+ "notes": "Same text as the 2023 twin; a METHOD-ID GET PROPERTY with an ACTIVE-CLASS returning item is a get property method for its property-name at 2002 (kb/Work PB5598); the golden reads it through SELFREF OF A."
+}
