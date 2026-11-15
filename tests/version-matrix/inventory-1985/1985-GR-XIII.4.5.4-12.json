@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.5.4-12",
  "rule-digest": "6bea72976b38",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenMultipleFileClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MultipleFileReels; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
+ "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/1985-GR-XIII_4_5_4-12",
+ "notes": "§1985:XIII.4.5.4 GR12: \"Treatment of a file contained in a multiple file tape environment is logically equivalent to the treatment of a sequential file contained in a single file tape environment.\" The Report Writer twin of 1985-GR-VII_4_3_4-19: a report file in MULTIPLE FILE TAPE (POSITION 1) and the same report file outside it are each opened OUTPUT, the same report is generated and terminated, and both are read back as plain sequential files of one-character records; the expectation, derived from GR12 alone, is that the files are character-for-character equal and end together, with each report line present once (\"RECORDS EQUAL\", \"ALPHA 1\", \"BRAVO 1\"). It matched at --std 85 on the records-85-held build. Previous verdict: none (test owed, records-read6). Recorded 2026-11-14 by records-85-held.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

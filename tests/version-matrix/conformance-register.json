@@ -871,6 +871,20 @@
    "refuter": "tests/version-matrix/derivation-refutations/pb5373-class2.jsonl"
   },
   {
+   "key": "DRV-1985-GR-XIV.3.6.4-17",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of communication devices that are character-imaging, line-oriented devices onto whose used line a SEND can be positioned (GR16's class, of which the device of GR17 that does not support replacement and the device of GR18 that does not support superimposition are the two cases) is empty: every device (a terminal, or a destination with no deliverTo) takes variable-length messages (GR2; section 3.3, \"Communication devices\"), McsStore.Transmit is its only writer and writes each complete message at the device's committed end, and ADVANCING and REPLACING LINE are ignored (GR12)",
+   "signature": "claude: 2026-11-14",
+   "refuter": "tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-XIV.3.6.4-18",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of communication devices that are character-imaging, line-oriented devices onto whose used line a SEND can be positioned (GR16's class, of which the device of GR17 that does not support replacement and the device of GR18 that does not support superimposition are the two cases) is empty: every device (a terminal, or a destination with no deliverTo) takes variable-length messages (GR2; section 3.3, \"Communication devices\"), McsStore.Transmit is its only writer and writes each complete message at the device's committed end, and ADVANCING and REPLACING LINE are ignored (GR12)",
+   "signature": "claude: 2026-11-14",
+   "refuter": "tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl"
+  },
+  {
    "key": "DRV-DOC-A.1-19",
    "arm": "indistinguishable-consequent",
    "names": "GR-14.9.5.4-7",

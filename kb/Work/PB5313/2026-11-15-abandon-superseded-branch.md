@@ -1,0 +1,1 @@
+**2026-11-15, resume unit:** branch `worktree-wf_5f2b837e-b54-1` ABANDONED: superseded. PB5313, PB5469, PB5471, PB5473 and the merged PB5501 work it replays are each `status: landed` on origin/main ed86914443 through other branches; its only files main lacks are its unstamped DEVLOG/pending-*.md entries, whose landings main already stamped, so nothing unique is left on it.

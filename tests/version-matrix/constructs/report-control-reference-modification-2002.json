@@ -1,0 +1,13 @@
+{
+ "id": "report-control-reference-modification-2002",
+ "status": "active",
+ "description": "A reference-modified control name: the CONTROL clause's data-name-1 and the TYPE clause's CONTROL HEADING / CONTROL FOOTING operand (kb/Work PB5573). §1985:III.2 says a general format's 'data-name' \"must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of the format\", and §1985:XIII.3.7.3 SR1 permits the CONTROL operand qualification only (\"Data-name-1 may be qualified\"); no 1985 rule permits reference modification of any control name. ISO/IEC 1989:2002 adds it: 13.16.15.2 SR4 (\"Data-name-1 may be reference modified\") and 13.16.55.2 SR10 (\"Data-name-1 and data-name-2 may be qualified and reference modified\"), §2023:13.18.16.3 SR4 and §2023:13.18.57.3 SR10 in the 2023 text. Only the reference modifier is gated: a subscripted control name is refused at every edition (COBOL1699, COBOL0899), and a qualified one is COBOL-85 in the CONTROL clause by SR1 and in the TYPE clause by the reading kb/Work PB5573 records. Gated in ONE place, VersionConformancePass.ParseArm.GateCobol85ControlName, which VisitReportControlClause and VisitReportControlName both call, once per written operand.",
+ "display": "a reference-modified control name (report description)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.16.3 SR4, §2023:13.18.57.3 SR10; ISO/IEC 1989:2002 13.16.15.2 SR4, 13.16.55.2 SR10; §1985:III.2 and §1985:XIII.3.7.3 SR1 (qualification only)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.45 (85->2002: a control name may be reference modified)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRCR.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"VMRCR.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WK PIC X(2) VALUE \"AB\".\nREPORT SECTION.\nRD R1 CONTROL IS WK (1:1) PAGE LIMIT IS 10 LINES.\n01 CH1 TYPE CONTROL HEADING WK (1:1) LINE PLUS 1.\n    02 COLUMN 1 PIC X(2) VALUE \"CH\".\n01 DA TYPE DETAIL LINE PLUS 1.\n    02 COLUMN 1 PIC X(2) VALUE \"DE\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+}
