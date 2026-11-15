@@ -1827,6 +1827,31 @@ public sealed class FileRegistry
         if (_files.TryGetValue(name, out var c)) c.CodeSet = new CodeSetConversion(toNative);
     }
 
+    /// <summary>Declare the file's record format (§2023:13.18.24 FORMAT clause; §2023:13.18.51 SELECT WHEN clause): the
+    /// translation of each record between the record area and the medium, item by item over the selected record description
+    /// entry. A file with a record format carries its CODE-SET alphabet in it (<see cref="RecordFormat"/>), never in
+    /// <see cref="FileConnector.CodeSet"/>, which converts a record whole. Only a sequential connector has records to translate:
+    /// FORMAT belongs to the sequential file description entry (§2023:13.4.5.2 Format 1) and a record that SELECT WHEN selects
+    /// for the CODE-SET clause is a sequential file's too.</summary>
+    public void RegisterRecordFormat(string name, RecordFormat format)
+    {
+        if (_files.TryGetValue(name, out var c))
+            (c as SequentialConnector ?? throw new InvalidOperationException($"file '{name}' is not sequential: a FORMAT or SELECT WHEN record translation is the sequential file description entry's (ISO §2023:13.4.5.2)"))
+                .Format = format;
+    }
+
+    /// <summary>Whether the record description entry the file's SELECT WHEN clauses select for <paramref name="internalImage"/> is described as national
+    /// (<see cref="RecordFormat.SelectedIsNational"/>): the space a short record of a SORT or MERGE transfer is filled with.</summary>
+    public bool SelectedRecordIsNational(string name, string internalImage) =>
+        _files.TryGetValue(name, out var c) && c is SequentialConnector { Format: { } format } && format.SelectedIsNational(internalImage);
+
+    /// <summary>Declare the SELECT WHEN selector of the file's record format (§2023:13.18.51.4 GR3): the compiled evaluation of the
+    /// clauses' conditions over an internal image, in the order the record description entries are written.</summary>
+    public void RegisterRecordSelector(string name, Func<string, int> selector)
+    {
+        if (_files.TryGetValue(name, out var c) && c is SequentialConnector { Format: { } format }) format.Select = selector;
+    }
+
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§2023:14.9.27) — the emitter's entry
     /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
     public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
@@ -2582,17 +2607,17 @@ public sealed class FileRegistry
     /// status.</summary>
     public string WriteShared(string name, string image, int length, FileRecordLock phrase,
         FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance = default,
-        RecordExtents? extents = null, bool nationalRecord = false)
+        RecordExtents? extents = null, bool nationalRecord = false, int namedEntry = RecordFormat.BySelectWhen)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
         using var retry = StatementRetryOf(name, retryKind, retryAmount);
-        return WriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, page, advance, extents, nationalRecord);
+        return WriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, page, advance, extents, nationalRecord, namedEntry);
     }
 
     /// <summary>The body of <see cref="WriteShared"/>, inside its connector's store statement.</summary>
     private string WriteSharedInStatement(string name, string image, int length, FileRecordLock phrase,
         FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance,
-        RecordExtents? extents, bool nationalRecord)
+        RecordExtents? extents, bool nationalRecord, int namedEntry)
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
@@ -2612,8 +2637,9 @@ public sealed class FileRegistry
         // organization before the gate is reached, so no lock is pre-flighted for that WRITE either.
         string status;
         if (wantLock) c.CommitGate = () => LockCeilingRefusal(st, name, retryKind, retryAmount);
+        c.NamedRecordEntry = namedEntry;
         try { status = WriteAnyOrg(c, medium, length, page, advance, mediumExtents, nationalRecord); }
-        finally { c.CommitGate = null; }
+        finally { c.CommitGate = null; c.NamedRecordEntry = RecordFormat.BySelectWhen; }
         if (wantLock && status.Length > 0 && status[0] == '0' && c.LastWrittenRecordId is { Length: > 0 } recId)
             _physical.LockRecord(st, name, recId, c);   // GR11 — the just-released record's lock is set
         return status;
@@ -2643,16 +2669,16 @@ public sealed class FileRegistry
     /// → RETRY re-checks, else 51 with the record NOT rewritten, the record area unaffected and the FPI unchanged
     /// — GR11a-c/GR14), then the GR12 lock actions. Returns the I-O status.</summary>
     public string RewriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, long retryAmount, RecordExtents? extents = null, bool nationalRecord = false)
+        FileRetryKind retryKind, long retryAmount, RecordExtents? extents = null, bool nationalRecord = false, int namedEntry = RecordFormat.BySelectWhen)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
         using var retry = StatementRetryOf(name, retryKind, retryAmount);
-        return RewriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, extents, nationalRecord);
+        return RewriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, extents, nationalRecord, namedEntry);
     }
 
     /// <summary>The body of <see cref="RewriteShared"/>, inside its connector's store statement.</summary>
     private string RewriteSharedInStatement(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, long retryAmount, RecordExtents? extents, bool nationalRecord)
+        FileRetryKind retryKind, long retryAmount, RecordExtents? extents, bool nationalRecord, int namedEntry)
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §2023:12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
@@ -2678,8 +2704,9 @@ public sealed class FileRegistry
         if (target.Length > 0 && phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name)
             && !st.RecordLocks.ContainsKey(target))
             c.CommitGate = () => LockCeilingRefusal(st, name, retryKind, retryAmount);
+        c.NamedRecordEntry = namedEntry;
         try { status = RewriteAnyOrg(c, medium, length, mediumExtents, nationalRecord); }
-        finally { c.CommitGate = null; }
+        finally { c.CommitGate = null; c.NamedRecordEntry = RecordFormat.BySelectWhen; }
         if (status.Length > 0 && status[0] == '0' && target.Length > 0)
         {
             if (phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name))

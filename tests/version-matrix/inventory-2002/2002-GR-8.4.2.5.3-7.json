@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.5.3-7",
+ "rule-digest": "82095da4c5b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView",
+ "test-ref": "conformance:cases/8.4.2.1@2002-Identifier/pb5603-send-identifier-formats",
+ "notes": "Same text as the 2023 twin GR-8.4.3.5.4-7 (CONFORMS). kb/Work PB5603: `SET OU TO OB AS UNIVERSAL` gives the SEND's later class view its universal identifier-1 with no conformance check; a UNIVERSAL view is itself no SEND operand (A.2.6.2 SR2 to SR4 ask a class or integer, and 8.4.2.4.2 SR2 bars it as an inline receiver)."
+}

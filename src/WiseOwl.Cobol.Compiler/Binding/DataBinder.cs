@@ -3758,6 +3758,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         string? sameAsName = null;     // SAME AS data-name-1 — the entry this one copies, expanded post-build (§2023:13.18.49)
         IReadOnlyList<string> sameAsQuals = [];   // the SAME AS target's OF/IN qualifiers
         bool isAligned = false;        // ALIGNED (ISO §2023:13.18.1 — bit alignment at the first bit of the first available byte)
+        SelectWhenSpec? selectWhen = null;   // SELECT WHEN (ISO §2023:13.18.51 — the record description entry's selection condition)
 
         // The §2023:13.16.2 Format-1 clause slots this entry WRITES (kb/Work PB487). ⛔ THE operand of every §2023:13.16.3
         // permitted-set rule below — SR12, SR13, SR17, SR18 are all "…in the same data description entry…" rules
@@ -3902,15 +3903,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // and its COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitPropertyClause (14g.2) —
                 // so the storage-clause loop needs no branch for it.
                 else if (clause.Context.selectWhenClause() is { } sw)
-                    // SELECT WHEN clause (ISO §2023:13.18.51) — Annex A.4.8 item 2), DECLINED (CONFORMANCE.md §5).
-                    // Reported HERE, in BindEntry, because BindEntry is the ONE path every data description
-                    // entry of every section reaches (BindEntries feeds it for file / working-storage /
-                    // local-storage / linkage alike), so the refusal cannot be dodged by moving the record —
-                    // and §2023:13.18.51.3 SR1 admits the clause in all four of those sections. Never bound: an
-                    // inert SELECT WHEN would silently select the wrong record description entry
-                    // (§2023:13.18.51.4 GR1/GR2).
-                    Edition.Declined(DiagnosticCatalog.FormatSelectWhenUnclaimed,
-                        $"the SELECT WHEN clause on '{cobolName ?? "FILLER"}' ({Spelled(sw)})");
+                    // SELECT WHEN clause (ISO §2023:13.18.51; ISO/IEC 1989:2002 §13.16.49). Recorded ON THE ENTRY and screened, with the
+                    // file's other records, by ResolveRecordFormatPass — SR2 - SR6 ask about the file's whole record list and its
+                    // level-88 entries, which do not all exist while this entry binds. BindEntry is the ONE path every data description
+                    // entry of every section reaches, so SR1's level screen is made here, once: "only at the 01 level of a record
+                    // description entry in the file, linkage, local-storage, or working-storage section" (a 77 is not a record).
+                    selectWhen = new SelectWhenSpec { ConditionName = sw.OTHER() is not null ? null : sw.conditionName().GetText(), At = Edition.Cursor };
                 else if (clause.Context.alignedClause() is not null)
                     // ALIGNED (ISO §2023:13.18.1; kb/Work PB487). The COBOL-2002 introduction gate is
                     // VersionConformancePass ParseArm.VisitAlignedClause; §2023:13.18.1.3 SR1 (a bit group item or an
@@ -4469,6 +4467,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // becomes a bit group by INHERITANCE too (§2023:13.16.4 GR1), which is not settled until UsageInheritancePass
         // has run. Exactly the placement argument CheckUsageDeclarations records for §2023:13.18.60.3 SR14.
         item.IsAligned = isAligned;
+        if (selectWhen is not null) BindSelectWhen(item, selectWhen);
 
         // ANY LENGTH declaration-shape validation (ISO §2023:13.18.2; the COBOL1542 SR band — the 08xx declaration
         // band is exhausted, the 1521 precedent). Violations clear the flag so the item binds as ordinary storage

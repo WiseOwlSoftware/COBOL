@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.22.3-4",
+ "rule-digest": "4814d44170a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ExternalRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#InternalRecord",
+ "test-ref": "conformance:cases/13.18.24-FORMAT-clause/format_roundtrip_character_numeric",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.22.3 GR4: CHARACTER."
+}

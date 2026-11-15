@@ -302,6 +302,14 @@
    "lead": "The FORM is the standard's (SR2/SR3: a 1–36-digit significand wi"
   },
   {
+   "key": "DOC-A.1-84",
+   "lead": "A selected item is text of a width its item fixes; the data item"
+  },
+  {
+   "key": "DOC-A.1-85",
+   "lead": "Provided: two exclusions.** GR11 restores each selected item \"to"
+  },
+  {
    "key": "DOC-A.1-87",
    "lead": "The run unit's clock TICK — 100 ns, i.e. 7 significant fraction "
   },
@@ -640,6 +648,10 @@
   {
    "key": "DOC-A.1-171",
    "lead": "100 nanoseconds — 7 fraction digits**, the .NET `DateTime` tick "
+  },
+  {
+   "key": "DOC-A.1-173",
+   "lead": "Provided: it takes effect for none.** The SELECT WHEN clauses of"
   },
   {
    "key": "DOC-A.1-174",
@@ -1236,7 +1248,6 @@
    "COBOL1630",
    "COBOL1690",
    "COBOL1692",
-   "COBOL1705",
    "COBOL1706",
    "COBOL1707",
    "COBOL1708",
@@ -1262,6 +1273,9 @@
    "COBOL2773",
    "COBOL2791",
    "COBOL4709",
+   "COBOL7342",
+   "COBOL7343",
+   "COBOL7344",
    "COBOL7351",
    "COBOL7352",
    "COBOL7353"

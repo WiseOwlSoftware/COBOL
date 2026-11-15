@@ -114,24 +114,30 @@ receiveWithDataPhrase
 // A.2.6.1 Formats 1 and 2. `SEND x FROM y` is also the 2023 format's shape, and a parse alternative cannot read which x is:
 // the statement arm's predicate asks communicationNameFollows, and a SEND that writes an indicator can only be this rule.
 communicationSendStatement
-    : SEND cobolWord FROM sendText
-    | SEND cobolWord (FROM sendText)? sendIndicator sendAdvancingPhrase? sendReplacingPhrase?
+    : SEND cobolWord FROM sendIdentifier
+    | SEND cobolWord (FROM sendIdentifier)? sendIndicator sendAdvancingPhrase? sendReplacingPhrase?
     ;
 
-// SR2 and SR7: identifier-1 is an identifier, and a function-identifier is one.
-sendText
+// ⛔ IDENTIFIER-1, IDENTIFIER-2 AND IDENTIFIER-3 ARE IDENTIFIERS, SO EACH TAKES EVERY SENDING IDENTIFIER FORMAT (kb/Work PB5603).
+// §2002:8.4.2.1.1 gives identifier its formats, and two of them are no data-name reference: the function-identifier
+// (functionCall, keyword-led, so first) and the inline method invocation (§2002:8.4.2.4). Until PB5603 FROM took no inline
+// invocation and WITH and ADVANCING took only a dataReference, so `SEND CD FROM OB :: "GETX"` and `AFTER ADVANCING FUNCTION
+// MOD (5 3) LINES` were parse errors. The class and integer rules (A.2.6.2 SR2, SR3, SR4, SR7) are CommunicationBinder's,
+// asked of the bound operand; COBOL-85's placement rule on a numeric function is the one function door's (PB5108).
+sendIdentifier
     : functionCall
+    | inlineMethodInvocation
     | dataReference
     ;
 
 sendIndicator
-    : WITH? (ESI | EMI | EGI | dataReference)
+    : WITH? (ESI | EMI | EGI | sendIdentifier)
     ;
 
 sendAdvancingPhrase
     : (BEFORE | AFTER) ADVANCING?
       ( PAGE
-      | (dataReference | integerLiteral | literal) (LINE | LINES)?   // literal: CCVS-85 CM102M writes BEFORE ZERO LINES, the figurative ZERO "may be used whenever 'literal' appears"
+      | (sendIdentifier | integerLiteral | literal) (LINE | LINES)?   // literal: CCVS-85 CM102M writes BEFORE ZERO LINES, the figurative ZERO "may be used whenever 'literal' appears"
       )
     ;
 

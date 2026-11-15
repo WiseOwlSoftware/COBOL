@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.1.3-1",
+ "rule-digest": "5f1e80721abf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#sendIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSendIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#inlineMethodInvocation; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom",
+ "test-ref": "conformance:cases/8.4.2.1@2002-Identifier/pb5603-send-identifier-formats",
+ "notes": "Same text as the 2023 twin GR-8.4.3.1.4-1 (CONFORMS). The communication SEND (§2002:A.2.6) was the one identifier position whose operand rules took no inline method invocation (FROM) and no function-identifier (WITH, ADVANCING); its three operands are now the one sendIdentifier rule (kb/Work PB5603). The golden applies an object-view before the inline invocation operator (`OU AS RQ5603C :: \"GETY\"`, `OB AS RQ5603I :: \"GETI\"`) in each SEND position."
+}

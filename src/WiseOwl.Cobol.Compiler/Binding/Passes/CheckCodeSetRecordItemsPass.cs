@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding.Passes;
@@ -42,9 +43,10 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// pipeline's phase contract (<c>BindPipeline.ValidateDag</c>) asserts it at startup.</para>
 ///
 /// <para><b>What stayed behind.</b> Everything in <c>BindCodeSetClause</c> that reads the CLAUSE rather than the
-/// records — SR1/SR2 alphabet resolution and class, SR3's "not both alphabets" sentence, and the GR2/GR6 medium
-/// decision — still runs at the FD, because those facts are complete the moment the clause is read. Only the
-/// selected CLASS travels, on <see cref="FileModel.CodeSetRecordClass"/>.</para>
+/// records — SR1/SR2 alphabet resolution and class and the GR2/GR6 medium decision — still runs at the FD, because those
+/// facts are complete the moment the clause is read. Only the selected CLASS travels, on <see cref="FileModel.CodeSetRecordClass"/>, and
+/// <see cref="FileModel.CodeSetBothAlphabets"/> carries SR3's "not both alphabets" fact here: that sentence is lifted for a file whose records
+/// have SELECT WHEN clauses (kb/Work PB5578), which the FD does not know until its records are read, so <c>Run</c> refuses it.</para>
 ///
 /// <para><b>Edition axis.</b> Plain syntax rules at every edition the CODE-SET clause exists in (85 through 2023);
 /// the binder is edition-agnostic and the clause's own gates are <c>VersionConformancePass</c>'s.</para>
@@ -76,7 +78,20 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
             // entries the program WROTE: the implied record an FD without any receives (§2023:14.9.30.4 GR6) is not one,
             // so a file with none has nothing to screen and CODE-SET naming either alphabet (or both, which
             // §2023:13.18.13.4 GR4's second sentence expressly contemplates) is legal (kb/Work PB1219).
-            foreach (var rec in file.WrittenRecords) CheckCodeSetRecordItem(binder, rec, wantNational);
+            // §2023:13.18.13.3 SR3 reads "If there are record description entries associated with the file and no SELECT WHEN clauses are
+            // specified": with them the alphabets convert the items of the SELECTED record description entry, each by its own usage
+            // (GR4), so no entry need be all one usage (kb/Work PB5578).
+            if (!file.HasSelectWhen)
+            {
+                if (file.CodeSetBothAlphabets && file.WrittenRecords.Any())
+                {
+                    using var at = binder.Edition.At(file.FdClauses[FileDescriptionIdentity.CodeSet].At);
+                    binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, "CODE-SET: if any record description entries are "
+                        + "associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or "
+                        + "alphabet-name-2 may be specified, but not both (ISO §2023:13.18.13.3 SR3)");
+                }
+                foreach (var rec in file.WrittenRecords) CheckCodeSetRecordItem(binder, rec, wantNational);
+            }
             if (binder.Edition.DialectLevel < 2002) CheckCodeSetReportItems(binder, file, wantNational);
         }
     }

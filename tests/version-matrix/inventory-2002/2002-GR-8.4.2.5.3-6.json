@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.5.3-6",
+ "rule-digest": "5dc3da2b9b33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView",
+ "test-ref": "conformance:cases/8.4.2.1@2002-Identifier/pb5603-send-identifier-formats",
+ "notes": "Same text as the 2023 twin GR-8.4.3.5.4-6 (CONFORMS). kb/Work PB5603: `WITH OB AS RQ5603I :: \"GETI\"` views an object whose class implements the interface, so no EC-OO-CONFORMANCE is set and GETI's 2 ends the message (Table A.3)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.49.2-1",
+ "rule-digest": "d928083635a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SelectWhen.cs#BindSelectWhen; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRecordFormatPass.cs#Screen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordFormatRegistration",
+ "test-ref": "conformance:wiseowl/cases/13.18.51-SELECT-WHEN-clause/select_when_sr1_not_level_01",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.49.2 SR1."
+}

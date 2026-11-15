@@ -178,17 +178,15 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     internal BoundStatement BindSend(Core.CommunicationSendStatementContext s)
     {
         var cd = ResolveCommunicationCd(s.cobolWord(), SendRule);
-        BoundOperand? text = s.sendText() is { } written
-            ? written.functionCall() is { } call ? host.Intrinsic.IntrinsicOperand(call) : host.Expr.FieldOperand(written.dataReference())
-            : null;
+        BoundOperand? text = s.sendIdentifier() is { } written ? BindSendIdentifier(written) : null;
         if (text is not null && IntrinsicArgumentRules.ClassOf(text) is not (null or CobolClass.Alphanumeric))
         {
-            using var at = ctx.Edition.At(s.sendText());
+            using var at = ctx.Edition.At(s.sendIdentifier());
             if (Prints2002)
-                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {DataBinder.WrittenText(s.sendText())}: the operand is not of class alphanumeric; "
+                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {DataBinder.WrittenText(s.sendIdentifier())}: the operand is not of class alphanumeric; "
                     + $"§2002:A.2.6.2 SR2: \"Identifier-1 shall reference a data item of class alphanumeric\", and SR7 asks a function-identifier the same.");
-            else if (s.sendText().functionCall() is not null)
-                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {DataBinder.WrittenText(s.sendText())}: the function is not an alphanumeric "
+            else if (s.sendIdentifier().functionCall() is not null)
+                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {DataBinder.WrittenText(s.sendIdentifier())}: the function is not an alphanumeric "
                     + $"function; {Cite(SendFunction)}");
         }
         var indicator = SendIndicator.None;
@@ -200,13 +198,13 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             else if (ind.EGI() is not null) indicator = SendIndicator.EndOfGroup;
             else
             {
-                indicatorItem = host.Expr.FieldOperand(ind.dataReference());
+                indicatorItem = BindSendIdentifier(ind.sendIdentifier());
                 // "a one-character integer without an operational sign" (§1985:XIV.3.6.3 SR2): an integer has no digit position right of the point, so a trailing P
                 // makes one, and "the scaling position character P is not counted in the size of the data item" (§1985:VI.5.9.4 GR8), so PIC 9P is one character
                 // (kb/Work PB5289).
                 if (!IsIntegerItem(indicatorItem, static pic => pic is { Digits: 1, Signed: false }))
                     using (ctx.Edition.At(ind))
-                        ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND WITH {DataBinder.WrittenText(ind.dataReference())}: {Cite(SendIdentifier2)}");
+                        ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND WITH {DataBinder.WrittenText(ind.sendIdentifier())}: {Cite(SendIdentifier2)}");
             }
         }
         if (s.sendAdvancingPhrase() is { } advancing) ScreenSendAdvancing(advancing);
@@ -219,6 +217,15 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         };
     }
 
+    /// <summary>⛔ IDENTIFIER-1, IDENTIFIER-2 AND IDENTIFIER-3 BIND THROUGH ONE DOOR (kb/Work PB5603): each is an identifier, so a function-identifier (§2002:8.4.2.1.1 Format 1,
+    /// through the one function door, which also asks COBOL-85's placement rule, kb/Work PB5108), an inline method invocation (Format 4: "Inline method invocation
+    /// references a temporary data item returned from invocation of a method", §2002:8.4.2.4) or a data reference. The rules of each position are then asked of
+    /// the operand it binds to.</summary>
+    private BoundOperand BindSendIdentifier(Core.SendIdentifierContext identifier) =>
+        identifier.functionCall() is { } call ? host.Intrinsic.IntrinsicOperand(call)
+        : identifier.inlineMethodInvocation() is { } invocation ? host.Oo.OoInlineInvocationOperand(invocation)
+        : host.Expr.FieldOperand(identifier.dataReference());
+
     /// <summary>The ADVANCING phrase's operands (SR3 to SR5 at 85, SR4 to SR6 at 2002). This MCS's devices are oriented to variable-length messages, so vertical
     /// positioning "is not applicable" and "the MCS will ignore" it (A.2.6.3 GR12; docs/CONFORMANCE.md); the statement still has to be a legal one, so its operands
     /// are asked and nothing of them is kept.</summary>
@@ -226,9 +233,9 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     {
         if (advancing.literal() is { } literal)
             ScreenSendAdvancingLiteral(literal);
-        if (advancing.dataReference() is not { } operand) return;
-        using var at = ctx.Edition.At(operand);
-        if (operand.cobolWord() is { } word && ctx.Mnemonics.TryPeek(word.GetText(), out _) && !ctx.Refs.DescribesOwnItem(operand)
+        if (advancing.sendIdentifier() is not { } identifier) return;
+        using var at = ctx.Edition.At(identifier);
+        if (identifier.dataReference() is { } operand && operand.cobolWord() is { } word && ctx.Mnemonics.TryPeek(word.GetText(), out _) && !ctx.Refs.DescribesOwnItem(operand)
             && ctx.Mnemonics.TryUse(advancing, word.GetText(), out var system))
         {
             if (system.Kind != SystemNameKind.Feature || (advancing.LINE() ?? advancing.LINES()) is not null)
@@ -238,8 +245,8 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         }
         // "an integer data item" (kb/Work PB5289): a trailing-P item is one; an index data item, a symbolic-character (a figurative constant, and
         // no mnemonic-name "defined in the SPECIAL-NAMES paragraph", §1985:XIV.3.6.3 SR4), an index-name and a reference-modified item are not.
-        if (!IsIntegerItem(host.Expr.FieldOperand(operand), static _ => true))
-            ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {DataBinder.WrittenText(operand)}: {Cite(SendIdentifier3)}");
+        if (!IsIntegerItem(BindSendIdentifier(identifier), describedAs: null))
+            ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {DataBinder.WrittenText(identifier)}: {Cite(SendIdentifier3)}");
     }
 
     /// <summary>Integer-1, which "may be zero" (SR5 at 85, SR6 at 2002), and the figurative ZERO is that zero (kb/Work PB5289): the bound literal answers which constant
@@ -256,20 +263,28 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             FigurativeAssociation.GateAllZeroAsNumeric(ctx.Edition.Edition, ctx.Edition.Sink, $"figurative constant '{ConcatFolder.Spelling(zero)}' as SEND ADVANCING integer-1");
     }
 
-    /// <summary>Whether a bound SEND operand is an integer data item whose description also meets <paramref name="more"/>, judged from the operand as bound
+    /// <summary>Whether a bound SEND operand is an integer data item whose description also meets <paramref name="describedAs"/>, judged from the operand as bound
     /// (kb/Work PB5384). A data item asks the one integer classifier (<see cref="IntrinsicResultType.IsIntegerOperand(BoundOperand)"/>), which refuses an index data
-    /// item and a reference-modified item (an alphanumeric or national unique data item, §2023:8.4.3.3.4 GR6, §1985:IV.4.3.8.4.4 GR5). A LINAGE-COUNTER, LINE-COUNTER
-    /// or PAGE-COUNTER is an integer special register, asked through its implicit description, whose size is the LINAGE page size's (§1985:VII.1.3.7). A constant-name
-    /// of an unsigned integer is integer-1. An operand already refused is not refused again; every other shape (an index-name, a function, a symbolic-character, a
-    /// group) is no integer data item.</summary>
-    private static bool IsIntegerItem(BoundOperand? operand, Func<PicInfo, bool> more) => operand switch
+    /// item and a reference-modified item (an alphanumeric or national unique data item, §2023:8.4.3.3.4 GR6, §1985:IV.4.3.8.4.4 GR5); an inline method invocation
+    /// is its temporary item, "with the same class, category, and content" as the method's returning item (§2002:8.4.2.4.3 GR1), so it is asked the same. A
+    /// LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER is an integer special register, asked through its implicit description, whose size is the LINAGE page size's
+    /// (§1985:VII.1.3.7). ⛔ AN INTRINSIC FUNCTION HAS A TYPE AND NO DESCRIPTION (kb/Work PB5603): its temporary item's "description and category are specified by the
+    /// definition of that intrinsic function" (§2002:8.4.2.2.3 GR1), which gives an integer function no size, so it is identifier-3's integer data item when its type
+    /// is integer (§2002:8.4.2.2.2 SR9 bars a numeric one), and never identifier-2's one-character item, which <paramref name="describedAs"/> asks of a description.
+    /// A constant-name of an unsigned integer is integer-1, so it stands only where integer-1 does, beside identifier-3 (<paramref name="describedAs"/> null).
+    /// An operand already refused is not refused again; every other shape (an index-name, a symbolic-character, a group) is no integer data item.</summary>
+    private static bool IsIntegerItem(BoundOperand? operand, Func<PicInfo, bool>? describedAs) => operand switch
     {
         BoundOperandError or null => true,
-        BoundFieldOperand { Place.Item.Pic: { } pic } field => IntrinsicResultType.IsIntegerOperand(field) && more(pic),
+        BoundFieldOperand { Place.Item.Pic: { } pic } field => IntrinsicResultType.IsIntegerOperand(field) && (describedAs?.Invoke(pic) ?? true),
+        // A folded function value (FUNCTION LENGTH of a fixed item) answers by its function's type, never its text (IsIntegerOperand).
+        BoundNumericLiteral { FunctionValue: true } folded => describedAs is null && IntrinsicResultType.IsIntegerOperand(folded),
         // A constant-name of an integer value stands for integer-1 (§2023:13.10.3 SR2: "anywhere that a format specifies a
         // literal of the class and category of constant-name-1").
-        BoundNumericLiteral number => number.Text.All(char.IsAsciiDigit),
-        BoundComputedOperand { Expr: var register } => AlgebraicRanges.CounterRegisterDescription(register) is { IsIntegerDescription: true } pic && more(pic),
+        BoundNumericLiteral number => describedAs is null && number.Text.All(char.IsAsciiDigit),
+        BoundComputedOperand { Expr: var register } when AlgebraicRanges.CounterRegisterDescription(register) is { } pic =>
+            pic.IsIntegerDescription && (describedAs?.Invoke(pic) ?? true),
+        BoundComputedOperand function => describedAs is null && IntrinsicResultType.IsIntegerOperand(function),
         _ => false,
     };
 }

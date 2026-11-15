@@ -133,7 +133,31 @@ internal static class ExternalFileConnectorRules
                 }
             }
             if (edition.DialectLevel < 2002) CheckFileDescriptions(edition, externalName, conns);
+            else CheckFormat(edition, externalName, conns);
         }
+    }
+
+    /// <summary>The FORMAT clause's rule for an external file connector (ISO §2023:13.18.24.4 GR12; ISO/IEC 1989:2002 §13.16.22.3 GR12): "If the
+    /// associated file connector is an external file connector, all file description entries in the run unit that are associated with that file
+    /// connector shall specify the same FORMAT clause." An entry that writes none disagrees with one that writes it; the clauses agree when
+    /// they select the same kinds of data item (BIT, CHARACTER and NUMERIC in any order, §2023:5.2.6.4). Reported at the first entry that
+    /// differs from the first describer's, as the entry identity's segments are (COBOL6847; kb/Work PB5578).</summary>
+    private static void CheckFormat(EditionContext edition, string externalName, List<FileModel> conns)
+    {
+        var first = conns[0];
+        foreach (var f in conns.Skip(1))
+        {
+            if (f.Format == first.Format) continue;
+            using (edition.At(f.ClauseOrEntryAt(f.Format is null ? default : f.FormatAt)))
+                edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
+                    $"external file '{externalName}': this file description entry and the first one in the run unit that describes the file connector "
+                    + $"differ in their FORMAT clause ({Describe(f.Format)} against {Describe(first.Format)}) — the entries of an external file connector "
+                    + $"specify the same FORMAT clause ({RecordFormatCitations.FormatGeneral(edition.DialectLevel, "GR12")})");
+            return;   // one report per connector: the first entry that differs
+        }
+
+        static string Describe(WiseOwl.Cobol.Runtime.IO.RecordFormatKinds? kinds) =>
+            kinds is null ? "none" : "FORMAT " + string.Join(" ", kinds.Value.ToString().Split(", ").Select(k => k.ToUpperInvariant()));
     }
 
     /// <summary>The X3.23-1985 agreement rules of the file DESCRIPTION entries (<see cref="FileDescriptionIdentity"/>, kb/Work PB5300), asked in the same pass

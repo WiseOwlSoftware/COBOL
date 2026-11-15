@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.13.3-1",
+ "rule-digest": "72622113247d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckCodeSetRecordItemsPass.cs#Run; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal",
+ "test-ref": "conformance:wiseowl/cases/13.16.13@2002-CODE-SET-CLAUSE/format_then_code_set_conversion_on_output; conformance:cases/13.18.13-CODE-SET/select_when_code_set_mixed_usage",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.13.3 GR1: the alphabets convert the data between the medium and the native set, item by item for a file with SELECT WHEN clauses."
+}

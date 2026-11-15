@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.22.2-2",
+ "rule-digest": "5d5fd8e253d4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRecordFormatPass.cs#CheckFormatRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ScreenFormatFromOperand",
+ "test-ref": "conformance:wiseowl/cases/13.18.24-FORMAT-clause/format_sr2_redefines_in_record; conformance:wiseowl/cases/13.18.24-FORMAT-clause/format_from_identifier_redefines",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.22.2 SR2 (COBOL7342)."
+}
