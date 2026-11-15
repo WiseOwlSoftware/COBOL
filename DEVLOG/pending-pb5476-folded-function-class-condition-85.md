@@ -9,3 +9,5 @@
 **Goldens.** `pb5476-function-length-numeric-at-85` (refused at 85, COBOL6918) and `pb5476_function_length_numeric_2002` (accepted from 2002, prints T). Inventory: `1985-GR-VI.6.3.1.2-5` PARTIAL to CONFORMS (GAP 157 to 156).
 
 **Sweep.** The other readers of `{ Expr: BoundIntrinsicCall }` (MoveBinder `senderIsFunction`, OoBinder, RelationComparability) are not class-condition screens and are unchanged.
+
+**Review round 1 (R1-1).** The reviewer found the flag still read the tree shape for the third lowering of a function-identifier, FUNCTION LENGTH of a variable-length group (`BoundComputedOperand { FunctionValue: true, Expr: BoundBinary }`), which compiled `IS NUMERIC` at 85 and printed T. The `function` flag now also reads `BoundComputedOperand { FunctionValue: true }`, the binder's statement (kb/Work PB3678). Goldens added: `pb5476-odo-function-length-numeric-at-85` (COBOL6918 at 85) and `pb5476_odo_function_length_numeric_2002` (T from 2002).
