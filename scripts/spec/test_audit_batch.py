@@ -441,7 +441,7 @@ def main() -> int:
               and not lineage_screen.unanswered(written.values(), screen))
         check("R2-4: a record with a flag unanswered, and one with no witness at its own edition, are each refused ALONE, "
               "with why, and the rest are written; a SAME with no refuter record and a DIFFERENT write nothing",
-              set(refused) == {v["rule-id"], g["rule-id"]} and "own edition" in refused[v["rule-id"]][0]
+              set(refused) == {v["rule-id"], g["rule-id"]} and "no own-edition witness" in refused[v["rule-id"]][0]
               and "lineage screen" in refused[g["rule-id"]][0] and x["rule-id"] not in written and d["rule-id"] not in written)
         planted = {"1985-SR-VI.5.8.3-1": {"disposition": A.CARRIES, "rules_2023": ["SR-13.18.38.3-1"],
                                           "change": {"kind": "KEPT", "to": ["SR-13.18.38.3-1"]}},

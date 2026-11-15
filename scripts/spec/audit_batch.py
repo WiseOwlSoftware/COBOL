@@ -1231,13 +1231,20 @@ def change_batch(a: argparse.Namespace) -> int:
     records = change_records(ed, dispositions(state), a.source or f"audit-{a.edition}/{state.name}", held)
     screen = lineage_screen.committed(a.edition)
     chained = change_kinds().chained.name
-    w = witnesses_of(ed.next_held) if ed.own_evidence and any(r["next"]["kind"] == chained for r in records) else None
+    holds = ed.own_evidence and any(r["next"]["kind"] == chained for r in records)
+    w = witnesses_of(ed.next_held) if holds else None
+    if holds:
+        import lineage_reads  # noqa: PLC0415  (the one check of a KEPT record's targets)
+        lin = lineage_reads.Lineage.of(ed)
+        imported = json.loads((state / READS).read_text(encoding="utf-8")) if (state / READS).exists() else None
+        licences = {rid: r.licence for s in lineage_reads.load(a.edition, pathlib.Path(imported["record"]))
+                    for rid, r in s.reads.items()} if imported else {}
     kept, refused = [], []
     for r in records:
         why = lineage_screen.unanswered([r], screen)
-        if r["next"]["kind"] == chained and w is not None and (gone := w.missing(ed, r["next"]["to"])):
-            why.append(f"{r['rule-id']}: no conformance-suite witness of {gone} runs at {ed.spelling}: a {chained} "
-                       "record closes on evidence produced at its own edition (lineage_reads.py widen)")
+        if r["next"]["kind"] == chained and holds:
+            why += [f"{r['rule-id']}: {reason}: {detail}" for reason, detail in lineage_reads.kept_problems(
+                ed, r["rule-id"], r["next"]["to"], licences.get(r["rule-id"]), lin, w)]
         (refused if why else kept).append({"rule-id": r["rule-id"], "reasons": why} if why else r)
     out = pathlib.Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -1247,8 +1254,8 @@ def change_batch(a: argparse.Namespace) -> int:
     write_atomic(refused_file, json.dumps({"refused": refused}, indent=1, ensure_ascii=False) + "\n")
     kinds = collections.Counter(r["next"]["kind"] for r in kept)
     print(f"change-batch: {len(kept)} change record(s) {dict(sorted(kinds.items()))} -> {out}; refused {len(refused)} "
-          f"(a flag unanswered {sum(1 for x in refused if any('lineage screen' in y for y in x['reasons']))}, no "
-          f"own-edition witness {sum(1 for x in refused if any('own edition' in y for y in x['reasons']))}) -> "
+          f"(a flag unanswered {sum(1 for x in refused if any('lineage screen' in y for y in x['reasons']))}, the "
+          f"targets or the evidence {sum(1 for x in refused if any('lineage screen' not in y for y in x['reasons']))}) -> "
           f"{refused_file}\n"
           f"  validate: python scripts/spec/record_verdicts.py --edition {a.edition} --dry-run {out}", flush=True)
     return 0
@@ -1289,7 +1296,7 @@ def import_reads(year: int, reads: pathlib.Path, asked: pathlib.Path | None, rec
     slices = lineage_reads.load(year, record)
     if unknown := sorted(rid for s in slices for rid in s.reads if rid not in by_rule):   # an earlier import's record
         raise SystemExit(f"{TOOL}: {len(unknown)} read rule(s) of {record} are no rule of the {year} catalog: {unknown[:5]}")
-    decisions = lineage_reads.decide(ed, slices, lineage_screen.committed(year), None)
+    decisions = lineage_reads.decide(ed, slices, lineage_screen.committed(year), None, lineage_reads.Lineage.of(ed))
     state.mkdir(parents=True)
     write_atomic(state / READS, json.dumps({"edition": year, "record": str(record.resolve()),
                                             "slices": sorted(s.name for s in slices)}, indent=1) + "\n")
@@ -1301,7 +1308,9 @@ def import_reads(year: int, reads: pathlib.Path, asked: pathlib.Path | None, rec
     v.answers_dir.mkdir(parents=True, exist_ok=True)
     decided = {d.rule_id: d for d in decisions}
     for s, r in reads:
-        if r.verdict == "DOUBTFUL":
+        # A DOUBTFUL read, and a SAME for a rule the pairing does not pair (its `to` a pointer: the work item
+        # own-verdict-from-pointer, review R1-2), leave the rule OPEN: no change record can follow from them.
+        if r.verdict == "DOUBTFUL" or decided[r.rule_id].work == lineage_reads.OWN_VERDICT_FROM_POINTER:
             continue
         answer = {"verdict": SAME if r.verdict == SAME else DIFFERS, "rules_2023": list(r.to), "reason": r.reason,
                   "source": lineage_reads.source_of(year, s.name),

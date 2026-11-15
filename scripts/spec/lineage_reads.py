@@ -81,10 +81,20 @@ CORRECT, WRONG, NOT_PROBED = "correct", "wrong", "not probed"
 COMPILER = re.compile(r"\A\s*(correct|wrong|not probed)\b", re.I)
 #: Why a SAME read upheld by its refuter is still refused a kept record.
 NO_REFUTER, FLAG_UNANSWERED, NO_OWN_WITNESS = "no refuter record", "flag unanswered", "no own-edition witness"
-#: The work items of the reads that are not kept.
+#: ... and why a read's targets cannot be a KEPT record's (kb/Work PB5597, branch review R1-1, R1-2).
+NO_LICENCE, NOT_THE_PAIRING = "no 2002 licence stated", "targets are not the pairing's"
+#: The work items of the reads that are not kept. A SAME for a rule with no candidate pair (its `to` a nearest-rule
+#: POINTER, or empty) is never a KEPT record: the row is recorded with its own verdict, citing the pointer's witness
+#: once that runs at the edition (`OWN_VERDICT_FROM_POINTER`).
 NEEDS_OWN_WITNESS, DEFECT, UNDECIDED, UNINTERPRETABLE = "needs-own-witness", "defect", "undecided", "uninterpretable"
+OWN_VERDICT_FROM_POINTER = "own-verdict-from-pointer"
 KEPT = "KEPT"
-SLICE = re.compile(r"\A[a-z0-9][a-z0-9-]*?\Z")
+#: A slice's name is an opaque label (`p-01`, `q-44`, `t-annexA`, `u-07`): any name a file can carry and that pairs a
+#: `<name>-read.json` with its `<name>-refute.json`.
+SLICE = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9_.-]*\Z")
+#: THE EVIDENCE TABLE (data, kb/Work PB5597 branch review R1-1): which catalog `kind`s a DIAGNOSIS can witness, and the
+#: verdict of a next-edition rule whose facility the compiler declines.
+EVIDENCE_TABLE = pathlib.Path(__file__).resolve().parent / "data" / "lineage-evidence-kinds.json"
 #: The head of a flags-answered entry: the trigger's name first.
 FLAG_HEAD = re.compile(r"\A\s*([A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)(?![A-Za-z0-9-])")
 
@@ -125,6 +135,9 @@ class Read:
     #: trigger -> each (detail the answer names, or None when it names none; the answer): a trigger whose flag named
     #: several terms may be answered once per term
     answers: dict[str, list[tuple[str | None, str]]]
+    #: The read's `licence-2002`: the citation of the older text that permits declining the facility, or None (absent,
+    #: or the brief's `none`).
+    licence: str | None = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -217,15 +230,17 @@ def normal_read(slice_name: str, case: Any) -> Read:
         raise _fail(slice_name, None, f"a read case is a map, not {type(case).__name__}")
     rid = _text(case, "rule-id", slice_name, case.get("rule-id"))
     to = case.get("to")
-    if not isinstance(to, list) or not to or not all(isinstance(t, str) and t for t in to):
-        raise _fail(slice_name, rid, f"`to` must be a non-empty list of rule ids, not {to!r}")
+    if not isinstance(to, list) or not all(isinstance(t, str) and t for t in to):
+        raise _fail(slice_name, rid, f"`to` must be a list of rule ids (empty for a rule with no pointer), not {to!r}")
     verdict = case.get("verdict")
     if verdict not in READ_VERDICTS:
         raise _fail(slice_name, rid, f"the reader's verdict {verdict!r} is not one of {READ_VERDICTS}")
     _citations(case, slice_name, rid)
+    licence = _text(case, "licence-2002", slice_name, rid, required=False)
     return Read(rid, slice_name, tuple(to), verdict, _text(case, "reason", slice_name, rid),
                 _text(case, "probe", slice_name, rid, required=False), _judgment(case, slice_name, rid),
-                _flag_answers(case, slice_name, rid))
+                _flag_answers(case, slice_name, rid),
+                None if licence is None or not licence.strip() or licence.strip().lower().startswith("none") else licence)
 
 
 def normal_refute(slice_name: str, case: Any) -> Refute:
@@ -309,6 +324,9 @@ def load(year: int, directory: pathlib.Path | None = None) -> list[Slice]:
         except (RecordError, json.JSONDecodeError) as e:
             errs.append(str(e))
             continue
+        if bad := digest_errors(path.stem, doc):
+            errs += bad
+            continue
         for rid in s.reads:
             if rid in seen:
                 errs.append(f"{s.name}: {rid}: read again (first read in {seen[rid]})")
@@ -319,26 +337,44 @@ def load(year: int, directory: pathlib.Path | None = None) -> list[Slice]:
     return out
 
 
-def digest(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
+def digest(data: Any) -> str:
+    """The SHA-256 of a source's CONTENT, as the record holds it (canonical JSON): what `load` recomputes from the record
+    itself, so an edit of a record's reads after the import is refused (kb/Work PB5597, branch review R1-6)."""
+    return hashlib.sha256(json.dumps(data, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def digest_errors(name: str, doc: dict[str, Any]) -> list[str]:
+    """Why the record `doc` does not hold what it was imported from: a part whose digest no longer matches."""
+    held = doc.get("imported")
+    if not isinstance(held, dict) or "read" not in held:
+        return [f"{name}: the record carries no digest of its sources (`imported`)"]
+    return [f"{name}: its {k} no longer matches the digest it was imported with" for k in ("read", "refute", "asked")
+            if (k in held) != (doc.get(k) is not None) or (k in held and held[k] != digest(doc[k]))]
 
 
 def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, out: pathlib.Path,
                    rules: set[str] | None = None) -> list[str]:
     """Copy every slice of `reads` (`<slice>-read.json`, with its `<slice>-refute.json` when it exists, and the slice's
     `asked`/<slice>.json when `asked` is given) into the read record `out`/<slice>.json, verbatim, with the digest of each
-    source. Whichever slices exist are imported; a refute with no read is refused. Nothing is written unless every slice
-    normalizes (`normal_slice`) and, given the edition's catalog `rules`, reads only its rules: the errors are listed by
-    slice and rule. Returns the slices written or rewritten."""
+    source's content. Whichever slices exist are imported; a refute with no read is refused. Nothing is written unless
+    every slice normalizes (`normal_slice`), reads only rules of the edition's catalog `rules` (when given), and reads no
+    rule another slice (imported now or already recorded) reads: the errors are listed by slice and rule. Returns the
+    slices written or rewritten."""
     if not reads.is_dir():
         raise SystemExit(f"{TOOL}: {reads} is not a directory of read files")
     names = sorted(p.name[:-len("-read.json")] for p in reads.glob("*-read.json"))
     if orphans := sorted(p.name for p in reads.glob("*-refute.json") if not (reads / p.name.replace("-refute", "-read")).exists()):
         raise SystemExit(f"{TOOL}: refuter records with no reader's record: {orphans}")
     docs, errs = {}, []
+    seen: dict[str, str] = {}
+    if out.is_dir():   # the records already there and not re-imported now: their rules are read too
+        for path in sorted(out.glob("*.json")):
+            if path.stem not in names:
+                for c in (json.loads(path.read_text(encoding="utf-8")).get("read") or {}).get("cases", []):
+                    seen.setdefault(c.get("rule-id"), path.stem)
     for name in names:
         if not SLICE.match(name):
-            errs.append(f"{name}: a slice is named by lower-case letters, digits and dashes")
+            errs.append(f"{name}: a slice's name pairs <name>-read.json with <name>-refute.json; this one is no file label")
             continue
         sources: dict[str, pathlib.Path] = {"read": reads / f"{name}-read.json"}
         if (f := reads / f"{name}-refute.json").exists():
@@ -356,7 +392,7 @@ def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, o
                             "verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only "
                             "through lineage_reads.load, the one normalization."],
                "slice": name, "edition": year, "asked": loaded.get("asked"), "read": loaded["read"],
-               "refute": loaded.get("refute"), "imported": {k: digest(b) for k, b in sorted(raw.items())}}
+               "refute": loaded.get("refute"), "imported": {k: digest(v) for k, v in sorted(loaded.items())}}
         try:
             s = normal_slice(name, doc)
         except RecordError as e:
@@ -365,6 +401,10 @@ def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, o
         if rules is not None and (unknown := sorted(rid for rid in s.reads if rid not in rules)):
             errs += [f"{name}: {rid}: no rule of the {year} catalog" for rid in unknown]
             continue
+        if twice := sorted(rid for rid in s.reads if rid in seen):   # refused BEFORE any write (review R1-5)
+            errs += [f"{name}: {rid}: read again (first read in {seen[rid]})" for rid in twice]
+            continue
+        seen.update(dict.fromkeys(s.reads, name))
         docs[name] = doc
     if errs:
         raise SystemExit(f"{TOOL}: {len(errs)} read file(s) cannot be interpreted; nothing is written:\n  " + "\n  ".join(errs))
@@ -406,14 +446,56 @@ class CaseInfo:
     source_format: str = "fixed"
 
 
+@dataclasses.dataclass(frozen=True)
+class EvidenceTable:
+    """What a witness of each kind shows (`EVIDENCE_TABLE`, data): a DIAGNOSIS (a refusal test's `refuse-at`, a flagged
+    case's `at`) witnesses a rule only when what the rule asks of a compiler IS a diagnosis (its catalog `kind` is one
+    of `diagnosed`: a syntax rule or a general format, which a program can violate) or the next-edition rule's facility
+    is DECLINED (its verdict is `declined`, and then the read must state the older text's licence to decline it). Every
+    other rule needs a case that RUNS and passes at the edition."""
+    diagnosed: frozenset[str]
+    declined: str
+
+    @classmethod
+    def load(cls, path: pathlib.Path = EVIDENCE_TABLE, kinds: Iterable[str] | None = None) -> "EvidenceTable":
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        diagnosed = doc.get("diagnosed-kinds")
+        if not isinstance(diagnosed, dict) or not all(isinstance(v, str) and v.strip() for v in diagnosed.values()):
+            raise SystemExit(f"{TOOL}: {path.name}: diagnosed-kinds maps each kind to why a diagnosis witnesses it")
+        if kinds is not None and (stray := sorted(set(diagnosed) - set(kinds))):
+            raise SystemExit(f"{TOOL}: {path.name}: {stray} are no rule kind of the catalog ({sorted(set(kinds))})")
+        if not isinstance(doc.get("declined-verdict"), str) or not doc["declined-verdict"]:
+            raise SystemExit(f"{TOOL}: {path.name}: declined-verdict names the verdict of a declined facility")
+        return cls(frozenset(diagnosed), doc["declined-verdict"])
+
+
+@dataclasses.dataclass(frozen=True)
+class Lineage:
+    """What a read's rule is in its own edition and its pairing: the catalog's `kind` of each rule, the candidate
+    pairing's targets of each paired rule (docs/rearchitecture/spec-lineage-candidates-<year>.json), and the evidence
+    table. A KEPT record carries exactly the pairing's targets (review R1-2)."""
+    kinds: dict[str, str]
+    pairs: dict[str, tuple[str, ...]]
+    table: EvidenceTable
+
+    @classmethod
+    def of(cls, ed: Edition) -> "Lineage":
+        import lineage  # noqa: PLC0415  (the candidate pairing's file)
+        kinds = {r["id"]: r["kind"] for r in ed.rules()}
+        pairs = {p["rule-id"]: tuple(p["to"]) for p in
+                 json.loads(lineage.candidates_path(ed.year).read_text(encoding="utf-8"))["pairs"]}
+        return cls(kinds, pairs, EvidenceTable.load(kinds=kinds.values()))
+
+
 class Witnesses:
     """The next edition's rules' conformance-suite witnesses and where each runs. A case runs at an edition when its header
     names it (the generator places it in that edition's manifest only then, and refuses it there when a rule it cites does
     not exist at the edition: `generate.check_cases`); the gate runs every case of every edition's manifest, so a case
     that runs at the edition on a green tree passes there."""
 
-    def __init__(self, cases: dict[str, CaseInfo], refs: dict[str, list[str]], bands: dict[str, list[str]]):
-        self.cases, self.refs, self.bands = cases, refs, bands
+    def __init__(self, cases: dict[str, CaseInfo], refs: dict[str, list[str]], bands: dict[str, list[str]],
+                 verdicts: dict[str, str] | None = None):
+        self.cases, self.refs, self.bands, self.verdicts = cases, refs, bands, verdicts or {}
 
     @classmethod
     def of(cls, newer: int) -> "Witnesses":
@@ -437,19 +519,61 @@ class Witnesses:
         rows = inventory_view.inventory(newer, schema)
         refs = {r["rule-id"]: schema.split(r.get("test-ref", "") or "", schema.test_ref_sep) for r in rows}
         bands = {r["rule-id"]: schema.split(r.get("editions", "") or "", schema.editions_sep) for r in rows}
-        return cls(cases, refs, bands)
+        return cls(cases, refs, bands, {r["rule-id"]: r.get("verdict") or "" for r in rows})
 
     def suite_cases(self, rule: str) -> list[str]:
         """The keys of the conformance-suite cases the rule's test-ref names (`conformance:<key>`), in its order."""
         return [ref.partition(":")[2].strip() for ref in self.refs.get(rule, []) if ref.partition(":")[0] == "conformance"]
 
     def at(self, rule: str, spelling: str) -> list[str]:
-        """The rule's suite witnesses that run at the edition spelled `spelling`."""
+        """The rule's suite witnesses that run at the edition spelled `spelling`, of any kind."""
         return [k for k in self.suite_cases(rule) if k in self.cases and spelling in self.cases[k].runs]
 
-    def missing(self, ed: Edition, to: Iterable[str]) -> list[str]:
-        """The rules of `to` with no suite witness that runs at `ed`: empty when the evidence is at the row's own edition."""
-        return [t for t in to if not self.at(t, ed.spelling)]
+    def accepted_at(self, rule: str, spelling: str) -> list[str]:
+        """The rule's suite witnesses ACCEPTED at the edition: a program that runs there and whose output is compared."""
+        return [k for k in self.suite_cases(rule) if k in self.cases and spelling in self.cases[k].accept]
+
+    def evidence(self, ed: Edition, rule_kind: str, to: Iterable[str], licence: str | None,
+                 table: EvidenceTable) -> list[tuple[str, str]]:
+        """Why each rule of `to` has no witness at `ed` of the kind the older rule (catalog `rule_kind`) needs (review
+        R1-1): a case accepted there always is; a diagnosis there only for a kind the table's `diagnosed` names, or for
+        a declined facility with the read's `licence` stated. Empty when the evidence is at the row's own edition."""
+        sp, out = ed.spelling, []
+        for t in to:
+            if self.accepted_at(t, sp):
+                continue
+            diagnoses = self.at(t, sp)
+            if diagnoses and rule_kind in table.diagnosed:
+                continue
+            if diagnoses and self.verdicts.get(t) == table.declined:
+                if licence is None:
+                    out.append((NO_LICENCE, f"{t} is {table.declined} and only a diagnosis at {sp} shows the decline: "
+                                            f"the read states no {ed.year} licence (licence-{ed.year}) to decline it"))
+                continue
+            out.append((NO_OWN_WITNESS, f"{t}: no conformance-suite case runs and passes at {sp}" + (
+                f" (only a diagnosis, which shows a {rule_kind} rule nothing)" if diagnoses else "")))
+        return out
+
+    def missing(self, ed: Edition, to: Iterable[str], rule_kind: str, table: EvidenceTable,
+                licence: str | None = None) -> list[str]:
+        """The rules of `to` lacking own-edition evidence (`evidence`), by id."""
+        return [d.split(" ", 1)[0].rstrip(":") for _r, d in self.evidence(ed, rule_kind, to, licence, table)]
+
+
+def kept_problems(ed: Edition, rid: str, to: Iterable[str], licence: str | None, lin: Lineage,
+                  w: Witnesses | None) -> list[tuple[str, str]]:
+    """THE ONE CHECK of a KEPT record's targets (the writer, the import's decisions and the audit share it): they are
+    exactly the candidate pairing's for the rule (review R1-2), and, for an edition whose records close on own-edition
+    evidence and with `w`, each has a witness at the edition of the kind the rule needs (review R1-1)."""
+    out = []
+    want = lin.pairs.get(rid)
+    if want is None:
+        out.append((NOT_THE_PAIRING, f"{rid} has no candidate pair: a KEPT record carries only a pairing's targets"))
+    elif sorted(want) != sorted(to):
+        out.append((NOT_THE_PAIRING, f"the read carries into {sorted(to)}, the pairing into {sorted(want)}"))
+    if ed.own_evidence and w is not None:
+        out += w.evidence(ed, lin.kinds.get(rid, ""), to, licence, lin.table)
+    return out
 
 
 # -- what a read becomes ------------------------------------------------------------------------------------------------
@@ -515,10 +639,11 @@ def work_of(judgment: Judgment | None, probe: str | None, who: str) -> tuple[str
 
 
 def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
-           witnesses: Witnesses | None) -> list[Decision]:
+           witnesses: Witnesses | None, lin: Lineage) -> list[Decision]:
     """Each read rule's `Decision` (module docstring). The evidence is checked for an edition whose records close on
     own-edition evidence (`Edition.own_evidence`) when `witnesses` is given; None leaves it to the writer (the audit
-    run's import). `screen` is the edition's committed lineage screen."""
+    run's import). `screen` is the edition's committed lineage screen; `lin` the catalog's kinds and the pairing. A SAME
+    of a rule with no candidate pair is the `OWN_VERDICT_FROM_POINTER` work item, never a KEPT record."""
     flags = (screen or {}).get("marks", {})
     out = []
     for s in slices:
@@ -532,6 +657,11 @@ def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
                 if rid in s.disputed:
                     kind, why = UNDECIDED, "the refuter disputes the reader's DIFFERENT"
                 out.append(Decision(**base, work=kind, probe=r.probe or (r.compiler.text if r.compiler else None), why=why))
+            elif rid not in lin.pairs:
+                out.append(Decision(**base, work=OWN_VERDICT_FROM_POINTER, probe=r.probe,
+                                    why=f"a SAME for a rule with no candidate pair (its `to` {list(r.to)} is a pointer); "
+                                        f"refuter: {f.verdict if f else 'none'}: record its own verdict, citing the "
+                                        "pointer's witness once it runs at the edition"))
             elif f is None:
                 out.append(Decision(**base, refused=((NO_REFUTER, "no refuter has attacked the SAME"),)))
             elif f.verdict == "DOUBTFUL":
@@ -542,9 +672,7 @@ def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
             else:
                 answers, unanswered = answers_for(r, s.asked.get(rid, {}), flags.get(rid, {}))
                 refused = [(FLAG_UNANSWERED, u) for u in unanswered]
-                if witnesses is not None and ed.own_evidence:
-                    refused += [(NO_OWN_WITNESS, f"{t}: no conformance-suite witness runs at {ed.spelling}")
-                                for t in witnesses.missing(ed, r.to)]
+                refused += kept_problems(ed, rid, r.to, r.licence, lin, witnesses)
                 out.append(Decision(**base, answers=answers, refused=tuple(refused)))
     return out
 
@@ -564,6 +692,8 @@ def summary(decisions: list[Decision]) -> dict[str, Any]:
 
 #: What a suite case of a kept-but-unwitnessed row can do at the edition (`widen_plan`).
 RUNS, WIDEN, WIDEN_REFUSAL, BAND, NO_EDITION, MISSING = "runs", "widen", "widen-refusal", "band", "no-edition", "missing"
+#: What a widening that does not hold leaves: the row needs a witness of its own at the edition.
+NEEDS_OWN = "needs an own witness"
 
 
 def case_status(c: CaseInfo | None, sp: str, bands: dict[str, list[str]]) -> str:
@@ -582,29 +712,32 @@ def case_status(c: CaseInfo | None, sp: str, bands: dict[str, list[str]]) -> str
     return WIDEN if (c.accept or c.flag_at) else WIDEN_REFUSAL
 
 
-def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses) -> dict[str, Any]:
-    """For each read rule refused ONLY for its evidence (a SAME, upheld, every flag answered), each next-edition rule it
-    carries into: its suite cases and what each can do at `ed` (`case_status`). A row is `has-witness`, `widenable`
-    (each rule it lacks evidence for has a case to widen) or `needs-own-witness` (some rule has none: the row's witness
-    must be written at its own edition)."""
+def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses, lin: Lineage) -> dict[str, Any]:
+    """For each read rule refused ONLY for its evidence (a SAME, upheld, every flag answered, the pairing's targets), each
+    target that lacks a witness of the kind the rule needs: its suite cases and what each can do at `ed`
+    (`case_status`). A widening helps a target when it would give it such a witness: an ACCEPTED case always; a
+    diagnosis (a flag or a refusal) only for a kind the evidence table names, or a declined facility (review R1-1). A row
+    is `widenable` (every lacking target has a case that helps) or `needs-own-witness`."""
     sp = ed.spelling
     cases: dict[str, dict[str, Any]] = {}
     rows = []
     for d in decisions:
         if d.work or not d.refused or any(r != NO_OWN_WITNESS for r, _ in d.refused):
             continue
-        per_rule = {}
-        for t in d.to:
+        kind = lin.kinds.get(d.rule_id, "")
+        lacking = [t for t in d.to if w.evidence(ed, kind, [t], None, lin.table)]
+        per_rule, helps = {}, {}
+        for t in lacking:
             ks = w.suite_cases(t)
             for k in ks:
                 c = w.cases.get(k)
                 cases.setdefault(k, {"status": case_status(c, sp, w.bands), "rules": list(c.rules) if c else []})
+            diagnosis_counts = kind in lin.table.diagnosed or w.verdicts.get(t) == lin.table.declined
+            helps[t] = any(cases[k]["status"] == WIDEN and (w.cases[k].accept or diagnosis_counts)
+                           or cases[k]["status"] == WIDEN_REFUSAL and diagnosis_counts for k in ks)
             per_rule[t] = ks
-        statuses = {t: {cases[k]["status"] for k in ks} for t, ks in per_rule.items()}
-        lacking = [t for t, st in statuses.items() if RUNS not in st]
-        state = ("has-witness" if not lacking else
-                 "widenable" if all(statuses[t] & {WIDEN, WIDEN_REFUSAL} for t in lacking) else "needs-own-witness")
-        rows.append({"rule-id": d.rule_id, "to": list(d.to), "state": state, "cases": per_rule})
+        rows.append({"rule-id": d.rule_id, "to": list(d.to), "kind": kind, "cases": per_rule,
+                     "state": "widenable" if lacking and all(helps.values()) else "needs-own-witness"})
     return {"edition": ed.year, "rows": rows, "cases": cases,
             "counts": {"rows": dict(sorted(collections.Counter(r["state"] for r in rows).items())),
                        "cases": dict(sorted(collections.Counter(c["status"] for c in cases.values()).items()))}}
@@ -616,7 +749,6 @@ def add_edition(values: Iterable[str], spelling: str, order: list[str]) -> list[
 
 
 HEADER_FIELD = re.compile(r"^(?P<lead>\s*\*>\s*)(?P<key>accept|flag):(?P<value>.*)$")
-EDITION_LIST = re.compile(r"\[[^\]]*\]")
 
 
 def _listed(text: str) -> list[str]:
@@ -669,91 +801,113 @@ def revert(path: pathlib.Path, edits: list[tuple[str, str]]) -> None:
     path.write_text(raw, encoding="utf-8", newline="")
 
 
-def refused_at(c: CaseInfo, spelling: str, compiler: pathlib.Path, scratch: pathlib.Path) -> str | None:
-    """Why the refusal test `c` does not refuse at the edition (None when it does): compiled at `--std` with `compiler`,
-    the compilation must fail and report the entry's code or text, as the gate's refusal row requires."""
-    out = scratch / "refusals" / c.key.replace("/", "_")
-    out.mkdir(parents=True, exist_ok=True)
-    r = subprocess.run([str(compiler), str(c.path), "--std", spelling, "--source-format", c.source_format,
-                        "-o", str(out / "p.dll")], capture_output=True, text=True, encoding="utf-8", errors="replace",
-                       cwd=c.path.parent, timeout=600)
-    if r.returncode == 0:
-        return f"accepted at {spelling}"
-    return None if c.expect in r.stdout + r.stderr else f"refused at {spelling} without {c.expect!r}"
+#: The exit statuses of conformance-suite/harness/run.py that mean it ran every test and wrote its results: 0 (no
+#: verdict worse than PASS) and 1 (a verdict worse: each test's is in the results). Any other (2, a usage error; a
+#: crash) means the results are not this run's, and every case it was to judge is reverted (review R1-3).
+RUN_RAN = (0, 1)
 
 
-def widen_apply(plan: dict[str, Any], w: Witnesses, ed: Edition, compiler: pathlib.Path, scratch: pathlib.Path) -> dict[str, Any]:
-    """Widen every `WIDEN` and `WIDEN_REFUSAL` case of `plan` to `ed` (a flagged case's control with it), then keep only
-    what the generator accepts and what passes at `ed` with `compiler` (an accepted or flagged case through the harness,
-    run.py, on the generator's own manifest entries; a refusal test by its compilation): the rest is reverted, each with
-    why. It edits case headers and refusal entries only. The gate's run of the edition's suite is the proof that lands."""
+def widen_apply(plan: dict[str, Any], w: Witnesses, ed: Edition, compiler: pathlib.Path, scratch: pathlib.Path,
+                run: Any = subprocess.run) -> dict[str, Any]:
+    """Widen every `WIDEN` and `WIDEN_REFUSAL` case of `plan` to `ed` (a flagged case's control with it), and KEEP only a
+    case run at the edition IN THIS INVOCATION that passed there: the generator must accept the tree; an accepted or
+    flagged case must PASS in the results the harness (run.py) writes now, into a directory this call makes fresh, from
+    a run that exited 0 or 1 (`RUN_RAN`); a refusal test must be refused, with its expected diagnostic, by its
+    compilation now. Every other case, and EVERY case when anything fails or raises on the way, is restored and listed
+    as needing an own witness: the tree ends fully consistent (the kept widenings all proven) or untouched, never in
+    between (review R1-3). `run` is subprocess.run, a parameter so the self-test plants the harness."""
     order = inventory_schema.load_schema().editions
     sp = ed.spelling
+    if scratch.exists() and any(scratch.iterdir()):
+        raise SystemExit(f"{TOOL}: widen --apply needs an empty --scratch, so no result it reads is an earlier run's")
     widened: dict[str, list[tuple[pathlib.Path, list[tuple[str, str]]]]] = {}
-    for k, c in sorted(plan["cases"].items()):
-        info = w.cases.get(k)
-        if c["status"] == WIDEN:
-            group = [(info.path, widen_case(info.path, sp, order))]
-            if info.flag_at and info.control and (ctl := w.cases.get(f"{k.rsplit('/', 1)[0]}/{info.control}")) \
-                    and sp not in ctl.accept:
-                group.append((ctl.path, widen_case(ctl.path, sp, order)))
-            widened[k] = group
-        elif c["status"] == WIDEN_REFUSAL:
-            widened[k] = [(info.refusal, widen_refusal(info.refusal, sp, order))]
     reverted: dict[str, str] = {}
 
     def undo(k: str, why: str) -> None:
         for path, edits in reversed(widened.pop(k)):
             revert(path, edits)
-        reverted[k] = why
+        reverted[k] = f"{NEEDS_OWN}: {why}"
 
-    gen = scratch / "suites"
+    try:
+        for k, c in sorted(plan["cases"].items()):
+            info = w.cases.get(k)
+            if c["status"] == WIDEN:
+                widened[k] = [(info.path, widen_case(info.path, sp, order))]
+                if info.flag_at and info.control and (ctl := w.cases.get(f"{k.rsplit('/', 1)[0]}/{info.control}")) \
+                        and sp not in ctl.accept:
+                    widened[k].append((ctl.path, widen_case(ctl.path, sp, order)))
+            elif c["status"] == WIDEN_REFUSAL:
+                widened[k] = [(info.refusal, widen_refusal(info.refusal, sp, order))]
+        gen = scratch / "suites"
 
-    def generate() -> subprocess.CompletedProcess[str]:
-        return subprocess.run([sys.executable, str(SUITE / "harness" / "generate.py"), "--out", str(gen)],
-                              capture_output=True, text=True, encoding="utf-8", cwd=REPO)
+        def generate() -> Any:
+            return run([sys.executable, str(SUITE / "harness" / "generate.py"), "--out", str(gen)],
+                       capture_output=True, text=True, encoding="utf-8", cwd=REPO)
 
-    run = generate()
-    refused = {m.group(1) for m in re.finditer(r"REFUSED\s+((?:wiseowl/)?cases/[^:]+?)\.(?:cob|cbl):", run.stdout)}
-    if stray := sorted(refused - set(widened)):
-        raise SystemExit(f"{TOOL}: the generator refuses cases this run did not widen: {stray[:5]}")
-    for k in sorted(refused):
-        undo(k, f"the generator refuses it at {sp}")
-    if refused:
-        run = generate()
-    if run.returncode != 0:
-        raise SystemExit(f"{TOOL}: generate.py refuses the tree:\n{run.stdout[-2000:]}{run.stderr[-2000:]}")
-    accepted = [k for k in widened if plan["cases"][k]["status"] == WIDEN]
-    if accepted:
-        manifest = json.loads((gen / "wiseowl" / "manifest.json").read_text(encoding="utf-8"))
-        ids = {pathlib.PurePath(k).name for k in accepted}
-        suites = scratch / "run-suites" / sp
-        suites.mkdir(parents=True, exist_ok=True)
-        (suites / "manifest.json").write_text(json.dumps(
-            {"edition": sp, "generator": manifest["generator"],
-             "tests": [t for t in manifest["editions"][sp] if t["id"] in ids]}, indent=1), encoding="utf-8", newline="\n")
-        results = scratch / "results"
-        subprocess.run([sys.executable, str(SUITE / "harness" / "run.py"), "--compiler", "wiseowl", "--set",
-                        f"cobol={compiler}", "--suites", str(scratch / "run-suites"), "--editions", sp,
-                        "--out", str(results)], cwd=REPO, check=False)
-        verdicts = {t["id"]: t["verdict"] for t in json.loads((results / "results.json").read_text(encoding="utf-8"))["tests"]
-                    if t.get("edition") == sp}
-        for k in accepted:
-            if (v := verdicts.get(pathlib.PurePath(k).name)) != "PASS":
-                undo(k, f"the harness's verdict at {sp} is {v}")
-    for k in [k for k in widened if plan["cases"][k]["status"] == WIDEN_REFUSAL]:
-        if why := refused_at(w.cases[k], sp, compiler, scratch):
-            undo(k, why)
+        g = generate()
+        refused = {m.group(1) for m in re.finditer(r"REFUSED\s+((?:wiseowl/)?cases/[^:]+?)\.(?:cob|cbl):", g.stdout or "")}
+        if stray := sorted(refused - set(widened)):
+            raise SystemExit(f"{TOOL}: the generator refuses cases this run did not widen: {stray[:5]}")
+        for k in sorted(refused):
+            undo(k, f"the generator refuses it at {sp}")
+        if refused:
+            g = generate()
+        if g.returncode != 0:
+            raise SystemExit(f"{TOOL}: generate.py refuses the tree:\n{(g.stdout or '')[-2000:]}")
+        accepted = [k for k in widened if plan["cases"][k]["status"] == WIDEN]
+        if accepted:
+            manifest = json.loads((gen / "wiseowl" / "manifest.json").read_text(encoding="utf-8"))
+            ids = {pathlib.PurePath(k).name for k in accepted}
+            suites = scratch / "run-suites" / sp
+            suites.mkdir(parents=True)
+            (suites / "manifest.json").write_text(json.dumps(
+                {"edition": sp, "generator": manifest["generator"],
+                 "tests": [t for t in manifest["editions"][sp] if t["id"] in ids]}, indent=1),
+                encoding="utf-8", newline="\n")
+            results = scratch / "results"          # made by this run only: the scratch was empty
+            r = run([sys.executable, str(SUITE / "harness" / "run.py"), "--compiler", "wiseowl", "--set",
+                     f"cobol={compiler}", "--suites", str(scratch / "run-suites"), "--editions", sp, "--out", str(results)],
+                    cwd=REPO, check=False)
+            file = results / "results.json"
+            verdicts: dict[str, str] = {}
+            if r.returncode in RUN_RAN and file.is_file():
+                verdicts = {t["id"]: t["verdict"] for t in json.loads(file.read_text(encoding="utf-8"))["tests"]
+                            if t.get("edition") == sp}
+            for k in accepted:
+                if (v := verdicts.get(pathlib.PurePath(k).name)) != "PASS":
+                    undo(k, f"the harness's verdict at {sp} is {v}" if verdicts else
+                         f"the harness exited {r.returncode} and wrote no results of this run")
+        for k in [k for k in widened if plan["cases"][k]["status"] == WIDEN_REFUSAL]:
+            if why := refused_at(w.cases[k], sp, compiler, scratch, run):
+                undo(k, why)
+    except BaseException:
+        for k in list(widened):
+            undo(k, "the widening stopped before it was proven")
+        raise
     return {"widened": sorted(widened), "reverted": reverted}
+
+
+def refused_at(c: CaseInfo, spelling: str, compiler: pathlib.Path, scratch: pathlib.Path, run: Any = subprocess.run) -> str | None:
+    """Why the refusal test `c` does not refuse at the edition (None when it does): compiled at `--std` with `compiler`,
+    the compilation must fail and report the entry's code or text, as the gate's refusal row requires."""
+    out = scratch / "refusals" / c.key.replace("/", "_")
+    out.mkdir(parents=True, exist_ok=True)
+    r = run([str(compiler), str(c.path), "--std", spelling, "--source-format", c.source_format, "-o", str(out / "p.dll")],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=c.path.parent, timeout=600)
+    if r.returncode == 0:
+        return f"accepted at {spelling}"
+    return None if c.expect and c.expect in (r.stdout or "") + (r.stderr or "") else f"refused at {spelling} without {c.expect!r}"
 
 
 # -- the audit ----------------------------------------------------------------------------------------------------------
 
-def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slice], w: Witnesses | None) -> list[str]:
-    """Why a STORED change record of `ed` does not stand: one whose source names a read record is that record's decision
-    (the record holds a read of the rule, the read is a SAME its refuter UPHELD, the record is KEPT into the read's
-    rules); and, for an edition whose records close on own-edition evidence (`Edition.own_evidence`), with `w`, every
-    stored KEPT record, whatever its source, still has a witness at the edition for each rule it carries into."""
+def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slice], w: Witnesses | None,
+                  lin: Lineage) -> list[str]:
+    """Why a STORED change record of `ed` does not stand. One whose source names a read record is that record's decision:
+    the record (whose digests `load` verified against its content) holds a read of the rule, the read is a SAME its
+    refuter UPHELD, and the record is KEPT. For an edition whose records close on own-edition evidence, every stored KEPT
+    record, whatever its source, also passes `kept_problems`: the pairing's targets, each witnessed at the edition (with
+    `w`) by a case of the kind the rule needs."""
     by_slice = {s.name: s for s in slices}
     prefix = f"lineage-reads-{ed.year}/"
     errs = []
@@ -762,10 +916,9 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
         src = nxt.get("source") or ""
         if not nxt.get("kind"):
             continue
-        rid = r["rule-id"]
+        rid, licence = r["rule-id"], None
         if src.startswith(prefix):
-            name = src[len(prefix):].removesuffix(".json")
-            s = by_slice.get(name)
+            s = by_slice.get(src[len(prefix):].removesuffix(".json"))
             read = s.reads.get(rid) if s else None
             f = s.refutes.get(rid) if s else None
             if read is None:
@@ -778,13 +931,12 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
                 errs.append(f"{rid}: its read is {read.verdict} and its refuter {f.verdict if f else 'absent'}: a KEPT "
                             "record needs a SAME the refuter UPHELD")
                 continue
-            if list(read.to) != list(nxt.get("to") or []):
+            if sorted(read.to) != sorted(nxt.get("to") or []):
                 errs.append(f"{rid}: it carries into {nxt.get('to')}, its read into {list(read.to)}")
                 continue
-        if nxt["kind"] == KEPT and ed.own_evidence and w is not None and (gone := w.missing(ed, nxt.get("to") or [])):
-            errs.append(f"{rid}: no conformance-suite witness of {gone} runs at {ed.spelling}: a KEPT record of {ed.year} "
-                        "closes on evidence produced at its own edition (widen the band again, or give the rule a "
-                        "witness of its own and re-decide the record)")
+            licence = read.licence
+        if nxt["kind"] == KEPT and ed.own_evidence:
+            errs += [f"{rid}: {why}: {d}" for why, d in kept_problems(ed, rid, nxt.get("to") or [], licence, lin, w)]
     return errs
 
 
@@ -803,10 +955,10 @@ def check(years: list[int]) -> int:
         from_reads = [r for r in rows if ((r.get("next") or {}).get("source") or "").startswith(f"lineage-reads-{y}/")]
         kept = [r for r in rows if (r.get("next") or {}).get("kind") == KEPT]
         w = Witnesses.of(ed.next_held) if ed.own_evidence and kept else None
-        errs = stored_errors(ed, rows, slices, w)
-        print(f"{y}: {len(slices)} read record(s), {sum(len(s.reads) for s in slices)} rule(s) read; {len(from_reads)} "
-              f"stored record(s) from reads; {len(kept)} KEPT record(s)"
-              + (", each held to a witness at its own edition" if ed.own_evidence else ""))
+        errs = stored_errors(ed, rows, slices, w, Lineage.of(ed))
+        print(f"{y}: {len(slices)} read record(s), {sum(len(s.reads) for s in slices)} rule(s) read, each record's "
+              f"digests verified; {len(from_reads)} stored record(s) from reads; {len(kept)} KEPT record(s)"
+              + (", each held to the pairing and a witness at its own edition" if ed.own_evidence else ""))
         for e in errs:
             print(f"  ⛔ {e}")
         if errs:
@@ -818,20 +970,25 @@ def check(years: list[int]) -> int:
 # -- the command line -----------------------------------------------------------------------------------------------------
 
 def own_edition(year: int, out: pathlib.Path) -> int:
-    """The stored KEPT records of `year` measured against the own-edition evidence rule (a measurement: it changes
-    nothing): how many carry into rules of which at least one, and each, has a suite witness that runs at the edition."""
+    """The stored KEPT records of `year` measured against the own-edition evidence rule, the kind the rule needs
+    included (a measurement: it changes nothing): how many carry into rules of which at least one, and each, has such a
+    witness at the edition."""
     ed = edition(year)
     w = Witnesses.of(ed.next_held)
+    lin = Lineage(kinds={r["id"]: r["kind"] for r in ed.rules()}, pairs={}, table=EvidenceTable.load())
     rows = [r for r in inventory_view.inventory(year) if (r.get("next") or {}).get("kind") == KEPT]
-    some = [r["rule-id"] for r in rows if len(w.missing(ed, r["next"]["to"])) < len(r["next"]["to"])]
-    every = [r["rule-id"] for r in rows if not w.missing(ed, r["next"]["to"])]
+
+    def lacking(r: dict[str, Any]) -> list[str]:
+        return w.missing(ed, r["next"]["to"], lin.kinds.get(r["rule-id"], ""), lin.table)
+
+    some = [r["rule-id"] for r in rows if len(lacking(r)) < len(r["next"]["to"])]
+    every = [r["rule-id"] for r in rows if not lacking(r)]
     none = sorted(set(r["rule-id"] for r in rows) - set(some))
     doc = {"edition": year, "kept": len(rows), "some-target-witnessed": len(some), "every-target-witnessed": len(every),
-           "none": len(none), "rules-with-none": none,
-           "rules-some-not-every": sorted(set(some) - set(every))}
+           "none": len(none), "rules-with-none": none, "rules-some-not-every": sorted(set(some) - set(every))}
     out.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8", newline="\n")
-    print(f"{year}: {len(rows)} stored KEPT record(s); a witness at {ed.spelling} for at least one target: {len(some)}; for "
-          f"every target: {len(every)}; for none: {len(none)} -> {out}")
+    print(f"{year}: {len(rows)} stored KEPT record(s); a witness of the kind the rule needs at {ed.spelling} for at least "
+          f"one target: {len(some)}; for every target: {len(every)}; for none: {len(none)} -> {out}")
     return 0
 
 
@@ -847,7 +1004,7 @@ def main(argv: list[str] | None = None) -> int:
     wd.add_argument("--out", required=True, help="the plan (JSON) to write")
     wd.add_argument("--apply", action="store_true", help="edit the suite's case headers, keeping what passes at the edition")
     wd.add_argument("--compiler", help="with --apply: the cobol executable the harness runs")
-    wd.add_argument("--scratch", help="with --apply: a scratch directory for the generated suites and the run")
+    wd.add_argument("--scratch", help="with --apply: an EMPTY scratch directory for the generated suites and the run")
     oe = sub.add_parser("own-edition", help="measure the stored KEPT records' witnesses at their own edition")
     oe.add_argument("--edition", type=int, required=True)
     oe.add_argument("--out", required=True)
@@ -858,8 +1015,8 @@ def main(argv: list[str] | None = None) -> int:
         ed = edition(a.edition)
         state = json.loads((pathlib.Path(a.state) / "reads.json").read_text(encoding="utf-8"))
         slices = load(a.edition, pathlib.Path(state["record"]))
-        w = Witnesses.of(ed.next_held)
-        plan = widen_plan(ed, decide(ed, slices, lineage_screen.committed(a.edition), w), w)
+        w, lin = Witnesses.of(ed.next_held), Lineage.of(ed)
+        plan = widen_plan(ed, decide(ed, slices, lineage_screen.committed(a.edition), w, lin), w, lin)
         if a.apply:
             if not a.compiler or not a.scratch:
                 raise SystemExit(f"{TOOL}: widen --apply needs --compiler and --scratch")

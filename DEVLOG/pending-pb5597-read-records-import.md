@@ -17,13 +17,21 @@ red gate (R2-1). The JSON backspace in the communication-reach pattern is now `\
 parameter is refused at load (R2-3). Answers travel into the change, and one bad row no longer refuses its whole batch
 (R2-4).
 
-**Measured (dry runs: no 2002 record is written).** The import read all 63 slices, covering 1,570 rules. Before the
-evidence check, 291 rules would be kept. 664 were refused: 531 because a flag is unanswered and 133 because no refuter
-record exists. 615 became work items: 320 needs-own-witness, 207 defect, 87 undecided and 1 uninterpretable.
-`change-batch` wrote 215 KEPT records and refused 607, and `record_verdicts.py --edition 2002 --dry-run` accepted all 215
-(GAP 3,297 to 3,083). Of the 76 rows refused only for their evidence, `widen` found 58 widenable and 18 that need their own
-witness. For 1985, 887 of the 1,373 stored KEPT records have a witness at 85 for at least one target, and 486 have none.
+**Review round 1.** A refusal or a flag now witnesses only a syntax rule or general format (the evidence table, data) or a
+declined facility whose read states its 2002 licence; any other rule needs a case accepted at 2002. A KEPT record
+carries exactly the candidate pairing's targets, and a SAME for an unpaired rule becomes the work item
+`own-verdict-from-pointer`. Any slice label imports, and an empty `to` too. `widen --apply` keeps only widenings proven
+in that run and restores everything on any failure. A rule read twice is refused before any write, and `load` verifies
+each record's digests. The gate's hang of `pb739_shared_extend_write_2023` is filed as kb/Work PB5626.
 
-**Not done.** The real import, the band widening and the 2002 records are the records worker's. So are the re-read of the
-531 rows whose screen flags their slices never asked and the 133 SAME reads with no refuter. 1985's state rules and records
+**Measured (dry runs: no 2002 record is written).** The import read 69 slices covering 1,720 rules. Before the evidence
+check, 300 rules would be kept. 632 were refused because a screen flag is unanswered. 788 became work items: 407
+needs-own-witness, 217 defect, 108 undecided, 55 own-verdict-from-pointer and 1 uninterpretable. `change-batch` wrote
+219 KEPT records and refused 713, and `record_verdicts.py --edition 2002 --dry-run` accepted all 219 (GAP 3,297 to
+3,079). Of the 81 rows refused only for their evidence, `widen` found 60 widenable and 21 that need their own witness.
+For 1985, 835 of the 1,373 stored KEPT records have a witness of the kind the rule needs at 85 for at least one target,
+and 538 have none.
+
+**Not done.** The real import, the band widening and the 2002 records are the records worker's. So are the answers
+to the 632 rows whose screen flags their slices never asked, and the own verdicts of the 55 unpaired SAME reads. 1985's state rules and records
 are unchanged.
