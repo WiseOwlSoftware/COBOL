@@ -1,0 +1,1525 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-50 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-50",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-FMT-14.8.36.1",
+   "2002-FMT-14.8.37.1",
+   "2002-FMT-14.8.38.1",
+   "2002-FMT-14.8.39.1",
+   "2002-FMT-14.8.40.1",
+   "2002-FMT-14.8.41.1",
+   "2002-FMT-14.8.42.1",
+   "2002-FMT-14.8.43.1",
+   "2002-FMT-14.8.44.1",
+   "2002-FMT-14.8.45.1",
+   "2002-FMT-14.8.46.1",
+   "2002-FMT-14.8.47.1",
+   "2002-FMT-11.9.1",
+   "2002-FMT-13.9.1",
+   "2002-FMT-15.9.1",
+   "2002-FMT-15.10.1",
+   "2002-FMT-15.11.1",
+   "2002-FMT-13.12.1",
+   "2002-FMT-15.12.1",
+   "2002-FMT-13.13.1",
+   "2002-FMT-15.13.1",
+   "2002-FMT-13.14.1",
+   "2002-FMT-15.14.1",
+   "2002-FMT-13.15.1",
+   "2002-FMT-15.15.1"
+  ],
+  "pointers": {
+   "2002-FMT-14.8.36.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.40.2",
+    "similarity": 0.622
+   },
+   "2002-FMT-14.8.37.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.41.2",
+    "similarity": 0.391
+   },
+   "2002-FMT-14.8.38.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.42.2",
+    "similarity": 0.292
+   },
+   "2002-FMT-14.8.39.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.43.2",
+    "similarity": 0.456
+   },
+   "2002-FMT-14.8.40.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.44.2",
+    "similarity": 0.438
+   },
+   "2002-FMT-14.8.41.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-14.9.45.2",
+    "similarity": 0.797
+   },
+   "2002-FMT-14.8.42.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-14.9.46.2",
+    "similarity": 0.815
+   },
+   "2002-FMT-14.8.43.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-14.9.47.2",
+    "similarity": 0.839
+   },
+   "2002-FMT-14.8.44.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.48.2",
+    "similarity": 0.586
+   },
+   "2002-FMT-14.8.45.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.49.2",
+    "similarity": 0.506
+   },
+   "2002-FMT-14.8.46.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-14.9.50.2",
+    "similarity": 0.809
+   },
+   "2002-FMT-14.8.47.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.51.2",
+    "similarity": 0.44
+   },
+   "2002-FMT-11.9.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-11.10.2",
+    "similarity": 0.406
+   },
+   "2002-FMT-13.9.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.10.2",
+    "similarity": 0.505
+   },
+   "2002-FMT-15.9.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.10.2",
+    "similarity": 0.839
+   },
+   "2002-FMT-15.10.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.11.2",
+    "similarity": 0.839
+   },
+   "2002-FMT-15.11.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.13.2",
+    "similarity": 0.881
+   },
+   "2002-FMT-13.12.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.14.2",
+    "similarity": 0.431
+   },
+   "2002-FMT-15.12.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.14.2",
+    "similarity": 0.788
+   },
+   "2002-FMT-13.13.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-13.15.2",
+    "similarity": 0.988
+   },
+   "2002-FMT-15.13.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.15.2",
+    "similarity": 0.839
+   },
+   "2002-FMT-13.14.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-13.16.2",
+    "similarity": 0.745
+   },
+   "2002-FMT-15.14.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.16.2",
+    "similarity": 0.857
+   },
+   "2002-FMT-13.15.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.17.2",
+    "similarity": 0.63
+   },
+   "2002-FMT-15.15.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.20.2",
+    "similarity": 0.837
+   }
+  }
+ },
+ "read": {
+  "slice": "u-50",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-FMT-14.8.36.1",
+    "to": [
+     "FMT-14.9.40.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36.1 SORT general format",
+    "clause-2023": "14.9.40.2 SORT general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 (file): ASCENDING/DESCENDING KEY lists, DUPLICATES, COLLATING SEQUENCE (IS a1 [a2] / FOR ALPHANUMERIC / FOR NATIONAL, any order), INPUT PROCEDURE [THRU] or USING, OUTPUT PROCEDURE [THRU] or GIVING",
+     "format 2 (table): optional KEY phrase with optional data-name, DUPLICATES, COLLATING SEQUENCE"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by the row's pb994_sort_merge_keyed_using_giving and pb1139_sort_collating_word_optional, each run now at --std 2002: MATCHES-GOLDEN; and probe fmt_sort.cob (two keys, DUPLICATES, FOR ALPHANUMERIC, INPUT THRU, OUTPUT PROCEDURE, USING/GIVING, IS a1 a2): same output at 2002 and 2023",
+     "format 2": "covered by the row's pb1175_table_sort_shared_storage and pb1055_table_sort_nested_subject at --std 2002: MATCHES-GOLDEN; probe fmt_sort.cob (no KEY phrase, KEY without data-name) and fmt_sort_coll.cob (FOR NATIONAL before FOR ALPHANUMERIC)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.1",
+      "quote": "WITH DUPLICATES IN ORDER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.2",
+      "quote": "WITH DUPLICATES IN ORDER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.1",
+      "quote": "INPUT PROCEDURE IS procedure-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 and 2023 diagrams are token-identical (the 2023 transcription only adds figure notes); the 2002 PDF prints the same choice indicators in the COLLATING SEQUENCE brace. The pointer's four witnesses run clean at --std 2002, and the probes add the remaining phrase spellings.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_sort.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.37.1",
+    "to": [
+     "FMT-14.9.41.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37.1 START general format",
+    "clause-2023": "14.9.41.2 START general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "START file-name-1 with FIRST, KEY relational-operator data-name-1/record-key-name-1 [WITH LENGTH], or LAST",
+     "INVALID KEY / NOT INVALID KEY, zero or more, any order",
+     "END-START"
+    ],
+    "evidence-2002": {
+     "FIRST / KEY / LAST, LENGTH": "covered by the row's pb332_start_length_optional_with, pb333_start_general_relation_operators and pb1099_record_key_source at --std 2002: MATCHES-GOLDEN; probe fmt_start.cob (FIRST, KEY >= WITH LENGTH 1, KEY =, LAST then READ PREVIOUS, KEY > past the end)",
+     "INVALID / NOT INVALID in either order": "covered by probe fmt_start.cob at 2002 (NOT INVALID first and INVALID first): same output as 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.1",
+      "quote": "WITH LENGTH arithmetic-expression-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.2",
+      "quote": "WITH LENGTH arithmetic-expression-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Token-identical general formats. The row's run cases hold at --std 2002 and the probe exercises every alternative.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_start.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.38.1",
+    "to": [
+     "FMT-14.9.42.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.38.1 STOP general format",
+    "clause-2023": "14.9.42.2 STOP general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "STOP RUN",
+     "STOP RUN [WITH] ERROR|NORMAL [STATUS] [identifier-1|literal-1]"
+    ],
+    "evidence-2002": {
+     "all forms": "not shown by the pointer: its only witness, GobackGeneralFormatTests.TheSharedStatusPhrase_ReadsTheSameOnStopRun, compiles at 2023 only (EditionHarness.Compile(..., 2023)). Covered by probes stop_err_lit.cob (exit 3), stop_norm_id.cob (exit 4 from the identifier), stop_err_none.cob (exit 1), stop_norm_none.cob (exit 0), stop_plain.cob (exit 0) at --std 2002, identical to 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.2 SR2",
+      "quote": "Identifier-1 shall reference an integer data item or a data item with usage display or usage national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.38.2 SR3",
+      "quote": "If literal-1 is numeric, it shall be an integer.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Token-identical formats; the requirement is the same, but the pointer row's evidence does not run at --std 2002, so the 2002 row needs its own witness. The probes are that witness and show correct behaviour.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/stop_err_lit.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for the STOP RUN status phrase (the pointer's only test compiles at 2023): candidate probes stop_*.cob",
+    "compiler-at-2002": "correct (probes stop_err_lit/stop_norm_id/stop_err_none/stop_norm_none/stop_plain .cob, outputs *-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.39.1",
+    "to": [
+     "FMT-14.9.43.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39.1 STRING general format",
+    "clause-2023": "14.9.43.2 STRING general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "sending groups {identifier-1|literal-1}... [DELIMITED BY identifier-2|literal-2|SIZE] repeated",
+     "INTO, WITH POINTER",
+     "ON OVERFLOW / NOT ON OVERFLOW zero or more any order",
+     "END-STRING"
+    ],
+    "evidence-2002": {
+     "overflow pair any order": "covered by the row's phrase_order_overflow at --std 2002: MATCHES-GOLDEN",
+     "sending groups, DELIMITED SIZE / literal, POINTER": "covered by probe fmt_strarith.cob at 2002 (STR ABXYZ-! PTR 08; overflow into a 4-char receiver): same as 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.1",
+      "quote": "INTO identifier-3 [ WITH POINTER identifier-4 ]",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.2",
+      "quote": "INTO identifier-3 [ WITH POINTER identifier-4 ]",
+      "check": "OK"
+     }
+    ],
+    "reason": "Token-identical formats (the transcriptions place one ellipsis differently but read the same: each sending group repeats). The row's witness runs at 2002 and the probe covers the rest.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_strarith.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.40.1",
+    "to": [
+     "FMT-14.9.44.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.40.1 SUBTRACT general format",
+    "clause-2023": "14.9.44.2 SUBTRACT general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 SUBTRACT {id|lit}... FROM {id [ROUNDED]}...",
+     "format 2 ... FROM id|lit GIVING {id [ROUNDED]}...",
+     "format 3 CORRESPONDING/CORR ... [ROUNDED]",
+     "SIZE ERROR pair, END-SUBTRACT"
+    ],
+    "evidence-2002": {
+     "all three formats, ROUNDED, SIZE ERROR pair in either order": "covered by the row's phrase_order_arithmetic at --std 2002 (MATCHES-GOLDEN) and probe fmt_strarith.cob at 2002 (SUB1 08 02, SUB2 08 7, SUB3 1016): same as 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.1",
+      "quote": "NOT ON SIZE ERROR imperative-statement-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.2",
+      "quote": "where rounded-phrase is described in 14.7.4, ROUNDED phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 writes the bare word ROUNDED where 2023 writes rounded-phrase (ROUNDED [MODE IS ...], §2023:14.7.4). The 2002 rule is the 2023 rule restricted to plain ROUNDED; at --std 2002 the compiler refuses ROUNDED MODE (S1-lists COBOL0803), as 2002 requires.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_strarith.cob",
+    "widening": "2023 adds the MODE IS phrase of rounded-phrase; 2002 has only ROUNDED"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.41.1",
+    "to": [
+     "FMT-14.9.45.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.41.1 SUPPRESS general format",
+    "clause-2023": "14.9.45.2 SUPPRESS general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SUPPRESS [PRINTING] in a USE BEFORE REPORTING procedure"
+    ],
+    "evidence-2002": {
+     "SUPPRESS PRINTING": "not shown by the pointer at 2002: its only witness rw_suppress is refused at --std 2002 (COBOL0900 ORGANIZATION LINE SEQUENTIAL requires COBOL-2023). Covered by probe fmt_rw.cob at --std 2002: the suppressed detail line is absent, its SUM still accumulates (TOTAL 60), report identical to 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.41.2 SR1",
+      "quote": "The SUPPRESS statement may appear only in a USE BEFORE REPORTING procedure.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.45.3 SR1",
+      "quote": "The SUPPRESS statement may appear only in a USE BEFORE REPORTING procedure.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Token-identical format and same requirement, but the pointer's witness uses a 2023-only file organization and cannot run at 2002, so the 2002 row needs its own witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_rw.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for SUPPRESS PRINTING (rw_suppress uses LINE SEQUENTIAL): candidate probe fmt_rw.cob",
+    "compiler-at-2002": "correct (probe fmt_rw.cob, work/fmt_rw-2002/fmtrw.rpt)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.42.1",
+    "to": [
+     "FMT-14.9.46.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.42.1 TERMINATE general format",
+    "clause-2023": "14.9.46.2 TERMINATE general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "TERMINATE {report-name-1}..."
+    ],
+    "evidence-2002": {
+     "one and several report-names": "covered by the row's l1c33_terminate_multi_order_no_close at --std 2002: MATCHES-GOLDEN; probe fmt_rw.cob (TERMINATE R1 R2) at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.42.2 SR1",
+      "quote": "Report-name-1 shall be defined by a report description entry in the report section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.46.3 SR1",
+      "quote": "Report-name-1 shall be defined by a report description entry in the report section.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the row's witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_rw.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.43.1",
+    "to": [
+     "FMT-14.9.47.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.43.1 UNLOCK general format",
+    "clause-2023": "14.9.47.2 UNLOCK general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "UNLOCK file-name-1 [RECORD|RECORDS]"
+    ],
+    "evidence-2002": {
+     "UNLOCK": "covered by the row's file_sharing, file_sharing_seq and pb140_read_gate at --std 2002: MATCHES-GOLDEN",
+     "RECORD / RECORDS / neither": "covered by probe fmt_start.cob at 2002 (all three spellings compile and run)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.43.2 SR1",
+      "quote": "File-name-1 shall not refer to a sort file or a merge file.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.47.3 SR1",
+      "quote": "File-name-1 shall not refer to a sort file or a merge file.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the row's witnesses run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_start.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.44.1",
+    "to": [
+     "FMT-14.9.48.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44.1 UNSTRING general format",
+    "clause-2023": "14.9.48.2 UNSTRING general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "UNSTRING identifier-1 [DELIMITED BY [ALL] id|lit [OR [ALL] id|lit]...]",
+     "INTO {id-4 [DELIMITER IN id-5] [COUNT IN id-6]}...",
+     "WITH POINTER, TALLYING IN",
+     "OVERFLOW pair any order, END-UNSTRING"
+    ],
+    "evidence-2002": {
+     "all phrases": "covered by the row's l1c35_unstring_receiving_operands at --std 2002 (MATCHES-GOLDEN) and probe fmt_strarith.cob at 2002 (ALL, OR, DELIMITER, COUNT, POINTER, TALLYING, NOT ON OVERFLOW before ON OVERFLOW): same as 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.1",
+      "quote": "NOT ON OVERFLOW imperative-statement-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.2",
+      "quote": "NOT ON OVERFLOW imperative-statement-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "Token-identical format; the row's witness runs at 2002 and the probe exercises every phrase.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_strarith.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.45.1",
+    "to": [
+     "FMT-14.9.49.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45.1 USE general format",
+    "clause-2023": "14.9.49.2 USE general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 USE [GLOBAL] AFTER STANDARD EXCEPTION|ERROR PROCEDURE ON file-names|INPUT|OUTPUT|I-O|EXTEND",
+     "format 2 USE [GLOBAL] BEFORE REPORTING identifier-1",
+     "format 3 USE AFTER EXCEPTION CONDITION|EC exception-name-1 | exception-name-2 {FILE file-name-2}...",
+     "format 4 USE AFTER EXCEPTION OBJECT|EO class-name-1|interface-name-1"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by the row's pb332_use_optional_words at --std 2002 (MATCHES-GOLDEN); probe fmt_use.cob (GLOBAL, INPUT, OUTPUT, I-O, EXTEND, EXCEPTION and ERROR)",
+     "format 2": "covered by the row's pb365_report_group_qualified at 2002 (MATCHES-GOLDEN); probe fmt_rw.cob",
+     "format 3": "covered by the row's pb332_use_ec_after_optional at 2002 (output equals the golden line for line; the comparer saw only CR/trailing-blank noise) and l1_use_mixed_org_format3 at 2002 (FILE F1 FILE F2, MATCHES-GOLDEN)",
+     "format 4": "covered by the row's pb365_use_eo_interface_two_pass (interface-name) and pb366_use_exception_object_factory (class-name) at 2002: MATCHES-GOLDEN"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR16",
+      "quote": "Class-name-1 shall be the name of a class specified in the REPOSITORY paragraph.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR16",
+      "quote": "Object-class-name-1 shall be the name of a class specified in the REPOSITORY paragraph.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Token-identical except that 2002 names the format-4 operand class-name-1 and 2023 object-class-name-1; both editions' SR16 define it identically as a class named in the REPOSITORY paragraph, so the rename changes nothing a program can show.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_use.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.46.1",
+    "to": [
+     "FMT-14.9.50.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.46.1 VALIDATE general format",
+    "clause-2023": "14.9.50.2 VALIDATE general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "VALIDATE {identifier-1}... and the facility it starts (2002 required, not optional)"
+    ],
+    "evidence-2002": {
+     "syntax": "covered by probe fmt_validate.cob at --std 2002: VALIDATE A and VALIDATE A B compile and run",
+     "functionality": "not shown, and declined: each statement draws COBOL1580 'The VALIDATE facility (ISO §2023:14.9.50) is an OPTIONAL element (§2023:4.2.7; Annex A.4.14) ... it is not supported. The statement is accepted but performs no content validation'; the row's pb5577-validate-format-stage is refused at 2002 on this tree (COBOL1710 on EC-VALIDATE names)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.2 SR1",
+      "quote": "Identifier-1 shall reference a data item described in the file, linkage, local-storage, or working-storage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "The pointer row is DOCUMENTED-NON-SUPPORT under 2023's optional-module licence (A.4.14). 2002 makes only Annex A (communications) optional (§2002:3.1) and requires every other element (§2002:3.1.1), so 2002 gives no licence to decline VALIDATE. Known defect kb/Work PB5577 (open: '2002 requires VALIDATE, and the compiler declines it').",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_validate.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires VALIDATE; the compiler declines it (kb/Work PB5577)",
+    "compiler-at-2002": "wrong (known PB5577): probe fmt_validate.cob, output fmt_validate-2002.out shows COBOL1580 and no validation",
+    "licence-2002": "none"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.47.1",
+    "to": [
+     "FMT-14.9.51.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.47.1 WRITE general format",
+    "clause-2023": "14.9.51.2 WRITE general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 (sequential): WRITE record-name-1|FILE file-name-1 [FROM], ADVANCING, then AT END-OF-PAGE / NOT AT END-OF-PAGE, then [retry-phrase], then [WITH [NO] LOCK], END-WRITE (2002 PDF p.558 order)",
+     "format 2 (random): ... [retry-phrase] [WITH [NO] LOCK] INVALID KEY pair, END-WRITE"
+    ],
+    "evidence-2002": {
+     "format 1 in the 2002 order (END-OF-PAGE before retry/lock)": "not shown by the pointer (its run tests use the 2023 order); probes w_eop_lock.cob, w_eop_retry.cob, w_eop_retry_lock.cob, fmt_write2002.cob are REFUSED at --std 2002 (COBOL2269 'unexpected WITH/RETRY. The CONTINUE statement ends before this token')",
+     "format 1 in the 2023 order": "probe fmt_write2023order.cob runs at 2002 (an extension at 2002: 2002 prints no such order)",
+     "FILE file-name-1 FROM": "not shown: the row's pb5579_write_file_sequential and pb5579_write_file_indexed_relative are refused at --std 2002 on this tree (COBOL1706 WRITE FILE declined)",
+     "format 2": "covered by the row's pb2650_from_literal at 2002 (MATCHES-GOLDEN)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.1",
+      "quote": "where retry-phrase is described in 14.6.8, RETRY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.2",
+      "quote": "where retry-phrase is described in 14.7.9, RETRY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 format 1 prints the END-OF-PAGE pair BEFORE the retry-phrase and the LOCK bracket (verified on the rendered PDF page, probes-u-50/render/spec_p580.png); 2023 prints them after. 2002 has no rule freeing the phrase order, so the 2002 rule requires the 2002 order, which the 2023 row never shows. The pinned compiler refuses it: known defect kb/Work PB5620 (status landed, its fix merged after this tree's commit 24372b7b17). The FILE phrase is declined on this tree: known kb/Work PB5579 (open).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/w_eop_lock.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 the 2002-order WRITE (EOP before RETRY/LOCK) is refused on the pinned tree (PB5620, landed after the pin: re-probe on main) and WRITE FILE is declined (PB5579)",
+    "compiler-at-2002": "wrong (known PB5620 and PB5579): w_eop_lock.cob gives COBOL2269 at --std 2002; expected acceptance per §2002:14.8.47.1"
+   },
+   {
+    "rule-id": "2002-FMT-11.9.1",
+    "to": [
+     "FMT-11.10.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.9.1 PROGRAM-ID general format",
+    "clause-2023": "11.10.2 PROGRAM-ID general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: PROGRAM-ID. program-name-1 [AS literal-1] [IS {COMMON and/or INITIAL|RECURSIVE} PROGRAM].",
+     "format 2: PROGRAM-ID. prototype-name [AS literal-1] IS PROTOTYPE."
+    ],
+    "evidence-2002": {
+     "format 1": "covered by the row's recursive_ws at --std 2002 (MATCHES-GOLDEN) and probe fmt_progid.cob at 2002 (AS literal, COMMON INITIAL, RECURSIVE COMMON, INITIAL alone, COMMON alone, AS + RECURSIVE)",
+     "format 2": "covered by the row's pb894_program_prototype_2002 at --std 2002: MATCHES-GOLDEN"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR2",
+      "quote": "literal-1 shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR2",
+      "quote": "literal-1 shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Token-identical formats (2023 adds figure notes only). The row's witnesses run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_progid.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.9.1",
+    "to": [
+     "FMT-13.10.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.9.1 Constant entry general format",
+    "clause-2023": "13.10.2 Constant entry general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "1|01 constant-name-1 CONSTANT [IS GLOBAL] AS literal-1 | arithmetic-expression-1 | BYTE-LENGTH OF | LENGTH OF | FROM compilation-variable-name-1"
+    ],
+    "evidence-2002": {
+     "all alternatives": "covered by the row's pb1225_constant_optional_words, pb1226_report_section_constant, pb1227_constant_byte_length, pb1368_constant_from_compilation_variable at --std 2002 (MATCHES-GOLDEN) and probe fmt_const.cob at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.9.1",
+      "quote": "BYTE-LENGTH OF data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.2",
+      "quote": "BYTE-LENGTH OF data-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical formats; the row's witnesses run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_const.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.9.1",
+    "to": [
+     "FMT-15.10.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.9.1 ASIN general format",
+    "clause-2023": "15.10.2 ASIN general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION ASIN ( argument-1 )"
+    ],
+    "evidence-2002": {
+     "format": "covered by the row's pb65_bounded_returned_value_landing at --std 2002 (MATCHES-GOLDEN); probe fmt_funcs.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.9",
+      "quote": "The ASIN function returns a numeric value in radians that approximates the arcsine of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.10.1",
+      "quote": "The ASIN function returns a numeric value in radians that approximates the arcsine of argument-1.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_funcs.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.10.1",
+    "to": [
+     "FMT-15.11.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.10.1 ATAN general format",
+    "clause-2023": "15.11.2 ATAN general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION ATAN ( argument-1 )"
+    ],
+    "evidence-2002": {
+     "format": "covered by the row's pb65_bounded_returned_value_landing (uses ATAN) at --std 2002 (MATCHES-GOLDEN); probe fmt_funcs.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.10",
+      "quote": "The ATAN function returns a numeric value in radians that approximates the arctangent of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.11.1",
+      "quote": "The ATAN function returns a numeric value in radians that approximates the arctangent of argument-1.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_funcs.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.11.1",
+    "to": [
+     "FMT-15.13.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.11.1 BOOLEAN-OF-INTEGER general format",
+    "clause-2023": "15.13.2 BOOLEAN-OF-INTEGER general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION BOOLEAN-OF-INTEGER ( argument-1 argument-2 )"
+    ],
+    "evidence-2002": {
+     "format": "covered by the row's intrinsics_boolean_conv at --std 2002 (MATCHES-GOLDEN); probe fmt_funcs.cob (literal and expression arguments)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.11",
+      "quote": "The BOOLEAN-OF-INTEGER function returns a boolean item of usage bit representing the binary value of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.13.1",
+      "quote": "The BOOLEAN-OF-INTEGER function returns a boolean item of usage bit representing the binary value of argument-1.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_funcs.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.12.1",
+    "to": [
+     "FMT-13.14.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.12.1 Report description entry general format",
+    "clause-2023": "13.14.2 Report description entry general format (with 13.18.12, 13.18.16, 13.18.39)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RD report-name-1 [IS GLOBAL] [CODE IS id|lit] [CONTROL IS/CONTROLS ARE {data-name}... | FINAL [data-name]...] [PAGE [LIMIT IS|LIMITS ARE] integer-1 [LINES] [integer-2 COLS] HEADING / FIRST DE / LAST CH / LAST DE / FOOTING]",
+     "clauses in any order"
+    ],
+    "evidence-2002": {
+     "CODE literal / identifier": "covered by the row's pb1129_rd_code_literal and pb1129_rd_code_identifier at --std 2002: MATCHES-GOLDEN",
+     "GLOBAL, CONTROLS ARE FINAL, PAGE LIMITS LINES COLUMNS, page phrases out of order, clause order": "covered by probe fmt_rw.cob at 2002 (report identical to 2023)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.12.2 SR2",
+      "quote": "The clauses that follow report-name-1 may appear in any order.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.3 SR2",
+      "quote": "The clauses that follow report-name-1 may appear in any order.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.37.2 SR4",
+      "quote": "The HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, and FOOTING phrases may be written in any order.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 prints the CODE, CONTROL and PAGE clauses inline in the RD format; 2023 names them code-clause, control-clause and page-clause and prints the same diagrams in 13.18.12, 13.18.16 and 13.18.39 (the 2002 PAGE clause 13.16.37 is the same text). Same requirement.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_rw.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.12.1",
+    "to": [
+     "FMT-15.14.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "15.12.1 BYTE-LENGTH general format",
+    "clause-2023": "15.14.2 BYTE-LENGTH general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION BYTE-LENGTH ( argument-1 ) (no PHYSICAL phrase in 2002)"
+    ],
+    "evidence-2002": {
+     "format": "not shown by the pointer at 2002: the row's band is 2014,2023 and its witnesses pb61_length_byte_length_rule_branches and pb4308_length_physical_2014 are refused at --std 2002. Covered by probe fmt_funcs.cob at 2002 (alphanumeric 7, national 6, literal 2), and fmt_byte_length_physical.cob shows PHYSICAL refused at 2002 (COBOL0900), as the 2002 format requires"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.12",
+      "quote": "The BYTE-LENGTH function returns an integer equal to the length of the argument in bytes.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.14.2",
+      "quote": "FUNCTION BYTE-LENGTH ( argument-1 [ PHYSICAL ] )",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds [PHYSICAL]; the 2002 rule is the narrower format. The pointer row's evidence is not run at 2002, so the 2002 row needs its own witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_funcs.cob",
+    "widening": "2023 adds the PHYSICAL phrase",
+    "class": "other",
+    "needs": "a 2002 witness for FUNCTION BYTE-LENGTH ( argument-1 ) (pointer band lacks 2002): candidate probe fmt_funcs.cob",
+    "compiler-at-2002": "correct (probes fmt_funcs.cob, fmt_byte_length_physical.cob)"
+   },
+   {
+    "rule-id": "2002-FMT-13.13.1",
+    "to": [
+     "FMT-13.15.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13.1 Report group description entry general format",
+    "clause-2023": "13.15.2 Report group description entry general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "level-number with entry-name, TYPE, NEXT GROUP, LINE, PICTURE, USAGE DISPLAY|NATIONAL, SIGN, JUSTIFIED, COLUMN, BLANK WHEN ZERO, SOURCE|SUM|VALUE, PRESENT WHEN, GROUP INDICATE, OCCURS ... STEP, VARYING"
+    ],
+    "evidence-2002": {
+     "entry": "covered by the row's pb1226_report_filler_entry_name at --std 2002 (MATCHES-GOLDEN); probe fmt_rw.cob (TYPE PH/DE/CF FINAL, LINE PLUS, COLUMN NUMBER IS, SOURCE, SUM, VALUE, GROUP INDICATE, PRESENT WHEN)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.13.1",
+      "quote": "where the following meta-language terms are described in the indicated subclauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.2",
+      "quote": "where the following meta-language terms are described in the indicated subclauses",
+      "check": "OK"
+     }
+    ],
+    "reason": "Token-identical format; the referenced clauses are the same subclauses renumbered (13.16.x to 13.18.x). Witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_rw.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.13.1",
+    "to": [
+     "FMT-15.15.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "15.13.1 CHAR general format",
+    "clause-2023": "15.15.2 CHAR general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION CHAR ( argument-1 )"
+    ],
+    "evidence-2002": {
+     "format": "not shown by the pointer at 2002: its only witness general_format_intrinsics_batch1 is refused at --std 2002 (COBOL1502 FUNCTION CONCAT is 2023). Covered by probe fmt_funcs.cob at 2002: CHAR(66) = A, CHAR(67) = B"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.13",
+      "quote": "The CHAR function returns a one-character alphanumeric value that is a character in the alphanumeric program collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.15.1",
+      "quote": "The CHAR function returns a one-character alphanumeric value that is a character in the alphanumeric program collating sequence",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format and requirement; the pointer witness cannot run at 2002, so the 2002 row needs its own.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_funcs.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for FUNCTION CHAR (the pointer's batch case uses CONCAT): candidate probe fmt_funcs.cob",
+    "compiler-at-2002": "correct (probe fmt_funcs.cob)"
+   },
+   {
+    "rule-id": "2002-FMT-13.14.1",
+    "to": [
+     "FMT-13.16.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14.1 Data description entry general format",
+    "clause-2023": "13.16.2 Data description entry general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "formats 1-4 in every data section of 2002, INCLUDING the record description entries under a CD in the communication section (Annex A)",
+     "format 1 clauses in any order after entry-name / REDEFINES / TYPEDEF",
+     "format 1 validation-clauses (CLASS, DEFAULT, DESTINATION, INVALID WHEN, PRESENT WHEN, VARYING, VALIDATE-STATUS)",
+     "format 4 (88 [condition-name-2] content-validation VALUE)"
+    ],
+    "evidence-2002": {
+     "formats 1-3 outside the communication section": "covered by the row's pb487_aligned_bit_layout, pb511_external_as_name, pb917_clause_lists_repeat_where_printed at --std 2002 (MATCHES-GOLDEN) and probe fmt_dde.cob (TYPEDEF STRONG, TYPE, EXTERNAL AS, GLOBAL, GROUP-USAGE NATIONAL, SAME AS, BASED, clauses out of printed order)",
+     "record entries under a CD": "not shown by the pointer; covered by probe fmt_dde_cd.cob at --std 2002 (REDEFINES, JUSTIFIED, SIGN SEPARATE, BLANK WHEN ZERO, OCCURS, SYNC, 66 RENAMES, 88 under an input CD): runs, LEN 87; refused at 2023 as it must be",
+     "validation-clauses and format 4": "not shown, and declined: probe fmt_dde_val.cob at --std 2002 gives COBOL1708 for DEFAULT, the 88 content-validation entry and INVALID WHEN"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.14.1",
+      "quote": "where validation-clauses is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR4",
+      "quote": "The remaining clauses may be written in any order.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 rule reaches the communication section's record entries (class (a)); the pointer row does not show them, the probe does. The validation-clauses and format 4 belong to the VALIDATE facility, which 2002 requires (only Annex A is optional, §2002:3.1) and the compiler declines: known kb/Work PB5577. 2023's added CONSTANT RECORD and DYNAMIC LENGTH are refused at 2002 (S1-lists), as 2002 requires.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_dde_cd.cob",
+    "widening": "2023 adds CONSTANT RECORD, DYNAMIC LENGTH and the dynamic-capacity OCCURS format",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for record description entries under a CD (candidate probe fmt_dde_cd.cob), and the VALIDATE-facility clauses (PB5577)",
+    "compiler-at-2002": "wrong for the validation-clauses and format 4 (known PB5577: fmt_dde_val.cob, COBOL1708 at --std 2002); correct for CD record entries (fmt_dde_cd.cob)"
+   },
+   {
+    "rule-id": "2002-FMT-15.14.1",
+    "to": [
+     "FMT-15.16.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.14.1 CHAR-NATIONAL general format",
+    "clause-2023": "15.16.2 CHAR-NATIONAL general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION CHAR-NATIONAL ( argument-1 )"
+    ],
+    "evidence-2002": {
+     "format": "covered by the row's char_national at --std 2002 (MATCHES-GOLDEN); probe fmt_funcs.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.14",
+      "quote": "function returns a one-character value that is a character in the national program collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.16.1",
+      "quote": "function returns a one-character value that is a character in the national program collating sequence",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_funcs.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.15.1",
+    "to": [
+     "FMT-13.17.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.1 Screen description entry general format",
+    "clause-2023": "13.17.2 Screen description entry general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "screen description entries, format 1 (group) and format 2 (elementary), in the screen section"
+    ],
+    "evidence-2002": {
+     "declined with a diagnostic": "covered by the row's a42-screen-section refusal case (its diagnostics JSON lists refuse-at 2002, 2014, 2023) and probe fmt_screen.cob at --std 2002: COBOL1560 on the SCREEN SECTION and on each clause, COBOL1707 on ACCEPT/DISPLAY of a screen"
+    },
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "Token-identical formats. The pointer is DOCUMENTED-NON-SUPPORT under 2023's A.4.2; 2002 has its own licence: the screen section is a processor-dependent element (§2002:B.3 item 1) that need not be implemented when support is not claimed, with a compile-time warning mechanism and documented absence (§2002:3.1.5; docs/CONFORMANCE.md section 5 row A.4.2). The compiler declines it at 2002 with named diagnostics. Note: the diagnostic text cites the 2023 A.4.1/A.4.2 licence even at --std 2002 (not a behaviour defect).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_screen.cob",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (checked)"
+   },
+   {
+    "rule-id": "2002-FMT-15.15.1",
+    "to": [
+     "FMT-15.20.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "15.15.1 COS general format",
+    "clause-2023": "15.20.2 COS general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION COS ( argument-1 )"
+    ],
+    "evidence-2002": {
+     "format": "not shown by the pointer at 2002: its only witness general_format_intrinsics_batch1 is refused at --std 2002 (COBOL1502 FUNCTION CONCAT). Covered by probe fmt_funcs.cob at 2002: COS(0.5) 0.8775, COS(0) 1.0000"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.15",
+      "quote": "The COS function returns a numeric value that approximates the cosine of an angle or arc",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.20.1",
+      "quote": "The COS function returns a numeric value that approximates the cosine of an angle or arc",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format and requirement; the pointer witness cannot run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-50/fmt_funcs.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for FUNCTION COS (the pointer's batch case uses CONCAT): candidate probe fmt_funcs.cob",
+    "compiler-at-2002": "correct (probe fmt_funcs.cob)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-50",
+  "cases": [
+   {
+    "rule-id": "2002-FMT-14.8.36.1",
+    "verdict": "UPHELD",
+    "reason": "SORT formats 1 and 2 are token-identical in both texts. Operand reach: format 1 keys cannot be subscripted in either edition (2002 SR12f and 2023 SR12f both forbid OCCURS). Format 2 data-name-2 in 2002 must carry ALL as the rightmost subscript of a multi-level table (2002 SR13); 2023 8.4.2.3.3 SR5e/SR6 still admit that form, so 2002 is a subset. Probe sort_all.cob: SORT CELL(2, ALL) and SORT E(ALL) run correctly at --std 2002 (TB 31421234, TS ABC). 2002 SR1 (no format 1 SORT in declaratives) is its own row, not this format's. No communication reach.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR13",
+      "quote": "the rightmost subscript shall be the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR6",
+      "quote": "as the rightmost or only subscript of a table in the table format of a SORT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-50/sort_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.37.1",
+    "verdict": "OVERTURNED",
+    "reason": "The diagrams are identical, but the format's operand data-name-1 admits more in 2002. 2002 SR4 says only that data-name-1 'may be qualified', and by 2002 5.1.3 a data-name in a general format is a user-defined word 'including qualification and subscription if needed'; 2023 SR4 says data-name-1 'shall not be subject to any OCCURS clauses' (2014 E.2 item 25 records this restriction as added after 2002). So START F KEY >= RKT(1), where RKT(1) is a table element meeting 2002 SR6b (leftmost position of the prime key, same class, shorter), is legal 2002 and illegal 2023; the 2023 row's evidence says nothing about it. Probe start_subkey.cob: at --std 2002 it compiles and positions correctly (GOT BB02 second); at --std 2023 it is refused (COBOL0862, §2023:14.9.41.3 SR4). compiler-at-2002: correct. needs: a 2002 witness for a subscripted START KEY data-name-1 (candidate start_subkey.cob).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.1",
+      "quote": "KEY relational-operator WITH LENGTH arithmetic-expression-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.37.2 SR4",
+      "quote": "Data-name-1 or record-key-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.3 SR4",
+      "quote": "Data-name-1 or record-key-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.37.2 SR6",
+      "quote": "It has the same class, category, and usage as that record key",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-50/start_subkey.cob"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.39.1",
+    "verdict": "UPHELD",
+    "reason": "STRING format identical (the ellipsis is placed on a different line but repeats identifier-1/literal-1 in both). The syntax rules match (2002 SR8 = 2023 SR9 on omitting DELIMITED); 2023's added SR3 (zero-length literal) and SR11 (variable-length group) name 2023-only constructs. Operands that are CD record items qualified by cd-name (2002 8.4.1.1 file-cd-report-qualifier) are a generic identifier reach, not this format's: probe str_cd.cob runs correctly at --std 2002 (Q [ABCDEF] P 07).",
+    "citations": [],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-50/str_cd.cob"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.40.1",
+    "verdict": "UPHELD",
+    "reason": "2002 writes bare ROUNDED where 2023 writes rounded-phrase; 2002 is the subset (no MODE). Formats, operands and SIZE ERROR choice indicators otherwise identical; 2002 SR1 to SR6 are 2023's.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.42.1",
+    "verdict": "UPHELD",
+    "reason": "TERMINATE { report-name-1 } ... identical; no operand difference.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.43.1",
+    "verdict": "UPHELD",
+    "reason": "UNLOCK format identical. 2023 SR2 (APPLY COMMIT) restricts a 2023-only clause and reaches no 2002 program.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-14.8.44.1",
+    "verdict": "UPHELD",
+    "reason": "UNSTRING format identical; 2002 SR1 to SR9 equal 2023's; 2023 SR10 (variable-length group, a 2023-only construct per §2023:8.5.1.12) reaches no 2002 program. CD-record operands: probe str_cd.cob UNSTRING R-Q IN CIN runs correctly at --std 2002.",
+    "citations": [],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-50/str_cd.cob"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.45.1",
+    "verdict": "UPHELD",
+    "reason": "USE formats 1 to 4 identical except class-name-1 / object-class-name-1 (same SR16). Format 3 exception-name operand: every EC- name in the 2002 text also occurs in the 2023 text (mechanical diff, ec02.txt vs ec23.txt in the probe folder; the one leftover is a line-break artefact of EC-PROGRAM-ARG-OMITTED). No 2002 Annex A USE form.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-11.9.1",
+    "verdict": "UPHELD",
+    "reason": "PROGRAM-ID formats identical, including the choice indicators; 2023 SR1 adds only the zero-length-literal exclusion (no zero-length literals exist in 2002). SR2 to SR6 identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.9.1",
+    "verdict": "OVERTURNED",
+    "reason": "Two differences. (1) communication-reach: the 2002 communication section format admits constant-entry after a communication description entry (A.1.1), so 13.9.1 governs constant entries in the COMMUNICATION SECTION, which 2023 does not have. Probe const_cd.cob at --std 2002: constants with literal, arithmetic expression, IS GLOBAL, BYTE-LENGTH OF and LENGTH OF a CD record item compile and print 7, 5, 12, 87 (correct); refused at 2023 (COBOL0902). (2) removed-form, a compiler DEFECT: 2002 SR3 says only that data-name-1 and data-name-2 'may be qualified' (with 5.1.3 subscripting allowed if needed); 2023 SR3 requires 'All subscripts ... shall be literals' (added in 2014). Probe const_sub.cob: LENGTH OF T(I) and BYTE-LENGTH OF T(I + 1) are refused at --std 2002 with COBOL1547 citing §2023:13.10.3 SR3, a 2023 rule applied to legal 2002 source (same family as PB5602). needs: a 2002 witness for constant entries in the communication section (candidate const_cd.cob) and a fix plus witness for non-literal subscripts (const_sub.cob).",
+    "citations": [
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "COMMUNICATION SECTION constant-entry communication-description-entry record-description-entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.9.1",
+      "quote": "BYTE-LENGTH OF data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.2",
+      "quote": "BYTE-LENGTH OF data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.9.2 SR3",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.3 SR3",
+      "quote": "All subscripts of data-name-1 and data-name-2 shall be literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "second-class": "removed-form",
+    "compiler-at-2002": "correct for the communication section (const_cd.cob); wrong for non-literal subscripts (const_sub.cob: COBOL1547 at --std 2002)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-50/const_cd.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-50/const_sub.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.9.1",
+    "verdict": "UPHELD",
+    "reason": "FUNCTION ASIN ( argument-1 ) and its argument rules identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-15.10.1",
+    "verdict": "UPHELD",
+    "reason": "FUNCTION ATAN ( argument-1 ) and its argument rule identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-15.11.1",
+    "verdict": "UPHELD",
+    "reason": "FUNCTION BOOLEAN-OF-INTEGER ( argument-1 argument-2 ): format and both argument rules identical (argument-2 mandatory in both).",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.12.1",
+    "verdict": "OVERTURNED",
+    "reason": "The 2002 RD format prints the CONTROL clause inline with operand data-name-1. 2002 13.16.15 SR3 says only 'Data-name-1 may be qualified' (5.1.3: subscripted if needed); 2023 13.18.16.3 SR3 says it 'shall not be subject to any OCCURS clauses'. So RD R1 CONTROL IS K(1) is legal 2002 and illegal 2023. Also 2002 forbids only the report section for data-name-1 (SR2), so a CD record item in the 2002 communication section is a further operand 2023 cannot have (not probed). Probe rd_ctl_sub.cob: at --std 2002 it compiles and breaks correctly (CF K 30, CF K 70); at 2023 it is refused (COBOL1699). compiler-at-2002: correct on this tree for this probe (PB5602 records other subscripted-CONTROL reaches that are refused).",
+    "citations": [
+     {
+      "cite": "§2002:13.12.1",
+      "quote": "CONTROL IS data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR3",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR2",
+      "quote": "Data-name-1 shall not be defined in the report section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.3 SR3",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-50/rd_ctl_sub.cob"
+   },
+   {
+    "rule-id": "2002-FMT-13.13.1",
+    "verdict": "OVERTURNED",
+    "reason": "The report group format carries OCCURS [integer-1 TO] integer-2 TIMES [DEPENDING ON data-name-1] [STEP integer-3] inline (= 2002 OCCURS format 3). 2002 13.16.36.2 SR2 says 'Data-name-1 and data-name-2 may be qualified' (5.1.3: subscripted if needed); 2023 13.18.38.3 SR2 says they 'shall not be subscripted'. So OCCURS 1 TO 3 TIMES DEPENDING ON N(1) STEP 3 is legal 2002 (2002 SR21 to SR24 met) and illegal 2023. Probe rg_odo_sub.cob is REFUSED at --std 2002 with COBOL2024 citing §2023:8.4.2.2.2: a compiler DEFECT at 2002, a further reach of PB5602. needs: the fix and a 2002 witness for a subscripted DEPENDING ON operand in a report group.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.1",
+      "quote": "OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.2",
+      "quote": "OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.1",
+      "quote": "OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1 STEP integer-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR2",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR2",
+      "quote": "Data-name-1 and data-name-2 shall not be subscripted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "compiler-at-2002": "wrong (rg_odo_sub.cob: COBOL2024 at --std 2002; PB5602 family)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-50/rg_odo_sub.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.14.1",
+    "verdict": "UPHELD",
+    "reason": "FUNCTION CHAR-NATIONAL ( argument-1 ), argument and returned-value rules identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.15.1",
+    "verdict": "UPHELD",
+    "reason": "The reader's 2002 licence holds on the 2002 text: B.3 item 1 lists the screen section as processor-dependent, and 3.1.5 lets an implementor not claim support, given a compile-time warning and documented absence. The compiler declines it at --std 2002 with named diagnostics.",
+    "citations": [
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The decision of whether to claim support for a processor-dependent language element is within an implementor's discretion",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "817d1a836404b5e904359fd27318f213ba9f6ff88f6f09137a97bfd5fa04ce4b",
+  "read": "2602aa9726f0703015d86af2443de0e91255a97daca3d1d60c03e2528d45efd0",
+  "refute": "3a633c33f567fb4578960cc794b5e6c04b8a678d1aebcc0d4f67879f0728d473"
+ }
+}
