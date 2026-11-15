@@ -1071,10 +1071,7 @@ public static partial class ConditionalCompilationProcessor
         public void FlagWarn(FlagOption option, SourceLocation at)
         {
             var info = FlagOptions.Info(option);
-            string code = info.Directive == FlagDirective.Flag14
-                ? Editions.Diagnostics.DiagnosticCatalog.Flag14Warning.Code
-                : Editions.Diagnostics.DiagnosticCatalog.Flag02Warning.Code;
-            bag?.ReportWarning(code,
+            bag?.ReportWarning(FlagDirectiveLine.WarningCode(info.Directive),
                 $"{info.Change} — flagged by >>{FlagDirectiveLine.DirectiveWord(info.Directive)} {info.Word}",
                 at, default);
         }
