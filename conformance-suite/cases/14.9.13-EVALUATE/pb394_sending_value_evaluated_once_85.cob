@@ -44,8 +44,10 @@
       *>                        sender as an unsigned integer (14.9.25.3 Table 16) and the one-digit receiver
       *>                        keeps the low-order digit => W-P = 2; MOVE temp TO W-RM2 = "12". Re-evaluating
       *>                        the modifier would read W-S(2:2) = "23".
-      *> GR1-FN                 MOVE FUNCTION RANDOM TO F1, F2 - "the function-identifier is evaluated only
-      *>                        once", so the two receivers hold the SAME value: SAME.
+      *> GR1-FN                 COMPUTE F1 F2 = FUNCTION RANDOM (kb/Work PB5108: X3.23-1985 Amendment 1 admits
+      *>                        a numeric function only in an arithmetic expression, IV 4.3.8.3.3 SR4, so it is
+      *>                        no MOVE sender at 85) - the one expression is evaluated once and stored in both
+      *>                        receivers, so the two hold the SAME value: SAME.
       *> GR1-ODO-J1 / -J2       THE INTERMEDIATE MUST NOT CHANGE THE SENDER'S LENGTH. ODO-E(1..5) = 1,2,5,4,9
       *>                        with N = 3, so 13.18.38.4 GR8 a) - data-name-1 is outside the group, so "only
       *>                        that part of the table area that is specified by the value of the data item
@@ -134,8 +136,8 @@
            DISPLAY "GR1-REFMOD-P=" W-P
            DISPLAY "GR1-REFMOD-R=" W-RM2
 
-           MOVE FUNCTION RANDOM(1) TO F0
-           MOVE FUNCTION RANDOM TO F1, F2
+           COMPUTE F0 = FUNCTION RANDOM(1)
+           COMPUTE F1 F2 = FUNCTION RANDOM
            IF F1 = F2
               DISPLAY "GR1-FN=SAME"
            ELSE
@@ -159,8 +161,8 @@
            DISPLAY "GR1-ODO-N=" N
            DISPLAY "GR1-ODO-J3=[" J3 "]"
 
-           MOVE FUNCTION RANDOM(1) TO F0
-           MOVE FUNCTION RANDOM TO E-SUBJ
+           COMPUTE F0 = FUNCTION RANDOM(1)
+           COMPUTE E-SUBJ = FUNCTION RANDOM
            EVALUATE E-SUBJ
               WHEN 0 THRU 0.25
                  MOVE "BAND1" TO E-CTRL-BR
@@ -169,9 +171,9 @@
               WHEN OTHER
                  MOVE "BAND3" TO E-CTRL-BR
            END-EVALUATE
-           MOVE FUNCTION RANDOM TO E-CTRL-NEXT
+           COMPUTE E-CTRL-NEXT = FUNCTION RANDOM
 
-           MOVE FUNCTION RANDOM(1) TO F0
+           COMPUTE F0 = FUNCTION RANDOM(1)
            EVALUATE FUNCTION RANDOM
               WHEN 0 THRU 0.25
                  MOVE "BAND1" TO E-TEST-BR
@@ -180,7 +182,7 @@
               WHEN OTHER
                  MOVE "BAND3" TO E-TEST-BR
            END-EVALUATE
-           MOVE FUNCTION RANDOM TO E-TEST-NEXT
+           COMPUTE E-TEST-NEXT = FUNCTION RANDOM
 
            IF E-TEST-BR = E-CTRL-BR
               DISPLAY "GR3-BRANCH=SAME"

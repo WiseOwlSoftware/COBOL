@@ -1,10 +1,13 @@
       *>--- conformance-case
       *> id: pb2113_subscript_list_separators
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> kb/Work PB5108: accepted from 2002 only. Its statements put a numeric or integer function where an identifier stands
+      *> (a MOVE sender, a DISPLAY operand), which X3.23-1985 Amendment 1 admits only inside an arithmetic expression
+      *> (IV 4.3.8.3.3 SR4); 2002 Annex F.2 item 60 removed that restriction.
       *> kb/Work PB2113 (owner ruling D10; DESIGN-frontend-grammar
       *> 9.4/9.5 D10.1) - the subscript list and the reference modifier
       *> are PARSED, not captured: ISO 8.3.5 1) "The COBOL character

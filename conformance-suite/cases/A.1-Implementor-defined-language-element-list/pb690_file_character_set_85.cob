@@ -86,6 +86,7 @@
        FD CK.
        01 CR PIC X.
        WORKING-STORAGE SECTION.
+       01  WORD1              PIC 9(9).
        01 FS PIC XX.
        01 FR PIC XX.
        01 FI PIC XX.
@@ -98,7 +99,8 @@
            OPEN OUTPUT SQ.
            MOVE "A€BC" TO SR.
            WRITE SR.
-           DISPLAY "SQ-EURO=" FS " " FUNCTION ORD(SR(2:1)).
+           COMPUTE WORD1 = FUNCTION ORD(SR(2:1))
+           DISPLAY "SQ-EURO=" FS " " WORD1.
            MOVE "AéBC" TO SR.
            WRITE SR.
            DISPLAY "SQ-E=" FS.
@@ -106,7 +108,8 @@
            OPEN INPUT SQ.
            READ SQ AT END CONTINUE END-READ
            .
-           DISPLAY "SQ-READ=" FS " " FUNCTION ORD(SR(2:1)).
+           COMPUTE WORD1 = FUNCTION ORD(SR(2:1))
+           DISPLAY "SQ-READ=" FS " " WORD1.
            READ SQ AT END CONTINUE END-READ
            .
            DISPLAY "SQ-READ2=" FS.
@@ -121,7 +124,8 @@
            OPEN INPUT SQ.
            READ SQ AT END CONTINUE END-READ
            .
-           DISPLAY "SQ-AGAIN=" FS " " FUNCTION ORD(SR(2:1)).
+           COMPUTE WORD1 = FUNCTION ORD(SR(2:1))
+           DISPLAY "SQ-AGAIN=" FS " " WORD1.
            CLOSE SQ.
            OPEN OUTPUT RL.
            MOVE 1 TO RK.
@@ -135,7 +139,8 @@
            OPEN INPUT RL.
            READ RL NEXT RECORD AT END CONTINUE END-READ
            .
-           DISPLAY "RL-READ=" FR " " RK " " FUNCTION ORD(RR(2:1)).
+           COMPUTE WORD1 = FUNCTION ORD(RR(2:1))
+           DISPLAY "RL-READ=" FR " " RK " " WORD1.
            READ RL NEXT RECORD AT END DISPLAY "RL-READ2 AT END".
            CLOSE RL.
            OPEN OUTPUT IX.
@@ -170,7 +175,8 @@
                IF FC = "00"
                    ADD 1 TO N
                    IF CR NOT = SYM-X0D AND CR NOT = SYM-X0A
-                       DISPLAY "PR-BYTE " N "=" FUNCTION ORD(CR)
+                       COMPUTE WORD1 = FUNCTION ORD(CR)
+                       DISPLAY "PR-BYTE " N "=" WORD1
                    END-IF
                END-IF
            END-PERFORM.

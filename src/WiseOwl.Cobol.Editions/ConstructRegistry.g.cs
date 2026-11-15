@@ -169,6 +169,7 @@ public static partial class ConstructRegistry
         new("next-sentence-archaic-2023", "the NEXT SENTENCE phrase", 85, null, 2023, "COBOL0903", "ARCHAIC in ISO 2023 (Annex F.1; §2023:4.2.12; VCR row 90) — warning only"),
         new("not-equal-operator-2014", "the relational operator <>", 2014, null, null, "COBOL0900", "ISO §2023:8.3.2.4.2 2) (special character word '<>'), §2023:8.7.5.2 SR11; a COBOL-2014 introduction (2009 committee draft Annex D.3 item 16; absent from the 2002 text)"),
         new("nucleus-move-display", "nucleus MOVE/DISPLAY", 85, null, null, "COBOL0900", "edition-invariant baseline"),
+        new("numeric-function-identifier-operand-2002", "a numeric or integer function-identifier where an identifier is written (not in an arithmetic expression)", 2002, null, null, "COBOL0900", "§1985:IV.4.3.8.3.3 SR4; §2002:F.2 (item 60); ISO §2023:15.2"),
         new("numval-c-anycase-keyword-2002", "the ANYCASE keyword of NUMVAL-C / TEST-NUMVAL-C", 2002, null, null, "COBOL0900", "ISO §2023:15.68.2 / §2023:15.94.2 (the ANYCASE keyword); §2023:15.68.3 r4f"),
         new("numval-c-locale-phrase-2002", "the LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C", 2002, null, null, "COBOL0900", "ISO §2023:15.68.2 / §2023:15.94.2 (the LOCALE keyword); §2023:15.68.3 r5"),
         new("object-view-2002", "object-view identifier AS class / interface / UNIVERSAL", 2002, null, null, "COBOL0900", "ISO §2023:8.4.3.5 / §2023:8.4.3.1.2 Format 5 (OO, introduced 2002)"),
