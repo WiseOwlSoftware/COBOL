@@ -1,4 +1,4 @@
-## PB5577 S1: the VALIDATE statement runs, its format stage checks numeric, alphabetic and boolean items, and EC-VALIDATE-FORMAT is raised
+## Entry 3684 — 2026-11-15 07:39 PST — PB5577 S1: the VALIDATE statement runs, its format stage checks numeric, alphabetic and boolean items, and EC-VALIDATE-FORMAT is raised
 
 PB5577 says 2002 requires VALIDATE and the compiler declines it. The branch carries the design (`docs/rearchitecture/DESIGN-validate-facility.md`, five stages S1 to S5)
 and builds S1. Before: `VALIDATE REC` compiled with the warning COBOL1580 and did nothing, and every EC-VALIDATE name was refused with COBOL1710.
@@ -34,3 +34,4 @@ INVALID WHEN, PRESENT WHEN format 2, the held ODO count, RECORD VARYING padding 
 - R1-1: `ValidateEmitter` emitted `if ()` for an operand with no element carrying a stage-one test (all alphanumeric) and the backend C# compile failed. Fixed: with no element nothing is emitted (§2023:14.9.50.4 GR4: a stage with nothing applying is omitted). Golden `pb5577-validate-no-checked-element` (checking on, runs at 2002, 2014, 2023).
 - R1-2: an edited item (numeric-edited, alphanumeric or national edited) got no stage-one test, so a garbage record was reported valid. Fixed: `ValidateBinder.Expand` refuses an operand holding one with COBOL7363 until the edited-picture check lands (S4), so a partial validation is never reported as complete. Refusal golden `pb5577-validate-edited-operand-unbuilt`; the design doc section 4 states the refusal.
 - The witness `dns_validate_picture_locale_witness` (VALIDATE of a locale-edited item) pinned the partial validation R1-2 forbids; it is now a COBOL7363 refusal case at 2023 (its .out removed).
+
