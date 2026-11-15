@@ -443,6 +443,8 @@ internal static class PlaceRenderer
         MemberPlace m => RootGuardOf(m.Path),
         DynTablePlace t => RootGuardOf(t.Path),
         RedefViewPlace v => RootGuardOf(v.Backing),
+        // A level-66 alias reaches the formal through its leaves, all items of one record (kb/Work PB5623), so the first guarded leaf answers.
+        RenamesPlace n => n.Leaves.Select(RootGuard).FirstOrDefault(g => g is not null),
         _ => null,
     };
 

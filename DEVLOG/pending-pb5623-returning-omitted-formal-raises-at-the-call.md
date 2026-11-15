@@ -21,3 +21,5 @@ pins the three legs and rows `2002-GR-14.8.44.3-2`, `2002-GR-14.8.44.3-9` CONFOR
 **Self-review.** Architecture: the guard test and the raise text live in `PlaceRenderer` beside `GuardedRoot`, not in the emitter. Code: the raise is
 the one `OmittedFormal.Raise` the path guard uses; zero scaffolding without a >>TURN (the guard is null). Performance: one inline test per CALL with
 a guarded RETURNING, none otherwise. Duplication: none, the guard is read from the access path, not recomputed from the item.
+
+Review round 1 (R1-1): `PlaceRenderer.RootGuard` had no arm for `RenamesPlace`, so `CALL ... RETURNING` a level-66 RENAMES alias of an omitted group formal still ran the activated program unraised. The arm now answers with the first guarded leaf; the golden gains a Q5623R leg (alias RETURNING, N=03, G2=12 on the supplied call). Sibling sweep: the other Place kinds (register, report counter, debug, exception-object places) are never formal storage.

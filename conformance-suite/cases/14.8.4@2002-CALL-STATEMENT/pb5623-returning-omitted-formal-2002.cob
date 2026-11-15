@@ -12,12 +12,12 @@
       *> (whole, or a subordinate of a group formal) whose argument was omitted references it, and §2002:14.8.4.3 GR3
       *> a) identifies it "at the beginning of the execution of the CALL statement": the condition exists there,
       *> before the activated program runs. RESUME AT NEXT STATEMENT abandons the CALL, so the activated programs
-      *> (Q5623G, Q5623H) never display "RAN". The same formal as an ARGUMENT (Q5623F) is exempt and raises nothing:
+      *> (Q5623G, Q5623H, and Q5623R for the level-66 RENAMES alias of the group formal, kb/Work PB5623 review R1-1) never display "RAN". The same formal as an ARGUMENT (Q5623F) is exempt and raises nothing:
       *> Q5623F sees its own formal omitted (§2002:8.8.4.1.7.3 GR1c).
       *> Why each leg can fail: with the old emission the whole-formal and the subordinate RETURNING legs each ran
       *> the activated program and N stayed 00; the second CALL of Q5623C supplies every argument, so no reference
-      *> raises (N keeps the 02 of the first activation: a program that is not INITIAL keeps its storage) and the
-      *> results arrive (RX=0007, G2=05).
+      *> raises (N keeps the 03 of the first activation: a program that is not INITIAL keeps its storage) and the
+      *> results arrive (RX=0007, G2=12 from the alias).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. Q5623C IS PROTOTYPE.
        DATA DIVISION.
@@ -62,6 +62,7 @@
        01 G.
           05 G1 PIC X(2).
           05 G2 PIC 9(2).
+       66 GR66 RENAMES G1 THRU G2.
        PROCEDURE DIVISION USING OPTIONAL X OPTIONAL RX OPTIONAL G.
        DECLARATIVES.
        H SECTION.
@@ -76,6 +77,7 @@
            CALL "Q5623F" USING X
            CALL "Q5623G" RETURNING RX
            CALL "Q5623H" RETURNING G2
+           CALL "Q5623R" RETURNING GR66
            DISPLAY "  N=" N
            GOBACK.
        END PROGRAM Q5623C.
@@ -112,3 +114,13 @@
            DISPLAY "  H-RAN"
            GOBACK.
        END PROGRAM Q5623H.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. Q5623R.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 RR PIC X(4).
+       PROCEDURE DIVISION RETURNING RR.
+           MOVE "AB12" TO RR
+           DISPLAY "  R-RAN"
+           GOBACK.
+       END PROGRAM Q5623R.
