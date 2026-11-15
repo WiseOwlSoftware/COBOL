@@ -56,6 +56,14 @@ internal sealed class ProcedureBindState
     /// the statement that names the property.</summary>
     public DrainQueue<OoPendingPropertyOp> PropertyOps { get; } = new();
 
+    /// <summary>The identifications of the RECEIVING data references the statement now binding identifies as it stores each one
+    /// (kb/Work PB5386): what a receiver's subscripts and reference modifiers registered on <see cref="PendingPreOps"/> while it
+    /// resolved, taken off that queue by <c>ExpressionBinder.ResolveReceivingAtStore</c> so it is not hoisted before the
+    /// statement, each keyed on the receiver's place. Statement-scoped like the two queues above, and drained by
+    /// <c>StatementBinder.BindStatement</c> into the statement's <see cref="Bound.BoundReceiverBrackets"/>, which the emitter
+    /// opens at that receiver's store.</summary>
+    public DrainQueue<Bound.ReceiverBracket> ReceiverIdentifications { get; } = new();
+
     /// <summary>How many OPERAND-EVALUATION steps (<see cref="Bound.BoundStatement.OperandEvaluation"/> — a function
     /// reference, an inline method invocation, an object-property accessor, a §2023:15.4 function-bearing subscript's temporary
     /// store; kb/Work PB892, PB1432) the statement now binding has drained so far — the test

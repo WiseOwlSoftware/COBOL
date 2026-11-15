@@ -1,0 +1,13 @@
+{
+ "id": "report-sum-forms-2002",
+ "status": "active",
+ "description": "The 2002 forms of the SUM clause (kb/Work PB5242): the optional word OF, the ROUNDED phrase, and an addend that is not an identifier (an arithmetic expression, a literal, a figurative constant or a function). §1985:XIII.3.19.2 prints `{SUM {identifier-1}... [UPON {data-name-1}...]}... [RESET ON {data-name-2 | FINAL}]`, its SR1 \"Identifier-1 must reference a numeric data item\" and its GR2 adds \"the value in each data item referenced by identifier-1\"; ISO/IEC 1989:2002 13.16.52.1 prints `SUM OF {data-name-1 | identifier-1 | arithmetic-expression-1}... ... [ROUNDED]`, and Annex F.2 item 115 lists \"SUM clause has many changes\" and \"Optional words OF, FOR, and ON in some clauses\". Gated by recognition, VersionConformancePass ParseArm.VisitReportSumClause and VisitReportSumGroup, once per written form (VCR row 7.45 (f)).",
+ "display": "a 2002 form of the SUM clause (report group description)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§1985:XIII.3.19.2, §1985:XIII.3.19.3 SR1, §1985:XIII.3.19.4 GR2; ISO/IEC 1989:2002 13.16.52.1 and Annex F.2 item 115; ISO §2023:13.18.54.2 (2023 text)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.45 (f) - SUM OF, an expression or literal addend, ROUNDED (85->2002)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRSF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"VMRSF.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC 9(3) VALUE 5.\nREPORT SECTION.\nRD R1 CONTROL IS FINAL PAGE LIMIT IS 20 LINES.\n01 DA TYPE DETAIL LINE PLUS 1.\n    02 COLUMN 1 PIC X(3) VALUE \"ABC\".\n01 TYPE CONTROL FOOTING FINAL LINE PLUS 1.\n    02 COLUMN 1 PIC 9(5) SUM OF WN.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+}

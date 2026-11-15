@@ -30,6 +30,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import selftest_layout  # noqa: E402  (this directory's: where a converted subject's cases live, kb/Work PB5428)
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
@@ -95,93 +96,30 @@ DECLARED: dict[str, tuple[str, ...]] = {
         "a Windows Conformance step not handed the leg's generated suite",
     ),
     'scripts/gate.py': (
-        'a whole planted population is GREEN, every assembly EXACT',
-        'every assembly runs its WHOLE population in one host, handed no narrowing',
-        'a dropped case is NEVER RAN',
-        'a case run twice is RAN TWICE',
-        'a trx definition the listing never printed is NOT IN THE POPULATION',
-        'a skipped case is counted skipped, never as ran',
-        'a host that wrote no trx is UNMEASURED',
-        'a red host makes the gate RED',
-        "a red host's whole output, its failure message included",
-        'a re-gate hands every host the classes red at the previous run and in the bounce',
-        "an unreadable trx among the first classes' sources is named and KEPT",
-        "a test host's environment is scrubbed",
-        'a population that cannot be listed is NOT RUN [population]',
-        'a red audit (a tracked rendered view) that is known before the slot STOPS the gate before the build',
-        'the corpus fetch runs BEFORE the gate slot is taken, a red audit never queues for one',
-        'an audit that turns RED while the gate queues for the slot ends the gate AT ONCE (kb/Work PB5322)',
-        'an audit that is RED only after the test hosts have started STOPS them',
-        'the script self-tests (the audits in TOOLING_ONLY, and the post-build ones) run ONLY when the change touches tooling',
-        'the audits a change that touches no tooling runs are AUDITS less TOOLING_ONLY',
-        'a gate in its test phase writes a heartbeat line to its console while its hosts run',
-        "the verdict file records, per assembly, the seconds its host ran and the hosts' effective concurrency",
-        'a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN',
-        'a red audit is RED in the inert lane too',
-        'a change in the TOOLING LANE (kb/Work PB4395) runs the audits WITH the script self-tests',
-        'a red audit is RED in the tooling lane',
-        'shared gate settings that turn malformed while the gate queues: NOT RUN',
-        "a hung self-test is `SELF-TESTS HANG` in the gate's reasons, never RED, and every gate's self-tests run with --reuse",
-        "a failed audit prerequisite (CI's `git submodule update --init tools/claude-skills`) is its RED, with its output, and no audit runs",
-        'a defect in work beside the critical path is a named RED with its traceback',
-        'ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits beside the build and the hosts and runs the whole population',
-        'a second gate in the same worktree is REFUSED',
-        'its verdict is BUSY with its own exit code, which the one verdict reader reads as BUSY, never RED',
-        "the one verdict reader: GREEN and an older gate's LEG 1 ONLY: GREEN pass",
-        'a defect in the driver still ends in ONE verdict line',
-        'every NOT RUN verdict a gate prints names a cause NOT_RUN_CAUSES classifies',
-        'the gate lock is per worktree',
-        "the measured tree is the working tree's content",
-        'a re-gate of an unchanged tree answers from the recorded GREEN',
-        'a chain of reuses names the run that MEASURED the tree',
-        'a re-gate of a CHANGED tree runs the gate',
-        'a recorded GREEN measured under another toolchain is never REUSED',
-        'a RED is never reused',
-        'a GREEN a gate before PB4328 wrote (record schema below SCHEMA_WHOLE',
-        'a gate whose tree changed WHILE it ran is never reused',
-        'a re-gate of a tree whose earlier run was RED runs ONLY that run',
-        'a retry that is still RED is RED',
-        'a re-gate of a tree that differs in a path a test may read runs the WHOLE population',
-        'a run under another toolchain is never composed with',
-        'a GREEN code-lane run, then a commit that changes only inert paths, is GREEN with NO fetch',
-        'a GREEN code-lane run, then a commit that touches one path a test may read, runs EVERYTHING',
-        'a composed gate whose audits are RED is RED with nothing run',
-        # kb/Work PB5205, PB5218: each test assembly is a target with its own key, its passes in one shared store
-        'an audit that turns RED after every test host has exited',
-        'a run RED only for a hung self-test, then a tooling-only difference (every key equal)',
-        'a run RED only for a hung self-test, then a difference in a path every target reads',
-        'a GREEN run, then a change no target reads and that touches no script: EVERY TARGET UP TO DATE',
-        'equal conformance and characterization keys with a changed unit key (a records-only change) run Unit ONLY',
-        'a changed input of conformance (its key differs) runs Conformance, and only it',
-        'a pass recorded from worktree A is UP TO DATE in worktree B at the same content',
-        'another toolchain or another platform is another key: every target runs',
-        'a population that is not EXACT, or a red host, records nothing for that target',
-        'a run RED for an audit AND the post-build self-tests, every host green',
-        "at a target's key, an earlier RED run of this worktree leaves only its unpassed case to run",
-        'the real keys: a docs, kb or tooling-lane edit leaves every key',
-        # kb/Work PB5231: the conformance suite is a generated target, and Conformance is keyed on its output
-        'a gate brings the generated target up to date first (its generator traced and run) and hands its output',
-        "an inventory edit that leaves the generator's output unchanged: the generator re-runs, Conformance's key is",
-        "an inventory edit that changes the generator's output changes Conformance's key",
-        'a generator source edit re-runs the generator; its output unchanged, every test target is UP TO DATE',
-        'its inputs unchanged: the generated target is up to date (its record and its outputs on disk agree)',
-        'a missing dependency record is not up to date: with its outputs still on disk the generator runs again',
-        'a host that changes the generated output it was handed makes the gate RED',
-        'a gate whose Conformance host generated its own suite instead of the handed one is RED',
-        'a re-derivation keys Conformance on the digest the run itself was handed',
-        'a nondeterministic generator (planted: the time) is REFUSED',
-        'a dependency cycle in the targets file is refused',
-        'a stopped run with complete green trx and no listing is RECOVERED from its own files',
-        "a stopped run with complete green trx and its keys' listings is RECOVERED EXACT",
-        'a run with a host that never finished',
-        'a run whose HEAD moved while it ran',
-        'a run recorded under another toolchain, or RED for a reason no audit gave, is REFUSED',
-        '--await reads the verdict file',
-        'the measured tree leaves out coord.NEVER_WORK',
-        'a relative run name resolves against the worktree that gated it',
-        'a record with no exit code takes it from its verdict through the one verdict reader',
-        "build-local's gate runs DETACHED and is followed",
-        "a detached gate OUTLIVES its follower's tree kill",
+        'case_00_whole_planted_population_green_every_assembly_exact',
+        'case_02_dropped_case_never_ran_gate_red',
+        'case_03_case_run_twice_ran_twice_gate_red',
+        'case_04_trx_definition_listing_never_printed_not_population',
+        'case_05_skipped_case_counted_skipped_never_ran_gate',
+        'case_06_host_wrote_trx_unmeasured_gate_red',
+        'case_07_red_host_makes_gate_red_exit_1',
+        'case_00_re_gate_hands_every_host_classes_red',
+        'case_01_population_cannot_be_listed_not_run_population',
+        'case_02_red_audit_tracked_rendered_view_known_before',
+        'case_03_audit_turns_red_while_gate_queues_slot',
+        'case_05_audit_red_only_after_test_hosts_have',
+        'case_00_script_self_tests_audits_tooling_only_post',
+        'case_04_gate_test_phase_writes_heartbeat_line_console',
+        'case_03_change_inert_lane_kb_work_pb2878_runs',
+        'case_04_red_audit_red_inert_lane_too_audits',
+        'case_05_change_tooling_lane_kb_work_pb4395_runs',
+        'case_06_red_audit_red_tooling_lane_audits_self',
+        'case_00_shared_gate_settings_turn_malformed_while_gate',
+        'case_01_defect_work_beside_critical_path_named_red',
+        'case_02_one_shape_kb_work_pb3022_every_gate',
+        'case_00_second_gate_same_worktree_refused_at_once',
+        'case_03_defect_driver_still_ends_one_verdict_line',
+        'case_00_await_reads_verdict_file_line_exit_code',
     ),
     'scripts/test_population.py': (
         'short: a dropped case is NEVER RAN',
@@ -532,6 +470,14 @@ def findings(root: Path = REPO, declared: dict[str, tuple[str, ...]] = DECLARED,
         if not path.is_file():
             bad.append(f"{rel}: the self-test's script is missing")
             continue
+        tests = selftest_layout.tests_dir_of(rel)
+        if tests is not None and (root / tests).is_dir():
+            # a CONVERTED subject (kb/Work PB5428, DESIGN-orchestrator-loop.md section 16.2): each arm is the name of a
+            # `case_` function of its tests directory, and a deleted case is a finding as a deleted arm is
+            cases = "\n".join(p.read_text(encoding="utf-8") for p in sorted((root / tests).glob("test_*.py")))
+            bad += [f"{rel}: its tests directory {tests} no longer defines the case {a!r} (a deleted case still exits 0)"
+                    for a in arms if not re.search(rf"^def {re.escape(a)}\(", cases, re.MULTILINE)]
+            continue
         source = path.read_text(encoding="utf-8")
         text = joined(source)
         bad += [f"{rel}: `--self-test` no longer declares the arm {a!r} (a deleted arm still exits 0)"
@@ -571,6 +517,16 @@ def self_test() -> int:
         expect("an EXACT script must call exactly its arms in order and count them",
                (findings(root, {"x.py": ("first", "second")}, frozenset({"x.py"})),
                 len(findings(root, {"x.py": ("second", "first")}, frozenset({"x.py"})))), ([], 1))
+        (root / "scripts" / "selftests" / "c").mkdir(parents=True)
+        (root / "scripts" / "c.py").write_text("X = 1\n", encoding="utf-8", newline="\n")
+        (root / "scripts" / "selftests" / "c" / "test_w.py").write_text(
+            "def case_one(expect):\n    expect('a', True)\n\ndef case_two(expect):\n    expect('b', True)\n",
+            encoding="utf-8", newline="\n")
+        expect("a CONVERTED subject's arms are case names of its tests directory: a case it no longer defines is "
+               "named, the script's own text is not read (kb/Work PB5428)",
+               findings(root, {"scripts/c.py": ("case_one", "case_two", "case_three")}, frozenset()),
+               ["scripts/c.py: its tests directory scripts/selftests/c no longer defines the case 'case_three' "
+                "(a deleted case still exits 0)"])
         (root / "s.ps1").write_text("function Start-It {\n    Start-PyBackground 'x.py' 'tick'\n    $p.WaitForExit()\n}\n"
                                     "function Next {\n    Start-It\n}\n", encoding="utf-8", newline="\n")
         (root / "u.md").write_text("1. one\n2. read `x.py status`\n   then go\n3. three REVIEW FIRST\n", encoding="utf-8",

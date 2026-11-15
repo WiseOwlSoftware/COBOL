@@ -10,10 +10,13 @@
       *> source unit). A debugging line that stands INSIDE an open
       *> subscript or an open PICTURE clause is source under the clause;
       *> the lexer used to skip it as a comment in those two modes. Each
-      *> leg fails on its own: with the D line of the PICTURE dropped the
-      *> compiler reads VALUE as the PICTURE string, and with the D line
-      *> of a subscript dropped W-E(W-I) answers 1 where W-E(W-I + 2)
-      *> is 3. Both subscripts are the COBOL-85 form data-name + integer:
+      *> leg fails on its own: with the D line of a subscript dropped
+      *> W-E(W-I) answers 1 where W-E(W-I + 2) is 3, and a D line of the
+      *> PICTURE clause the lexer mishandles breaks the clause. The
+      *> program is also syntactically correct without its debugging
+      *> lines, as 1985 VI.7.3 requires (kb/Work PB5212, COBOL7061), so
+      *> the D line of the PICTURE clause holds IS: a D line there that
+      *> held the picture string would leave PIC VALUE without the mode. Both subscripts are the COBOL-85 form data-name + integer:
       *> a general arithmetic-expression subscript is a COBOL-2002
       *> relaxation (2002 Annex F.2 item 133, kb/Work PB4305).
 000100 IDENTIFICATION DIVISION.
@@ -27,7 +30,8 @@
 000900 01  W-TR REDEFINES W-T.
 001000     05  W-E PIC 9 OCCURS 3.
 001100 01  W-PIC PIC
-001200D        X(5)
+001200D        IS
+001250         X(5)
 001300         VALUE "ABCDE".
 001400 01  W-I PIC 9 VALUE 1.
 001500 01  W-R PIC 9.

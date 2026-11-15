@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-FMT-IV.4.3.8.5.2",
  "rule-digest": "4364602ffd3b",
- "verdict": "PARTIAL",
+ "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Identify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#IllegalPositionMessage",
- "test-ref": "conformance:cases/IV.4.3.8.5@1985-Identifier/1985-FMT-IV_4_3_8_5_2",
- "notes": "SHARED QUESTION Q1 applied. The identifier format prints data-name-1 [qualifiers] [({subscript} ...)] [reference-modifier]; with ALL as a subscript in a function argument (SR7, GR3a) the sequence is legal and is refused COBOL2363. Qualification by cd-name, file-name and report-name, the ordering refusals and format 1 held under the refuter's probes; only this combination fails, so PARTIAL. kb/Work PB5209 holds the defect (code read: held-85/set2/decisions.json).",
+ "test-ref": "conformance:cases/IV.4.3.8.5@1985-Identifier/1985-FMT-IV_4_3_8_5_2; conformance:cases/IV.4.3.8.4@1985-Reference-Modification/pb5209_all_subscript_reference_modified_85",
+ "notes": "kb/Work PB5209 LANDED: the Format 2 sequence data-name-1 [qualifiers] [({subscript} ...)] [reference-modifier] with ALL as the subscript in a function argument compiles and runs at --std 85 (IntrinsicBinder.TryBindAllArgument reads the trailing modifier, direct or after OF/IN qualifiers); witness pb5209_all_subscript_reference_modified_85 (TE OF TT (ALL) (2:1) gives H). The row's earlier reading: SHARED QUESTION Q1 applied. The identifier format prints data-name-1 [qualifiers] [({subscript} ...)] [reference-modifier]; with ALL as a subscript in a function argument (SR7, GR3a) the sequence is legal and is refused COBOL2363. Qualification by cd-name, file-name and report-name, the ordering refusals and format 1 held under the refuter's probes; only this combination fails, so PARTIAL. kb/Work PB5209 holds the defect (code read: held-85/set2/decisions.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

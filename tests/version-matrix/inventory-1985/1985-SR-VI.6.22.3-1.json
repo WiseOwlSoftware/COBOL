@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.22.3-1",
  "rule-digest": "678a7736d4fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveSearchTable; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSearchIdentifier1; src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#Identifier1",
  "test-ref": "conformance:cases/VI.6.22@1985-SEARCH-STATEMENT/1985-SR-VI_6_22_3-1",
+ "notes": "§1985:VI.6.22.3 SR1: 'In both formats 1 and 2, identifier-1 must not be subscripted or reference modified, but its description must contain an OCCURS clause including an INDEXED BY phrase', and format 2's must contain the KEY IS phrase. SearchBinder.Identifier1 (both formats) calls StatementValidation.ResolveSearchTable, which refuses a non-table, a table with no INDEXED phrase and a reference modifier (COBOL2075); the 2023 permission to write enclosing subscripts is gated by VersionConformancePass.GateSearchIdentifier1 (construct search-identifier-1-enclosing-subscript-2023, COBOL0900 at 85), and SearchAllFormat2Rules.Check refuses a SEARCH ALL table without KEY (COBOL1964). Probes at --std 85 (work-rd-04/c8): refused: E1 (1) and E3 (1) on single-level tables (both formats), E2 (2) and E2 (K) at the enclosing level (accepted at 2023: edition arm), E1 (1:1), a table without INDEXED BY (the witness, and E4), a non-table elementary and a group, SEARCH ALL with no KEY (one and two levels), a doubled operand; accepted and correct: bare SEARCH E1, SEARCH ALL E3 with KEY, the bare nested E2 with the outer occurrence from the WHEN (G2), the group level G2, and an ODO table bounded by its DEPENDING value (E5 END at CNT=3, D5 at CNT=4).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

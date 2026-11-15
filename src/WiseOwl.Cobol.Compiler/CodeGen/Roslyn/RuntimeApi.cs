@@ -1074,9 +1074,11 @@ internal static class RuntimeApi
         $"{nameof(CobolExact)}.{nameof(CobolExact.Pow)}({exact}, {int128Exponent})";
 
     /// <summary>An exact value raised to a non-integer exponent (<c>CobolExact.PowReal</c>, kb/Work PB4923): the binary64 approximation in
-    /// the kind of its operands; <paramref name="taken"/> is the enabled range conditions' spelling, or null for the unchecked power.</summary>
-    public static string ExactPowReal(string exact, string exponent, string? taken) =>
-        $"{nameof(CobolExact)}.{nameof(CobolExact.PowReal)}({exact}, {exponent}{(taken is null ? "" : ", " + taken)})";
+    /// the kind of its operands; <paramref name="taken"/> is the enabled range conditions' spelling, or null for the unchecked power;
+    /// <paramref name="negativeBaseRealRoots"/> the COBOL-85 negative-base rule (kb/Work PB5186).</summary>
+    public static string ExactPowReal(string exact, string exponent, string? taken, bool negativeBaseRealRoots) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.PowReal)}({exact}, {exponent}{(taken is null ? "" : ", " + taken)}"
+        + $"{(negativeBaseRealRoots ? ", negativeBaseRealRoots: true" : "")})";
 
     /// <summary>A float ITEM's content as an exact value, every digit of its binary expansion (<c>CobolExact.FromBinary64</c>, kb/Work PB4730).</summary>
     public static string ExactFromBinary64(string doubleExpr) =>
@@ -1766,6 +1768,13 @@ internal static class RuntimeApi
     public static string FileRegisterReserve(string name, int areas) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterReserve)}({name}, {areas})";
 
+    /// <summary>Declare the connector's RERUN clause of the integer-1 RECORDS form — <c>CobolFile.RegisterRerunRecords</c>,
+    /// emitted right after the registration (the <see cref="FileRegisterReserve"/> pattern) for exactly the files such a
+    /// clause names (§1985:VII.2.12.4 GR2 d; kb/Work PB5198). <paramref name="device"/> and <paramref name="file"/> are
+    /// C# string literals.</summary>
+    public static string FileRegisterRerunRecords(string name, long every, string device, string file) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRerunRecords)}({name}, {every}L, {device}, {file})";
+
     /// <summary>Declare the connector's §2023:13.18.13 CODE-SET conversion — <c>CobolFile.RegisterCodeSet</c>,
     /// emitted right after the registration (the <see cref="FileRegisterNationalArea"/> pattern) for exactly the
     /// files whose CODE-SET clause names a coded character set whose correspondence with the native one is NOT
@@ -2104,6 +2113,9 @@ internal static class RuntimeApi
     private static string MessageControlFacade =>
         $"global::{typeof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl).FullName}";
 
+    /// <summary>The type of a program instance's per-CD state (<c>CdActivation</c>).</summary>
+    public static string CdActivationType => $"global::{typeof(global::WiseOwl.Cobol.Runtime.Communication.CdActivation).FullName}";
+
     /// <summary>A value of a run-time enumeration of the facility, spelled so a rename breaks here.</summary>
     public static string CommunicationEnum<T>(T value) where T : struct, System.Enum => $"global::{typeof(T).FullName}.{value}";
 
@@ -2118,6 +2130,26 @@ internal static class RuntimeApi
 
     public static string McsPurge(string cd, string format, string area) =>
         $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.Purge)}({cd}, {format}, {area})";
+
+    /// <summary>The characters in standard data format (§1985:IV.4.3.4) of the group whose storage image is <paramref name="storage"/>,
+    /// composed from its layout (<see cref="ItemLength.StandardLayout"/>) by <c>CobolStandardData.Image</c> (kb/Work PB5378).</summary>
+    public static string StandardDataImage(string storage, IReadOnlyList<ItemLength.StandardPart> layout) =>
+        $"{nameof(CobolStandardData)}.{nameof(CobolStandardData.Image)}({storage}, {StandardParts(layout)})";
+
+    /// <summary>The characters in standard data format of an elementary binary or packed item whose DISPLAY image is <paramref name="image"/>
+    /// (<c>CobolStandardData.Characters</c>, kb/Work PB5378): the same characters <see cref="StandardDataImage"/> gives the item inside a group.</summary>
+    public static string StandardDataCharacters(string image, string profile) =>
+        $"{nameof(CobolStandardData)}.{nameof(CobolStandardData.Characters)}({image}, {profile})";
+
+    private static string StandardParts(IReadOnlyList<ItemLength.StandardPart> parts) =>
+        $"new {nameof(StandardDataPart)}[] {{ {string.Join(", ", parts.Select(StandardPart))} }}";
+
+    private static string StandardPart(ItemLength.StandardPart part) =>
+        $"new {nameof(StandardDataPart)}({part.Offset}, {part.Width}"
+        + (part.Converted is { } item ? $", profile: {item.ProfileName}" : "")
+        + (part.Count != 1 ? $", count: {part.Count}" : "")
+        + (part.Members is { } members ? $", members: {StandardParts(members)}" : "")
+        + ")";
 
     public static string McsSend(string cd, string format, string area, string text, string indicator) =>
         $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.Send)}({cd}, {format}, {area}, {text}, {indicator})";
@@ -2216,10 +2248,12 @@ internal static class RuntimeApi
     /// <paramref name="min"/>..<paramref name="max"/> is the record range §2023:13.18.43.4 GR14 / GR19 test,
     /// <paramref name="size"/> the GR13 a) DEPENDING ON value (null: the image's own length, GR13 b)/c)) and
     /// <paramref name="extents"/> the record's extent table (D-FRA (v); kb/Work PB1053) and
-    /// <paramref name="slots"/> the leaf vector of a record holding managed slots (kb/Work PB4772).</summary>
+    /// <paramref name="slots"/> the leaf vector of a record holding managed slots (kb/Work PB4772);
+    /// <paramref name="rangeFailsStatement"/> makes a record outside the range unsuccessful with checking off too
+    /// (COBOL-85, §1985:VII.3.8.4 GR10; kb/Work PB5124).</summary>
     public static string SortReleaseStatement(string sd, string image, int min, int max, string? size = null, string? extents = null,
-        string? slots = null) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image}, {min}, {max}{(size is null ? "" : $", size: {size}")}{(extents is null ? "" : $", extents: {extents}")}{(slots is null ? "" : $", slots: {slots}")})";
+        string? slots = null, bool rangeFailsStatement = false) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image}, {min}, {max}{(size is null ? "" : $", size: {size}")}{(extents is null ? "" : $", extents: {extents}")}{(slots is null ? "" : $", slots: {slots}")}{(rangeFailsStatement ? ", rangeFailsStatement: true" : "")})";
 
     /// <summary>The RETURN STATEMENT — <c>CobolSort.ReturnStatement</c> (§2023:14.9.34.4 GR1 + GR3's phase and at-end
     /// tests, then GR3's retrieval). The implicit GIVING return renders <see cref="SortReturn"/> instead.</summary>

@@ -468,7 +468,7 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 
 ## 4. Migration notes — keeping the battery green throughout
 
-The battery (greenfield conformance + unit + characterization + the FULL NIST legacy guard — current counts live in the
+The battery (greenfield conformance + unit + repo-drift + characterization + the FULL NIST legacy guard — current counts live in the
 STATUS banners) must stay green at **every commit**. Sequence
 the topology work as **behavior-preserving mechanical steps**, each independently green:
 

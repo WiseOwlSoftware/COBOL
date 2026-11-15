@@ -428,15 +428,33 @@ public readonly struct CobolExact
     /// (<see cref="TryBinary64Operands"/>), so <c>M ** FUNCTION MAX (F M2)</c> is <c>M ** F</c> when MAX selected F, a run-time fact the
     /// compiler cannot see: the result is then a float item's content (<see cref="FromBinary64"/>) and lands by its exact binary value;
     /// otherwise an approximation (<see cref="FromApproximation"/>) and lands by its shortest round-trip decimal. The
-    /// §2023:8.8.1.2 rule-6 screen is <see cref="CobolIntrinsics.PowNativeReal"/>'s, written once; <paramref name="taken"/> is the
-    /// range conditions whose checking is enabled (<see cref="CobolIntrinsics.PowNativeRealChecked"/>).</summary>
-    public static CobolExact PowReal(CobolExact b, CobolExact e, SizeChecks taken = SizeChecks.None)
+    /// §2023:8.8.1.2 rule-6 screen is <see cref="CobolIntrinsics.PowNativeReal(double, double)"/>'s, written once; <paramref name="taken"/> is the
+    /// range conditions whose checking is enabled (<see cref="CobolIntrinsics.PowNativeRealChecked(double, double, SizeChecks)"/>).
+    /// <paramref name="negativeBaseRealRoots"/> is the COBOL-85 form of the negative-base rule (kb/Work PB5186,
+    /// <c>DialectBehavior.NegativeBaseRequiresIntegerExponent</c>): the exponent's EXACT value decides whether a real result exists
+    /// (<see cref="CobolIntrinsics.PowNativeReal(double, CobolExact)"/>).</summary>
+    public static CobolExact PowReal(CobolExact b, CobolExact e, SizeChecks taken = SizeChecks.None, bool negativeBaseRealRoots = false)
     {
         bool floatItem = b._isFloatContent || e._isFloatContent;
         double x = b._isFloatContent ? b._binary64 : b.ToDouble(), y = e._isFloatContent ? e._binary64 : e.ToDouble();
-        double r = taken == SizeChecks.None ? CobolIntrinsics.PowNativeReal(x, y) : CobolIntrinsics.PowNativeRealChecked(x, y, taken);
+        double r = (negativeBaseRealRoots, taken) switch
+        {
+            (true, SizeChecks.None) => CobolIntrinsics.PowNativeReal(x, e),
+            (true, _) => CobolIntrinsics.PowNativeRealChecked(x, e, taken),
+            (false, SizeChecks.None) => CobolIntrinsics.PowNativeReal(x, y),
+            (false, _) => CobolIntrinsics.PowNativeRealChecked(x, y, taken),
+        };
         return OfBinary64Result(r, floatItem);
     }
+
+    /// <summary>⛔ IS THIS VALUE p/q IN LOWEST TERMS WITH q ODD, AND IS p ODD (kb/Work PB5186): the one question §1985:VI.6.2.3 GR5c
+    /// ("If no real number exists as the result of the evaluation, the size error condition exists") asks of an exponent over a negative
+    /// base, answered on the exact value (<see cref="CobolBig.HasOddDenominator"/>). For an odd q the q-th root of a negative number is
+    /// real and negative, so the power is the real number <c>±|b|^(p/q)</c>, negative exactly when p is odd; for an even q no real
+    /// result exists. A float item's content is its exact binary expansion <c>m × 2^−k</c> (<see cref="FromBinary64"/>), so a
+    /// non-integer one never has an odd denominator; an engine approximation is its shortest decimal (<see cref="FromApproximation"/>),
+    /// the value an exact operation reads it as.</summary>
+    internal bool HasOddDenominator(out bool oddNumerator) => AsBig().HasOddDenominator(out oddNumerator);
 
     private static CobolExact PositivePower(CobolExact b, long n, int precision)
     {

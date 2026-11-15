@@ -1,0 +1,4 @@
+## Entry 3615 — 2026-11-14 11:45 PST — Enqueue unit leads 2026-11-14: PB5517-PB5522 filed, PB5370 second witness
+
+Filed from the branch reviews' leads (kb/Work, one note each): PB5517 (the pack-time conformance target runs a bare `python`), PB5518 (no gate packs a project, so PB5431's statement is unguarded), PB5519 (no negative for `PADDING CHARACTER IS ALL SYM1` with a national symbol), PB5520 (EvaluateOperandCombinations.cs quotes 1985 text the standard lacks, `cite.py --check` FAIL recorded), PB5521 (stale negatedAbbreviatedRelation grammar comment after PB5123), PB5522 (Linux-only self-test cases pass off Linux and read GREEN; also a finding under PB1957). A dated finding under PB5370 records PR #1640's second INFRA misclassification. No code changed.
+

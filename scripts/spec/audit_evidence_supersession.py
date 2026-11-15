@@ -92,6 +92,7 @@ import grammar_source  # noqa: E402  (same directory; THE reader of the grammar'
 import work  # noqa: E402  (work.tracked_paths: a path exists when the COMMITTED tree has it; PB1957 2026-10-07)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 import rename_retired_names as retired_names  # noqa: E402  (scripts/: the ONE map from a retired path to its present one)
+import rendered_views  # noqa: E402  (scripts/: the ONE registry of documents rendered on demand rather than tracked)
 
 #: Files MOVED whole, by a rename outside the product rename's rules: the frozen record keeps the name it was measured
 #: under, and the citation resolves to the same file under its present name. The spec transcription took its edition
@@ -250,7 +251,9 @@ def scan(files: list[pathlib.Path], rules: dict[str, list[tuple[str, int, int]]]
                     stats["citations"] += 1
                     # A file the product rename (kb/Work PB3837) or a whole-file move (MOVED) renamed is the same file under its present name:
                     # moving it refuted nothing, and the frozen record keeps the name it was measured under.
-                    if present_path(path) not in tracked:
+                    # A document now RENDERED from tracked sources (rendered_views.VIEWS: docs/CONFORMANCE.md since kb/Work
+                    # PB5430) still exists, on demand: its untracked path refuted nothing either.
+                    if present_path(path) not in tracked and not rendered_views.is_view_output(present_path(path)):
                         if not exempt:
                             findings.append(Finding("path", rel, _line_of(raw, f"{path}:{lo}"), where,
                                                     f"cites {path}:{lo} — that file no longer exists"))
@@ -375,6 +378,12 @@ def self_test() -> int:
         renamed = not any(f.kind == "path" for f in scan([p], rules, root)[0])
         print(f"  {'ok  ' if renamed else 'FAIL'} path    silent on a file the product rename moved")
         ok &= renamed
+        # A document now rendered on demand (rendered_views.VIEWS) is untracked but exists: the path arm stays silent.
+        p.write_text(json.dumps({BANNER_KEY: banner, "e": ["docs/CONFORMANCE.md:169 — a claim"]}, indent=1),
+                     encoding="utf-8", newline="\n")
+        viewed = not any(f.kind == "path" for f in scan([p], rules, root)[0])
+        print(f"  {'ok  ' if viewed else 'FAIL'} path    silent on a document that became a rendered view")
+        ok &= viewed
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 

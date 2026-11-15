@@ -401,8 +401,8 @@ transcription of PERFORM Format 3 put imperative-statement-1 inside the repeated
 **Which points a test exercises is read, never declared** (decision 8). A WiseOwl-side step reads WiseOwl's parse of
 each test at each accepted edition and writes `wiseowl/points/<file>.json`, `{"<test id>": {"<edition>": [<point id>, ...]}}`. A keyword
 point matches the token stream of the statement's parse node, hidden channel included, so an optional word is seen
-either way; the one lexer rule that drops a keyword, `PIC_IS : 'IS' -> skip` (`CobolLexer.g4:1329`), moves to the
-hidden channel (S15). Only an operand-kind point needs a hand-kept map to its grammar element, held by a drift test.
+either way; the PICTURE clause's optional IS, once dropped by the lexer, is the IS token the parse holds (`CobolLexer.OnPictureIs`,
+kb/Work PB5213). Only an operand-kind point needs a hand-kept map to its grammar element, held by a drift test.
 Table cells and lettered sub-items are credited there too; how, since no parse node shows one, S14 settles. Only the
 coverage measure uses WiseOwl's parser; a grammar defect that credits a wrong point is bounded by the map's drift test,
 the grammar-versus-printed-figure audit (`spec-grammar-conformance`), and a second compiler's run of the test.
@@ -938,7 +938,7 @@ rules 2, 5, 6).
   removed; the `ruleText: none` constructs.
 - **S14 — the coverage-point catalog (§3.4), scoped by S3.** (PB4693) The script over the 2023, FCD and 2002 figures; word ids;
   derived windows; must-diagnose points; the 25 unpaired delimiters; table cells and sub-items; the CI digest check.
-- **S15 — crediting points from the parse (§3.4), sized by S14.** (PB4694) `PIC_IS` to the hidden channel; keyword points from
+- **S15 — crediting points from the parse (§3.4), sized by S14.** (PB4694) Keyword points from
   node tokens; the operand-kind map; `wiseowl/points/`; `coverage.py`.
 - **S16 — the A.1 verdict (§3.3, §5).** (PB4695) UNDOCUMENTED in both runners; A.1 values held to `docs/CONFORMANCE.md` §7;
   `implementor-defined.json` deleted.

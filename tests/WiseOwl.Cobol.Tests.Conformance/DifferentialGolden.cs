@@ -38,7 +38,9 @@ public static class DifferentialGolden
             throw new Xunit.Sdk.XunitException(
                 $"no committed differential golden: {path}\nDerive the case's expected stdout from the ISO standard " +
                 "and commit it at that path; a golden is never copied from a compiler's own output.");
-        Xunit.Assert.Equal(File.ReadAllText(path).ReplaceLineEndings("\n"), cout.ReplaceLineEndings("\n"));
+        // cout is on CutRunner.Normalize's basis already; the golden's CR LF (a CRLF checkout) is the only line end to
+        // fold. ReplaceLineEndings would also fold a form feed, NEL, LS, PS and a lone CR the program printed (kb/Work PB5460).
+        Xunit.Assert.Equal(File.ReadAllText(path).Replace("\r\n", "\n"), cout);
     }
 
     /// <summary><c>tests/differential/&lt;TestClassFromFileName&gt;/&lt;name&gt;.out</c>.</summary>

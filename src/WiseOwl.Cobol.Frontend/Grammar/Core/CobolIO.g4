@@ -380,9 +380,9 @@ multipleFileTapeEntry
     : fileName (POSITION integerLiteral)?
     ;
 
-// X3.23-1985 RERUN clause (I-O-CONTROL) — a checkpoint hint stating WHEN rerun records are written; the
-// rerun mechanism itself is implementor-defined, so a null rerun facility accepts and ignores it (parsed
-// and ignored, the MULTIPLE FILE posture). Obsolete '85 element DELETED by ISO 2002 (RERUN is absent from
+// X3.23-1985 RERUN clause (I-O-CONTROL) — states WHEN rerun records are written; the implementor provides at
+// least one of its seven forms (§1985:VII.2.12.4 GR2): the integer-1 RECORDS form is provided (kb/Work PB5198,
+// docs/CONFORMANCE.md §3.11) and the others are parsed and ignored. Obsolete '85 element DELETED by ISO 2002 (RERUN is absent from
 // the 2023 text entirely, §2023:8.9 included); the EditionValidator flags it COBOL0902 ≥2002
 // (`rerun-removed-2002`, VCR Table 7 row 7.15).
 // The format as the printed page draws it (§1985:VII.2.12.2, page VII-17; the Relative and Indexed I-O modules print

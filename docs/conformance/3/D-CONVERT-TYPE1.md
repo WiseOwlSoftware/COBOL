@@ -1,0 +1,6 @@
+- **D-CONVERT-TYPE1 — CONVERT function — Table 21's `Type1` argument cell (§2023:15.6 vs §2023:15.19, a standard-text inconsistency)**: Table 21's CONVERT row lists `Type1` among argument-1's types, but §2023:15.19.3's argument rules and §2023:15.19.4's returned-value rules define nothing for a type-name — a type declaration has neither storage nor a value for any source-format (ANY/ANUM/NAT/HEX) to read, so no conforming behavior is derivable. WiseOwl COBOL rejects a type-name argument-1 to CONVERT with a targeted COBOL1514 naming this note (kb/Work PB124 wave 4); every other Table-21 `TypeN` cell (LENGTH, BYTE-LENGTH) has §2023:15.50.4/§2023:15.14.4 semantics and is implemented.
+  end of the PERFORM statement includes the statements in a FINALLY phrase", while GR20's fatal branch routes an
+  unresumed fatal condition to §2023:14.6.13.1.3 (abnormal termination), which never re-enters "the end of the PERFORM".
+  The two cannot both hold. **Pinned choice: FINALLY runs on the NORMAL (and EXIT-PERFORM) fall-through path ONLY, NOT
+  on the fatal abnormal-termination path.** (Realized structurally — a `CobolFatalException` unwinds past the inline
+  FINALLY block.) Revisit only if the four-edition inventory surfaces a conformance test pinning the other reading.

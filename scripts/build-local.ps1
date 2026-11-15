@@ -1,8 +1,8 @@
 # build-local.ps1 — THE GATE, as one command (kb/Work PB1708, PB3022, PB4328; docs/rearchitecture/DESIGN-test-build-ci.md
 # §3.14.1–§3.14.6, §3.17.3; the pwsh twin of build-local.sh). It sets the process PRIORITY and hands the gate to
 # scripts/gate.py, which holds this worktree's gate lock, decides the change's lane, runs the audits beside everything
-# after them, takes a gate slot, builds the solution and runs the WHOLE Unit, Conformance and Characterization
-# populations, three hosts at once (the classes red at the previous gate first, then longest first by the committed
+# after them, takes a gate slot, builds the solution and runs the WHOLE population of every test target
+# (scripts/build_targets.json) not up to date at its key, one host each at once (the classes red at the previous gate first, then longest first by the committed
 # weights), checks each population by name and prints `=== BUILD-LOCAL GATE: … ===`.
 # ⛔ THE GATE OUTLIVES THIS COMMAND (kb/Work PB3536; DESIGN-test-build-ci.md §3.14.12): the driver starts the gate
 # DETACHED in its run directory (`TestResults/build-local/<run>/`: gate.log, gate.pid, verdict.json) and follows it, so
@@ -27,7 +27,7 @@ if ($Priority -ne 'Normal') {
 Set-Location (Split-Path -Parent $PSScriptRoot)
 # THE ONE INTERPRETER (scripts/python-resolve.ps1, the twin of python-resolve.sh; kb/Work PB1637, PB3197): a host with no
 # runnable Python ends on the gate's own verdict line, NOT RUN [interpreter] (an ENVIRONMENT cause in
-# gate.NOT_RUN_CAUSES) with exit 2 as the driver's NOT RUN does.
+# gate_verdict.NOT_RUN_CAUSES) with exit 2 as the driver's NOT RUN does.
 try {
     . (Join-Path $PSScriptRoot 'python-resolve.ps1')
 } catch {

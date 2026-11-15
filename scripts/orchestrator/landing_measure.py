@@ -42,9 +42,16 @@ stay as an earlier call left them, because no single tool sees the whole life of
                 is not a bounce: `bounces` counts failed merge-group runs, which `complete` re-reads from GitHub, and a
                 stalled pull request never reached a merge group (the lane writes them, `record_stall`)
   reds          each merge-queue red the landing lane CLASSIFIED (kb/Work PB4271, PB4331): {run: the failed merge-group
-                run, class: one of RED_CLASSES, why, act: one of RED_ACTS (re-queued by the lane, or left to a
-                finisher), ok, at}, once per run (`record_red`). An INFRA or RUNNER red is filed against the pipeline as
-                the `infrastructure` bounce cause in the same write: no finisher is woken to name it
+                run, class: one of RED_CLASSES, why, act: one of RED_ACTS (re-queued by the lane, left to a finisher, or
+                HELD for the root fix of its cause, kb/Work PB5483), ok, at, and optionally cases: the red test cases,
+                cause: the kb/Work note id of the cause; a hold carries cases or cause}, once per run
+                (`record_red`). An INFRA or RUNNER red is filed against the pipeline as the `infrastructure` bounce
+                cause in the same write: no finisher is woken to name it. `summary` counts the re-queues and holds PER
+                CAUSE (`red_causes`, the one key the hold uses too), so "this cause was re-run N times before its fix landed" is one number
+  fix_first     each FIX FIRST attempt of this landing (`enqueue.py land --fix-first`, kb/Work PB5483): {cause: as
+                stated, notes: the kb/Work ids it names, runs: the failed run ids it names, jumped: whether GitHub put
+                it at the front of the merge queue, detail, at}. `summary` counts the jumps and the landings the named
+                causes hit first: every other pull request whose `reds` hold a run the fix names
   ci_wall_s     the successful merge-group run's wall time (`complete`)
   local_gate_s  the seconds of every local gate the landing worktree ran (the sum of its verdict.json `timings.wall_s`)
   landing_gate_runs  how many of those gates the LANDING ran itself (`enqueue.py land`): 0 since kb/Work PB4331 (the
@@ -106,8 +113,11 @@ RED_CLASSES = (INFRA, RUNNER, MERGE, GENUINE, UNCLASSIFIED)
 #: The classes the lane re-queues once with no agent, and files against the pipeline: each is the `infrastructure`
 #: bounce cause (CAUSES), so no finisher is woken to name it.
 PIPELINE_CLASSES = (INFRA, RUNNER)
-#: What the lane did about a red: re-queued it (a PIPELINE_CLASSES red, once per landing) or left it to a finisher.
-RED_ACTS = ("requeue", "finisher")
+#: What the lane did about a red: re-queued it (a PIPELINE_CLASSES red, once per landing), left it to a finisher, or
+#: HELD it for the root fix of its cause (kb/Work PB5483: a cause already re-run once is not re-run again before its fix
+#: lands; the record carries the cause's key).
+HOLD_FOR_FIX = "hold-for-fix"
+RED_ACTS = ("requeue", "finisher", HOLD_FOR_FIX)
 STAMPS = ("dispatched", "done", "review_clean", "enqueued", "merged")      # in the order a landing passes them
 #: THE OWNER'S FIX-CYCLE BAR (kb/Work PB3638, 2026-10-24: "As an individual developer, I can make a bug fix, compile it
 #: to ensure it compiles cleanly, and run various local tests to ensure it's working, all within 10-15 mins"): a simple
@@ -209,7 +219,15 @@ def validate(rec: dict) -> dict:
         if not isinstance(red, dict) or not isinstance(red.get("run"), int) or red["run"] < 0 \
                 or red.get("class") not in RED_CLASSES or red.get("act") not in RED_ACTS or not red.get("at"):
             raise ValueError(f"red {red!r} is not {{run >= 0, class in {RED_CLASSES}, act in {RED_ACTS}, at}}")
+        if not isinstance(red.get("cases", []), list) or (red["act"] == HOLD_FOR_FIX and not red_causes(red)):
+            raise ValueError(f"red {red!r}: cases must be a list, and a {HOLD_FOR_FIX} names its cause")
         iso_time(red["at"])
+    for f in rec["fix_first"]:
+        if not isinstance(f, dict) or not str(f.get("cause") or "").strip() or not isinstance(f.get("jumped"), bool) \
+                or not isinstance(f.get("notes"), list) or not isinstance(f.get("runs"), list) \
+                or not (f["notes"] or f["runs"]) or not all(isinstance(r, int) for r in f["runs"]) or not f.get("at"):
+            raise ValueError(f"fix-first attempt {f!r} is not {{cause, notes, runs (one of them named), jumped, at}}")
+        iso_time(f["at"])
     return rec
 
 
@@ -220,10 +238,10 @@ def patch_record(existing: dict | None, patch: dict) -> dict:
     rec = {"schema": SCHEMA, "pr": patch["pr"], "branch": None, "changes": 1, "dispatched": None, "done": None,
            "review_clean": None,
            "enqueued": None, "merged": None, "bounces": None, "bounce_causes": [], "pre_queue_reds": None,
-           "done_each": [], "stalls": [], "reds": [], "ci_wall_s": None,
+           "done_each": [], "stalls": [], "reds": [], "fix_first": [], "ci_wall_s": None,
            "local_gate_s": None, "local_gate_runs": None, "landing_gate_runs": None, "note": "", **(existing or {})}
     for k, v in patch.items():
-        if v is None or (k in ("bounce_causes", "done_each", "stalls", "reds") and not v):
+        if v is None or (k in ("bounce_causes", "done_each", "stalls", "reds", "fix_first") and not v):
             continue
         if k == "stalls":   # each read is recorded once, whatever patch repeats it: a list that only grows
             have = {s.get("read") for s in rec["stalls"] if isinstance(s, dict)}
@@ -232,6 +250,10 @@ def patch_record(existing: dict | None, patch: dict) -> dict:
         if k == "reds":     # each failed merge-group run is classified once: a list that only grows
             have = {red.get("run") for red in rec["reds"] if isinstance(red, dict)}
             rec["reds"] = [*rec["reds"], *(red for red in v if red.get("run") not in have)]
+            continue
+        if k == "fix_first":   # each attempt once (by its time): a list that only grows
+            have = {f.get("at") for f in rec["fix_first"] if isinstance(f, dict)}
+            rec["fix_first"] = [*rec["fix_first"], *(f for f in v if f.get("at") not in have)]
             continue
         if k in ("enqueued", "done_each") and rec.get(k):
             continue
@@ -257,13 +279,15 @@ def record_stall(path: pathlib.Path, pr: int, branch: str, read: int, cause: str
 
 
 def record_red(path: pathlib.Path, pr: int, branch: str, run: int, cls: str, why: str, act: str, ok: bool,
-               at: str | None = None) -> dict:
+               at: str | None = None, cases: tuple[str, ...] | list[str] = (), cause: str = "") -> dict:
     """One merge-queue red of pull request `pr`, classified by the landing lane (kb/Work PB4271, PB4331; `reds` above):
     the failed run, its class, why, and what the lane did. A PIPELINE_CLASSES red is filed against the pipeline here, as
-    the `infrastructure` bounce cause, since no finisher is woken to name it; `complete` re-counts the bounces later."""
+    the `infrastructure` bounce cause, since no finisher is woken to name it; `complete` re-counts the bounces later.
+    `cases`: the red test cases (the cause's key when `cause` is not given); `cause`: a kb/Work note id (kb/Work PB5483)."""
     old = next((r for r in read_all(path) if r.get("pr") == pr), None) or {}
-    patch: dict = {"pr": pr, "branch": branch, "reds": [{"run": run, "class": cls, "why": why[:240], "act": act,
-                                                         "ok": ok, "at": at or now_iso()}]}
+    red = {"run": run, "class": cls, "why": why[:240], "act": act, "ok": ok, "at": at or now_iso(),
+           **({"cases": sorted(cases)} if cases else {}), **({"cause": cause} if cause else {})}
+    patch: dict = {"pr": pr, "branch": branch, "reds": [red]}
     if cls in PIPELINE_CLASSES and run not in {red.get("run") for red in old.get("reds") or []}:
         causes = [*(old.get("bounce_causes") or []), "infrastructure"]
         patch.update(bounce_causes=causes, bounces=max(old.get("bounces") or 0, len(causes)))
@@ -326,7 +350,19 @@ def after_figures(recs: list[dict]) -> dict:
                      "alerts": sum(s["act"] == "alert" for s in reads)}
     reds = [red for r in recs for red in r.get("reds") or []]   # every record: a red belongs to the queue, landed or not
     out["reds"] = {"n": len(reds), "classes": {c: sum(red["class"] == c for red in reds) for c in RED_CLASSES},
-                   "requeued": sum(red["act"] == "requeue" for red in reds)}
+                   "requeued": sum(red["act"] == "requeue" for red in reds),
+                   "held": sum(red["act"] == HOLD_FOR_FIX for red in reds), "by_cause": {}}
+    for red in reds:   # PER CAUSE (kb/Work PB5483): how often one cause was re-run, and held, before its fix landed
+        for key in red_causes(red) if red["act"] in ("requeue", HOLD_FOR_FIX) else []:
+            n = out["reds"]["by_cause"].setdefault(key, {"requeued": 0, "held": 0})
+            n["requeued" if red["act"] == "requeue" else "held"] += 1
+    attempts = [(r["pr"], f) for r in recs for f in r.get("fix_first") or []]
+    named = {run for _, f in attempts for run in f["runs"]}
+    fixes = {pr for pr, _ in attempts}
+    out["fix_first"] = {"landings": len(fixes), "attempts": len(attempts),
+                        "jumped": sum(f["jumped"] for _, f in attempts),
+                        "hit_first": len({r["pr"] for r in recs if r["pr"] not in fixes
+                                          and any(red.get("run") in named for red in r.get("reds") or [])})}
     ci =[r["ci_wall_s"] / 60 for r in landed if r.get("ci_wall_s") is not None]
     out["ci_wall"] = _spread(ci)
     gate = [r["local_gate_s"] / 60 for r in landed if r.get("local_gate_s") is not None]
@@ -334,6 +370,113 @@ def after_figures(recs: list[dict]) -> dict:
     own = [r["landing_gate_runs"] for r in landed if r.get("landing_gate_runs") is not None]
     out["landing_gates"] = {"n": len(own), "total": sum(own), "ungated": sum(1 for n in own if n == 0)} if own else None
     return out
+
+
+def red_causes(red: dict) -> list[str]:
+    """THE ONE KEY OF A CAUSE (kb/Work PB5483, review R1-5), read by the per-cause figures and the hold alike: each red test
+    case of one red is a cause (the failing test is the cause's identity across pull requests); a red with no case is
+    keyed by its named kb/Work note, and a red that names neither (an INFRA red: no test failed) has no cause."""
+    return list(red.get("cases") or []) or ([str(red["cause"])] if red.get("cause") else [])
+
+
+#: The releases of a hold (kb/Work PB5483, review R1-1), one JSON object per line in `<coord>/hold-releases.jsonl`:
+#: {case, by: one of RELEASED_BY, reason, at}. A FIX-FIRST release is not written here: it is read from the landing
+#: records themselves (a merged landing whose `fix_first` names a failed run of the cause).
+RELEASES = "hold-releases.jsonl"
+FIX_LANDED, NOTE_LANDED, OPERATOR = "fix-first", "note-landed", "operator"
+RELEASED_BY = (FIX_LANDED, NOTE_LANDED, OPERATOR)
+#: A hold older than this is alerted again (land_lane.hold_alarms), and again every HOLD_ALARM_H after, so no hold sits
+#: unseen while its cause's fix is somewhere the lane cannot read.
+HOLD_ALARM_H = 12
+
+
+def record_release(path: pathlib.Path, case: str, by: str, reason: str, at: str | None = None) -> dict:
+    """Append one release of the hold on `case` (RELEASES)."""
+    if not case.strip() or by not in RELEASED_BY or not reason.strip():
+        raise ValueError(f"a release names its case, one of {RELEASED_BY} and a reason (got {case!r}, {by!r}, {reason!r})")
+    rel = {"case": case, "by": by, "reason": reason[:300], "at": at or now_iso()}
+    iso_time(rel["at"])
+    _write_all(path, [*read_all(path), rel])
+    return rel
+
+
+#: THE MOST RED CASES A FLAKE HAS (kb/Work PB5483 review R2-1). A red of at most this many failing cases is keyed per case
+#: (a re-queue opens each case as a cause, and the red is held when ANY of its cases is open). A red of more is no flake:
+#: many tests that ran GREEN at the branch's gate failing at once is a Linux, Release or runner difference or a broken
+#: runner, so it opens no cause, is never held, and the landing lane sends it to a finisher instead of re-running it
+#: (land_lane.bounce_step).
+FLAKE_CASES = 3
+#: The notes attached to a hold after it began (review R2-3), one JSON object per line in `<coord>/hold-notes.jsonl`:
+#: {case, note, at}. The landing lane re-resolves a hold with no note on every read (land_lane.open_causes_now), so a
+#: note filed AFTER the hold is attached, and its landing then releases the hold.
+HOLD_NOTES = "hold-notes.jsonl"
+
+
+def keyed(red: dict) -> list[str]:
+    """The causes one red can open or advance (review R2-1): its cases when it is flake-sized (FLAKE_CASES), else none."""
+    causes = red_causes(red)
+    return causes if len(causes) <= FLAKE_CASES else []
+
+
+def record_hold_note(path: pathlib.Path, case: str, note: str, at: str | None = None) -> dict:
+    """Attach `note` to the open hold on `case` (HOLD_NOTES)."""
+    if not case.strip() or not re.fullmatch(r"(?:PB|R|A)\d+", note or ""):
+        raise ValueError(f"a hold's note is a kb/Work id and its case is named (got {case!r}, {note!r})")
+    entry = {"case": case, "note": note, "at": at or now_iso()}
+    iso_time(entry["at"])
+    _write_all(path, [*read_all(path), entry])
+    return entry
+
+
+def open_causes(recs: list[dict], releases: list[dict], names: list[dict] = ()) -> dict[str, dict]:
+    """THE CAUSES THE LANDING LANE HAS RE-RUN OR HELD AND NO FIX HAS RELEASED (kb/Work PB5483; land_lane.bounce_step),
+    read IN TIME ORDER (review R1-2): each cause with {since: its first re-queue after its last release, requeued,
+    held_at: its first hold since then or None, notes: the kb/Work notes its holds name or were attached later (`names`,
+    HOLD_NOTES), runs}. A cause is OPENED only by a re-queue of a flake-sized red (`keyed`), one per case: the case
+    itself went through the re-run. A held red advances only the open causes among its cases and opens nothing (review
+    R2-1: the tests that merely co-failed with the held one are not held). A release covers only the reds BEFORE it, so a
+    red of the same case after a fix is a new cause: one re-queue, then a hold. A release is a recorded one (RELEASES:
+    the operator's, or a note the lane read `landed` on origin/main) or a merged landing whose fix-first attempt names a
+    failed run of the cause, at its `merged` time."""
+    events: list[tuple[dt.datetime, int, object]] = []   # (time, 0 red | 1 release | 2 note, payload)
+    run_cases: dict[object, set[str]] = {}
+    for r in recs:
+        for red in r.get("reds") or []:
+            run_cases.setdefault(red.get("run"), set()).update(keyed(red))
+            if red.get("act") in ("requeue", HOLD_FOR_FIX) and keyed(red):
+                events.append((iso_time(red["at"]), 0, red))
+    for r in recs:
+        if r.get("merged"):
+            for f in r.get("fix_first") or []:
+                for case in {c for run in f.get("runs") or [] for c in run_cases.get(run, ())}:
+                    events.append((iso_time(r["merged"]), 1, case))
+    events += [(iso_time(rel["at"]), 1, rel["case"]) for rel in releases]
+    events += [(iso_time(n["at"]), 2, n) for n in names]
+    state: dict[str, dict] = {}
+    for _at, kind, item in sorted(events, key=lambda e: (e[0], e[1])):   # a red at a release's instant: before it
+        if kind == 1:
+            state.pop(item, None)
+        elif kind == 2:
+            if (s := state.get(item["case"])) is not None and item["note"] not in s["notes"]:
+                s["notes"].append(item["note"])
+        elif item["act"] == "requeue":
+            for case in keyed(item):
+                s = state.setdefault(case, {"since": item["at"], "requeued": 0, "held_at": None, "notes": [], "runs": []})
+                s["requeued"] += 1
+                s["runs"].append(item.get("run"))
+        else:
+            for case in (c for c in keyed(item) if c in state):
+                s = state[case]
+                s["held_at"] = s["held_at"] or item["at"]
+                s["runs"].append(item.get("run"))
+                if item.get("cause") and item["cause"] not in s["notes"]:
+                    s["notes"].append(item["cause"])
+    return state
+
+
+def requeued_unfixed(recs: list[dict], releases: list[dict]) -> frozenset[str]:
+    """The causes a red may not be re-run for again: each one `open_causes` holds open."""
+    return frozenset(open_causes(recs, releases))
 
 
 def before_figures(trains: list[dict]) -> dict | None:
@@ -428,7 +571,10 @@ def summarize(recs: list[dict], trains: list[dict], since: dt.datetime | None = 
     rd = a["reds"]
     red_classes = ", ".join(f"{c} {n}" for c, n in rd["classes"].items() if n)
     rows.append(("merge-queue reds by class (PB4271)",
-                 f"{rd['n']} red(s): {red_classes}; {rd['requeued']} re-queued by the landing lane" if rd["n"] else
+                 f"{rd['n']} red(s): {red_classes}; {rd['requeued']} re-queued by the landing lane"
+                 + (f", {rd['held']} held for their fix" if rd["held"] else "")
+                 + "".join(f"; cause {k}: re-queued {v['requeued']}, held {v['held']}"
+                           for k, v in sorted(rd["by_cause"].items())) if rd["n"] else
                  f"{UNMEASURED} (the landing lane has classified no red)",
                  f"{UNMEASURED} (no red was classified before kb/Work PB4331)"))
     ci = a["ci_wall"]
@@ -442,6 +588,12 @@ def summarize(recs: list[dict], trains: list[dict], since: dt.datetime | None = 
                  (f"median {g['median']:.1f}, total {g['total']:.0f} ({g['n']} landing(s))" if g else UNMEASURED),
                  f"{EVIDENCE['gate_minutes'] / EVIDENCE['clusters_landed']:.1f} in the landers' gates per landed change "
                  f"({EVIDENCE['gate_pct']} % of {EVIDENCE['lander_minutes']} lander minutes)"))
+    ff = a["fix_first"]
+    rows.append(("fix-first landings (kb/Work PB5483)",
+                 f"{ff['landings']} landing(s), {ff['attempts']} attempt(s), {ff['jumped']} jumped to the queue's front; "
+                 f"{ff['hit_first']} other landing(s) hit their named runs first" if ff["attempts"] else
+                 f"{UNMEASURED} (no landing jumped the queue)",
+                 f"{UNMEASURED} (no landing could jump before kb/Work PB5483)"))
     lg = a["landing_gates"]
     rows.append(("gates the landing ran itself, per landing (PB3612)",
                  (f"{lg['total'] / lg['n']:.2f} ({lg['total']} in {lg['n']} landing(s); {lg['ungated']} ran none)"
@@ -614,7 +766,7 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
 
 def record_enqueued(path: pathlib.Path, worktree: pathlib.Path, branch: str, pr: int, reports_dir: pathlib.Path,
                     changes: int | None = None, enqueued: str | None = None, git: Git | None = None,
-                    landing_gates: int | None = None) -> dict:
+                    landing_gates: int | None = None, fix_first: dict | None = None) -> dict:
     """What `enqueue.py queue` can record the moment a pull request is queued: the branch, the enqueue time, each
     carried change's finish (`done_times`, run in the landing worktree), the dispatch and review-clean times
     (`stage_times`, from the coordination directory that holds `path`) and the local gate seconds from the worktree's
@@ -631,7 +783,7 @@ def record_enqueued(path: pathlib.Path, worktree: pathlib.Path, branch: str, pr:
     return record(path, {"pr": pr, "branch": branch, "changes": changes or len(each) or None, "enqueued": at,
                          "done": each[0] if each else None, "done_each": each, **stages,
                          "local_gate_s": round(g[0], 1) if g else None, "local_gate_runs": g[1] if g else None,
-                         "landing_gate_runs": landing_gates})
+                         "landing_gate_runs": landing_gates, "fix_first": [fix_first] if fix_first else []})
 
 
 def complete(path: pathlib.Path, gh: Gh, only: int | None = None, say: Say = print) -> int:
@@ -801,13 +953,18 @@ ARMS = ("a record is a patch: later calls fill fields, the first enqueue time st
         "marks a span over the owner's bar",
         "a merge-queue red the landing lane classified is recorded once per run with its class and what the lane did, "
         "an INFRA or RUNNER red is filed against the pipeline as the infrastructure cause, an unknown class is refused, "
-        "and summary counts the reds by class (kb/Work PB4271, PB4331)")
+        "and summary counts the reds by class (kb/Work PB4271, PB4331)",
+        "a held red names its cause, the re-queues and holds are counted PER CAUSE, a cause re-queued once stays "
+        "unfixed (the lane holds its next red) until a merged fix-first landing names one of its runs, and each "
+        "fix-first attempt is "
+        "recorded once with its cause, a jump counted, and the landings its named runs hit first (kb/Work PB5483); an "
+        "attempt that names no red, and a hold with no cause, are refused")
 
 
 def _self_test(tmp: pathlib.Path) -> list[str]:
     fails: list[str] = []
     (patch_arm, refuse_arm, done_arm, gate_arm, complete_arm, summary_arm, headline_arm, freeze_arm, prequeue_arm,
-     stall_arm, stage_arm, red_arm) = ARMS
+     stall_arm, stage_arm, red_arm, fix_arm) = ARMS
     path = tmp / FILE
     z = "2026-10-12T"
 
@@ -1090,6 +1247,84 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
             or r893["bounce_causes"] != ["infrastructure"] or r893["bounces"] != 1 or not red_refused \
             or "2 red(s): INFRA 1, MERGE 1; 1 re-queued by the landing lane" not in red_text:
         fails.append(f"{red_arm}: {r893} refused={red_refused}\n{red_text}")
+    # held reds and fix-first attempts (kb/Work PB5483): pull request 901 meets the flake PB5478 twice (re-queued, then
+    # held), 902 meets it once; the fix, pull request 903, jumps the queue naming the two runs of 901
+    held = tmp / "held.jsonl"
+    flake = ("Unit.FlakyCase",)
+    record_red(held, 901, "b901", 43550577247, RUNNER, "a flake", "requeue", True, "2026-11-13T01:00:00Z", cases=flake)
+    record_red(held, 901, "b901", 43553292493, RUNNER, "a flake", HOLD_FOR_FIX, True, "2026-11-13T02:00:00Z",
+               cases=flake, cause="PB5478")
+    record_red(held, 902, "b902", 43553300000, RUNNER, "a flake", "requeue", True, "2026-11-13T02:10:00Z", cases=flake)
+    attempt = {"cause": "PB5478, run 43550577247, run 43553292493", "notes": ["PB5478"],
+               "runs": [43550577247, 43553292493], "jumped": True, "detail": "front", "at": "2026-11-13T03:00:00Z"}
+    record(held, {"pr": 903, "branch": "b903", "fix_first": [attempt]})
+    record(held, {"pr": 903, "fix_first": [attempt]})                        # the same attempt, kept once
+    refusals = []
+    for bad in ({"pr": 904, "branch": "b904", "fix_first": [{**attempt, "notes": [], "runs": []}]},
+                {"pr": 904, "branch": "b904", "reds": [{"run": 1, "class": RUNNER, "act": HOLD_FOR_FIX,
+                                                        "at": "2026-11-13T03:00:00Z"}]}):
+        try:
+            record(held, bad)
+            refusals.append(False)
+        except ValueError:
+            refusals.append(True)
+    unfixed_before = requeued_unfixed(read_all(held), [])           # the fix has not merged yet
+    ledger_before = open_causes(read_all(held), []).get("Unit.FlakyCase") or {}
+    record(held, {"pr": 903, "merged": "2026-11-13T04:00:00Z"})
+    unfixed_after = requeued_unfixed(read_all(held), [])
+    record_red(held, 905, "b905", 43560000000, RUNNER, "another", "requeue", True, "2026-11-13T05:00:00Z",
+               cases=("Unit.Other",))
+    # review R1-2: a red of the fixed case AFTER the fix merged is a new cause: open again, its next red held
+    record_red(held, 906, "b906", 43570000000, RUNNER, "a new flake", "requeue", True, "2026-11-13T06:00:00Z", cases=flake)
+    reopened = requeued_unfixed(read_all(held), [])
+    # review R1-1: a cause fixed the ordinary way (no fix-first) is released by a recorded release (the note landed, or
+    # the operator), which covers only the reds before it
+    rel = tmp / RELEASES
+    record_release(rel, "Unit.Other", NOTE_LANDED, "PB9 is landed on origin/main", "2026-11-13T07:00:00Z")
+    record_release(rel, "Unit.FlakyCase", OPERATOR, "fixed by PR #1612", "2026-11-13T07:00:00Z")
+    released = requeued_unfixed(read_all(held), read_all(rel))
+    try:
+        record_release(rel, "Unit.X", "whim", "because")
+        release_refused = False
+    except ValueError:
+        release_refused = True
+    if unfixed_before != {"Unit.FlakyCase"} or unfixed_after != frozenset() \
+            or ledger_before.get("held_at") != "2026-11-13T02:00:00Z" or ledger_before.get("notes") != ["PB5478"] \
+            or ledger_before.get("requeued") != 2 or reopened != {"Unit.Other", "Unit.FlakyCase"} \
+            or released != frozenset() or not release_refused:
+        fails.append(f"{fix_arm}: unfixed {unfixed_before} -> {unfixed_after}, ledger {ledger_before}, reopened "
+                     f"{reopened}, released {released}, release refused {release_refused}")
+    # review R1-5: ONE key: a red of cases {A, B} and a red of {A} count A twice, never "A, B" apart
+    keyed = after_figures([patch_record(None, {"pr": 950, "branch": "b950", "reds": [
+        {"run": 1, "class": RUNNER, "act": "requeue", "cases": ["A", "B"], "at": "2026-11-13T01:00:00Z"},
+        {"run": 2, "class": RUNNER, "act": HOLD_FOR_FIX, "cases": ["A"], "at": "2026-11-13T02:00:00Z"}]})])
+    if keyed["reds"]["by_cause"] != {"A": {"requeued": 1, "held": 1}, "B": {"requeued": 1, "held": 0}}:
+        fails.append(f"{fix_arm}: per-cause keys {keyed['reds']['by_cause']}")
+    # review R2-1: a held red opens nothing for the tests that merely co-failed; a red too big for a flake opens nothing
+    many = [patch_record(None, {"pr": 960, "branch": "b960", "reds": [
+        {"run": 11, "class": RUNNER, "act": "requeue", "cases": ["X"], "at": "2026-11-13T01:00:00Z"},
+        {"run": 12, "class": RUNNER, "act": HOLD_FOR_FIX, "cases": ["X", "Z0", "Z1"], "cause": "PB7",
+         "at": "2026-11-13T02:00:00Z"},
+        {"run": 13, "class": RUNNER, "act": "requeue", "cases": [f"W{i}" for i in range(FLAKE_CASES + 1)],
+         "at": "2026-11-13T03:00:00Z"}]})]
+    co_failed = open_causes(many, [])
+    # review R2-3: a note attached after the hold is the hold's note
+    attached = open_causes(many, [], [{"case": "X", "note": "PB8", "at": "2026-11-13T04:00:00Z"},
+                                      {"case": "Z0", "note": "PB9", "at": "2026-11-13T04:00:00Z"}])
+    if set(co_failed) != {"X"} or co_failed["X"]["held_at"] != "2026-11-13T02:00:00Z" or co_failed["X"]["requeued"] != 1 \
+            or attached["X"]["notes"] != ["PB7", "PB8"] or set(attached) != {"X"}:
+        fails.append(f"{fix_arm}: co-failed {co_failed} attached {attached}")
+    held_path_recs = [r for r in read_all(held) if r["pr"] not in (905, 906)]
+    _write_all(held, held_path_recs)
+    hf = after_figures([r for r in read_all(held) if r["pr"] != 905])
+    held_text = "\n".join(summarize(read_all(held), []))
+    r903 = next(r for r in read_all(held) if r["pr"] == 903)
+    if hf["reds"]["by_cause"] != {"Unit.FlakyCase": {"requeued": 2, "held": 1}} \
+            or hf["reds"]["held"] != 1 or len(r903["fix_first"]) != 1 or refusals != [True, True] \
+            or hf["fix_first"] != {"landings": 1, "attempts": 1, "jumped": 1, "hit_first": 1} \
+            or "1 held for their fix" not in held_text or "cause Unit.FlakyCase: re-queued 2, held 1" not in held_text \
+            or "1 jumped to the queue's front; 1 other landing(s) hit their named runs first" not in held_text:
+        fails.append(f"{fix_arm}: {hf['reds']} {hf['fix_first']} {r903['fix_first']} refused={refusals}\n{held_text}")
     # summary / headline
     record(path, {"pr": 17, "bounce_causes": ["cluster-defect"], "bounces": 1})
     trains = [{"gating": "batched", "started": "2026-10-10T10:00:00-07:00", "pushed": "2026-10-10T12:00:00-07:00",

@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.3.3.2-L2.1",
  "rule-digest": "ae93eee8b597",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed",
- "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_2-L2_1",
- "notes": "The 1985-SR-XVI.3.3.2-1 answer, stated there once. For this rule the witness of the over-refusal is s4 (from 70, executed range 10 only). kb/Work PB5442 holds the defect (adjudication: held-85/set6/decisions.json).",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#ReachedPcs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed",
+ "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_2-L2_1; conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/pb5442-unreached-section-s4",
+ "notes": "kb/Work PB5442 landed. SR L2.1, for a PERFORM in an independent segment: \"Sections and/or paragraphs wholly contained in one or more non-independent segments.\" The range is the executed one (§1985:VI.6.21.4 GR11: \"The range includes all statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the PERFORM statement\"), and a violation has an undefined result (§1985:I.1.6), so which violations are diagnosed is WiseOwl's choice (docs/CONFORMANCE.md §3.8). Segmentation.CheckProcedures asks the named span and, only when it breaks the rule, the sections of it that execution reaches by fall-through and GO TO (Segmentation.ReachedPcs; an alterable GO TO also reaches each ALTER destination), refusing COBOL6877 when those break RangeAllowed; nested PERFORM, SORT and MERGE ranges are their own statements' (CCVS-85 SG102A, SG103A). Witnesses: the row's refusal witness and the pb5442 programs, where a GO TO jumps over a section of another segment (accepted, A C DONE), and its control, where it reaches it (refused).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

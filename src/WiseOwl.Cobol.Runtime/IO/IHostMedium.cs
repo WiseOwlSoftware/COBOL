@@ -33,6 +33,10 @@ internal interface IHostMedium
     /// <summary><see cref="HostFile.OpenTransient"/>: a journal's record or before file.</summary>
     FileStream OpenTransient(string path, FileMode mode, FileAccess access);
 
+    /// <summary><see cref="HostFile.OpenRerunDevice"/>: the device of a RERUN clause's integer-1 RECORDS form, opened to append one
+    /// rerun point (kb/Work PB5198).</summary>
+    FileStream OpenRerunDevice(string hostPath);
+
     /// <summary>Remove the physical file <paramref name="hostPath"/> (a DELETE FILE, a rollback of a creation). Throws what
     /// <see cref="File.Delete"/> throws: a removal the host refuses is the statement's to report.</summary>
     void DeleteFile(string hostPath);
@@ -88,6 +92,8 @@ internal sealed class HostMedium : IHostMedium
     public FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access) => HostFile.OpenAuxiliary(hostPath, mode, access);
 
     public FileStream OpenTransient(string path, FileMode mode, FileAccess access) => HostFile.OpenTransient(path, mode, access);
+
+    public FileStream OpenRerunDevice(string hostPath) => HostFile.OpenRerunDevice(hostPath);
 
     public void DeleteFile(string hostPath) => File.Delete(hostPath);
 

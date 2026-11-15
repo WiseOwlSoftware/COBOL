@@ -63,7 +63,9 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     internal static bool IsFileFormat(BinderContext ctx, Core.SortStatementContext s) =>
         ctx.Data.State.VisibleFiles.ContainsKey(SubjectName(s));
 
-    /// <summary>⛔ THE DECLARATIVE LEG OF THE SORT/MERGE PLACEMENT RULES (kb/Work PB1139): "A SORT statement shall not
+    /// <summary>⛔ THE DECLARATIVE LEG OF THE SORT/MERGE PLACEMENT RULES (kb/Work PB1139, PB5275): at COBOL-85 a SORT "may appear
+    /// anywhere in the Procedure Division except in the declarative portion" (§1985:XI.4.4.3 SR1), a MERGE "may appear anywhere in the
+    /// Procedure Division except in the declaratives portion" (§1985:XI.4.1.3 SR1), and a USE FOR DEBUGGING section is in it (§1985:XV.3.2.3 SR1). "A SORT statement shall not
     /// appear in … a declarative procedure" (§2023:14.9.40.3 SR3, FORMAT 1) and a MERGE statement "may appear anywhere in
     /// the procedure division except … in a declarative procedure" (§2023:14.9.24.3 SR1). Asked ONCE here for both verbs,
     /// from the bind position's own <see cref="EnclosingContext.InDeclarative"/>; it holds at every edition (Annex
@@ -507,7 +509,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         int width = file.TransfersPastRecord(record.Item) && ctx.Refs.Places.RecordArea(file) is { } area
             ? Model.RecordLayout.AreaWidth(area.Item)
             : Model.RecordLayout.AreaWidth(record.Item);
-        return new BoundRelease(file, record, width, from, SortVaryingOf(file));
+        // ⛔ A RECORD OUTSIDE THE RECORD RANGE WITH NO CHECKING TO RAISE A CONDITION (kb/Work PB5124). COBOL-85 has no
+        // exception checking and states the outcome itself: "the output statement is unsuccessful and, except during
+        // execution of a RELEASE statement, the associated I-O status is set" (§1985:VII.3.8.4 GR10, Amendment 2).
+        // From COBOL-2002 the same sentence raises EC-SORT-MERGE-RELEASE (§2023:13.18.43.4 GR14b), and with that
+        // checking off the result is undefined (§2023:14.6.13.1.1) — the record is released (D-SMA (c)).
+        bool rangeFailsStatement = ctx.Edition.DialectLevel < 2002;
+        return new BoundRelease(file, record, width, from, SortVaryingOf(file), rangeFailsStatement);
     }
 
     // ── RETURN (ISO §2023:14.9.34) ──────────────────────────────────────────────────────────────────────────────
@@ -538,7 +546,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         BoundMove? into = null;
         if (r.INTO() is not null)
         {
-            if (r.receivingIdentifier() is not { } d || host.Expr.ResolveReceiving(d) is not { } ip)
+            if (r.receivingIdentifier() is not { } d || host.Expr.ResolveReceivingAtStore(d) is not { } ip)   // identified after the record is returned (§1985:XI.4.3.4 GR6b; kb/Work PB5386)
                 return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
             into = host.Move.BindIntoPhrase(file, area, ip, IntoPhraseRules.Return);
         }
@@ -903,13 +911,19 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// §2023:14.9.24.3 SR11: "No pair of file-names in a MERGE statement may be specified in the same SAME AREA, SAME SORT
     /// AREA, or SAME SORT-MERGE AREA clause. The only file-names in a MERGE statement that may be specified in the same
     /// SAME RECORD AREA clause are those associated with the GIVING phrase." — a pair of the statement's files (file-name-1
-    /// included) in one barred clause, whatever else the clause names. Returns false when a violation was REPORTED.</summary>
+    /// included) in one barred clause, whatever else the clause names. Returns false when a violation was REPORTED.
+    /// <para>The EDITION is an axis for the SORT's GIVING sentence (kb/Work PB5276): §1985:XI.4.4.3 SR9 says "File-names associated
+    /// with the GIVING phrase may not be specified in the same SAME clause", and the only SAME clause of the 1985 format that is not a
+    /// sort or sort-merge area clause is SAME [RECORD] AREA (§1985:VII.2.13.2), so two GIVING files in one SAME RECORD AREA clause are
+    /// refused below 2002; §2023:14.9.40.3 SR10 narrows the sentence to the SAME AREA clause. MERGE's sentence is the same words at every
+    /// edition (§1985:XI.4.1.3 SR8), so its GIVING files may share a record area.</para></summary>
     private bool ScreenSameClauses(FileModel sd, IReadOnlyList<FileModel> usingFiles, IReadOnlyList<FileModel> givingFiles,
         bool merge)
     {
         var statement = new List<FileModel> { sd };
         statement.AddRange(usingFiles.Concat(givingFiles).Where(f => !ReferenceEquals(f, sd)).Distinct().ToList());
         string verb = merge ? "MERGE" : "SORT";
+        bool held1985 = ctx.Edition.Edition.Year < 2002;
         string rule = merge ? "ISO §2023:14.9.24.3 SR11" : "ISO §2023:14.9.40.3 SR10";
         foreach (var clause in statement.SelectMany(f => f.SameClauses).Distinct())
         {
@@ -923,14 +937,18 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                     "no pair of file-names in the MERGE statement may be specified in the same SAME AREA clause",
                 SameClauseKind.Area when named.Count(givingFiles.Contains) > 1 =>
                     "file-names associated with the GIVING phrase shall not be specified in the same SAME AREA clause",
+                SameClauseKind.RecordArea when !merge && held1985 && named.Count(givingFiles.Contains) > 1 =>
+                    "file-names associated with the GIVING phrase may not be specified in the same SAME clause",
                 SameClauseKind.RecordArea when merge && named.Any(f => !givingFiles.Contains(f)) =>
                     "the only file-names in a MERGE statement that may be specified in the same SAME RECORD AREA clause "
                     + "are those associated with the GIVING phrase",
                 _ => null,
             };
             if (why is null) continue;
+            // the one arm whose rule is the 1985 text's alone: the 2023 sentence does not bar a record area (kb/Work PB5276)
+            string cited = clause.Kind == SameClauseKind.RecordArea && !merge ? "§1985:XI.4.4.3 SR9" : rule;
             ctx.Validation.RejectStatementOperand($"{verb} files {string.Join(", ", named.Select(f => $"'{f.CobolName}'"))} "
-                + $"are named in one SAME clause: {why} ({rule})");
+                + $"are named in one SAME clause: {why} ({cited})");
             return false;
         }
         return true;

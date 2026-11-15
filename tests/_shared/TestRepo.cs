@@ -39,6 +39,19 @@ internal static class TestRepo
     /// <summary>An absolute path under the repo root, from root-relative segments.</summary>
     public static string At(params string[] segments) => Path.Combine([Root, .. segments]);
 
+    /// <summary>The absolute path of <paramref name="repoRelative"/>, a <c>/</c>-separated path a test COMPUTED (a
+    /// tracked file a <c>TreeScope</c> listed, an entry of its own array), DECLARED to lie under
+    /// <paramref name="directory"/>, a literal ending in <c>/</c>. The BUILD TARGETS audit (<c>scripts/buildgraph.py</c>)
+    /// reads that directory as what the call reads, and this throws when the path lies anywhere else, so the
+    /// declaration the audit judges cannot drift from what the test opens (kb/Work PB5230).</summary>
+    public static string Within(string directory, string repoRelative) =>
+        directory.EndsWith('/') && repoRelative.StartsWith(directory, StringComparison.Ordinal)
+            && !repoRelative.Split('/').Contains("..")
+            ? At(repoRelative.Split('/'))
+            : throw new ArgumentException(
+                $"'{repoRelative}' does not lie under '{directory}', the directory the call declares it reads",
+                nameof(repoRelative));
+
     /// <summary><c>src/</c> — the five product assemblies.</summary>
     public static string Src(params string[] segments) => At(["src", .. segments]);
 

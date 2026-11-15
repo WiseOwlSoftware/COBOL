@@ -2360,7 +2360,15 @@ F.2 item 94 — and 63 from 2014), its two edges the registry rows `picture-stri
 unsigned nonzero integer": a sign, a zero, an empty or non-numeric factor and an unclosed parenthesis each draw
 **COBOL2147**, by the literal route and by the constant-name route alike, since
 `DataBinder.Constants.ExpandPicConstants` rewrites `(constant-name)` to `(integer)` in the source string and
-hands it to the same expander. The expansion is BOUNDED as it accumulates: past WiseOwl COBOL's
+hands it to the same expander. At COBOL-85 the expander also asks the SYMBOL the factor follows: "An unsigned nonzero
+integer which is enclosed in parentheses following the symbols 'A', ',', 'X', '9', 'P', 'Z', '*', 'B', '/', '0', '+',
+'-', or the currency symbol indicates the number of consecutive occurrences of the symbol" (§1985:VI.5.9.4 GR7), so a
+factor after S, V, the decimal point, CR or DB draws **COBOL7078** there (`PictureAnalyzer.RepeatableSymbol`; the comma
+of the list is the period under DECIMAL-POINT IS COMMA; kb/Work PB5118). The string it expands is case-folded by ONE
+function, `PictureAnalyzer.FoldPictureCase`: every letter from COBOL-2002, and at COBOL-85 only the letters of A, B, P,
+S, V, X, Z, CR and DB ("All other lowercase letters are not equivalent to their corresponding uppercase
+representations", §1985:VI.5.9.3 SR3), so a lowercase letter is never the currency symbol there (kb/Work PB5174). The
+expansion is BOUNDED as it accumulates: past WiseOwl COBOL's
 **⚠ implementor-defined maximum of 134 217 728 (2²⁷) character positions in one elementary item** — the standard
 sets none, SR4 bounding only the written string, SR14 only a numeric item's digit positions, and Annex A.1
 carrying no maximum-item-size item — the entry draws **COBOL2148**. Before this, `PIC X(-3)` left the binder

@@ -220,8 +220,17 @@ public static class CobolSort
     /// statement is unsuccessful" (§2023:13.18.43.4 GR14 b) / GR19 b)), so a raise releases nothing. The record is
     /// sliced to <paramref name="size"/> HERE, after the test, never by an emitted reference modification — a
     /// DEPENDING ON value past the record area would otherwise raise EC-BOUND-REF-MOD, a condition no rule of the
-    /// RELEASE names. With checking off the record releases at <paramref name="size"/> exactly as the lenient
-    /// reference modification sliced it before (<see cref="Released"/>).</para></summary>
+    /// RELEASE names. With checking off, <paramref name="rangeFailsStatement"/> decides (kb/Work PB5124): when it
+    /// is set the statement is unsuccessful all the same and releases nothing — COBOL-85, which has no exception
+    /// checking, says so outright: "If the number of character positions in the logical record to be written is less
+    /// than integer-2 or greater than integer-3, the output statement is unsuccessful and, except during execution of
+    /// a RELEASE statement, the associated I-O status is set" (§1985:VII.3.8.4 GR10, the Amendment 2 paragraph; the
+    /// SD's RECORD clause is that clause). Otherwise (COBOL-2002 on, where the result with checking off is undefined,
+    /// §2023:14.6.13.1.1, docs/CONFORMANCE.md §3 D-SMA (c)) the record releases at <paramref name="size"/> exactly as
+    /// the lenient reference modification sliced it before (<see cref="Released"/>).</para></summary>
+    /// <param name="rangeFailsStatement">True when a record outside <paramref name="min"/>..<paramref name="max"/>
+    /// makes the statement unsuccessful with checking off as well — the compile edition's rule, decided by the binder
+    /// (<c>BoundRelease.RangeFailsStatement</c>).</param>
     /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is released
     /// (determination D-FRA (v); kb/Work PB1053) — it travels with the record through the sort, as a file frame
     /// carries it.</param>
@@ -233,9 +242,9 @@ public static class CobolSort
     /// implementation gates the "also available as a record of other files referenced in the same SAME RECORD AREA
     /// clause" store on (§2023:14.9.32.4 GR3 states no success condition of its own; WRITE and REWRITE name one,
     /// §2023:14.9.51.4 GR4 and §2023:14.9.35.4 GR6 — kb/Work PB1195); <see langword="false"/> when no SORT is executing and the
-    /// record is discarded.</returns>
+    /// record is discarded, or when the statement is unsuccessful because the record is outside the range.</returns>
     public static bool ReleaseStatement(string name, string image, int min, int max, int? size = null,
-        RecordExtents? extents = null, object?[]? slots = null)
+        RecordExtents? extents = null, object?[]? slots = null, bool rangeFailsStatement = false)
     {
         if (ExceptionState.SortMergeActiveChecking && Stores.AnyInPhase([ProcedurePhase.Output]))
             ExceptionState.SortMergeActiveError($"RELEASE for sort file {name}: executed within the range of an "
@@ -247,8 +256,11 @@ public static class CobolSort
         image ??= "";
         int bytes = size ?? image.Length;
         if (bytes < min || bytes > max)
+        {
             ExceptionState.SortMergeReleaseError($"RELEASE for sort file {name}: a {bytes}-byte record is outside "
                 + $"the record range {min} to {max} (ISO §2023:13.18.43.4 GR14 b) / GR19 b))");
+            if (rangeFailsStatement) return false;   // §1985:VII.3.8.4 GR10: unsuccessful, nothing released (kb/Work PB5124)
+        }
         if (f is null) return false;   // no SORT executing: there is no sort file to release to — never a stranded store
         var frame = new StoredFrame(size is { } s ? Released(image, s) : image, extents,
             Carried: slots is null ? StoredFrame.NotCarried : f.Work.Carry(slots));

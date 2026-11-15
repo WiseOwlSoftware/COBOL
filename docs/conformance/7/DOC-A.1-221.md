@@ -1,0 +1,3 @@
+---
+cells: ["DOC-A.1-221", "**WRITE statement (mnemonic-name-1)**, ISO 14.9.51.3 SR16, **optional** + documented-if-provided", "**Provided.** A WRITE's ADVANCING operand may be a mnemonic-name associated with one of the feature-names of item **190** (`C01`, `CSP`); a mnemonic associated with a switch-name or a device-name is **COBOL2243** (\"When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the implementor\"), and with a LINAGE file SR13 refuses any mnemonic.", "`conformance:cases/12.3.7-SPECIAL-NAMES/pb862-write-advancing-device-mnemonic`; `conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance`"]
+---

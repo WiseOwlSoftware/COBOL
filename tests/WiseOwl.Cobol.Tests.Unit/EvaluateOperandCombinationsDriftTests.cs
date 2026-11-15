@@ -81,7 +81,7 @@ public sealed class EvaluateOperandCombinationsDriftTests
                 $"Table 15 has no row '{ObjectRowLabels[r]}' — the row labels changed");
             for (int c = 0; c < SubjectColumnLabels.Length; c++)
             {
-                bool ours = EvaluateOperandCombinations.IsPermitted((EvaluateSubjectOperand)c, (EvaluateObjectOperand)r);
+                bool ours = EvaluateOperandCombinations.IsPermitted((EvaluateSubjectOperand)c, (EvaluateObjectOperand)r, 2002);
                 compared++;
                 if (ours != spec![c])
                     mismatches.Add($"[{ObjectRowLabels[r]} × {SubjectColumnLabels[c]}]: table says "
@@ -143,19 +143,25 @@ public sealed class EvaluateOperandCombinationsDriftTests
     public void TheConsequencesThatMatter_AreWhatTheTableSays()
     {
         // A TRUE/FALSE subject admits ONLY a condition, TRUE/FALSE, or ANY — this is the PB45/PB47 row.
-        Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.Condition));
-        Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.TrueOrFalse));
-        Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.Any));
-        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.Identifier));
-        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.Literal));
-        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.RangeExpression));
+        Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.Condition, 2023));
+        Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.TrueOrFalse, 2023));
+        Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.Any, 2023));
+        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.Identifier, 2023));
+        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.Literal, 2023));
+        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.RangeExpression, 2023));
         // ⚠ And the converse: a CONDITION subject does NOT admit a value object.
-        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Condition, EvaluateObjectOperand.Identifier));
+        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Condition, EvaluateObjectOperand.Identifier, 2023));
         // ANY is permissible against every subject — the one full row.
         foreach (EvaluateSubjectOperand s in Enum.GetValues<EvaluateSubjectOperand>())
-            Assert.True(EvaluateOperandCombinations.IsPermitted(s, EvaluateObjectOperand.Any));
+            Assert.True(EvaluateOperandCombinations.IsPermitted(s, EvaluateObjectOperand.Any, 2023));
         // ⚠ A LITERAL object against a LITERAL subject is INVALID — a blank cell that is easy to assume is 'Y'.
-        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Literal, EvaluateObjectOperand.Literal));
-        Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Identifier, EvaluateObjectOperand.Literal));
+        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Literal, EvaluateObjectOperand.Literal, 2023));
+        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Literal, EvaluateObjectOperand.Literal, 2002));
+        // ⚠ Below 2002 there is no table (§1985:VI.6.13.3 SR6 a): the literal x literal cell is permitted at --std 85
+        // (kb/Work PB5481), and no other blank cell changes.
+        Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Literal, EvaluateObjectOperand.Literal, 85));
+        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Condition, EvaluateObjectOperand.Identifier, 85));
+        Assert.False(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.TrueOrFalse, EvaluateObjectOperand.Literal, 85));
+        Assert.True(EvaluateOperandCombinations.IsPermitted(EvaluateSubjectOperand.Identifier, EvaluateObjectOperand.Literal, 2023));
     }
 }

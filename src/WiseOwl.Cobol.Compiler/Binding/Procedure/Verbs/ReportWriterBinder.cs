@@ -256,7 +256,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// GR1's implicit MOVE, so it is the ONE §2023:14.9.25.3 validity chain every other MOVE asker uses
     /// (<see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem)"/>: SR2, SR6-SR9 and Table 16), asked
     /// of the entry's printable item. An entry with no COLUMN clause has no printable item (<paramref name="printable"/>
-    /// null), hence no receiving operand and nothing to ask.</item>
+    /// null), hence no receiving operand and nothing to ask — except §2023:14.9.25.3 SR1's sending half, a class rule
+    /// about identifier-1 alone (<see cref="MoveTable16.SenderClassRefusal"/>), asked of every identifier-1.</item>
     /// </list></summary>
     private bool ScreenSourceIdentifier(ReportModel r, FieldReferenceSource rs, BoundOperand operand, DataItem? printable)
     {
@@ -266,6 +267,15 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: identifier-1 references the "
                 + $"variable-length group '{item.CobolName ?? item.ClrName}', which a SOURCE clause shall not name "
                 + "(ISO §2023:13.18.53.3 SR8)");
+            return true;
+        }
+        // §2023:14.9.25.3 SR1's sending half is part of "a MOVE statement is valid": an index, message-tag, object or
+        // pointer identifier-1 is refused, printable entry or not — no edition's list of the contexts an index data item
+        // may be referenced in names a SOURCE clause (§2023:13.18.60.3 SR10; §1985:VI.5.14.3 SR5; kb/Work PB5188).
+        if (MoveTable16.SenderClassRefusal(operand) is { } classRefusal)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of §2023:13.18.53.4 GR1 "
+                + $"from identifier-1 is invalid — {classRefusal} (ISO §2023:13.18.53.3 SR2)");
             return true;
         }
         if (printable is null || MoveTable16.Validity(operand, Table16Operand.Of(printable), printable) is not { } refusal)
@@ -541,6 +551,35 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"A USE BEFORE REPORTING procedure shall not alter the "
             + "value of any control data item\" (ISO §2023:14.9.49.3 SR11)");
         return true;
+    }
+
+    /// <summary>§1985:XIII.3.20.3 SR5, its USE half (kb/Work PB5424): "In control footing, page heading, page footing, and
+    /// report footing report groups, SOURCE clauses and associated USE statements must not reference any of the following"
+    /// — a group containing a control data item, an item subordinate to one, a redefinition or renaming of part of one —
+    /// and in page heading and page footing groups the control data-names themselves. Asked by
+    /// <c>StatementBinder.BindStatement</c> of every statement bound in a USE BEFORE REPORTING procedure, over the references
+    /// the statement WRITES itself (<see cref="BoundReferences.Of"/>: a nested statement is asked at its own position), through
+    /// the one relation the SOURCE half asks (<see cref="ReportSectionBinder.ControlDataReferenceOf"/>). The procedure is
+    /// the declarative section the USE statement heads; a procedure it PERFORMs is not asked, as the segment rule of a
+    /// PERFORM range asks only the procedures it names (docs/CONFORMANCE.md section 3.8). COBOL-2002 and later carry no
+    /// such rule.</summary>
+    /// <returns>True HAVING REPORTED a violation (one per statement).</returns>
+    public bool CheckControlDataReferences(BoundStatement core)
+    {
+        if (ctx.Edition.DialectLevel >= 2002 || ctx.Enclosing.Declarative is not { ReportGroup: { } group } use) return false;
+        var report = ctx.Data.State.Reports.Visible.FirstOrDefault(r => r.Groups.Contains(group));
+        if (report is null) return false;
+        foreach (var place in BoundReferences.Of(core).Places)
+            if (place.Item is { } item && ReportSectionBinder.ControlDataReferenceOf(report, group.Kind, item) is { } hit)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.ReportSourceControlData, "this statement of USE BEFORE REPORTING declarative "
+                    + $"section '{use.SectionName}', which names the "
+                    + $"{ReportSectionBinder.ReportGroupTypeWords(group.Kind).ToLowerInvariant()} report group '{group.Name}' of "
+                    + $"RD '{report.Name}', references '{item.CobolName}', which {hit.Relation} '{hit.Control.Display}'; "
+                    + ReportSectionBinder.ControlDataRuleWords(group.Kind, "USE statements"));
+                return true;
+            }
+        return false;
     }
 
     /// <summary>Is one of the two items the other or an ancestor of it — the hierarchy in which a store into one

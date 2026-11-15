@@ -289,6 +289,11 @@ public static class CobolFile
     /// <see cref="FileRegistry.RegisterReserve"/>.</summary>
     public static void RegisterReserve(string name, int areas) => _reg.RegisterReserve(name, areas);
 
+    /// <summary>Register the file's RERUN clause of the integer-1 RECORDS form, X3.23-1985 §1985:VII.2.12.4 GR2 d — see
+    /// <see cref="FileRegistry.RegisterRerunRecords"/> (kb/Work PB5198).</summary>
+    public static void RegisterRerunRecords(string name, long every, string device, string file) =>
+        _reg.RegisterRerunRecords(name, every, device, file);
+
     // ── COMMIT AND ROLLBACK (ISO §2023:9.1.18; kb/Work PB3338) — see TransactionControl ───────────────────────────────────
 
     private static TransactionControl _txn => RunUnit.Current.Transactions;

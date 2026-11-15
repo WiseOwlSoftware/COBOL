@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.5.4-16",
  "rule-digest": "7ebee13bced5",
- "test-ref": "conformance:cases/VIII.4.5@1985-READ-STATEMENT/1985-GR-VIII_4_5_4-16",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordLengthConflicts; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom",
+ "test-ref": "conformance:cases/VIII.4.5@1985-READ-STATEMENT/1985-GR-VIII_4_5_4-16; conformance:cases/VIII.4.5@1985-READ-STATEMENT/pb5480_relative_read_record_length_conflict; conformance:wiseowl/cases/VIII.4.5@1985-READ-STATEMENT/pb5480_depending_on_after_truncated_read_85",
+ "notes": "§1985:VIII.4.5.4 GR16: a record shorter than the minimum or longer than the maximum is delivered (a long one truncated on the right to the maximum) and the READ \"is successful and an I-O status is set indicating a record length conflict\", which §1985:VIII.1.3.4 GRL2.1 gives as 04. The measure is the reading connector's own minimum and maximum record size (§1985:II.2.1: a fixed file attribute the RECORD clause provides), the reading B this row was decided on; its latitude and the retirement of PB5238 stand. kb/Work PB5480 found that a relative file read by a connector opened INPUT on a ZERO-BYTE file (which records no attributes to validate at OPEN, KeyedConnector.FixedAttributeConflict) answered 00 for records another connector wrote later outside the reader's bounds. FileConnector.RecordLengthConflicts is now the one test, shared by the record-sequential READ and both RelativeConnector READ entries, which answer 04 (random and sequential, own probe c4c: RANDOM 04/04/00 and NEXT 04/04/00 against records of 3, 20 and 7 characters under RECORD VARYING 5 TO 10); the in-range record and the controls (relsep) stay 00. The DEPENDING ON item holds the length of the record as delivered, never above the maximum (FileConnector.NoteRecordRead, a determination in docs/CONFORMANCE.md). Whether an OPEN INPUT of a zero-byte store should instead fix its attributes is the implementor's choice under GR8; the READ arm is the one provided.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

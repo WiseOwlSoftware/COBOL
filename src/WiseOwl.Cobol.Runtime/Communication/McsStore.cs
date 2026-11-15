@@ -31,7 +31,7 @@ internal sealed class McsStore : IDisposable
     private PagedFile? _file;
 
     /// <summary>This session's run unit id: the owner of the partly received messages it holds (<see cref="McsTables.PutPartialReceive"/>), alive for as long as the session holds
-    /// <see cref="HostRegionLocks.McsRunUnitLivenessByte"/>.</summary>
+    /// <see cref="HostRegionLocks.McsRunUnitLivenessByte"/>; 0 when the host let it take none (<see cref="DrawRunUnit"/>), and every statement then answers 92.</summary>
     private readonly ulong _runUnit;
 
     /// <summary>Whether the run unit's first statement has landed: it seeds a new or changed store and cuts each device to its committed end.</summary>
@@ -47,15 +47,28 @@ internal sealed class McsStore : IDisposable
         _runUnit = DrawRunUnit(_regions);
     }
 
-    /// <summary>A run unit id nobody else holds the liveness byte of: random over 60 bits and taken exclusively without waiting, so a collision (2^-60) is a retry. A host that cannot carry
-    /// the lock answers <see cref="RegionLockResult.Unavailable"/> and refuses every statement (92) before any row is written, so the id is then never used.</summary>
+    /// <summary>The most run unit ids <see cref="DrawRunUnit"/> tries. A fresh id is held by another run unit only by a collision, of probability at most (live run units) x 2^-60 per
+    /// draw, so a second Held in a row is already no collision: it is a host that cannot tell a free byte from a held one (the lock-file host over a lock directory this user may enter
+    /// but not list answers every non-waiting hold Held, <c>SidecarRegionLocks</c>' <c>Conflict.Unobservable</c>; kb/Work PB5364). The bound keeps the draw finite there.</summary>
+    private const int MaxRunUnitDraws = 4;
+
+    /// <summary>⛔ A run unit id nobody else holds the liveness byte of, taken exclusively without waiting: random over 60 bits, a Held id (a collision) redrawn, at most
+    /// <see cref="MaxRunUnitDraws"/> times. 0 when no liveness byte can be taken: the host answers <see cref="RegionLockResult.Unavailable"/>, or Held for every draw. A session
+    /// with no id refuses every statement with 92 before it reads anything (<see cref="Statement"/>): it cannot own a partly received message, since without its byte every
+    /// other run unit reads the owner as dead and drops the row (DESIGN-communication-facility.md §6 "A host whose locks answer Unavailable").</summary>
     private static ulong DrawRunUnit(RegionLocks regions)
     {
-        while (true)
+        for (int draw = 0; draw < MaxRunUnitDraws; draw++)
         {
             ulong id = BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(sizeof(ulong))) & ((1UL << 60) - 1);
-            if (id != 0 && regions.Hold(HostRegionLocks.McsRunUnitLivenessByte(id), exclusive: true, wait: false) != RegionLockResult.Held) return id;
+            if (id == 0) continue;
+            switch (regions.Hold(HostRegionLocks.McsRunUnitLivenessByte(id), exclusive: true, wait: false))
+            {
+                case RegionLockResult.Ok: return id;
+                case RegionLockResult.Unavailable: return 0;
+            }
         }
+        return 0;
     }
 
     /// <summary>Whether the run unit <paramref name="owner"/> is still alive: its liveness byte is held by another endpoint. A host that cannot tell is read as alive, so nothing is dropped on a guess.</summary>
@@ -73,7 +86,7 @@ internal sealed class McsStore : IDisposable
     /// <summary>One statement's transaction. Returns the action's status key, or the 9x this store reports instead of acting: 92 (no action) and 93 (the outcome is not known).</summary>
     internal string Statement(DefinitionFile definitions, Func<MessageStoreState, string> action)
     {
-        if (HostRegionLocks.HoldStoreMutex(_regions) != RegionLockResult.Ok) return MessageStore.StoreRefused;
+        if (_runUnit == 0 || HostRegionLocks.HoldStoreMutex(_regions) != RegionLockResult.Ok) return MessageStore.StoreRefused;
         try
         {
             return Held(definitions, action);

@@ -41,9 +41,14 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         var dialogue = _dialogue.Copy();
         string status = Store.Run(state => action(area, dialogue, state));
         if (MessageStore.IsRefusal(status))
+        {
             area = new CommunicationArea(image);
+            dialogue.UndoLocks();
+        }
         else
+        {
             _dialogue = dialogue;
+        }
         area.SetStatus(format, status);
         return (area.Image, status);
     }
@@ -62,15 +67,17 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
 
     /// <summary>A.2.2 and A.2.3. "No action is taken when [a statement] is executed that specifies a source or destination that is
     /// already [so], except that the value in the status key data item indicates this condition."</summary>
-    internal string SetPath(string cd, CommunicationFormat format, CommunicationPath path, string image, string? key, bool enable) =>
+    internal string SetPath(CdActivation cd, CommunicationFormat format, CommunicationPath path, string image, string? key, bool enable) =>
         Statement(format, image, (area, dialogue, state) =>
         {
             switch (path)
             {
                 case CommunicationPath.Input:
-                    return state.FindQueue(area.QueuePath()) is { } queue
-                        ? SetPaths(queue, key, enable, () => state.SetQueuePaths(queue, enable))
-                        : Unknown;
+                    string[] queuePath = area.QueuePath();
+                    if (state.FindQueue(queuePath) is { } queue) return SetPaths(queue, key, enable, () => state.SetQueuePaths(queue, enable));
+                    // The levels the MCS knows are judged for condition 15 beside the unknown ones below them: "new communication status key condition 15 and
+                    // communication status key condition 20 both apply" is 80 (§1985:B.2.2). Neither answer takes any action.
+                    return state.FindQueuePrefix(queuePath) is { } known && state.QueuePathsAre(known, enable) ? Combination : Unknown;
                 case CommunicationPath.InputTerminal:
                     return state.FindSource(area.SourceName(format)) is { } source
                         ? SetPaths(source, key, enable, () => state.SetSourcePaths(source, enable))
@@ -105,7 +112,10 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
                 SetErrorKeys(area, count, state, destination => destination.Enabled == enable ? AlreadyKey : NoErrorKey);
                 return BadKey;
             }
+        // §1985:XIV.3.2.4 GR1 and §1985:XIV.3.3.4 GR1 judge each occurrence by what the destination was when the statement began: every occurrence is judged
+        // first and the destinations are changed after, so a destination named twice that was connected is not "already disconnected" by its second occurrence (kb/Work PB5376).
         bool unknown = false, already = false;
+        var toChange = new List<DestinationEndpoint>();
         for (int i = 1; i <= count; i++)
         {
             char errorKey = NoErrorKey;
@@ -121,10 +131,11 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             }
             else
             {
-                destination.Enabled = enable;
+                toChange.Add(destination);
             }
             area.SetErrorKey(i, errorKey);
         }
+        foreach (var destination in toChange) destination.Enabled = enable;
         return unknown && already ? Combination : unknown ? Unknown : already ? AlreadySet : Ok;
     }
 
@@ -144,7 +155,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         area.DestinationCount is { } count && count >= 1 && count <= area.DestinationCapacity ? count : null;
 
     /// <summary>A.2.4.3: the partial message goes; "Any message that has associated with it an EMI or EGI is not affected".</summary>
-    internal string Purge(string cd, CommunicationFormat format, string image) =>
+    internal string Purge(CdActivation cd, CommunicationFormat format, string image) =>
         Statement(format, image, (area, dialogue, state) =>
         {
             if (format is CommunicationFormat.InputOutput)
@@ -188,7 +199,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
 
     /// <summary>A.2.6.3. The order of the refusals is the order of the rules that take no action: the destination count (A.1.2.3
     /// GR17), the text length (GR3, status 50), and a portion with no text (Table A.1, status 60; GR9's last sentence).</summary>
-    internal string Send(string cd, CommunicationFormat format, string image, string? text, SendIndicator indicator) =>
+    internal string Send(CdActivation cd, CommunicationFormat format, string image, string? text, SendIndicator indicator) =>
         Statement(format, image, (area, dialogue, state) =>
         {
             // GR31 binds every statement that references the CD, so the terminal is fixed before any status is decided (kb/Work PB5283).
@@ -266,7 +277,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
 
     /// <summary>A.2.5.3. A remainder this run unit holds answers first (GR10: "only subsequent execution of RECEIVE statements in that
     /// run unit shall cause the remaining portion of the message to be returned").</summary>
-    internal CommunicationReceipt Receive(string cd, CommunicationFormat format, string image, bool segment, string into, bool noDataPhrase)
+    internal CommunicationReceipt Receive(CdActivation cd, CommunicationFormat format, string image, bool segment, string into, bool noDataPhrase)
     {
         while (true)
         {
@@ -338,7 +349,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
 
     /// <summary>A.1.2.3 GR6 and GR28: the names of what scheduled the run unit (<see cref="MessageStore.Scheduled"/>), or spaces. <paramref name="scheduledProgram"/>: the
     /// program being activated is the one that established the run unit; any other program's INITIAL CD is initialized to spaces (§1985:XIV.2.2.4 GR28, GR6).</summary>
-    internal string InitialArea(string cd, CommunicationFormat format, string image, bool scheduledProgram)
+    internal string InitialArea(CdActivation cd, CommunicationFormat format, string image, bool scheduledProgram)
     {
         var area = new CommunicationArea(image);
         string[] scheduled = scheduledProgram ? Store.Scheduled : [];
@@ -349,18 +360,18 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             string terminal = scheduled.Length > 0 ? scheduled[0] : "";
             area.SetTerminal(terminal);
             // GR30: the name of the terminal that scheduled the run unit "shall not be changed by the program".
-            if (terminal.Length > 0) _dialogue.Terminals[cd] = terminal;
+            if (terminal.Length > 0) cd.Terminal = terminal;
         }
         return area.Image;
     }
 
     /// <summary>What the run unit holds between statements: the portion of each message it has released and not ended, the remainder of each message it
-    /// has begun to receive, and the terminal each input-output CD first named.</summary>
+    /// has begun to receive. (The terminal each input-output CD first named is the CD's own, <see cref="CdActivation"/>.)</summary>
     private sealed class Dialogue
     {
         internal readonly Dictionary<string, PendingSend> Sends = new(StringComparer.Ordinal);
         internal readonly List<PendingReceive> Receives = [];
-        internal readonly Dictionary<string, string> Terminals = new(StringComparer.Ordinal);
+        private readonly List<CdActivation> _lockedHere = [];
 
         internal Dialogue Copy()
         {
@@ -368,7 +379,6 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             foreach (var (key, pending) in Sends) copy.Sends[key] = pending.Copy();
             copy.NextReceive = NextReceive;
             copy.Receives.AddRange(Receives.Select(pending => pending.Copy()));
-            foreach (var (cd, terminal) in Terminals) copy.Terminals[cd] = terminal;
             return copy;
         }
 
@@ -391,13 +401,23 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         }
 
         /// <summary>A.1.2.3 GR30 and GR31: after the first statement referencing an input-output CD, or from the start when the MCS scheduled
-        /// the run unit, a changed SYMBOLIC TERMINAL makes "the execution of any statement referencing cd-name-1 ... unsuccessful".</summary>
-        internal bool LockedTerminalChanged(string cd, CommunicationArea area, CommunicationFormat format)
+        /// the run unit, a changed SYMBOLIC TERMINAL makes "the execution of any statement referencing cd-name-1 ... unsuccessful". "Changed" is of the CONTENT of the
+        /// data item, so the comparison is exact: lowercase and uppercase letters are equivalent in the words of the source text, not in an item's content
+        /// (kb/Work PB5381). The lock is the activation's (<paramref name="cd"/>), fixed by the first statement that references the CD, whatever its status.</summary>
+        internal bool LockedTerminalChanged(CdActivation cd, CommunicationArea area, CommunicationFormat format)
         {
             string name = area.SourceName(format);
-            if (Terminals.TryGetValue(cd, out string? first)) return !McsNames.Comparer.Equals(first, name);
-            Terminals[cd] = name;
+            if (cd.Terminal is { } first) return !string.Equals(first, name, StringComparison.Ordinal);
+            cd.Terminal = name;
+            _lockedHere.Add(cd);
             return false;
+        }
+
+        /// <summary>A refused statement (a 9x status, no action) fixed no terminal: the locks it set are lifted.</summary>
+        internal void UndoLocks()
+        {
+            foreach (var cd in _lockedHere) cd.Terminal = null;
+            _lockedHere.Clear();
         }
     }
 

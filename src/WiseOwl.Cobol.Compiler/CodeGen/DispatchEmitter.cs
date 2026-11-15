@@ -68,6 +68,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             foreach (var sub in bound.DebugSubRegisters ?? [])
                 w.Line($"private static readonly NumProfile {sub.ProfileName} = {sub.Pic!.ProfileInitializer(ctx.SignEncoding)};   // {sub.CobolName}");
             w.Line("private DebugCause __dbgCause;   // the transfer-of-control cause of the next debug trigger (default Transfer → SPACES)");
+            w.Line("private int __dbgFrom = -1;   // the paragraph (pc) the transfer that set __dbgCause was made from, -1 for none: a section subject runs only for control reaching the section from outside it (§1985:XV.3.2.4 GR3 a)");
+            w.Line("private bool __dbgStarted;   // this program instance has begun its first execution: START PROGRAM is the first execution only (§1985:XV.3.2.4 GR16)");
             w.Line("private int __dbgLine;   // the CAUSING statement's source line — DEBUG-LINE for a non-START-PROGRAM trigger");
             w.Line("private bool __dbgRaisedInSection;   // the statement last begun lies in a debugging section (recorded with __dbgLine where a debugging section monitors a USE procedure)");
             w.Line("private bool __dbgInSection;   // the transfer of control that set __dbgCause was written in a debugging section, which causes no debugging section (§1985:XV.3.2.4 GR1)");
@@ -115,7 +117,19 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM (ISO §2023:14.9.49.3 SR4 —
             // no other statement may reference them from outside their section; kb/Work PB362).
             // X3.23-1985: the FIRST execution of the first nondeclarative procedure is DEBUG-CONTENTS "START PROGRAM".
-            dispatchState.EmitDebugCause(w, "StartProgram");
+            // A later CALL of an instance in its last-used state is not the first execution of that procedure: its entry is a
+            // transfer of control with no causing statement of this program, so DEBUG-CONTENTS stays spaces (GR11) and DEBUG-LINE
+            // names no statement (kb/Work PB5415). A fresh instance (first CALL, after a CANCEL, an INITIAL program) starts again.
+            if (dispatchState.DebugActive)
+            {
+                using (w.Block("if (!__dbgStarted)"))
+                {
+                    w.Line("__dbgStarted = true;");
+                    dispatchState.EmitDebugCause(w, "StartProgram");
+                }
+                using (w.Block("else"))
+                    w.Line("__dbgCause = DebugCause.Transfer; __dbgFrom = -1; __dbgLine = -1; __dbgInSection = false;");
+            }
             // The top-level run is bounded at the source element's LAST paragraph (the last MAIN paragraph,
             // F3HandlerBasePc − 1, when the unit has appended Format-3 handler pc-ranges above it): its completion is
             // the activation's own return, taken by the at-exit test, so this one call never reaches the dispatcher's
@@ -135,7 +149,10 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // The source element's paragraphs are [0..LastElementPc]; the unit's appended Format-3 handler pc-ranges
         // (above them, entered only through __RunUse) are the second case set.
         int last = LastElementPc(bound);
-        EmitDispatchMethod(bound, w, "private int __Dispatch(int __startPc, int __exitPc)",
+        EmitDispatchMethod(bound, w,
+            dispatchState.SegmentEntry
+                ? "private int __Dispatch(int __startPc, int __exitPc, bool __lastUsed = false)"   // __lastUsed: an implicit entry (§1985:XVI.1.4.3; kb/Work PB5380)
+                : "private int __Dispatch(int __startPc, int __exitPc)",
             0, last, inMethod: false, handlerFromPc: last + 1, handlerToPc: bound.Paragraphs.Count - 1);
     }
 
@@ -184,7 +201,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 if (dispatchState.DebugActive)
                     foreach (var subj in dispatchState.DebugByPc[i].OrderByDescending(s => s.IsSection))
                         w.Line($"__RunDebug({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(subj.SubjectName, true)}, "
-                            + $"{subj.SourceLine}, {subj.SectionStartPc}, {subj.SectionEndPc});");
+                            + $"{subj.SourceLine}, {subj.SectionStartPc}, {subj.SectionEndPc}"
+                            + (subj.IsSection ? $", {subj.SubjectPc}, {subj.SubjectEndPc});" : ");"));
                 if (!EmitParagraphBody(bound.Paragraphs[i], i))
                 {
                     // Sequential fall-through into pc+1 is DEBUG-CONTENTS "FALL THROUGH"; DEBUG-LINE is
@@ -219,6 +237,11 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         void EmitLoop()
         {
             w.Line("int __pc = __startPc;");
+            // An implicit transfer from the control mechanism of an iterative PERFORM (its second and later executions of the
+            // range) enters the independent segment in its last-used state: the call starts in the range's own segment, so
+            // the loop head below sees no change of segment and resets nothing (§1985:XVI.1.4.3; kb/Work PB5380).
+            if (segmentEntry && dispatchState.DispatchName == "__Dispatch")
+                w.Line("if (__lastUsed && (uint)__pc < (uint)__N) __seg = __SegOf[__pc];");
             using (w.Block("while ((uint)__pc < (uint)__N)"))
             {
                 if (segmentEntry)
@@ -269,7 +292,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// PB5292). Emitted ONLY for a debug-active program.</summary>
     private void EmitDebugRunner(CodeWriter w)
     {
-        using (w.Block("private void __RunDebug(string __nm, int __subjLine, int __ds, int __de)"))
+        using (w.Block("private void __RunDebug(string __nm, int __subjLine, int __ds, int __de, int __ss = 0, int __se = -1)"))
         {
             w.Line("if (!RunUnit.Current.DebugMode) return;   // the X3.23-1985 object-time debug switch (default ON)");
             // ⛔ THIS GUARD IS NOT §2023:14.9.49.4 GR2's, and deliberately raises no EC-FLOW-USE (kb/Work
@@ -279,6 +302,9 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // there is no debugging declarative to re-enter. GR2's guard is EmitRunUseBody's. This one is
             // §1985:XV.3.2.4 GR1's, asked of the statement that transferred control here.
             w.Line("if (__dbgInSection) return;");
+            // A SECTION subject (__ss..__se, its own pcs) is executed when control reaches it from outside: a transfer made from one of its own
+            // paragraphs, a loop back to its first, is not (§1985:XV.3.2.4 GR3 a; kb/Work PB5414).
+            w.Line("if (__dbgFrom >= __ss && __dbgFrom <= __se) return;");
             // DEBUG-LINE: START PROGRAM has no causing statement — it is the subject's own first executable
             // statement (DB101A START-PROGRAM-TEST :257-264); every other cause is the causing (transferring)
             // statement, carried in __dbgLine by the transfer site.
@@ -287,8 +313,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // The debugging section's own PERFORMs and GO TOs set the cause of the transfer they make; the cause this
             // trigger found is the next trigger's too when one procedure-name pair shares the pc (a section and its
             // first paragraph, §1985:XV.3.2.4 GR3 a), so it is restored.
-            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; bool __savedRaised = __dbgRaisedInSection;");
-            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgRaisedInSection = __savedRaised; __dbgInSection = false; }");
+            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; int __savedFrom = __dbgFrom; bool __savedRaised = __dbgRaisedInSection;");
+            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgFrom = __savedFrom; __dbgRaisedInSection = __savedRaised; __dbgInSection = false; }");
         }
         w.Line();
         // The data-name, ALL REFERENCES OF and cd-name triggers (docs/CONTROL_FLOW_DESIGN.md D20), named __DebugReady so a fire evaluates its
@@ -298,8 +324,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         using (w.Block("private void __RunDebugRef(int __line, string __nm, string __contents, int __ds, int __de, params long[] __occ)"))
         {
             w.Line("__dbgItem.PopulateReference(__line, __nm, __contents, __occ);");
-            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; bool __savedIn = __dbgInSection; bool __savedRaised = __dbgRaisedInSection;");
-            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgRaisedInSection = __savedRaised; __dbgInSection = __savedIn; }");
+            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine; int __savedFrom = __dbgFrom; bool __savedIn = __dbgInSection; bool __savedRaised = __dbgRaisedInSection;");
+            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgCause = __savedCause; __dbgLine = __savedLine; __dbgFrom = __savedFrom; __dbgRaisedInSection = __savedRaised; __dbgInSection = __savedIn; }");
         }
         w.Line();
     }
@@ -435,7 +461,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             string useTest = dispatchState.F3HandlerBasePc is not null ? $"if (__id < {dispatchState.DeclCount}) " : "";
             // The statement that raised the procedure is a debugging section's or not (§1985:XV.3.2.4 GR1): StatementEmitter records it with the line
             // in a program with a debugging section on a USE procedure, the only one that can run for this cause.
-            w.Line($"{useTest}{{ __dbgCause = DebugCause.UseProcedure; __dbgInSection = __dbgRaisedInSection; }}");
+            w.Line($"{useTest}{{ __dbgCause = DebugCause.UseProcedure; __dbgFrom = -1; __dbgInSection = __dbgRaisedInSection; }}");
         }
         if (ecModel)
         {

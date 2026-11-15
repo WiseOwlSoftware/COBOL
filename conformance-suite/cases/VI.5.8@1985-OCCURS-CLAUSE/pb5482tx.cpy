@@ -1,0 +1,1 @@
+       01  PB5482Y PIC X VALUE "Y".

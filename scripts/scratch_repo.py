@@ -14,7 +14,7 @@
 
 ⛔ WHY ONE FIXTURE. Until PB3584 fifteen self-tests `git init`-ed their own scratch repositories, and seven defined a
 git helper of their own (devlog.py `sh`, prune_worktrees.py `g`, rendered_views.py `git`, gate.py two,
-enqueue.py `sh`, landing_check.py `sh`, test_plan_wave.py `git`), each with its own identity, its own checking (some
+enqueue.py `sh`, landing_check.py `sh`, the plan_wave fixtures `git`), each with its own identity, its own checking (some
 raised with git's message, some with none, some never checked) and its own idea of the environment. A change to how a
 self-test drives git reached one helper and left the others behind. Measured: run outside scripts/self_tests.py
 (whose private global config turns automatic maintenance off), the prune_worktrees.py self-test started 74 background
@@ -37,7 +37,8 @@ WHAT IT GUARANTEES, for every repository it creates and every command it runs:
               CRLF into a `-z` or `--index-info` input).
 
 THE AUDIT (`--audit`; the self-test runs it over the real tree): in SELF-TEST CODE — every function whose name contains
-`self_test` or `selftest` and everything nested in it, and the whole of a standalone `test_*.py` — of every tracked
+`self_test` or `selftest` and everything nested in it, and the whole of a standalone `test_*.py` or any file under a
+`<root>/selftests/` tree — of every tracked
 Python file under live_tools.ROOTS but this one,
   SPAWN   a `subprocess.<anything>(…)` call whose argv holds a GIT ARGV (a list or tuple literal whose first element is
           the string "git") or a name the module binds to one (`git = ["git", "-c", …]`, then `git + argv`) is a
@@ -79,6 +80,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import live_tools  # noqa: E402  (this directory's: the one list of the live tools' trees, which the audit reads)
+import selftest_layout  # noqa: E402  (this directory's: which files are self-test code by their place, kb/Work PB5428)
 from standard_streams import ensure_utf8  # noqa: E402
 
 #: The git identity every self-test commits under: written into each scratch repository's config by `init`, and into
@@ -175,7 +177,7 @@ def scratch_dir(prefix: str) -> Path:
 
 class ScratchRepo:
     """A scratch git repository (or a linked worktree of one) at `path`; constructed directly on an existing path, it
-    drives one a self-test did not create (test_plan_wave.py READS the checkout's own HEAD through it, never writes).
+    drives one a self-test did not create (the planner's fixtures READ the checkout's own HEAD through it, never write).
     `options` are git's own `-c name=value` arguments, given to every command THIS object runs and to no other process
     (line_endings.py's `core.autocrlf=false`: the code under test must still read the host's own setting)."""
 
@@ -318,7 +320,8 @@ def _runs_any_git(node: ast.AST) -> bool:
 
 def _self_test_scopes(tree: ast.Module, standalone: bool) -> tuple[list[ast.AST], list[ast.AST]]:
     """(the SELF-TEST scopes, the scopes ONLY self-test code reaches). The first: the module itself for a standalone
-    `test_*.py`, else every function whose name says it is a self-test (not one nested in another, whose walk already
+    `test_*.py` or ANY file under a `<root>/selftests/` tree (a `fixtures.py` is called from other files and is no
+    function whose name says it is a self-test: kb/Work PB5428, DESIGN-orchestrator-loop.md section 16.2), else every function whose name says it is a self-test (not one nested in another, whose walk already
     covers it). The second: every top-level function that only self-test code refers to, to a fixed point
     (file_census_notes.py's `stage`, which builds the scratch tree its self-test reads); such a function may be the
     subject itself (sharedfile.py's `second_copies`, which only the self-test runs), so only the INIT arm reads it."""
@@ -380,7 +383,7 @@ def audit_source(rel: str, source: str) -> list[str]:
 
 def _audit_tree(rel: str, tree: ast.Module) -> tuple[list[str], int]:
     """(the findings, the number of self-test scopes read) for one parsed file."""
-    standalone = Path(rel).name.startswith("test_")
+    standalone = Path(rel).name.startswith("test_") or selftest_layout.in_tree(rel)
     runners = {n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
                and _runs_any_git(n)}
     # a name the module binds to a git argv (`git = ["git", "-c", …]`), so `subprocess.run(git + argv)` spawns git
@@ -560,6 +563,12 @@ def self_test() -> int:
                                    "def self_test():\n    def g(*a):\n        return git(*a)\n") == ["HELPER"])
         check("audit HELPER: a standalone test_*.py's own top-level git function",
               set(arms("scripts/test_x.py", "def git(*a):\n    subprocess.run(['git', *a])\n")) == {"SPAWN", "HELPER"})
+        check("audit (kb/Work PB5428): a fixtures.py under a selftests/ tree is whole self-test scope: its function that "
+              "runs `git init` itself is RED (SPAWN and INIT), as the same function in a self-test is; outside a "
+              "selftests/ tree the same file is no self-test code and no finding",
+              {a for a in arms("scripts/selftests/x/fixtures.py",
+                               "def world(p):\n    subprocess.run(['git', 'init', p])\n")} == {"SPAWN", "INIT"}
+              and arms("scripts/x/fixtures.py", "def world(p):\n    subprocess.run(['git', 'init', p])\n") == [])
         check("audit INIT: a top-level function only self-test code reaches is read by the INIT arm; one the "
               "module's own code also calls, and the subject's own git, are not",
               arms("scripts/x.py", "def stage(r):\n    subprocess.run(['git', '-C', r, 'init', '-q'])\n"

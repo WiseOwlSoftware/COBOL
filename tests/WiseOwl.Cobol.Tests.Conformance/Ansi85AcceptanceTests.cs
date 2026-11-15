@@ -7,12 +7,12 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The X3.23-1985 notInGrammar 85-acceptance set (roadmap Phase 2 W3 item ④ — VCR Table 7 rows 7.15–7.18):
-/// RERUN, ENTER, USE FOR DEBUGGING, and section-header segment-numbers — four obsolete '85 elements DELETED by
+/// RERUN, USE FOR DEBUGGING, and section-header segment-numbers — three obsolete '85 elements DELETED by
 /// ISO/IEC 1989:2002 that formerly had no grammar at all (generic parse errors at EVERY edition, the G1
 /// co-equal-diagnostic violation). These facts pin the ACCEPTED 85 leg (parse + correct run semantics — RERUN /
-/// ENTER / segment-numbers are inert; USE FOR DEBUGGING is MODELED at 85, the procedure-trigger leg, VCR 7.17)
-/// and the per-word §2023:8.9 user-word continuity; the ≥2002 reject/permissive legs are pinned by the
-/// four the construct catalogue matrix rows and the negative corpus (rerun / enter / use-for-debugging /
+/// segment-numbers are inert; USE FOR DEBUGGING is MODELED at 85, the procedure-trigger leg, VCR 7.17)
+/// and the per-word §2023:8.9 user-word continuity; the ≥2002 reject/permissive legs are pinned by
+/// the construct catalogue matrix rows and the negative corpus (rerun / use-for-debugging /
 /// segment-numbers). No ISO-2023 § exists for any of them — the registry rows cite the §2023:8.9 ABSENCE pinpoints.
 /// </summary>
 public sealed class Ansi85AcceptanceTests
@@ -26,10 +26,10 @@ public sealed class Ansi85AcceptanceTests
         Assert.Equal(CutRunner.Normalize(expected), stdout);
     }
 
-    // ── RERUN (row 7.15): a checkpoint HINT — parsed-and-ignored is a conforming null rerun facility ──
+    // ── RERUN (row 7.15): the integer-1 RECORDS form writes rerun information onto its device (kb/Work PB5198); the I-O the program sees is unaffected ──
 
     [Fact]
-    public void Rerun_RecordsForm_InertAt85_IoUnaffected() => AssertRuns("""
+    public void Rerun_RecordsForm_At85_IoUnaffected() => AssertRuns("""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. A85RR1.
         ENVIRONMENT DIVISION.
@@ -118,42 +118,6 @@ public sealed class Ansi85AcceptanceTests
             DISPLAY "SAME-RERUN-OK".
             STOP RUN.
         """, "SAME-RERUN-OK");
-
-    // ── ENTER (row 7.16): comment-equivalent when only COBOL is supported (BoundNop) ──
-
-    /// <summary>The classic paired idiom — ENTER LINKAGE … ENTER COBOL. Both operands are SYSTEM-names
-    /// (deliberately not cobolWord): 'COBOL' is an '85 §2023:8.9 reserved word, and a cobolWord slot would
-    /// false-reject the conforming switch-back with 0901.</summary>
-    [Fact]
-    public void Enter_LinkageAndCobol_InertAt85() => AssertRuns("""
-        IDENTIFICATION DIVISION.
-        PROGRAM-ID. A85EN1.
-        DATA DIVISION.
-        WORKING-STORAGE SECTION.
-        01 W PIC 9 VALUE 7.
-        PROCEDURE DIVISION.
-        MAIN.
-            ENTER LINKAGE.
-            DISPLAY W.
-            ENTER COBOL.
-            DISPLAY "ENTER-OK".
-            STOP RUN.
-        """, "7\nENTER-OK");
-
-    /// <summary>ENTER language-name routine-name (the two-operand form) between statements of one sentence.</summary>
-    [Fact]
-    public void Enter_WithRoutineName_InertAt85() => AssertRuns("""
-        IDENTIFICATION DIVISION.
-        PROGRAM-ID. A85EN2.
-        DATA DIVISION.
-        WORKING-STORAGE SECTION.
-        01 W PIC 99 VALUE 42.
-        PROCEDURE DIVISION.
-        MAIN.
-            ENTER FORTRAN SUBR1.
-            DISPLAY W.
-            STOP RUN.
-        """, "42");
 
     // ── USE FOR DEBUGGING (row 7.17): the '85 debug module, MODELED at --std 85 (procedure-trigger leg) ──
 

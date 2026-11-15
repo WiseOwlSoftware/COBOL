@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.8.4-12",
  "rule-digest": "1a3e95365ba9",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#CurrentRecordImage; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#CurrentRecordLength; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindIntoPhrase",
- "test-ref": "conformance:cases/VII.3.8@1985-RECORD-CLAUSE/1985-GR-VII_3_8_4-12",
- "notes": "The refuter's overturn reproduces. RECORD VARYING 1 TO 15 DEPENDING ON LEN; the first 01 holds 'E PIC X OCCURS 1 TO 15 DEPENDING ON CNT', the second is PIC X(15). The program writes a 12-character record, sets CNT to 2 and does READ ... INTO W. LEN is 12, so arm a) makes 12 character positions of the current record the sender. The receiver gets 'AB' followed by ten spaces while the record area holds ABCDEFGHIJKL. Arms a) and b) hold for records without an OCCURS DEPENDING ON table, so the verdict is PARTIAL. Cause, from the code-location: CurrentRecordImage windows RecordAreaImage(area), which for a variable-occurrence group is the group's image at its current ODO extent, and pads past it instead of reading the record area. §1985:VI.5.8.4 GR2 (contents beyond the ODO count are undefined) does not excuse this: the record area is shared (VII.4.4.4 GR6), and the PIC X(15) description defines those positions. kb/Work PB5309 holds the defect (code read: held-85/set1/decisions.json).",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#RecordAreaImage",
+ "test-ref": "conformance:cases/VII.3.8@1985-RECORD-CLAUSE/1985-GR-VII_3_8_4-12; conformance:cases/VII.3.8@1985-RECORD-CLAUSE/pb5309-read-into-odo-first-record",
+ "notes": "CONFORMS since kb/Work PB5309. With INTO the sender is the current record, the length the DEPENDING ON item holds (GR12 a) or the length just read (GR12 b) of the record area: OperandText.CurrentRecordImage reads the area WHOLE (AreaUse.Whole), so an OCCURS DEPENDING ON item of the area's first record description no longer cuts the sender to the table's current count (VI.5.8.4 GR3a speaks of the table area used in an operation on the group, and the record the READ made available is not such an operation). The golden reads a 12-character record into a right-justified receiver with the table count 2, with the table in the first record description of one file and in the second of another: both send ABCDEFGHIJKL.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

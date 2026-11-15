@@ -117,7 +117,7 @@ def self_test() -> int:
     for case in cases:
         name, raw, want = case[0], case[1], case[2]
         reg = case[3] if len(case) > 3 else register
-        got = DerivedSelector("self-test", raw, reg).select(rules)
+        got = DerivedSelector("self-test", raw, lambda: reg).select(rules)
         if got == want:
             print(f"  ok: {name}")
         else:
@@ -153,7 +153,7 @@ def self_test() -> int:
          {"verdict": "X", "arms": [{"pattern": "criterion", "excludes-pattern": "two"}]}, ["GR-1.1-L2.1"]),
     ]
     for name, raw, want in lead_cases:
-        got = DerivedSelector("self-test", raw, register).select(listed)
+        got = DerivedSelector("self-test", raw, lambda: register).select(listed)
         if got == want:
             print(f"  ok: {name}")
         else:
@@ -189,7 +189,7 @@ def self_test() -> int:
          entry, ["DOC-A.1-1"]),
     ]
     for name, raw, want in cond_cases:
-        got = DerivedSelector("self-test", raw, cond_register).select(conditional)
+        got = DerivedSelector("self-test", raw, lambda: cond_register).select(conditional)
         if got == want:
             print(f"  ok: {name}")
         else:
@@ -222,14 +222,14 @@ def self_test() -> int:
          {"verdict": "X", "arms": [{"sections": ["1.1"], "pattern": "format 2"}]}, ["SR-1.1-1", "SR-1.1-5"]),
     ]
     for name, raw, want in band_cases:
-        got = DerivedSelector("self-test", raw, register).select(banded)
+        got = DerivedSelector("self-test", raw, lambda: register).select(banded)
         if got == want:
             print(f"  ok: {name}")
         else:
             print(f"  SELF-TEST FAILED: {name} -> selected {got}, wanted {want}")
             rc = 1
     try:
-        DerivedSelector("self-test", {"verdict": "X", "arms": [{"formats": [2]}]}, register)
+        DerivedSelector("self-test", {"verdict": "X", "arms": [{"formats": [2]}]}, lambda: register)
         print("  SELF-TEST FAILED: an arm naming formats without the clause that numbers them was accepted")
         rc = 1
     except SystemExit:
@@ -238,7 +238,7 @@ def self_test() -> int:
     # An arm with no positive field selects the entire catalog; the constructor refuses it. Driven because the
     # guard's own field list grew by two here, and a guard that forgot one would be silently permissive.
     try:
-        DerivedSelector("self-test", {"verdict": "X", "arms": [{"excludes-kinds": ["FMT"]}]}, register)
+        DerivedSelector("self-test", {"verdict": "X", "arms": [{"excludes-kinds": ["FMT"]}]}, lambda: register)
         print("  SELF-TEST FAILED: an arm with only negative fields was accepted")
         rc = 1
     except SystemExit:

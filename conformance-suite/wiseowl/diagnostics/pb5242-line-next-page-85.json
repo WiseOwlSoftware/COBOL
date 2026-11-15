@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: a LINE operand of NEXT PAGE with no integer (report group description) requires COBOL-2002"}

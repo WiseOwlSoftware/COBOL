@@ -94,11 +94,12 @@ internal readonly struct EnclosingContext
 {
     private readonly List<EnclosingFrame>? _stack;
 
-    internal EnclosingContext(SourceElementKind element, List<EnclosingFrame> stack, BoundDeclarative? declarative)
+    internal EnclosingContext(SourceElementKind element, List<EnclosingFrame> stack, BoundDeclarative? declarative, bool inDebuggingSection)
     {
         SourceElement = element;
         _stack = stack;
         Declarative = declarative;
+        InDebuggingSection = inDebuggingSection;
     }
 
     /// <summary>The kind of source element whose procedure division is being bound (ISO §2023:14.2.2 SR10).</summary>
@@ -114,8 +115,14 @@ internal readonly struct EnclosingContext
     /// the ONE lookup behind §2023:14.9.14.3 SR2, §2023:14.9.18.3 SR1 and §2023:14.9.33.3 SR1/SR2.</summary>
     public BoundDeclarative? Declarative { get; }
 
-    /// <summary>Is this statement in a declarative procedure (ISO §2023:14.3)?</summary>
-    public bool InDeclarative => Declarative is not null;
+    /// <summary>Is the bind cursor in a USE FOR DEBUGGING section (X3.23-1985, collected only under WITH DEBUGGING MODE)? A debugging section is
+    /// a declarative section (§1985:XV.3.2.3 SR1: it follows "the DECLARATIVES header") but has no <see cref="BoundDeclarative"/>: it is a pc range the
+    /// emitted debug runner invokes, not a USE procedure the selection machinery chooses (kb/Work PB5275).</summary>
+    public bool InDebuggingSection { get; }
+
+    /// <summary>Is this statement in a declarative procedure (ISO §2023:14.3; §1985:XV.3.2.3 SR1 for a debugging section)? The ONE answer to
+    /// "in the declaratives portion", so a rule that bans a statement there (SORT, MERGE) holds for a debugging section as for a USE procedure.</summary>
+    public bool InDeclarative => Declarative is not null || InDebuggingSection;
 
     /// <summary>Is this statement in a declarative procedure "for which the GLOBAL phrase is specified in the
     /// associated USE statement" (ISO §2023:14.9.14.3 SR2, §2023:14.9.18.3 SR1, §2023:14.9.33.3 SR2)?</summary>

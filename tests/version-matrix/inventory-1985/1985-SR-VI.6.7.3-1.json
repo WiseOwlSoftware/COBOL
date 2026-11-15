@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.7.3-1",
  "rule-digest": "45d0decb4d3a",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#BindAlter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#AlterIsSoleGoToParagraph; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs#IsParagraph",
- "test-ref": "conformance:cases/VI.6.7@1985-ALTER-STATEMENT/1985-SR-VI_6_7_3-1",
- "notes": "§1985:VI.6.7.3 SR1: 'Procedure-name-1 is the name of a paragraph that contains a single sentence consisting of a GO TO statement without the DEPENDING phrase.' BindAlter resolves procedure-name-1 and reports COBOL1757 unless target.Range.IsParagraph and AlterIsSoleGoToParagraph (one sentence, one statement, a GO TO whose GoToFormats.Of is not Depending); probed at --std 85, a paragraph holding GO TO DEPENDING, no sentence, two sentences, an IF, a GO TO followed by a second statement or a CONTINUE is refused, a multi-paragraph section is refused, and a single GO TO (with a target or target-less, qualified or not) is accepted. The paragraph test is PcRange.IsParagraph (Start == End), which a SECTION holding exactly one paragraph also satisfies; BindAlter never reads ResolvedProcedure.IsSection, so ALTER section-name is accepted when that section's only paragraph is a single GO TO, and the GO TO of that paragraph is altered. Implemented for every shape of the paragraph's content; not implemented for the paragraph-versus-section distinction when the section has one paragraph. The witness refuses a paragraph whose sentence is DISPLAY followed by GO TO.",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#BindAlter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#AlterIsSoleGoToParagraph; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureResolution.cs#ResolvedProcedure",
+ "test-ref": "conformance:cases/VI.6.7@1985-ALTER-STATEMENT/1985-SR-VI_6_7_3-1; conformance:cases/VI.6.7@1985-ALTER-STATEMENT/pb5195-alter-one-paragraph-section-85",
+ "notes": "kb/Work PB5195 landed. §1985:VI.6.7.3 SR1: 'Procedure-name-1 is the name of a paragraph that contains a single sentence consisting of a GO TO statement without the DEPENDING phrase.' BindAlter resolves procedure-name-1 and reports COBOL1757 when the resolution names a section (ResolvedProcedure.IsSection, the resolution's own answer; PcRange.IsParagraph, which a one-paragraph section met, is deleted), when the paragraph is empty, or unless AlterIsSoleGoToParagraph (one sentence, one statement, a GO TO whose GoToFormats.Of is not Depending). Witnesses: 1985-SR-VI_6_7_3-1 and pb5195-alter-one-paragraph-section-85 (ALTER S7, S7 a section whose one paragraph is a lone GO TO, refused at 85).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

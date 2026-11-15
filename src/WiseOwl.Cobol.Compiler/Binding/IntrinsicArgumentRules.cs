@@ -543,7 +543,7 @@ internal static class IntrinsicArgumentRules
     /// <summary>The strongly-typed group an operand denotes, or null — a whole data item (a reference-modified view
     /// denotes none, §2023:8.4.3.3.4 GR6: it is an elementary alphanumeric item).</summary>
     private static DataItem? StrongGroupOf(BoundOperand op) =>
-        op is BoundFieldOperand { Place: { DenotedItem: not null, Item: { } item } } && StrongTypeModel.IsStrongGroup(item)
+        op is BoundFieldOperand { Place: { DescribedItem: { } item } } && StrongTypeModel.IsStrongGroup(item)
             ? item : null;
 
     /// <summary>§2023:8.5.2.1's class of a strongly-typed group item — its type-name — spelled for a diagnostic, or null
@@ -1475,7 +1475,7 @@ internal static class IntrinsicArgumentRules
         // boolean expression, are not one; a nested function-identifier IS (§2023:8.4.3.2.4 GR1), kb/Work PB4507.
         ArgPredicateKind.DataItemOnly when !IsDataItem(op) =>
             $"is {OperandShapeName(op)}, not a data item, which ISO {p.Clause} requires",
-        ArgPredicateKind.NotStrongGroup when op is BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { } it }
+        ArgPredicateKind.NotStrongGroup when op is BoundFieldOperand { Place.DescribedItem: { } it }
                                              && StrongTypeModel.IsStrongGroup(it) =>
             $"is a strongly-typed group item, which ISO {p.Clause} does not admit",
         ArgPredicateKind.CharacterCategory when EditedCategoryOf(op) is { } edited =>
@@ -1546,7 +1546,7 @@ internal static class IntrinsicArgumentRules
     /// it names alphanumeric-edited), and the numeric-edited category is read from the ANALYZED category, so a
     /// recovery profile (no class, PB960) fails open.</para></summary>
     private static string? EditedCategoryOf(BoundOperand op) =>
-        op is BoundFieldOperand { Place: { DenotedItem: not null, Item: { IsGroup: false, Pic: { } pic } } }
+        op is BoundFieldOperand { Place: { DescribedItem: { IsGroup: false, Pic: { } pic } } }
             && ItemCategory.IsEditedCategory(pic)
             ? ItemCategory.CategoryName(pic)
             : null;
@@ -1641,7 +1641,7 @@ internal static class IntrinsicArgumentRules
             + "operand position even though a particular reference might yield an integer value",
         // §2023:15.3 type 6 — "an integer data item". The item shapes that are NOT one live in the ONE primitive
         // (§2023:5.5 2)b)2.'s two conditions: FIXED-POINT, and no digit positions right of the radix point).
-        BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { IsGroup: false } item }
+        BoundFieldOperand { Place.DescribedItem: { IsGroup: false } item }
             when NonIntegralItemReason(item.Pic) is { } why => why,
         // A numeric LITERAL whose VALUE is not an integer (kb/Work PB58; the floating form, kb/Work PB248):
         // neither an integer literal (§2023:5.5 2)a) — "an integer literal, as defined in 8.3.3.3.2, Fixed-point
@@ -1717,7 +1717,7 @@ internal static class IntrinsicArgumentRules
         // item/d is always-integral iff d divides that granularity — for s > 0 never (d ≠ ±1), for
         // P-scaled/integer items iff d | 10^(−s)⁺. literal/item is sound only when NO possible divisor value
         // divides the numerator, which a picture-ranged divisor defeats (362880 / PIC 9) — fail open there.
-        if (expr is BoundBinary { Op: '/', Left: BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } }, Right: BoundNumLiteral d }
+        if (expr is BoundBinary { Op: '/', Left: BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } }, Right: BoundNumLiteral d }
             && LiteralIntegerMagnitude(d.Text) is { } dv && dv > 1   // 1 always divides; 0 is the zero-divide diagnostic's business
             // A FLOATING-POINT numerator is finer than any fixed granularity (§2023:14.6.8.3 — its content is the
             // algebraic value moved into it), so no divisor > 1 always divides it (kb/Work PB248). The
@@ -1797,7 +1797,7 @@ internal static class IntrinsicArgumentRules
             BoundExpr x = pw.Exp;
             bool negated = false;
             while (x is BoundNegate n) { negated = !negated; x = n.Operand; }
-            if (x is not BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } ep } expItem }
+            if (x is not BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } ep } expItem }
                 || ReferenceEquals(expItem, baseItem))
                 return null;
             bool canBeNegative = ep.Signed || negated, canBeFraction = AdmitsNonIntegralValue(ep);
@@ -1870,7 +1870,7 @@ internal static class IntrinsicArgumentRules
                 CollectAdditive(b.Left, sign, spine); CollectAdditive(b.Right, -sign, spine); break;
             case BoundNegate n:
                 CollectAdditive(n.Operand, -sign, spine); break;
-            case BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { } p } and { } it }
+            case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { } p } and { } it }
                 when AdmitsNonIntegralValue(p):
                 spine.Net[it] = spine.Net.TryGetValue(it, out var v)
                     ? (v.Coeff + sign, p.Scale, p.IsFloat, v.Opaque) : (sign, p.Scale, p.IsFloat, false);
@@ -1952,7 +1952,7 @@ internal static class IntrinsicArgumentRules
     private static BoundNumRef? BareNumericItem(BoundExpr x)
     {
         while (x is BoundNegate n) x = n.Operand;
-        return x is BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic.Category: PicCategory.Numeric } } r ? r : null;
+        return x is BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic.Category: PicCategory.Numeric } } r ? r : null;
     }
 
     /// <summary>Is the sum a plain sum of items and exact constants that is not negative when every item is not negative: a
@@ -1989,7 +1989,7 @@ internal static class IntrinsicArgumentRules
         _ when ExactValue(e) is { } v => v.IsInteger && QuotientsAreExact(e),
         // Category NUMERIC only: any other operand an extension admits (a de-edited numeric-edited item, say) is
         // not provably integral, and the screen fails open over it.
-        BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } }
+        BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } }
             => !AdmitsNonIntegralValue(p),
         BoundBinary { Op: '+' or '-' or '*' } b => ProvablyIntegral(b.Left) && ProvablyIntegral(b.Right),
         BoundNegate n => ProvablyIntegral(n.Operand),

@@ -1,0 +1,1 @@
+           DISPLAY "FROM COPY".

@@ -133,8 +133,12 @@ internal readonly record struct LiteralParts(string Prefix, char Quote, string C
 /// </list>
 /// A fixed-form debugging line reaches this stage as <see cref="ReferenceFormatProcessor.DebugLineCarrier"/> + its
 /// text: the carrier is skipped and the text scanned, so its text-words take part in matching as if the <c>D</c>
-/// were absent (the COBOL-85 rule the carrier exists for); an ordinary <c>*&gt;</c> comment, whatever it says, is a
-/// space.
+/// were absent (the COBOL-85 rule the carrier exists for). A comment-entry carrier is a space. An ordinary
+/// <c>*&gt;</c> is NOT: the comment indicator is the §2023:6.5 logical conversion's to read, which removes every comment
+/// of source and library text "before the application of replacing and conditional compilation actions" — and
+/// reads none below COBOL-2002 in fixed form, where <c>*&gt;</c> is an ordinary text-word (§1985:III, "Text-word": "Any
+/// other sequence of contiguous COBOL characters except comment lines and the word 'COPY'"). What reaches this scanner
+/// is therefore text, and the scanner reads it as such at every edition (kb/Work PB5470).
 /// </summary>
 internal static class TextWordScanner
 {
@@ -162,7 +166,7 @@ internal static class TextWordScanner
     }
 
     /// <summary>The next text-word at or after <paramref name="pos"/> (which must not lie inside a literal or a
-    /// comment), skipping spaces and comments; <paramref name="pos"/> advances past it. False at the end of the
+    /// comment), skipping spaces and carried comment-entry lines; <paramref name="pos"/> advances past it. False at the end of the
     /// text.</summary>
     public static bool TryNext(string text, ref int pos, out TextWord word)
     {
@@ -177,9 +181,9 @@ internal static class TextWordScanner
                 pos += ReferenceFormatProcessor.DebugLineCarrier.Length;       // the debugging line's text is scanned
                 continue;
             }
-            if (CommentStartsAt(text, pos))
+            if (IsCommentEntryCarrierAt(text, pos))
             {
-                while (pos < n && text[pos] != '\n') pos++;                    // a comment is a single space
+                while (pos < n && text[pos] != '\n') pos++;                    // a carried comment-entry line is a single space
                 continue;
             }
 
@@ -227,35 +231,29 @@ internal static class TextWordScanner
         return false;
     }
 
-    /// <summary>Whether a comment begins at <paramref name="pos"/> (outside a literal): the floating comment indicator
-    /// <c>*&gt;</c> (§2023:6.2.3.1, as <see cref="CobolSourceText.CommentIndicatorAt"/> reads it), other than the fixed-form
-    /// debugging-line carrier the §2023:6.5 conversion writes in its place. Text manipulation's reading of a comment —
-    /// <see cref="TryNext"/> skips what it starts, and <see cref="HoldsComment"/> finds what a replacing action
-    /// produces.</summary>
-    public static bool CommentStartsAt(string text, int pos)
-        => CobolSourceText.CommentIndicatorAt(text, pos) && !IsDebugLineCarrierAt(text, pos);
+    /// <summary>Whether a carried comment-entry line (<see cref="CommentEntryCarrier"/>) begins at <paramref name="pos"/>: the one
+    /// comment text manipulation still sees, an inert slot the logical conversion wrote for a COBOL-85 comment-entry candidate
+    /// that only a later stage can decide (docs/CONFORMANCE.md D-CE2). <see cref="TryNext"/> skips what it starts.</summary>
+    private static bool IsCommentEntryCarrierAt(string text, int pos)
+        => string.CompareOrdinal(text, pos, CommentEntryCarrier.Prefix, 0, CommentEntryCarrier.Prefix.Length) == 0;
 
     private static bool IsDebugLineCarrierAt(string text, int pos)
         => string.CompareOrdinal(text, pos, ReferenceFormatProcessor.DebugLineCarrier, 0,
             ReferenceFormatProcessor.DebugLineCarrier.Length) == 0;
 
-    /// <summary>Whether <paramref name="text"/> holds a comment: a <see cref="CommentStartsAt">comment indicator</see>
-    /// in the text between its text-words — never one inside a literal, which is a text-word of its own. Comments were
-    /// removed from source and library text by the §2023:6.5 logical conversion before text manipulation began, so in text
-    /// a COPY or REPLACE replacing action produces a comment can only be one the replacement SPELLED — a partial-word
-    /// result such as <c>*&gt;1</c> (kb/Work PB1356; §2023:7.2.3.4 GR13 / §2023:7.2.4.4 GR9).</summary>
+    /// <summary>Whether <paramref name="text"/> holds the comment indicator (§2023:6.2.3.1) between its literals — never inside
+    /// one, which is a text-word of its own. Comments were removed from source and library text by the §2023:6.5 logical
+    /// conversion before text manipulation began, so in text a COPY or REPLACE replacing action produces a comment can only
+    /// be one the replacement SPELLED — a partial-word result such as <c>*&gt;1</c> (kb/Work PB1356; §2023:7.2.3.4 GR13 /
+    /// §2023:7.2.4.4 GR9). That text is read as it is written, so the indicator is a text-word, or part of a character-string.</summary>
     public static bool HoldsComment(string text)
     {
         int pos = 0;
-        while (true)
-        {
-            int gapStart = pos;
-            bool more = TryNext(text, ref pos, out var word);
-            int gapEnd = more ? word.Start : text.Length;
-            for (int i = gapStart; i < gapEnd; i++)
-                if (CommentStartsAt(text, i)) return true;
-            if (!more) return false;
-        }
+        while (TryNext(text, ref pos, out var word))
+            if (word.Kind == TextWordKind.CharacterString
+                && word.Value.Contains(CobolSourceText.CommentIndicator, StringComparison.Ordinal))
+                return true;
+        return false;
     }
 
     /// <summary>Take a literal text-word apart (see <see cref="LiteralParts"/>): <paramref name="literal"/> begins with its
@@ -297,8 +295,8 @@ internal static class TextWordScanner
     }
 
     /// <summary>Where a character-string ends: at a space, at a separator (§2023:7.2.2.5 1) / §2023:8.3.5), at a literal's
-    /// opening delimiter, at the concatenation operator, and at a comment indicator (the lexer's reading of
-    /// <c>*&gt;</c>, which §2023:6.2.3.2 2) requires to follow a space anyway).</summary>
+    /// opening delimiter and at the concatenation operator. The comment indicator ends nothing: no comment reaches
+    /// text manipulation (see <see cref="TextWordScanner"/>).</summary>
     private static bool EndsCharacterString(string text, int pos)
     {
         char d = text[pos];
@@ -306,8 +304,7 @@ internal static class TextWordScanner
             || d is '(' or ')' or ':' or '&'
             || CobolSourceText.IsQuotationSymbol(d)
             || (d is '.' or ',' or ';' && SeparatorFollows(text, pos))
-            || IsPseudoTextDelimiter(text, pos)
-            || CobolSourceText.CommentIndicatorAt(text, pos);
+            || IsPseudoTextDelimiter(text, pos);
     }
 
     /// <summary>The end of the literal whose opening quotation symbol is at <paramref name="quotePos"/>: just past

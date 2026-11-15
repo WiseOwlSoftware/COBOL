@@ -29,21 +29,40 @@ public readonly record struct StorageExtent(DataItem Area, int Start, int Length
     /// <summary>The static extent of <paramref name="place"/>, or null when it is not provable (see the type's
     /// summary). A reference modification narrows its inner extent by its literal bounds (§2023:8.4.3.3.4 GR5);
     /// the image decorators keep their inner item's extent.</summary>
-    public static StorageExtent? Of(Place place) => place switch
+    public static StorageExtent? Of(Place place) => Of(place, OfItem);
+
+    /// <summary>⛔ THE STORAGE A REFERENCE NAMES, for a rule that forbids two references to "the same storage area" whatever
+    /// form either is written in (kb/Work PB5412; §1985:VII.4.7.3 SR1: "Record-name-1 and identifier-1 must not reference the
+    /// same storage area"): <see cref="Of"/>, and also the two forms whose storage is fixed though <see cref="Of"/> does not
+    /// place them — a table element whose every OCCURS level has ONE occurrence (any subscript a valid reference can write
+    /// names that occurrence, <see cref="OfOnlyOccurrence"/>) and a level-66 THROUGH alias (the span it renames,
+    /// §2023:13.18.45.4 GR2). Null when not provable: a reference whose extent is a run-time quantity (a variable reference
+    /// modifier, a subscript into a table of several occurrences) is outside a syntax rule.</summary>
+    public static StorageExtent? OfReference(Place place) =>
+        place is RenamesPlace alias ? OfItem(alias.AliasItem) : Of(place, OfOnlyOccurrence);
+
+    /// <summary>The storage of <paramref name="item"/> when it has exactly one occurrence: <see cref="OfItem"/> for an item no
+    /// OCCURS clause governs, and the one occurrence of a table element whose every OCCURS level (its own and its ancestors')
+    /// has a maximum of one; null otherwise.</summary>
+    public static StorageExtent? OfOnlyOccurrence(DataItem item) =>
+        !item.IsTableElement ? OfItem(item)
+        : OfEveryOccurrence(item) is { } every && every.Levels.All(level => level.Count == 1) ? every.First : null;
+
+    private static StorageExtent? Of(Place place, Func<DataItem, StorageExtent?> ofItem) => place switch
     {
-        MemberPlace m => OfItem(m.MemberItem),
-        RedefViewPlace { Coding: null } v => OfItem(v.ViewItem),
-        NumericImagePlace n => Of(n.Inner),
-        GroupImagePlace g => Of(g.Inner),
-        RefModPlace r => OfRefMod(r),
+        MemberPlace m => ofItem(m.MemberItem),
+        RedefViewPlace { Coding: null } v => ofItem(v.ViewItem),
+        NumericImagePlace n => Of(n.Inner, ofItem),
+        GroupImagePlace g => Of(g.Inner, ofItem),
+        RefModPlace r => OfRefMod(r, ofItem),
         _ => null,
     };
 
-    private static StorageExtent? OfRefMod(RefModPlace r)
+    private static StorageExtent? OfRefMod(RefModPlace r, Func<DataItem, StorageExtent?> ofItem)
     {
         // Positions are CHARACTER positions (§2023:8.4.3.3.4 GR5a); they are bytes only for a DISPLAY-usage operand,
         // which is the only kind whose extent this answers (USAGE NATIONAL / BIT operands answer null above).
-        if (Of(r.Inner) is not { } inner || r.Start.Int32Literal is not { } start || start < 1) return null;
+        if (Of(r.Inner, ofItem) is not { } inner || r.Start.Int32Literal is not { } start || start < 1) return null;
         if (r.StaticLength(inner.Length) is not { } len || len < 1 || start - 1 + len > inner.Length) return null;
         return new StorageExtent(inner.Area, inner.Start + start - 1, len);
     }

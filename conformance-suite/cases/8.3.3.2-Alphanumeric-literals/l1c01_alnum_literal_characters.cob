@@ -41,7 +41,9 @@
       *>   "A""B": 3 chars, char 2 = '"'                   -> LEN-DQ=3
       *>     ORD(char 2) = 0x22 + 1 = 35         -> ORD-DQ=00035
       *>   "A''B": 4 chars                                 -> LEN-AP=4
-      *>   'A''B': 3 chars                                 -> LEN-SQ=3
+      *> The apostrophe-delimited twin 'A''B' (3 chars) is a COBOL-2002
+      *> literal (§2002:F.2 item 3) and is a leg of the 2002 golden
+      *> 8.3.5-Separators/pb5160_apostrophe_quotation_symbol.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C01Q.
        DATA DIVISION.
@@ -72,6 +74,4 @@
            DISPLAY "ORD-DQ=" R
            MOVE FUNCTION LENGTH("A''B") TO L
            DISPLAY "LEN-AP=" L
-           MOVE FUNCTION LENGTH('A''B') TO L
-           DISPLAY "LEN-SQ=" L
            STOP RUN.

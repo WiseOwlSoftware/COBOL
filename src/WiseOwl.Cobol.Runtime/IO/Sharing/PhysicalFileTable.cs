@@ -105,6 +105,13 @@ internal sealed class PhysicalFileTable
         /// REWRITE is visible to every attached connector the instant it happens — measured, not assumed.
         /// This is the same rule for the organization whose medium is the host file itself.</para></summary>
         public long ReleaseGeneration;
+
+        /// <summary>⛔ A COBOL-85 CLOSE WITH LOCK HAS LOCKED THIS PHYSICAL FILE (kb/Work PB5210): §1985:IX.4.2.4 GR2 <i>"The file is
+        /// locked and cannot be opened again during this execution of this run unit."</i>, and §1985:II.2 makes "file" the physical
+        /// file whatever file-name the program uses, so every OPEN of it through any connector answers 38 (§1985:IX.1.3.4). Set by
+        /// <c>FileRegistry.CloseWithLock</c> and read by <c>FileRegistry.ClosedWithLock</c>; the run unit's <see cref="Clear"/>
+        /// ends it. From COBOL-2002 the file connector is locked instead (§2014:14.9.26.3 GR24), and this stays false.</summary>
+        public bool ClosedWithLock;
     }
 
     /// <summary>The per-file-connector record-lock ceiling (§2023:12.4.5.9.4 GR7 — implementor max, ≥15) → status 54.</summary>

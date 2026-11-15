@@ -978,7 +978,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckInspectCharactersReplacement(BoundOperand rep)
     {
         var size = rep is BoundStringLiteral literal ? literal.Value.Length
-            : InspectSizeRulesCoverDataItems && rep is BoundFieldOperand ? IntrinsicBinder.KnownWidth(rep)
+            : InspectSizeRulesCoverDataItems && rep is BoundFieldOperand or BoundComputedOperand ? IntrinsicBinder.KnownWidth(rep)
             : null;
         if (size is null or 1) return true;
         data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT REPLACING CHARACTERS BY {InspectOperandImage(rep, size.Value, "literal-3", "identifier-5")} "
@@ -1035,10 +1035,11 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>The size of an INSPECT operand for the size rules: its literal size (<see cref="InspectLiteralSize"/>), or —
     /// where <see cref="InspectSizeRulesCoverDataItems"/> — a data item's static size (the ONE reader of an operand's
-    /// compile-time width, <see cref="IntrinsicBinder.KnownWidth"/>); null when it is a run-time quantity.</summary>
+    /// compile-time width, <see cref="IntrinsicBinder.KnownWidth"/>: a reference modification with no length over an item of static
+    /// size, and a function-identifier whose definition fixes its length, included; kb/Work PB5425); null when it is a run-time quantity.</summary>
     private int? InspectOperandSize((BoundOperand Op, bool Figurative) operand) =>
         InspectLiteralSize(operand)
-        ?? (InspectSizeRulesCoverDataItems && operand.Op is BoundFieldOperand ? IntrinsicBinder.KnownWidth(operand.Op) : null);
+        ?? (InspectSizeRulesCoverDataItems && operand.Op is BoundFieldOperand or BoundComputedOperand ? IntrinsicBinder.KnownWidth(operand.Op) : null);
 
     /// <summary>The statically known size of an INSPECT literal operand, for SR6 / SR9: a figurative constant is ONE
     /// character (ISO §2023:14.9.22.3 SR3: "If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an
@@ -1058,6 +1059,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             BoundStringLiteral literal => $"{literalSlot} '{literal.Value}' ({size} character{(size == 1 ? "" : "s")})",
             BoundFieldOperand field => $"{identifierSlot} (the data item '{field.Place.Item.CobolName}', {size} character{(size == 1 ? "" : "s")})",
+            BoundComputedOperand { Expr: BoundIntrinsicCall call } => $"{identifierSlot} (FUNCTION {call.Sig.Name}, {size} character{(size == 1 ? "" : "s")})",
             _ => $"{literalSlot} (a figurative constant, an implicit one-character item by SR3)",
         };
 
@@ -1203,12 +1205,14 @@ internal sealed class StatementValidation(DataBinder data)
         string why = badReceiver
             ? $"identifier-1 '{ReceiverFace(receiver)}' is {ItemCategory.Face(receiver.Item)}"
             : $"the record '{badRecord!.CobolName ?? "FILLER"}' is {ItemCategory.Face(badRecord)}";
+        // The rule as the edition being compiled numbers and words it (kb/Work PB5352): a general rule of the file's I-O module at
+        // COBOL-85, the 2023 syntax rule from 2002.
+        int level = data.Edition.DialectLevel;
         data.Edition.Error(DiagnosticCatalog.IntoPhraseReceiverNotAdmissible,
-            $"{rules.Statement} '{ReceiverFace(receiver)}': {rules.AdmissibilityCite} admits the phrase on two "
-            + $"grounds and neither holds — a) {rules.AdmissibilityArmA}, but {EntryFace(file, rules, count)}; or b) identifier-1 and "
-            + "ALL record-names associated with file-name-1 \"describe an alphanumeric group item or an "
-            + $"elementary item of category alphanumeric or category national\", but {why}. Write the statement "
-            + "without the INTO phrase and MOVE from the record-name you mean.");
+            $"{rules.Statement} '{ReceiverFace(receiver)}': {rules.Admissibility.At(level, file.Organization)} admits the phrase on two "
+            + $"grounds and neither holds — a) {rules.AdmissibilityArmA.At(level, file.Organization)}, but {EntryFace(file, rules, count)}; "
+            + $"or b) identifier-1 and ALL record-names associated with file-name-1 {rules.AdmissibilityArmB.At(level, file.Organization)}, "
+            + $"but {why}. Write the statement without the INTO phrase and MOVE from the record-name you mean.");
         return false;
     }
 
@@ -1526,19 +1530,42 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>⛔ THE ONE ENFORCEMENT OF COBOL-85's "THE NEXT PHRASE MUST BE SPECIFIED FOR FILES IN DYNAMIC ACCESS MODE, WHEN
+    /// RECORDS ARE TO BE RETRIEVED SEQUENTIALLY" (kb/Work PB5102) — §1985:VIII.4.5.3 SR3 (relative) and §1985:IX.4.5.3 SR5
+    /// (indexed). The 1985 READ prints the AT END phrase in format 1 only, and format 1 is the sequential retrieval, so a
+    /// READ of a dynamic-access file that writes AT END (or its NOT twin, which a later edition adds) is a sequential read
+    /// and must write NEXT. COBOL-2002 and later imply the NEXT phrase from those phrases (§2023:14.9.30.3 SR9), so
+    /// the requirement is the 1985 dialect's alone, and <c>KeyedIoBinder.BindRead</c> binds the READ as the implied
+    /// NEXT it reads either way, the refusal being reported beside it. Returns true when the statement conforms.</summary>
+    public bool CheckReadDynamicNextWritten(FileModel file, bool atEnd, bool notAtEnd, bool next)
+    {
+        if (data.Edition.Edition.Year >= 2002 || file.AccessMode != FileAccessMode.Dynamic || next || !(atEnd || notAtEnd))
+            return true;
+        bool indexed = file.Organization == FileOrganization.Indexed;
+        data.Edition.Error(DiagnosticCatalog.ReadDynamicNextRequired,
+            $"READ of {file.Organization.ToString().ToLowerInvariant()} file '{file.CobolName}' (ACCESS MODE IS DYNAMIC) retrieves "
+            + $"sequentially but specifies no NEXT phrase ({(indexed ? "§1985:IX.4.5.3 SR5" : "§1985:VIII.4.5.3 SR3")}: "
+            + "\"The NEXT phrase must be specified for files in dynamic access mode, when records are to be retrieved "
+            + "sequentially\")");
+        return false;
+    }
+
     /// <summary>⛔ THE ONE ENFORCEMENT OF "THE FROM / INTO OPERAND SHALL NOT BE THE FILE'S RECORD AREA" (kb/Work PB5077) —
     /// §1985:IX.4.5.3 SR1 and its nine siblings, §2002:14.8.29.2 SR2 and its four (<see cref="RecordAreaRule"/> words each).
     /// Asked by <c>MoveBinder.BindFromPhrase</c> (WRITE, REWRITE, RELEASE: the sender) and by <see cref="CheckIntoReceiver"/>
     /// (READ, RETURN: the receiver), the two funnels every FROM and INTO phrase passes through, so the next phrase of
     /// the family inherits it. The decision is <see cref="StorageSharing.IsRecordAreaOf"/>; the edition scope is
-    /// <see cref="RecordAreaRule.InForce"/> (COBOL-2023 replaced the rule with its overlapping-operand rules, §2023:14.6.10).
+    /// <see cref="RecordAreaRule.InForce"/> (COBOL-2014 dropped the rule, §2014:E.3, for the overlapping-operand rules
+    /// COBOL-2023 keeps, §2023:14.6.10).
     /// Returns true when the operand is acceptable; false after reporting.</summary>
     public bool CheckPhraseOperandIsNotRecordArea(FileModel file, Place operand, RecordAreaVerb verb, string statement)
     {
         if (!RecordAreaRule.InForce(data.Edition.Edition.Year) || !StorageSharing.IsRecordAreaOf(file, operand)) return true;
         var (cite, words) = RecordAreaRule.Describe(verb, file.Organization, data.Edition.Edition.Year);
         data.Edition.Error(DiagnosticCatalog.IoPhraseOperandIsRecordArea,
-            $"{statement} {operand.DenotedItem!.CobolName}: the operand names the record area of file '{file.CobolName}' "
+            // The operand's own item names it: a reference modification or a table element of the record names no item of its own
+            // (DenotedItem is null for the slice), and the message names the item its storage is taken from (kb/Work PB5412).
+            $"{statement} {operand.Item.CobolName ?? "FILLER"}: the operand names the record area of file '{file.CobolName}' "
             + $"({cite}: \"{words}\")");
         return false;
     }
@@ -1807,9 +1834,11 @@ internal sealed class StatementValidation(DataBinder data)
         }
         // The X3.23-1985 multiple file reel rules (kb/Work PB5086): the MULTIPLE FILE TAPE clause is the program's statement
         // that a file shares a reel (§1985:VII.2.11.3 GR1), which OPEN's SR2 and GR20 d then read.
+        // SR2 (no EXTEND on a multiple file reel) is the Sequential I-O OPEN's; a report file's OPEN is the Report Writer's, whose SR1 admits
+        // OUTPUT or EXTEND and does not restate it (§1985:XIII.4.5.3 SR1), so only GR20 d (restated by the Report Writer) reaches it (kb/Work PB5479).
         if (file.MultipleFileReels.Count > 0)
         {
-            if (mode is BoundOpenMode.Extend)
+            if (mode is BoundOpenMode.Extend && !file.IsReportFile)
             {
                 data.Edition.Error(DiagnosticCatalog.OpenExtendMultipleFileReel,
                     $"OPEN EXTEND '{file.CobolName}' — the file is named in a MULTIPLE FILE TAPE clause, so it resides on a "

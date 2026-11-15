@@ -48,21 +48,18 @@ import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SCHEMA_REL = "tests/version-matrix/inventory-schema.json"
 SCHEMA_PATH = REPO / SCHEMA_REL
-#: The IMPLEMENTOR-DEFINED ELEMENT REGISTER — docs/CONFORMANCE.md §7, whose rows are keyed by the inventory
-#: rule-id `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor. An item's FURTHER
-#: determinations are keyed by that id plus a letter (`DOC-A.1-92b`, kb/Work PB3840); no inventory row anchors on those.
-REGISTER_PATH = REPO / "docs" / "CONFORMANCE.md"
+# The IMPLEMENTOR-DEFINED ELEMENT REGISTER is docs/CONFORMANCE.md §7, whose rows are keyed by the inventory rule-id
+# `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor; `conformance_source.py` is the
+# one reader of it (kb/Work PB5395). An item's FURTHER determinations are keyed by that id plus a letter (`DOC-A.1-92b`,
+# kb/Work PB3840); no inventory row anchors on those.
 #: THE REGISTERS' EXTRACT: what the tests and the state rule read of docs/CONFORMANCE.md's §7 and §8 (each §7 row's key
-#: and determination lead; each §8 row's key, arm, names, signature and refuter file), written from the Markdown by this
-#: module's one parser (`doc_audits.py --write-register`) and held fresh by the DOC AUDITS audit (kb/Work PB4453). The state rule reads
+#: and determination lead; each §8 row's key, arm, names, signature and refuter file), written from the Markdown by
+#: `conformance_source.py`, the one reader of it (`doc_audits.py --write-register`) and held fresh by the DOC AUDITS audit (kb/Work PB4453). The state rule reads
 #: the EXTRACT, never the Markdown: a document is inert, so no compiler test, nor the Python it runs, may open one
 #: (PB4992's merge-queue bounce: the conformance manifest's generator computed states and opened CONFORMANCE.md).
 REGISTER_EXTRACT_REL = "tests/version-matrix/conformance-register.json"
 #: What a §8 row's `Refuted` cell holds when it names no refuter record file.
 NO_REFUTER = frozenset({"", "—", "-"})
-REGISTER_HEADING = "## 7. Annex A.1"
-#: The label in the §7 table's own header row, so the reader can tell a header from a determination.
-REGISTER_HEADER_CELL = "A.1 item"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -393,7 +390,7 @@ def witness_shape_error(field: str, ref: str, schema: "Schema") -> str | None:
             return f"code-location '{ref}' is not '<repo-relative-path>[#Symbol]'"
         # ⛔ A LISTED FILE'S FRAGMENT IS AN ANCHOR OR IT IS A FAILURE — and a BARE citation of one is the
         # weakest form of the same defect, resolving on File.Exists alone. Five live rows carried
-        # `docs/CONFORMANCE.md#7`, which the battery gate's word search satisfies against the digit 7
+        # `docs/CONFORMANCE.md#7`, which the battery gate's word search satisfies against the digit 7  (citation-audit: example)
         # anywhere in a 790-line document, and three more cited the bare path.
         file, _, fragment = ref.partition("#")
         if (rx := schema.anchored_files.get(file)) is not None and not rx.match(fragment):
@@ -422,6 +419,16 @@ def relocated(location: str, moved: Mapping[str, str]) -> str | None:
     path, hash_, member = location.partition("#")
     new = moved.get(path)
     return f"{new}{hash_}{member}" if new else None
+
+
+def respelled_ref(ref: str, respelled: Mapping[str, str]) -> str | None:
+    """`ref` as a move re-spelled it: its own entry in `respelled`, or, for an xUnit test, its class's
+    (`<form>:<Class>.`, `Schema.class_ref_for_path`) with the method kept; None when no move re-spelled it."""
+    if ref in respelled:
+        return respelled[ref]
+    head, dot, method = ref.rpartition(".")
+    now = respelled.get(head + dot) if dot else None
+    return now + method if now else None
 
 
 def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema",
@@ -453,7 +460,7 @@ def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schem
         kept = set(schema.split(after.get(field, "") or "", sep))
         resited = resites(field, before.get("verdict", ""), after.get("verdict", ""))
         out += [WitnessLoss(before.get("rule-id", ""), field, ref, ref in retired, resited,
-                            (field == "test-ref" and respelled.get(ref) in kept)
+                            (field == "test-ref" and respelled_ref(ref, respelled) in kept)
                             or (field == "code-location" and relocated(ref, moved) in kept))
                 for ref in schema.split(before.get(field, "") or "", sep) if ref not in kept]
     return out
@@ -549,15 +556,6 @@ def section_matches(prefix: str, section: str) -> bool:
     return len(p) <= len(s) and s[: len(p)] == p
 
 
-class Section7Row(NamedTuple):
-    """One data row of the docs/CONFORMANCE.md §7 register, by cell."""
-
-    key: str            #: the row's UNIQUE key — the inventory rule-id it discharges, `DOC-A.1-<n>`, plus a letter on an item's further determinations (`DOC-A.1-92b`, kb/Work PB3840)
-    element: str        #: the A.1 element the row claims to be about
-    determination: str  #: WHAT WE DO — the determination itself
-    pinned: str         #: the spec-derived test-ref(s) that pin it, or '—'
-
-
 class Refusal(NamedTuple):
     """One reason a claimed derivation does not stand — a STABLE CODE plus the sentence a reviewer reads.
 
@@ -581,80 +579,6 @@ class DerivationRow(NamedTuple):
     refuter: str    #: the refuter record file an argued arm signed by a refuter-bound signer names; '—' or '' for none
 
 
-def register_cells(line: str) -> list[str]:
-    """A markdown row's content cells, split on UNESCAPED pipes.
-
-    ⚠ Splitting on a bare '|' is wrong here and was wrong once: the item-82 determination writes an absolute
-    value as `\\|v\\|`, so a naive split reports that row with two extra cells and mis-places anything appended
-    to it.
-    """
-    parts = [c.replace("\\|", "|").strip() for c in re.split(r"(?<!\\)\|", line.rstrip("\n"))]
-    return parts[1:-1]
-
-
-def register_section(text: str, heading: str, header_cell: str) -> list[list[str]]:
-    """Every data row of ONE `docs/CONFORMANCE.md` register table, as raw cell lists, in document order."""
-    return [cells for _, cells in register_section_at(text, heading, header_cell)]
-
-
-def register_section_at(text: str, heading: str, header_cell: str) -> list[tuple[int, list[str]]]:
-    """Every data row of ONE `docs/CONFORMANCE.md` register table as `(1-based line in text, cells)`.
-
-    The line is for a reader that meets the document LINE BY LINE and must know which lines are register rows —
-    the Phase-B dossier tags a citing line with its row key (kb/Work PB3209) — so it asks here rather than
-    keeping a second idea of what a register row looks like. Lines are split on `\\n` alone, as the C# twin
-    splits them, so a line number here is a line number in the file.
-
-    ⛔ THE ONE PARSER, and it lives HERE rather than in `audit_annex_a1.py` where it was written, because five
-    readers now need it and a markdown table read five ways is `feedback_one_rule_one_place` waiting to happen:
-    the register audit (which CHECKS the rows), `Schema.anchor_obliged` (which asks whether an item has a
-    determination at all), `DerivedSelector` (whose `determination-prefix` arm reads what the determination SAYS),
-    `Derivation` (which reads §8) and the Phase-B dossier (which tags its citing lines). The C# twin is
-    `tests/_shared/ConformanceRegister.cs`; that pair is the same two-engines-one-artifact shape as the selector
-    evaluator, and `EveryRuleState_AgreesWithThePythonView` catches them drifting.
-
-    ⛔ IT STOPS AT THE NEXT `## ` HEADING, and that is not tidiness. Until §8 existed §7 was the LAST section, so
-    reading to end-of-file was indistinguishable from reading the section — and the moment a second register was
-    appended, every §8 row would have been served to `register_determinations` as an A.1 determination keyed by
-    something that is not an A.1 item. Bounding it is what makes the NEXT section free.
-    """
-    start = text.find(heading)
-    if start < 0:
-        # A body that does not carry this section has no rows of it — the same answer the C# reader gives, and
-        # the reason it is not an error is that both are driven against FABRICATED bodies carrying one section
-        # at a time. A section genuinely lost from the live document is caught by the POPULATION assertions its
-        # gates make (`filed.Count > 0`, `Derivation is not null`), never by a parser raising here.
-        return []
-    body = text[start + len(heading):]
-    if (nxt := body.find("\n## ")) >= 0:
-        body = body[:nxt]
-    first = text.count("\n", 0, start) + 1     # the heading's own line; `body` begins on it
-    rows: list[tuple[int, list[str]]] = []
-    for offset, line in enumerate(body.split("\n")):
-        if not line.startswith("| "):
-            continue
-        cells = register_cells(line)
-        if len(cells) < 2 or cells[0] == header_cell or set(cells[0]) <= set("-: "):
-            continue
-        rows.append((first + offset, cells))
-    return rows
-
-
-def _cell(cells: list[str], i: int) -> str:
-    return cells[i] if len(cells) > i else ""
-
-
-def section7_rows(text: str) -> list[Section7Row]:
-    """Every data row of the §7 Annex A.1 register, in document order."""
-    return [row for _, row in section7_rows_at(text)]
-
-
-def section7_rows_at(text: str) -> list[tuple[int, Section7Row]]:
-    """Every data row of the §7 Annex A.1 register with its 1-based line in `text`, in document order."""
-    return [(line, Section7Row(c[0], c[1], _cell(c, 2), _cell(c, 3)))
-            for line, c in register_section_at(text, REGISTER_HEADING, REGISTER_HEADER_CELL)]
-
-
 def plain(cell: str) -> str:
     """A determination cell with its leading markdown emphasis removed.
 
@@ -665,37 +589,11 @@ def plain(cell: str) -> str:
     return cell.lstrip("*_ \t")
 
 
-_REGISTER_CACHE: dict[str, str] | None = None
-
-
-def register_determinations(text: str | None = None) -> dict[str, str]:
-    """`{row key -> determination cell}` for the §7 register — cached when read from disk.
-
-    A row key is UNIQUE (kb/Work PB3840): an item with SEVERAL determinations (A.1-92 has two) keys the first
-    by the item's inventory rule-id — the one its obligation and its inventory row anchor on — and each further
-    one by that id plus a letter (`DOC-A.1-92b`). A repeated key raises: a lookup that silently kept one of two rows
-    is how ten code sites came to cite a determination they could not name. `audit_annex_a1.py` reports the same
-    defect as a finding, with the rest of the register's checks.
-    """
-    global _REGISTER_CACHE
-    if text is not None:
-        rows = section7_rows(text)
-        keys = [r.key for r in rows]
-        if len(set(keys)) != len(keys):
-            repeated = sorted({k for k in keys if keys.count(k) > 1})
-            raise ValueError(f"docs/CONFORMANCE.md §7 repeats the row key(s) {repeated}: a row key names ONE "
-                             f"determination (file a further determination of an item under its id plus a letter)")
-        return {r.key: r.determination for r in rows}
-    if _REGISTER_CACHE is None:
-        _REGISTER_CACHE = register_determinations(REGISTER_PATH.read_text(encoding="utf-8"))
-    return _REGISTER_CACHE
-
-
 class DerivedSelector:
     """One `derived-verdicts` entry — a verdict that follows MECHANICALLY from one owner determination.
 
     ⛔ THE PREDICATE IS DATA AND BOTH ENGINES READ IT. This class and
-    `tests/WiseOwl.Cobol.Tests.Unit/DerivedVerdictDriftTests.Select` are the two evaluators; neither carries a copy of
+    `tests/WiseOwl.Cobol.Tests.RepoDrift/DerivedVerdictDriftTests.Select` are the two evaluators; neither carries a copy of
     a selector. Until 2026-09-02 the schema's own $comment claimed that already — and it was false: no Python
     consumer of `derived-verdicts` existed, so the PB198 batch was produced by hand and the "two readers" that
     justify writing the predicate as data were one reader and an aspiration.
@@ -760,13 +658,14 @@ class DerivedSelector:
     POSITIVE = ("sections", "pattern", "xref-sections", "kinds", "requirement", "determination-prefix", "lead-in",
                 "formats")
 
-    def __init__(self, name: str, raw: dict[str, Any], register: dict[str, str] | None = None) -> None:
+    def __init__(self, name: str, raw: dict[str, Any], register: Callable[[], Mapping[str, str]]) -> None:
         self.name = name
         self._raw = raw
         self.verdict: str = raw["verdict"]
         self.decision: str = raw.get("decision", "")
         self.excludes = [re.compile(p, re.IGNORECASE) for p in raw.get("excludes-patterns", [])]
-        #: The §7 register this selector reads for its `determination-prefix` arms. Injectable so a self-test
+        #: The §7 register this selector reads for its `determination-prefix` arms, as `{row key -> the determination's
+        #: lead}` (`Schema.register_leads`: the registers' extract, never the Markdown). Injectable so a self-test
         #: drives the predicate against a FABRICATED register instead of the live one — the two new axes cannot
         #: be falsified against today's document, where all four "optional + Not provided" cells agree.
         self._register = register
@@ -798,8 +697,8 @@ class DerivedSelector:
             })
 
     @property
-    def register(self) -> dict[str, str]:
-        return register_determinations() if self._register is None else self._register
+    def register(self) -> Mapping[str, str]:
+        return self._register()
 
     @staticmethod
     def text_of(rule: dict[str, Any]) -> str:
@@ -876,7 +775,7 @@ class DerivedSelector:
 
 
 class Derivation:
-    """`derivation` in the schema — §1.1's owner-signed ALTERNATIVE to a spec-derived test.
+    """`derivation` in the schema — §1.1's signed ALTERNATIVE to a spec-derived test.
 
     ⛔ THE OWNER OPENED THIS DOOR AND SET ITS BOUNDS (kb/Work PB386, 2026-09-03); the class is those bounds,
     encoded. A rule that carries NO OBSERVABLE OBLIGATION cannot meet `DESIGN-spec-conformance-review.md` §1(c) —
@@ -1130,12 +1029,6 @@ def spaced(text: str) -> str:
     return " ".join(text.split())
 
 
-def derivation_rows(text: str, heading: str, header_cell: str = "Rule") -> list[DerivationRow]:
-    """Every data row of the §8 derivation register, in document order."""
-    return [DerivationRow(c[0], c[1], _cell(c, 2), _cell(c, 3), _cell(c, 4), _cell(c, 5))
-            for c in register_section(text, heading, header_cell)]
-
-
 class Schema:
     """`tests/version-matrix/inventory-schema.json` as `tree` has it, parsed. Everything the state rule reads besides the
     row (the catalog's rule ids, docs/CONFORMANCE.md's registers, the Annex A.2 list) is read from that same tree."""
@@ -1170,11 +1063,11 @@ class Schema:
             f: re.compile(p) for f, p in raw["code-location"].get("anchored-files", {}).items()}
         #: The DERIVED-VERDICT selectors (`derived-verdicts` in the schema) — the `$comment` key is documentation.
         self.derived: dict[str, DerivedSelector] = {
-            name: DerivedSelector(name, entry)
+            name: DerivedSelector(name, entry, self.register_leads)
             for name, entry in raw.get("derived-verdicts", {}).items()
             if not name.startswith("$")
         }
-        #: §1.1's owner-signed alternative to a spec-derived test (kb/Work PB386). `None` when the schema
+        #: §1.1's signed alternative to a spec-derived test (kb/Work PB386, PB5373). `None` when the schema
         #: declares none — the door is DATA, so removing the object closes it everywhere at once.
         self.derivation: Derivation | None = (Derivation(raw["derivation"], tree=tree) if "derivation" in raw
                                               else None)
@@ -1185,6 +1078,7 @@ class Schema:
         self._catalogs: dict[int, dict[str, str]] = {}
         #: The §7 register, injectable — see `register_items`.
         self._register_items: set[str] | None = None
+        self._register_leads: dict[str, str] | None = None
 
     @functools.cached_property
     def next(self) -> ChangeRecord:
@@ -1296,6 +1190,14 @@ class Schema:
         reg = self.register_items() if register is None else register
         return (row.get("rule-id") or "") in reg
 
+    def register_leads(self) -> dict[str, str]:
+        """`{§7 row key -> the lead of its determination}` as this tree's extract has them (`REGISTER_EXTRACT_REL`): the
+        determination's first `LEAD_LENGTH` characters, emphasis stripped, which is every character a schema
+        `determination-prefix` reads (the DOC AUDITS audit holds each prefix within it). Read once, from this schema's tree."""
+        if self._register_leads is None:
+            self._register_leads = {r["key"]: r["lead"] for r in register_extract(self.tree)["annexA1"]}
+        return self._register_leads
+
     def register_items(self) -> set[str]:
         """The rule-ids docs/CONFORMANCE.md §7 carries a determination for, as this tree's extract has them
         (`REGISTER_EXTRACT_REL`).
@@ -1354,7 +1256,7 @@ class Schema:
 
     def state_for(self, row: dict[str, Any]) -> str:
         """A row is OK only when its verdict resolves, its required evidence is present, AND a SPEC-DERIVED test
-        covers it — or, for a rule with no observable obligation, an owner-signed DERIVATION stands in its place
+        covers it — or, for a rule with no observable obligation, a signed DERIVATION (owner or deciding session, kb/Work PB5373) stands in its place
         (§1.1, kb/Work PB386, 2026-09-03; see `derivation_stands` for why it is consulted LAST).
 
         This is the definition of DONE from `DESIGN-spec-conformance-review.md` §1, evaluated rather than
@@ -1421,7 +1323,7 @@ class Schema:
         return self.has_spec_derived_test(row) or (row.get("verdict") or "") not in self.resolving
 
     def derivation_stands(self, row: dict[str, Any]) -> bool:
-        """Does this row carry an owner-signed DERIVATION that stands in place of §1(c)'s test?
+        """Does this row carry a signed DERIVATION that stands in place of §1(c)'s test?
 
         ⛔ IT IS CONSULTED HERE AND ONLY HERE — after the verdict, after `requires`, after a kind's anchor and
         observability costs, and exactly where a spec-derived `test-ref` would have been. That ORDER is the
@@ -1451,6 +1353,22 @@ class Schema:
             if head and path.startswith(head) and path.endswith(tail) and len(path) > len(head) + len(tail):
                 return f"{scheme}:{path[len(head):len(path) - len(tail)]}"
         return None
+
+    def class_ref_for_path(self, path: str) -> str | None:
+        """For an xUnit form (`test-dir`): the prefix `<form>:<Class>.` every test-ref of the class the C# file `path`
+        holds begins with (a ref resolves `<Class>.cs` under the form's directory, so the file's stem is the class);
+        None when no xUnit form's directory holds `path`. A test file that moves between two test projects
+        (kb/Work PB5230: Unit to RepoDrift) re-spells every ref of its class through this."""
+        for scheme, form in self.test_ref_forms.items():
+            root = (form.get("test-dir") or "").rstrip("/")
+            if root and path.startswith(root + "/") and path.endswith(".cs"):
+                return f"{scheme}:{path.rpartition('/')[2][:-3]}."
+        return None
+
+    @property
+    def test_dirs(self) -> list[str]:
+        """The directories the xUnit test-ref forms name (`test-dir`): a git pathspec for their classes' files."""
+        return sorted({form["test-dir"] for form in self.test_ref_forms.values() if form.get("test-dir")})
 
     @property
     def ref_roots(self) -> list[str]:

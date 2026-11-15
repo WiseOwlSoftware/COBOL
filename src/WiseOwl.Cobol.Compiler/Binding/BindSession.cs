@@ -20,6 +20,10 @@ internal sealed class BindSession
     /// can decide all three bans. Empty when the source carries none of the three.</summary>
     public IReadOnlyList<Frontend.Preprocessor.DirectiveSite> DirectiveSites { get; init; } = [];
     public required OoClassTable OoClasses { get; init; }
+
+    /// <summary>The COPY statements' text-names and library-names, assigned to the program unit each stands in (kb/Work PB5482;
+    /// <see cref="CopyNameCensus"/>): every unit's binder declares its own through <c>DataBinder.DeclareUserWord</c>.</summary>
+    public CopyNameCensus CopyNames { get; init; } = CopyNameCensus.None;
     public required EditionContext Edition { get; init; }
 
     /// <summary>The group's compile-time <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> resolution (ISO §2023:7.3.23) — the per-line

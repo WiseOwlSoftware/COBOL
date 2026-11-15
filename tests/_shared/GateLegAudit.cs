@@ -68,6 +68,10 @@ internal static class GateLegAudit
             + "workstation-GC heap again (kb/Work PB2526).");
     }
 
+    /// <summary>This run's repository root AS TEXT, the form arm (5) matches a case name against: no file is read through
+    /// it (the BUILD TARGETS audit judges this file's root references so, scripts/build_targets.json).</summary>
+    public static string HostRoot => TestRepo.Root;
+
     /// <summary>Arm (5): no discovered case of <paramref name="assembly"/> carries the repository root in its
     /// display name or in a string argument. A worktree path in a name makes the name differ between the worktree
     /// a case was recorded in and the one a gate runs in, so no record of it could ever key on its name (evidence
@@ -78,10 +82,10 @@ internal static class GateLegAudit
     {
         var cases = Discover(assembly);
         Assert.True(cases.Count > 0, $"discovery found no case in {assembly.GetName().Name}: the audit saw nothing");
-        var offenders = RootCarrying(cases.Select(c => (c.DisplayName, (object[]?)c.TestMethodArguments)), TestRepo.Root);
+        var offenders = RootCarrying(cases.Select(c => (c.DisplayName, (object[]?)c.TestMethodArguments)), HostRoot);
         Assert.True(offenders.Count == 0,
             $"{offenders.Count} discovered case(s) of {assembly.GetName().Name} carry the repository root "
-            + $"'{TestRepo.Root}'; pass a repository-relative path instead. First: "
+            + $"'{HostRoot}'; pass a repository-relative path instead. First: "
             + string.Join(" | ", offenders.Take(3)));
     }
 

@@ -401,7 +401,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         var b = IntegerValuedLiteral(n.Base) ?? n.Base.Accept(this);
         var e = IntegerValuedLiteral(n.Exp) ?? n.Exp.Accept(this);
         _outermost = outer;
-        return Power(b, e, IntegerLiteralValue(n.Exp));
+        return Power(b, e, IntegerLiteralValue(n.Exp), n.NegativeBaseRealRoots);
     }
 
     /// <summary>A numeric LITERAL whose algebraic VALUE is an integer the native carrier can hold, as a scale-0
@@ -506,18 +506,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // A table(ALL) intrinsic argument (ISO §2023:15.3; kb/Work PB62) renders as its ELEMENT — the index variable's
         // slot in the subscript — which is what its enumeration lambda wraps; the list is never a single value.
         p is TableAllPlace all ? FieldNum(all.Element) :
-        p.DenotedItem is not null && !p.Item.StoreAsImage
+        p.DescribedItem is { StoreAsImage: false }
             // A FLOATING-POINT numeric-edited sender de-edits to its EXACT value — a CobolDec on the Dec lane (D21/PB66:
             // a significand with its own power of ten; never a double); EC-DATA-INCOMPATIBLE for impossible content.
             && p.Item.Pic is { Category: PicCategory.NumericEdited, IsFloatEdited: true, EditMask: { } fem }
         ? new NumX($"CobolEdit.DeEditFloat({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(fem)}{ctx.EditCfg(p.Item.Pic)}{(p.Item.BlankWhenZero ? ", blankWhenZero: true" : "")})", 0, Dec: true)
-        : p.DenotedItem is not null && !p.Item.StoreAsImage
+        : p.DescribedItem is { StoreAsImage: false }
             // A format-2 (LOCALE) sender DE-EDITS through CobolLocaleEdit under the locale current NOW
             // (§2023:13.18.40.5 r11; §2023:14.6.13.2 r4 — impossible content is EC-DATA-INCOMPATIBLE); the scale is the
             // PICTURE's (PB64 T6). The second of the two dispatch sites PicInfo.LocaleEdit's doc names.
             && p.Item.Pic is { LocaleEdit: not null } lpic
         ? new NumX(RuntimeApi.LocaleDeEdit(lpic, PlaceRenderer.Read(p), p.Item.BlankWhenZero), lpic.Scale)
-        : p.DenotedItem is not null && !p.Item.StoreAsImage
+        : p.DescribedItem is { StoreAsImage: false }
             // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §2023:14.9.25.4 GR5 — the
             // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
             && p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } dem }
@@ -1455,7 +1455,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <summary>Render a STOP RUN / GOBACK termination-status phrase to a C# <c>long</c> exit-status expression
     /// (ISO §2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10): the status VALUE truncated to an integer at scale 0 when present
     /// (SR3 — an integer is passed to the OS), else the implementor error/normal indication ERROR ⇒ 1 / NORMAL ⇒ 0
-    /// (§2023:14.9.42.4 GR2/GR3; docs/CONFORMANCE.md §4.2.16). The value renders receiver-less (scale 0) exactly as a
+    /// (§2023:14.9.42.4 GR2/GR3; docs/CONFORMANCE.md DOC-A.1-193). The value renders receiver-less (scale 0) exactly as a
     /// boolean-shift count or an intrinsic integer argument does.
     /// <para>⛔ THE VALUE IS AN OPERAND, NOT AN EXPRESSION (kb/Work PB169) — §2023:14.9.42.2 writes the slot
     /// <c>{identifier-1 | literal-1}</c>. The NUMERIC arm is byte-identical to the former
@@ -1505,7 +1505,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// a no-phrase store must truncate; kb/Work PB653 removed the nested arm's working scale). The previous
     /// scale-0 <c>(long)</c> truncation lost every fractional power result and turned the double artifact in
     /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25).</summary>
-    private NumX Power(NumX b, NumX e, Int128? literalExponent)
+    private NumX Power(NumX b, NumX e, Int128? literalExponent, bool negativeBaseRealRoots)
     {
         NumX exactBase = b, exactExponent = e;   // before the lowering below drops an exact operand's float-item mark (PB4923)
         // An exact exponent (NumX.Wide, NumX.Exact) has no power form: it enters on the SDIDI (kb/Work PB1900).
@@ -1565,7 +1565,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // does, and that is a run-time fact (CobolExact.TryBinary64). The lowering above would have dropped the mark, so the operands
         // enter as they were and CobolExact.PowReal forms the result in its kind.
         if (exactBase.Exact || exactExponent.Exact)
-            return new NumX(RuntimeApi.ExactPowReal(ExactOperand(DeU(exactBase)), ExactOperand(DeU(exactExponent)), RangeChecks), 0, Exact: true);
+            return new NumX(RuntimeApi.ExactPowReal(ExactOperand(DeU(exactBase)), ExactOperand(DeU(exactExponent)), RangeChecks,
+                negativeBaseRealRoots), 0, Exact: true);
         // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
         // the FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
         // A receiver-less exponentiation keeps the binary64 result for the same reason the float-intrinsic family
@@ -1589,10 +1590,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // The decision now carries `Quantize` and this arm reads it (feedback_two_arm_dispatch, sixth sighting).
         var landing = _rcv.FloatLanding(_outermost);
         // Under size-error checking the binary64 power is range-checked like every other checked native operation
-        // (§2023:14.7.5 case 5 — kb/Work PB1581); unchecked it stays the bare approximation.
+        // (§2023:14.7.5 case 5 — kb/Work PB1581); unchecked it stays the bare approximation. ⛔ AT COBOL-85 THE EXPONENT ENTERS EXACT
+        // (kb/Work PB5186): §1985:VI.6.2.3 GR5c refuses a negative base only when no real number is the result, which the exponent's
+        // exact value decides and its binary64 cannot (0.2 is not 1/5), so the runtime's COBOL-85 overload takes the exact operand.
+        string exponent = negativeBaseRealRoots ? ExactOperand(e) : Real(e);
         string pow = RangeChecks is { } powTaken
-            ? RuntimeApi.Intrinsic("PowNativeRealChecked", $"{Real(b)}, {Real(e)}, {powTaken}")
-            : RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}");
+            ? RuntimeApi.Intrinsic("PowNativeRealChecked", $"{Real(b)}, {exponent}, {powTaken}")
+            : RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {exponent}");
         // The binary64 power is an APPROXIMATION the engine produced (§2023:8.8.1.3) unless an operand is itself a float
         // ITEM's content, which then owns the result (kb/Work PB1641 — see CombineCore's lane note).
         if (b.Real || e.Real || !landing.Quantize)
@@ -1617,7 +1621,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : new($"(-{x.Expr})", x.Scale, Digits: x.Digits, Precision: x.Precision);
 
     /// <summary>The unsigned-wide → Int128-lane funnel (kb/Work R10): a <c>U</c> operand narrows through
-    /// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate, CONFORMANCE.md §4.2.16); every
+    /// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate, CONFORMANCE.md DOC-A.1-123); every
     /// other operand passes through unchanged. The ONE chokepoint every arithmetic path shares (internal: the
     /// CALL BY CONTENT computed-argument site funnels through the same rule).</summary>
     internal static NumX DeU(NumX x) => x.U ? new NumX(RuntimeApi.NumWiden(x.Expr), x.Scale, Digits: x.Digits) : x;

@@ -146,6 +146,118 @@ internal sealed class VersionConformancePass
             foreach (var stmt in para.Statements)
                 WalkStatement(stmt);
         GateSortMergeProcedures(prog);
+        if (_edition.Year < 2002) GateReleaseReturnRange(prog);
+        if (_edition.Year < 2002) GateBeforeReportingPerformRange(prog);
+    }
+
+    /// <summary>⛔ §1985:XI.4.2.3 SR2 AND §1985:XI.4.3.3 SR3 — A RELEASE STATEMENT IS WITHIN THE RANGE OF AN INPUT PROCEDURE OF A SORT NAMING
+    /// ITS SORT FILE, A RETURN WITHIN THE RANGE OF AN OUTPUT PROCEDURE OF A SORT OR MERGE NAMING ITS FILE (kb/Work PB5104; COBOL7081, COBOL-85).
+    /// The RANGE is the procedure's paragraphs and every statement executed as the result of a transfer of control in it
+    /// (§1985:XI.4.4.4 GR7, GR10), so it is the execution model <see cref="ProcedureReach.Closure{TOrigin}"/> with a GO TO followed, seeded from the
+    /// procedures of the statements that name this file — not the lexical span the "shall not appear in" rules of
+    /// <see cref="GateSortMergeProcedures"/> ask. A statement of the declaratives is not asked: the range includes "all statements in
+    /// declarative procedures that are executed as a result of" the range's statements, which is a run-time fact. At COBOL-2002 and later the
+    /// same misuse is the run-time exception EC-SORT-MERGE-RELEASE / EC-SORT-MERGE-RETURN (kb/Work PB1036).</summary>
+    private void GateReleaseReturnRange(BoundProgram prog)
+    {
+        var inputs = new List<(PcRange Range, FileModel File)>();
+        var outputs = new List<(PcRange Range, FileModel File)>();
+        var uses = new List<(BoundStatement Node, FileModel File, bool Release, int Pc)>();
+        void Collect(BoundStatement s, int pc)
+        {
+            switch (s)
+            {
+                case BoundSort so:
+                    if (so.InputProcedure is { } ip) inputs.Add((ip, so.File));
+                    if (so.OutputProcedure is { } op) outputs.Add((op, so.File));
+                    break;
+                case BoundMerge mg:
+                    if (mg.OutputProcedure is { } mop) outputs.Add((mop, mg.File));
+                    break;
+                case BoundRelease rl when pc >= prog.EntryPc: uses.Add((rl, rl.File, true, pc)); break;
+                case BoundReturn rt when pc >= prog.EntryPc: uses.Add((rt, rt.File, false, pc)); break;
+            }
+            foreach (var c in s.StatementChildren()) Collect(c, pc);
+        }
+        for (int i = 0; i < prog.Paragraphs.Count; i++)
+            foreach (var stmt in prog.Paragraphs[i].Statements) Collect(stmt, i);
+        if (uses.Count == 0) return;
+
+        var ranges = new Dictionary<(FileModel File, bool Release), Dictionary<int, FileModel>>();
+        foreach (var (node, file, release, pc) in uses)
+        {
+            if (!ranges.TryGetValue((file, release), out var range))
+                ranges[(file, release)] = range = ProcedureReach.Closure(prog.Paragraphs,
+                    (release ? inputs : outputs).Where(p => ReferenceEquals(p.File, file)).Select(p => (p.Range, p.File)), followGoTo: true);
+            if (range.ContainsKey(pc)) continue;
+            using var _ = _sink.At(node.At);
+            string verb = release ? "RELEASE" : "RETURN";
+            _sink.Report(new EditionDiagnostic(DiagnosticCatalog.ReleaseReturnPlacement.Code, EditionSeverity.Error,
+                DiagnosticCatalog.ReleaseReturnPlacement.Id,
+                release
+                    ? $"a RELEASE statement of the record of '{file.CobolName}' stands outside the range of every input procedure of a SORT "
+                        + $"statement for '{file.CobolName}' (§1985:XI.4.2.3 SR2: \"A RELEASE statement may be used only within the range of an input "
+                        + "procedure associated with a SORT statement for the file-name whose sort-merge file description entry contains record-name-1.\")"
+                    : $"a RETURN statement of '{file.CobolName}' stands outside the range of every output procedure of a SORT or MERGE "
+                        + $"statement for '{file.CobolName}' (§1985:XI.4.3.3 SR3: \"A RETURN statement may only be used within the range of an output "
+                        + "procedure associated with a SORT or MERGE statement for file-name-1.\")",
+                verb, release ? "§1985:XI.4.2.3 SR2" : "§1985:XI.4.3.3 SR3"));
+        }
+    }
+
+    /// <summary>⛔ §1985:XIII.4.9.3 SR3, SECOND SENTENCE — "A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE,
+    /// INITIATE, or TERMINATE statements in its range." (kb/Work PB5254; COBOL7234, COBOL-85 only: §2002:14.8.45.2 and later keep the first
+    /// sentence, which <c>ReportWriterBinder.RejectInBeforeReporting</c> asks lexically, and replace this one by the run-time EC-FLOW-REPORT of
+    /// §2023:14.9.49.4 GR10, kb/Work PB326). The range (§1985:VI.6.21.4 GR11) is the static range <see cref="ProcedureReach.Closure{TOrigin}"/> models — the performed
+    /// paragraphs and every procedure they transfer to and return from — read once per PERFORM, so a statement is reported at the
+    /// PERFORM that reaches it. A report statement written in a USE BEFORE REPORTING paragraph itself is the first sentence's and is not
+    /// asked here; a GO TO is not followed (where it leads after leaving the range is a run-time fact, as
+    /// <see cref="GateSortMergeProcedures"/> reasons).</summary>
+    private void GateBeforeReportingPerformRange(BoundProgram prog)
+    {
+        if (prog.Declaratives is not { Count: > 0 } declaratives) return;
+        var beforeReporting = declaratives.Where(d => d.ReportGroup is not null).ToList();
+        if (beforeReporting.Count == 0) return;
+
+        static BoundStatement? FirstReportStatement(IEnumerable<BoundStatement> statements)
+        {
+            foreach (var s in statements)
+            {
+                if (s is BoundGenerate or BoundInitiate or BoundTerminate) return s;
+                if (FirstReportStatement(s.StatementChildren()) is { } nested) return nested;
+            }
+            return null;
+        }
+        var performs = new List<BoundOutOfLinePerform>();
+        void Collect(BoundStatement s)
+        {
+            if (s is BoundOutOfLinePerform p) performs.Add(p);
+            foreach (var c in s.StatementChildren()) Collect(c);
+        }
+        foreach (var d in beforeReporting)
+        {
+            performs.Clear();
+            foreach (int pc in d.Range.SpannedPcs())
+                foreach (var stmt in prog.Paragraphs[pc].Statements) Collect(stmt);
+            foreach (var perform in performs)
+            {
+                var range = ProcedureReach.Closure(prog.Paragraphs, [(perform.Range, 0)]);
+                foreach (int pc in range.Keys.Order())
+                {
+                    if (beforeReporting.Any(b => b.Contains(pc))) continue;   // the first sentence's, reported where it is written
+                    if (FirstReportStatement(prog.Paragraphs[pc].Statements) is not { } reported) continue;
+                    using var _ = _sink.At(perform.At);
+                    string verb = reported switch { BoundGenerate => "GENERATE", BoundInitiate => "INITIATE", _ => "TERMINATE" };
+                    _sink.Report(new EditionDiagnostic(DiagnosticCatalog.BeforeReportingPerformRange.Code, EditionSeverity.Error,
+                        DiagnosticCatalog.BeforeReportingPerformRange.Id,
+                        $"a PERFORM in USE BEFORE REPORTING declarative section '{d.SectionName}' has a {verb} statement in its range "
+                        + $"(paragraph '{prog.Paragraphs[pc].CobolName}'; §1985:XIII.4.9.3 SR3: \"A PERFORM statement in a USE BEFORE REPORTING "
+                        + "procedure must not have GENERATE, INITIATE, or TERMINATE statements in its range.\")",
+                        "PERFORM", "§1985:XIII.4.9.3 SR3"));
+                    break;   // one report per PERFORM
+                }
+            }
+        }
     }
 
     /// <summary>⛔ THE SORT/MERGE-PROCEDURE LEG OF THE PLACEMENT RULES — ONE region and ONE membership test for every
@@ -153,8 +265,11 @@ internal sealed class VersionConformancePass
     /// file-format SORT and the output procedure of every MERGE (a SORT/MERGE with only USING/GIVING files contributes
     /// none), and four arms ask whether a statement lies in it:
     /// <list type="bullet">
-    ///   <item>a file-format SORT — "shall not appear … in an input or output procedure" (§2023:14.9.40.3 SR3), at EVERY
-    ///     edition ("SORT already disallowed it", Annex E.2 item 20) — COBOL2700, an error always;</item>
+    ///   <item>a file-format SORT — "shall not appear … in an input or output procedure" (§2023:14.9.40.3 SR3), from
+    ///     COBOL-2023 only — COBOL2700, an error. The earlier editions place a SORT "anywhere in the procedure division
+    ///     except" the declarative portion (§2014:14.9.36.2 SR1, §2002:14.8.36.2 SR1, §1985:XI.4.4.3 SR1) and forbid only
+    ///     that the procedure's range "cause the execution of" one (§1985:XI.4.4.4 GR7): a run-time rule with the MERGE
+    ///     arm's dynamic net below, so a SORT written on a path that never runs is legal there (kb/Work PB5274);</item>
     ///   <item>a MERGE — "in an output procedure of another MERGE statement, or an input or output procedure of a file
     ///     format SORT statement" (§2023:14.9.24.3 SR1). VCR 27 (Annex E.2 item 20): the 2014 standard allowed it with
     ///     conflicting rules, so at COBOL-2023 it is a REMOVAL — COBOL1572, an Error under strict and a Warning under
@@ -200,16 +315,16 @@ internal sealed class VersionConformancePass
         void Flag(BoundStatement s, int paraPc)
         {
             using var _ = _sink.At(s.At);   // each diagnostic below is at its statement (kb/Work PB812, PB1925)
-            if (s is BoundSort so && InProcedure(paraPc))
-            {
-                _sink.Report(new EditionDiagnostic(DiagnosticCatalog.SortMergePlacement.Code, EditionSeverity.Error,
-                    "sort-merge-placement",
-                    $"a file SORT of '{so.File.CobolName}' shall not appear in an input or output procedure of a SORT or "
-                    + "MERGE statement (ISO §2023:14.9.40.3 SR3)",
-                    $"SORT '{so.File.CobolName}'", "ISO §2023:14.9.40.3 SR3"));
-            }
             if (_edition.Year >= 2023)
             {
+                if (s is BoundSort so && InProcedure(paraPc))
+                {
+                    _sink.Report(new EditionDiagnostic(DiagnosticCatalog.SortMergePlacement.Code, EditionSeverity.Error,
+                        "sort-merge-placement",
+                        $"a file SORT of '{so.File.CobolName}' shall not appear in an input or output procedure of a SORT "
+                        + "or MERGE statement (ISO §2023:14.9.40.3 SR3)",
+                        $"SORT '{so.File.CobolName}'", "ISO §2023:14.9.40.3 SR3"));
+                }
                 if (s is BoundMerge m && InProcedure(paraPc))
                 {
                     _sink.Report(new EditionDiagnostic(DiagnosticCatalog.MergeInSortMergeProc.Code, mergeSeverity,
@@ -290,8 +405,11 @@ internal sealed class VersionConformancePass
             // Formerly, they had to be elementary or have a level number of 1 or 77" (call-using-group-any-level-2002;
             // kb/Work PB4305). Bound arm: a USING operand's level and group-ness are facts of the item it resolves to.
             case BoundCallProgram call:
+                // The operand's kind and level are those of the item its REFERENCE denotes (Place.DenotesGroupItem,
+                // Place.DenotedItem), not of the item underneath: a reference-modified operand is elementary and a
+                // level-66 THROUGH alias is a group at level 66 (§1985:X.5.2.3 SR3; kb/Work PB5383).
                 foreach (var arg in call.Args)
-                    if (arg.Place?.Item is { IsGroup: true, Level: not (1 or 77) } item)
+                    if (arg.Place is { DenotesGroupItem: true, DenotedItem: { Level: not (1 or 77) } item })
                         Check(Constructs.CallUsingGroupAnyLevel2002,
                             $"the CALL USING argument '{item.CobolName}', a group item at level {item.Level:00}");
                 break;
@@ -1054,6 +1172,21 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>An empty argument list after a function name (kb/Work PB5163): §1985:IV.4.3.8.3.2 writes the parentheses
+        /// only around a braced <c>{ argument-1 } ...</c>, and §1985:IV.2.1.4 says "one of the options contained within the
+        /// braces must be either explicitly specified or implicitly selected"; ISO/IEC 1989:2002 8.4.2.2.1 brackets the
+        /// argument inside them (its 8.4.2.2.2 SR4 NOTE writes <c>FUNCTION RANDOM ()</c>). Recognition-based, so a function
+        /// the bind refuses is gated too; the keyword-omitted forms need a REPOSITORY entry, itself a 2002 introduction.</summary>
+        public override object? VisitFunctionCall(CobolParserCore.FunctionCallContext ctx)
+        {
+            if (ctx.FNARG_LPAREN() is { } open && ctx.functionArgList() is null)
+            {
+                using var _ = Sink.At(open.Symbol);
+                _p.Check(Constructs.FunctionEmptyArgumentList2002, "an empty function argument list '( )'");
+            }
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>Whether an UNSTRING sending operand, whichever alternative it is, is written with a reference
         /// modifier. A <c>refModPart</c> of a function call or an inline invocation is always the result's reference
         /// modifier (an argument list is a <c>subscriptPart</c>; <c>IntrinsicBinder.FinishIntrinsic</c>).</summary>
@@ -1172,8 +1305,8 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>ENTER — the '85 other-language entry statement, deleted 2002. Comment-equivalent (BoundNop)
-        /// at 85 — the conforming COBOL-only posture.</summary>
+        /// <summary>ENTER — the '85 other-language entry statement, deleted 2002. Not provided at 85 either: the binder
+        /// refuses it by name there (COBOL7240, kb/Work PB5308).</summary>
         public override object? VisitEnterStatement(CobolParserCore.EnterStatementContext ctx)
         {
             _p.Check(Constructs.EnterRemoved2002, "the ENTER statement");
@@ -1350,6 +1483,14 @@ internal sealed class VersionConformancePass
         public override object? VisitValueClause(CobolParserCore.ValueClauseContext ctx)
         {
             if (ctx.valueClauseTablePhrase().Length > 0) _p.Check(Constructs.ValueTableFormat2002, "the Format 2 (table) VALUE clause");
+            // A report entry's VALUE clause is `VALUE IS literal-1` at COBOL-85 (§1985:XIII.3.22.2); ISO/IEC 1989:2002
+            // 13.16.61.1 Format 4 adds the VALUES spelling (kb/Work PB5242, report-value-forms-2002). Its more-than-one
+            // literal form needs a repeating entry (COBOL2012), each of which is already a 2002 form.
+            if (ctx.VALUES() is { } values && InReportGroupEntry(ctx))
+            {
+                using var _ = Sink.At(values.Symbol);
+                _p.Check(Constructs.ReportValueForms2002, "the VALUES spelling of the VALUE clause (report group description)");
+            }
             // ISO/IEC 1989:2002 Annex F.2 item 145: the data-item and table formats of the VALUE clause "may be specified
             // in data descriptions in the linkage section and in the file section and for items described with the
             // EXTERNAL clause" (value-clause-linkage-file-external-2002; kb/Work PB4305). A condition-name entry's
@@ -1697,6 +1838,108 @@ internal sealed class VersionConformancePass
                 : null;
             if (form is not null)
                 _p.Check(Constructs.ReportMultiLine2002, form + " (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>A LINE operand of NEXT PAGE with no integer (kb/Work PB5242): §1985:XIII.3.15.2 prints
+        /// <c>LINE NUMBER IS {integer-1 [ON NEXT PAGE] | PLUS integer-2}</c>, so every COBOL-85 line is established by an
+        /// integer (§1985:XIII.3.15.4 GR1); ISO/IEC 1989:2002 13.16.33.1 Format 1 adds the third alternative
+        /// <c>ON NEXT PAGE</c>. Fires once per written operand; report-section-exclusive rule.</summary>
+        public override object? VisitReportLineOperand(CobolParserCore.ReportLineOperandContext ctx)
+        {
+            if (ctx.NEXT() is not null && ctx.integerOperand() is null)
+                _p.Check(Constructs.ReportLineNextPage2002, "a LINE operand of NEXT PAGE with no integer (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The WITH RESET phrase of NEXT GROUP NEXT PAGE (kb/Work PB5242): §1985:XIII.3.16.2 prints
+        /// <c>NEXT GROUP IS {integer-1 | PLUS integer-2 | NEXT PAGE}</c>, and ISO/IEC 1989:2002 Annex F.2 item 115 lists
+        /// "WITH RESET phrase added to NEXT PAGE". Fires once per written clause.</summary>
+        public override object? VisitReportNextGroupClause(CobolParserCore.ReportNextGroupClauseContext ctx)
+        {
+            if (ctx.RESET() is { } reset)
+            {
+                using var _ = Sink.At(reset.Symbol);
+                _p.Check(Constructs.ReportNextPageReset2002, "the WITH RESET phrase of NEXT GROUP NEXT PAGE (report group description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The 2002 forms of the SUM clause (kb/Work PB5242). §1985:XIII.3.19.2 prints
+        /// <c>{SUM {identifier-1}... [UPON {data-name-1}...]}... [RESET ON {data-name-2 | FINAL}]</c>: no OF, no ROUNDED,
+        /// and an addend that is an identifier (§1985:XIII.3.19.3 SR1: "Identifier-1 must reference a numeric data item";
+        /// a numeric function is not one, §1985:IV.4.3.8.3.3 SR4 confining it to an arithmetic expression). ISO/IEC
+        /// 1989:2002 13.16.52.1 adds the three, and Annex F.2 item 115 lists "SUM clause has many changes". The ROUNDED
+        /// phrase closes the whole clause, so it is asked here; OF and the addends are each group's
+        /// (<see cref="VisitReportSumGroup"/>).</summary>
+        public override object? VisitReportSumClause(CobolParserCore.ReportSumClauseContext ctx)
+        {
+            if (ctx.roundedPhrase() is { } rounded)
+            {
+                using var _ = Sink.At(rounded);
+                _p.Check(Constructs.ReportSumForms2002, "the ROUNDED phrase of the SUM clause (report group description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The word OF after SUM, and an addend that is not an identifier (an arithmetic expression, a literal, a
+        /// figurative constant or a function), in one SUM group (kb/Work PB5242; <see cref="VisitReportSumClause"/>
+        /// carries the rule). Fires at most once per written group, naming the first 2002 form it holds.</summary>
+        public override object? VisitReportSumGroup(CobolParserCore.ReportSumGroupContext ctx)
+        {
+            string? form = ctx.OF() is not null ? "the word OF after SUM"
+                : ctx.reportValueOperand().Any(o => SoleOperand.DataRef(o.arithmeticExpression()) is null)
+                    ? "a SUM addend that is not an identifier (an arithmetic expression, literal or function)"
+                : null;
+            if (form is not null)
+                _p.Check(Constructs.ReportSumForms2002, form + " (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The word IS of the RD CODE clause (kb/Work PB5242): §1985:XIII.3.6.2 prints <c>CODE literal-1</c>;
+        /// ISO/IEC 1989:2002 13.16.12.1 prints <c>CODE IS {literal-1 | identifier-1}</c>. The identifier operand is its
+        /// own syntax rule's refusal at COBOL-85 (COBOL2713, ReportSectionBinder.BindCodeClause).</summary>
+        public override object? VisitReportCodeClause(CobolParserCore.ReportCodeClauseContext ctx)
+        {
+            if (ctx.IS() is { } word)
+            {
+                using var _ = Sink.At(word.Symbol);
+                _p.Check(Constructs.ReportCodeIs2002, "the word IS of the CODE clause (report description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The page width and the omitted page limit of the RD PAGE clause (kb/Work PB5242). §1985:XIII.3.8.2
+        /// prints <c>PAGE [LIMIT IS | LIMITS ARE] integer-1 [LINE | LINES]</c> and its phrases: integer-1 is required and
+        /// there is no width; ISO/IEC 1989:2002 13.16.37.1 adds <c>integer-2 {COLS | COLUMNS}</c>, and its SR2 lets either
+        /// integer stand alone. Only PAGE is underlined in the 1985 bracket (the PDF page rendered), so <c>PAGE IS 20</c> and
+        /// <c>PAGE LIMIT 20</c> are COBOL-85 and are not asked (kb/Work PB3751's reading). The phrases are
+        /// <see cref="VisitReportPageSubclause"/>'s.</summary>
+        public override object? VisitReportPageClause(CobolParserCore.ReportPageClauseContext ctx)
+        {
+            if (ctx.reportPageWidth() is { } width)
+            {
+                using var _ = Sink.At(width);
+                _p.Check(Constructs.ReportPageForms2002, (ctx.integerOperand() is null
+                    ? "the PAGE clause without its page limit" : "the page width (COLS or COLUMNS) of the PAGE clause")
+                    + " (report description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The 2002 forms of a PAGE clause phrase (kb/Work PB5242): §1985:XIII.3.8.2 prints
+        /// <c>[HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]</c>, with no LAST
+        /// CONTROL HEADING phrase, no DE or CH abbreviation and no IS before the integer; ISO/IEC 1989:2002 13.16.37.1 adds
+        /// the three, its SR1 "FIRST DE is synonymous with FIRST DETAIL, LAST CH is synonymous with LAST CONTROL HEADING".
+        /// Fires at most once per written phrase, naming the first 2002 form it holds.</summary>
+        public override object? VisitReportPageSubclause(CobolParserCore.ReportPageSubclauseContext ctx)
+        {
+            string? form = (ctx.CONTROL() ?? ctx.CH()) is not null ? "the LAST CONTROL HEADING phrase"
+                : ctx.DE() is not null ? "the DE abbreviation of DETAIL"
+                : ctx.IS() is not null ? "the word IS before a phrase's integer"
+                : null;
+            if (form is not null)
+                _p.Check(Constructs.ReportPageForms2002, form + " of the PAGE clause (report description)");
             return base.VisitChildren(ctx);
         }
 
@@ -2616,6 +2859,22 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The LOGICAL NOT of an abbreviated relation (<c>A &gt; B AND NOT &gt;= C</c>; §1985:VI.6.3.3 GRL2.2) — the
+        /// grammar's one <c>negatedAbbreviatedRelation</c> node, which only the 85 reading produces. Its two shapes have two
+        /// edition histories, so the gate asks <see cref="NegatedAbbreviationForms.Of"/> which one it is (kb/Work PB5123,
+        /// review R1-1). NOT before an IS-led simple relational operator (<c>NOT IS &gt; C</c>) stays legal in 2002, where
+        /// §2002:8.8.4.2.4.3 GR2b makes it part of the operator, and leaves the format in 2014 (§2014:8.8.4.2.4.1). Every
+        /// other shape is prohibited from 2002: NOT before 'greater than or equal to' and 'less than or equal to'
+        /// (§2002:F.1 item 22) and NOT before IS NOT (§2002:8.8.4.2.4.2 SR3).</summary>
+        public override object? VisitNegatedAbbreviatedRelation(CobolParserCore.NegatedAbbreviatedRelationContext ctx)
+        {
+            if (NegatedAbbreviationForms.Of(ctx) == NegatedAbbreviationForm.IsLedSimpleOperator)
+                _p.Check(Constructs.AbbreviatedNotIsSimpleOperatorRemoved2014, "NOT before an IS-led simple relational operator of an abbreviated relation");
+            else
+                _p.Check(Constructs.AbbreviatedNotLogicalRemoved2002, "NOT before the relational operator of an abbreviated relation");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The target-less <c>GO TO.</c> (ISO §2023:14.9.17; the ANSI-85 alterable GO TO, REMOVED by 2002) —
         /// the grammar's third <c>goToStatement</c> alternative, asked of the ONE format classifier rather than
         /// re-derived from optional children (kb/Work PB412). The condition used to be spelled
@@ -2907,13 +3166,11 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        // ── Step 14h.4b: the boolean-operator + national/boolean LITERAL gates (the delicate cases) ────────────
-        // (1) The boolean OPERATORS gate is detected at the primaryCondition / computeStatement ALTITUDE with a
-        //     whole-subtree operator scan (BooleanOperatorGate) — never per booleanExpression node: the tiers nest via parentheses /
-        //     the relation form, so a per-node gate would over-count. (2) The national/boolean LITERAL gates fire
-        //     for a PROCEDURE-DIVISION statement operand only (a StatementContext ancestor); a data-division VALUE
-        //     literal is left to the data/PIC gate (its item's national/boolean USAGE, Step 14g) — firing here too
-        //     would double the below-2002 diagnostic.
+        // ── Step 14h.4b: the boolean-operator gate (the delicate case) ──────────────────────────────────────────
+        // The boolean OPERATORS gate is detected at the primaryCondition / computeStatement ALTITUDE with a
+        // whole-subtree operator scan (BooleanOperatorGate) — never per booleanExpression node: the tiers nest via parentheses /
+        // the relation form, so a per-node gate would over-count. The national and boolean LITERAL gates are not here: a
+        // literal's format is a property of its token, gated position-blind by LiteralScreen.GateFormat (kb/Work PB5416).
 
         /// <summary>⭐ THE boolean-operator introduction gate — ONE rule, called once per GRAMMAR SITE that hosts
         /// a top-level <c>booleanExpression</c>. B-AND/B-OR/B-XOR/B-NOT are a COBOL-2002 introduction (ISO
@@ -3050,49 +3307,9 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>National (<c>N"…"</c>) and boolean (<c>B"…"</c>) literals as a PROCEDURE-DIVISION statement
-        /// operand — COBOL-2002 introductions (ISO §2023:8.3.3.5 / §2023:8.3.3.4). Scoped to a StatementContext ancestor so a
-        /// DATA-division VALUE literal is left to the data/PIC gate (Step 14g) — firing here too would double the
-        /// below-2002 diagnostic. One Check per literal occurrence, matching the binder's NationalLiteralOperand /
-        /// BooleanLiteralOperand / boolean-expression-operand paths.</summary>
-        public override object? VisitNonNumericLiteral(CobolParserCore.NonNumericLiteralContext ctx)
-        {
-            bool nat = ctx.NATLIT() is not null;
-            if ((nat || ctx.BOOLLIT() is not null) && InStatement(ctx))
-                _p.Check(nat ? Constructs.NationalData2002 : Constructs.BooleanData2002,
-                    nat ? "national literal N\"…\"" : "boolean literal B\"…\"");
-            // The literal's OWN syntax rules — the §2023:8.3.3 length and hexadecimal-grouping rules — are LiteralScreen's,
-            // asked of every literal TOKEN wherever it is written (kb/Work PB1393). The grouping rule used to be asked
-            // here and in the ALL arm below, and a concatenation operand and a keyword-omitted intrinsic argument
-            // slipped past both.
-            return base.VisitChildren(ctx);
-        }
-
-        /// <summary>The <c>ALL literal</c> figurative's literal-1 (ISO §2023:8.3.3.6.3 SR2 — kb/Work PB71): a national or
-        /// boolean literal-1 is the same COBOL-2002 introduction as the bare literal (statement-scoped, as above —
-        /// a VALUE clause's is the data/PIC gate's). The tokens are direct children of figurativeConstant, not of
-        /// nonNumericLiteral, so the override above never saw them — `ALL B"1"` at --std 85 was ungated. Only the
-        /// EDITION gates live here. A CONCATENATED literal-1 is THE §2023:8.8.3 concatenationExpression node (kb/Work
-        /// PB1627), so the &amp; gate is <see cref="VisitConcatenationExpression"/>'s on recognition, and §2023:8.3.3.6.3
-        /// SR2 and the §2023:8.8.3.2 rules are the binder's, through the one Format 6 reader
-        /// <c>ConcatFolder.FoldAllLiteral</c> — they need the program's constant-names, which a parse walk has not
-        /// got (the rules used to be asked here, over a quoted-only operand list).</summary>
-        public override object? VisitFigurativeConstant(CobolParserCore.FigurativeConstantContext ctx)
-        {
-            if (ctx.allLiteral() is not { } al || !InStatement(ctx)) return base.VisitChildren(ctx);
-            // The literal-1 tokens: the one quoted literal, or a concatenation's quoted operands.
-            var ops = al.concatenationExpression()?.concatOperand();
-            bool nat = ops?.Any(o => o.NATLIT() is not null) ?? al.NATLIT() is not null;
-            bool bl = ops?.Any(o => o.BOOLLIT() is not null) ?? al.BOOLLIT() is not null;
-            if (nat || bl)
-                _p.Check(nat ? Constructs.NationalData2002 : Constructs.BooleanData2002,
-                    nat ? "the figurative ALL N\"…\"" : "the figurative ALL B\"…\"");
-            return base.VisitChildren(ctx);
-        }
-
         /// <summary>A concatenation expression — the <c>&amp;</c> operator joining literals (ISO §2023:8.8.3) — is a
-        /// COBOL-2002 introduction (concat-operator-2002; roadmap D6). POSITION-BLIND, unlike the national/
-        /// boolean literal gate above: §2023:8.8.3.3 GR3 lets a concat stand anywhere a literal may (VALUE clauses,
+        /// COBOL-2002 introduction (concat-operator-2002; roadmap D6). POSITION-BLIND:
+        /// §2023:8.8.3.3 GR3 lets a concat stand anywhere a literal may (VALUE clauses,
         /// SPECIAL-NAMES operands, statement operands, FUNCTION arguments), and no data-side gate covers the
         /// construct — recognition of the parse node IS the one funnel. One Check per concatenation
         /// expression; the &amp; token appears in no other rule, so recognition is exact. The §2023:8.8.3.2 SR
@@ -3133,15 +3350,6 @@ internal sealed class VersionConformancePass
         {
             RelationalOperatorGate.Check(_p._edition, _p._sink, ctx);
             return base.VisitChildren(ctx);
-        }
-
-        /// <summary>Whether <paramref name="ctx"/> sits inside a procedure-division statement (a StatementContext
-        /// ancestor) — the scope that reaches the binder's literal-operand gates, excluding data-division VALUE.</summary>
-        private static bool InStatement(Antlr4.Runtime.RuleContext ctx)
-        {
-            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
-                if (a is CobolParserCore.StatementContext) return true;
-            return false;
         }
 
 

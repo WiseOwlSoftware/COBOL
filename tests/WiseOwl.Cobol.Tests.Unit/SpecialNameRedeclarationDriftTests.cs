@@ -15,6 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// DYNAMIC LENGTH STRUCTURE each carried a private refusal. <c>DataBinder.DeclareUserWord</c> now asks
 /// <c>UserWordKinds.DeclaredUnqualifiable</c> (COBOL4250), so a NEW SPECIAL-NAMES declaration kind is covered the
 /// moment it declares its word through the funnel and joins that set — this test fails when it declares without joining.
+/// The set also holds the cd-name and the report-name (kb/Work PB5307), declared outside SPECIAL-NAMES.
 /// </summary>
 public sealed class SpecialNameRedeclarationDriftTests
 {

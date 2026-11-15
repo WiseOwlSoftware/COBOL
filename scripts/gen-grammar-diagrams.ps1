@@ -2,7 +2,7 @@
 # ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 # gen-grammar-diagrams.ps1 — railroad (syntax) diagrams for the ANTLR grammar fragments, as Markdown notes.
 #
-# Pipeline: clean an ANTLR *.g4 parser fragment -> W3C-style EBNF -> bottlecaps RR (tools/rr/rr.war) -> Markdown
+# Pipeline: clean an ANTLR *.g4 parser fragment -> W3C-style EBNF -> bottlecaps RR (tools/rr/rr.war, stdin to stdout) -> Markdown
 # with one inline data-URI SVG railroad diagram per rule -> kb/Grammar/<Fragment>.md (a GITIGNORED build output).
 #
 # The cleaning drops what railroad tools choke on: block/line comments, the `grammar`/`options` header, semantic
@@ -44,8 +44,31 @@ $outDir = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) ("wiseowl-co
 if (-not (Test-Path $rrWar)) { Write-Error "missing vendored railroad tool: $rrWar"; exit 1 }
 if (Test-Path $outDir) { Remove-Item -Recurse -Force $outDir }
 New-Item -ItemType Directory -Path $outDir | Out-Null
-$tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("ccf-" + [guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $tmp | Out-Null
+
+# ⛔ rr.war takes the EBNF on STDIN ('-') and writes the Markdown to STDOUT (no -out:), so no file passes between
+# this script and java. It used to write <tmp>\ccf-<guid>\<frag>.md with -out: and read it straight back, and a
+# freshly written file in %TEMP% is a file ANY process on the host may open (a real-time scanner, an indexer): with
+# write access held by such a process, File.ReadAllText's FileShare.Read open fails with a sharing violation. The
+# 10-attempt, 2.25 s backoff kb/Work PB44 put around the read only narrowed that window; on 2026-11-12 a full gate
+# (witnesses-85m, two test hosts plus other gates' slots) outlasted it on CobolWords.md (kb/Work PB5447). A pipe has
+# no name another process can open, so the handoff cannot be locked — the failure is excluded, not retried.
+# java's own exit code and stderr are rr's verdict: a nonzero exit fails the run and prints what rr said.
+function Invoke-Rr([string]$frag, [string]$ebnf) {
+    $psi = [System.Diagnostics.ProcessStartInfo]::new('java')
+    foreach ($a in @('-Dstdout.encoding=UTF-8', '-jar', $rrWar, '-md', '-suppressebnf', '-noinline', "-width:$Width",
+                     '-enc:UTF-8', '-')) { $psi.ArgumentList.Add($a) }
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardInput = $true; $psi.RedirectStandardOutput = $true; $psi.RedirectStandardError = $true
+    $utf8 = [System.Text.UTF8Encoding]::new($false)
+    $psi.StandardInputEncoding = $utf8; $psi.StandardOutputEncoding = $utf8; $psi.StandardErrorEncoding = $utf8
+    $p = [System.Diagnostics.Process]::Start($psi)
+    # Both output streams drain concurrently with the stdin write, so neither pipe's buffer can fill and stall java.
+    $stdout = $p.StandardOutput.ReadToEndAsync(); $stderr = $p.StandardError.ReadToEndAsync()
+    $p.StandardInput.Write($ebnf); $p.StandardInput.Close()
+    $p.WaitForExit()
+    if ($p.ExitCode -ne 0) { Write-Error "rr.war failed for $frag (exit $($p.ExitCode)): $($stderr.Result)"; exit 1 }
+    return $stdout.Result
+}
 
 function Convert-G4ToEbnf([string]$g4) {
     $g = $g4
@@ -71,24 +94,9 @@ foreach ($frag in $Fragments) {
     if (-not (Test-Path $g4Path)) { Write-Error "grammar fragment not found: $g4Path"; exit 1 }
     $ebnf = Convert-G4ToEbnf ([IO.File]::ReadAllText($g4Path))
     $grammarRules = ($ebnf -split "`n" | Where-Object { $_ -match '::=' }).Count
-    $ebnfFile = Join-Path $tmp "$frag.ebnf"; [IO.File]::WriteAllText($ebnfFile, $ebnf)
-    $mdFile   = Join-Path $tmp "$frag.md"
-    # -noinline: keep EVERY rule as its own diagram (rr otherwise folds single-literal rules into their
-    # references, so a lookup by that rule name would find nothing and the header count wouldn't match).
-    & java -jar "$rrWar" -md -suppressebnf -noinline "-width:$Width" "-out:$mdFile" "$ebnfFile"
-    if ($LASTEXITCODE -ne 0) { Write-Error "rr.war failed for $frag (exit $LASTEXITCODE)"; exit 1 }
-    # ⛔ READ WITH RETRY — the java process has exited but its handle on $mdFile is not always released by the
-    # time PowerShell resumes (and a Windows AV scanner can hold it briefly besides). Under the comprehensive
-    # battery's parallel load that window widened enough to FALSE-RED the whole run:
-    #   Exception calling "ReadAllText": The process cannot access the file '…\CobolScreen.md'
-    #   because it is being used by another process.
-    # It passed on a serial re-run, which is exactly the shape §0 warns about — and a gate that can false-red
-    # trains people to ignore reds, so this is hardened rather than documented.
-    $diagrams = $null
-    foreach ($__try in 1..10) {
-        try { $diagrams = [IO.File]::ReadAllText($mdFile); break }
-        catch [System.IO.IOException] { if ($__try -eq 10) { throw }; Start-Sleep -Milliseconds (50 * $__try) }
-    }
+    # -noinline (in Invoke-Rr): keep EVERY rule as its own diagram (rr otherwise folds single-literal rules into
+    # their references, so a lookup by that rule name would find nothing and the header count wouldn't match).
+    $diagrams = Invoke-Rr $frag $ebnf
     # Header states the number of diagrams ACTUALLY emitted (an image whose alt is a bare identifier — excludes
     # rr's "rr-2.6" / "Railroad-Diagram-Generator" footer marks), so it is always self-consistent with the note.
     # rr's recursion elimination can fold a directly-recursive rule into its reference (e.g. booleanFactor), so a
@@ -155,7 +163,6 @@ $rows
 "@
 [IO.File]::WriteAllText((Join-Path $outDir '_Index.md'), $indexMd)
 
-Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
 Write-Host "generated $done grammar-diagram note(s) into $outDir"
 if ($Check) { Remove-Item -Recurse -Force $outDir -ErrorAction SilentlyContinue }
 if ($done -lt 1) { Write-Error "no fragments processed"; exit 1 }

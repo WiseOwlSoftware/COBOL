@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.3.15.4-1",
  "rule-digest": "b1268e3fa3d0",
- "test-ref": "conformance:cases/XIII.3.15@1985-LINE-NUMBER-CLAUSE/1985-GR-XIII_3_15_4-1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineOperand; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#Entries",
+ "test-ref": "conformance:cases/XIII.3.15@1985-LINE-NUMBER-CLAUSE/1985-GR-XIII_3_15_4-1; conformance:cases/13.18.35-LINE/pb5242-line-next-page-85",
+ "notes": "kb/Work PB5242 landed. §1985:XIII.3.15.4 GR1: \"A LINE NUMBER clause must be specified to establish each print line of a report group\", and the 1985 clause is `integer-1 [ON NEXT PAGE]` or `PLUS integer-2` (§1985:XIII.3.15.2), so one clause establishes one line by an integer. The 2002 forms that break it are refused at 85: a LINE operand of NEXT PAGE with no integer (report-line-next-page-2002, VisitReportLineOperand) and the multiple LINE clause (report-multi-line-2002, VisitReportLineClause). Witnesses: 1985-GR-XIII_3_15_4-1 and pb5242-line-next-page-85. Each 2002 form is refused at --std 85 with COBOL0900 by a construct row of the version matrix (tests/version-matrix/constructs/report-*-2002.json, introducedIn 2002), checked on recognition in VersionConformancePass's parse arm, and accepted from COBOL-2002 (ISO/IEC 1989:2002 Annex F.2 item 115).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

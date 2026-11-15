@@ -40,11 +40,12 @@ A NEGATED term (`!~X`, `!=X`) is probed through its POSITIVE form: asking vstest
 the assembly and would call a stale exclusion live, whereas the question that matters is whether the name X is
 real at all.
 
-Usage (the wave-local gate applies its filter to ONE assembly and runs the other two unfiltered):
+Usage (the wave-local gate applies its filter to ONE assembly and runs the others unfiltered):
 
     python scripts/filter_population.py --filter "<expanded filter>" \
         --filtered tests/WiseOwl.Cobol.Tests.Conformance \
-        --unfiltered tests/WiseOwl.Cobol.Tests.Unit --unfiltered tests/WiseOwl.Cobol.Tests.Characterization
+        --unfiltered tests/WiseOwl.Cobol.Tests.Unit --unfiltered tests/WiseOwl.Cobol.Tests.RepoDrift \
+        --unfiltered tests/WiseOwl.Cobol.Tests.Characterization
 
 ⛔ `--allow-build` FOR A CALLER THAT HAS NOT BUILT YET (kb/Work PB751). Discovery runs `--no-build` by default,
 because the gate callers build the solution themselves and re-building per term would multiply the gate's cost.

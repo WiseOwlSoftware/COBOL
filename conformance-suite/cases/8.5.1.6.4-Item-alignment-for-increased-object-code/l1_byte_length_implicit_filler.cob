@@ -57,7 +57,7 @@
       *> the same item without the clause would (Annex A.1 item 195; CONFORMANCE.md §7 item 195).
       *> SO THIS GOLDEN CLOSES §2023:15.14.4 r3 ON SOURCES (a) AND (c), and states why (b) is not closable here.
       *> BITS PER BYTE. §2023:8.1.2: "The implementor shall specify the number of bits in a byte for each supported
-      *> computer." WiseOwl COBOL pins 8 (CONFORMANCE.md §4.2.16; Annex A.1 item 12, "Byte (number of bits in) …
+      *> computer." WiseOwl COBOL pins 8 (CONFORMANCE.md DOC-A.1-12; Annex A.1 item 12, "Byte (number of bits in) …
       *> (8.1.2, Computer's coded character set)" — item 209 is USAGE DISPLAY, and this comment inherited that
       *> number from the misfiled §7 row repaired 2026-09-03), which is what turns every bit
       *> count below into its byte answer.

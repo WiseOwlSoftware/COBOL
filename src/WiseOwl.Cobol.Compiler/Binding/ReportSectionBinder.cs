@@ -287,9 +287,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the page limit {limit} exceeds "
                 + $"{MaxPageLimit}; integer-1 shall not exceed {MaxPageLimit} (ISO §2023:13.18.39.3 SR5)");
         }
-        // §1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length." A leading zero is not a
-        // significant digit, so the value is what is bounded. COBOL-2002 replaced the digit count with the 9999 above.
-        else if (limit is > MaxPageLimit85 && Edition.DialectLevel < 2002 && page.integerOperand() is { } limit85Ctx)
+        // §1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length."
+        else if (limit is { } written && ExceedsThreeSignificantDigits85(written) && page.integerOperand() is { } limit85Ctx)
         {
             using var at = Edition.At(limit85Ctx);
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the page limit {limit} has more than "
@@ -316,12 +315,21 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>ISO §2023:13.18.39.3 SR5 — "Integer-1 shall not exceed 9999."</summary>
     private const int MaxPageLimit = 9999;
 
-    /// <summary>§1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length": 999.</summary>
-    private const int MaxPageLimit85 = 999;
+    /// <summary>⛔ THE COBOL-85 DIGIT LIMIT OF THE REPORT SECTION'S VERTICAL INTEGERS, ASKED BY EVERY CLAUSE THAT HAS IT
+    /// (kb/Work PB5252): "must not exceed three significant digits in length" — the PAGE clause's integer-1
+    /// (§1985:XIII.3.8.3 SR2), the LINE NUMBER clause's integer-1 and integer-2 (§1985:XIII.3.15.3 SR1) and the NEXT GROUP
+    /// clause's (§1985:XIII.3.16.3 SR2). A leading zero is not a significant digit, so the value is what is bounded: 999.
+    /// COBOL-2002 replaced the digit count with the page limit, or 9999 (<see cref="ReportModel.VerticalLimit"/>), so the
+    /// test is true only below 2002.</summary>
+    private bool ExceedsThreeSignificantDigits85(int value) =>
+        Edition.DialectLevel < 2002 && value > MaxThreeSignificantDigits85;
+
+    /// <summary>999, the largest integer of three significant digits.</summary>
+    private const int MaxThreeSignificantDigits85 = 999;
 
     /// <summary>Capture the RD's CODE clause (ISO §2023:13.18.12.2 — <c>CODE IS {literal-1 | identifier-1}</c>; kb/Work
     /// PB1129). literal-1 is screened here (SR1 — "Literal-1 shall be an alphanumeric literal": a numeric, national or
-    /// boolean literal and a figurative constant are not one) and decoded through the ONE literal readers
+    /// boolean literal are not one; a figurative constant is the string it stands for, <see cref="CodeFigurativeCharacters"/>) and decoded through the ONE literal readers
     /// (<see cref="SpecialNamesBinder.OperandLiteralClass"/> / <see cref="SpecialNamesBinder.LiteralCharsOf"/> — a §2023:8.8.3.3 concatenation folds, a
     /// hexadecimal format decodes). identifier-1 is kept as the WRITTEN reference, exactly as the SOURCE clause's
     /// identifier operand is (<see cref="FieldReferenceSource"/>): its base item is screened post-build with SR2's shape
@@ -335,6 +343,21 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         string where = $"RD '{model.Name}': the CODE clause";
         if (cc.literal() is { } lit)
         {
+            // A figurative constant stands wherever a format says literal (§1985:IV.4.2.2.2.3; §2023:8.3.3.6.3 SR1), and
+            // neither CODE rule bars it: it is the alphanumeric string §2023:8.3.3.6.4 GR1, GR3b and GR3c give it (kb/Work PB5475).
+            if (lit.nonNumericLiteral()?.figurativeConstant() is { } fig)
+            {
+                if (CodeFigurativeCharacters(fig, where) is not { } figChars) return null;
+                return Screen85CodeLiteral(figChars, lit.GetText(), where)
+                    ? new ReportCodeModel { Literal = figChars, Written = lit.GetText() } : null;
+            }
+            if (lit.nonNumericLiteral()?.predefinedNull() is { } predefinedNull)
+            {
+                // NULL is an identifier, not a literal (§2023:8.4.3.10.3 SR1): the ONE refusal, not the literal-shape verdict.
+                using var nullAt = Edition.At(predefinedNull);
+                PredefinedNullRule.Report(Edition, $"{where}, whose literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1),");
+                return null;
+            }
             if (_d.SpecialNames.OperandLiteralClass(lit) != LiteralClass.Alphanumeric)
             {
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {lit.GetText()}, which is not an "
@@ -377,37 +400,85 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return new ReportCodeModel { Reference = dref, Written = DataBinder.WrittenText(dref) };
     }
 
+    /// <summary>The characters a figurative constant written as the CODE clause's literal-1 stands for, or null after a
+    /// refusal: <c>ALL literal-1</c> is literal-1 itself, "the length of the string is the length of the literal"
+    /// (§1985:IV.4.2.2.2.3 GRL2.3; §2023:8.3.3.6.4 GR3c — folded by the ONE Format 6 reader), and ZERO, SPACE, QUOTE, HIGH-VALUE and
+    /// LOW-VALUE are the ONE character <see cref="ConcatFolder.FigurativeChar"/> names for the alphanumeric class under this program's
+    /// collating sequence (§2023:8.3.3.6.4 GR3b: "When a figurative constant is other than ALL literal-1, the length of the string is
+    /// one character"). <c>ALL symbolic-character-1</c> (Format 7) is the one character SPECIAL-NAMES binds the name to. An
+    /// <c>ALL</c> literal-1 that is not alphanumeric (a national or boolean one) is no alphanumeric literal (§2023:13.18.12.3 SR1).</summary>
+    private string? CodeFigurativeCharacters(Core.FigurativeConstantContext fig, string where)
+    {
+        if (ConcatFolder.FoldAllLiteral(fig, _d.LiteralEnv, Edition) is { } folded)
+        {
+            if (folded.Category == PicCategory.Alphanumeric) return folded.Value;
+            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, whose literal-1 is not an "
+                + "alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1)");
+            return null;
+        }
+        if (ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, _d.LiteralEnv) is { } fill) return fill.ToString();
+        if (fig.ALL() is not null && fig.cobolWord()?.GetText() is { } word && _d.LiteralEnv.IsSymbolicCharacter(word)
+            && _d.LiteralEnv.SymbolicOf(fig, word) is { } symbolic)
+        {
+            if (!symbolic.National) return symbolic.Value;
+            // A symbol declared SYMBOLIC CHARACTERS FOR NATIONAL is a NATIONAL figurative constant (§2023:12.3.7.4 GR11c), the
+            // same class ALL N"C" is refused for above (kb/Work PB5523).
+            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, a national symbolic character, "
+                + "whose literal-1 is not an alphanumeric literal: literal-1 shall be an alphanumeric literal "
+                + "(ISO §2023:13.18.12.3 SR1; §2023:12.3.7.4 GR11c)");
+            return null;
+        }
+        Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, which is no alphanumeric literal "
+            + "(ISO §2023:13.18.12.3 SR1)");
+        return null;
+    }
+
     /// <summary>⛔ §1985:XIII.3.20.3 SR5 over one SOURCE operand (kb/Work PB5079): "In control footing, page heading, page
     /// footing, and report footing report groups, SOURCE clauses and associated USE statements must not reference any of the
     /// following: a. Group data items containing a control data item. b. Data items subordinate to a control data item.
     /// c. A redefinition or renaming of any part of a control data item. In page heading and page footing report groups,
     /// SOURCE clauses and USE statements must not reference control data-names." Asked of the operand's one data item (an
     /// ambiguous or unresolved name is the procedure phase's), against each CONTROL operand's item. COBOL-2002 and later
-    /// carry no such rule. The USE BEFORE REPORTING half is a walk of the declarative's statements and is not made here.</summary>
+    /// carry no such rule. The USE half is <c>ReportWriterBinder.CheckControlDataReferences</c>, asked of each statement of a
+    /// USE BEFORE REPORTING procedure through the same <see cref="ControlDataReferenceOf"/> (kb/Work PB5424).</summary>
     private void ScreenSourceControlData(ReportModel model, ReportGroupModel group, FieldReferenceSource source)
     {
-        if (Edition.DialectLevel >= 2002 || group.Kind is not (ReportGroupKindModel.ControlFooting or ReportGroupKindModel.PageHeading
-                or ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting)) return;
+        if (Edition.DialectLevel >= 2002) return;
         // A function-identifier or method invocation references a temporary, never control data (kb/Work PB5240).
         if (source.Ref is not Core.DataReferenceContext sourceRef) return;
         var (name, qualifiers) = DataBinder.KeyReference(sourceRef);
         if (_d.QualifiedCandidates(name, qualifiers, Model.Scope.Program).Single is not { } item) return;
-        bool pageGroup = group.Kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting;
-        foreach (var control in model.Controls)
-        {
-            if (control.Item is not { } controlItem || SourceControlRelation(item, controlItem, pageGroup) is not { } relation) continue;
-            Edition.Error(DiagnosticCatalog.ReportSourceControlData, $"RD '{model.Name}': the SOURCE operand '{source.Written}' of "
-                + $"a {ReportGroupTypeWords(group.Kind).ToLowerInvariant()} report group {relation} '{control.Display}'; "
-                + (pageGroup
-                    ? "in page heading and page footing report groups SOURCE clauses must not reference control data-names, "
-                      + "nor a group containing, an item subordinate to, or a redefinition or renaming of a control data item"
-                    : "in control footing and report footing report groups SOURCE clauses must not reference a group item "
-                      + "containing a control data item, a data item subordinate to one, or a redefinition or renaming of "
-                      + "any part of one")
-                + " (ISO §1985:XIII.3.20.3 SR5)");
-            return;   // one report per operand
-        }
+        if (ControlDataReferenceOf(model, group.Kind, item) is not { } hit) return;
+        Edition.Error(DiagnosticCatalog.ReportSourceControlData, $"RD '{model.Name}': the SOURCE operand '{source.Written}' of a "
+            + $"{ReportGroupTypeWords(group.Kind).ToLowerInvariant()} report group {hit.Relation} '{hit.Control.Display}'; "
+            + ControlDataRuleWords(group.Kind, "SOURCE clauses"));
     }
+
+    /// <summary>The ONE reading of §1985:XIII.3.20.3 SR5's subject (kb/Work PB5079, PB5424): whether a reference to
+    /// <paramref name="item"/> from a report group of kind <paramref name="kind"/> of <paramref name="model"/> references control
+    /// data the rule forbids, and which CONTROL operand it meets; null when the group's kind is not one the rule names (control
+    /// footing, page heading, page footing, report footing) or the item meets none. The edition is the caller's question.</summary>
+    internal static (string Relation, ReportControlModel Control)? ControlDataReferenceOf(ReportModel model, ReportGroupKindModel kind,
+        DataItem item)
+    {
+        if (kind is not (ReportGroupKindModel.ControlFooting or ReportGroupKindModel.PageHeading
+                or ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting)) return null;
+        bool pageGroup = kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting;
+        foreach (var control in model.Controls)
+            if (control.Item is { } controlItem && SourceControlRelation(item, controlItem, pageGroup) is { } relation)
+                return (relation, control);
+        return null;
+    }
+
+    /// <summary>The rule's words for a diagnostic about <paramref name="what"/> ("SOURCE clauses", "USE statements") in a report
+    /// group of kind <paramref name="kind"/>, ending with the citation.</summary>
+    internal static string ControlDataRuleWords(ReportGroupKindModel kind, string what) =>
+        (kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting
+            ? $"in page heading and page footing report groups {what} must not reference control data-names, nor a group "
+              + "containing, an item subordinate to, or a redefinition or renaming of a control data item"
+            : $"in control footing and report footing report groups {what} must not reference a group item containing a "
+              + "control data item, a data item subordinate to one, or a redefinition or renaming of any part of one")
+        + " (ISO §1985:XIII.3.20.3 SR5)";
 
     /// <summary>How a SOURCE operand's <paramref name="item"/> relates to a control data item in the ways §1985:XIII.3.20.3 SR5
     /// forbids, as a phrase for the diagnostic ("is …"); null for none. The control data item ITSELF is forbidden in a page
@@ -866,6 +937,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} exceeds {model.VerticalLimitWords}"
                     + "; integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
                     + "divided into pages (ISO §2023:13.18.37.3 SR1)");
+            else if (ExceedsThreeSignificantDigits85(ng.Value))
+                Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} has more than three "
+                    + "significant digits; integer-1 and integer-2 must not exceed three significant digits in length "
+                    + "(ISO §1985:XIII.3.16.3 SR2)");
             if (!model.Paged)
             {
                 if (absolute)
@@ -969,8 +1044,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// places them), the widest region the group's own PRESENT WHEN clauses leave open. The screen is a syntax-rule
     /// screen: a line outside the widest region is outside every presentation's. A heading's last line is walked
     /// from the last line of the nearest OR PAGE heading ABOVE it (every page advance prints those first, GR6 c)),
-    /// so the d) 2./3./4. limits of a group below two OR PAGE headings sit below both of them (kb/Work PB2513).</para></summary>
-    private static (int Upper, int Lower) GroupLimits(ReportGroupModel g, ReportModel model)
+    /// so the d) 2./3./4. limits of a group below two OR PAGE headings sit below both of them (kb/Work PB2513).</para>
+    /// <para>⚖ EDITION (kb/Work PB5244): at COBOL-85 the report footing's f)/g) upper limit is "one greater than the final
+    /// LINE-COUNTER setting established by the page footing report group" (§1985:XIII.3.10.10 GR1 a.), and the page
+    /// footing's NEXT GROUP clause sets that LINE-COUNTER (<see cref="Cobol85FinalLineCounter"/>); from COBOL-2002 it is
+    /// the line after the page footing's last line (§2002:13.16.55.3 GR7 g)), the NEXT GROUP clause reaching only a report
+    /// footing of relative lines (§2002:13.16.35.3 GR5). <paramref name="year"/> is the edition.</para></summary>
+    private static (int Upper, int Lower) GroupLimits(ReportGroupModel g, ReportModel model, int year)
     {
         var controlHeadings = model.Groups.Where(x => x.Kind == ReportGroupKindModel.ControlHeading && x.ControlLevel >= 0).ToList();
         var orPage = controlHeadings.Where(x => x.OrPage).ToList();
@@ -1022,11 +1102,23 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 if (g.Lines is [{ NextPage: true }, ..]) return (model.Heading, model.PageLimit);
                 var pageFooting = model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.PageFooting);
-                int below = pageFooting is not null && MinimumLastLine(pageFooting, model) is { } last ? last + 1 : model.Footing + 1;
+                int below = pageFooting is not null && MinimumLastLine(pageFooting, model) is { } last
+                    ? (year < 2002 ? Cobol85FinalLineCounter(pageFooting, last) : last) + 1
+                    : model.Footing + 1;
                 return (below, model.PageLimit);
             }
         }
     }
+
+    /// <summary>The final LINE-COUNTER setting a COBOL-85 page footing whose last line is <paramref name="last"/>
+    /// establishes (§1985:XIII.3.10.9 GR5): a. its absolute NEXT GROUP integer; b. that line plus its NEXT GROUP PLUS
+    /// integer; c. with no NEXT GROUP clause, that line.</summary>
+    private static int Cobol85FinalLineCounter(ReportGroupModel pageFooting, int last) => pageFooting.NextGroup switch
+    {
+        { Kind: WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.Absolute, Value: var v } => v,
+        { Kind: WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.Relative, Value: var v } => last + v,
+        _ => last,
+    };
 
     /// <summary>⛔ THE CENSUS OF A REPORT'S GROUPS (ISO §2023:13.18.57.3 SR13–SR15; kb/Work PB1299), asked once every CH/CF
     /// has its control level (<see cref="ControlLevelOf"/>, SR10/SR11):
@@ -1144,7 +1236,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 }
 
             if (!model.Paged) continue;
-            var (upper, lower) = GroupLimits(g, model);
+            var (upper, lower) = GroupLimits(g, model, Edition.DialectLevel);
             var reportedEntries = new HashSet<Core.ReportGroupEntryContext?>(ReferenceEqualityComparer.Instance);
             foreach (var l in g.Lines)
             {
@@ -1299,10 +1391,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     bool absolute = op.integerOperand() is not null && op.reportRelativeSign() is null;
                     if (op.integerOperand() is { } lit)
                     {
-                        if ((_d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand) > model.VerticalLimit)
+                        int value = _d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand;
+                        if (value > model.VerticalLimit)
                             Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
                                 + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
                                 + "is not divided into pages (ISO §2023:13.18.35.3 SR3)");
+                        else if (ExceedsThreeSignificantDigits85(value))
+                            Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} has more than three significant "
+                                + "digits; integer-1 and integer-2 must not exceed three significant digits in length "
+                                + "(ISO §1985:XIII.3.15.3 SR1)");
                     }
                     if (!model.Paged && (absolute || op.NEXT() is not null))
                         Violation($"the report is not divided into pages, so all its LINE clauses shall be relative — "
@@ -1598,6 +1695,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// …] [USAGE …]</c>) or format 3 (<c>PICTURE</c> in every row of its Table 1, SR11). An entry with no PICTURE clause and none of
     /// the clauses only format 3 prints is format 2.
     /// <list type="bullet">
+    /// <item>SR4 b — "Both format 2 and format 3 entries may be immediately subordinate to a format 1 entry", under SR4's "one,
+    /// two, or three hierarchic levels": a format 2 entry's parent is the format 1 entry (kb/Work PB5426).</item>
     /// <item>SR4 c — "At least one format 3 entry must be immediately subordinate to a format 2 entry."</item>
     /// <item>SR6 — "A format 2 entry must contain at least one optional clause": its data-name (SR2 calls the data-name a
     /// clause, SR7 says it is optional in format 2), a LINE NUMBER clause or a USAGE clause.</item>
@@ -1637,6 +1736,20 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (!hasName && !line && !usage)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a format 2 entry with no clause after its "
                     + "level-number; a format 2 entry must contain at least one optional clause (ISO §1985:XIII.3.9.3 SR6)");
+            // SR4 b — the levels: the entry a format 2 entry is immediately subordinate to is the group's format 1 entry, so a
+            // report group has at most three hierarchic levels (kb/Work PB5426). The nearest earlier entry of a lower level is
+            // that parent; a format 3 entry is elementary (SR4 d), so a parent below level 01 is a format 2 entry.
+            for (int j = self - 1; j >= 0; j--)
+            {
+                if (!int.TryParse(entries[j].levelNumber().GetText(), out int parentLevel)) break;
+                if (parentLevel >= level) continue;
+                if (parentLevel != 1)
+                    Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a format 2 entry immediately "
+                        + $"subordinate to the level {parentLevel:00} entry, which is not the group's format 1 entry; a description of "
+                        + "a report group may consist of one, two, or three hierarchic levels, and both format 2 and format 3 "
+                        + "entries may be immediately subordinate to a format 1 entry (ISO §1985:XIII.3.9.3 SR4 b)");
+                break;
+            }
             bool formatThreeChild = false;
             int childBound = int.MaxValue;
             for (int j = self + 1; j < entries.Length && !formatThreeChild; j++)
@@ -2504,8 +2617,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // downstream applies it to an item it may not describe.
                 if (blankWhenZero && DataBinder.BlankWhenZeroViolation(pic) is { } bwzFault)
                 {
-                    Edition.Error(DiagnosticCatalog.ClauseSubjectCategory,
-                        $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {bwzFault}");
+                    // A recovery profile (the PICTURE refused by its own rule) has no category to judge (kb/Work PB5191).
+                    if (!pic.IsRecovery)
+                        Edition.Error(DiagnosticCatalog.ClauseSubjectCategory,
+                            $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {bwzFault}");
                     blankWhenZero = false;
                 }
                 if (justified && DataBinder.JustifiedViolation(pic) is { } justifiedFault)
@@ -3057,16 +3172,28 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// character ('B', '0', '/' — the simple insertion of §2023:13.18.40.5 GR1): the MOVE of an unsigned integer into such an
     /// item places one digit per position, so X(4) holds a four-digit counter. The clamp this replaced read the
     /// category's zero '9' count as ONE digit, printing "4" for a total of 24 (or spaces once the size error
-    /// indicator existed).</item>
+    /// indicator existed). At COBOL-85 that count is capped: §1985:XIII.3.19.4 GR1 c. gives the alphanumeric and
+    /// alphanumeric edited counter "the size of that data item, excluding any editing characters, or 18 characters,
+    /// whichever is smaller", so an X(20) entry has an 18-digit counter that the GR4 MOVE left-justifies in its 20
+    /// positions. The 2002 text dropped the cap (§2002:13.16.52.3 GR1 reads every category's digits the 2023 way;
+    /// kb/Work PB5247).</item>
     /// </list></summary>
-    private static int SumCounterDigits(PicInfo pic) => pic.Category switch
+    private static int SumCounterDigits(PicInfo pic, int year) => pic.Category switch
     {
         PicCategory.Numeric => pic.Digits,
         PicCategory.NumericEdited => pic.DigitPositions,
-        _ => pic.EditMask is { } mask
-            ? mask.Count(c => c is not ('B' or '0' or '/'))
-            : DataItem.DisplayTextWidthOf(pic),
+        _ when year < 2002 => Math.Min(CharacterDigits(pic), Cobol85AlphanumericSumCounterDigits),
+        _ => CharacterDigits(pic),
     };
+
+    /// <summary>§1985:XIII.3.19.4 GR1 c.'s "18 characters" (kb/Work PB5247).</summary>
+    private const int Cobol85AlphanumericSumCounterDigits = 18;
+
+    /// <summary>The character positions of an alphanumeric or national SUM entry's PICTURE, less its insertion editing
+    /// characters ('B', '0', '/').</summary>
+    private static int CharacterDigits(PicInfo pic) => pic.EditMask is { } mask
+        ? mask.Count(c => c is not ('B' or '0' or '/'))
+        : DataItem.DisplayTextWidthOf(pic);
 
     /// <summary>
     /// The <see cref="ReportSumFamily"/> of SUM entry <paramref name="ge"/> — created at the entry's FIRST replay and
@@ -3141,7 +3268,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 DeclaredAt = Edition.Cursor,
                 CobolName = entryName,
                 ClrName = NamingConvention.SumCounterName(model.Name, baseId),
-                Pic = PicInfo.SumCounterItem(pic is null ? 18 : SumCounterDigits(pic), sumScale),
+                Pic = PicInfo.SumCounterItem(pic is null ? 18 : SumCounterDigits(pic, Edition.DialectLevel), sumScale),
                 Occurs = columnCount > 1 ? columnCount : null,
                 Parent = parent,
                 Uid = _d.TakeUid(),
@@ -3727,11 +3854,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>The PRESENT WHEN clauses a printable item is subject to BELOW its report line — the line's own chain
     /// gates every item on it alike and so tells two of them apart never (§2023:13.18.41.4 GR2b). A GROUP INDICATE clause
-    /// "has the same effect as a PRESENT WHEN clause" (§2023:13.18.28.4 GR1): its entry stands as that clause.</summary>
-    private static List<object> PresentWhenClausesOf(ReportFieldModel f)
+    /// "has the same effect as a PRESENT WHEN clause" (§2023:13.18.28.4 GR1, from §2002:13.16.26.3 GR1): its entry stands
+    /// as that clause. At COBOL-85 it stands as none: the 1985 language has no PRESENT WHEN clause, and its column rule
+    /// has no exception — "Within a given print line, the printable items must be defined in ascending column number
+    /// order such that each printable item defined occupies a unique sequence of contiguous character positions"
+    /// (§1985:XIII.3.11.3 SR2; kb/Work PB5251). <paramref name="year"/> is the edition.</summary>
+    private static List<object> PresentWhenClausesOf(ReportFieldModel f, int year)
     {
         var clauses = new List<object>(f.PresentWhenCtxs);
-        if (f.GroupIndicate) clauses.Add((object?)f.Entry ?? f);
+        if (f.GroupIndicate && year >= 2002) clauses.Add((object?)f.Entry ?? f);
         return clauses;
     }
 
@@ -3811,8 +3942,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // by ScreenReportColumnClauses; only increasing operands that overlap are left for SR8 a).
                 if (sameEntry && pi.Spec.Kind == ReportColumnKindModel.Absolute && pj.Spec.Kind == ReportColumnKindModel.Absolute
                     && pj.Spec.Value <= pi.Spec.Value) continue;
-                var clausesI = PresentWhenClausesOf(pi.Field);
-                var clausesJ = PresentWhenClausesOf(pj.Field);
+                var clausesI = PresentWhenClausesOf(pi.Field, Edition.DialectLevel);
+                var clausesJ = PresentWhenClausesOf(pj.Field, Edition.DialectLevel);
                 if (DifferentPresentWhen(clausesI, clausesJ)) continue;
                 // SR7 — absolute items by their written column numbers, in the order they are written.
                 if (!sameEntry && pi.Spec.Kind == ReportColumnKindModel.Absolute && pj.Spec.Kind == ReportColumnKindModel.Absolute
@@ -3838,7 +3969,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (lastAbsolute == all.Count - 1) return;
         var tail = all.Skip(lastAbsolute + 1).ToList();
         int prefixEnd = lastAbsolute >= 0 ? all[lastAbsolute].Right : 0;
-        int extent = EachDifferentPresentWhen(tail.Select(p => (IReadOnlyList<object>)PresentWhenClausesOf(p.Field)).ToList())
+        int extent = EachDifferentPresentWhen(tail.Select(p => (IReadOnlyList<object>)PresentWhenClausesOf(p.Field, Edition.DialectLevel)).ToList())
             ? tail.Max(p => p.Spec.Kind is ReportColumnKindModel.Relative or ReportColumnKindModel.AnchorSeed
                 ? prefixEnd + p.Spec.Value + p.Size - 1 : p.Right)
             : tail.Max(p => p.Right);
@@ -4065,6 +4196,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} names '{data.Name}': {fault}");
             return null;
         }
+        // §1985:XIII.3.19.3 SR1 — with no UPON phrase a sum counter addend "must be defined either in the same report
+        // group that contains this SUM clause or in a report group which is at a lower level in the control hierarchy of
+        // this report": a counter of ANOTHER report is in neither. SR4 g) ("there are no restrictions" for a different
+        // report description) is COBOL-2002's (§2002:13.16.52.2 SR3 g)), so below 2002 it is refused (kb/Work PB5253).
+        if (Edition.DialectLevel < 2002 && !ReferenceEquals(data.Report, target.Report))
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumDataNameGroups, $"{where} names the sum counter '{data.Name}' of report "
+                + $"'{data.Report.Name}', another report than the SUM entry's '{model.Name}': it must be defined either in the "
+                + "same report group that contains this SUM clause or in a report group which is at a lower level in the "
+                + "control hierarchy of this report (ISO §1985:XIII.3.19.3 SR1)");
+            return null;
+        }
         // SR4 f)/g)
         if (ReferenceEquals(data.Report, target.Report) && !ReferenceEquals(data.Group, target.Group)
             && !GroupCombinationPermitted(target.Group, data.Group))
@@ -4176,13 +4319,22 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// of a detail. It may be qualified only by a report-name") through the ONE report-group funnel, which owns
     /// the §2023:8.4.2.2.3 SR1 ambiguity rule as well (kb/Work PB365). The TYPE test is SR7's own sentence: a
     /// control footing or a report heading is not a detail, and §2023:13.18.54.4 GR7 c) 2) can only fire for a detail,
-    /// because only a detail is GENERATE-able (§2023:14.9.16.3 SR1).</summary>
+    /// because only a detail is GENERATE-able (§2023:14.9.16.3 SR1). Below 2002 the detail must be of the SUM's own report
+    /// (§1985:XIII.3.19.3 SR2), asked first.</summary>
     private void ResolveUponDetail(ReportDetailRef det, ReportModel model)
     {
         string where = $"RD '{model.Name}': the UPON operand '{det}'";
         using var uponAt = Edition.At(det.Ctx);   // the operand as written (kb/Work PB5090)
-        if (ReportGroupResolution.Resolve(Edition, _scope.Declared, det.Name, det.Qualifier, where,
-                out var owner, out var group) == ReportGroupResolution.Match.None)
+        // ⛔ §1985:XIII.3.19.3 SR2 — "Data-name-1 must be the name of a detail report group described in the same report as
+        // the control footing report group in which the SUM clause appears": SR2 restricts what the name may DENOTE; it does
+        // not make a nonunique name unique, so the name resolves across the unit at every edition ("For each nonunique
+        // user-defined name that is explicitly referenced, uniqueness must be established through a sequence of qualifiers
+        // which precludes any ambiguity of reference", §1985:IV.4.3.8.1 SRL2.1) and below 2002 a detail of ANOTHER report is
+        // then refused by name. COBOL-2002's SR7 lets the report-name qualifier name any report (kb/Work PB1294).
+        var match = ReportGroupResolution.Resolve(Edition, _scope.Declared, det.Name, det.Qualifier, where,
+            out var owner, out var group, preferred: model);
+        if (match == ReportGroupResolution.Match.Ambiguous) return;   // COBOL1920 is reported; binding its first candidate cascades
+        if (match == ReportGroupResolution.Match.None)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} does not name a report group. Data-name-2 shall be "
                 + "the name of a detail (ISO §2023:13.18.54.3 SR7).");
@@ -4196,6 +4348,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + "which is the event §2023:13.18.54.4 GR7 c) 2) accumulates on.");
             return;
         }
+        if (Edition.DialectLevel < 2002 && !ReferenceEquals(owner, model))
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} names a detail report group of report "
+                + $"'{owner?.Name}', another report than the control footing's '{model.Name}': data-name-1 must be the name of "
+                + "a detail report group described in the same report as the control footing report group in which the "
+                + "SUM clause appears (ISO §1985:XIII.3.19.3 SR2)");
+            return;
+        }
         // A detail of ANOTHER report (SR7's report-name qualifier): GR7 c) 2) accumulates on a GENERATE of that detail,
         // which runs on THAT report's engine, so the emitter registers the addition with it (`AddGenerateTrigger`) —
         // the owner travels with the operand (kb/Work PB1294).
@@ -4204,7 +4364,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>A report group's TYPE in the standard's own words, for a diagnostic (ISO §2023:13.18.57.2).</summary>
-    private static string ReportGroupTypeWords(ReportGroupKindModel kind) => kind switch
+    internal static string ReportGroupTypeWords(ReportGroupKindModel kind) => kind switch
     {
         ReportGroupKindModel.ReportHeading => "REPORT HEADING",
         ReportGroupKindModel.PageHeading => "PAGE HEADING",
@@ -4265,12 +4425,28 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// CONTROL operand <paramref name="operand"/> names, or −1. Both clauses that name a control level ask this
     /// question in the same words: §2023:13.18.57.3 SR10 ("shall be the same as one of the operands of the CONTROL
     /// clause of the corresponding report description entry") and §2023:13.18.54.3 SR8 ("shall be an operand of the
-    /// CONTROL clause of the current report description"), so one comparison serves both — over the WRITTEN
-    /// reference, ref-mod included, which is what §2023:13.18.16.3 SR6 makes unique.</summary>
-    private static int ControlLevelOf(ReportModel model, ReportControlRef operand)
+    /// CONTROL clause of the current report description"); COBOL-85 says it of the data-name
+    /// (§1985:XIII.3.19.3 SR4: "Data-name-2 must be one of the data-names specified in the CONTROL clause for this
+    /// report"). One comparison serves both clauses, in two steps:
+    /// <list type="number">
+    /// <item>the WRITTEN reference, ref-mod included, which is what §2023:13.18.16.3 SR6 makes unique — so two
+    /// operands that SR6 lets "refer to the same physical data item" stay two levels;</item>
+    /// <item>failing that, the data item the reference NAMES with the same ref-mod: "A name may be qualified even
+    /// though it does not need qualification; if there is more than one combination of qualifiers that ensures
+    /// uniqueness, then any such set may be used" (§2023:8.4.2.2.3 SR2), so <c>WS-A</c> and <c>WS-A OF G1</c> name
+    /// one item, and a RESET ON or TYPE operand written with other qualifiers than the CONTROL operand names that
+    /// level (kb/Work PB5423). A reference that names no single item matches nothing here; the lookup reports
+    /// nothing, because the clause's own refusal follows.</item>
+    /// </list></summary>
+    private int ControlLevelOf(ReportModel model, ReportControlRef operand)
     {
         for (int i = 0; i < model.Controls.Count; i++)
             if (model.Controls[i].Operand is { } c && c.SameOperandAs(operand)) return i;
+        if (_d.QualifiedCandidates(operand.Name, operand.Qualifiers, Model.Scope.Program).Single is not { } named) return -1;
+        for (int i = 0; i < model.Controls.Count; i++)
+            if (model.Controls[i] is { Item: { } item, Operand: { } c } && ReferenceEquals(item, named)
+                && c.RefModStart == operand.RefModStart && c.RefModLength == operand.RefModLength)
+                return i;
         return -1;
     }
 

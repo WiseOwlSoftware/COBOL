@@ -116,8 +116,7 @@ internal static class AlgebraicRanges
                 pic.EditingRules as WiseOwl.Cobol.Runtime.CobolEdit.EditRule[], '$', decimalPointIsComma);
             scale = frac;
             unscaled = Pow10(cap) - 1;      // all-nines over the mask's digit positions (§2023:13.18.40.4)
-            signable = pic.EditMask!.IndexOf('+') >= 0 || pic.EditMask!.IndexOf('-') >= 0
-                       || pic.EditMask!.Contains("CR") || pic.EditMask!.Contains("DB");
+            signable = pic.HoldsSign;
         }
         else if (pic.Truncation == WiseOwl.Cobol.Runtime.NumericTruncation.BinaryCapacity)
         {
@@ -208,6 +207,11 @@ internal static class AlgebraicRanges
     /// <summary>The usage of the register's implicit description, for a diagnostic. <c>null</c> for any other
     /// expression.</summary>
     internal static Usage? CounterRegisterUsage(Bound.BoundExpr e) => DescribeCounter(e)?.Pic.Usage;
+
+    /// <summary>The register's implicit data description itself, for a rule that asks the size or sign of "the data item"
+    /// a register is — SEND's one-character identifier-2 of a LINAGE-COUNTER whose size is the page size's (§1985:VII.1.3.7;
+    /// kb/Work PB5384). <c>null</c> for any other expression.</summary>
+    internal static PicInfo? CounterRegisterDescription(Bound.BoundExpr e) => DescribeCounter(e)?.Pic;
 
     /// <summary>A register's implicit data description (<paramref name="Pic"/>) and the extremes it permits.</summary>
     private readonly record struct CounterDescription(PicInfo Pic, AlgebraicRange Range);

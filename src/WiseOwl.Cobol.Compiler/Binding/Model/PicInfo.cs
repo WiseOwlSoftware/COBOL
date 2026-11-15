@@ -724,6 +724,16 @@ public sealed record PicInfo(
     /// (DESIGN-external-repository §6.1, §6.3; kb/Work PB2100).</summary>
     internal int? WrittenDigitPositions => _digitPositions;
 
+    /// <summary>⛔ DOES THE ITEM HOLD A SIGN? (the ONE answer, kb/Work PB5182): a numeric item holds one when its picture has
+    /// <c>S</c> (<see cref="Signed"/>); a fixed-point numeric-edited item when its mask carries a sign editing symbol
+    /// (<c>+</c>, <c>-</c>, <c>CR</c>, <c>DB</c>, §2023:13.18.40.5), and a format-2 (LOCALE) item, which has no mask, by the
+    /// picture's <c>+</c> (<see cref="Signed"/>, §2023:13.18.40.4 GR18). A floating-point numeric-edited item's sign is its
+    /// significand's, which <c>CobolEdit.FloatMask.SigSign</c> reads (its exponent <c>+</c> is not the value's sign).</summary>
+    public bool HoldsSign =>
+        this is { Category: PicCategory.NumericEdited, EditMask: { } mask, LocaleEdit: null }
+            ? mask.Any(c => c is '+' or '-') || WiseOwl.Cobol.Runtime.CobolNames.Contains(mask, "CR") || WiseOwl.Cobol.Runtime.CobolNames.Contains(mask, "DB")
+            : Signed;
+
     /// <summary>The ONE PicInfo-keyed receiver-scale rule (kb/Work PB64 T6 — it was written twice, in
     /// <c>MoveEmitter.SenderContext</c> and <c>ArithmeticEmitter.ScaleOf</c>, and both copies silently fell to
     /// <c>Scale</c> = 0 for a locale item, truncating a fractional sender; kb/Work PB1685 moved it HERE so the
@@ -874,7 +884,8 @@ public sealed record PicInfo(
     /// §2023:13.18.40.3 SR14) keeps its full GR1 digit count. This used to clamp at 18 — the old <c>long</c> carrier's
     /// ceiling — so a PIC 9(20) SUM entry reported a false size error past 9.2·10^18 and printed spaces. The only
     /// counter still bounded is an alphanumeric or national PICTURE of more than 38 positions (one digit per
-    /// character position, <c>ReportSectionBinder.SumCounterDigits</c>), capped at the 38 digits the carrier holds.</para></summary>
+    /// character position, <c>ReportSectionBinder.SumCounterDigits</c>), capped at the 38 digits the carrier holds; at
+    /// COBOL-85 the caller has already capped that one at 18 (§1985:XIII.3.19.4 GR1 c.; kb/Work PB5247).</para></summary>
     public static PicInfo SumCounterItem(int digits, int scale)
     {
         int d = System.Math.Clamp(digits, 1, 38);

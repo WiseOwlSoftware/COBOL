@@ -6,7 +6,7 @@ docs/rearchitecture/DESIGN-test-build-ci.md §3.14.3–3.14.4)
 once", and until this tool three runs asserted it three different ways or not at all: CI summed each shard's
 `Total:` line against a `grep -c` of the listing (a count cannot see a dropped case offset by one that ran twice),
 while the battery accepted any `Passed!` line with exit 0 and the gate checked nothing. Its callers are the
-battery (`scripts/battery.sh` PHASE 1, all three assemblies) and CI's `ci-gate` job (each platform's weighted
+battery (`scripts/battery.sh` PHASE 1, every gated assembly) and CI's `ci-gate` job (each platform's weighted
 shards' trx files, per assembly, kb/Work PB4329); the gate (scripts/gate.py) calls `list_population` and `check` per
 assembly over its host's trx.
 
@@ -43,7 +43,7 @@ stays distinct from the character.
 ⛔ THE SCRUB (DESIGN-test-build-ci.md §3.14.3). Three channels can make a whole-assembly `dotnet test` run a PART of its assembly while
 exiting 0, and every one of them is an ENVIRONMENT variable:
   WISEOWL_COBOL_GATE_*     the gate's own channels to a test host (`WISEOWL_COBOL_GATE_FIRST`, the classes its orderer
-                           runs first; scripts/gate.py `FIRST_CLASSES`; and `WISEOWL_COBOL_GATE_ONLY`, the cases a
+                           runs first; scripts/gate_host.py `FIRST_CLASSES`; and `WISEOWL_COBOL_GATE_ONLY`, the cases a
                            re-gate of a measured tree still has to run, `ONLY_CASES`, whose passes `check` composes
                            through its `carried`, kb/Work PB5099): only the gate may hand them to a host;
   VSTest*                  MSBuild imports every environment variable as a property, and the VSTest target reads
@@ -98,14 +98,12 @@ TRX_NS = "{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}"
 RAN_OUTCOMES = frozenset({"Passed", "Failed"})
 RC_EXACT, RC_RED, RC_ERROR = 0, 1, 2
 
-#: THE GATED ASSEMBLIES — every whole-population run's three test projects, by the key the gate, the weights file and
-#: CI's shards name them with (the test assembly's name without `WiseOwl.Cobol.Tests.`). Their one statement: the gate
-#: and the shard tools read it from here.
-GATED_ASSEMBLIES = {
-    "Conformance": "tests/WiseOwl.Cobol.Tests.Conformance",
-    "Unit": "tests/WiseOwl.Cobol.Tests.Unit",
-    "Characterization": "tests/WiseOwl.Cobol.Tests.Characterization",
-}
+#: THE GATED ASSEMBLIES — every whole-population run's test projects, by the key the gate, the weights file and CI's
+#: shards name them with (the test assembly's name without `WiseOwl.Cobol.Tests.`), in the order the gate starts their
+#: hosts. Their ONE statement is the targets file (scripts/build_targets.json: each target's `assembly` and `project`,
+#: in its order), read here so no second list can drift from it (kb/Work PB5230 review R1-4).
+GATED_ASSEMBLIES = {t["assembly"]: t["project"].rstrip("/") for t in json.loads(
+    (REPO / "scripts" / "build_targets.json").read_text(encoding="utf-8"))["targets"].values() if t.get("kind") == "test"}
 
 #: CI's weighted shards (kb/Work PB4329; tests/_shared/GateLegs.cs `GateShard`): the one narrowing a WORKFLOW may set,
 #: because the workflow that sets it checks its shards' union with `check` (`audit_callers` holds it to that).
@@ -201,7 +199,7 @@ def parse_listing(text: str, source: str) -> Counter:
 def list_population(project: str | Path, configuration: str | None = None,
                     cwd: str | Path = REPO, handed: dict[str, str] | None = None, **spawn) -> tuple[Counter, str]:
     """Discover `project`'s population with `--list-tests`, scrubbed, in English. Returns (names, raw output).
-    `handed`: the generated outputs the gate hands the project's host (kb/Work PB5231; gate.py `Gate._handed`), set after
+    `handed`: the generated outputs the gate hands the project's host (kb/Work PB5231; gate_generated.py `Generations.handed`), set after
     the scrub, so discovery reads the suite the host will run. `spawn` is extra `subprocess` keyword arguments: a
     gate-slot holder passes `**slot.spawn_kwargs()`, so the listing runs inside the cap like every other child of the
     holder (DESIGN §3.14.6)."""
@@ -302,11 +300,11 @@ def red_cases(paths: list[str | Path]) -> set[str]:
 
 # ── RED AT THE PREVIOUS GATE MEANS ANY HOST'S (kb/Work PB3155, PB3184, PB3644): the sources of the first classes ──────
 #: ⛔ EVERY LIVE TOOL THAT WRITES TEST RESULTS (a trx file) INTO A WORKTREE IS ONE ROW HERE: the results directory it
-#: writes, relative to the worktree (None: it writes none there), and what the gate takes from it (scripts/gate.py `Gate._first`).
+#: writes, relative to the worktree (None: it writes none there), and what the gate takes from it (scripts/gate_legs.py `Legs.first`).
 #: The self-test holds this table equal to the live tools that write a trx file (`audit-trx-writers` over the real tree),
 #: so a new writer is classified here or the self-test is red.
 TRX_WRITERS: dict[str, tuple[str | None, str]] = {
-    "scripts/gate.py": ("TestResults/build-local", "the previous run (`Gate.previous_run`): its red classes run first"),
+    "scripts/gate_host.py": ("TestResults/build-local", "the previous run (`Gate.previous_run`): its red classes run first"),
     "scripts/linux-gate.sh": ("TestResults/linux-gate", "the hand-run Linux gate's newest run: its red classes run first"),
     "scripts/battery.sh": (None, "none: the battery runs in its own detached worktree at a batch head, never a gate "
                                  "of a branch"),
@@ -979,20 +977,20 @@ def self_test() -> int:
     # also SEE its population: a scan that stopped seeing the callers, writers or readers it names would report a clean
     # tree over nothing.
     sites, offenders = audit_callers(REPO)
-    want_sites = ("scripts/battery.sh", "scripts/gate.py", "scripts/gen-diagnostics-doc.ps1",
+    want_sites = ("scripts/battery.sh", "scripts/gate_host.py", "scripts/gen-diagnostics-doc.ps1",
                   "scripts/spec/record_verdicts.py", "scripts/abi_pin.py", ".github/workflows/build-and-test.yml")
     arm("arm (6), the real tree: every `dotnet test` caller under scripts/ and .github/workflows/ runs scrubbed, and the "
         "audit sees the callers DESIGN-test-build-ci.md §3.14.3 names",
         not offenders and all(s in sites for s in want_sites),
         f"offenders {offenders}; missing {[s for s in want_sites if s not in sites]}")
     seen, bad = audit_trx_writers(REPO)
-    want_writers = ("scripts/gate.py  TestResults/build-local", "scripts/linux-gate.sh  TestResults/linux-gate",
+    want_writers = ("scripts/gate_host.py  TestResults/build-local", "scripts/linux-gate.sh  TestResults/linux-gate",
                     "scripts/battery.sh  -")
     arm("the real tree: every live tool that writes a trx file is a TRX_WRITERS row (PB3155), and the audit sees the "
         "gate, the Linux gate and the battery",
         not bad and all(any(f"  writer  {w}  " in s for s in seen) for w in want_writers), f"{bad} {seen}")
     seen, bad = audit_trx_readers(REPO)
-    want_readers = ("  trx-schema  scripts/test_population.py  parses XML", "  trx-schema  scripts/gate.py  no XML parser",
+    want_readers = ("  trx-schema  scripts/test_population.py  parses XML", "  trx-schema  scripts/selftests/gate/test_runs_and_locks.py  no XML parser",
                     "  trx-schema  scripts/profile-test-parallelism.py  no XML parser")
     arm("the real tree: every live tool reads a trx file through trx_root (PB3661), and the audit sees the one reader "
         "and the tools that only name the schema", not bad and all(w in seen for w in want_readers), f"{bad} {seen}")

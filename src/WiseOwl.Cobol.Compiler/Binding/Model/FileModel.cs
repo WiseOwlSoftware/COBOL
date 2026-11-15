@@ -37,6 +37,12 @@ public sealed record SameClause(SameClauseKind Kind, IReadOnlyList<FileModel> Me
 /// names that resolve to a declared file; one that does not is the clause's own error, reported where it is bound.</summary>
 public sealed record MultipleFileReel(IReadOnlyList<FileModel> Members);
 
+/// <summary>One X3.23-1985 RERUN clause of the integer-1 RECORDS form (§1985:VII.2.12.2: <c>RERUN ON implementor-name-1
+/// EVERY integer-1 RECORDS OF file-name-2</c>): the rerun information goes to the device implementor-name-1 names
+/// <i>"whenever integer-1 records of file-name-2 have been processed"</i> (§1985:VII.2.12.4 GR2 d; kb/Work PB5198).
+/// <see cref="Every"/> is at least 1.</summary>
+public sealed record RerunRecordsClause(string Device, long Every);
+
 /// <summary>One ALTERNATE RECORD KEY clause of a file control entry, AS WRITTEN (ISO §2023:12.4.5.6.2 — data-name-1,
 /// its IN/OF qualifiers, the WITH DUPLICATES and SUPPRESS WHEN phrases), plus the item data-name-1 resolved to
 /// and the source position its syntax rules report at.
@@ -917,11 +923,26 @@ public sealed class FileModel
     /// (kb/Work PB5086).</summary>
     public List<MultipleFileReel> MultipleFileReels { get; } = [];
 
+    /// <summary>This file's X3.23-1985 RERUN clause of the integer-1 RECORDS form (§1985:VII.2.12.4 GR2 d): the device
+    /// implementor-name-1 names and integer-1, recorded by <c>FileControlBinder.ScreenRerunClauses</c> for a clause whose
+    /// syntax rules held and whose integer-1 is nonzero (kb/Work PB5198). At most one per file, by §1985:VII.2.12.3 SR4 a.
+    /// Null for a file no such clause names. The code generator registers it on the file's connector, which writes the
+    /// rerun information.</summary>
+    public RerunRecordsClause? RerunRecords { get; set; }
+
     /// <summary>The OTHER files named with this one in a record-area SAME clause that give the area a record
     /// (§2023:12.4.6.4.4 GR2) — derived from <see cref="SameClauses"/>, so there is no second membership model.</summary>
     public IEnumerable<FileModel> SameRecordAreaPeers =>
         SameClauses.Where(c => c.Kind == SameClauseKind.RecordArea).SelectMany(c => c.Members)
             .Where(o => !ReferenceEquals(o, this) && o.Records.Count > 0).Distinct();
+
+    /// <summary>The files whose record areas are this file's STORAGE (kb/Work PB5412): <see cref="AreaFiles"/>, and every file
+    /// named with this one in a SAME AREA clause, which shares "all storage areas assigned to the files" (§1985:VII.2.13.4 GR1)
+    /// though not the current logical record. Derived from <see cref="SameClauses"/> like <see cref="SameRecordAreaPeers"/>;
+    /// asked by the rule that a FROM or INTO operand is not the file's record area (<c>StorageSharing.IsRecordAreaOf</c>).</summary>
+    public IEnumerable<FileModel> StorageSharingFiles =>
+        AreaFiles.Concat(SameClauses.Where(c => c.Kind == SameClauseKind.Area).SelectMany(c => c.Members)
+            .Where(o => !ReferenceEquals(o, this))).Distinct();
 
     /// <summary>The first record of this file that has a character window — the anchor every other
     /// character-window record implicitly redefines (§2023:13.18.33.4 GR3), or null when every record is out of
@@ -1067,11 +1088,14 @@ public sealed class FileModel
     /// (2) The file is not LINE SEQUENTIAL, whose transfer is defined outright: a WRITE drops trailing spaces
     /// (§2023:14.9.51.4 GR21) or fills with spaces (GR22), and a REWRITE appends spaces (§2023:14.9.35.4 GR17 c)).
     /// (3) record-name-1 has a character window (<see cref="IsOutOfLineRecord"/> records do not overlay the area,
-    /// D-FRA), and (4) is narrower than the area, whose widest such record <see cref="AreaRecord"/> is.</para></summary>
+    /// D-FRA), and (4) can be narrower than the area, whose widest such record <see cref="AreaRecord"/> is: it is a
+    /// narrower description, or it holds an OCCURS DEPENDING table, whose current size is that of its occurrences at the time
+    /// of execution (§2023:13.18.43.4 GR13 c)) and so is the area's width only when the table is at its maximum (kb/Work
+    /// PB5217: an ODO record of a fixed-length file sent at one occurrence wrote spaces where the area held the rest).</para></summary>
     public bool TransfersPastRecord(DataItem record) =>
         Organization != FileOrganization.LineSequential && !IsOutOfLineRecord(record)
-        && AreaRecord is { } area && !ReferenceEquals(area, record)
-        && Model.RecordLayout.PhysicalWidth(area) > Model.RecordLayout.PhysicalWidth(record)
+        && AreaRecord is { } area
+        && (Model.RecordLayout.PhysicalWidth(area) > Model.RecordLayout.PhysicalWidth(record) || HasVaryingTableBeneath(record))
         && (Varying?.DependingName is not null || !RecordSizeVaries);
 
     /// <summary>True for either sequential shape (the only organizations this slice can OPEN/READ/WRITE).</summary>
@@ -1236,5 +1260,7 @@ public sealed record LinageInfo(LinageOperand Body, LinageOperand? Footing, Lina
     }
 }
 
-/// <summary>What an entry specifies in one file description clause (<see cref="FileModel.FdClauses"/>) and where it wrote it.</summary>
-public readonly record struct FdClauseValue(string Value, WiseOwl.Cobol.Editions.DiagnosticCursor At);
+/// <summary>What an entry specifies in one file description clause (<see cref="FileModel.FdClauses"/>) and where it wrote it: <paramref name="Value"/>
+/// is what the clause's agreement rule compares, <paramref name="Written"/> how a diagnostic shows it. The two differ where the rule compares a meaning
+/// rather than a spelling (the VALUE OF literal-1's value, kb/Work PB5362).</summary>
+public readonly record struct FdClauseValue(string Value, string Written, WiseOwl.Cobol.Editions.DiagnosticCursor At);

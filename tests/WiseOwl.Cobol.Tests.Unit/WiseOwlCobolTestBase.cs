@@ -52,8 +52,9 @@ public abstract class WiseOwlCobolTestBase : IDisposable
         var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"") { WorkingDirectory = TempDir };
         var obs = ProcessObserver.ObserveOrThrow(psi, runDirectory: TempDir);
         // Canonicalize newlines so multi-line expectations are platform-independent (a compiled program's DISPLAY
-        // uses the platform newline: \r\n on Windows, \n on Linux/CI). See the legacy EndToEndTestBase note.
-        string stdout = obs.Stdout.ReplaceLineEndings("\r\n").TrimEnd();
+        // uses the platform newline: \r\n on Windows, \n on Linux/CI). Only that newline is folded: a form feed, NEL,
+        // LS, PS or lone CR the program printed inside its output is output (kb/Work PB5460).
+        string stdout = obs.Stdout.Replace("\r\n", "\n").Replace("\n", "\r\n").TrimEnd();
         return (obs.ExitCode == 0, stdout, obs.Stderr.Trim());
     }
 }

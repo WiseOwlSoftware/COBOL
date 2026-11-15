@@ -30,9 +30,9 @@
        PROCEDURE DIVISION.
        PB4305-LEAD.
            MOVE 1.25 TO WS-A.
-           MOVE 'ABC' TO WS-B.
+           MOVE "ABC" TO WS-B.
            MOVE 3.5 TO WS-C.
-           MOVE 'OK' TO WS-D.
+           MOVE "OK" TO WS-D.
            DISPLAY WS-A.
            DISPLAY WS-B.
            DISPLAY WS-C.

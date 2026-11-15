@@ -72,7 +72,7 @@ WHAT IS CHECKED HERE, AND WHAT IS NOT. This validates SHAPE only: the rule-id is
 vocabulary, the fields that verdict requires are present, the editions are in their one spelling, named and a
 run through the newest edition (`Schema.editions_error`, kb/Work PB3172, PB3173), the syntax of each reference
 parses, the register anchor the row's KIND computes is present, and no fragment on an `anchored-files` path is
-outside that file's anchor space. A record may also carry a `derivation` — §1.1's owner-signed alternative to a
+outside that file's anchor space. A record may also carry a `derivation` — §1.1's signed alternative to a
 spec-derived test, for a rule with no observable obligation (kb/Work PB386) — and every one of the six bounds the
 owner set on it is checked HERE, by the same predicate `Schema.state_for` asks. All of that is decidable from the
 record, the schema, and the registers the schema names.
@@ -141,7 +141,7 @@ def withdrawal_errors(records: list[tuple[pathlib.Path, int, dict]], catalog: di
 # place — so the two lines below fail loudly instead. The run itself is SCRUBBED (kb/Work PB1718): a gate leg
 # handshake or a VSTest*/RunSettingsFilePath variable left in the operator's shell would narrow it further.
 GATE_FILTER = "FullyQualifiedName~SpecTraceabilityInventory"
-GATE_PROJECT = "tests/WiseOwl.Cobol.Tests.Unit"
+GATE_PROJECT = "tests/WiseOwl.Cobol.Tests.RepoDrift"   # SpecTraceabilityInventoryDriftTests (kb/Work PB5230)
 GATE = (f'python scripts/filter_population.py --filter "{GATE_FILTER}" --filtered {GATE_PROJECT} --allow-build\n'
         f'    python scripts/test_population.py scrubbed dotnet test {GATE_PROJECT} --filter "{GATE_FILTER}"')
 
@@ -526,10 +526,10 @@ def main() -> int:
         for rid in untested[:10]:
             print(f"       {rid}")
     if derived_closures:
-        # ⛔ REPORTED SEPARATELY BECAUSE IT IS A DIFFERENT KIND OF CLOSURE. These rows close on an owner-signed
+        # ⛔ REPORTED SEPARATELY BECAUSE IT IS A DIFFERENT KIND OF CLOSURE. These rows close on a signed
         # DERIVATION rather than on a test (kb/Work PB386), so a reader comparing the GAP delta against the
         # goldens that landed must be able to see which rows moved without one.
-        print(f"\n  ⓘ {len(derived_closures)} row(s) closed on an owner-signed DERIVATION rather than a test "
+        print(f"\n  ⓘ {len(derived_closures)} row(s) closed on a signed DERIVATION rather than a test "
               f"(docs/CONFORMANCE.md {schema.derivation.heading.strip('# ')}):")
         for rid in derived_closures[:10]:
             print(f"       {rid}")

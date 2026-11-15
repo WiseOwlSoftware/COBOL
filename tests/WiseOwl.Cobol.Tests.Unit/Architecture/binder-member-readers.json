@@ -278,6 +278,9 @@
     "WiseOwl.Cobol.Binding.DataBinder::CopyDescriptionToTemp": [
       "WiseOwl.Cobol.Binding.CompilerTemps"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::CopyWords": [
+      "WiseOwl.Cobol.Binding.BinderDriver"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::DeclareDataEntryRuns": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
@@ -288,7 +291,6 @@
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::DeclareUserWord": [
-      "WiseOwl.Cobol.Binding.Bound.StatementBinder",
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder",
@@ -489,6 +491,7 @@
       "WiseOwl.Cobol.Binding.Procedure.ControlFlowBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.Procedure.OoBinder",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::LiteralPosition": [
@@ -1133,6 +1136,12 @@
     "WiseOwl.Cobol.Binding.ReportSectionBinder::BindReportSection": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
+    "WiseOwl.Cobol.Binding.ReportSectionBinder::ControlDataReferenceOf": [
+      "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder"
+    ],
+    "WiseOwl.Cobol.Binding.ReportSectionBinder::ControlDataRuleWords": [
+      "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder"
+    ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::InheritContainerReports": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
@@ -1148,6 +1157,9 @@
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder"
+    ],
+    "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportGroupTypeWords": [
+      "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ResolveReports": [
       "WiseOwl.Cobol.Binding.Passes.ResolveReportsPass"

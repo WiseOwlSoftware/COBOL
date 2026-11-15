@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-GR-VI.4.3.4-5",
  "rule-digest": "6e382c001be9",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite; src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Hide; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertLine",
- "test-ref": "conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/1985-GR-VI_4_3_4-5",
- "notes": "Without the mode a debugging line is a comment, and text a COPY statement introduces from a debugging line is itself on a debugging line. A program without WITH DEBUGGING MODE and with 'D    COPY LIBN.' executes the copied DISPLAY (prints COPIED-ON-DLINE) while the plain D line beside it stays hidden. The copied tokens reach DebuggingLineRewriter without the debugging-line marker. kb/Work PB5214 holds the defect (code read: held-85/set2/decisions.json).",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite",
+ "test-ref": "conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/1985-GR-VI_4_3_4-5; conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-no-mode; conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-mode",
+ "notes": "Without WITH DEBUGGING MODE a debugging line is a comment, and text a COPY statement introduces from a debugging line is itself on debugging lines (§1985:XII.2.4 GR9) (kb/Work PB5214, landed): CopyProcessor.ExpandCopiesOneLevel writes the library text behind the debugging-line carrier when the COPY begins on a carrier line, and the post-period remainder of that line keeps the carrier. Witnesses: pb5214-debugging-line-copy-no-mode (START, LIB-PLAIN, INIT, END) and pb5214-debugging-line-copy-mode (the copied text runs); nested COPY at 2002: pb5214-debugging-line-copy-nested-no-mode and -mode.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -82,6 +82,11 @@ public sealed class Frontend
     /// source and each copybook — for the COBOL-85 area-placement rules (<c>AreaPlacementPass</c>).</summary>
     public FixedFormAreas Areas { get; private set; } = FixedFormAreas.None;
 
+    /// <summary>The text-name and library-name each COPY statement of the last parsed source wrote as a COBOL word (kb/Work PB5482):
+    /// below COBOL-2002 they are user-defined words of the program, which the binder asks the one-type-per-word rule of
+    /// (<c>DataBinder.DeclareUserWord</c>; §1985:IV.4.2.2.1.1).</summary>
+    public IReadOnlyList<CopyNameUse> CopyNames { get; private set; } = [];
+
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
     /// syntax error was reported (collected into <paramref name="diagnostics"/>).
@@ -114,7 +119,7 @@ public sealed class Frontend
             // Every stage from the normalizer on reports into THIS pass's bag; only the converged pass's diagnostics
             // are the compilation's (a DEFINE's SR2 redefinition, a FLAG warning or a line's reference-format gate
             // depends on the state in effect).
-            var (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats) =
+            var (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames) =
                 RunTextStages(raw, sourcePath, implicitOps, formatOps);
             var passLineMap = new SourceLineMap(processed.Lines);
             LineMap = passLineMap;
@@ -163,6 +168,7 @@ public sealed class Frontend
                 diagnostics.AddCompileOutput(passDiagnostics.CompileOutput);
                 Directives = directives.WithStackOps(ops);
                 Areas = passAreas;
+                CopyNames = copyNames;
                 return tree;
             }
             if (pass > SpeculationBound(encounters, formats))
@@ -185,7 +191,8 @@ public sealed class Frontend
     /// it ends. Each run reports into a bag and a reference-format diagnostics of its own, as each §2023:14.9.28.4 GR14 pass does:
     /// only the last run's are the pass's.</summary>
     private (DiagnosticBag Diagnostics, ReferenceFormatDiagnostics Gates, MappedText Text, DirectiveResults Directives,
-        ConditionalCompilationResult Encounters, IReadOnlyDictionary<string, ReferenceFormatMap> Formats) RunTextStages(
+        ConditionalCompilationResult Encounters, IReadOnlyDictionary<string, ReferenceFormatMap> Formats,
+        IReadOnlyList<CopyNameUse> CopyNames) RunTextStages(
         string raw, string sourcePath, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps)
     {
         var pins = CommentEntryPins.None;
@@ -196,9 +203,9 @@ public sealed class Frontend
             // once-per-compilation gate (the obsolete column-7 hyphen) fires once however many files use it (kb/Work PB1640).
             var referenceFormatGates = new ReferenceFormatDiagnostics(DialectLevel, Permissive, passDiagnostics);
             var (normalized, referenceFormats) = Normalize(raw, sourcePath, referenceFormatGates, formatOps, pins);
-            var (processed, directives, encounters, formats, programText) =
+            var (processed, directives, encounters, formats, programText, copyNames) =
                 Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps, pins);
-            if (programText is not { } pin) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats);
+            if (programText is not { } pin) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames);
             pins = pins.With(pin);
         }
     }
@@ -282,7 +289,8 @@ public sealed class Frontend
     /// (<see cref="Parse"/>). Returns the resultant text, the directive results (WITHOUT the implicit ops, which the
     /// caller replays once the program has converged), and the driver's directive encounters.</summary>
     private (MappedText Text, DirectiveResults Directives, ConditionalCompilationResult Encounters,
-        IReadOnlyDictionary<string, ReferenceFormatMap> Formats, CommentEntryPin? ProgramText) Preprocess(
+        IReadOnlyDictionary<string, ReferenceFormatMap> Formats, CommentEntryPin? ProgramText,
+        IReadOnlyList<CopyNameUse> CopyNames) Preprocess(
         MappedText normalized, ReferenceFormatMap referenceFormats, string sourcePath, DiagnosticBag diagnostics,
         ReferenceFormatDiagnostics referenceFormatGates, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps,
         CommentEntryPins pins)
@@ -387,6 +395,9 @@ public sealed class Frontend
         var resolved = CommentEntryResolver.Resolve(new MappedText(text, mapped.Lines), cobolWordsMap, referenceFormatGates);
         text = resolved.Text.Text;
         var lineOrigins = resolved.Text.Lines;
+        // ⛔ COBOL-85 HAS NO FLOATING COMMENT INDICATOR (kb/Work PB5470): its fixed-form conversion left `*>` in the text as an
+        // ordinary text-word for COPY and REPLACE to read, so what survives to here is refused once, as the 2002 introduction.
+        SurvivingFloatingComments.Report(resolved.Text, referenceFormatGates);
 
         // >>LEAP-SECOND (ISO §2023:7.3.17): the ON/OFF toggles the binder folds at each compilation unit's first line — the
         // §2023:15.3 date/time consumers' fact (kb/Work PB65 — it used to be consumed and discarded; kb/Work PB1378 — it is
@@ -400,7 +411,7 @@ public sealed class Frontend
         return (new MappedText(text, lineOrigins),   // the constructor re-asserts the line-count invariant
             new DirectiveResults(turnEvents, refModZeroLengthEvents, flagEvents, propagateEvents, cobolWordsMap, leapSecondEvents,
                 compilationVariables, directiveSites),
-            manipulated, copy.ReferenceFormats, resolved.ProgramText);
+            manipulated, copy.ReferenceFormats, resolved.ProgramText, copy.CopyNames);
     }
 
     /// <summary>The ISO §2023:7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the
@@ -483,6 +494,7 @@ public sealed class Frontend
         // The debugging lines that stay SOURCE: the region lines blanked on the way (their marker is gone from the final
         // stream) and the final stream's own (kb/Work PB2490).
         var sourceDebuggingLines = new List<IToken>();
+        var misplacedDebuggingLines = new List<IToken>();   // the final stream's own (§1985:VI.7.3)
         LexerErrorListener lexErrors;
         while (true)
         {
@@ -491,7 +503,9 @@ public sealed class Frontend
             lexErrors = LexerErrorListener.AttachTo(lexer);
             tokens = new CommonTokenStream(lexer);
             var streamSourceLines = new List<IToken>();
-            if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines) is not { } sourceRegionLine)
+            misplacedDebuggingLines.Clear();
+            if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines,
+                    debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002)) is not { } sourceRegionLine)
             {
                 sourceDebuggingLines.AddRange(streamSourceLines);
                 break;
@@ -510,7 +524,7 @@ public sealed class Frontend
         // precompiler writes, BEFORE every reader of the stream: the screens below skip its text, which is another
         // language, and every prediction of the parse sees the token (kb/Work PB4341). A no-op for a source with none.
         var embeddedBlocks = EmbeddedBlockReading.Read(tokens,
-            () => ParsesCleanly(tokens, retypes, edition, cobolWordsMap, sourcePath, cuts));
+            () => ParseCopyOf(tokens.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts).Clean);
 
         // ISO §2023:13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
@@ -589,7 +603,47 @@ public sealed class Frontend
         // and placed among the parse's reports by position like the other causes (DiagnosticBag.AddBeforeEffects).
         diagnostics.AddBeforeEffects(MarginRCutScreen.Warnings(tokens.GetTokens(), tree, cuts, diagnostics.Diagnostics), parseStart);
 
+        // §1985:VI.7.3, the two rules of the debugging-line presentation (kb/Work PB5212). A COBOL-85 rule: the later editions
+        // carry the facility as obsolete or not at all (docs/CONFORMANCE.md D-DEBUG).
+        if (DialectLevel < 2002)
+        {
+            ReportMisplacedDebuggingLines(misplacedDebuggingLines, diagnostics, sourcePath);
+            if (parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any && sourceDebuggingLines.Count > 0)
+                ReportDebuggingLinesBreakingTheProgram(tokens.GetTokens(), sourceDebuggingLines, retypes, edition, cobolWordsMap,
+                    sourcePath, cuts, diagnostics);
+        }
+
         return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines);
+    }
+
+    /// <summary>§1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the OBJECT-COMPUTER
+    /// paragraph." Each line <see cref="DebuggingLineRewriter.Rewrite"/> found before it is COBOL7060, at the line.</summary>
+    private void ReportMisplacedDebuggingLines(List<IToken> misplaced, DiagnosticBag diagnostics, string sourcePath)
+    {
+        var descriptor = Editions.Diagnostics.DiagnosticCatalog.DebuggingLineBeforeObjectComputer;
+        foreach (var marker in misplaced)
+            diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(marker.Line, marker.Column, sourcePath), default);
+    }
+
+    /// <summary>§1985:VI.7.3: "The content of a debugging line must be such that a syntactically correct program is formed with or
+    /// without the debugging lines being considered as comment lines." The stream parsed clean with its
+    /// <paramref name="sourceLines"/> (the debugging lines that are source) as they stand; here it is parsed again with them
+    /// hidden, and a program that no longer parses is COBOL7061 at the last such line before the first syntax error (the
+    /// one whose removal left what the error found), or at the first when none precedes it.</summary>
+    private void ReportDebuggingLinesBreakingTheProgram(IList<IToken> tokens, List<IToken> sourceLines, TokenRetypes retypes,
+        EditionInfo edition, CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts, DiagnosticBag diagnostics)
+    {
+        var lineNumbers = sourceLines.Select(t => t.Line).ToHashSet();
+        var hidden = tokens.Select(t => lineNumbers.Contains(t.Line) && t.Type != TokenConstants.EOF
+            && t.Channel == TokenConstants.DefaultChannel
+            ? new CommonToken(t) { Channel = CobolLexer.ABSENT_DEBUG_LINE }
+            : t).ToList();
+        var verdict = ParseCopyOf(hidden, retypes, edition, cobolWordsMap, sourcePath, cuts);
+        if (verdict.Clean) return;
+        int errorLine = verdict.Offender?.Line ?? int.MaxValue;
+        var at = sourceLines.Where(t => t.Line <= errorLine).MaxBy(t => t.Line) ?? sourceLines.MinBy(t => t.Line)!;
+        var descriptor = Editions.Diagnostics.DiagnosticCatalog.DebuggingLineSyntaxBothWays;
+        diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(at.Line, at.Column, sourcePath), default);
     }
 
     /// <summary>The whole-group parser of <paramref name="tokens"/>: the ONE place the driver hands it the edition (both axes) and
@@ -597,17 +651,41 @@ public sealed class Frontend
     private static CobolParserCore NewParser(CommonTokenStream tokens, EditionInfo edition, CobolWordsMap cobolWordsMap)
         => new(tokens) { Edition = edition, CobolWords = cobolWordsMap };
 
-    /// <summary>Does the source parse with no syntax error as it stands? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
+    /// <summary>Does the token list parse with no syntax error as it stands, and where is its first one? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
     /// EXEC only the grammar can classify (kb/Work PB4381): one whole parse, the gate's loop included, of a COPY of the
     /// stream (the loop retypes the tokens it is handed) into a bag nothing reads.</summary>
-    private bool ParsesCleanly(CommonTokenStream tokens, TokenRetypes retypes, EditionInfo edition,
+    private (bool Clean, IToken? Offender) ParseCopyOf(IList<IToken> tokens, TokenRetypes retypes, EditionInfo edition,
         CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts)
     {
-        var copy = new CommonTokenStream(new ListTokenSource(tokens.GetTokens().Select(t => (IToken)new CommonToken(t)).ToList()));
+        var copy = new CommonTokenStream(new ListTokenSource(tokens.Select(t => (IToken)new CommonToken(t)).ToList()));
         var parser = NewParser(copy, edition, cobolWordsMap);
-        ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(),
-            (bag, witness) => ParsePass(parser, copy, bag, witness, sourcePath, cuts));
-        return parser.NumberOfSyntaxErrors == 0;
+        var first = new FirstOffender();
+        ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(), (bag, witness) =>
+        {
+            first.Offender = null;   // only the last pass of the gate's loop describes the stream
+            return ParsePass(parser, copy, bag, new Tee(witness, first), sourcePath, cuts);
+        });
+        return (parser.NumberOfSyntaxErrors == 0, first.Offender);
+    }
+
+    /// <summary>Remembers the offending token of the first syntax error of a pass.</summary>
+    private sealed class FirstOffender : BaseErrorListener
+    {
+        public IToken? Offender { get; set; }
+
+        public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
+            int charPositionInLine, string msg, RecognitionException e) => Offender ??= offendingSymbol;
+    }
+
+    /// <summary>Two listeners that hear every syntax error.</summary>
+    private sealed class Tee(IAntlrErrorListener<IToken> a, IAntlrErrorListener<IToken> b) : BaseErrorListener
+    {
+        public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
+            int charPositionInLine, string msg, RecognitionException e)
+        {
+            a.SyntaxError(output, recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+            b.SyntaxError(output, recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+        }
     }
 
     /// <summary>One parse of the whole token stream from token 0: fast SLL prediction first (with a

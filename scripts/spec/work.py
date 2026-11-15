@@ -1529,7 +1529,7 @@ def _mention_members(raw: str, block: str, end: int) -> tuple[tuple[str, ...], b
 #: planned unsited ran in parallel on one function (wave 20261030: PB3628 and PB3275 on prune_worktrees.lifecycle).
 SITES_REQUIRED_FROM = 3443
 #: The site-block form SITES_RULE asks for, quoted by MANDATORY-PRACTICES R3 and the registrar brief (a drift check in
-#: scripts/orchestrator/test_plan_wave.py holds them to it and to what note_sites reads from it).
+#: scripts/selftests/orchestrator/plan_wave/ holds them to it and to what note_sites reads from it).
 SITES_EXAMPLE = "**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs:123` (`DataBinder.Bind`, `DataBinder.Sync`)"
 SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:**` paragraph naming each file it "
               "changes AND the members it changes in it, the file's path (a `:line` suffix optional) followed by a "

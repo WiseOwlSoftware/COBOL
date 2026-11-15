@@ -270,7 +270,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     internal string? ContentConformanceReason(DataItem formal, BoundCallArg arg, ObjectRefDescriptor? invokedWith = null)
     {
         if (formal.Pic is { Category: PicCategory.ObjectReference } formalPic
-            && arg.Place?.DenotedItem?.Pic is { Category: PicCategory.ObjectReference } argumentPic)
+            && arg.Place?.DescribedItem?.Pic is { Category: PicCategory.ObjectReference } argumentPic)
             return WiseOwl.Cobol.Compiler.Oo.OoConformance.ObjectReferenceContentMismatch(host.OoClasses, formalPic, argumentPic,
                 invokedWith);
         if (WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions.OfCallArgument(arg, programRestriction: null, host.OoClasses)

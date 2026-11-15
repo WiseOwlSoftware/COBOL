@@ -4,7 +4,7 @@
 
     python scripts/orchestrator/test_rolling_wave.py
 
-The wave script had no harness: its rules were pinned only as source text (test_plan_wave.py), so the hold that kept a
+The wave script had no harness: its rules were pinned only as source text (the plan_wave cases), so the hold that kept a
 finished, CLEAN predecessor off main behind its same-file successor (wave 1118: six DONE groups, none landed in seven
 hours) was never seen to run. This runs the script itself, as the Workflow runtime does (its body as an async function
 of `args`, `agent`, `parallel`, `log` and `phase`), against scripted agent results keyed by each agent's label, and
@@ -404,9 +404,12 @@ def main() -> int:
         runs = tmp / "gate-runs"
         sys.path.insert(0, str(HERE.parent))
         import gate  # noqa: PLC0415  (the gate's reader: its PENDING exit is the one the wave waits through)
+        import gate_verdict  # noqa: PLC0415
+        import gate_host  # noqa: PLC0415
+        import gate_runs  # noqa: PLC0415
         js_pending = re.search(r"^const AWAIT_PENDING_EXIT = (\d+)$", WAVE.read_text(encoding="utf-8"), re.M)
-        check("5: the wave's AWAIT_PENDING_EXIT is gate.AWAIT_PENDING_EXIT, never BUSY's exit",
-              bool(js_pending) and int(js_pending.group(1)) == gate.AWAIT_PENDING_EXIT != gate.EXIT_BUSY,
+        check("5: the wave's AWAIT_PENDING_EXIT is gate_runs.AWAIT_PENDING_EXIT, never BUSY's exit",
+              bool(js_pending) and int(js_pending.group(1)) == gate_runs.AWAIT_PENDING_EXIT != gate_verdict.EXIT_BUSY,
               js_pending and js_pending.group(1))
 
         def gate_run(name: str, verdict: str | None, exit_code: int = 0) -> str:
@@ -451,12 +454,12 @@ def main() -> int:
         # run (what Gate.run writes); the reader asks that lock, never the pid file (review R1-1 of wave 20261104)
         from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch fixture)
         stuck_wt = ScratchRepo.init(tmp / "stuck-wt").path
-        stuck_dir = stuck_wt / gate.RUN_ROOT / "stuck"
+        stuck_dir = stuck_wt / gate_runs.RUN_ROOT / "stuck"
         stuck_dir.mkdir(parents=True)
-        gate.write_pid(stuck_dir, os.getpid())
+        gate_runs.write_pid(stuck_dir, os.getpid())
         stuck_run = str(stuck_dir)
         stuck_lock = gate.ExclusiveLock.try_take(
-            gate.Host(stuck_wt).lock_path(), f"gate {stuck_wt} (pid 7, since T{gate.RUN_LABEL}{stuck_dir})")
+            gate_host.Host(stuck_wt).lock_path(), f"gate {stuck_wt} (pid 7, since T{gate_runs.RUN_LABEL}{stuck_dir})")
         r = run(tmp, "gate-stuck", {"args": args(solo, **gate_args), "agents": {
             "impl-A-PB1": [pending("bA", "a1", stuck_run)]}})
         ev, res = r["events"], {x["letter"]: x for x in r["out"]["results"]}

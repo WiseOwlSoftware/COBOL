@@ -6,13 +6,20 @@
     python scripts/self_tests.py --built    # the ones that read the BUILT test assemblies (after a solution build)
     python scripts/self_tests.py --list     # print what discovery found, and how each would run here
     python scripts/self_tests.py --budget 8 # one phase at another budget width: a measurement only (THE BUDGET)
+    python scripts/self_tests.py --only scripts/selftests/orchestrator/plan_wave/test_planner.py   # named files, by hand
     python scripts/self_tests.py --self-test
+
+THE CASE LAYOUT (kb/Work PB5428; DESIGN-orchestrator-loop.md section 16.2): every run first calls
+scripts/selftest_layout.py over the tracked tree, and a refusal is the run's verdict (`=== SELF-TESTS: RED — layout: … ===`),
+so no gate, CI job or hand run runs the self-tests of a tree that breaks it. A file under a `<root>/selftests/` tree runs
+as any `test_*.py` does (rule b), with `PYTHONPATH` = `scripts/` prepended in `Runner.run_one`, the one place, so its
+`import selftest_cases` resolves; run bare it fails at that import. `--only <path> ...` runs the named discovered files.
 
 ⛔ WHY ONE RUNNER, AND WHY DISCOVERY. Until PB2563 the gates ran self-tests from hand lists: the gate driver's AUDITS
 named five, CI's audits job named those five plus `landing_check.py`, linux-gate.sh named three, and eleven of the
 fourteen orchestrator self-tests (the loop's unit choice, the allocator's lock, the wave planner, …) ran in no gate and
 no CI job at all, so a regression in any of them passed everything. A list goes stale the day a self-test is added.
-This runner FINDS them, and the local gate (scripts/gate.py AUDITS, only for a change that touches tooling,
+This runner FINDS them, and the local gate (scripts/gate_audits.py AUDITS, only for a change that touches tooling,
 kb/Work PB4326, and beside its build and legs, never inside the gate slot), the Linux gate
 (scripts/linux-gate.sh leg `selftests`) and CI (the `audits` job on Linux and `windows-self-tests` on Windows) all run
 THIS entry point, so no gate can run a self-test CI does not, or the reverse (the CI invariant, kb/Work PB1957).
@@ -44,7 +51,7 @@ The default run names it `deferred to --built` in its verdict; `--built` runs ex
 `linux-built-self-tests` job; linux-gate.sh after its unit and conformance legs). The default run never builds: it is one of the
 gate's audits, which run outside the gate slot, and the slot is what rations builds.
 
-POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/inert_lane.py): what it read
+POPULATION (kb/Work PB4326): every self-test that passes is held to the tooling flag (scripts/lane_classification.py): what it read
 must be tooling, a TOOLING_READS entry or an inert corpus, else it is RED naming the path. The one exemption is a self-test
 that reads the tracked tree as a population, declared the same way and checked against the trace (a declaration whose
 trace shows no git command over the whole repository is RED; a whole-tree git command without the declaration is judged):
@@ -149,7 +156,8 @@ from typing import Callable, Iterator
 import process_job  # this directory's: the self-test's whole process tree, stopped as one (kb/Work PB5098)
 import sharedfile  # this directory's: the one Windows share-retry rule for files several processes read and replace
 import live_tools  # this directory's: the one list of the live tools' trees, which discovery reads
-import inert_lane  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
+import selftest_layout  # this directory's: the case layout rule, called first by every run (kb/Work PB5428)
+import lane_classification  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
 import self_test_inputs as inputs  # this directory's: what a self-test read, and the tracer that records it
 import self_test_clock as clocks  # this directory's: the clock a self-test's PASS is proven against (kb/Work PB4358)
 from gate_slot import ExclusiveLock, git_common_dir  # this directory's: the OS file lock every gate place is
@@ -161,7 +169,7 @@ from standard_streams import ensure_utf8
 REPO = Path(__file__).resolve().parents[1]
 FLAG = "--self-test"
 VERDICT = "=== SELF-TESTS: "
-#: The submodule `check_practices.py` lives in (test_plan_wave.py imports it).
+#: The submodule `check_practices.py` lives in (the plan_wave fixtures import it).
 SUBMODULE = "tools/claude-skills"
 #: ⛔ A HANG DETECTOR, NEVER A VERDICT ON SPEED (module docstring): counted from the moment the self-test holds its
 #: budget place, so waiting behind other gates never counts, and set far above every PASS measured — the slowest,
@@ -627,7 +635,7 @@ class Runner:
     hang_after_s: float = HANG_AFTER_S
     by: str = ""
     #: What counts as tooling when a PASS is recorded (`_record`'s proof); the fleet arms plant their own.
-    classification: inert_lane.Classification = inert_lane.CLASSIFICATION
+    classification: lane_classification.Classification = lane_classification.CLASSIFICATION
 
     def __post_init__(self) -> None:
         self.budget = self.budget or Budget.for_repo(self.repo)
@@ -691,6 +699,8 @@ class Runner:
                    PYTHONUTF8="1")
         if temp is not None:  # CI's Windows runner's TEMP is an alias of its directory; so is this one (aliased_temp)
             env.update({name: str(temp) for name in TEMP_VARS})
+        if selftest_layout.in_tree(test.path):  # a case file's `import selftest_cases` resolves against scripts/ (DESIGN-orchestrator-loop.md section 16.2)
+            env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(self.repo / "scripts"), env.get("PYTHONPATH")]))
         env = inputs.traced_env(env, tracer, trace, self.repo)
         asked = time.monotonic()
         with self.budget.place(f"self-test {test.path} of {self.by}"):
@@ -849,7 +859,7 @@ class Runner:
         if test.population and not whole:  # a declaration the trace does not bear out would exempt a self-test unproved
             raise ValueError(f"{test.path} declares SELF-TEST-POPULATION but its trace shows no git command over the "
                              f"whole tree: remove the declaration (the self-test no longer reads the tree as a population)")
-        if not test.population:  # only a DECLARED population reader is exempt: the flag's accepted residue (inert_lane.py)
+        if not test.population:  # only a DECLARED population reader is exempt: the flag's accepted residue (lane_classification.py)
             stray = self.classification.unclassified_reads((p for p, blob in deps.files.items() if blob != inputs.UNTRACKED),
                                                                  deps.trees)
             if stray:
@@ -857,7 +867,7 @@ class Runner:
                     f"it read {', '.join(stray[:6])}{' and more' if len(stray) > 6 else ''}, which the tooling flag does "
                     f"not see: a change to only {'it' if len(stray) == 1 else 'one of them'} would skip this self-test in "
                     f"a gate and turn it red in CI's merge group. Give the path a TOOLING_READS entry naming "
-                    f"{test.path} in scripts/inert_lane.py"
+                    f"{test.path} in scripts/lane_classification.py"
                     + (f"; or, if it reads the tracked tree as a population, declare `# SELF-TEST-POPULATION: tree — "
                        f"<why>` in its first {HEADER_LINES} lines" if whole else "") + " (kb/Work PB4326)")
         self.store.record(test.path, self.platform, deps, seconds, self.by, clock, key, reused)
@@ -950,16 +960,36 @@ def main(argv: list[str] | None = None) -> int:
                          "gate's takes the places above that gate's width too; no gate or CI job passes it")
     ap.add_argument("--reuse", action="store_true",
                     help="report a self-test REUSED while a recorded PASS's inputs are unchanged (every gate)")
+    ap.add_argument("--only", nargs="+", metavar="PATH", default=[],
+                    help="run only the named discovered files (repository paths), their headers honoured: the way to "
+                         "run a case file by hand (kb/Work PB5428)")
     ap.add_argument("--self-test", action="store_true", help="prove the discovery rule and the verdict")
     args = ap.parse_args(argv)
     if args.self_test:
         return self_test()
     platform = this_platform()
     try:
+        refused = selftest_layout.check_repo(py_handles_flag, REPO, git_env())
+    except (OSError, subprocess.CalledProcessError) as e:
+        print(f"{VERDICT}NOT RUN — the case layout cannot be read: {e} ===")
+        return 2
+    if refused:  # no gate, CI job or hand run runs the self-tests of a tree that breaks the layout (DESIGN-orchestrator-loop.md section 16.2)
+        for line in refused:
+            print(f"layout: {line}")
+        print(f"{VERDICT}RED — layout: {len(refused)} refusal(s), the first: {refused[0]} ===")
+        return 1
+    try:
         tests = discover(REPO)
     except (OSError, subprocess.CalledProcessError) as e:
         print(f"{VERDICT}NOT RUN — discovery failed: {e} ===")
         return 2
+    if args.only:
+        known = {t.path: t for t in tests}
+        unknown = [p for p in args.only if p not in known]
+        if unknown:
+            print(f"{VERDICT}NOT RUN — --only names no discovered self-test: {', '.join(unknown)} ===")
+            return 2
+        tests = [known[p] for p in dict.fromkeys(args.only)]
     if args.list:
         for t in tests:
             where = "here" if t.runs_on(platform) else f"NOT on {platform} ({t.platform}-only: {t.platform_reason})"
@@ -1123,6 +1153,16 @@ def self_test() -> int:
         check("arm: a failing self-test is RED", (by["scripts/test_red.py"].state, by["scripts/test_red.py"].rc), (RED, 1))
         check("arm: a failing self-test's output reaches the console", any("planted failure" in s for s in said), True)
         check("arm: a self-test for another platform is NOT RUN, not run", by["scripts/elsewhere.py"].state, NOT_RUN)
+        # kb/Work PB5428: a file under a selftests/ tree runs with scripts/ first on PYTHONPATH; no other file does
+        (root / "scripts" / "selftests" / "tool").mkdir(parents=True)
+        (root / "scripts" / "selftests" / "tool" / "test_c.py").write_text(
+            "import os\nprint('path=' + os.environ.get('PYTHONPATH', ''))\n", encoding="utf-8", newline="\n")
+        scratch.git("add", "-A")
+        case = next(t for t in discover(root) if t.path == "scripts/selftests/tool/test_c.py")
+        ran = runner.run([case])[0]
+        paths = next((ln[5:] for ln in ran.output.splitlines() if ln.startswith("path=")), "")
+        check("arm: a case file under selftests/ is run with the repository's `scripts/` on its PYTHONPATH (kb/Work PB5428)",
+              (ran.state, str(root / "scripts") in paths.split(os.pathsep)), (GREEN, True))
         rc, line = verdict(results, this_platform(), 1.0)
         check("arm: one red makes the verdict RED", (rc, line.startswith(VERDICT + "RED")), (1, True))
         check("arm: the verdict names the red and the not-run one with its reason",
@@ -1135,6 +1175,30 @@ def self_test() -> int:
         check("arm: a GREEN line names the budget and how busy the host's processors were (kb/Work PB3585)",
               "(budget 3 places machine-wide; 0s waited for places; the host's 4 processors 97% busy)" in line, True)
 
+    # kb/Work PB5428: the layout rule is the run's first step, and `--only` names discovered files
+    import contextlib  # noqa: PLC0415
+    import io  # noqa: PLC0415
+
+    def main_says(*argv: str) -> tuple[int, str]:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = main(list(argv))
+        return code, out.getvalue()
+
+    real_layout = selftest_layout.check_repo
+    selftest_layout.check_repo = lambda *a, **k: ["scripts/x.py: a planted breach of the layout"]
+    try:
+        rc, said_layout = main_says("--list")
+    finally:
+        selftest_layout.check_repo = real_layout
+    check("arm: a layout refusal is the run's RED verdict, before any self-test is found or run (kb/Work PB5428)",
+          (rc, said_layout.strip().splitlines()[-1].startswith(VERDICT + "RED — layout: 1 refusal(s)")), (1, True))
+    rc, said_only = main_says("--only", "scripts/no_such_selftest.py")
+    check("arm: `--only` naming no discovered self-test is NOT RUN, never an empty GREEN",
+          (rc, "names no discovered self-test: scripts/no_such_selftest.py" in said_only), (2, True))
+    rc, said_only = main_says("--only", "scripts/self_tests.py", "--list")
+    check("arm: `--only` narrows the list to the named discovered files",
+          (rc, said_only.strip().splitlines()[-1]), (0, "1 self-tests"))
     # kb/Work PB3585: the host's processor reading, on both platforms the runner supports, and the --budget width
     a, b = HostCpu(100, 1000), HostCpu(400, 2000)  # 1,000 ticks elapsed, 300 of them idle: 70 % busy
     check("arm: the busy share is 1 - idle/total between two readings",
@@ -1175,7 +1239,7 @@ NET_STANDALONE = re.compile(r"^test_[^/]*\.(py|ps1)$")
 #: runner's own and the conformance harness's generator.
 NET_KNOWN = ("scripts/orchestrator/test_alloc.py", "scripts/orchestrator/test_orchestrate_core.ps1",
              "scripts/orchestrator/landing_check.py", "scripts/hooks/test_forbidden_commands.py",
-             "scripts/guard-population.sh", "scripts/gate.py", "scripts/self_tests.py",
+             "scripts/guard-population.sh", "scripts/selftests/gate/test_verdicts.py", "scripts/self_tests.py",
              "conformance-suite/harness/generate.py")
 
 
@@ -1248,14 +1312,14 @@ def entry_point_arms(check: Callable[[str, object, object], None]) -> None:
     (kb/Work PB2914, PB3022); and none of them runs a discovered self-test itself (a hand list again, kb/Work PB2563)."""
     from ci_workflow import jobs  # noqa: PLC0415 — this directory's: the one reader of a CI workflow's shape
     scripts = REPO / "scripts"
-    driver = scripts / "gate.py"
-    audits = _module_literal(driver, "AUDITS")
+    gate_audits = scripts / "gate_audits.py"
+    audits = _module_literal(gate_audits, "AUDITS")
     linux = (scripts / "linux-gate.sh").read_text(encoding="utf-8")
     workflow = (REPO / ".github" / "workflows" / "build-and-test.yml").read_text(encoding="utf-8")
     check("arm: the gate's audits run this runner, its post-build half `--built`, the runner only for a change that "
           "touches tooling, and with --reuse",
-          (("SELF-TESTS", ["scripts/self_tests.py"]) in audits, _module_literal(driver, "BUILT_SELF_TESTS"),
-           _module_literal(driver, "TOOLING_ONLY"), _module_literal(driver, "SELF_TESTS_REUSE")),
+          (("SELF-TESTS", ["scripts/self_tests.py"]) in audits, _module_literal(gate_audits, "BUILT_SELF_TESTS"),
+           _module_literal(gate_audits, "TOOLING_ONLY"), _module_literal(gate_audits, "SELF_TESTS_REUSE")),
           (True, ["scripts/self_tests.py", "--built"], ("SELF-TESTS",), "--reuse"))
     # linux-gate.sh runs its legs in parallel (kb/Work PB2879) in the AUDIT clone, outside the inert watch of its test
     # legs (kb/Work PB2878): each runner call may redirect to its leg's result file and run in the background.
@@ -1285,7 +1349,7 @@ def entry_point_arms(check: Callable[[str, object, object], None]) -> None:
           hand_named({"w": "# scripts/x.py --self-test\npython scripts/x.py --check\npwsh scripts/o/test_y.ps1\n"
                            "python scripts/x.py --self-test\npython scripts/self_tests.py\n"}, planted),
           ["w: scripts/o/test_y.ps1 in `pwsh scripts/o/test_y.ps1`", "w: scripts/x.py in `python scripts/x.py --self-test`"])
-    sources = {"scripts/gate.py AUDITS": "\n".join(" ".join(cmd) for _, cmd in audits),
+    sources = {"scripts/gate_audits.py AUDITS": "\n".join(" ".join(cmd) for _, cmd in audits),
                "scripts/linux-gate.sh": linux, ".github/workflows/build-and-test.yml": workflow}
     sources |= {f"scripts/{n}": (scripts / n).read_text(encoding="utf-8")
                 for n in ("build-local.ps1", "build-local.sh", "battery.sh")}
@@ -1415,8 +1479,8 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         tests = [found[n] for n in sorted(bodies)]
         plat = this_platform()
         # The planted repository's own classification: its scripts are tooling, and the data its self-tests read is
-        # declared, as scripts/inert_lane.py declares the real tree's (the proof of the tooling flag, `_record`).
-        planted = inert_lane.Classification(inert={}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
+        # declared, as scripts/lane_classification.py declares the real tree's (the proof of the tooling flag, `_record`).
+        planted = lane_classification.Classification(inert={}, tooling_under=("scripts/",), tooling_suffixes=(".py",),
                                             tooling_reads={"data/": "the fleet arms' fixtures"})
         budget_dir, store_dir = root / ".git" / BUDGET_DIR, root / ".git" / PASS_STORE_DIR
 

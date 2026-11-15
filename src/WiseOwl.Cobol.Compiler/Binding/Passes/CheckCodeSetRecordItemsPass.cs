@@ -77,30 +77,66 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
             // so a file with none has nothing to screen and CODE-SET naming either alphabet (or both, which
             // §2023:13.18.13.4 GR4's second sentence expressly contemplates) is legal (kb/Work PB1219).
             foreach (var rec in file.WrittenRecords) CheckCodeSetRecordItem(binder, rec, wantNational);
+            if (binder.Edition.DialectLevel < 2002) CheckCodeSetReportItems(binder, file, wantNational);
         }
     }
 
-    /// <summary>The SR3 a)/b) walk of one record description entry. Elementary items only — both sentences say
-    /// "all elementary data items" — and the sign sentence is asked only of the items the usage sentence
-    /// admitted, exactly as the rule's "and" joins them.</summary>
+    /// <summary>⛔ A REPORT FILE'S DATA IS THE FILE'S DATA AT COBOL-85 (kb/Work PB5202). §1985:VII.3.4.3 SR1 — "If the CODE-SET clause
+    /// is specified for a file, all data in that file must be described as USAGE IS DISPLAY and any signed numeric data must be
+    /// described with the SIGN IS SEPARATE clause" — is not limited to record description entries, and the Report Writer file
+    /// description entry takes every clause but REPORT from the Sequential I-O module (§1985:XIII.3.2.4 GR3). A report file has no
+    /// record description entries (§1985:XIII.3.2.3 SR4), so the data it holds is the printable items of the reports its REPORT
+    /// clause names; each is screened by the same predicate as a record item. From COBOL-2002 the rule is written over "data
+    /// description entries" and "record description entries" (§2023:13.18.13.3 SR3, §2023:13.18.52.3 SR3), which a report group description entry is not, so the arm is the 1985 text's alone. A repeating
+    /// entry's replays share one item: it is screened once.</summary>
+    private static void CheckCodeSetReportItems(DataBinder binder, FileModel file, bool wantNational)
+    {
+        var seen = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
+        foreach (var name in file.ReportNames)
+        {
+            if (binder.State.Reports.Named(name.Name) is not { } report) continue;   // an unresolved REPORT name is ResolveReports' to refuse
+            foreach (var group in report.Groups)
+                foreach (var line in group.Lines)
+                    foreach (var field in line.Fields)
+                        if (seen.Add(field.PrintItem)) CheckCodeSetItem(binder, field.PrintItem, wantNational, report: true);
+        }
+    }
+
+    /// <summary>The SR3 a)/b) walk of one record description entry: every elementary item beneath it goes through
+    /// <see cref="CheckCodeSetItem"/>.</summary>
     private static void CheckCodeSetRecordItem(DataBinder binder, DataItem it, bool wantNational)
     {
         foreach (var child in it.Children) CheckCodeSetRecordItem(binder, child, wantNational);
+        CheckCodeSetItem(binder, it, wantNational, report: false);
+    }
+
+    /// <summary>The screen of ONE item. Elementary items only — both sentences say "all elementary data items" — and the sign
+    /// sentence is asked only of the items the usage sentence admitted, exactly as the rule's "and" joins them. The two
+    /// arms differ in the rule they cite and nothing else: a record item answers §2023:13.18.13.3 SR3 (and §2023:13.18.52.3
+    /// SR3), a printable item of a COBOL-85 report file §1985:VII.3.4.3 SR1.</summary>
+    private static void CheckCodeSetItem(DataBinder binder, DataItem it, bool wantNational, bool report)
+    {
         if (it.Pic is not { } pic || it.Children.Count > 0) return;   // elementary items only (SR3 a/b)
         using var _ = binder.Edition.At(it);
+        string subject = report ? "report item" : "record item";
+        string name = it.CobolName ?? "FILLER";
+        string usage = wantNational ? "national" : "display";
+        string usageRule = report
+            ? "all data in that file must be described as USAGE IS DISPLAY (ISO §1985:VII.3.4.3 SR1)"
+            : $"all elementary data items of all record description entries shall be described as usage {usage} "
+                + $"(ISO §2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")})";
+        string signRule = report
+            ? "must be described with the SIGN IS SEPARATE clause (ISO §1985:VII.3.4.3 SR1)"
+            : $"shall be described with the SIGN IS SEPARATE clause (ISO §2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")}; §2023:13.18.52.3 SR3)";
         bool right = !wantNational && pic.Usage is Usage.Display || wantNational && pic.Usage is Usage.National;
         if (!right)
-            binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the record item "
-                + $"'{it.CobolName ?? "FILLER"}' is not usage {(wantNational ? "NATIONAL" : "DISPLAY")} — all "
-                + "elementary data items of all record description entries shall be described as usage "
-                + $"{(wantNational ? "national" : "display")} (ISO §2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")})");
+            binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation,
+                $"CODE-SET: the {subject} '{name}' is not usage {usage.ToUpperInvariant()} — {usageRule}");
         // §2023:13.18.13.3 SR3 a/b sentence 2 = §2023:13.18.52.3 SR3. "Described with the SIGN IS SEPARATE clause" includes
         // a clause INHERITED from a containing group — §2023:13.18.52.4 GR1 applies the group's clause "for each
         // numeric item subordinate to the group to which it applies" — which is why this pass runs after
         // InheritSignClauses rather than at the FD (kb/Work PB536).
         else if (pic is { Signed: true } sp && !sp.SignKind.Contains("Separate"))
-            binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the signed numeric record "
-                + $"item '{it.CobolName ?? "FILLER"}' shall be described with the SIGN IS SEPARATE clause "
-                + $"(ISO §2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")}; §2023:13.18.52.3 SR3)");
+            binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the signed numeric {subject} '{name}' {signRule}");
     }
 }

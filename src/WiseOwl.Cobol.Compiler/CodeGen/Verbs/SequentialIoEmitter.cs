@@ -507,6 +507,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             w.Line($"{RuntimeApi.FileRegisterRecordLengthFromDepending(FileKeyExpr(file))};");
         EmitCodeSetRegistration(w, file);        // §2023:13.18.13.4 GR2/GR6 (kb/Work PB793)
         EmitReserveRegistration(w, file);        // §2023:12.4.5.14.3 GR1 (kb/Work PB643)
+        EmitRerunRegistration(w, file);          // §1985:VII.2.12.4 GR2 d (kb/Work PB5198)
+    }
+
+    /// <summary>The I-O-CONTROL RERUN clause's integer-1 RECORDS form (§1985:VII.2.12.4 GR2 d), told to the connector:
+    /// the device implementor-name-1 names and the number of records of this file (file-name-2) between rerun points.
+    /// Emitted ONLY for a file such a clause names, so every other program's registration is unchanged byte for byte;
+    /// reached through <see cref="EmitAreaRegistrations"/>, which every registering arm calls.</summary>
+    private static void EmitRerunRegistration(CodeWriter w, FileModel file)
+    {
+        if (file.RerunRecords is { } point)
+            w.Line($"{RuntimeApi.FileRegisterRerunRecords(FileKeyExpr(file), point.Every, CsLiteral(point.Device), CsLiteral(file.SelectName))};");
     }
 
     /// <summary>§2023:12.4.5.14.3 GR1's input-output area count, told to the connector: <i>"If the RESERVE clause is
@@ -1268,9 +1279,19 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// transferred length or pads it past the backing with spaces, unchanged. The FROM phrase needs no case of its
     /// own: its implicit MOVE into record-name-1 has already run when this is asked (§2023:14.9.51.4 GR5 a)).</summary>
     internal string SentRecordImage(FileModel file, Place record) =>
-        file.TransfersPastRecord(record.Item) && places.RecordArea(file) is { } area
-            ? OperandText.RecordSendImage(area)
+        file.TransfersPastRecord(record.Item) && RecordAreaSendImage(file) is { } area
+            ? area
             : OperandText.RecordSendImage(record);
+
+    /// <summary>⛔ THE IMAGE OF THE WHOLE RECORD AREA (kb/Work PB5217) - what a WRITE or REWRITE sends for the bytes past a
+    /// shorter record-name-1 (<see cref="SentRecordImage"/>) and what a keyed READ, DELETE or START reads its key out of. The
+    /// area is the storage every level-1 entry of the file implicitly redefines (§2023:13.18.33.4 GR3), so it is read at its
+    /// full width (<see cref="OperandText.AreaUse.Whole"/>), never through its widest record's OCCURS DEPENDING view: that
+    /// record's DEPENDING item describes that record's current size, not the area's or another record's, and cutting the
+    /// image to it lost the rest of a shorter record and any key that lies past it. Null for a file whose record area could
+    /// not be resolved.</summary>
+    internal string? RecordAreaSendImage(FileModel file) =>
+        places.RecordArea(file) is { } area ? OperandText.RecordSendImage(area, OperandText.AreaUse.Whole) : null;
 
     /// <summary>⛔ DOES THE RECORD A STATEMENT JUST RELEASED HAVE ANYWHERE TO BE "ALSO AVAILABLE"? (§2023:14.9.51.4 GR4
     /// for WRITE, §2023:14.9.35.4 GR6 for REWRITE, §2023:14.9.32.4 GR3 for RELEASE — one rule, three statements; kb/Work

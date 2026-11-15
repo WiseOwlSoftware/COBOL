@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-7",
  "rule-digest": "e63e2295b073",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitActivation; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#InitialArea",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIV.2.2.4-7",
+ "notes": "kb/Work PB5373 class 1, recorded 2026-11-14 (wave 20262028 A). §1985:XIV.2.2.4 GR7: \"If the MCS attempts to schedule a program lacking an INITIAL clause, the results are undefined.\" The rule's own text declares the result undefined, so it closes on the mechanical arm undefined-in-rule (docs/CONFORMANCE.md section 8, DRV-1985-GR-XIV.2.2.4-7, signed claude: 2026-11-12). WiseOwl's behaviour is determinate all the same: CommunicationEmitter.EmitActivation asks MessageControlSession.InitialArea for the scheduling names only for a CD that carries INITIAL, so a scheduled program with none runs as any other program and the scheduling message stays queued. No test: a rule whose result is undefined has no expected value.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

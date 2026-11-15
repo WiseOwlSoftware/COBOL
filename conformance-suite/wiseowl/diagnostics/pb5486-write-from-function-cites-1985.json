@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL1914: WRITE FROM FUNCTION LENGTH(\"AB\"): §1985:VII.4.7.3 SR1 — \"If identifier-1 is a function-identifier, it must reference an alphanumeric function.\""}

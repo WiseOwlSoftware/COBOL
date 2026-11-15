@@ -30,10 +30,10 @@ public sealed partial class FileControlBinder
     /// ALLOCATION plus open-mode constraints on the program, nothing a typed-native runtime must alias) — bound as
     /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note) once
     /// <see cref="ScreenMultipleFileClause"/> has resolved its file list (kb/Work PB4307, PB4945), and so is the
-    /// X3.23-1985 RERUN clause (a checkpoint HINT with no program-visible effect — a null rerun facility is
-    /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15) once
-    /// <see cref="ScreenRerunClauses"/> has asked its format and its five syntax rules, after the whole paragraph
-    /// because SR4 and SR5 compare its clauses (kb/Work PB4919, PB4945) —
+    /// X3.23-1985 RERUN clause (deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15):
+    /// its integer-1 RECORDS form is the one form provided, recorded on the file by <see cref="ScreenRerunClauses"/> for the
+    /// connector to write (§1985:VII.2.12.4 GR2 d, kb/Work PB5198), after it has asked the clause's format and its five syntax
+    /// rules, after the whole paragraph because SR4 and SR5 compare its clauses (kb/Work PB4919, PB4945) —
     /// both skip SAME's screens through a <c>continue</c> below by design. The APPLY COMMIT clause (§2023:12.4.6.3) is the one
     /// other arm that is not a no-op here: <see cref="BindApplyCommitClause"/> (kb/Work PB3338).
     /// EVERY SAME format also records its MEMBERSHIP on its files
@@ -143,13 +143,32 @@ public sealed partial class FileControlBinder
         return null;
     }
 
+    /// <summary>"Sequentially organized" for RERUN SR1 and SR2 (§1985:VII.2.12.3). A sort-merge file has no organization at
+    /// all: its file control entry admits only ASSIGN (§1985:XI.2.3.3 SR2), so <see cref="FileModel.IsSequential"/>'s
+    /// default of Sequential on an SD is not an organization the program chose (kb/Work PB5312).</summary>
+    private static bool IsSequentiallyOrganized(FileModel file) => file.IsSequential && !file.IsSortMerge;
+
+    /// <summary>⛔ THE RERUN CLAUSE'S ONE FUNCTION (§1985:VII.2.12.4 GR1 b, GR2 d; kb/Work PB5198): the integer-1 RECORDS form
+    /// with implementor-name-1 in its ON phrase, recorded on file-name-2 for the connector to write the rerun information
+    /// "whenever integer-1 records of file-name-2 have been processed". The one form of GR2's seven this processor provides
+    /// (GR2: "The implementor must provide at least one"), for a file of any organization or access (GR2 d: "File-name-2 may
+    /// be either an input or output file with any organization or access"); the others are accepted, their syntax rules
+    /// asked, and write nothing (docs/CONFORMANCE.md §7). An integer-1 of zero marks no rerun point (no count of records
+    /// processed is zero after a record), and one beyond <see cref="long"/> never marks one in a run unit's life, so the
+    /// clause is recorded with the largest count.</summary>
+    private static void RecordRerunRecords(FileModel counted, string device, string integer)
+    {
+        long every = long.TryParse(integer, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var n)
+            ? n : long.MaxValue;
+        if (every > 0) counted.RerunRecords = new RerunRecordsClause(device, every);
+    }
+
     /// <summary>The X3.23-1985 RERUN clauses of one I-O-CONTROL paragraph against the clause's general format
     /// (§1985:VII.2.12.2) and its five syntax rules (§1985:VII.2.12.3; kb/Work PB4919, PB4945). The Relative and Indexed
     /// I-O modules print a subset of the format and point here (§1985:VIII.2.6.3 GR1, §1985:IX.2.8.3 GR1). Asked at every
     /// edition, as <see cref="ScreenMultipleFileClause"/> is: from 2002 the clause is also COBOL0902 (removed), and under
-    /// <c>--permissive</c> it is accepted with a warning, so its rules still hold. The clause is otherwise parsed and
-    /// ignored: a null rerun facility is conforming (§1985:VII.2.12.4 GR2 asks for "at least one" form, and the
-    /// translator records the rerun points of none).
+    /// <c>--permissive</c> it is accepted with a warning, so its rules still hold. The clause is provided only in its integer-1 RECORDS form (<see cref="RecordRerunRecords"/>; §1985:VII.2.12.4 GR2 asks for
+    /// "at least one" form): the other forms are accepted and write nothing (kb/Work PB5198).
     /// <list type="bullet">
     /// <item>The format: <c>OF file-name-2</c>, outside brackets, follows both the END OF REEL/UNIT and the RECORDS
     /// phrases, so <c>RERUN ON X EVERY 100 RECORDS.</c> is refused (COBOL6496); the grammar keeps the file optional on
@@ -163,11 +182,6 @@ public sealed partial class FileControlBinder
     /// <item>SR4 a/b and SR5, across the paragraph: no file-name-2 twice among the RECORDS phrases, nor among the END
     /// OF REEL/UNIT phrases, and one CLOCK-UNITS phrase (COBOL6531).</item>
     /// </list></summary>
-    /// <summary>"Sequentially organized" for RERUN SR1 and SR2 (§1985:VII.2.12.3). A sort-merge file has no organization at
-    /// all: its file control entry admits only ASSIGN (§1985:XI.2.3.3 SR2), so <see cref="FileModel.IsSequential"/>'s
-    /// default of Sequential on an SD is not an organization the program chose (kb/Work PB5312).</summary>
-    private static bool IsSequentiallyOrganized(FileModel file) => file.IsSequential && !file.IsSortMerge;
-
     private void ScreenRerunClauses(IReadOnlyList<Core.RerunClauseContext> reruns)
     {
         var recordsFiles = new HashSet<FileModel>();
@@ -227,11 +241,16 @@ public sealed partial class FileControlBinder
                         "the RERUN clause's integer-1 RECORDS phrase names no file: its format is RERUN [ON {file-name-1 | "
                         + "implementor-name-1}] EVERY {[END OF] {REEL | UNIT} | integer-1 RECORDS} OF file-name-2 ..., so "
                         + "file-name-2 is required (§1985:VII.2.12.2; VCR Table 7 row 7.15)");
-                else if (ResolveIoControlFile(countedName, "the RERUN clause") is { } counted && !recordsFiles.Add(counted))
-                    Edition.Error(DiagnosticCatalog.RerunPhraseRepeated,
-                        $"a second RERUN clause's integer-1 RECORDS phrase names '{counted.CobolName}' (§1985:VII.2.12.3 SR4 a: "
-                        + "\"When multiple integer-1 RECORDS phrases are specified, no two of them may specify the same "
-                        + "file-name-2.\")");
+                else if (ResolveIoControlFile(countedName, "the RERUN clause") is { } counted)
+                {
+                    if (!recordsFiles.Add(counted))
+                        Edition.Error(DiagnosticCatalog.RerunPhraseRepeated,
+                            $"a second RERUN clause's integer-1 RECORDS phrase names '{counted.CobolName}' (§1985:VII.2.12.3 SR4 a: "
+                            + "\"When multiple integer-1 RECORDS phrases are specified, no two of them may specify the same "
+                            + "file-name-2.\")");
+                    else if (on is not null && onFile is null)
+                        RecordRerunRecords(counted, on.GetText(), every.integerLiteral().GetText());
+                }
             }
             else if (every.cobolWord() is { } condition)
             {

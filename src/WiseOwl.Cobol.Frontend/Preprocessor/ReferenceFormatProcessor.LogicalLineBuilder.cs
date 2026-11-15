@@ -59,11 +59,20 @@ public static partial class ReferenceFormatProcessor
         /// <paramref name="first"/> and is not the floating comment indicator. A blank line or a comment line is "logically
         /// discarded" (§2023:6.5 2)): it keeps its slot, is never the join target of §2023:6.5 6) or 8) and adds nothing to the latest
         /// logical line, so only a line that holds text can begin a new logical line or continue the latest one.</summary>
-        public static bool TryFirstText(string programText, out int first)
+        public bool TryFirstText(string programText, out int first)
         {
             first = FirstNonSpace(programText);
-            return first >= 0 && !CobolSourceText.CommentIndicatorAt(programText, first);
+            return first >= 0 && !CommentAt(programText, first);
         }
+
+        /// <summary>Whether a COMMENT begins at <paramref name="at"/> of <paramref name="text"/> (outside any literal): the
+        /// floating comment indicator (§2023:6.2.3.1), which fixed form reads only from COBOL-2002 on
+        /// (<see cref="ReferenceFormatDiagnostics.FixedFormReadsFloatingComments"/>) — below it the characters are an ordinary
+        /// text-word that text manipulation reads and the one gate after it refuses (kb/Work PB5470). Without gates there
+        /// is no edition to ask, and the indicator is read as the comment it is at the standard's own edition.</summary>
+        private bool CommentAt(ReadOnlySpan<char> text, int at) => ReadsComments && CobolSourceText.CommentIndicatorAt(text, at);
+
+        private bool ReadsComments => !fixedForm || gates is null || gates.FixedFormReadsFloatingComments;
 
         /// <summary>Hand <paramref name="division"/> the resultant lines it has not read — the LOGICAL text, after §2023:6.5 has
         /// joined a continued word or literal and removed the comments — so the one rule for which division the text is in
@@ -233,7 +242,7 @@ public static partial class ReferenceFormatProcessor
                 if (!fixedContinuation) Discard(site);   // a blank line (§2023:6.3.6): discarded; a blank continuation has no text to append
                 return;
             }
-            if (CobolSourceText.CommentIndicatorAt(text, first))
+            if (CommentAt(text, first))
             {
                 ReportComment(text, first, site);
                 Discard(site);                           // a comment line (§2023:6.2.3.1 1)): discarded, never a join
@@ -395,7 +404,7 @@ public static partial class ReferenceFormatProcessor
         /// next line, §2023:6.5 8)). Returns the text that remains.</summary>
         private string Scan(string text, int scanFrom, ref LiteralState state, TextSite site, bool fixedContinuation)
         {
-            var stop = ScanProgramText(text.AsSpan(scanFrom), ref state);
+            var stop = ScanProgramText(text.AsSpan(scanFrom), ref state, readsComments: ReadsComments);
             int at = scanFrom + stop.At;
             switch (stop.Kind)
             {
@@ -550,7 +559,7 @@ public static partial class ReferenceFormatProcessor
     /// line end: a quotation symbol that ends the text either closed its literal or is the first half of a doubled one,
     /// and the next text's first character decides (<see cref="LiteralState.PendingClose"/>).
     /// </summary>
-    private static ScanStop ScanProgramText(ReadOnlySpan<char> text, ref LiteralState state)
+    private static ScanStop ScanProgramText(ReadOnlySpan<char> text, ref LiteralState state, bool readsComments)
     {
         int literalStart = state.InLiteral ? -1 : 0;   // -1: the literal was opened before this text
         int i = 0;
@@ -586,7 +595,7 @@ public static partial class ReferenceFormatProcessor
                 literalStart = quote + 1;
                 i = quote + 1;
             }
-            else if (CobolSourceText.CommentIndicatorAt(text, i))
+            else if (readsComments && CobolSourceText.CommentIndicatorAt(text, i))
                 return new ScanStop(ScanStopKind.Comment, i);
             else if (text[i] == '>' && i + 1 < text.Length && text[i + 1] == '>' && DirectiveAfterText(text, i))
                 return new ScanStop(ScanStopKind.Directive, i);

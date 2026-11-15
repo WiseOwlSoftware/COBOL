@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseOwl.Cobol.Benchmarks", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseOwl.Cobol.ArchOracle", "tests\WiseOwl.Cobol.ArchOracle\WiseOwl.Cobol.ArchOracle.csproj", "{EB484EAA-75DB-4D69-BFA0-47142CB3876E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseOwl.Cobol.Tests.RepoDrift", "tests\WiseOwl.Cobol.Tests.RepoDrift\WiseOwl.Cobol.Tests.RepoDrift.csproj", "{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -171,6 +173,18 @@ Global
 		{EB484EAA-75DB-4D69-BFA0-47142CB3876E}.Release|x64.Build.0 = Release|Any CPU
 		{EB484EAA-75DB-4D69-BFA0-47142CB3876E}.Release|x86.ActiveCfg = Release|Any CPU
 		{EB484EAA-75DB-4D69-BFA0-47142CB3876E}.Release|x86.Build.0 = Release|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Debug|x64.Build.0 = Debug|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Debug|x86.Build.0 = Debug|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Release|x64.ActiveCfg = Release|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Release|x64.Build.0 = Release|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Release|x86.ActiveCfg = Release|Any CPU
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -187,5 +201,6 @@ Global
 		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{F394008C-C208-4325-87CB-6C78951CAC69} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{EB484EAA-75DB-4D69-BFA0-47142CB3876E} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

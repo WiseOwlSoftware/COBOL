@@ -66,7 +66,8 @@ public sealed class PictureCategoryDriftTests
     private static string Expand(string picture)
     {
         var ed = new EditionContext(2023);
-        Assert.True(PictureAnalyzer.TryExpandRepeats(picture, ed, "data item 'T'", out string expanded),
+        Assert.True(PictureAnalyzer.TryExpandRepeats(picture, ed, "data item 'T'", isCurrencySymbol: c => c == '$', decimalPointIsComma: false,
+            out string expanded),
             $"PIC {picture} was accepted by Analyze but its repetition factors do not expand");
         return expanded;
     }

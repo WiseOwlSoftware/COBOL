@@ -3290,6 +3290,52 @@ public static class DiagnosticCatalog
         + "containing the parts of a literal\" - a source line may not. Move the debugging line out of the literal, or "
         + "remove WITH DEBUGGING MODE so that the line is a comment.", "ISO §2023:6.3.5 2)");
 
+    /// <summary>COBOL7060 - a debugging line that begins before the end of the program's OBJECT-COMPUTER paragraph (kb/Work
+    /// PB5212). §1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the
+    /// OBJECT-COMPUTER paragraph." A COBOL-85 rule, reported at --std 85.</summary>
+    public static readonly DiagnosticDescriptor DebuggingLineBeforeObjectComputer = new(
+        "COBOL7060", "debugging-line-before-object-computer", EditionSeverity.Error,
+        "A debugging line (indicator D) stands before the end of the OBJECT-COMPUTER paragraph, or in a program that has none "
+        + "before its Data Division. §1985:VI.7.3: \"A debugging line is only permitted in the separately compiled "
+        + "program after the OBJECT-COMPUTER paragraph.\" Move the line after the paragraph, or remove its indicator.",
+        "§1985:VI.7.3");
+
+    /// <summary>COBOL7061 - a debugging line whose being a comment line leaves a program that is not syntactically correct
+    /// (kb/Work PB5212). §1985:VI.7.3: "The content of a debugging line must be such that a syntactically correct program
+    /// is formed with or without the debugging lines being considered as comment lines." The program parses with the line
+    /// as source (WITH DEBUGGING MODE) and fails with it hidden. A COBOL-85 rule.</summary>
+    public static readonly DiagnosticDescriptor DebuggingLineSyntaxBothWays = new(
+        "COBOL7061", "debugging-line-syntax-both-ways", EditionSeverity.Error,
+        "The program is not syntactically correct with its debugging lines taken as comment lines. §1985:VI.7.3: "
+        + "\"The content of a debugging line must be such that a syntactically correct program is formed with or without the "
+        + "debugging lines being considered as comment lines.\" Write the debugging line so that the statement or entry it "
+        + "belongs to is complete without it.", "§1985:VI.7.3");
+
+    /// <summary>COBOL7081 - a RELEASE or RETURN statement outside the range of a SORT or MERGE procedure that names its sort-merge file
+    /// (kb/Work PB5104). §1985:XI.4.2.3 SR2: "A RELEASE statement may be used only within the range of an input procedure associated with a
+    /// SORT statement for the file-name whose sort-merge file description entry contains record-name-1." §1985:XI.4.3.3 SR3: "A RETURN
+    /// statement may only be used within the range of an output procedure associated with a SORT or MERGE statement for file-name-1." The range
+    /// is the procedure's paragraphs and every statement executed as the result of a transfer of control in it (§1985:XI.4.4.4 GR7, GR10).
+    /// A COBOL-85 rule, reported at --std 85, asked of the bound program once every SORT and MERGE statement is bound
+    /// (<c>VersionConformancePass.GateReleaseReturnRange</c>).</summary>
+    public static readonly DiagnosticDescriptor ReleaseReturnPlacement = new(
+        "COBOL7081", "release-return-placement", EditionSeverity.Error,
+        "A RELEASE or RETURN statement stands outside the range of a SORT or MERGE procedure that names its file. "
+        + "\"A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement for the file-name "
+        + "whose sort-merge file description entry contains record-name-1.\" (§1985:XI.4.2.3 SR2) \"A RETURN statement may only be used within "
+        + "the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\" (§1985:XI.4.3.3 SR3)",
+        "§1985:XI.4.2.3 SR2; §1985:XI.4.3.3 SR3");
+
+    /// <summary>COBOL7234 — a PERFORM in a USE BEFORE REPORTING procedure has a GENERATE, INITIATE or TERMINATE statement in its range
+    /// (kb/Work PB5254). §1985:XIII.4.9.3 SR3: "A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or
+    /// TERMINATE statements in its range." A COBOL-85 rule, reported at --std 85, asked of the bound program
+    /// (<c>VersionConformancePass.GateBeforeReportingPerformRange</c>); COBOL-2002 and later replace it by the run-time EC-FLOW-REPORT.</summary>
+    public static readonly DiagnosticDescriptor BeforeReportingPerformRange = new(
+        "COBOL7234", "before-reporting-perform-range", EditionSeverity.Error,
+        "A PERFORM in a USE BEFORE REPORTING procedure has a GENERATE, INITIATE or TERMINATE statement in its range. \"A PERFORM statement in a "
+        + "USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or TERMINATE statements in its range.\" (§1985:XIII.4.9.3 SR3)",
+        "§1985:XIII.4.9.3 SR3");
+
     /// <summary>COBOL2689 — an inline comment on a line that ends in a floating literal continuation indicator
     /// (kb/Work PB1359). §2023:6.3.7.3 / §2023:6.4.4.3: an inline comment may be written on any line except one that contains
     /// a floating literal continuation indicator.</summary>
@@ -3336,14 +3382,14 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL4250 — a SECOND declaration, in one source element, of a name that cannot be qualified (kb/Work
     /// PB3216): an alphabet-name, a class-name, a locale-name, an ordering-name, a dynamic-length-structure-name, a
-    /// mnemonic-name or a switch's condition-name. §2023:8.4.2.1: "In order to use a resource, a statement shall contain a
+    /// mnemonic-name, a switch's condition-name, a cd-name or a report-name (kb/Work PB5307). §2023:8.4.2.1: "In order to use a resource, a statement shall contain a
     /// reference that uniquely identifies that resource" — and none of these has a qualifier to identify one of two.
     /// Decided at the ONE declaration funnel (<c>DataBinder.DeclareUserWord</c>, <c>UserWordKinds.DeclaredUnqualifiable</c>),
     /// so every declaring clause, and the next one added, is covered. The first declaration stands.</summary>
     public static readonly DiagnosticDescriptor SpecialNameDeclaredTwice = new(
         "COBOL4250", "special-name-declared-twice", EditionSeverity.Error,
         "A name that cannot be qualified — an alphabet-name, class-name, locale-name, ordering-name, "
-        + "dynamic-length-structure-name, mnemonic-name or a switch's condition-name — is declared a second time in one "
+        + "dynamic-length-structure-name, mnemonic-name, a switch's condition-name, a cd-name or a report-name — is declared a second time in one "
         + "source element. ISO §2023:8.4.2.1: \"In order to use a resource, a statement shall contain a reference that "
         + "uniquely identifies that resource\"; no qualifier can tell the two declarations apart. Rename one of them.",
         "ISO §2023:8.4.2.1");
@@ -3459,6 +3505,14 @@ public static class DiagnosticCatalog
         "The word COPY, the compiler directive indicator or the floating debug indicator is written as word-1 or word-2 "
         + "of a COPY statement's REPLACING phrase, which may be any single COBOL word except those.",
         "§1985:XII.2.3 SR6; §2002:7.1.2.2 SR10; §2014:7.2.2.2 SR10");
+
+    // kb/Work PB5382: at COBOL-85 the text a replacement introduces is laid out in fixed-form lines, so a literal too long
+    // for one line is continued, and a debugging line cannot carry the continuation.
+    public static readonly DiagnosticDescriptor ContinuedLiteralOnDebuggingLine = new(
+        "COBOL7039", "continued-literal-on-debugging-line", EditionSeverity.Error,
+        "A COPY REPLACING or REPLACE replacement places on a debugging line a literal too long for one line, so the "
+        + "literal would have to be continued on a debugging line, which is an error.",
+        "§1985:XII.2.4 GR9; §1985:XII.3.4 GR11");
 
     // ── The INVOKE twins of the PB132 CALL operand screens (kb/Work PB1137): the rules are written in the same
     // words for both activation statements and are checked by ONE screen (ActivationOperandScreen); each statement
@@ -5575,6 +5629,17 @@ public static class DiagnosticCatalog
         + "literal route and the constant-name route (`01 N CONSTANT AS -3.` + `PIC 9(N)`), and the signed "
         + "positive spelling was accepted silently (kb/Work PB531).",
         "ISO §2023:13.18.40.3 SR6");
+
+    /// <summary>COBOL7078 — at COBOL-85, a parenthesized repetition factor follows a symbol the 1985 list does not name (kb/Work
+    /// PB5118): S, V, the decimal point, CR or DB.</summary>
+    public static readonly DiagnosticDescriptor PictureRepetitionSymbol85 = new(
+        "COBOL7078", "picture-repetition-symbol-1985", EditionSeverity.Error,
+        "§1985:VI.5.9.4 GR7: \"An unsigned nonzero integer which is enclosed in parentheses following the symbols 'A', ',', "
+        + "'X', '9', 'P', 'Z', '*', 'B', '/', '0', '+', '-', or the currency symbol indicates the number of consecutive "
+        + "occurrences of the symbol.\" At COBOL-85 no other symbol takes a repetition factor, so `PIC 9(3)V(1)9`, "
+        + "`PIC S(1)9` and `PIC 9CR(1)` are not COBOL-85 character-strings; COBOL-2002 gives the factor to whatever symbol "
+        + "precedes the left parenthesis (§2002:13.16.38.2 SR7).",
+        "ISO §1985:VI.5.9.4 GR7");
 
     /// <summary>COBOL2148 — the repeat-expanded character-string describes more character positions than
     /// WiseOwl COBOL's implementor-defined maximum for one elementary item.</summary>
@@ -9411,21 +9476,54 @@ public static class DiagnosticCatalog
         "ISO §1985:VII.4.4.3 SR2; §1985:VIII.4.5.3 SR5; §1985:IX.4.5.3 SR7; §1985:VIII.4.9.3 SR3; §1985:IX.4.9.3 SR3; "
         + "§1985:VIII.4.6.3 SR4; §1985:IX.4.6.3 SR3; §1985:VIII.4.3.3 SR2; §1985:IX.4.3.3 SR2; §1985:VIII.4.7.3 SR3; §1985:IX.4.7.3 SR3");
 
+    /// <summary>COBOL7144 — a READ of a dynamic-access file that retrieves sequentially (writes AT END) at COBOL-85 without the NEXT
+    /// phrase (kb/Work PB5102): §1985:VIII.4.5.3 SR3 (relative) and §1985:IX.4.5.3 SR5 (indexed). COBOL-2002 and later imply NEXT
+    /// from AT END, NOT AT END or ADVANCING (§2023:14.9.30.3 SR9).</summary>
+    public static readonly DiagnosticDescriptor ReadDynamicNextRequired = new(
+        "COBOL7144", "read-dynamic-next-required", EditionSeverity.Error,
+        "§1985:IX.4.5.3 SR5: \"The NEXT phrase must be specified for files in dynamic access mode, when records are to be "
+        + "retrieved sequentially.\" §1985:VIII.4.5.3 SR3 words the relative file's rule the same. A READ of a dynamic-access file "
+        + "that writes the AT END phrase (format 1 of the 1985 READ, the sequential retrieval) omits NEXT. COBOL-2002 and later "
+        + "imply the NEXT phrase from AT END (§2023:14.9.30.3 SR9).",
+        "ISO §1985:VIII.4.5.3 SR3; §1985:IX.4.5.3 SR5");
+
+    /// <summary>COBOL7165 — a COBOL-85 comment-entry continued by a hyphen in the indicator area (kb/Work PB5169). The
+    /// fixed-form logical conversion reads the entry as commentary and discards its lines, a continuation line among them,
+    /// so no later stage could refuse it.</summary>
+    public static readonly DiagnosticDescriptor CommentEntryContinued = new(
+        "COBOL7165", "comment-entry-continued", EditionSeverity.Error,
+        "§1985:VI.3.2.1.2 SR1: \"The continuation of the comment-entry by the use of the hyphen in the indicator area is not "
+        + "permitted; however, the comment-entry may be contained on one or more lines.\" (§1985:VI.3.4.3 SR1 words the "
+        + "DATE-COMPILED paragraph's rule the same.) A line of a comment-entry (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED "
+        + "or SECURITY) has a hyphen in the indicator area. Write the rest of the entry on a line of its own, without the hyphen.",
+        "ISO §1985:VI.3.2.1.2 SR1; §1985:VI.3.4.3 SR1");
+
+    /// <summary>COBOL7166 — the header of a COBOL-85 comment-entry paragraph with no separator period after its word (kb/Work
+    /// PB5168). The fixed-form logical conversion writes the header and its terminating periods itself, so the period the
+    /// source omitted was never asked of the parser.</summary>
+    public static readonly DiagnosticDescriptor CommentEntryHeaderWithoutPeriod = new(
+        "COBOL7166", "comment-entry-header-without-period", EditionSeverity.Error,
+        "§1985:III defines a paragraph header as \"A reserved word, followed by the separator period\", and §1985:IV.2.1.6 "
+        + "says: \"The separator period, when used in the formats, has the status of a required word.\" The header of an AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED or "
+        + "SECURITY paragraph has no period after its word. Write the period directly after the word, before the comment-entry.",
+        "ISO §1985:III; §1985:IV.2.1.6");
+
     /// <summary>COBOL6827 — the FROM or INTO operand of a READ, RETURN, WRITE, REWRITE or RELEASE is the file's own record area, at
     /// the editions that forbid it (kb/Work PB5077). §1985:IX.4.5.3 SR1: "The storage area associated with identifier-1 and the
     /// record area associated with file-name-1 must not be the same storage area." (READ, RETURN), §1985:IX.4.6.3 SR1: "Record-name-1
     /// and identifier-1 must not reference the same storage area." (WRITE, REWRITE, RELEASE); COBOL-2002 words both as syntax rules
-    /// too (§2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1, §2002:14.8.30.2 SR2, §2002:14.8.33.2 SR1, §2002:14.8.47.2 SR4). The 2023
-    /// standard replaces them with its overlapping-operand rules (§2023:14.6.10), so a program that shares the storage is
-    /// accepted there with an undefined result.</summary>
+    /// too (§2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1, §2002:14.8.30.2 SR2, §2002:14.8.33.2 SR1, §2002:14.8.47.2 SR4). The 2014
+    /// standard drops all five (§2014:E.3 items 21, 24, 25, 26 and 38; kb/Work PB5270) for its overlapping-operand rules, which
+    /// 2023 keeps (§2023:14.6.10), so a program that shares the storage is accepted from 2014 with an undefined result.</summary>
     public static readonly DiagnosticDescriptor IoPhraseOperandIsRecordArea = new(
         "COBOL6827", "io-phrase-operand-is-record-area", EditionSeverity.Error,
         "§1985:IX.4.5.3 SR1: \"The storage area associated with identifier-1 and the record area associated with file-name-1 must "
         + "not be the same storage area.\" (READ INTO and RETURN INTO; §1985:XI.4.3.3 SR1). §1985:IX.4.6.3 SR1: \"Record-name-1 and "
         + "identifier-1 must not reference the same storage area.\" (WRITE FROM, REWRITE FROM and RELEASE FROM; §1985:XI.4.2.3 SR3). "
         + "The operand names the file's record area: a record description of the file (all of them redefine the one area), "
-        + "or an item that begins the area and is as long as it. COBOL-2002 keeps both rules (§2002:14.8.29.2 SR2); COBOL-2023 "
-        + "drops them for the overlapping-operand rules of §2023:14.6.10.",
+        + "or an item that begins the area and is as long as it. COBOL-2002 keeps both rules (§2002:14.8.29.2 SR2); COBOL-2014 "
+        + "drops them (§2014:E.3: \"Identifier-1 may now reference the same storage area as record-name-1\"), leaving an "
+        + "overlap to the overlapping-operand rules that COBOL-2023 keeps (§2023:14.6.10).",
         "ISO §1985:VII.4.4.3 SR1; §1985:VIII.4.5.3 SR1; §1985:IX.4.5.3 SR1; §1985:VII.4.5.3 SR1; §1985:VIII.4.6.3 SR1; "
         + "§1985:IX.4.6.3 SR1; §1985:VII.4.7.3 SR1; §1985:VIII.4.9.3 SR1; §1985:IX.4.9.3 SR1; §1985:XI.4.2.3 SR3; §1985:XI.4.3.3 SR1; "
         + "§2002:14.8.29.2 SR2; §2002:14.8.30.2 SR2; §2002:14.8.32.2 SR1; §2002:14.8.33.2 SR1; §2002:14.8.47.2 SR4");
@@ -9453,8 +9551,9 @@ public static class DiagnosticCatalog
         + "a lower level control than the associated control (§1985:XIII.3.19.3 SR4).",
         "ISO §2023:13.18.54.3 SR8; ISO §1985:XIII.3.19.3 SR4");
 
-    /// <summary>COBOL6825 — a SOURCE clause of a control footing, page heading, page footing or report footing report group
-    /// references a control data item or storage that shares it, at a dialect that forbids it (kb/Work PB5079). §1985:XIII.3.20.3
+    /// <summary>COBOL6825 — a SOURCE clause of a control footing, page heading, page footing or report footing report group, or
+    /// a statement of the USE BEFORE REPORTING procedure for one, references a control data item or storage that shares it, at a
+    /// dialect that forbids it (kb/Work PB5079, PB5424). §1985:XIII.3.20.3
     /// SR5: "In control footing, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE
     /// statements must not reference any of the following: a. Group data items containing a control data item. b. Data items
     /// subordinate to a control data item. c. A redefinition or renaming of any part of a control data item. In page heading
@@ -9463,9 +9562,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportSourceControlData = new(
         "COBOL6825", "report-source-control-data", EditionSeverity.Error,
         "§1985:XIII.3.20.3 SR5: in control footing, page heading, page footing and report footing report groups a SOURCE clause "
-        + "must not reference a group item containing a control data item, an item subordinate to one, or a redefinition or "
-        + "renaming of any part of one; in page heading and page footing report groups it must not reference a control "
-        + "data-name at all. (COBOL-2002 and later have no such restriction.)",
+        + "or an associated USE statement must not reference a group item containing a control data item, an item subordinate "
+        + "to one, or a redefinition or renaming of any part of one; in page heading and page footing report groups neither may "
+        + "reference a control data-name at all. (COBOL-2002 and later have no such restriction.)",
         "ISO §1985:XIII.3.20.3 SR5");
 
     /// <summary>COBOL6847 — two file control entries of one compilation group describe the same EXTERNAL file connector and
@@ -9555,15 +9654,18 @@ public static class DiagnosticCatalog
         + "(COBOL-2002 and later let an index-name be qualified, so two tables may each declare one spelling.)",
         "ISO §1985:VI.5.8.3 SR14");
 
-    /// <summary>COBOL6973 — an X3.23-1985 ENTER statement that another statement follows in its sentence (kb/Work PB5178).
-    /// Emitted by PlacementRules.RefusedOutOfSequence (the EnterEndsSentence row) where the statement exists (COBOL-85; from
-    /// 2002 it is COBOL0902, removed).</summary>
-    public static readonly DiagnosticDescriptor EnterNotEndOfSentence = new(
-        "COBOL6973", "enter-not-end-of-sentence", EditionSeverity.Error,
-        "An X3.23-1985 ENTER statement is followed by another statement before the separator period. §1985:VI.6.12.2 prints "
-        + "\"ENTER language-name-1 [ routine-name-1 ] .\", and §1985:IV.2.1.6: \"The separator period, when used in the "
-        + "formats, has the status of a required word.\" End the sentence after the ENTER statement.",
-        "X3.23-1985 ENTER statement general format (§1985:VI.6.12.2; §1985:IV.2.1.6)");
+    /// <summary>COBOL7240 - the X3.23-1985 ENTER statement, which this implementation does not provide (kb/Work PB5308).
+    /// §1985:I.1.5.2.5.5 leaves it to the implementor; ISO 2023 has no ENTER, so GnuCOBOL decides and it refuses the statement
+    /// (CLAUDE.md rule 1; docs/conformance/3.7.1). Emitted by <c>StatementBinder.BindEnter</c> at COBOL-85, where the statement
+    /// parses (from 2002 it is COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor EnterStatementNotProvided = new(
+        "COBOL7240", "enter-statement-not-provided", EditionSeverity.Error,
+        "This implementation does not provide the ENTER statement. §1985:I.1.5.2.5.5: \"An implementation of Standard COBOL "
+        + "may include the ENTER statement or not, at the option of the implementor.\" §1985:VI.6.12.3 SR1 makes "
+        + "\"Language-name-1\" a language \"specified by the implementor\", and this implementation specifies none, so no "
+        + "other-language routine is ever entered and no other-language text is compiled in-line. Call the routine with the "
+        + "CALL statement.",
+        "X3.23-1985 ENTER statement (§1985:I.1.5.2.5.5; §1985:VI.6.12.3 SR1)");
 
     /// <summary>COBOL6916 — at COBOL-85, the ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER or class-name-1 class condition over
     /// an item described as numeric (kb/Work PB5122). The 1985 arm of COBOL6000's rule: 1985 bars a numeric item only, a numeric
@@ -9598,6 +9700,19 @@ public static class DiagnosticCatalog
         + "explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric "
         + "function.\"",
         "§1985:VI.6.3.1.2");
+
+    /// <summary>COBOL6979 — an index data item referenced explicitly in an operand position its edition's list of
+    /// contexts does not name (kb/Work PB5188). §1985:VI.5.14.3 SR5: "An index data item can be referenced explicitly
+    /// only in a SEARCH or SET statement, a relation condition, the USING phrase of a Procedure Division header, or the
+    /// USING phrase of a CALL statement." COBOL-2002 adds "an intrinsic function argument" and an inline method
+    /// invocation argument (§2002:13.16.58.2 SR9, §2023:13.18.60.3 SR10), so at COBOL-85 a function argument is the
+    /// position refused.</summary>
+    public static readonly DiagnosticDescriptor IndexDataItemContext = new(
+        "COBOL6979", "index-data-item-context", EditionSeverity.Error,
+        "§1985:VI.5.14.3 SR5: \"An index data item can be referenced explicitly only in a SEARCH or SET statement, a "
+        + "relation condition, the USING phrase of a Procedure Division header, or the USING phrase of a CALL "
+        + "statement.\" An intrinsic function argument is none of them at COBOL-85 (§2002:13.16.58.2 SR9 adds it).",
+        "ISO §1985:VI.5.14.3 SR5");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

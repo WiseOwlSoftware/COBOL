@@ -593,6 +593,12 @@ an ABSTRACT property, so the placement is total by construction; `Table14.Cell(f
 the printed symbol set and `FileRegistry.CloseByFormat` is the ONE dispatch that executes it. The written
 forms (`Close`, `CloseNoRewind`, `CloseReelUnit`, `CloseReelUnitForRemoval`) are thin entries over it, and
 `CLOSE … WITH LOCK` layers the reopen prohibition over the plain form — it is not a Table 14 row.
+What the prohibition covers is per edition (`DialectBehavior.CloseWithLockLocksFileConnector`, VCR row 7.70,
+kb/Work PB5210): from 2002 the FILE CONNECTOR is locked (§2002:14.8.26.3 GR24), so `FileRegistry.CloseWithLock`
+records the connector's name and only its OPEN answers `'38'`; at 1985 the PHYSICAL FILE is locked (§1985:II.2 makes
+"file" the physical file "regardless of the file-name used in the COBOL program"), so it marks the physical file's
+state (`PhysicalFileTable.State.ClosedWithLock`) and every OPEN that resolves that state, through any SELECT, answers
+`'38'`. `FileRegistry.ClosedWithLock` is the OPEN's one test of both.
 
 **The placement, and why it is forced.** `SequentialConnector` is (a) Non-unit; `RelativeConnector` and
 `IndexedConnector` are (d) by organization alone. (a) is not a free choice: §2023:9.1.13.2 item 6 defines the
@@ -2320,7 +2326,7 @@ its own line width and OPTIONAL flag, a file with records never does), the runti
 standard's observable half (OPEN EXTEND over an earlier report answers '00', a second OPEN '41', a CLOSE of a closed file
 '42') by the golden `pb1880_report_file_open_extend` (kb/Work PB1880).
 
-### D31. Two syntax rules of the 1985 I-O modules that 2023 dropped are enforced at the edition that prints them, each in ONE place (kb/Work PB5076, PB5077)
+### D31. Two syntax rules of the 1985 I-O modules that later editions dropped are enforced at the edition that prints them, each in ONE place (kb/Work PB5076, PB5077)
 
 **(a) The mandatory exception phrase — COBOL-85 only.** Each 1985 I-O module closes the syntax rules of READ, WRITE,
 REWRITE, DELETE and START with "The INVALID KEY phrase (or the AT END phrase) must be specified if no applicable USE AFTER
@@ -2346,25 +2352,34 @@ RETURN AT END). Witnesses: `conformance:cases/14.9.30-READ/pb5076_*` (the legal 
 file's declarative, the access-mode qualification, the contained program). The 1985 corpus held 49 conformance programs and six inline test programs that omit the phrase with no
 declarative; they now carry it, or are accepted from 2002 only where their point is the exception path with no phrase.
 
-**(b) The FROM / INTO operand is not the file's record area — COBOL-85, 2002 and 2014.** READ and RETURN: "The storage area
+**(b) The FROM / INTO operand is not the file's record area — COBOL-85 and 2002.** READ and RETURN: "The storage area
 associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area" (§1985:IX.4.5.3 SR1,
 §1985:XI.4.3.3 SR1; §2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1); WRITE, REWRITE, RELEASE: "Record-name-1 and identifier-1 must not
 reference the same storage area" (§1985:IX.4.9.3 SR1, §1985:IX.4.6.3 SR1, §1985:XI.4.2.3 SR3; §2002:14.8.47.2 SR4, §2002:14.8.33.2 SR1,
-§2002:14.8.30.2 SR2). COBOL-2023 replaced both with its overlapping-operand rules (§2023:14.6.10, §2023:14.9.30.4 NOTE 1), under which the
-program is legal and the result undefined. The compiler keeps the rule at 2014, a DETERMINATION made while the ISO/IEC 1989:2014
-text was not in the repository (the edition lineage routes 1985 to 2023 across it; docs/CONFORMANCE.md); the 2014 text, now held,
-contradicts it: its Annex E lists each of the five phrases as "no longer prohibited" (§2014:E.3 items 21, 24, 25, 26 and 38), and
-its READ INTO rules refer the overlap to its overlapping-operand rules, so the rule ends at 2014 (kb/Work PB5270, open). **The decision:** the five phrases already
+§2002:14.8.30.2 SR2). ISO/IEC 1989:2014 dropped all five: its Annex E lists each phrase among the substantive changes not
+affecting existing programs (§2014:E.3 items 21, 24, 25, 26 and 38: "Identifier-1 may now reference the same storage area as
+record-name-1"), and its READ INTO general rule refers an overlap to the overlapping-operand rules, the model COBOL-2023 keeps
+(§2023:14.6.10, §2023:14.9.30.4 NOTE 1), under which the program is legal and the result undefined. The rule therefore ends at 2014
+(kb/Work PB5270; an earlier DETERMINATION, made while the 2014 text was not in the repository, had kept it there). **The decision:** the five phrases already
 funnel through `MoveBinder` (D23), so the screen is asked there, once: `StatementValidation.CheckPhraseOperandIsNotRecordArea`, from
 `BindFromPhrase` (the sender; the file is now a parameter) and from `CheckIntoReceiver` (the receiver). Its question is
-`StorageSharing.IsRecordAreaOf`, which is EXACT where `MayShare` is conservative, because it refuses the statement: the operand is a
-record description entry of the file or of a SAME RECORD AREA peer (every 01 under an FD redefines one area), or a subordinate item that
-begins the area and is as long as it; a part of the record, a reference-modified operand and another file's record are not "the same".
-`RecordAreaRule` owns the edition scope (`Year < 2023`), the wording ("must" at 1985, "shall" at 2002) and the one citation per verb and
+`StorageSharing.IsRecordAreaOf`, which is EXACT where `MayShare` is conservative, because it refuses the statement. The rule forbids a
+STORAGE, whatever reference names it (kb/Work PB5412), so the question is the storage the operand denotes against the records of the
+area: the file's own, a SAME RECORD AREA peer's (every 01 under an FD redefines one area) and a SAME AREA peer's ("The area being shared
+includes all storage areas assigned to the files", §1985:VII.2.13.4 GR1; `FileModel.StorageSharingFiles`). The operand names the area
+when it is a record description entry, a subordinate item that begins the record and is as long as it (asked of the declaration, so it
+holds for every usage), or any other reference whose static extent (`StorageExtent.OfReference`) is the whole of a record: a literal
+reference modification (`R1 (1:10)`; `R1 (1:)`, which is R1 itself whatever its length, §2023:8.4.3.3.4 GR5c), an element of a table
+whose every OCCURS level has one occurrence, a level-66 THROUGH alias of the whole record. A part of the record, a reference modification
+whose bounds are run-time quantities, an element of a table of several occurrences and another file's record are not "the same". The
+first implementation decided on the FORM of the reference (it answered false for every reference-modified, OCCURS-governed or RENAMES
+operand), which accepted thirteen probes of the 1985 code read, read 3, and the SAME AREA form of read 4.
+`RecordAreaRule` owns the edition scope (`Year < 2014`), the wording ("must" at 1985, "shall" at 2002) and the one citation per verb and
 organization, because the 1985 text repeats the rule in the sequential, relative and indexed modules. The verb is a column of the two
 existing rows (`FromPhraseRules`, `IntoPhraseRules`), so the next FROM or INTO phrase is a row. Witnesses: five `pb5077-*` refusals
-(refused at 85, 2002, 2014), the legal-side golden `pb5077_from_into_outside_the_record_area`, the 2023 acceptance
-`pb5077_from_own_record_area_accepted_2023`, and `IoExceptionPhraseRequirementTests` for the predicate's boundaries.
+(refused at 85 and 2002) and six `pb5412-*` refusals of the other reference forms, the legal-side goldens
+`pb5077_from_into_outside_the_record_area` and `pb5412_from_part_of_the_record_area`, the acceptance of all five phrases
+from 2014 `pb5270_from_into_own_record_area_2014`, and `IoExceptionPhraseRequirementTests` for the predicate's boundaries.
 
 ### D32. The run unit's external file connector rules are asked of the compilation group from the one entry identity (kb/Work PB5069)
 
@@ -2381,8 +2396,8 @@ conjunct reads `DataItem.ExternalItemIdentity` (a model member, so the emitter n
 every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The PADDING CHARACTER clause
 is captured (`FileModel.Padding`, `FileControlBinder.CapturePadding`) for its syntax rules and its segment; it changes no I-O. **The file DESCRIPTION
 entries** (kb/Work PB5300): `FileDescriptionIdentity.Rules` is the same table for the FD, one row per 1985 clause that states its own
-agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 GR5, CODE-SET §1985:VII.3.4.4 GR3, LINAGE §1985:VII.3.8.4 GR2, VALUE OF
-§1985:VII.3.9.4 GR2): the binder captures what each entry writes (`FileModel.FdClauses`, LINAGE read from `FileModel.Linage`), and
+agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 GR5, CODE-SET §1985:VII.3.4.4 GR3, LINAGE §1985:VII.3.7.4 GR11, RECORD §1985:VII.3.8.4 GR2 (kb/Work PB5387), VALUE OF
+§1985:VII.3.9.4 GR2): the binder captures what each entry writes (`FileModel.FdClauses`, LINAGE read from `FileModel.Linage` and RECORD from `FileModel.RecordClause`), and
 `ExternalFileConnectorRules.CheckFileDescriptions` compares, at COBOL-85 only (the later texts state none of these rules for their descendants of the
 clauses), each entry that writes a clause with the first entry that writes it (COBOL6847, at the clause). The identity is compile-time only; the
 run time's fingerprint stays the file control entry's. An omitted clause is no clause ("all LABEL RECORDS clauses in the run unit"), so it agrees
@@ -2627,7 +2642,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   page write or a sync the host refuses at the statement and at the CLOSE; the refusals a real file cannot produce on
   demand are injected under the connector's own handle through `PageMediumObserver`
   (`tests/WiseOwl.Cobol.Tests.Unit/Store/RefusingPageMedium`, `DyingPageMedium`).
-- I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §2023:9.1.13.7 3) '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§2023:14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOL1692/1693); `FileConnector.Close` maps OS failures to '30' (§2023:9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close.
+- I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §2023:9.1.13.7 3) '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§2023:14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOL1692/1693); `FileConnector.Close` maps OS failures to '30' (§2023:9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close, and locks the file connector from 2002 and the physical file at 1985 (kb/Work PB5210, the Table 14 decision above).
 - Keyed-verb branch discipline (kb/Work PB325): the ACCESS MODE is the SOLE discriminator of a keyed verb's branch, and it lives in ONE place — `KeyedConnector.Access`, the abstract base `RelativeConnector` and `IndexedConnector` share. Every branch the standard draws inside a keyed verb is drawn on it (§2023:14.9.51.4 GR29 a)/b), GR38/GR39; §2023:14.9.35.4 GR5 vs. GR21/GR22/GR23; §2023:14.9.10.4 GR2 vs. GR3/GR4), and the OPEN MODE enters only as the permission test that FOLLOWS — Table 20 (§2023:14.9.27.4 GR8), whose unsuccessful cells §2023:9.1.13.7 items 8 and 9 name. ⛔ An open mode in a branch PREDICATE inverts that dependency: `_access == Sequential || Mode == Extend` made the runtime's answer depend on an unenforced bind-time screen (§2023:14.9.27.3 SR2) and turned Table 20's blank Random/Dynamic × WRITE × Extend cell into a successful append instead of item 8 b)'s '48'. The whole table is walked by conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative + l1_table20_indexed and, for the cell conforming source cannot reach, unit:Table20WriteOpenModeTests.
 - READ preconditions live in the BASE, once, in the standard's own order (kb/Work PB336). `FileConnector` owns
   the three of them and every organization's READ entry delegates: `ReadOpenModeGuard` (§2023:14.9.30.4 GR2 /

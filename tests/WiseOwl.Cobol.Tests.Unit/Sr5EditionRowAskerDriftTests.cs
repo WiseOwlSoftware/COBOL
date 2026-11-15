@@ -32,7 +32,7 @@ public sealed class Sr5EditionRowAskerDriftTests
                  "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs"],
         Kinds: [".cs"]);
 
-    private static string Read(string repoRelative) => File.ReadAllText(TestRepo.At(repoRelative.Split('/')));
+    private static string Read(string repoRelative) => File.ReadAllText(TestRepo.Within("src/", repoRelative));
 
     /// <summary>The three rows are read by <c>FigurativeAssociation.GateSr5</c> and by nothing else.</summary>
     [Fact]

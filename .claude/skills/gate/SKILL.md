@@ -1,6 +1,6 @@
 ---
 name: gate
-description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole Unit, Conformance and Characterization populations inside a gate slot, previous reds first, the same for an implementer's commit and a re-gate after a fix, nothing run on Linux; a landing reads its record and gates nothing; CI's merge group is the first run of the merged tree, Linux and Release), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
+description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole population of every test target of scripts/build_targets.json not up to date at its key, inside a gate slot, previous reds first, the same for an implementer's commit and a re-gate after a fix, nothing run on Linux; a landing reads its record and gates nothing; CI's merge group is the first run of the merged tree, Linux and Release), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
 ---
 
 > ⛔ **BASE SKILL FIRST.** Invoke `brent-tools:test-gate` (Skill tool) before reading on. If the plugin is not loaded
@@ -40,7 +40,7 @@ The driver, `scripts/gate.py` (DESIGN-test-build-ci.md §3.13, §3.14; kb/Work P
 second gate in the same worktree is refused), decides the change's LANE (`python scripts/inert_lane.py classify --base
 <rev>`: a change no test reads is the INERT LANE, which runs the audits alone, kb/Work PB2878 — `docs/`, `kb/`, `DEVLOG/` and EVERY `*.md` since kb/Work PB4453: what a document says is the DOC AUDITS audit, never a test; a change whose every other path
 is tooling in `scripts/`, `.github/`, `tools/` or `.claude/` that no compiler test or the build reads — not under
-`inert_lane.py`'s `CODE_READS` — is the TOOLING LANE, which runs the audits with the script self-tests and no slot, build or
+`lane_classification.py`'s `CODE_READS` — is the TOOLING LANE, which runs the audits with the script self-tests and no slot, build or
 test host, its verdict `TOOLING LANE (kb/Work PB4395)`), starts the audits BESIDE
 everything after them (outside the slot; FAIL-FAST: a red audit known before the slot or the hosts ends the gate in
 seconds with `NO TEST RAN`, and one found while the hosts run STOPS them, kb/Work PB2523, PB4326 — run `python
@@ -51,10 +51,13 @@ runs ONLY WHEN YOUR CHANGE TOUCHES A SCRIPT (a path under `scripts/`, `.github/`
 `TOOLING_READS` list, starts none, owner 2026-11-01, kb/Work PB4409; CI's merge group runs every Linux self-test
 whatever the change, and the Windows ones whenever the `reads_tooling=` line is true: a script or that data) — every gate
 passes `--reuse`, so a self-test whose inputs are unchanged since a recorded PASS is REUSED, not run; one still running an
-hour after taking its budget place is `SELF-TESTS HANG`, never RED, kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10) and
+hour after taking its budget place is `SELF-TESTS HANG`, never RED, kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10; a
+script's tests live in `<root>/selftests/<path>/<name>/` as `case_` functions, `scripts/selftest_layout.py` is the run's
+first step and its refusal is `=== SELF-TESTS: RED — layout: … ===`, and `python scripts/self_tests.py --only <case file>`
+runs one by hand, DESIGN-orchestrator-loop.md §16.2, kb/Work PB5428) and
 fetches the per-worktree GnuCOBOL corpus when absent, then takes a GATE SLOT (`scripts/gate_slot.py`: at most N gates
 build or test at once, repository-wide — `gate-slot: waiting, k ahead` is the cap working), builds the solution and runs
-the WHOLE Unit, Conformance and Characterization populations, three `dotnet test --no-build` hosts at once (Server GC,
+the WHOLE population of every test target (`scripts/build_targets.json`) not up to date at its key, one `dotnet test --no-build` host each at once (Server GC,
 kb/Work PB2526), each population then checked by name against its `--list-tests` (`scripts/test_population.py check`).
 
 - ⭐ **THE POPULATION IS THE SELECTION** (owner decision 1 of PB4323, 2026-10-31; kb/Work PB4328). There is no plan, no
@@ -64,7 +67,7 @@ kb/Work PB2526), each population then checked by name against its `--list-tests`
   pull request (fetched into `TestResults/ci-bounce/`, kb/Work PB3644) go first (`WISEOWL_COBOL_GATE_FIRST`, the test
   framework's `GateOrderer`), then every collection longest first by the committed weights (`tests/_shared/test-weights.json`,
   `scripts/shard_weights.py generate`). Measured for this step (2026-11-01, quiet box, compile cache off): one gate's
-  three populations 247 s; three gates started together 503 s each; xunit's default thread count (the processor
+  three populations (as of 2026-11-01) 247 s; three gates started together 503 s each; xunit's default thread count (the processor
   count) beat 16 and 8 in both, so no `xunit.runner.json` caps it. A re-gate of an unchanged tree answers from its
   GREEN record (`REUSED`, kb/Work PB3536). Each assembly is a TARGET with declared inputs (scripts/build_targets.json) and its
   own key; a target whose key holds a pass in the ONE store every worktree shares (`<git common dir>/cobol-build-store/`) is
@@ -160,7 +163,7 @@ re-run). Here, additionally:
 - `scripts/build-local.{ps1,sh}` prints ONE `=== BUILD-LOCAL GATE: ` verdict line — `GREEN`, `RED`, `BUILD
   FAILED`, `BUSY` (exit 3: another gate holds
   this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN [<cause>]` (exit
-  2: it measured nothing; the cause's class is `gate.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
+  2: it measured nothing; the cause's class is `gate_verdict.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
   `[interpreter]` is no defect of yours, BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
   block on that line, never on the exit code. The run directory it names holds
   every host's full log and trx (`Conformance.trx`, `Unit.trx`, `Characterization.trx`), each listing, the first-classes

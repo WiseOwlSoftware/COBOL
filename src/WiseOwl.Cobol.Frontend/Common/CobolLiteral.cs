@@ -128,6 +128,14 @@ public static class CobolLiteral
     /// "in hexadecimal format") need the FORM, which the decoded characters cannot tell (kb/Work PB791).</summary>
     public static bool IsHexadecimalFormat(string raw) => SplitLiteral(raw) is { Prefix: "X" or "NX" or "BX" };
 
+    /// <summary>True when <paramref name="raw"/> opens a delimited literal with an APOSTROPHE — <c>'…'</c>, <c>X'…'</c>,
+    /// <c>N'…'</c>, <c>NX'…'</c>, <c>B'…'</c>, <c>BX'…'</c> — closed or not. ⛔ THE ONE delimiter question, asked of the
+    /// opening delimiter the prefix scan finds (<see cref="OpeningDelimiterAt"/>) and never of a second <c>raw[0]</c> test:
+    /// "Either an apostrophe or a quotation mark may be used as the quotation symbol character in opening and closing
+    /// delimiters" (§2023:8.3.5 SR5), a COBOL-2002 introduction (§2002:F.2 item 3, "Apostrophe as quotation symbol";
+    /// kb/Work PB5160), and the closing delimiter is the opening one's twin, so the opening one decides.</summary>
+    public static bool IsApostropheDelimited(string raw) => OpeningDelimiterAt(raw) is >= 0 and var open && raw[open] == '\'';
+
     /// <summary>If <paramref name="raw"/> is the figurative <c>ALL literal</c> form (a VALUE / level-88 operand
     /// text), the RAW literal after ALL — still prefixed, so <see cref="ClassOf"/> and <see cref="Decode"/> apply
     /// to it; otherwise <see langword="null"/>.</summary>

@@ -83,7 +83,7 @@ directive. Inside pseudo-text the diagnostic also quotes §2023:7.2.3.3 SR10 / �
 ### §3.2a Text-words — the one scanner under COPY and REPLACE (kb/Work PB1350 / PB1351 / PB1354)
 
 Everything the text-manipulation stage does is decided over §2023:7.2.2.5 TEXT-WORDS, and ONE type forms them:
-`TextWordScanner` (`src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs`). A space or a comment is no text-word; the
+`TextWordScanner` (`src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs`). A space or a carried comment-entry line is no text-word, and no comment is ever met here (the §2023:6.5 logical conversion removed them all, and below 2002 `*>` is an ordinary text-word, kb/Work PB5470); the
 colon and parentheses are separator text-words outside literals; a period, comma or semicolon separates only when
 a space (or a line end, or a closing `==`) follows (§2023:8.3.5 2)/3)), so `Z,ZZ9` and `ZZ.ZZ` are one word; a literal
 is ONE word from its prefix (`X" N" NX" B" BX"`) through its closing delimiter with doubled quotes inside; `&` is a
@@ -121,7 +121,7 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   `N"…"` and insensitive in the hexadecimal and boolean formats. Separator commas/semicolons are dropped (c) 1.).
   What a match PRODUCES is screened in the same pass by the statement's `ResultRule` (`ForbiddenIn`: §2023:7.2.3.4 GR13 /
   §2023:7.2.4.4 GR9 — no COPY statement, REPLACE statement (REPLACE only), SOURCE FORMAT directive or comment, the
-  comment asked of the produced TEXT by `TextWordScanner.HoldsComment` since the scanner skips a comment; a blank
+  comment asked of the produced TEXT by `TextWordScanner.HoldsComment` (a character-string holding the indicator); a blank
   line cannot arise, §2023:6.5 2) discarded it; COBOL2574), and a COPY with REPLACING met inside library text is COBOL1640 (GR12) (kb/Work PB1356).
 - **Locating library text** — `FindCopybook` over `LibraryPlaces()` (the working directory, then each configured
   search path) and `LocateInLibrary` (as spelled, then — unless the FILE NAME holds a period —
@@ -214,8 +214,10 @@ COBOL-85 and the editions from 2002 differ in three rules of this stage, each as
 
 - **A REPLACE statement's place.** §1985:XII.3.3 SR1 requires a separator period before it (or the start of a separately compiled
   program); §2002:7.1.3.2 SR1 allows it wherever a character-string may stand. `ApplyReplaceStatements` asks the constructs row
-  `replace-anywhere-2002` of a REPLACE that `FollowsSeparatorPeriod` does not accept (text that came from a library file is taken to
-  follow the COPY statement's own period).
+  `replace-anywhere-2002` of a REPLACE that `FollowsSeparatorPeriod` does not accept. It asks the COPY-expanded text, whatever file each
+  character came from (kb/Work PB5422): a COPY statement and its period are not part of the resultant text, so a REPLACE that begins
+  library text follows what preceded the COPY statement. It reads the last text-word before the REPLACE, so a comment, a comment-entry carrier
+  and a debugging line's carrier are spaces to it.
 - **COPY in library text.** §1985:XII.2.4 GR12 forbids it; §2002:7.1.2.3 GR14 allows it without REPLACING. `ResolveOneCopy` asks the
   row `copy-nested-library-text-2002` of the library text it has read, and reports at the OUTER statement. Below 2002 the one
   report speaks for the REPLACING arm (the 2023 GR10 diagnostic) too.
@@ -228,6 +230,52 @@ The word COPY as word-1 or word-2 of a COPY REPLACING phrase is refused by COBOL
 §2014:7.2.2.2 SR10), and so are the compiler directive indicator `>>` (2002, 2014) and the floating debug indicator `>>D` (2002); the comment
 indicator is a comment to the scanner and never a word. 2023 removed the word forms (COBOL0902); under `--permissive`, which still accepts them,
 the 2014 set applies (`OperandScreen.CopyWord`).
+
+### §3.7 The lines a replacement introduces (kb/Work PB5382)
+
+A debugging line reaches this stage as `ReferenceFormatProcessor.DebugLineCarrier` plus its text, and `DebuggingLineRewriter` later keeps or
+hides each carrier's line by the unit's WITH DEBUGGING MODE. A whole replacement whose pseudo-text-2 spans lines therefore has to write the
+carrier on every line it introduces that is a debugging line, or the rewriter sees source. `ApplyReplacements` asks `IntroducedText` for
+the text it writes, decided by the line the match begins on (`firstLineIsDebugging` covers a slice that begins inside a line):
+
+- **The replaced text begins on a debugging line:** every introduced line is a debugging line (§1985:XII.3.4 GR11, §1985:XII.2.4 GR9,
+  §2002:7.1.3.3 GR11, §2002:7.1.2.3 GR13); a carrier pseudo-text-2 wrote at its own start is dropped, because its first line lands on the
+  replaced line.
+- **It begins on a source line:** a COPY keeps the debugging lines pseudo-text-2 wrote (GR9 / GR13: "only those text words that are specified
+  on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines"), and so does REPLACE from 2002; COBOL-85's
+  REPLACE gives each introduced line the replaced line's indicator, so it drops them (`ResultRule.KeepsPseudoTextDebuggingLines`, asked
+  with `EditionInfo.ReplacedTextIsLaidOutInFixedForm`).
+- **A kept carrier after text on the replaced line starts a line (kb/Work PB5472):** when the introduced text begins with a debugging-line
+  carrier and the line holds non-blank text ahead of the match, `ApplyReplacements` writes a line break before the replacement. The carrier
+  makes every word after it on the resultant line debugging text, so without the break the library words ahead of the match would be hidden
+  with it when the program is read with the debugging lines considered as comment lines (§1985:VI.7.3), and a unit WITH DEBUGGING MODE
+  (the only unit whose source debugging lines run the §1985:VI.7.3 both-ways check) would be refused COBOL7061 at 85 for `COPY X REPLACING ==XX== BY == / D QQ==` into `DISPLAY "[" XX "]".`. Goldens
+  `pb5472-copy-debugging-line-replaces-mid-line` and `pb5472-copy-debugging-line-replacement-needed`.
+- The text after the match keeps the indicator of the line the match ENDS on (GR11 decides the introduced lines only). When the line the
+  replacement ends on differs in kind from that line (a match crossing between a debugging line and a source line, either way) or a kept
+  directive line intervenes, the rest starts a line of its own, with the carrier when the end line is a debugging line.
+
+At COBOL-85 (`ReplacedTextIsLaidOutInFixedForm`) the resultant text is laid out in fixed-form lines, so a literal a replacement places on a
+debugging line that the program-text area cannot hold from the margin of the area it begins in (65 positions in area A, 61 in area B; a
+pseudo-text-2 literal keeps the area it was written in, literal-2 takes the replaced word's, §1985:XII.2.4 GR9) would be continued on a
+debugging line: COBOL7039 (§1985:XII.2.4 GR9, §1985:XII.3.4 GR11). The area a pseudo-text-2 literal was written in is measured in
+positions of the fixed-form line with every tab expanded (`ReferenceFormatMap.ProgramTextOffsetAt`, which inverts the line-entry stage's
+`ColumnMap`; the formats of every text read travel into `ApplyReplaceStatements` / `ApplyReplacements` and the `StatementCursor`), never
+in the file's physical column, where a tab counts one (kb/Work PB5503). The 2002 rules drop that error. A COPY statement written on a debugging
+line writes its whole library text behind the carrier (`ExpandCopiesOneLevel`: `LineIsDebugging`, `AppendAsDebuggingLines`; §1985:XII.2.4 GR9).
+
+### COPY names as user-defined words (kb/Work PB5482)
+
+Below COBOL-2002 a COPY statement's text-name and library-name are user-defined words, each of a disjoint set of its own: "All
+user-defined words, except segment-numbers and level-numbers, can belong to one and only one of these disjoint sets"
+(§1985:IV.4.2.2.1.1); 2002 made them system-names (§2002:F.2 item 135), `EditionInfo.CopyNamesAreUserDefinedWords`. `CopyProcessor`
+alone resolves the statement, so `ResolveOneCopy` records each name written as a COBOL word (`CopyNameUse`, `CopyProcessor.CopyNames`;
+a literal form is no word), `Frontend.CopyNames` carries them to `EditionContext.CopyNames`, and `CopyNameCensus` (built by
+`BinderDriver.Bind`) assigns each to the program unit it stands in (the unit whose first token is the last at or before the statement's
+resultant line, so a contained program's names are its own, §1985:IV.4.2.2.1.1 "excluding any contained program"). Each unit's binder
+announces them FIRST through `DataBinder.DeclareUserWord` (`DeclareCopyWords`, kinds `TextName` and `LibraryName`), so the one
+word-type funnel `CheckOneTypePerWord` refuses a data-name, index-name, paragraph-name, program-name, or the other COPY name spelled like
+one (COBOL2692) at the second declaration.
 
 ## §4 Wiring (greenfield only)
 

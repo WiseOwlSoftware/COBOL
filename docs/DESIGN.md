@@ -1001,7 +1001,9 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   — SORT at the start of phase a) for USING and of phase c) for GIVING (§2023:14.9.40.4 GR9), MERGE at statement start for
   both (§2023:14.9.24.4 GR7/GR12) — and only when the name is enabled there. EC-SORT-MERGE-RELEASE is the record-range
   test of `ReleaseStatement` (§2023:13.18.43.4 GR14 b)/GR19 b), which also slices the DEPENDING ON size itself so no
-  reference modification can raise EC-BOUND-REF-MOD first) and of the implicit `Release` (§2023:14.9.40.4 GR12 b),
+  reference modification can raise EC-BOUND-REF-MOD first; with the name not enabled the record is released, except at
+  COBOL-85, whose RELEASE is unsuccessful outside the range with no checking at all, §1985:VII.3.8.4 GR10 — the binder's
+  `BoundRelease.RangeFailsStatement`, read by the runtime, kb/Work PB5124) and of the implicit `Release` (§2023:14.9.40.4 GR12 b),
   §2023:14.9.24.4 GR7 b) — the READ size against the SD's range, min 0 for a fixed SD). EC-SORT-MERGE-SEQUENCE is a
   per-stream scan in `Merge` over the SAME key columns the merge compares with, run only while enabled
   (§2023:14.9.24.4 GR6). The statement's body after `Init` is a `try … finally { Close }`, so every way out — including

@@ -406,6 +406,11 @@ internal static class IntrinsicResultType
         // iterated three times with no diagnostic (§2023:14.9.28.3 SR2), and every all-integer-arguments result row
         // selected INTEGER for a floating-point argument. The missing "fixed-point" conjunct now lives in
         // PicInfo.IsIntegerDescription, which the §2023:15.3 type-6 argument screen reads as its complement.
+        // ⛔ A REFERENCE-MODIFIED operand is never one (kb/Work PB5384): the unique data item it creates takes "class and
+        // category national if the usage is national; otherwise ... alphanumeric" for a numeric base (§2023:8.4.3.3.4 GR6;
+        // RefModPlace.CategoryOf rewrites numeric away in both directions), so reading the base item's PICTURE through
+        // the reference modification let `PERFORM N2 (1:1) TIMES` and SEND's `WITH I9 (1:1)` pass as integer items.
+        BoundFieldOperand { Place: RefModPlace } => false,
         BoundFieldOperand { Place.Item: { IsGroup: false } item } =>
             item.Pic is { IsIntegerDescription: true },
         // ⚠ A NESTED CALL IS ASKED FOR ITS RESOLVED TYPE, NOT ITS DECLARED ONE. Reading `ic.Sig.Type` here would

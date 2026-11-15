@@ -93,7 +93,7 @@ BRIEFS = {
                                      # I11: the owner's SORT and file I/O exception-path test rule (2026-10-17), as a
                                      # POINTER to its one home (the I11 row), never a second case list
                                      r'SORT AND FILE I/O TESTS \(MANDATORY-PRACTICES I11', r'the I11 row of',
-                                     r'the WHOLE Unit, Conformance and Characterization populations'],  # PB4328: the implementer's done-state
+                                     r'the WHOLE population of every test target \(`scripts/build_targets\.json`\)'],  # PB4328, PB5230: the done-state
     # O2: the standard fix-lane dispatch — rolling pool, dependency successors (no hold), the graceful STOP, and the explicit
     # final StructuredOutput reminder (three agents in waves 65-67 ended without it and stranded finished branches).
     # PB1703 / PB1704: a dead agent (rejection) and a hung agent (ceiling) must not hold the wave.

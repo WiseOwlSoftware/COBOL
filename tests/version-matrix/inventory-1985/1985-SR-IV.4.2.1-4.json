@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-SR-IV.4.2.1-4",
  "rule-digest": "708f0bce40d8",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#LPAREN; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#OnDefaultLParen",
- "test-ref": "conformance:cases/IV.4.2@1985-LANGUAGE-STRUCTURE/1985-SR-IV_4_2_1-4",
- "notes": "The function-identifier format is FUNCTION function-name-1 [ ( { argument-1 } ... ) ]. The braces with an ellipsis require at least one argument-1 whenever the bracketed parentheses are written, so 'FUNCTION CURRENT-DATE ()' is a parenthesis pair that delimits no list of function arguments, and SR4 forbids it. The probe compiles and runs it at --std 85 with no diagnostic. The refuter's second finding (SET IX TO (N), SET IX UP BY (1)) no longer reproduces at this tree: both are now refused with COBOL0900 (probe p01b). The 25 other misplaced or unbalanced pairs the refuter tested were refused. So the rule holds except for the empty argument list. kb/Work PB5163 holds the defect (code read: held-85/set1/decisions.json).",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#LPAREN; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#OnDefaultLParen; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+ "test-ref": "conformance:cases/IV.4.2@1985-LANGUAGE-STRUCTURE/1985-SR-IV_4_2_1-4; conformance:cases/IV.4.3.8.3@1985-Function-Identifier/pb5163-empty-argument-list-85",
+ "notes": "kb/Work PB5163 LANDED: 'FUNCTION CURRENT-DATE ()', the parenthesis pair that delimits no list of function arguments, is refused at --std 85 with COBOL0900 (construct function-empty-argument-list-2002, VersionConformancePass ParseArm.VisitFunctionCall); witness pb5163-empty-argument-list-85. The row's earlier reading: The function-identifier format is FUNCTION function-name-1 [ ( { argument-1 } ... ) ]. The braces with an ellipsis require at least one argument-1 whenever the bracketed parentheses are written, so 'FUNCTION CURRENT-DATE ()' is a parenthesis pair that delimits no list of function arguments, and SR4 forbids it. The probe compiles and runs it at --std 85 with no diagnostic. The refuter's second finding (SET IX TO (N), SET IX UP BY (1)) no longer reproduces at this tree: both are now refused with COBOL0900 (probe p01b). The 25 other misplaced or unbalanced pairs the refuter tested were refused. So the rule holds except for the empty argument list. kb/Work PB5163 holds the defect (code read: held-85/set1/decisions.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

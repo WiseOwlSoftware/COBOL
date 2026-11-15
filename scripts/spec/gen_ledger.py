@@ -111,13 +111,13 @@ import citation  # noqa: E402  (the one citation format, kb/Work PB4887)
 import construct_store  # noqa: E402  (the construct catalogue, one file per construct, kb/Work PB5110)
 import coord  # noqa: E402  (names the coordination directory)
 import git_batch  # noqa: E402  (scripts/: one git process for many objects)
+import conformance_source  # noqa: E402  (the one reader of docs/CONFORMANCE.md)
 import inventory_schema  # noqa: E402  (a commit's schema, for its view)
 import inventory_store  # noqa: E402  (the store's paths, for reading a commit's trees)
 import inventory_view  # noqa: E402  (the one view of the inventory: the tree and a commit's own)
 import ledger_plan  # noqa: E402  (the plan's lanes: measured there, rendered here)
 from standard_streams import ensure_utf8  # noqa: E402
 
-CONFORMANCE = REPO / "docs" / "CONFORMANCE.md"
 PLAN = REPO / "docs" / "REARCHITECTURE_PLAN.md"
 VCR = REPO / "docs" / "VERSION_CHANGE_REFERENCE.md"
 SUITE_HARNESS = REPO / "conformance-suite" / "harness"
@@ -199,7 +199,7 @@ STAMP_PATHS = (
     construct_store.STORE_REL,
     "conformance-suite",
     "kb/Work",
-    "docs/CONFORMANCE.md",
+    conformance_source.SOURCE_REL,
     "docs/REARCHITECTURE_PLAN.md",
     "docs/VERSION_CHANGE_REFERENCE.md",
     ".agent-fleet.json",
@@ -304,19 +304,6 @@ def measure_annex_a1() -> dict:
             "remaining": d["remaining"], "findings": d["findings"], "unreachable": d["unreachable"]}
 
 
-def _tables(body: str) -> list[list[str]]:
-    rows = [l.strip() for l in body.splitlines() if l.strip().startswith("|")]
-    rows = [l for l in rows if not re.match(r"^\|[\s:|-]+\|$", l)]
-    return [[c.strip() for c in l.strip("|").split("|")] for l in rows]
-
-
-def _section(text: str, num: str) -> str:
-    m = re.search(rf"^## {num}\.[^\n]*\n(.*?)(?=^## |\Z)", text, re.M | re.S)
-    if m is None:
-        raise SystemExit(f"⛔ docs/CONFORMANCE.md has no §{num} — the ledger reads its posture from there")
-    return m.group(1)
-
-
 def _disposition(cell: str) -> str:
     c = cell.replace("*", "").strip().lower()
     for k in ("claimed", "partial", "not claimed", "n/a"):
@@ -331,18 +318,19 @@ def measure_conformance() -> dict:
     ⚠ `_disposition` anchors on the START of the whole cell, not on a substring search. A `"claimed" in cell`
     test would score every *Not claimed* row as claimed — the single most flattering way this page could be
     wrong, and the reason the classifier is one function with one rule rather than a chain of `in` tests."""
-    text = CONFORMANCE.read_text(encoding="utf-8")
-    a3 = _tables(_section(text, "2"))
-    a4 = _tables(_section(text, "5"))
-    facilities = re.findall(r"^\d+\.\s+\*\*(.+?)\*\*", _section(text, "4"), re.M)
+    conformance = conformance_source.load(REPO)
+    conformance.section(conformance_source.A3_SECTION)   # a section the document lost fails here, naming it
+    conformance.section(conformance_source.A4_SECTION)
+    a3 = conformance.a3_dispositions()
+    a4 = conformance.a4_dispositions()
     return {
-        "a3_rows": len(a3) - 1,
-        "a3": collections.Counter(_disposition(r[3]) for r in a3[1:]),
-        "a4_rows": len(a4) - 1,
-        "a4": collections.Counter(_disposition(r[2]) for r in a4[1:]),
-        "a4_by": {d: [r[0] for r in a4[1:] if _disposition(r[2]) == d]
+        "a3_rows": len(a3),
+        "a3": collections.Counter(_disposition(r["disposition"]) for r in a3),
+        "a4_rows": len(a4),
+        "a4": collections.Counter(_disposition(r["disposition"]) for r in a4),
+        "a4_by": {d: [r["clause"] for r in a4 if _disposition(r["disposition"]) == d]
                   for d in ("claimed", "partial", "not claimed")},
-        "facilities": facilities,
+        "facilities": conformance.facility_titles(),
     }
 
 

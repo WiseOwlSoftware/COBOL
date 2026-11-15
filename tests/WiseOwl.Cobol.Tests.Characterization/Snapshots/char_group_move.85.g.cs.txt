@@ -98,7 +98,7 @@ public static class CHAR_GROUP_MOVE
         ProgramRegistry.CallProgram("CHAR-GROUP-MOVE", null, global::System.Array.Empty<CobolArg>(), null, siteArgMismatchChecking: true);
     }
     /// <summary>CANCEL CHAR-GROUP-MOVE (ISO §2023:14.9.5) in the current run unit.</summary>
-    public static void Cancel() => ProgramRegistry.Cancel("CHAR-GROUP-MOVE", null);
+    public static void Cancel() => ProgramRegistry.Cancel("CHAR-GROUP-MOVE", null, refusesEveryActiveProgram: true);
 }
 public static class __CobolModule
 {

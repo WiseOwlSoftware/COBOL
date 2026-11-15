@@ -1,0 +1,13 @@
+{
+ "id": "report-code-is-2002",
+ "status": "active",
+ "description": "The optional word IS of the RD CODE clause (kb/Work PB5242). ANSI X3.23-1985's format is `CODE literal-1` (§1985:XIII.3.6.2), with no IS; ISO/IEC 1989:2002 prints `CODE IS {literal-1 | identifier-1}` (13.16.12.1), and Annex F.2 item 115 lists \"CODE IS identifier added\". The identifier operand is refused at COBOL-85 by its own syntax rule (COBOL2713, ReportSectionBinder.BindCodeClause, kb/Work PB5078); this row is the word IS. Gated by recognition, VersionConformancePass ParseArm.VisitReportCodeClause, once per written clause (VCR row 7.45 (f)).",
+ "display": "the word IS of the CODE clause (report description)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§1985:XIII.3.6.2 prints `CODE literal-1`; ISO/IEC 1989:2002 13.16.12.1 and Annex F.2 item 115; ISO §2023:13.18.12.2 (2023 text)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.45 (f) - the word IS of the CODE clause (85->2002)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRCI.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"VMRCI.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC 9(3) VALUE 5.\nREPORT SECTION.\nRD R1 CODE IS \"AB\" PAGE LIMIT IS 10 LINES.\n01 DA TYPE DETAIL LINE PLUS 1.\n    02 COLUMN 1 PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+}

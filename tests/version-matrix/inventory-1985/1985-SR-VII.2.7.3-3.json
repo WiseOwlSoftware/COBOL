@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.2.7.3-3",
  "rule-digest": "cdc237709adb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#ScreenPaddingDataName; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#CapturePadding; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles",
  "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-SR-VII_2_7_3-3",
+ "notes": "§1985:VII.2.7.3 SR3: 'Data-name-1 must be defined in the Data Division as a one-character data item of the category alphanumeric and must not be defined in the Communication Section, the File Section, or the Report Section.' CapturePadding takes the operand as data-name-1 (a non-constant word), ResolveFiles resolves it through the clause-operand resolver and ScreenPaddingDataName refuses a non-alphanumeric category, a width other than 1 or an ODO under it, and any section but Working-Storage/Local-Storage/Linkage (COBOL6848, 1985 wording at DialectLevel < 2002). Probes at --std 85 (work-rd-04/c9): refused: PIC A, PIC 9, PIC XB (alphanumeric edited), PIC XX (the witness), a File Section item, an ambiguous unqualified name, a level-88 name; accepted and the file written and read back: PIC X, a one-character group and its PIC X child, JUSTIFIED, a Linkage item, a qualified QP OF WR; literals \"*\", ALL \"*\", ZERO, '9' accepted, \"**\" and numeric 9 refused (SR1). Lead outside this rule: an unsubscripted table element (WTE PIC X OCCURS 2) is accepted as data-name-1, where §1985:IV.4.3.8.2.3 SR4 says 'Each table element reference must be subscripted except when such reference appears' in four places this is not.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

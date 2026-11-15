@@ -110,8 +110,9 @@ public enum DialectBehavior
     /// alone: an index "greater than the highest permissible occurrence number for identifier-1" ends the search at once, and
     /// an index "not greater" starts the serial search by "evaluating the conditions in the order that they are written";
     /// §1985:VI.6.23.4 GR2 lets a PERFORM or SEARCH leave an index "outside the range of its associated table", which is how a
-    /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan and is incremented to occurrence 1
-    /// (kb/Work PB5121; VCR row 7.56). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
+    /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan (kb/Work PB5121; VCR row 7.56), and
+    /// the incremented index is judged against both bounds (§1985:VI.6.22.4 GR2 b), "outside the permissible range of occurrence
+    /// values"): an index of 0 advances to occurrence 1, one below 0 ends the search after its first pass (kb/Work PB5302). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
     /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
     SearchIndexBelowTableUnsuccessful = 6,
 
@@ -207,6 +208,65 @@ public enum DialectBehavior
     /// "encountered" in the scan's direction. The consumer is <c>InspectBinder.BindPhrases</c>, which sets
     /// <c>BoundInspect.BeforeFromLeftmost</c> for the emitter and so for <c>CobolInspect.Region</c>.</summary>
     InspectBeforeFromFirstEligiblePosition = 15,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.5.4 GR5 — "The program to be canceled shall not be in the active state or contain a
+    /// program in the active state"; the 2002 text (§2002:14.8.5.3 GR5) words it the same. §1985:X.5.3.4 GR5 forbids less: "A program
+    /// named in the CANCEL statement must not refer directly or indirectly to any program that has been called and has not yet
+    /// executed an EXIT PROGRAM statement", and the run unit's main program is active without having been called, so at
+    /// <c>--std 85</c> a CANCEL naming it is §1985:X.5.3.4 GR8's "No action is taken when an explicit or implicit CANCEL
+    /// statement is executed naming a program that has not been called in this run unit" (kb/Work PB5241; VCR row 7.66).
+    /// Both editions are QUOTED. The consumer is <c>CallBinder</c>'s CANCEL arm, which sets
+    /// <c>BoundCancel.RefusesEveryActiveProgram</c> for <c>CallEmitter.EmitCancel</c> and so for
+    /// <c>ProgramTable.Cancel</c>.</summary>
+    CancelRefusesEveryActiveProgram = 16,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:8.8.1.2 GR6c — "If the value of an expression to be raised to a power is less than zero, the
+    /// evaluation of the exponent shall result in an integer. Otherwise, the EC-SIZE-EXPONENTIATION exception condition is set to exist
+    /// and the size error condition is raised"; the 2002 text (§2002:8.8.1.1) words it the same, and §2002:F.1 item 14 records it as a
+    /// substantive change. §1985:VI.6.2.3 GR5c raises the size error condition only "If no real number exists as the result of the
+    /// evaluation", so at <c>--std 85</c> <c>(-32) ** 0.2</c> is −2, the real fifth root of −32, and <c>(-4) ** 0.5</c> is still a size
+    /// error (kb/Work PB5186; VCR row 7.67). Both editions are QUOTED. The consumer is <c>ExpressionBinder.BindPower</c>, which sets
+    /// <c>BoundPower.NegativeBaseRealRoots</c> for <c>NumericRenderer.Power</c> and so for
+    /// <c>CobolIntrinsics.PowNativeReal(double, CobolExact)</c> and <c>CobolExact.PowReal</c>.</summary>
+    NegativeBaseRequiresIntegerExponent = 17,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.13.4 GR4 c) — "If the result of the analysis is false for any pair in a WHEN phrase,
+    /// no more pairs in that WHEN phrase are evaluated"; the 2002 text words it the same (§2002:14.8.12.3 GR4c), and the
+    /// selection objects of a WHEN phrase are evaluated only when the phrase is analyzed. §1985:VI.6.13.4 GR1 says instead
+    /// that the statement "operates as if each selection subject and selection object were evaluated" and assigned a value
+    /// before any comparison (GR2), so at <c>--std 85</c> an object a WHEN phrase never reaches is evaluated too, which is
+    /// observable when it references a function (X3.23a-1989 RANDOM's next number; kb/Work PB5183; VCR row 7.69). Both
+    /// editions are QUOTED. The consumer is <c>EvaluateBinder.Bind</c>, which hoists the analysis of each such pair to the
+    /// beginning of the statement when this behaviour is inactive.</summary>
+    EvaluateObjectsInWhenPhraseOrder = 18,
+    /// <summary>§2014:14.9.26.3 GR24 — "If the file connector referenced by file-name-1 is locked by a previously-executed CLOSE
+    /// statement with the LOCK phrase, the execution of the OPEN statement is unsuccessful" with I-O status '38'; the 2002 text
+    /// (§2002:14.8.26.3 GR24) words it the same, so from 2002 a CLOSE WITH LOCK locks the FILE CONNECTOR and another SELECT of the
+    /// same physical file opens it. §1985:IX.1.3.4 gives '38' when "an OPEN statement is attempted on a file previously closed with
+    /// lock", and the 1985 conventions say "The terms file referenced by file-name and file mean the physical file regardless of the
+    /// file-name used in the COBOL program" (§1985:II.2), so at <c>--std 85</c> the PHYSICAL FILE is locked and every OPEN of it
+    /// through any file-name answers '38' (kb/Work PB5210; VCR row 7.70). Both editions are QUOTED. COBOL-2023 removed the phrase
+    /// (§2023:E.2, COBOL0902), so the 2023 edition never reaches the rule. The consumers are <c>FileRegistry.CloseWithLock</c> and
+    /// <c>FileRegistry.ClosedWithLock</c>.</summary>
+    CloseWithLockLocksFileConnector = 19,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.7.5 — a size error condition in a statement with no ON SIZE ERROR phrase is a fatal
+    /// exception condition, "and processing proceeds as specified in 14.6.13.1.3, Fatal exception conditions"; the 2002 text
+    /// (§2002:14.6.4) words it the same. §1985:VI.6.4.2 GR3 says instead that without the phrase "the values of the affected
+    /// resultant identifiers are undefined", the others are stored, and "control is transferred to the end of the arithmetic
+    /// statement"; the change record §1985:B.2.2 item 45 adds "the program will continue", a zero divisor and an exponentiation
+    /// violation included (GR1, GR2). So at <c>--std 85</c> an unphrased arithmetic statement keeps the resultant it cannot form
+    /// and the run unit goes on (kb/Work PB5484; VCR row 7.71). Both editions are QUOTED. The consumer is
+    /// <c>ArithmeticEmitter.EmitArith</c>, which gives such a statement the two-phase shape with every raise caught when this
+    /// behaviour is inactive.</summary>
+    UnphrasedSizeErrorIsFatal = 20,
+    /// <summary>§2002:14.8.12.2 SR9 — "The permissible combinations of selection subject and selection object operands are indicated in table 16"
+    /// (§2023:14.9.13.3 SR10, Table 15), and that table's [NOT] literal row is blank under the literal subject column, so from 2002 a
+    /// literal selection subject against a literal selection object is a syntax violation (COBOL1634). §1985:VI.6.13.3 SR6 a asks only that
+    /// "Identifiers, literals, or arithmetic expressions appearing within a selection object must be valid operands for comparison to the
+    /// corresponding operand in the set of selection subjects", and §1985:VI.6.13.4 GR1 says each literal "is assigned the value and class
+    /// of the specified literal", so at <c>--std 85</c> <c>EVALUATE 5 WHEN 5</c> is legal; a relation condition's "at least one reference to a
+    /// variable" (§1985:VI.6.3.1.1) is not an EVALUATE rule, and GnuCOBOL 3.2 -std=cobol85 accepts it (kb/Work PB5481; VCR row 7.75).
+    /// Both editions are QUOTED. The consumer is <c>EvaluateOperandCombinations.IsPermitted</c>.</summary>
+    EvaluateRefusesLiteralSubjectLiteralObject = 21,
 }
 
 /// <summary>
@@ -300,6 +360,34 @@ public static class DialectBehaviors
             "7.65", "14.9.22.4 GR9 b", "§1985:VI.6.18.4 GR8 b",
             "an INSPECT operand with both BEFORE and AFTER looks for the BEFORE delimiter from the AFTER-derived position "
             + "only from COBOL-2023; COBOL-85, 2002 and 2014 look from the leftmost position and use the intersection"),
+        new(DialectBehavior.CancelRefusesEveryActiveProgram, "cancel-refuses-every-active-program", 2002,
+            "7.66", "14.9.5.4 GR5", "§1985:X.5.3.4 GR5",
+            "a CANCEL naming any program in the active state, the run unit's main program included, raises "
+            + "EC-PROGRAM-CANCEL-ACTIVE only from COBOL-2002; COBOL-85 forbids only a program that has been called and "
+            + "has not exited, so a CANCEL of the main program, never called, takes no action"),
+        new(DialectBehavior.NegativeBaseRequiresIntegerExponent, "negative-base-requires-integer-exponent", 2002,
+            "7.67", "8.8.1.2 GR6c", "§1985:VI.6.2.3 GR5c",
+            "a negative base raised to a non-integer exponent raises EC-SIZE-EXPONENTIATION only from COBOL-2002; "
+            + "COBOL-85 raises the size error only when no real number is the result, so (-32) ** 0.2 is -2"),
+        new(DialectBehavior.EvaluateObjectsInWhenPhraseOrder, "evaluate-objects-in-when-phrase-order", 2002,
+            "7.69", "14.9.13.4 GR4 c)", "§1985:VI.6.13.4 GR1",
+            "an EVALUATE selection object is evaluated only when its WHEN phrase is analyzed, and not after a false pair of "
+            + "that phrase, only from COBOL-2002; COBOL-85 operates as if every selection subject and object were evaluated "
+            + "before any comparison"),
+        new(DialectBehavior.CloseWithLockLocksFileConnector, "close-with-lock-locks-file-connector", 2002,
+            "7.70", "§2014:14.9.26.3 GR24", "§1985:II.2",
+            "a CLOSE WITH LOCK locks the file connector, so another file-name of the same physical file opens it, only from "
+            + "COBOL-2002; COBOL-85 locks the physical file and every OPEN of it through any file-name answers 38"),
+        new(DialectBehavior.UnphrasedSizeErrorIsFatal, "unphrased-size-error-is-fatal", 2002,
+            "7.71", "14.7.5", "§1985:VI.6.4.2 GR3",
+            "a size error condition in an arithmetic statement with no ON SIZE ERROR phrase is a fatal exception condition "
+            + "only from COBOL-2002; COBOL-85 leaves the affected resultant undefined (unchanged here), stores the others, "
+            + "and the program continues"),
+        new(DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject, "evaluate-refuses-literal-subject-literal-object", 2002,
+            "7.75", "14.9.13.3 SR10", "§1985:VI.6.13.3 SR6 a",
+            "an EVALUATE selection object that is a literal against a selection subject that is a literal is a syntax violation "
+            + "(COBOL1634) only from COBOL-2002, whose combination table leaves that cell blank; COBOL-85 has no table and "
+            + "selects by the value and class of the two literals"),
     ];
 
     static DialectBehaviors()

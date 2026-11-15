@@ -137,7 +137,47 @@ internal static class PlaceIdentification
     public static BoundOperand? Freeze(BoundOperand? op, Func<string, string> hoist) =>
         op is BoundFieldOperand f ? f with { Place = Freeze(f.Place, hoist) } : op;
 
-    /// <summary>The place with every run-time address fragment hoisted through <paramref name="hoist"/>.</summary>
+    /// <summary>⛔ A RECEIVER IDENTIFIED AT ITS STORE INTO LOCALS A FREEZE DECLARED (kb/Work PB5385) — <paramref name="place"/> with its k-th
+    /// run-time fragment rendered <c>(locals[k] = fragment)</c>, where <paramref name="locals"/> are the names
+    /// <see cref="Freeze(Place, Func{string, string})"/> hoisted the SAME place's fragments into, in its order. The store that renders it evaluates
+    /// each fragment exactly where it would have (after the sending operand, §2023:14.9.25.4 GR1 and <see cref="SenderFirst"/>), once, and
+    /// leaves the value in the local, so a reader of the frozen place afterwards (a debugging section's DEBUG-SUB-n and DEBUG-CONTENTS)
+    /// describes the occurrence the store identified. A statement whose rules identify a receiver "immediately before the data is moved to
+    /// the respective data item" (§1985:VI.6.19.4 GR2) asks this at the receiver's store; the statement-start freeze stands for a path that
+    /// never reached it.</summary>
+    public static Place IdentifyInto(Place place, IReadOnlyList<string> locals)
+    {
+        int k = 0;
+        var identifying = Freeze(place, fragment => k < locals.Count
+            ? $"({locals[k++]} = {fragment})"
+            : throw new InvalidOperationException($"the place identified at its store has more run-time fragments than the {locals.Count} its freeze hoisted"));
+        if (k != locals.Count)
+            throw new InvalidOperationException($"the place identified at its store has {k} run-time fragments where its freeze hoisted {locals.Count}");
+        return identifying;
+    }
+
+    /// <summary>The statements that identify <paramref name="place"/> again into the <paramref name="locals"/> its freeze declared — one
+    /// <c>locals[k] = fragment;</c> per run-time fragment, in <see cref="Freeze(Place, Func{string, string})"/>'s order, each later fragment
+    /// reading the locals already re-assigned — for a statement whose rules identify an operand at a point of their own that is no single store
+    /// (an implicit INITIALIZE statement, §2023:14.9.20.4 GR3; kb/Work PB5385). <see cref="IdentifyInto"/> is the store-shaped twin.</summary>
+    public static IReadOnlyList<string> IdentifyAgain(Place place, IReadOnlyList<string> locals)
+    {
+        var statements = new List<string>(locals.Count);
+        Freeze(place, fragment =>
+        {
+            if (statements.Count == locals.Count)
+                throw new InvalidOperationException($"the place identified again has more run-time fragments than the {locals.Count} its freeze hoisted");
+            string local = locals[statements.Count];
+            statements.Add($"{local} = {fragment};");
+            return local;
+        });
+        if (statements.Count != locals.Count)
+            throw new InvalidOperationException($"the place identified again has {statements.Count} run-time fragments where its freeze hoisted {locals.Count}");
+        return statements;
+    }
+
+    /// <summary>The place with every run-time address fragment hoisted through <paramref name="hoist"/>, which returns the C# text the
+    /// frozen place renders in the fragment's stead (a local's name; <see cref="IdentifyInto"/>'s assignment into one).</summary>
     public static Place Freeze(Place place, Func<string, string> hoist) => place switch
     {
         MemberPlace m => m with { Path = FreezePath(m.Path, hoist) },

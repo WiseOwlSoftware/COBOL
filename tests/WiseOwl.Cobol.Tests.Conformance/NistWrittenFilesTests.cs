@@ -26,14 +26,27 @@ public sealed class NistWrittenFilesTests
         return dir;
     }
 
-    /// <summary>⛔ THE ACCEPTANCE BASIS TAKES THE SPACES BEFORE A CARRIAGE RETURN (kb/Work PB2509): a record sequential
-    /// print stream of whole records overprints as <c>marker␠␠␠\rtext</c>, and the padding strikes nothing. The shell
-    /// arm's twin is the <c>overprint</c> witness of <c>scripts/guard-verify.sh</c>.</summary>
+    /// <summary>⛔ THE ACCEPTANCE BASIS IS ONE RULE IN TWO LANGUAGES (kb/Work PB5460): <see cref="NistRunner.Normalize"/>
+    /// and <c>scripts/guard-verdict.sh</c>'s <c>guard_normalize_into</c> are each held to every case of
+    /// <c>tests/nist/normalization-cases.json</c>, this test the C# arm and the parity witness of
+    /// <c>scripts/guard-verify.sh --self-test</c> the shell arm. The two had disagreed on a form feed: the C# arm read
+    /// it as a line break, so a page eject compared equal to a line advance in-process, and the shell arm kept the
+    /// padding before it, so SQ101M was a false red in the nightly CLI guard.</summary>
     [Fact]
-    public void TheAcceptanceBasis_DropsACarriageReturnWithTheSpacesBeforeIt()
+    public void TheAcceptanceBasis_MapsEveryParityCaseToItsStatedResult()
     {
-        Assert.Equal("MARKERtext\nnext", NistRunner.Normalize("MARKER   \rtext   \r\nnext\r\n"));
-        Assert.Equal("a b", NistRunner.Normalize("a b\r"));
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(TestRepo.Nist("normalization-cases.json")));
+        var cases = doc.RootElement.GetProperty("cases").EnumerateArray()
+            .Select(c => (Name: c.GetProperty("name").GetString()!, Input: c.GetProperty("input").GetString()!,
+                Normalized: c.GetProperty("normalized").GetString()!))
+            .ToList();
+        Assert.NotEmpty(cases);
+        var wrong = cases.Where(c => NistRunner.Normalize(c.Input) != c.Normalized)
+            .Select(c => $"  '{c.Name}': {System.Text.Json.JsonSerializer.Serialize(NistRunner.Normalize(c.Input))}, "
+                + $"the table says {System.Text.Json.JsonSerializer.Serialize(c.Normalized)}")
+            .ToList();
+        Assert.True(wrong.Count == 0,
+            $"NistRunner.Normalize differs from tests/nist/normalization-cases.json (each line: the case, what it produced):\n{string.Join("\n", wrong)}");
     }
 
     [Fact]

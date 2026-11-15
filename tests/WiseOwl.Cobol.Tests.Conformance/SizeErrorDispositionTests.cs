@@ -34,14 +34,16 @@ public sealed class SizeErrorDispositionTests
                    STOP RUN.
         """;
 
-    private static (int Exit, string Stdout, string Stderr) Run(string source)
+    private static (int Exit, string Stdout, string Stderr) Run(string source) => Run(source, dialectLevel: 2023);
+
+    private static (int Exit, string Stdout, string Stderr) Run(string source, int dialectLevel)
     {
         string dir = ScratchDirectory.Create("pb75");
         try
         {
             string src = Path.Combine(dir, "prog.cob"), dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
-            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
             Assert.True(r.Success, "[compile] " + string.Join("\n", r.Errors));
             return CutRunner.RunExit(dll, dir);
         }
@@ -355,6 +357,57 @@ public sealed class SizeErrorDispositionTests
         Assert.Equal(phraseRuns, stdout.Contains("NSE", StringComparison.Ordinal));
         if (exit == 1) Assert.Contains("EC-SIZE-TRUNCATION", stderr);
     }
+
+    /// <summary>kb/Work PB5484 — COBOL-85 HAS NO FATAL SIZE ERROR. §1985:VI.6.4.2 GR3: with no ON SIZE ERROR phrase "the values
+    /// of the affected resultant identifiers are undefined" and "control is transferred to the end of the arithmetic statement";
+    /// §1985:B.2.2 item 45: "the program will continue and the value of any affected resultant identifier is undefined". A zero
+    /// divisor (GR2) and an exponentiation-rule violation (GR1) are size error conditions like any other. The value GR3 leaves
+    /// undefined is WiseOwl COBOL's to choose (docs/CONFORMANCE.md DOC-A.1-70): a resultant whose value cannot be formed keeps
+    /// its content, as GnuCOBOL 3.2's does (A = 007, R = 009). Each row ended the run unit, EC-SIZE-… (fatal), before PB5484.</summary>
+    [Theory]
+    [InlineData("COMPUTE A = B / Z.")]
+    [InlineData("COMPUTE A = 1 + B / Z.")]                  // a nested (non-final) quotient
+    [InlineData("DIVIDE Z INTO A.")]
+    [InlineData("DIVIDE B BY Z GIVING A REMAINDER R.")]
+    [InlineData("COMPUTE A R = B / Z.")]                    // the one initial evaluation of several resultants
+    [InlineData("COMPUTE A = Z ** 0.")]                     // §1985:VI.6.2.3 GR5a: a zero base and an exponent not above zero
+    [InlineData("COMPUTE A = N ** 0.5.")]                   // GR5c: no real number is the result
+    public void Cobol85_NoPhraseSizeError_KeepsTheResultantsAndContinues(string body)
+    {
+        var (exit, stdout, stderr) = Run(Prog85(body + " DISPLAY \"A=\" A \" R=\" R."), dialectLevel: 85);
+        Assert.Equal(0, exit);
+        Assert.Contains("A=007 R=009", stdout);
+        Assert.Contains("AFTER", stdout);
+        Assert.DoesNotContain("EC-SIZE", stderr);
+    }
+
+    /// <summary>The control of <see cref="Cobol85_NoPhraseSizeError_KeepsTheResultantsAndContinues"/>: the same statement with
+    /// no size error stores its resultants, so the rows above see a KEPT value, not a store that never ran.</summary>
+    [Fact]
+    public void Cobol85_NoSizeError_StoresTheResultants()
+    {
+        var (exit, stdout, _) = Run(Prog85("DIVIDE B BY 2 GIVING A REMAINDER R. DISPLAY \"A=\" A \" R=\" R."), dialectLevel: 85);
+        Assert.Equal(0, exit);
+        Assert.Contains("A=002 R=001", stdout);
+    }
+
+    private static string Prog85(string body) => $$"""
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PB5484SZ.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 B  PIC 9 VALUE 5.
+               01 Z  PIC 9 VALUE 0.
+               01 N  PIC S9 VALUE -4.
+               01 A  PIC 9(3) VALUE 7.
+               01 R  PIC 9(3) VALUE 9.
+               PROCEDURE DIVISION.
+               MAIN-P.
+                   DISPLAY "BEFORE".
+                   {{body}}
+                   DISPLAY "AFTER".
+                   STOP RUN.
+        """;
 
     private static string ProgZeroDivisor(string arithmetic, string body) => $$"""
                IDENTIFICATION DIVISION.

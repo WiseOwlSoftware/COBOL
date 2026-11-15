@@ -23,6 +23,25 @@ public sealed class CobolLiteralTests
     [InlineData("42", "42")]               // not a string literal → returned unchanged
     public void Decode_BothDelimiters(string raw, string expected) => Assert.Equal(expected, CobolLiteral.Decode(raw));
 
+    /// <summary>The delimiter question the COBOL-2002 introduction gate asks (kb/Work PB5160; §2023:8.3.5 SR5): the OPENING
+    /// delimiter after any prefix decides, so an apostrophe inside a quotation-mark literal does not count, every prefixed
+    /// format is asked, and an unterminated literal is still asked.</summary>
+    [Theory]
+    [InlineData("'AB'", true)]
+    [InlineData("''", true)]
+    [InlineData("'AB", true)]               // unterminated: the opening delimiter still decides
+    [InlineData("X'41'", true)]
+    [InlineData("nx'0041'", true)]
+    [InlineData("BX'F'", true)]
+    [InlineData("B'1'", true)]
+    [InlineData("\"IT'S\"", false)]          // content, not the delimiter
+    [InlineData("X\"41\"", false)]
+    [InlineData("N\"'\"", false)]
+    [InlineData("42", false)]
+    [InlineData("ABC'D'", false)]           // not a literal: no prefix spelled ABC
+    public void IsApostropheDelimited_AsksTheOpeningDelimiter(string raw, bool expected) =>
+        Assert.Equal(expected, CobolLiteral.IsApostropheDelimited(raw));
+
     [Theory]
     [InlineData("'x'", true)]
     [InlineData("\"x\"", true)]

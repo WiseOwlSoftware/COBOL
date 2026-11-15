@@ -36,6 +36,15 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     private static Common.SourceLocation At(string file, int line, int column = 0) =>
         new SourceOrigin(file, line).ToLocation(column);
 
+    /// <summary>Whether the floating comment indicator <c>*&gt;</c> is a comment in FIXED form at this edition: it is a
+    /// COBOL-2002 introduction (row <c>floating-comment-indicator-2002</c>), and COBOL-85 has no such indicator —
+    /// <c>*&gt;</c> there is "Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY'"
+    /// (§1985:III, "Text-word"), an ordinary text-word of the text COPY and REPLACE read (kb/Work PB5470). Free form is
+    /// itself a 2002 introduction, reached below 2002 only by the documented <c>--source-format free</c> extension, whose
+    /// one comment is the floating one, so it always reads it (<see cref="ReferenceFormatProcessor.LogicalLineBuilder"/>).
+    /// The ONE answer to the question, asked by the §2023:6.5 conversion that removes comments.</summary>
+    public bool FixedFormReadsFloatingComments => ConstructRegistry.IsAvailable(Edition, Constructs.FloatingCommentIndicator2002);
+
     /// <summary>A floating comment indicator in program text (§2023:6.2.3.1) — a COBOL-2002 introduction, so COBOL-85
     /// source has none (row <c>floating-comment-indicator-2002</c>). Gated once per compilation, at its first use.</summary>
     public void OnFloatingComment(string file, int line, int column)
@@ -115,6 +124,23 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FloatingCommentNotSeparated.Code,
             "the floating comment indicator *> shall be preceded by a separator space (ISO §2023:6.2.3.2 SR2); write a "
             + "space before it", At(file, line, column), default);
+
+    /// <summary>§1985:IV.2.1.6: "The separator period, when used in the formats, has the status of a required word" — COBOL7166,
+    /// for a fixed-form comment-entry paragraph header (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY) with no
+    /// separator period after the word.</summary>
+    public void OnCommentEntryHeaderWithoutPeriod(string file, int line, int column, string word)
+        => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.CommentEntryHeaderWithoutPeriod.Code,
+            $"the paragraph header {word.ToUpperInvariant()} has no separator period; a paragraph header is a reserved word followed by "
+            + "the separator period (ISO §1985:IV.2.1.6)", At(file, line, column), default);
+
+    /// <summary>§1985:VI.3.2.1.2 SR1 (and §1985:VI.3.4.3 SR1 for DATE-COMPILED): "The continuation of the comment-entry by
+    /// the use of the hyphen in the indicator area is not permitted" — COBOL7165, for the continuation line of a comment-entry.
+    /// The line is still discarded with the rest of the entry.</summary>
+    public void OnCommentEntryContinued(string file, int line)
+        => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.CommentEntryContinued.Code,
+            "a comment-entry is continued by a hyphen in the indicator area; the continuation of a comment-entry by the hyphen "
+            + "is not permitted, the entry may be contained on one or more lines (ISO §1985:VI.3.2.1.2 SR1)",
+            At(file, line, FixedFormLine.IndicatorColumn), default);
 
     /// <summary>§2023:6.2.3.2 SR3: "All the characters forming a multiple-character floating indicator shall be
     /// specified on the same line" — COBOL2496, for a continuation line that completes one begun at the end of

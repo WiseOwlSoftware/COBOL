@@ -50,7 +50,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // READ ... INTO is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.30.4 GR4 b); kb/Work PB348) - the
         // SAME call the sequential arm makes, so the two organizations cannot disagree about which rules the
         // phrase carries (feedback_two_arm_dispatch).
-        BoundMove? into = r.readInto()?.receivingIdentifier() is { } d && host.Expr.ResolveReceiving(d) is { } recv
+        // identifier-1 is identified after the record has been read (§2023:14.9.30.4 GR4 b); kb/Work PB5386): ResolveReceivingAtStore.
+        BoundMove? into = r.readInto()?.receivingIdentifier() is { } d && host.Expr.ResolveReceivingAtStore(d) is { } recv
             && ctx.Refs.Places.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
@@ -70,6 +71,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // never silently rerouted. SR10/SR11 (the KEY phrase) are hard errors below and always were.
         ctx.Validation.CheckReadRandomAccessPhrases(file, contention?.readAdvancingOnLock() is not null,
             atEnd is not null, notAtEnd is not null, next, previous);
+        // §1985:VIII.4.5.3 SR3 / §1985:IX.4.5.3 SR5 — a dynamic file read sequentially at COBOL-85 writes NEXT (kb/Work PB5102);
+        // the READ still binds as the SR9-implied NEXT below, the refusal reported beside it.
+        ctx.Validation.CheckReadDynamicNextWritten(file, atEnd is not null, notAtEnd is not null, next);
         ReadKind kind = file.AccessMode switch
         {
             FileAccessMode.Random => ReadKind.Random,

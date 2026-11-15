@@ -347,7 +347,7 @@ public static class MoveTable16
     /// written once, here; only the framing is the caller's.</para>
     /// </summary>
     public static MoveRefusal? Validity(BoundOperand sender, Place receiver) =>
-        Validity(sender, Table16Operand.Of(receiver), OperandItem(receiver));
+        Validity(sender, Table16Operand.Of(receiver), receiver.DescribedItem);
 
     /// <summary>The same question against a receiving POSITION rather than a place — the form §2023:14.9.20.3 SR4 asks,
     /// whose receiving operand is "an item of the specified category": a hypothetical elementary item that has a
@@ -393,10 +393,10 @@ public static class MoveTable16
             ? "the sending operand shall be a group item of the same type (ISO §2023:14.9.25.3 SR2 / §2023:8.5.3.3)"
             : null;
 
-    /// <summary>The DATA ITEM an operand or place references for the item-keyed rules (SR2, SR9), or null when it
-    /// is not a plain data item. A reference-modified place is deliberately NOT unwrapped — §2023:8.4.3.3.4 GR6 makes
-    /// its unique data item elementary alphanumeric whatever the inner item is — so the identity question is
-    /// <see cref="Place.DenotedItem"/>'s (kb/Work PB602), null for that view. ⛔ A level-66 THROUGH alias IS a data
+    /// <summary>The DATA ITEM an operand references for the item-keyed rules (SR2, SR9), or null when it is not a plain
+    /// data item: a place's <see cref="Place.DescribedItem"/> (kb/Work PB602, PB5335). A reference-modified place is
+    /// deliberately NOT unwrapped — §2023:8.4.3.3.4 GR6 makes its unique data item elementary alphanumeric whatever the
+    /// inner item is — so it answers null for that view. ⛔ A level-66 THROUGH alias IS a data
     /// item, and a GROUP one (§2023:13.18.45.4 GR2): its place's Item is the ALIAS itself, never the record behind it,
     /// and §2023:8.5.1.12 walks the alias's own span (<c>VariableLengthCompatibility.AliasAtoms</c>) — treating it as a
     /// null operand told the user "the sending operand is not a group item" about a group item (kb/Work PB907).
@@ -404,13 +404,11 @@ public static class MoveTable16
     /// <see cref="Validity"/> so the rules and their operand vocabulary live together.</summary>
     public static DataItem? OperandItem(BoundOperand operand) => operand switch
     {
-        BoundFieldOperand { Place: var p } => OperandItem(p),
-        BoundCurrentRecord { Area: var a } => OperandItem(a),
+        BoundFieldOperand { Place: var p } => p.DescribedItem,
+        BoundCurrentRecord { Area: var a } => a.DescribedItem,
         _ => null,
     };
 
-    /// <inheritdoc cref="OperandItem(BoundOperand)"/>
-    public static DataItem? OperandItem(Place place) => place.DenotedItem is null ? null : place.Item;
 
     /// <summary>ISO §2023:14.9.25.3 SR1's SENDING half — "The class of identifier-1 or identifier-2 shall not be
     /// index, message-tag, object, or pointer" — as the refusal text, or null when the sender's class is

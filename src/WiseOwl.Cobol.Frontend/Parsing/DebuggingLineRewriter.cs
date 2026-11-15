@@ -23,6 +23,13 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// paragraph header to its <c>END PROGRAM/FUNCTION/CLASS/INTERFACE/METHOD</c> header, nesting as the source nests.
 /// The clause itself is read from the tokens of the unit's SOURCE-COMPUTER paragraph, never from a debugging line
 /// (a mode switch written on a debugging line would decide its own line).</para>
+/// <para><b>A debugging SECTION is a comment by the same switch</b> (kb/Work PB5291). §1985:XV.2.1.3 GR2: without WITH DEBUGGING MODE "any
+/// USE FOR DEBUGGING statements and all associated debugging sections are compiled as if they were comment lines", so a
+/// declarative section whose first sentence is a USE FOR DEBUGGING statement leaves the default channel with the rest of the
+/// unit's comment text — a body line that is not COBOL syntax, which a comment line may hold, never reaches the parser. Asked where
+/// the unit's mode is decided, only where the facility exists (<c>debuggingSectionsAreComments</c>: COBOL-85; a later edition, under --permissive
+/// too, recognizes the section as the removed construct and says so, COBOL0902), and when every section of a DECLARATIVES portion is one the portion's own header and END DECLARATIVES leave
+/// with them, since the format admits no empty portion.</para>
 /// <para>A debugging line's tokens are those after its marker on the marker's own line; a fixed continuation line
 /// is joined to its line by the logical conversion (§2023:6.5 6)), so it is part of the line.</para>
 /// <para><b>A line inside an open PICTURE or subscript region</b> (kb/Work PB1913) is the one shape this pass cannot
@@ -50,18 +57,20 @@ public static class DebuggingLineRewriter
     /// SOURCE is added to it (kb/Work PB2490): the lines the caller may still have to diagnose, because a source line is
     /// not a comment line and the logical conversion passed it over as one. The list is that of THIS stream — the final
     /// one's is complete apart from the region lines the caller blanked on the way.</para></summary>
-    public static IToken? Rewrite(CommonTokenStream tokenStream, List<IToken>? sourceLines = null)
+    public static IToken? Rewrite(CommonTokenStream tokenStream, List<IToken>? sourceLines = null, List<IToken>? misplacedLines = null,
+        bool debuggingSectionsAreComments = false)
     {
         tokenStream.Fill();
         var tokens = tokenStream.GetTokens();
         if (tokens is null) return null;
         var lines = DebugLines(tokens);
-        if (lines.Count == 0) return null;
+        if (lines.Count == 0 && !(debuggingSectionsAreComments && tokens.Any(t => t.Type == CobolLexer.DEBUGGING))) return null;
 
         var visible = VisibleIndices(tokens, lines);
         var units = new Stack<UnitFrame>();
         var outside = new UnitFrame(inheritedMode: false);   // debugging lines before any unit header: no clause can govern them
         var kept = new List<int>();                          // the region lines that are source (token indices)
+        var misplaced = new List<int>();                     // the lines that stand where no debugging line may (token indices)
         var keptSource = new List<int>();                    // the other lines that are source (token indices)
         int nextLine = 0;
         for (int v = 0; v < visible.Count; v++)
@@ -75,21 +84,37 @@ public static class DebuggingLineRewriter
             {
                 case CobolLexer.PROGRAM_ID or CobolLexer.FUNCTION_ID or CobolLexer.CLASS_ID
                     or CobolLexer.INTERFACE_ID or CobolLexer.METHOD_ID:
-                    units.Push(new UnitFrame(units.Count > 0 && units.Peek().Mode));
+                    units.Push(units.Count > 0
+                        ? new UnitFrame(units.Peek().Mode) { PermittedFrom = units.Peek().PermittedFrom }   // a contained program is in the same separately compiled program (§1985:VI.7.3): the container's OBJECT-COMPUTER already precedes it
+                        : new UnitFrame(inheritedMode: false));
                     break;
                 case CobolLexer.END when v + 1 < visible.Count && IsUnitKind(tokens[visible[v + 1]].Type):
-                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource);
+                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced);
+                    break;
+                case CobolLexer.DECLARATIVES when debuggingSectionsAreComments && units.Count > 0
+                    && v + 1 < visible.Count && tokens[visible[v + 1]].Type == CobolLexer.DOT
+                    && (v == 0 || tokens[visible[v - 1]].Type != CobolLexer.END):
+                    units.Peek().DebuggingSections.AddRange(DebuggingSections(tokens, visible, v));
                     break;
                 case CobolLexer.SOURCE_COMPUTER when units.Count > 0 && DeclaresMode(tokens, visible, v):
                     units.Peek().DeclaresMode = true;
                     break;
+                case CobolLexer.OBJECT_COMPUTER when units.Count > 0 && units.Peek().PermittedFrom < 0:
+                    units.Peek().PermittedFrom = visible[ParagraphEnd(tokens, visible, v)];
+                    break;
+                case CobolLexer.DATA or CobolLexer.PROCEDURE
+                    when units.Count > 0 && units.Peek().PermittedFrom < 0 && v + 1 < visible.Count
+                        && tokens[visible[v + 1]].Type == CobolLexer.DIVISION:
+                    units.Peek().PermittedFrom = at - 1;   // no OBJECT-COMPUTER paragraph in the Environment Division: the Data Division is the first place left
+                    break;
             }
         }
         while (nextLine < lines.Count) (units.Count > 0 ? units.Peek() : outside).Lines.Add(lines[nextLine++]);
-        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource);
-        Resolve(tokens, outside, kept, keptSource);
+        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced);
+        Resolve(tokens, outside, kept, keptSource, misplaced);
         tokenStream.Seek(0);
         sourceLines?.AddRange(keptSource.Select(i => tokens[i]));
+        misplacedLines?.AddRange(misplaced.Order().Select(i => tokens[i]));
         return kept.Count == 0 ? null : tokens[kept.Min()];
     }
 
@@ -178,8 +203,71 @@ public static class DebuggingLineRewriter
         return false;
     }
 
-    private static void Resolve(IList<IToken> tokens, UnitFrame unit, List<int> keptRegionLines, List<int> keptSourceLines)
+    /// <summary>The index in <paramref name="visible"/> of the last token of the paragraph whose header word is
+    /// <paramref name="visible"/>[<paramref name="at"/>]: its period (the paragraph's own, after the header's), or, in the empty
+    /// form <c>OBJECT-COMPUTER. SPECIAL-NAMES. …</c>, the header's period (the stops <see cref="DeclaresMode"/> uses).</summary>
+    private static int ParagraphEnd(IList<IToken> tokens, List<int> visible, int at)
     {
+        int i = at + 1;
+        if (i >= visible.Count || tokens[visible[i]].Type != CobolLexer.DOT) return at;
+        for (int j = i + 1; j < visible.Count; j++)
+        {
+            int type = tokens[visible[j]].Type;
+            if (type == CobolLexer.DOT) return j;
+            if (type is CobolLexer.OBJECT_COMPUTER or CobolLexer.SPECIAL_NAMES or CobolLexer.REPOSITORY
+                or CobolLexer.PROCEDURE or CobolLexer.DATA or CobolLexer.PROGRAM_ID or CobolLexer.END)
+                return j - 1;
+        }
+        return visible.Count - 1;
+    }
+
+    /// <summary>The token extents (first and last token index, hidden-channel text between them included) of the USE FOR DEBUGGING sections of the DECLARATIVES
+    /// portion whose header word is <paramref name="visible"/>[<paramref name="at"/>]: a section runs from its header (<c>name SECTION [n] .</c>;
+    /// the SECTION of an <c>EXIT SECTION</c> statement is no header) to the next header or the portion's <c>END DECLARATIVES</c>, and is a debugging
+    /// section when its first sentence begins <c>USE FOR DEBUGGING</c>. When no section of the portion is any other, the portion's own header and
+    /// its END DECLARATIVES are returned too.</summary>
+    private static List<(int First, int Last)> DebuggingSections(IList<IToken> tokens, List<int> visible, int at)
+    {
+        bool IsHeader(int i) => i + 1 < visible.Count && tokens[visible[i + 1]].Type == CobolLexer.SECTION && tokens[visible[i]].Type != CobolLexer.EXIT;
+        bool IsEnd(int i) => i + 1 < visible.Count && tokens[visible[i]].Type == CobolLexer.END && tokens[visible[i + 1]].Type == CobolLexer.DECLARATIVES;
+        var found = new List<(int First, int Last)>();
+        int sections = 0, i = at + 2;
+        while (i < visible.Count && !IsEnd(i))
+        {
+            if (!IsHeader(i)) { i++; continue; }
+            sections++;
+            int next = i + 2;
+            while (next < visible.Count && !IsEnd(next) && !IsHeader(next)) next++;
+            int period = i + 2;
+            while (period < next && tokens[visible[period]].Type != CobolLexer.DOT) period++;
+            if (period + 3 < next
+                && tokens[visible[period + 1]].Type == CobolLexer.USE && tokens[visible[period + 2]].Type == CobolLexer.FOR
+                && tokens[visible[period + 3]].Type == CobolLexer.DEBUGGING)
+                found.Add((visible[i], next < visible.Count ? visible[next] - 1 : tokens.Count - 1));
+            i = next;
+        }
+        if (found.Count > 0 && found.Count == sections && i < visible.Count)
+        {
+            int last = i + 1 < visible.Count && i + 2 < visible.Count && tokens[visible[i + 2]].Type == CobolLexer.DOT ? i + 2 : i + 1;
+            found.Add((visible[at], visible[at + 1]));
+            found.Add((visible[i], visible[last]));
+        }
+        return found;
+    }
+
+    private static void Resolve(IList<IToken> tokens, UnitFrame unit, List<int> keptRegionLines, List<int> keptSourceLines,
+        List<int> misplacedLines)
+    {
+        if (!unit.Mode)
+            foreach (var (first, last) in unit.DebuggingSections)
+                for (int i = first; i <= last; i++)
+                    if (tokens[i].Channel == TokenConstants.DefaultChannel && tokens[i].Type != TokenConstants.EOF)
+                        tokens[i] = new CommonToken(tokens[i]) { Channel = CobolLexer.ABSENT_DEBUG_LINE };
+        // §1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the OBJECT-COMPUTER
+        // paragraph." Mode or no mode, a line that begins before that paragraph's end is misplaced; the caller diagnoses it
+        // where the edition has the rule.
+        foreach (var line in unit.Lines)
+            if (line.Start <= unit.PermittedFrom || unit.PermittedFrom < 0) misplacedLines.Add(line.Start);
         if (unit.Mode)                                  // the unit (or a container) declared the mode: its lines are source
         {
             foreach (var line in unit.Lines)
@@ -220,7 +308,12 @@ public static class DebuggingLineRewriter
     private sealed class UnitFrame(bool inheritedMode)
     {
         public bool DeclaresMode { get; set; }
+        /// <summary>The token index at or before which a debugging line is misplaced: where the unit's OBJECT-COMPUTER paragraph ends
+        /// or, with none, where its Data or Procedure Division begins (§1985:VI.7.3); -1 while neither has been met.</summary>
+        public int PermittedFrom { get; set; } = -1;
         public bool Mode => inheritedMode || DeclaresMode;
         public List<Extent> Lines { get; } = [];
+        /// <summary>The USE FOR DEBUGGING sections of the unit (token extents), comment text when the unit has no mode.</summary>
+        public List<(int First, int Last)> DebuggingSections { get; } = [];
     }
 }

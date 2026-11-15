@@ -59,6 +59,7 @@ rule boundaries from the printed labels and marks the verdict `[LABEL MODE ...]`
 
 - **Implementor latitude** follows the owner's precedence (CLAUDE.md rule 1, 2026-08-08 via `kb/Work/R13`): the ISO
   spec where it controls → otherwise GnuCOBOL → if GnuCOBOL has nothing, IBM Enterprise COBOL or Micro Focus. It
-  settles latitude only, never GnuCOBOL's non-ISO extensions. Record the choice in `docs/CONFORMANCE.md`.
-- **A defect in the standard** is recorded in `docs/CONFORMANCE.md`, never silently coded around.
+  settles latitude only, never GnuCOBOL's non-ISO extensions. Record the choice in `docs/conformance/`
+  (a `D-<KEY>.md` file in `3/`, or the row file of its register; `docs/CONFORMANCE.md` is the rendered view, never edited).
+- **A defect in the standard** is recorded in `docs/conformance/`, never silently coded around.
 - A construct accepted as a common extension is called exactly that.

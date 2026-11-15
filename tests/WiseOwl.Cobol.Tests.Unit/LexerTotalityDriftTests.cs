@@ -35,10 +35,32 @@ public sealed class LexerTotalityDriftTests
         var (errors, tokens) = Lex(text);
         Assert.Empty(errors);
         int pic = tokens.FindIndex(t => t.Type == CobolLexer.PIC);
-        Assert.Equal(CobolLexer.DOT, tokens[pic + 1].Type);
+        int dot = tokens[pic + 1].Type == CobolLexer.IS ? pic + 2 : pic + 1;   // the clause's optional IS (kb/Work PB5213)
+        Assert.Equal(CobolLexer.DOT, tokens[dot].Type);
         // The mode ended with the period: the word after it is lexed in DEFAULT mode, not as a picture.
-        Assert.True(pic + 2 >= tokens.Count || tokens[pic + 2].Type != CobolLexer.PIC_STRING,
+        Assert.True(dot + 1 >= tokens.Count || tokens[dot + 1].Type != CobolLexer.PIC_STRING,
             $"'{tokens[^1].Text}' after the separator period was lexed as a picture character-string");
+    }
+
+    /// <summary>The IS after PIC / PICTURE is a word of the source, written at most once (kb/Work PB5213; §2023:13.18.40.2
+    /// prints <c>{PICTURE | PIC} IS character-string-1</c>): the first is the IS token the parser takes or refuses, and a
+    /// second is the character-string, which ends the mode, so a third is lexed in DEFAULT mode. The mode used to skip every
+    /// IS, so <c>PIC IS IS IS X(4)</c> lexed as <c>PIC X(4)</c>.</summary>
+    [Theory]
+    [InlineData("01 X PIC IS X(4).\n", "X(4)", new[] { "PIC", "IS", "X(4)", "." })]
+    [InlineData("01 X PICTURE IS\n    IS.\n", "IS", new[] { "PICTURE", "IS", "IS", "." })]
+    [InlineData("01 X PIC IS IS IS X(4).\n", "IS", new[] { "PIC", "IS", "IS", "IS", "X", "(", "4", ")", "." })]
+    [InlineData("01 X PIC ISX.\n", "ISX", new[] { "PIC", "ISX", "." })]
+    public void TheOptionalIsAfterPic_IsOneIsToken_AndASecondIsTheCharacterString(string text, string picture, string[] words)
+    {
+        var (errors, tokens) = Lex(text);
+        Assert.Empty(errors);
+        int pic = tokens.FindIndex(t => t.Type == CobolLexer.PIC);
+        Assert.Equal(words, tokens.Skip(pic).Select(t => t.Text).ToArray());
+        int at = tokens[pic + 1].Type == CobolLexer.IS ? pic + 2 : pic + 1;
+        Assert.Equal(CobolLexer.PIC_STRING, tokens[at].Type);
+        Assert.Equal(picture, tokens[at].Text);
+        Assert.All(tokens.Skip(at + 1), t => Assert.NotEqual(CobolLexer.PIC_STRING, t.Type));   // the mode ended there
     }
 
     /// <summary>A period a picture character follows stays inside the picture character-string: the separator-period

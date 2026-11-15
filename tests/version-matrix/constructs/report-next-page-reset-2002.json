@@ -1,0 +1,13 @@
+{
+ "id": "report-next-page-reset-2002",
+ "status": "active",
+ "description": "The WITH RESET phrase of NEXT GROUP NEXT PAGE (kb/Work PB5242). §1985:XIII.3.16.2 prints `NEXT GROUP IS {integer-1 | PLUS integer-2 | NEXT PAGE}`; ISO/IEC 1989:2002 13.16.35.1 adds `[WITH RESET]` and Annex F.2 item 115 lists \"WITH RESET phrase added to NEXT PAGE\". Gated by recognition, VersionConformancePass ParseArm.VisitReportNextGroupClause, once per written clause (VCR row 7.45 (f)).",
+ "display": "the WITH RESET phrase of NEXT GROUP NEXT PAGE (report group description)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§1985:XIII.3.16.2; ISO/IEC 1989:2002 13.16.35.1 and Annex F.2 item 115; ISO §2023:13.18.37.2, §2023:13.18.37.4 GR6 (2023 text)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.45 (f) - NEXT GROUP NEXT PAGE WITH RESET (85->2002)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRNR.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"VMRNR.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC 9(3) VALUE 5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 20 LINES.\n01 DA TYPE DETAIL LINE PLUS 1 NEXT GROUP NEXT PAGE WITH RESET.\n    02 COLUMN 1 PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+}

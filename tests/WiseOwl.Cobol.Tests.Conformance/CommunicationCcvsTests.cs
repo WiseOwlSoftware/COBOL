@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
 
@@ -12,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// CM101M's and CM104M's status legs are ones these goldens witness (conformance-suite/wiseowl/cases/_unassigned/pb4677_mcs_*). CM303M and CM401M test the federal flagging layer, which is outside
 /// the ISO suite (PB4614 decision 11), and compile clean.
 /// </summary>
-public sealed class CommunicationCcvsTests
+public sealed class CommunicationCcvsTests(ITestOutputHelper output)
 {
     private static string Run(string program, IReadOnlyDictionary<string, string?>? env = null, ObservationBudget? budget = null)
     {
@@ -56,6 +57,11 @@ public sealed class CommunicationCcvsTests
         // budget states that wait on top of the unit (kb/Work PB5154).
         string dir = Run("CM102M", budget: ObservationBudget.OneProcessWaiting(TimeSpan.FromSeconds(3 * 30),
             "CM102M, which waits three 30-second delays on its own clock"));
+        // ⛔ THE RUN VOLUME'S FLUSH TIME ON EVERY RUN, NOT ONLY ON A TIMEOUT (kb/Work PB5147): CM102M's work beside its 90 s wait is 544 durable device
+        // flushes (one per SEND), and on GitHub's Windows runners that work varies from 3 s to 31 s in runs that pass (and 88 s in the two that timed out)
+        // while Linux's stays under 1 s. The 210 s budget absorbs the variation, so the timeout's probe line never fires; this line puts the volume's flush
+        // time beside the test's duration in every run's results, which is what decides whether the flush is the stall.
+        output.WriteLine(HostLoad.DurableFlushLine(dir));
         try
         {
             string report = File.ReadAllText(Path.Combine(dir, "cm102m.txt"));

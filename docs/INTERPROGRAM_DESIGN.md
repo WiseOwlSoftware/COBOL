@@ -758,7 +758,7 @@ Mechanism (settled, SSOT §9.4 + §18 #10): GOBACK raises `ProgramReturn`; EXIT 
 
 ### CANCEL must reset a program to initial state on next CALL, close its open files, cascade to contained programs, and be a no-op for never-called/already-canceled or active programs.
 
-Registry.Cancel(name) drops/marks the singleton for re-init (WS reset to VALUE on next CALL), runs implicit CLOSE on its open files (§2023:14.9.5 GR9), cascades to contained programs in reverse order (GR4), raises EC-PROGRAM-CANCEL-ACTIVE if active (GR5), no-ops if never-called/canceled (GR7); EXTERNAL data is NOT reset (GR8).
+Registry.Cancel(name) drops/marks the singleton for re-init (WS reset to VALUE on next CALL), runs implicit CLOSE on its open files (§2023:14.9.5 GR9), cascades to contained programs in reverse order (GR4), raises EC-PROGRAM-CANCEL-ACTIVE if active (GR5), no-ops if never-called/canceled (GR7); EXTERNAL data is NOT reset (GR8). GR5 is edition-dependent (`DialectBehavior.CancelRefusesEveryActiveProgram`, VCR row 7.66, kb/Work PB5241): the CANCEL statement passes `refusesEveryActiveProgram`, true from 2002 (any active program, the run unit's main included), false at 85, where §1985:X.5.3.4 GR5 refuses only a program called and not exited, so a CANCEL of the active main program, never called, is §1985:X.5.3.4 GR8's no action (`ProgramTable.Node.MainActive` tells the main activation from called ones; the main activation does not set the GR7 "called" mark).
 
 ### Arguments must be evaluated exactly once at CALL time (§2023:14.9.4.4 GR3a) even though carriers are lazy accessors.
 

@@ -3,7 +3,8 @@
 # (src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs), rearch PHASE 02 P2.10.
 #
 # The catalogue is C#, so the renderer lives in the drift test (DiagnosticRegistryDriftTests) — this script
-# runs that test with WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1 so it WRITES docs/DIAGNOSTICS.md instead of asserting.
+# runs that test with WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=<a raw file> so it WRITES its render there instead of asserting,
+# and `rendered_views.py --write` places that render as docs/DIAGNOSTICS.md with its stamp.
 # The same test, run normally, proves the catalogue renders one row per descriptor; nothing is compared with a copy.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -21,13 +22,20 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "the regeneration filter selects nothing (filter_population rc $LASTEXITCODE) — NOTHING WAS REGENERATED; see the finding above (kb/Work PB751)"
     }
-    $env:WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC = '1'
+    # The test writes the RAW render to this file; `rendered_views.py --write` places it as the view with its stamp, the one
+    # writer of a view (rule (e): an unstamped docs/DIAGNOSTICS.md is a hand edit to it, wave 20262031 review R1-2).
+    $raw = Join-Path ([System.IO.Path]::GetTempPath()) ("wiseowl-diagnostics-" + [guid]::NewGuid().ToString('N') + '.md')
+    $env:WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC = $raw
     # SCRUBBED (kb/Work PB1718): a stray leg handshake or VSTest* property would narrow even this one-test run.
     python scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj -c Debug --filter $filter
     if ($LASTEXITCODE -ne 0) { throw "regeneration test failed (exit $LASTEXITCODE)" }
+    if (-not (Test-Path -LiteralPath $raw)) { throw "the regeneration test passed but wrote no render to $raw — NOTHING WAS REGENERATED" }
+    python scripts/rendered_views.py diagnostics --write $raw
+    if ($LASTEXITCODE -ne 0) { throw "docs/DIAGNOSTICS.md was not placed (rendered_views.py --write exit $LASTEXITCODE): see the line above" }
     Write-Host 'Rendered docs/DIAGNOSTICS.md from DiagnosticCatalog.'
 }
 finally {
     Remove-Item Env:\WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC -ErrorAction SilentlyContinue
+    if ($raw) { Remove-Item -LiteralPath $raw -ErrorAction SilentlyContinue }
     Pop-Location
 }

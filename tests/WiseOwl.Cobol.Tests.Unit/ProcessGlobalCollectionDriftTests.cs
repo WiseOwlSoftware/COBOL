@@ -57,7 +57,7 @@ public sealed class ProcessGlobalCollectionDriftTests
         string[] unclassified =
         [
             .. TrackedTree.Files(ProductSources)
-                .Where(rel => NamesResolver.IsMatch(File.ReadAllText(TestRepo.At(rel))))
+                .Where(rel => NamesResolver.IsMatch(File.ReadAllText(TestRepo.Within("src/", rel))))
                 .Select(rel => Path.GetFileName(rel).Split('.')[0])
                 .Where(stem => !known.Contains(stem))
                 .Distinct().Order(StringComparer.Ordinal),
@@ -72,7 +72,7 @@ public sealed class ProcessGlobalCollectionDriftTests
     private static readonly TreeScope UnitSources = new(Under: ["tests/WiseOwl.Cobol.Tests.Unit/"],
         Except: ["tests/WiseOwl.Cobol.Tests.Unit/ProcessGlobalCollectionDriftTests.cs"], Kinds: [".cs"]);
 
-    private static IEnumerable<string> UnitTestSources() => TrackedTree.Files(UnitSources).Select(rel => TestRepo.At(rel));
+    private static IEnumerable<string> UnitTestSources() => TrackedTree.Files(UnitSources).Select(rel => TestRepo.Within("tests/WiseOwl.Cobol.Tests.Unit/", rel));
 
     [Fact]
     public void TheScan_ReachesTheKnownReadersAndTheWriter()

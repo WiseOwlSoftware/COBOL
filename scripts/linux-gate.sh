@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # linux-gate.sh — run CI's LINUX test legs locally, under WSL, before a push spends a CI run on them.
 #
-#   From any shell, at the tree's root:  bash scripts/linux-gate.sh [--legs unit,characterization,conformance,guard] [--nice]
+#   From any shell, at the tree's root:  bash scripts/linux-gate.sh [--legs unit,repo-drift,characterization,conformance,guard] [--nice]
 #   On a host that is not Linux (Git Bash, PowerShell's bash) it runs ITSELF under WSL, in the same tree with the same
 #   arguments, and its verdict is that run's (run_on_linux, kb/Work PB2999).
 #   python scripts/self_tests.py runs `bash scripts/linux-gate.sh --self-test` (the host hand-off, with stand-ins).
@@ -44,7 +44,7 @@
 # script classifies nothing and runs the legs it is asked to. But the classification is sound only while that "no test
 # reads" is TRUE, so every run watches every inert path with inotify while the test legs run (`inert_lane.py watch`): a
 # test that starts reading one is a RED here (the `inert-watch` leg) before CI's Linux steps, which run under the same
-# watch, see it. The watched clone runs the three `dotnet test` legs and nothing else: the self-tests (audits, which read
+# watch, see it. The watched clone runs the `dotnet test` legs and nothing else: the self-tests (audits, which read
 # inert paths by design: the register, the DEVLOG, the skills submodule they initialize) and the guard run in a second
 # clone with its own build, so no read of theirs reaches the watch.
 #
@@ -53,7 +53,7 @@
 # line each, and ONE verdict:
 #   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN [<cause>] (…) ===
 #   === LINUX GATE: BUSY — … ===  (exit 3: another gate of this tree is running; this run touched nothing, kb/Work PB3310)
-# Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of gate.NOT_RUN_CAUSES, which classifies it
+# Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of gate_verdict.NOT_RUN_CAUSES, which classifies it
 # ONCE (ENVIRONMENT or BRANCH: kb/Work PB3526); the driver's self-test holds every NOT RUN line here to a known tag.
 set -u
 
@@ -89,8 +89,8 @@ check_legs() {
   IFS=',' read -r -a wanted <<< "$legs"
   for leg in "${wanted[@]}"; do
     case "$leg" in
-      unit|characterization|conformance|guard) ;;
-      *) echo "linux-gate: unknown leg '$leg' (the selectable legs are unit, characterization, conformance and guard;"\
+      unit|repo-drift|characterization|conformance|guard) ;;
+      *) echo "linux-gate: unknown leg '$leg' (the selectable legs are unit, repo-drift, characterization, conformance and guard;"\
               "selftests always runs, and selftests-built with unit or conformance)"
          echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
     esac
@@ -231,7 +231,7 @@ busy_line() {
 # other's clone: on 2026-10-16 the second `enqueue.py land` of a branch deleted the first's clone mid-test, and its
 # `dotnet test` hung 6 h 40 min in the deleted directory holding a gate slot. Each run now has its own clone (the pid in
 # the directory name), and a second run on a tree whose gate is RUNNING answers `=== LINUX GATE: BUSY ...` (exit 3) before
-# it touches anything: BUSY is neither a pass nor a red (gate.BUSY is the same word). The check and the registration (the owner file) are one step under
+# it touches anything: BUSY is neither a pass nor a red (gate_verdict.BUSY is the same word). The check and the registration (the owner file) are one step under
 # an flock on a dotfile (reap_gates' glob skips it), so two gates started together cannot both pass.
 begin_gate() {
   local name="${2##*/}" me="$BASHPID" other   # captured here: inside $( ) BASHPID is that subshell's
@@ -332,8 +332,8 @@ if [ "${1:-}" = "--self-test" ]; then
   check "an unknown --legs name is NOT RUN (bad arguments) before anything runs" "$(echo "$got" | tail -1)" \
         "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="
   check "an unknown --legs name exits 2" "$rc" "2"
-  got="$( legs=unit,characterization,conformance,guard; check_legs; echo "accepted ${wanted[*]}" )"
-  check "the four selectable legs are accepted, in order" "$got" "accepted unit characterization conformance guard"
+  got="$( legs=unit,repo-drift,characterization,conformance,guard; check_legs; echo "accepted ${wanted[*]}" )"
+  check "the five selectable legs are accepted, in order" "$got" "accepted unit repo-drift characterization conformance guard"
   # The interpreter, through the one resolver, with stand-in interpreters (shell functions the resolver's probe runs):
   # `return 1` answers the floor probe as an interpreter below 3.12 (or the Store alias) does, `return 0` as one at it.
   got="$( python3() { return 1; }; python() { return 0; }; PYTHON=""; resolve_py; echo "$PY" )"
@@ -492,7 +492,7 @@ fi
 
 run_on_linux "$@"
 
-legs="unit,characterization,conformance,guard"
+legs="unit,repo-drift,characterization,conformance,guard"
 nice_prefix=()
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -517,7 +517,7 @@ if [ ! -f WiseOwl.Cobol.sln ]; then
   echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
 fi
 # ⛔ THE TOOLCHAIN (kb/Work PB4007): CI runs exactly toolchain.env's versions, so a Linux run under any other measures
-# what CI will not run; the Windows gate holds its own host to the manifest the same way (gate.Host.toolchain).
+# what CI will not run; the Windows gate holds its own host to the manifest the same way (gate_host.Host.toolchain).
 if ! toolchain_report="$("$PY" scripts/toolchain.py check --scope gate 2>&1)"; then
   printf '%s\n' "$toolchain_report"
   echo "=== LINUX GATE: NOT RUN [toolchain] (this host's tools are not toolchain.env's — run scripts/wsl/setup-wsl.sh) ==="; exit 2
@@ -764,6 +764,7 @@ for leg in "${wanted[@]}"; do
   order+=("$leg")
   case "$leg" in
     unit)             proj="tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj" ;;
+    repo-drift)       proj="tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj" ;;
     characterization) proj="tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj" ;;
     conformance)      proj="tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj" ;;
     guard)            continue ;;   # the audit clone runs it (audit_built_legs)

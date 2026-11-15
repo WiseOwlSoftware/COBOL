@@ -22,7 +22,7 @@ public sealed class AfUnixEndPointDriftTests
     public void OnlyTheSocketDirectoryConstructsAnAfUnixEndPoint()
     {
         var constructing = TrackedTree.Files(ProductSources)
-            .Where(file => File.ReadAllText(TestRepo.At(file)).Contains("new UnixDomainSocketEndPoint", StringComparison.Ordinal))
+            .Where(file => File.ReadAllText(TestRepo.Within("src/", file)).Contains("new UnixDomainSocketEndPoint", StringComparison.Ordinal))
             .ToList();
         Assert.Equal([Home], constructing);       // equal, not "no others": a detector that stopped finding the one site would go red here
     }

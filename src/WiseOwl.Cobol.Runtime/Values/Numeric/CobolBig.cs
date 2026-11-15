@@ -321,6 +321,27 @@ internal readonly struct CobolBig
     internal CobolBig FractionPart() =>
         Scale <= 0 ? new(BigInteger.Zero, 0) : new(BigInteger.Remainder(Value, Pow10(Guard(Scale))), Scale);
 
+    /// <summary>Is this value <c>U × 10^−s</c> the fraction p/q in lowest terms with q odd, and is p odd (kb/Work PB5186,
+    /// <see cref="CobolExact.HasOddDenominator"/>)? q is odd exactly when 2^s divides U (an integer, s ≤ 0, is p/1), and p's parity is
+    /// then that of <c>U / 2^s</c>, the factors of 5 the reduction also removes being odd.</summary>
+    internal bool HasOddDenominator(out bool oddNumerator)
+    {
+        BigInteger magnitude = BigInteger.Abs(Value);
+        if (Scale <= 0 || magnitude.IsZero)
+        {
+            // An integer: p/1. Written out at a negative scale it is a multiple of 10, so even.
+            oddNumerator = Scale == 0 && !magnitude.IsEven;
+            return true;
+        }
+        if (BigInteger.TrailingZeroCount(magnitude) < Scale)
+        {
+            oddNumerator = false;
+            return false;
+        }
+        oddNumerator = !(magnitude >> Scale).IsEven;
+        return true;
+    }
+
     /// <summary>The algebraic comparison (−1/0/+1), exact for every pair.</summary>
     internal static int Compare(CobolBig a, CobolBig b)
     {

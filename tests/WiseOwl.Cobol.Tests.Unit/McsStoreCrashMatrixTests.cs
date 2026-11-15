@@ -49,13 +49,13 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
         """;
 
     private static string Sent(MessageControlSession s, string destination, string text) =>
-        OutputStatus(s.Send("C", CommunicationFormat.Output, OutputArea(text.Length, destination), text, SendIndicator.EndOfMessage));
+        OutputStatus(s.Send(new CdActivation(), CommunicationFormat.Output, OutputArea(text.Length, destination), text, SendIndicator.EndOfMessage));
 
     private static string Received(MessageControlSession s, string queue) =>
-        InputStatus(s.Receive("R", CommunicationFormat.Input, InputArea(queue), false, "......", noDataPhrase: true).Area);
+        InputStatus(s.Receive(new CdActivation(), CommunicationFormat.Input, InputArea(queue), false, "......", noDataPhrase: true).Area);
 
     private static string Path(MessageControlSession s, string queue, bool enable) =>
-        InputStatus(s.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, InputArea(queue), null, enable));
+        InputStatus(s.SetPath(new CdActivation(), CommunicationFormat.Input, CommunicationPath.Input, InputArea(queue), null, enable));
 
     /// <summary>The statements whose every cut point the matrix covers: each answers its status key, which is 00 when it completes.</summary>
     private static readonly (string Name, Func<MessageControlSession, string> Run, bool Seeding)[] Statements =
@@ -63,18 +63,18 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
         ("send-to-a-queue", s => Sent(s, "DQ", "NEW"), false),
         ("send-to-a-terminal", s => Sent(s, "DT", "TERM"), false),
         ("send-to-a-device", s => Sent(s, "DEV", "DEVMSG"), false),
-        ("send-to-two-destinations", s => OutputStatus(s.Send("C", CommunicationFormat.Output,
+        ("send-to-two-destinations", s => OutputStatus(s.Send(new CdActivation(), CommunicationFormat.Output,
             "0002" + "0003" + "99" + " " + "DQ".PadRight(12) + " " + "DEV".PadRight(12), "TWO", SendIndicator.EndOfMessage)), false),
         ("send-to-a-closed-path", s => Sent(s, "DC", "LATER"), false),
         ("receive-from-a-queue", s => Received(s, "Q"), false),
-        ("receive-from-a-terminal", s => InOutStatus(s.Receive("I", CommunicationFormat.InputOutput, InOutArea("T2"), false, "......", noDataPhrase: true).Area), false),
+        ("receive-from-a-terminal", s => InOutStatus(s.Receive(new CdActivation(), CommunicationFormat.InputOutput, InOutArea("T2"), false, "......", noDataPhrase: true).Area), false),
         ("enable-a-queue-that-moves-the-outbound", s => Path(s, "CLOSED", enable: true), false),
         ("disable-a-queue", s => Path(s, "Q", enable: false), false),
-        ("disable-a-source", s => InputStatus(s.SetPath("C", CommunicationFormat.Input, CommunicationPath.InputTerminal,
+        ("disable-a-source", s => InputStatus(s.SetPath(new CdActivation(), CommunicationFormat.Input, CommunicationPath.InputTerminal,
             InputArea("Q")[..62] + "SRC".PadRight(12) + InputArea("Q")[74..], null, enable: false)), false),
-        ("enable-a-destination-that-moves-the-outbound", s => OutputStatus(s.SetPath("C", CommunicationFormat.Output, CommunicationPath.Output,
+        ("enable-a-destination-that-moves-the-outbound", s => OutputStatus(s.SetPath(new CdActivation(), CommunicationFormat.Output, CommunicationPath.Output,
             OutputArea(0, "DOFF"), null, enable: true)), false),
-        ("send-from-an-input-output-cd", s => InOutStatus(s.Send("I", CommunicationFormat.InputOutput, InOutArea("T2", 2), "XY", SendIndicator.EndOfMessage)), false),
+        ("send-from-an-input-output-cd", s => InOutStatus(s.Send(new CdActivation(), CommunicationFormat.InputOutput, InOutArea("T2", 2), "XY", SendIndicator.EndOfMessage)), false),
         ("seeding-a-changed-definition-file", s => InputStatus(s.AcceptMessageCount(InputArea("Q"))), true),
     ];
 
@@ -196,6 +196,32 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
             McsInspector.AssertCountsEqualARecount(directory);
             if (status == "00") break;
             refused = true;
+            Assert.True(from < 200, "the statement never completed");
+        }
+        Assert.True(refused, "the matrix refused no write");
+    }
+
+    /// <summary>§1985:XIV.2.2.4 GR31 fixes the SYMBOLIC TERMINAL at the first statement referencing the CD, and a statement the host refused (92 or 93) took no action, so it fixed none:
+    /// with the host refusing every write from the nth on, an input-output CD's SEND to T2 that answers 9x leaves the CD free to name TT on the same activation, which then answers 00
+    /// (the lock set by the action that ran before the store refused its landing is lifted: <c>Dialogue.UndoLocks</c>).</summary>
+    [Fact]
+    public void RefusedInputOutputSend_FixedNoTerminal_ARetryNamingAnotherTerminalAnswers00()
+    {
+        bool refused = false;
+        using var fault = new MediumFault();
+        for (int from = 0; ; from++)
+        {
+            string directory = Prepared();
+            using var s = new Session(directory);
+            Assert.Equal("00", InputStatus(s.Control.AcceptMessageCount(InputArea("Q"))));
+            var activation = new CdActivation();
+            fault.RefuseWritesFrom = from;
+            string status = InOutStatus(s.Control.Send(activation, CommunicationFormat.InputOutput, InOutArea("T2", 2), "XY", SendIndicator.EndOfMessage));
+            fault.RefuseWritesFrom = null;
+            if (status == "00") break;
+            Assert.Contains(status, new[] { "92", "93" });
+            refused = true;
+            Assert.Equal("00", InOutStatus(s.Control.Send(activation, CommunicationFormat.InputOutput, InOutArea("TT", 2), "XY", SendIndicator.EndOfMessage)));
             Assert.True(from < 200, "the statement never completed");
         }
         Assert.True(refused, "the matrix refused no write");

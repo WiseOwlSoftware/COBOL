@@ -63,6 +63,7 @@ public sealed class CompileStateDriftTests
     /// <summary>Each other <c>BindSession</c> member, and why it is no input of meaning.</summary>
     private static readonly Dictionary<string, string> SessionNotSemantic = new()
     {
+        ["CopyNames"] = "the COPY statements' text-names and library-names, user-defined words only below COBOL-2002 (kb/Work PB5482): they decide whether a conflicting spelling is refused, never what a program means, and no skeleton is published at an edition that has them (a parameterized class is a 2023 construct)",
         ["DirectiveSites"] = "the positions the >>TURN / >>PUSH / >>POP bans read, recorded in the source itself",
         ["Retypes"] = "re-derived from the edition and the words map by the re-parse (FragmentParse.ParseUnit)",
         ["OoClasses"] = "the group's class table: bound, not an input",

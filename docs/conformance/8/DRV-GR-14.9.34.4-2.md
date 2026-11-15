@@ -1,0 +1,3 @@
+---
+cells: ["DRV-GR-14.9.34.4-2", "undefined-A.2", "A.2 item 46", "**§2023:14.9.34.4 GR2** — *\"the content of any data item, where any part of that data item lies outside the range of the current record, is undefined\"* (`cite.py --check 14.9.34.4` → OK, rule 2). **Annex A.2 item 46** carries it. This is the RETURN twin of GR-14.9.30.4-3 and it is doubly unreachable: `SortBinder.BindReturn` resolves the record area through `file.AreaRecord` — the largest record's view — and `SortEmitter.EmitReturn` writes through `CobolString.Store`, which space-fills to the image width, so the bytes outside the returned record are deterministically SPACES.", "owner: 2026-09-03", "—"]
+---

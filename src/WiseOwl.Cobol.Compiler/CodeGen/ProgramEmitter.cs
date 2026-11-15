@@ -697,7 +697,7 @@ internal sealed class ProgramEmitter
             // "the length of the corresponding … returning item of the activating runtime element", which only the
             // activator's receiver (__ret) states. The item is seeded with that length before the first statement runs,
             // so FUNCTION LENGTH, a MOVE and the delivery below all see n (kb/Work PB1167).
-            if (_callState.ReturningPlace is { DenotedItem: { IsAnyLength: true, Pic: { } anyPic } } anyRet)
+            if (_callState.ReturningPlace is { DescribedItem: { IsAnyLength: true, Pic: { } anyPic } } anyRet)
                 w.Line(PlaceRenderer.Write(anyRet, RuntimeApi.ArgAdaptReturningSeed("__ret", anyPic)));
             w.Line("__asCalled = true;");
             // The activation's LOCAL-STORAGE cells end with it (ISO §2023:8.6.4 — "persists while that instance of the runtime
@@ -772,13 +772,13 @@ internal sealed class ProgramEmitter
         // A strongly-typed group with an object-reference or pointer leaf has no character image: its content is its
         // AREA — the characters and the references of its cell — delivered into the receiver's area (kb/Work PB1940;
         // PtrBindBasedAndAddressablesPass claims both onto cells).
-        if (ret.DenotedItem is { } leafGroup && ActivationCrossing.LeafCarried(leafGroup)
+        if (ret.DescribedItem is { } leafGroup && ActivationCrossing.LeafCarried(leafGroup)
             && CallEmitter.AreaOf(ret, _atoms) is { } area)
             return RuntimeApi.ArgAdaptStoreReturnArea("__ret", area, leafGroup.ByteWidth, CellComponents.PerOccurrence(leafGroup));
         string? atoms = CallEmitter.BoundaryAtoms(ret, _atoms);
         if (CallEmitter.CallPlaceIsVarGroup(ret))
             return RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.VarGroupBoundaryImage(ret, "RETURNING item"), atoms!);
-        string? profile = ret.DenotedItem is { Pic: { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index } } item
+        string? profile = ret.DescribedItem is { Pic: { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index } } item
             ? item.ProfileName : null;
         if (CallEmitter.CallPlaceIsString(ret))
             return atoms is not null

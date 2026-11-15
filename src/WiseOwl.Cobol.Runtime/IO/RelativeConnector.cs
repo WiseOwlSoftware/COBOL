@@ -257,7 +257,8 @@ public sealed class RelativeConnector : KeyedConnector
         _lastSlot = s;
         NoteRecordRead(read.Image, read.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(read.Image);
-        return ReadSucceeded(FileStatusCode.Success);
+        // §1985:VIII.4.5.4 GR16 — outside the reader's record size the READ is successful, with '04' (FileConnector.RecordLengthConflicts)
+        return ReadSucceeded(RecordLengthConflicts(read.Image.Length) ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success);
     }
 
     /// <summary>Format-2 random READ (§2023:14.9.30 GR29): the FPI takes the RELATIVE KEY item's value (staged by
@@ -275,7 +276,8 @@ public sealed class RelativeConnector : KeyedConnector
         _lastSlot = _pendingKey;
         NoteRecordRead(rec.Image, rec.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(rec.Image);
-        return ReadSucceeded(FileStatusCode.Success);
+        // §1985:VIII.4.5.4 GR16 — outside the reader's record size the READ is successful, with '04' (FileConnector.RecordLengthConflicts)
+        return ReadSucceeded(RecordLengthConflicts(rec.Image.Length) ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success);
     }
 
     /// <summary>The record a tree value holds, in the native character set (§2023:13.18.13.4 GR6 a)); null for a value this
@@ -362,7 +364,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (!inserted) return Status = FileStatusCode.DuplicateKey;        // '22' — the tree declined (GR33 a))
         if (sequentialRelease) _lastReleasedSlot = slot;
         _lastSlot = slot;                                                  // GR29 a) — MOVEd back into the key item
-        return Status = FileStatusCode.Success;
+        return RecordProcessed(Status = FileStatusCode.Success);
     }
 
     /// <summary>The relative record number the NEXT sequential-access release takes — ISO §2023:14.9.51.4
@@ -423,7 +425,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         var replaced = _st.Replace(slot, frame, Entered, out bool done, TransactionFor(RelativeStore.Key(slot), present));
         if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§2023:9.1.13.5 4) / '30' (§2023:9.1.13.6 1)
-        return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
+        return RecordProcessed(Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound);
     }
 
     /// <summary>DELETE RECORD (§2023:14.9.10): open mode must be I-O ('49', GR1). Sequential access removes the prior
@@ -449,7 +451,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (reevaluate) return Delete();                                   // against the file a rollback restored
         var deleted = _st.Delete(slot, Entered, out bool done, TransactionFor(RelativeStore.Key(slot), present));
         if (Failed(deleted) is { } refused) return Status = refused;       // '30' §2023:9.1.13.6 item 1, the boundary too
-        return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
+        return RecordProcessed(Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound);
     }
 
     // ── START (ISO §2023:14.9.41) ─────────────────────────────────────────────────────────────────────────────────

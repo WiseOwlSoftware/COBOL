@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.5.9.2",
  "rule-digest": "7ed3675a7ec3",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_IS",
- "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-FMT-VI_5_9_2",
- "notes": "The format is {PICTURE | PIC} [IS] character-string: one optional IS. '01 A PIC IS IS X(4) VALUE \"WXYZ\".' compiles and runs at --std 85 (prints WXYZ), because PICMODE skips every IS; under the format the second IS is the character-string, and it is no valid picture. The other probes of the read and the refuter held. kb/Work PB5213 holds the defect (code read: held-85/set2/decisions.json).",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#OnPictureIs; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#pictureClause",
+ "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-FMT-VI_5_9_2; conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/pb5213-picture-is-written-twice-85; unit:LexerTotalityDriftTests.TheOptionalIsAfterPic_IsOneIsToken_AndASecondIsTheCharacterString",
+ "notes": "kb/Work PB5213 landed. The format is {PICTURE | PIC} IS character-string (§1985:VI.5.9.2), IS optional and written once. PICMODE no longer skips every IS: the first IS after PIC/PICTURE is the IS token pictureClause takes (PIC IS? PIC_STRING), and a second IS is the character-string (CobolLexer.OnPictureIs types it PIC_STRING and ends the mode), which the PICTURE rules refuse (COBOL0808, I is no symbol; §1985:VI.5.9.3 SR2). Probed at --std 85: '01 B PIC IS IS.' is COBOL0808 'invalid PICTURE symbol I in PICTURE IS'; '01 A PIC IS IS IS X(4)' is refused (COBOL5506 near X); PICTURE IS on one line with the string on the next, PIC IS X and PIC X run. The other probes of the read and the refuter held (semicolon separator, continued character-string, edited and currency strings; PICTURE PIC X COBOL0808, PIC. COBOL5506, PIC twice COBOL2423).",
  "next": {
   "kind": "CHANGED",
   "to": [

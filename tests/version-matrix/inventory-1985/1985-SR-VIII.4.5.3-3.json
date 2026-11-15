@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VIII.4.5.3-3",
  "rule-digest": "4fe351a49bba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+ "test-ref": "conformance:cases/VIII.4.5@1985-READ-STATEMENT/1985-SR-VIII_4_5_3-3; conformance:cases/14.9.30-READ/pb5102_dynamic_at_end_implies_next",
+ "notes": "§1985:VIII.4.5.3 SR3, the relative file's wording of the same rule as §1985:IX.4.5.3 SR5: a READ of a relative file in dynamic access mode that writes AT END and no NEXT is refused with COBOL7144 by StatementValidation.CheckReadDynamicNextWritten, called from the one keyed BindRead that both organizations pass through. kb/Work PB5102.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

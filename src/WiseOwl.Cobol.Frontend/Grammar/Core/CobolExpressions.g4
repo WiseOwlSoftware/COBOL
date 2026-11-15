@@ -248,11 +248,26 @@ succeedingAndExpression
     ;
 
 // A simple condition that is NOT the first of its sequence: §2023:8.8.4.12.1's abbreviated relation (subject, or
-// subject and relational operator, omitted) or an ordinary (NOT-)condition — a bare `object-1` is the latter's
+// subject and relational operator, omitted), the 1985 logical NOT of one (negatedAbbreviatedRelation, below), or an
+// ordinary (NOT-)condition — a bare `object-1` is the latter's
 // comparisonExpression with no operator, which the binder reads against the carried subject and operator.
 succeedingCondition
     : abbreviatedRelation
+    | {logicalNotBeforeRelationalOperator()}? negatedAbbreviatedRelation
     | unaryLogicalExpression
+    ;
+
+// The LOGICAL NOT of an abbreviated relation (kb/Work PB5123). §1985:VI.6.3.3 GRL2.1 reads NOT by the word after it:
+// "If the word immediately following NOT is GREATER, >, LESS, <, EQUAL, =, then the NOT participates as part of the
+// relational operator; otherwise," GRL2.2: "The NOT is interpreted as a logical operator and, therefore, the implied
+// insertion of subject or relational operator results in a negated relation condition." So `A > B AND NOT >= C OR D`
+// is ((A > B) AND (NOT (A >= C))) OR (A >= D): the stated >= is the operator carried on. The left-edge predicate IS
+// GRL2.1 (the six words, and NOT, which no reading lets follow NOT), so this alternative never competes with the
+// comparisonOperator alternatives that open on NOT. The grammar is the superset: ISO 2002 prohibited the form
+// (§2002:F.1 item 22; §2023:8.8.4.12.4 GR1 NOTE: "NOT cannot immediately precede an extended-relational operator"),
+// and VersionConformancePass refuses it from 2002 on (construct abbreviated-not-logical-removed-2002, COBOL0902).
+negatedAbbreviatedRelation
+    : NOT abbreviatedRelation
     ;
 
 // The ONE spelling of the exclusive-or connective (§2023:8.8.4.9: "'EXCLUSIVE-OR' or 'XOR'"), shared by the condition

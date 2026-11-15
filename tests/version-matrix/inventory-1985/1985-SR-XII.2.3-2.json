@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XII.2.3-2",
  "rule-digest": "d206cfb6fa9a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#StatementCursor",
  "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-2",
+ "notes": "§1985:XII.2.3 SR2: 'The COPY statement must be preceded by a space and terminated by the separator period.' CopyProcessor#FindStatementKeyword (from ExpandCopiesOneLevel) reports a COPY glued behind a period, comma or semicolon and ResolveOneCopy reports one directly after a parenthesis, colon or literal delimiter (COBOL2451); ParseCopyStatement ends the statement through StatementCursor's ExpectSeparatorPeriod (COBOL2449), at every edition. The 2023 exception for the first statement of a compilation group (copyIdx 0) is not reached by 1985 reference format, where column 8 follows the indicator area. Probes at 85: COPY PDTEXT. and 'DISPLAY \"A\". COPY PDTEXT.' run; '\"A\".COPY', '\"A\"COPY', 'TE(COPY ONE.)' refused COBOL2451; COPY with no period, with a comma, and REPLACING with no period refused COBOL2449; 'COPY PDTEXT..' refused (CBL3620 on the name 'PDTEXT.'). Under the non-1985 --source-format free a COPY at column 1 of line 1 is accepted. The witness is 'COPY PDTEXT DISPLAY ...' (no period).",
  "next": {
   "kind": "CHANGED",
   "to": [

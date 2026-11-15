@@ -51,7 +51,8 @@ build output, 3 documentation-debt items surfaced. It has an opt-in MSBuild buil
 A second generator — `scripts/gen-grammar-diagrams.ps1` — renders **railroad syntax diagrams** from the ANTLR
 `*.g4` parser fragments: clean (strip comments / predicates / actions) → W3C EBNF → the vendored bottlecaps
 `tools/rr/rr.war` → Markdown with one inline SVG railroad diagram per rule, into `kb/Grammar/` (gitignored
-build output). Covers all **nine** ANTLR parser fragments (386 diagrams) — index at [[kb/Grammar/_Index]].
+build output). rr takes the EBNF on stdin and returns the Markdown on stdout, so no intermediate file exists for
+another process to lock (kb/Work PB5447). Covers all **nine** ANTLR parser fragments (386 diagrams) — index at [[kb/Grammar/_Index]].
 Run a subset with `-Fragments Name1,Name2`; `-Width` tunes the wrap threshold. Productionized the same way as the
 code-reference generator: an opt-in MSBuild build hook (`-p:GenerateGrammarDiagrams=true` in `WiseOwl.Cobol.Cli.csproj`)
 and a `GrammarDiagramGeneratorDriftTests` "runs clean" CI check (requires `java` + the vendored `tools/rr/rr.war`).

@@ -33,12 +33,12 @@ public sealed class InlineMethodInvocationOperandDriftTests
 {
     private static readonly string[] GrammarFiles =
     [
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "CobolParserCore.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolExpressions.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolControlFlow.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolData.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolIO.g4"),
-        Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolOO.g4"),
+        "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4",
+        "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4",
     ];
 
     /// <summary>The rule whose own DEFINITION is <c>functionCall</c>, the one that defines Format 4, and Format 4's
@@ -60,7 +60,7 @@ public sealed class InlineMethodInvocationOperandDriftTests
         var rules = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (string rel in GrammarFiles)
         {
-            string path = Path.Combine(TestRepo.Root, rel);
+            string path = TestRepo.Within("src/WiseOwl.Cobol.Frontend/Grammar/", rel);
             Assert.True(File.Exists(path), $"grammar file '{rel}' not found — if it moved, move this guard");
             string g4 = File.ReadAllText(path);
             g4 = Regex.Replace(g4, @"/\*.*?\*/", " ", RegexOptions.Singleline);

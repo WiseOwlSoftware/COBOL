@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VII.3.3.2",
  "rule-digest": "a8b4efb8ecfb",
+ "test-ref": "conformance:cases/VII.3.3@1985-BLOCK-CONTAINS-CLAUSE/1985-FMT-VII_3_3_2",
  "next": {
   "kind": "CHANGED",
   "to": [

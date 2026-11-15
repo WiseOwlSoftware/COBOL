@@ -106,6 +106,37 @@ public sealed class SortMergeStatementEcTests
         }
     }
 
+    /// <summary>§1985:VII.3.8.4 GR10 (kb/Work PB5124): at COBOL-85, which has no exception checking, a record outside
+    /// integer-2..integer-3 makes the RELEASE "unsuccessful" all the same — nothing is released and the statement answers
+    /// false, so the SAME RECORD AREA store it gates is skipped too; a record in range is released as before. With
+    /// checking on the condition is still raised first (the flag changes only the unchecked outcome).</summary>
+    [Fact]
+    public void ReleaseStatement_RangeFailsStatement_ReleasesNothing_WhenUnchecked()
+    {
+        const string sd = "PB5124-UNIT-SIZE";
+        CobolSort.Init(sd, OneCharKey);
+        CobolSort.EnterProcedure(sd, output: false);
+        try
+        {
+            Assert.False(CobolSort.ReleaseStatement(sd, "AAAAA", 3, 5, size: 2, rangeFailsStatement: true));
+            Assert.False(CobolSort.ReleaseStatement(sd, "BBBBB", 3, 5, size: 9, rangeFailsStatement: true));
+            Assert.False(CobolSort.ReleaseStatement(sd, "CCCCC", 3, 5, size: 0, rangeFailsStatement: true));
+            Assert.True(CobolSort.ReleaseStatement(sd, "DDDDD", 3, 5, size: 3, rangeFailsStatement: true));
+            Assert.True(CobolSort.ReleaseStatement(sd, "EEEEE", 3, 5, size: 5, rangeFailsStatement: true));
+            ExceptionState.SortMergeReleaseChecking = true;
+            Assert.Equal("EC-SORT-MERGE-RELEASE",
+                RaisedBy(() => CobolSort.ReleaseStatement(sd, "FFFFF", 3, 5, size: 6, rangeFailsStatement: true)));
+            ExceptionState.SortMergeReleaseChecking = false;
+            CobolSort.Sort(sd, duplicatesInOrder: false);
+            Assert.Equal(["DDD", "EEEEE"], Drain(sd));
+        }
+        finally
+        {
+            ExceptionState.SortMergeReleaseChecking = false;
+            CobolSort.Close(sd);
+        }
+    }
+
     /// <summary>§2023:14.9.40.4 GR12 b): the implicit USING release tests the size the record had when READ — larger
     /// than the largest record, or (variable-length SD) smaller than the smallest.</summary>
     [Fact]

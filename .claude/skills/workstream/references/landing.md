@@ -21,6 +21,14 @@
   3/6/7 a landing check · 8 the queue not ACTIVE · 9 GitHub refused · 11 unreviewed. ⓜ 2026-10-10 under the trains: 233 of 567 lander minutes (41 %) were local whole-population gates, 94 more
   the former direct-push landing holding main while CI ran the same population, 10 landers for 6 trains, the first commit on main 6 h
   49 min into the day (kb/Work PB3015).
+- **A root fix lands FIRST (kb/Work PB5483).** When main or the pipeline carries a red and a branch removes it, land it
+  at the FRONT of the merge queue so the pull requests queued before it do not each meet the red:
+  `python scripts/orchestrator/enqueue.py land <branch> --fix-first "PB<note> run <failed run id>"`. The cause is
+  required and names the red (a kb/Work note the worktree carries and/or a failed run id); every other guard is the
+  same. Exit 17 (ENQUEUED, NOT JUMPED) means GitHub refused the jump and the pull request waits at the back; run the
+  same command again once its pull-request check has passed. The lane re-queues one cause (a red test case) once and
+  holds its next red (`hold-for-fix`); the hold ends when a fix-first landing naming its runs merges, when the note it
+  names lands on main, or by `python scripts/orchestrator/land_lane.py release-hold "<case>" --reason "<the fix>"`.
 - **Who runs it.** While the orchestrator loop runs (`python scripts/orchestrator/coord.py loop-state` prints `LOOP
   STATE: running`), its LANDING LANE (`scripts/orchestrator/land_lane.py`, ticked by the supervisor beside every
   unit, kb/Work PB3103) runs it for every branch `python scripts/prune_worktrees.py --brief` lists WAITING TO LAND,
@@ -57,7 +65,7 @@
   owns an entry the branch carries (kb/Work PB3145); exit 13 (another `land` of the branch holds the worktree's land
   lock, kb/Work PB3310) is the same: nothing ran, the lane retries it once the lock is free. A shared file never
   holds a branch (owner, kb/Work PB5109): a merge group that conflicts bounces, and a finisher fixes it then. A gate NOT RUN (it
-  measured nothing) goes by its cause's class in `gate.NOT_RUN_CAUSES` (kb/Work PB3526): the landing runs no gate (kb/Work
+  measured nothing) goes by its cause's class in `gate_verdict.NOT_RUN_CAUSES` (kb/Work PB3526): the landing runs no gate (kb/Work
   PB4331), so the only one it reads is its own merge of main's (`merge-blocked`: exit 2, retried once; `merge-failed`:
   exit 5, a finisher's). A gate of the worktree that runs or is starting when the landing would write it is exit 12,
   GATE BUSY, whatever record exists (kb/Work PB4204): the lane lands the head again once the gate lock is free.

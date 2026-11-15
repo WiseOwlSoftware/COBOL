@@ -43,7 +43,7 @@ standardized on LF and the GitHub configuration should enforce that."). The attr
 rule stays; but a file already on main was checked when it landed, and the sweep read all 35,241 tracked files in every
 gate (13.2 s measured). So the rule is applied to two populations:
   THE CHANGE   `--check --base B --tree T`: the gate's LINE ENDINGS audit (gate.py CHANGE_SCOPED), handed the change's
-               cut point and measured tree. It reads the paths T changes against B (`inert_lane.changed`, the listing the
+               cut point and measured tree. It reads the paths T changes against B (`lane_classification.changed`, the listing the
                gate's lane is classified from) plus every tracked file the checkout has modified and every untracked file
                git does not ignore (`git ls-files -m -o --exclude-standard`): a CRLF rewrite of an unchanged file cleans
                to the base's blob under `eol=lf`, so no tree diff names it, while its size differs from the index's
@@ -78,7 +78,7 @@ import tokenize
 from dataclasses import dataclass
 from pathlib import Path
 
-import inert_lane  # this directory's: `changed`, THE listing of what a change changes (the gate's lane reads it too)
+import lane_classification  # this directory's: `changed`, THE listing of what a change changes (the gate's lane reads it too)
 import live_tools  # this directory's: the one list of the live tools' trees, where the WRITERS arm looks
 from standard_streams import ensure_utf8
 
@@ -215,7 +215,7 @@ def _local_imports(module: Path) -> frozenset[Path]:
 @functools.cache
 def classifiers() -> frozenset[str]:
     """THE CHECK'S CLASSIFICATION INPUTS (review R1-3), as repository paths: this file and every module of its
-    directory it imports at module level (`live_tools`: the WRITERS arm's trees; `inert_lane`: the change's listing),
+    directory it imports at module level (`live_tools`: the WRITERS arm's trees; `lane_classification`: the change's listing),
     derived from its own source, so a classifying module it starts to import is one automatically. With
     ATTRIBUTES_FILE at any level, an edit to one re-classifies files a change does not list, so `check` sweeps."""
     here = Path(__file__).resolve()
@@ -235,14 +235,14 @@ def _nul_split(data: bytes) -> list[str]:
 
 def changed_paths(root: Path, base: str, tree: str) -> list[str]:
     """THE CHANGE'S POPULATION, sorted: what `tree` (the gate's measured tree) changes against `base`
-    (`inert_lane.changed`, the one listing the gate's lane is classified from), with every tracked file the checkout has
+    (`lane_classification.changed`, the one listing the gate's lane is classified from), with every tracked file the checkout has
     modified and every untracked file git does not ignore. Raises CalledProcessError when git cannot list it.
 
     The second listing is not a second diff: under `eol=lf` a checkout that a Windows tool rewrote CRLF cleans to the
     blob it had, so the measured tree equals the base's at that path and no tree diff names it. Its SIZE differs from
     the index's record, and `git ls-files -m` trusts a size mismatch as modified without comparing content."""
     local = _nul_split(git(root, "ls-files", "-z", "-m", "-o", "--exclude-standard", binary=True).stdout)
-    return sorted(set(inert_lane.changed(root, base, tree)) | set(local))
+    return sorted(set(lane_classification.changed(root, base, tree)) | set(local))
 
 
 def _index_blobs(root: Path, paths: list[str]) -> dict[str, tuple[str, str]]:
@@ -727,7 +727,8 @@ def self_test() -> int:
         scratch = ScratchRepo.init(root, options=("-c", "core.autocrlf=false"))
         expect("the classifiers are this file and the modules of its directory it imports at module level, derived "
                "from its source (the self-test's function-level `scratch_repo` is not one)", sorted(classifiers()),
-               ["scripts/inert_lane.py", "scripts/line_endings.py", "scripts/live_tools.py", "scripts/standard_streams.py"])
+               ["scripts/lane_classification.py", "scripts/line_endings.py", "scripts/live_tools.py",
+                "scripts/standard_streams.py"])
         expect("a .gitattributes at any level classifies; a file merely named like one does not",
                [classifies(p) for p in (".gitattributes", "sub/dir/.gitattributes", "sub/x.gitattributes", "a.md")],
                [True, True, False, False])
@@ -860,7 +861,7 @@ def main() -> int:
     group.add_argument("--fix-writers", action="store_true")
     group.add_argument("--self-test", action="store_true")
     ap.add_argument("--base", help="with --check and --tree: read only what TREE changes against this commit (the gate)")
-    ap.add_argument("--tree", help="with --check and --base: the change's measured tree (gate.py Host.measured_tree)")
+    ap.add_argument("--tree", help="with --check and --base: the change's measured tree (gate_host.py Host.measured_tree)")
     ap.add_argument("--root", type=Path, default=REPO, help=argparse.SUPPRESS)
     args = ap.parse_args()
     if (args.base is None) != (args.tree is None) or (args.base is not None and not args.check):

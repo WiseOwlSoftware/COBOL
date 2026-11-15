@@ -138,6 +138,14 @@ internal enum OperandContext
 /// repository's most reproducible defect shape — into a question that cannot be asked.</summary>
 internal static class OperandContextRules
 {
+    /// <summary>⛔ SR10's ANSWER AT AN EDITION (kb/Work PB5188) — the one question an operand position asks about an index
+    /// data item. The table's <c>IndexDataItemAdmitted</c> column is §2023:13.18.60.3 SR10's list, which is
+    /// §2002:13.16.58.2 SR9's; the COBOL-85 list, §1985:VI.5.14.3 SR5 ("a SEARCH or SET statement, a relation condition,
+    /// the USING phrase of a Procedure Division header, or the USING phrase of a CALL statement"), lacks "an intrinsic
+    /// function argument", so below 2002 that row answers no. Every other row of the column is on both lists.</summary>
+    internal static bool IndexDataItemAdmittedAt(this OperandContext c, int year) =>
+        c.Rules().IndexDataItemAdmitted && (year >= 2002 || c != OperandContext.FunctionArgument);
+
     internal static (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted, bool BooleanOperandAdmitted) Rules(
         this OperandContext c) => c switch
     {
@@ -181,7 +189,7 @@ internal static class OperandContextRules
 /// BindPrimary / the breadth-first <see cref="BindOperandExpr"/> wrapper descent / NumLiteral, with
 /// <see cref="CheckLiteral"/> carrying its DECIMAL-POINT normalization + edition digit-cap window AS-IS — the
 /// sanctioned binder-side pattern), and the RECEIVING family (<see cref="ResolveReceiving"/> — THE one
-/// receiving-side chokepoint — ResolveTargets / Receivers×3 / RoundingOf §2023:14.7.4). Host edges that remain
+/// receiving-side chokepoint — ResolveReceiving / ResolveReceivingAtStore / Receivers×3 / RoundingOf §2023:14.7.4). Host edges that remain
 /// (host.Intrinsic / host.Rw) flip at 10t; the generic tree static Children STAYS on
 /// <see cref="StatementBinder"/> (it is not expression-specific).
 /// </summary>
@@ -353,15 +361,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// guard is lifted (P10 national wave). The §2023:8.3.3.5.3 SR1 length and SR5 grouping rules are the literal's
     /// own and LiteralScreen asks them of every literal token (kb/Work PB1393) — never a binder funnel.</summary>
     public BoundStringLiteral NationalLiteralOperand(string raw) =>
-        // NationalData2002 (the N"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
-        // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
+        // NationalData2002 (the N"…" literal introduction) is the literal token's format gate, position-blind
+        // (LiteralScreen.GateFormat, kb/Work PB5416).
         new(CobolLiteral.Decode(raw)) { Category = PicCategory.National };
 
     /// <summary>Bind a <c>B"…"</c> boolean literal (ISO §2023:8.3.3.4): SR2 ('0'/'1' only) is lexer-enforced, and the
     /// §2023:8.3.3.4.3 SR1 length rule is LiteralScreen's (kb/Work PB1393).</summary>
     public BoundStringLiteral BooleanLiteralOperand(string raw) =>
-        // BooleanData2002 (the B"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
-        // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
+        // BooleanData2002 (the B"…" literal introduction) is the literal token's format gate, position-blind
+        // (LiteralScreen.GateFormat, kb/Work PB5416).
         new(CobolLiteral.Decode(raw)) { Category = PicCategory.Boolean };
 
     /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> / <c>ALL X"…"</c> (a
@@ -671,7 +679,17 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // programs; the rule enumerates contexts, so the context has to answer — and where it answers no (a
         // subscript, PERFORM VARYING: kb/Work PB215) the operand falls through to §2023:8.8.1.1's class screen.
         bool indexItem = p.DenotedItem is not null && p.Item.Pic is { Usage: Usage.Index };
-        if (indexItem && rules.IndexDataItemAdmitted) return new BoundNumRef(p);
+        if (indexItem && context.IndexDataItemAdmittedAt(ctx.Edition.DialectLevel)) return new BoundNumRef(p);
+        // A position with no class screen of its own (an intrinsic argument) that the edition's SR10 list does not name:
+        // at COBOL-85 a function argument (kb/Work PB5188). The §2023:8.8.1.1 positions fall through to their class screen.
+        if (indexItem && !rules.NumericClassScreen)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.IndexDataItemContext, $"the index data item '{p.Item.CobolName ?? p.Item.ClrName}' "
+                + "is an intrinsic function argument: an index data item can be referenced explicitly only in a SEARCH or "
+                + "SET statement, a relation condition, the USING phrase of a Procedure Division header, or the USING "
+                + "phrase of a CALL statement (ISO §1985:VI.5.14.3 SR5)");
+            return BoundExprError.Refused(ctx.Edition, "an index data item as an intrinsic function argument (ISO §1985:VI.5.14.3 SR5)");
+        }
         if (rules.NumericClassScreen && !ClassScreenAdmits(new BoundFieldOperand(p), context))
         {
             string what = NonNumericOperandKind(p);
@@ -778,8 +796,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     // Receiving references resolve through ResolveReceiving below — the ONE
     // receiving-side chokepoint: a report counter receiver is rejected at bind (LINE-COUNTER illegal per ISO
     // §2023:8.4.3.15 SR3; PAGE-COUNTER staged loud) instead of being SILENTLY dropped by .OfType<Place>() (§1.4).
-    public List<Place> ResolveTargets(IEnumerable<Core.ReceivingIdentifierContext> targets) =>
-        targets.Select(ResolveReceiving).OfType<Place>().ToList();
 
     // ── ROUNDED phrase → rounding mode + receiver resolution (ISO §2023:14.7.4) ───────────────────────────────────
 
@@ -865,7 +881,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         var place = answer.Place;
         // ⛔ THE ONE RECEIVING CHOKEPOINT NEVER DROPS A RECEIVER SILENTLY (kb/Work PB70): `MOVE "Z" TO OK1 TB(2:1) OK2`
         // used to move into OK1 and OK2 and skip TB without a word — the resolver's unsupported-shape null fell
-        // through .OfType<Place>() in ResolveTargets / Receivers. An undefined name or a rejected shape was already
+        // through .OfType<Place>() in the MOVE binder's receiver list / Receivers. An undefined name or a rejected shape was already
         // reported by the resolver (WasDiagnosed); a name that RESOLVED but whose reference shape this compiler does
         // not implement as a receiver is reported HERE, recognized-not-implemented, so the compilation fails instead
         // of the statement running one receiver short.
@@ -905,6 +921,43 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : r.nonReceivableIdentifier() is { } n ? RefuseNonReceivable(n)
         : r.dataAddressIdentifier() is { } a ? RefuseNonReceivable(NonReceivableForm.DataAddress, a)
         : null;
+
+    /// <summary>⛔ A RECEIVER ITS STATEMENT IDENTIFIES AS IT STORES IT (kb/Work PB5386): <see cref="ResolveReceiving(Core.ReceivingIdentifierContext)"/>,
+    /// and what the receiver's identification registered on the pending pre-op queue while it resolved (a subscript or
+    /// reference modifier lowered to a §2023:15.4 temporary, a function activation in one) is taken off that queue and kept as
+    /// the receiver's identification bracket (<see cref="ProcedureBindState.ReceiverIdentifications"/>), keyed on the place
+    /// returned. The emitter runs it at the receiver's store (<c>ReceiverBracketEmitter.Receive</c>), never in the hoist before
+    /// the statement, so the subscript reads what the statement stored before it:
+    /// <list type="bullet">
+    ///   <item>MOVE: "Any length evaluation or subscripting associated with identifier-2 is evaluated immediately before the
+    ///     data is moved to the respective data item" (§1985:VI.6.19.4 GR2; §2023:14.9.25.4 GR1);</item>
+    ///   <item>the arithmetic statements: "Item identification for the receiving data items is done as each data item is
+    ///     accessed" (§2023:14.7.7 4) b); §1985:VI.6.4.6, the left-to-right sequence of statements);</item>
+    ///   <item>READ and RETURN … INTO: "Any subscripting associated with identifier-1 is evaluated after the record has been read
+    ///     and immediately before it is moved to the data item" (§1985:XI.4.3.4 GR6b; §2023:14.9.34.4 GR5 b) "Item
+    ///     identification of the data item referenced by identifier-1 is done after the record has been read").</item>
+    /// </list>
+    /// A subscript the resolver reads in place (an integer data item of a typed record, a literal) registers nothing and is read
+    /// at the store already; this is what makes the other subscripts agree with it. Null when the receiver does not resolve, and
+    /// whatever it registered then stays on the queue, as for any refused operand.</summary>
+    public Place? ResolveReceivingAtStore(Core.ReceivingIdentifierContext r) => IdentifiedAtStore(() => ResolveReceiving(r));
+
+    /// <summary><see cref="ResolveReceivingAtStore(Core.ReceivingIdentifierContext)"/> for a receiver the grammar writes as a bare
+    /// data reference: SET's identifier-1 (§2023:14.9.39.4 GR2: "item identification of the data item referenced by identifier-1
+    /// is done immediately before the value of that data item is changed") and PERFORM VARYING's identifier-2 (§2023:14.9.28.4
+    /// GR12).</summary>
+    public Place? ResolveReceivingAtStore(Core.DataReferenceContext dref) => IdentifiedAtStore(() => ResolveReceiving(dref));
+
+    private Place? IdentifiedAtStore(Func<Place?> resolve)
+    {
+        var pending = ctx.Data.Procedure.PendingPreOps;
+        int mark = pending.Mark();
+        if (resolve() is not { } place) return null;
+        if (pending.AnyAfter(mark))
+            ctx.Data.Procedure.ReceiverIdentifications.Add(
+                new ReceiverBracket(new WrittenReceiverKey(place), host.Udf.OperandSteps(pending.DrainFrom(mark)), []));
+        return place;
+    }
 
     /// <summary>SET's twin of <see cref="ResolveReceiving(Core.ReceivingIdentifierContext)"/> (its receiving identifier
     /// has no data-address alternative: Format 7 spells <c>ADDRESS OF data-name-1</c> as a receiver of its own).</summary>
@@ -1114,7 +1167,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// wrote no receiving identifier.</summary>
     private Receiver? ResolvedReceiver(Core.ReceivingIdentifierContext? written, Core.RoundedPhraseContext? rounded,
                                        bool editedOk, string clause) =>
-        written is not null && ResolveReceiving(written) is { } p && ScreenResultant(p, written, editedOk, clause) is { } sp
+        written is not null && ResolveReceivingAtStore(written) is { } p && ScreenResultant(p, written, editedOk, clause) is { } sp
             ? ReceiverOf(sp, rounded) : null;
 
     /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) as an ISO §2023:8.8.1.1
@@ -1366,7 +1419,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     {
         var bases = p.unaryExpression();
         BoundExpr acc = BindExprCore(bases[0], context);
-        for (int i = 1; i < bases.Length; i++) acc = new BoundPower(acc, BindExprCore(bases[i], context));
+        // Which edition's negative-base rule the power obeys (kb/Work PB5186): §1985:VI.6.2.3 GR5c at 85, §2023:8.8.1.2 GR6c from 2002.
+        bool realRoots = !DialectBehaviors.IsActive(DialectBehavior.NegativeBaseRequiresIntegerExponent, ctx.Edition.Edition.Year);
+        for (int i = 1; i < bases.Length; i++) acc = new BoundPower(acc, BindExprCore(bases[i], context), realRoots);
         return acc;
     }
 

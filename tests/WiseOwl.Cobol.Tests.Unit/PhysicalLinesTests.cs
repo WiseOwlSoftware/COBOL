@@ -244,4 +244,31 @@ public sealed class PhysicalLinesTests
         Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2616" && d.Location.Line == 2);   // line 3 (0-based 2)
         Assert.Equal(3, m.Lines[2].Origin.Line);
     }
+
+    /// <summary>kb/Work PB5503: the program-text offset of a character is its place once every tab is expanded (positions 1, 9, 17,
+    /// ...: DOC-A.1-157), not the file's column, where a tab counts one. Position 8 is offset 0; area A is offsets 0-3
+    /// (<see cref="FixedFormLine.IsAreaAOffset"/>). The quote of each line below is the character asked about.</summary>
+    [Theory]
+    [InlineData("\t==\"A\"", 3)]            // the tab fills positions 1-8, == takes 9-10, the quote stands at position 11 (offset 3); its file column is 3
+    [InlineData("       ==\t\"A\"", 9)]    // the tab after == fills positions 10-16, so the quote stands at position 17 (offset 9); its file column is 10
+    [InlineData("       ==\"A\"", 2)]       // no tab: position 10, offset 2
+    [InlineData("      \t==\"A\"", 3)]      // a tab in position 7 fills through position 8: == at positions 9-10, the quote at offset 3; file column 9
+    public void ProgramTextOffsetAt_CountsATabAsTheStopItFillsTo(string line, int offset)
+    {
+        var lines = PhysicalLines.Read(line + "\n");
+        var map = ReferenceFormatMap.Create(initialFixed: true, detected: false, [], [], lines.Lines);
+        Assert.Equal(offset, map.ProgramTextOffsetAt(1, line.IndexOf('"')));
+    }
+
+    [Fact] // the inverse of ToPhysical: the first expanded index that maps to the physical position
+    public void ColumnMap_ToExpanded_InvertsToPhysical()
+    {
+        var columns = PhysicalLines.Read("\tA\tB\n").Lines[0].Columns;
+        Assert.NotNull(columns);
+        Assert.Equal(8, columns.ToExpanded(1));    // A follows the tab that filled indexes 0-7
+        Assert.Equal(16, columns.ToExpanded(3));   // B follows the second tab, which filled 9-15
+        Assert.Equal(0, columns.ToExpanded(0));    // the tab itself begins at index 0
+        Assert.Equal(columns.ToPhysical(17) + 2, columns.ToPhysical(19));
+        Assert.Equal(19, columns.ToExpanded(columns.ToPhysical(17) + 2));   // past the line's end it goes on one for one
+    }
 }

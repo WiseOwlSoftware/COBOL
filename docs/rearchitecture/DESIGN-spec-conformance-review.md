@@ -24,7 +24,7 @@ Every normative ISO/IEC 1989:2023 rule — and its 1985/2002/2014 applicability 
   documented-non-support decision** (optional modules only, per §2023:4.2.16);
 - **(b)** a conformance **verdict VERIFIED against the spec TEXT** (not against the legacy or GnuCOBOL);
 - **(c)** a **spec-derived test** that covers it — the expected value COMPUTED FROM THE SPEC, never copied from an
-  implementation oracle; **OR, only for a rule that carries no observable obligation, the owner-signed
+  implementation oracle; **OR, only for a rule that carries no observable obligation, the signed
   DERIVATION of §1.1 below.**
 
 The traceability inventory at **zero unresolved GAP** = P14 DONE (D13). This supersedes differential-based confidence.
@@ -544,7 +544,7 @@ entry there (`lineage.py --self-test` adds a 2027 and watches the order, the bri
 | `verdict` | one of the six defined in `inventory-schema.json` — the vocabulary lives THERE, not here, so it cannot drift between this doc and the tools |
 | `code-location` | the traceability link: `path` or `path#Symbol` (see the correction below), or `""` if not located |
 | `test-ref` | the spec-derived test covering it, in a form that RESOLVES on disk (§8), or `""` |
-| `derivation` | §1.1's owner-signed alternative to `test-ref`, for a rule with no observable obligation: the register anchor `docs/CONFORMANCE.md#DRV-<rule-id>`, **COMPUTED from the row's own rule-id**, or `""` |
+| `derivation` | §1.1's signed alternative to `test-ref`, for a rule with no observable obligation: the register anchor `docs/CONFORMANCE.md#DRV-<rule-id>`, **COMPUTED from the row's own rule-id**, or `""` |
 | `editions` | (2023 only) the band within the editions no held text decides yet: a run from the introducing edition through 2023 among 2002 and 2014. Whether the rule exists at 85 is the lineage's (§10.2): the `85` token leaves this field when the 1985 change records are complete and a check finds the stored and the derived 85 agree (kb/Work PB4996) |
 | `next` | (an older edition only) the change record against the next held edition (§10.2) |
 | `notes` | the fix-queue item id for a DIVERGES; the owner decision for a non-support |
@@ -597,7 +597,7 @@ entry there (`lineage.py --self-test` adds a 2027 and watches the order, the bri
 >
 > `kinds.DOC.anchor-exempt-verdicts` therefore names the verdicts that **may** be exempt, and one predicate per
 > language (`Schema.anchor_obliged` / `AnchorObliged`) asks the register, over one parser per language
-> (`inventory_schema.section7_rows` / `tests/_shared/ConformanceRegister.cs`). `audit_annex_a1.py` applies the
+> (`conformance_source.Conformance.a1_rows` / `tests/_shared/ConformanceRegister.cs`). `audit_annex_a1.py` applies the
 > same test — the DNS selectors' rows *minus the ones §7 documents* (`unreachable_items`, emitted as `--json`'s
 > `unreachable`) — so the writer, the drift gate, the register gate and the REMAINING counter answer alike.
 > ⛔ The first half was found only by landing the A.1 lane and the derived-verdict lane onto one tree
@@ -796,7 +796,7 @@ retirement, and the rows that predate the rule are a measured residue (kb/Work P
 | the Python loader | `scripts/spec/inventory_schema.py` | parsing that schema, deriving `state`, and the ATOMIC inventory write |
 | the writer | `scripts/spec/record_verdicts.py` | validating a batch's SHAPE and merging it all-or-nothing — witnesses by union (PB959) |
 | the witness-count gate | `scripts/spec/audit_witness_loss.py` | that no row LOSES a witness without a retirement or a re-site (PB959) |
-| the battery gate | `tests/WiseOwl.Cobol.Tests.Unit/SpecTraceabilityInventoryDriftTests.cs` | REFERENTIAL integrity, continuously |
+| the battery gate | `tests/WiseOwl.Cobol.Tests.RepoDrift/SpecTraceabilityInventoryDriftTests.cs` | REFERENTIAL integrity, continuously |
 | the register audit | `scripts/spec/audit_annex_a1.py`, a gate audit (ANNEX A.1 REGISTER) | that `docs/CONFORMANCE.md` §7 is internally sound and agrees with the inventory |
 
 - **`kinds` is orthogonal to `verdicts`, and that is the point.** `verdicts` says what a VERDICT costs; `kinds`
@@ -887,7 +887,7 @@ test green.
 
 ⛔ **`determination-prefix` is the first arm field that reads an artifact outside the catalog, and it has to be:
 a DOC row's implementation IS its determination.** Three consequences, each load-bearing. The §7 table therefore
-has **one parser per language** — `inventory_schema.section7_rows` and `tests/_shared/ConformanceRegister.cs` —
+has **one parser per language** — `conformance_source.Conformance.a1_rows` and `tests/_shared/ConformanceRegister.cs` —
 because three readers now need it (the register audit, `anchor_obliged`, this arm). An item with **no** §7 row is
 never selected: a missing determination is not a negative one. And the match is on the cell's **opening** words
 with markdown emphasis stripped, never `contains` — item 127's determination discusses what is *not* provided
@@ -984,7 +984,7 @@ row, cross-checked against a register PARSED by one reader per language.
 |---|---|---|
 | the rules, as DATA | `tests/version-matrix/inventory-schema.json` → `derivation` | the record field, the anchor template, the §8 heading, the owner signatures (one per dated owner decision), and the four arms with their `names-pattern` + `check` |
 | the register | `docs/CONFORMANCE.md` **§8** | the determinations themselves — one row per closed rule, keyed `DRV-<rule-id>` |
-| the register parser | `inventory_schema.register_section` / `tests/_shared/ConformanceRegister.cs` | ONE markdown-table reader per language, now taking the HEADING and stopping at the next `## ` — §7 and §8 are two calls, not two parsers |
+| the register parser | `conformance_source.Conformance.rows_at` / `tests/_shared/ConformanceRegister.cs` | ONE markdown-table reader per language, addressing a section by its NUMBER and stopping at the section's next heading — §7 and §8 are two calls, not two parsers |
 | the undefined-element list | `tests/version-matrix/annex-a2-undefined.json`, generated by `scripts/spec/extract_annex_a2.py` | Annex A.2's 66 items, each item's own trailing citation, and the catalog `rule-id`s that citation RESOLVES to |
 | the state rule | `Schema.state_for` / `DerivedState` | the same clause, in both engines, in the same change set (`kb/Work/PB315`'s lesson) |
 | the writer | `record_verdicts.validate` | the six refusals of §1.1, at record time |

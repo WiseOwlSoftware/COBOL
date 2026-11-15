@@ -40,12 +40,28 @@
   ],
   "dialectBehaviors": [
     {
+      "id": "cancel-refuses-every-active-program",
+      "vcrRow": "7.66"
+    },
+    {
+      "id": "close-with-lock-locks-file-connector",
+      "vcrRow": "7.70"
+    },
+    {
       "id": "compile-time-arithmetic-mode",
       "vcrRow": "12"
     },
     {
       "id": "control-footing-page-groups-see-prior-values",
       "vcrRow": "7.54"
+    },
+    {
+      "id": "evaluate-objects-in-when-phrase-order",
+      "vcrRow": "7.69"
+    },
+    {
+      "id": "evaluate-refuses-literal-subject-literal-object",
+      "vcrRow": "7.75"
     },
     {
       "id": "file-sharing-facility",
@@ -76,6 +92,10 @@
       "vcrRow": "7.61"
     },
     {
+      "id": "negative-base-requires-integer-exponent",
+      "vcrRow": "7.67"
+    },
+    {
       "id": "numval-c-currency-content-rules",
       "vcrRow": "7.62"
     },
@@ -102,6 +122,10 @@
     {
       "id": "terminate-discards-saved-next-group",
       "vcrRow": "7.59"
+    },
+    {
+      "id": "unphrased-size-error-is-fatal",
+      "vcrRow": "7.71"
     }
   ],
   "nonstandardExtensionIds": [
@@ -913,8 +937,18 @@
     "COBOL6946",
     "COBOL6947",
     "COBOL6948",
-    "COBOL6973",
-    "COBOL7006"
+    "COBOL6979",
+    "COBOL7006",
+    "COBOL7039",
+    "COBOL7060",
+    "COBOL7061",
+    "COBOL7078",
+    "COBOL7081",
+    "COBOL7144",
+    "COBOL7165",
+    "COBOL7166",
+    "COBOL7234",
+    "COBOL7240"
   ],
   "cliOptions": [
     "--copy",
@@ -1166,6 +1200,10 @@
         },
         {
           "name": "slots",
+          "optional": true
+        },
+        {
+          "name": "rangeFailsStatement",
           "optional": true
         }
       ]

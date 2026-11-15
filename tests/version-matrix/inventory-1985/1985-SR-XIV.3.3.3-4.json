@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.3.3.3-4",
  "rule-digest": "e02c4e2193ce",
- "verdict": "PARTIAL",
+ "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#IsAlphanumericKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#IsCommunicationAlphanumericArea",
- "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-SR-XIV_3_3_3-4",
- "notes": "§1985:XIV.3.3.3 SR4: \"Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.\" CommunicationBinder#BindPath binds the KEY operand and refuses COBOL6171 when #IsAlphanumericKey fails; for a data item it asks #IsCommunicationAlphanumericArea of Place.Item, the item as declared, so a reference modification is ignored. §1985:IV.4.3.8.4.4 GR5 makes a reference-modified numeric, numeric edited or alphanumeric edited item \"class and category alphanumeric\", so ENABLE ... WITH KEY K-NUM (1:2) is legal and is refused. Probes at 85 (ENABLE OUTPUT): refused numeric, PIC A, ZZ9, S9(3)V9, -1, LENGTH and NUMVAL functions, a witness-like numeric item; accepted X, XBX, a group, \"PW\", SPACE, ZERO, ALL \"A\", K-T (I), UPPER-CASE, CHAR (66), CURRENT-DATE (1:4); rejected K-NUM (1:2). The KEY phrase is refused at 2002 on (COBOL0902). Siblings with the same cause: DISABLE KEY K-NUM (1:2) at 85 and RECEIVE INTO K-NUM (1:2) at 2002 (A.2.5.2 SR2) are refused COBOL6171 too. kb/Work PB5384 holds the defect (code read: coderead-85/out-read3/rd-06.json).",
+ "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-SR-XIV_3_3_3-4; conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/pb5384_key_refmod_85; conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/pb5240_key_function_identifier",
+ "notes": "§1985:XIV.3.3.3 SR4: \"Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.\" CommunicationBinder#BindPath refuses COBOL6171 when #IsAlphanumericKey fails; a data item is asked of the REFERENCE (#IsCommunicationAlphanumericArea(Place), kb/Work PB5384): a reference-modified operand is the unique data item it creates, read through Table16Operand.Of(Place), so a slice of a numeric or numeric edited item is alphanumeric (§1985:IV.4.3.8.4.4 GR5) and a slice of a PIC A item stays alphabetic and is refused. Probes at --std 85 on this tree: ENABLE ... KEY K-NUM (1:2) and K-EDT (1:3) accepted and ran; PIC 9(4), PIC A, ZZ9 whole items refused as before. Open question carried from the read, not counted: PIC XXBXX (alphanumeric edited) is accepted while ZZ9.99 is refused.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

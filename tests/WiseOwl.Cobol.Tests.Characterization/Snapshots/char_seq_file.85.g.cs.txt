@@ -99,7 +99,7 @@ public static class CHAR_SEQ_FILE
         ProgramRegistry.CallProgram("CHAR-SEQ-FILE", null, global::System.Array.Empty<CobolArg>(), null, siteArgMismatchChecking: true);
     }
     /// <summary>CANCEL CHAR-SEQ-FILE (ISO §2023:14.9.5) in the current run unit.</summary>
-    public static void Cancel() => ProgramRegistry.Cancel("CHAR-SEQ-FILE", null);
+    public static void Cancel() => ProgramRegistry.Cancel("CHAR-SEQ-FILE", null, refusesEveryActiveProgram: true);
 }
 public static class __CobolModule
 {

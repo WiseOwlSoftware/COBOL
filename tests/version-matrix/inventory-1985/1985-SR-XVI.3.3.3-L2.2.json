@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.3.3.3-L2.2",
  "rule-digest": "dc03629018de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#RangeAllowed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#CheckSegmentation; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#SegmentationFlowRestriction",
  "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_3-L2_2",
+ "notes": "§1985:XVI.3.3.3 SRL2.2: a MERGE in an independent segment names an output procedure totally within non-independent segments or \"Wholly within the same independent segment as that MERGE statement\". SortBinder.CheckSegmentation sends the OUTPUT PROCEDURE range to Segmentation.CheckProcedures (asked only at COBOL-85, where segment-numbers exist); RangeAllowed returns true for a single independent segment only when it equals the MERGE's own segment (only == from) and never for a fixed and independent mix, else COBOL6877. Probes at --std 85 (classes b,c,e,f): MERGE in 60 with output in 60, in 20 THRU 30 and in 60 THRU 60 compile and run (four merged records); MERGE in 50 with output 50 THRU 50 runs; MERGE in 60 naming 70 (the witness), 60 THRU 20, and MERGE in 99 naming 50 refused COBOL6877; at --std 2023 the segment-numbers are refused COBOL0902. Which procedures count is docs/CONFORMANCE.md's determination: the ones the MERGE names, not their PERFORM closure (CCVS-85 SG102A/SG103A).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

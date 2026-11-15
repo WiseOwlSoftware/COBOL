@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XII.2.3-8",
  "rule-digest": "a352461884d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#MaxTextWordLength; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand",
  "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-8",
+ "notes": "§1985:XII.2.3 SR8: 'The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text and within library text.' The one limit is MaxTextWordLength (65,535), checked for library text in CopyProcessor#ResolveOneCopy and for pseudo-text in ScreenOperandPair, at every edition, so every 1-322 character text word is allowed at --std 85 (allowing more is within 'must allow'). Probes at 85: a 322-character word continued over six lines in library text, replaced through a 322-character pseudo-text-1 word (also continued), prints LONG OK; a 1-character word Q replaced prints ONE OK; a 400-character pseudo-text-2 word is accepted by the text stage (the parse then refuses the non-statement it forms); a 160-character continued literal in pseudo-text-2 displays whole. The witness is a 162-character literal text word in library text.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

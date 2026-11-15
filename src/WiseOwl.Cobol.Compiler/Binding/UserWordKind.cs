@@ -31,6 +31,9 @@ public enum UserWordKind
     IndexName,
     InterfaceName,
     LevelNumber,
+    /// <summary>A library-name (§1985:IV.4.2.2.1.1, the COPY statement's library-name-1): a user-defined word of a disjoint set of
+    /// its own at COBOL-85 only; ISO 2002 made it a system-name (§2002:F.2, item 135; kb/Work PB5482).</summary>
+    LibraryName,
     LocaleName,
     MethodName,
     MnemonicName,
@@ -44,12 +47,12 @@ public enum UserWordKind
     RecordKeyName,
     RecordName,
     ReportName,
-    /// <summary>A routine-name (§1985:IV.4.2.2.1.1, the ENTER statement's routine-name-1, §1985:VI.6.12.3 SR2): no 2002 or 2023
-    /// type, since ISO 2002 deleted the ENTER statement (kb/Work PB5178).</summary>
-    RoutineName,
     ScreenName,
     SectionName,
     SymbolicCharacter,
+    /// <summary>A text-name (§1985:IV.4.2.2.1.1, the COPY statement's text-name-1): a user-defined word of a disjoint set of its
+    /// own at COBOL-85 only; ISO 2002 made it a system-name (§2002:F.2, item 135; kb/Work PB5482).</summary>
+    TextName,
     TypeName,
     UserFunctionName,
 }
@@ -90,11 +93,15 @@ public static class UserWordKinds
     /// one in a source element leaves every reference to it ambiguous. <c>DataBinder.DeclareUserWord</c> refuses the
     /// second under <c>COBOL4250</c>; a switch's condition-names (the <c>ConditionName</c> type is also the
     /// level-88 entries', which qualification tells apart) ask the same check explicitly at their declaration. A new
-    /// SPECIAL-NAMES declaration kind joins this set and nothing else.</summary>
+    /// SPECIAL-NAMES declaration kind joins this set. A cd-name and a report-name join it too (kb/Work PB5307): neither has a
+    /// qualifier (§1985:IV.4.3.8.1 SR1 "No other name has the identical spelling."; the qualifiers of §2023:8.4.2.2.2 are for
+    /// data, condition, index and file-report names), and <c>CommunicationSlice.Declare</c> replaced the first CD of a name with the
+    /// second, so every statement bound to the last; a second RD of one report-name left INITIATE and TERMINATE with two reports to choose.</summary>
     public static IReadOnlySet<UserWordKind> DeclaredUnqualifiable { get; } = new HashSet<UserWordKind>
     {
         UserWordKind.AlphabetName, UserWordKind.ClassName, UserWordKind.DynamicLengthStructureName,
         UserWordKind.LocaleName, UserWordKind.MnemonicName, UserWordKind.OrderingName,
+        UserWordKind.CdName, UserWordKind.ReportName,
     };
 
     /// <summary>⛔ THE ONE ANSWER to "may one word be used as BOTH of these types of user-defined word in a source
@@ -108,6 +115,10 @@ public static class UserWordKinds
         || (a == UserWordKind.LevelNumber && MayShareWithALevelNumber.Contains(b))
         || (b == UserWordKind.LevelNumber && MayShareWithALevelNumber.Contains(a))
         || (MayShareOneName.Contains(a) && MayShareOneName.Contains(b));
+
+    /// <summary>Whether <paramref name="kind"/> is a COPY statement's text-name or library-name — the two types that are user-defined
+    /// words below COBOL-2002 only (<see cref="Editions.EditionInfo.CopyNamesAreUserDefinedWords"/>; kb/Work PB5482).</summary>
+    public static bool IsCopyName(UserWordKind kind) => kind is UserWordKind.TextName or UserWordKind.LibraryName;
 
     /// <summary>The standard's own name for the type (<c>AlphabetName</c> → <c>alphabet-name</c>).</summary>
     public static string Spelling(this UserWordKind kind) =>

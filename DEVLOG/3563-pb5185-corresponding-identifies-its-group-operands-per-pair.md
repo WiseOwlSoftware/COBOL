@@ -1,0 +1,8 @@
+## Entry 3563 — 2026-11-13 04:50 PST — PB5185: CORRESPONDING identifies its group operands per pair at --std 85
+
+At `--std 85`, `MOVE CORRESPONDING A (I OF B, J OF B) TO B` printed 22 where the two separate MOVEs print 27 (82 in the other order), because `CorrespondingBinder.Bind` anchored both group operands once, at the start, for every edition. §1985:VI.6.19.4 GR1 makes the results those of separate MOVE statements with no exception; the start-of-statement freeze is the 2002 exception in §2023:14.9.25.4 GR11. Re-probe on the branch build showed the 22 and a second case, `MOVE CORR E (I OF B1) TO B1`, printing `2P` where separate MOVEs give `2Q`.
+
+Fix: `CorrAccess.Create` takes `perPair`, true for every CORRESPONDING verb below 2002; `ChildPlace` then builds each pair's place from the group's own access path (member groups) or its window offset (REDEFINES view groups) and `Bind` emits no hoist. 85 now prints 27 and `2Q`; 2002, 2014 and 2023 keep 22 and `2P`. ADD and SUBTRACT CORRESPONDING follow MOVE (review round 1, R1-1): the 1985 text names no identification time for them, so the choice is GnuCOBOL's, which identifies per pair; one edition rule for all three verbs, recorded as D-CORR85 in docs/CONFORMANCE.md, with 85 goldens for ADD and SUBTRACT and a frozen-at-2002 ADD golden. No new diagnostic, so no refusal test: nothing is refused.
+
+Goldens: `VI.6.19@1985-MOVE-STATEMENT/pb5185_move_corresponding_subscript_per_pair` (85, expects 27) and `14.9.25-MOVE/pb5185_move_corresponding_subscript_frozen` (2002 and later, expects 22, the first test of the freeze). Both pass through the harness runner. The note's row `1985-GR-VI.6.19.4-1` cannot go in a row list until PB5094 lands, so the landing closes none by record.
+

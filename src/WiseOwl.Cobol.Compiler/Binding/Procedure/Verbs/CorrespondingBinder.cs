@@ -107,10 +107,20 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst, receiving.GetText(), rule);
         if (!srcOk || !dstOk) return BoundRejected.Reported(ctx.Edition);
 
+        // ⛔ WHEN THE GROUP OPERANDS' SUBSCRIPTS ARE EVALUATED IS AN EDITION RULE (kb/Work PB5185). §1985:VI.6.19.4 GR1 makes
+        // MOVE CORRESPONDING "the same as if the user had referred to each pair of corresponding identifiers in separate
+        // MOVE statements", and each separate MOVE evaluates its own subscripts, so a pair that stores into a subscript of
+        // a group operand moves the later pairs' element. The 2002 standard added the exception that freezes them
+        // ("the subscript value used is that resulting from the evaluation of the subscript at the start of the execution
+        // of the statement", §2023:14.9.25.4 GR11), and §2023:14.7.6 gives the same start-of-statement identification to
+        // ADD and SUBTRACT. §1985:VI.6.6.4 GR3 (ADD) and its SUBTRACT sibling print no identification time, so below 2002
+        // the choice is the implementor's and, by CLAUDE.md rule 1, GnuCOBOL's: it identifies afresh per pair for ADD and
+        // SUBTRACT as for MOVE (docs/CONFORMANCE.md D-CORR85). One edition rule for all three verbs.
+        bool perPair = ctx.Edition.DialectLevel < 2002;
         int id = _corrCounter++;
         var hoists = new List<CorrespondingHoist>();
-        if (CorrAccess.Create(src, new StatementLocal(StatementLocalRole.CorrespondingSendingAnchor, id), hoists, ctx.Refs) is not { } srcAcc
-            || CorrAccess.Create(dst, new StatementLocal(StatementLocalRole.CorrespondingReceivingAnchor, id), hoists, ctx.Refs) is not { } dstAcc)
+        if (CorrAccess.Create(src, new StatementLocal(StatementLocalRole.CorrespondingSendingAnchor, id), hoists, ctx.Refs, perPair) is not { } srcAcc
+            || CorrAccess.Create(dst, new StatementLocal(StatementLocalRole.CorrespondingReceivingAnchor, id), hoists, ctx.Refs, perPair) is not { } dstAcc)
             return new BoundUnsupported($"{verbName} CORRESPONDING group operand storage shape "
                 + $"('{src.Item.CobolName}' / '{dst.Item.CobolName}' is neither a member path nor a REDEFINES view)");
 
@@ -397,7 +407,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         MoveTable16.DataItemRefusal(src, dst) is null;
 
     /// <summary>
-    /// The per-statement child-place factory over ONE resolved group operand: §2023:14.7.6 requires all item
+    /// The per-statement child-place factory over ONE resolved group operand. At 1985 a MOVE has no anchor (<c>perPair</c>:
+    /// each pair's place carries the group's own subscripts, as a separate MOVE does, §1985:VI.6.19.4 GR1); elsewhere §2023:14.7.6 requires all item
     /// identification (including the group's subscripts) at statement START, so the group is anchored exactly once
     /// — a member-path group by a <c>ref var</c> local (added lazily on first use, so no unused local is emitted),
     /// a Tier-B REDEFINES view group by a <c>long</c> local pinning its window offset. The relative chain from the
@@ -410,6 +421,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         private readonly List<CorrespondingHoist> _hoists;
         private readonly MethodLocal _local;
         private readonly Place? _group;        // the member group's anchor Place (the `ref var` hoist target)
+        private readonly bool _perPair;        // below 2002: no anchor - every pair re-identifies the group (§1985:VI.6.19.4 GR1)
         private readonly Position? _viewOffset; // the view group's window offset (the `long` hoist init); null for any other group
         private readonly bool _isMember;       // MemberPlace group vs Tier-B RedefViewPlace group
         private readonly bool _subscripted;    // the member path evaluates a subscript (a table access)
@@ -423,8 +435,9 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         private Position? _dynOrdinal;         // the view group's component ordinal (kb/Work PB1042)
 
         private CorrAccess(List<CorrespondingHoist> hoists, MethodLocal local, Place? group, Position? viewOffset,
-            bool isMember, bool subscripted, AccessPath? backing, DataItem groupItem, ReferenceResolver refs)
+            bool isMember, bool subscripted, AccessPath? backing, DataItem groupItem, ReferenceResolver refs, bool perPair)
         {
+            _perPair = perPair;
             _hoists = hoists; _local = local; _group = group; _viewOffset = viewOffset; _isMember = isMember;
             _subscripted = subscripted; _backing = backing; _groupItem = groupItem; _refs = refs;
         }
@@ -442,24 +455,24 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         /// the pairs are exactly the fixed members at their fixed offsets. Switching on the decorated place sent
         /// the operand to the default arm, and `SUBTRACT CORRESPONDING` over two occurs-depending groups —
         /// §2023:14.9.44.3 SR6 admits the kind by name — aborted the run unit.</para></summary>
-        public static CorrAccess? Create(Place group, MethodLocal local, List<CorrespondingHoist> hoists, ReferenceResolver refs)
+        public static CorrAccess? Create(Place group, MethodLocal local, List<CorrespondingHoist> hoists, ReferenceResolver refs, bool perPair)
             => group.Undecorated switch
             {
                 MemberPlace m => new CorrAccess(hoists, local, group: m, viewOffset: null, isMember: true,
-                    subscripted: m.Path.HasIndex, backing: null, m.Item, refs),
+                    subscripted: m.Path.HasIndex, backing: null, m.Item, refs, perPair),
                 RedefViewPlace v => new CorrAccess(hoists, local, group: null, viewOffset: v.Offset, isMember: false,
-                    subscripted: false, v.Backing, v.Item, refs) { _cell = v.Cell, _dynOrdinal = v.DynOrdinal },
+                    subscripted: false, v.Backing, v.Item, refs, perPair) { _cell = v.Cell, _dynOrdinal = v.DynOrdinal },
                 // A level-66 THROUGH alias (kb/Work PB966): its members are the elementary items §2023:13.18.45.4 GR2
                 // says it includes, none subject to an OCCURS clause (§2023:13.18.45.3 SR3 keeps both endpoints out of
                 // one, and CorrMembers excludes an item under an OCCURS inside the window), so each is identified
                 // by its own unsubscripted reference — there is nothing to anchor at statement start.
                 RenamesPlace n => new CorrAccess(hoists, local, group: null, viewOffset: null, isMember: false,
-                    subscripted: false, backing: null, n.Item, refs) { _isAlias = true },
+                    subscripted: false, backing: null, n.Item, refs, perPair) { _isAlias = true },
                 // The X3.23-1985 DEBUG-ITEM group (kb/Work PB4903): a VIEW over the program instance's register, whose
                 // members are the entries X3.23-1985 USE FOR DEBUGGING general rule 10 lists, each reached as the register
                 // member that entry is, not as a struct member path, and with nothing to anchor at statement start.
                 DebugRegisterPlace { Member: DebugRegisterMember.Item } d => new CorrAccess(hoists, local, group: null, viewOffset: null,
-                    isMember: false, subscripted: false, backing: null, d.Item, refs) { _isDebugRegister = true },
+                    isMember: false, subscripted: false, backing: null, d.Item, refs, perPair) { _isDebugRegister = true },
                 _ => null,
             };
 
@@ -478,7 +491,10 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
                 {
                     // The child is a member path off the anchor local: LocalRootSegment(anchor) + one MemberSegment
                     // per chain step.
-                    var segs = new List<AccessSegment> { new LocalRootSegment(Hoist(isRef: true)) };
+                    // (1985 MOVE: the group's own path instead, so each pair evaluates its subscripts afresh.)
+                    var segs = _perPair
+                        ? [.. ((MemberPlace)_group!.Undecorated).Path.Segments]
+                        : new List<AccessSegment> { new LocalRootSegment(Hoist(isRef: true)) };
                     segs.AddRange(chain.Select(c => new MemberSegment(c.ClrName)));
                     return new MemberPlace(new AccessPath(segs), leaf);
                 }
@@ -497,7 +513,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             // when the group is one occurrence of a dynamic-capacity table, at whose offset zero it then lies — and
             // its component ordinal, by which a dynamic-length pair member's slot is displaced like its window.
             bool element = _groupItem.IsDynamicTable;
-            Position displacement = new PositionBinary(new PositionLocal(Hoist(isRef: false)), PositionOperator.Subtract,
+            Position displacement = new PositionBinary(_perPair ? _viewOffset! : new PositionLocal(Hoist(isRef: false)), PositionOperator.Subtract,
                                                        new PositionConstant(element ? 0 : _groupItem.ClassOffset));
             return RedefViewPlace.For(_backing!, leaf,
                 new PositionBinary(displacement, PositionOperator.Add, new PositionConstant(leaf.ClassOffset)), displacement,

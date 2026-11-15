@@ -94,14 +94,15 @@ def stall_lane(g: dict) -> str:
 
 def implementer_activity(worktree: str | None) -> tuple[bool, float]:
     """(a gate holds the lock of the report's worktree, the mtime of the worktree's last act): what says a DONE report's
-    implementer has NOT returned yet (kb/Work PB4918). The lock is the gate's own (`gate.live_gate`, the one reader of "a
+    implementer has NOT returned yet (kb/Work PB4918). The lock is the gate's own (`gate_runs.live_gate`, the one reader of "a
     gate is running here"; the worktree's git directory is read with no git process, as the branch survey does); the last
     act is the newest of its HEAD log and its STATUS.md (the two files an implementer's checkpoint rewrites, as
     `prune_worktrees.survey` reads them). A report naming no worktree, or one that is gone, says (False, 0.0): the clock then
     runs from the report alone."""
     if not worktree or not pathlib.Path(worktree).is_dir():
         return False, 0.0
-    import gate  # noqa: PLC0415  (scripts/, on the path through coord; heavy, so only for a DONE report awaiting review)
+    import gate_host  # noqa: PLC0415  (scripts/, on the path through coord; heavy, so only for a DONE report awaiting review)
+    import gate_runs  # noqa: PLC0415
     import prune_worktrees  # noqa: PLC0415
     gdir = prune_worktrees.worktree_git_dir(worktree)
     stamps = []
@@ -110,7 +111,7 @@ def implementer_activity(worktree: str | None) -> tuple[bool, float]:
             stamps.append(p.stat().st_mtime)
         except OSError:
             pass
-    return gate.live_gate(gdir / gate.LOCK_NAME) is not None, max(stamps, default=0.0)
+    return gate_runs.live_gate(gdir / gate_host.LOCK_NAME) is not None, max(stamps, default=0.0)
 
 
 def group_activity(cdir: pathlib.Path, g: dict) -> float:
@@ -451,9 +452,9 @@ def self_test() -> int:
          "merged": iso(now - 200 * 60).astimezone().isoformat()},
         {"pr": 4, "branch": "b4", "enqueued": iso(now - 200 * 60).astimezone().isoformat()})),   # closed, never merged
         encoding="utf-8", newline="\n")
-    import gate  # noqa: PLC0415
+    import gate_host  # noqa: PLC0415
     import gate_slot  # noqa: PLC0415
-    held = gate_slot.ExclusiveLock.try_take(wt_gating / ".git" / gate.LOCK_NAME, "gate (self-test)")
+    held = gate_slot.ExclusiveLock.try_take(wt_gating / ".git" / gate_host.LOCK_NAME, "gate (self-test)")
     try:
         p = progress(cdir, since, now, register)
     finally:

@@ -545,13 +545,14 @@ sameAsClause
     : SAME AS cobolWord ((OF | IN) cobolWord)*   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitSameAsClause (recognition; the typedefClause pattern)
     ;
 
-// PIC Clause — PIC/PICTURE triggers PICMODE in the lexer, which emits a single PIC_STRING token (IS is consumed
-// by PICMODE). The optional trailing EDITING phrases (ISO §2023:13.18.40.2 Format 1, COBOL-2023) are lexed in DEFAULT
+// PIC Clause — PIC/PICTURE triggers PICMODE in the lexer, which emits a single PIC_STRING token after the one
+// optional IS (an IS token: the format prints IS once, §2023:13.18.40.2; a second IS is the character-string, kb/Work
+// PB5213, CobolLexer.OnPictureIs). The optional trailing EDITING phrases (ISO §2023:13.18.40.2 Format 1, COBOL-2023) are lexed in DEFAULT
 // mode: PIC_STRING stops at whitespace and pops PICMODE, so ` EDITING …` follows as an ordinary token stream.
 // The whole EDITING group is additive/repeatable; SR11 (distinct character-1) is enforced at bind. The 2023
 // introduction gate is VersionConformancePass ParseArm.VisitPictureClause (recognition on editingPhrase presence).
 pictureClause
-    : PIC PIC_STRING editingPhrase* pictureLocalePhrase?
+    : PIC IS? PIC_STRING editingPhrase* pictureLocalePhrase?
     ;
 
 // PICTURE Format 2 (locale) — `PIC IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1` (ISO

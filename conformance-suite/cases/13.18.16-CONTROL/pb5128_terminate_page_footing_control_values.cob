@@ -1,10 +1,13 @@
       *>--- conformance-case
       *> id: pb5128_terminate_page_footing_control_values
       *> rules: [GR-13.18.16.4-5, GR-14.9.46.4-3]
-      *> accept: [85, 2002, 2014, 2023]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> COBOL-85 is not an edition of this program: its page footing USE procedure references the control data-name
+      *> WS-KEY, and "In page heading and page footing report groups, SOURCE clauses and USE statements must not
+      *> reference control data-names" (§1985:XIII.3.20.3 SR5; refused COBOL6825 at 85 since kb/Work PB5424).
       *> kb/Work PB5128 - the page footing TERMINATE prints: which control values its USE procedure sees.
       *>
       *> §1985:XIII.3.20.4 GR13 (cite.py --check): b. "When a TERMINATE statement is executed, the report writer

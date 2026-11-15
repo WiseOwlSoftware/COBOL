@@ -16,9 +16,11 @@ public sealed class CorrespondingDifferentialTests
 {
     private static readonly WiseOwlCobolCompiler WiseOwlCobol = new();
 
-    private static void AssertOutput(string source, string expected)
+    private static readonly WiseOwlCobolCompiler WiseOwlCobol2023 = new(2023);
+
+    private static void AssertOutput(string source, string expected, WiseOwlCobolCompiler? compiler = null)
     {
-        var (ok, outp, detail) = WiseOwlCobol.CompileAndRun(source);
+        var (ok, outp, detail) = (compiler ?? WiseOwlCobol).CompileAndRun(source);
         Assert.True(ok, $"WiseOwl COBOL failed: {detail}");
         Assert.Equal(expected, outp);
     }
@@ -207,11 +209,19 @@ public sealed class CorrespondingDifferentialTests
 
     // ── Item identification — the group operands' subscripts included — happens ONCE at statement START, never
     //    per implied statement (§2023:14.7.6: "Any item identification … is done at the start of the execution of the
-    //    statement"). Pair 1 overwrites the subscript item of the SOURCE group; pair 2 must still read the row
-    //    identified before any pair ran. SPEC-PINNED: the legacy re-resolves the group per pair. ─────────────────
+    //    statement"); that is the exception §2023:14.9.25.4 GR11 makes to GR1's "separate MOVE statements", which 1985
+    //    lacks, so the 85 arm re-identifies per pair (kb/Work PB5185). Pair 1 overwrites the subscript item of the
+    //    SOURCE group; pair 2 reads the row identified before any pair ran (2023) or the row the stored subscript now
+    //    names (85). ─────────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void MoveCorresponding_GroupSubscriptIdentifiedOnce_AtStatementStart()
-        => AssertOutput(Program("""
+        => AssertOutput(GroupSubscriptProgram(), "2\n5", WiseOwlCobol2023);
+
+    [Fact]
+    public void MoveCorresponding_GroupSubscriptIdentifiedPerPair_At85()
+        => AssertOutput(GroupSubscriptProgram(), "2\n8");
+
+    private static string GroupSubscriptProgram() => Program("""
             01 DST-G.
                02 IDX PIC 9 VALUE 1.
                02 VAL PIC 9 VALUE 0.
@@ -227,7 +237,7 @@ public sealed class CorrespondingDifferentialTests
                 MOVE CORRESPONDING SROW (IDX OF DST-G) TO DST-G.
                 DISPLAY IDX OF DST-G.
                 DISPLAY VAL OF DST-G.
-            """), "2\n5");
+            """);
 
     // ── The NC202A table shape (NC202A :1112): an OCCURS namesake inside both groups is excluded (r4) while its
     //    siblings pair — RECORD1: 8+6=14, RECORD3: 9+7=16, RECORD2 occurrences untouched. ────────────────────────

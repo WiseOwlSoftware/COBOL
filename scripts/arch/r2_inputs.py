@@ -214,6 +214,7 @@ def analyzer_key(commit: str) -> dict:
 PROJECT_ORDER = ["WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Runtime", "WiseOwl.Cobol.Frontend", "WiseOwl.Cobol.Cli",
                  "WiseOwl.Cobol.Compiler.SourceGen", "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Benchmarks",
                  "WiseOwl.Cobol.Tests.Characterization", "WiseOwl.Cobol.Tests.Conformance", "WiseOwl.Cobol.Tests.Unit",
+                 "WiseOwl.Cobol.Tests.RepoDrift",
                  "WiseOwl.Cobol.ArchOracle"]
 
 

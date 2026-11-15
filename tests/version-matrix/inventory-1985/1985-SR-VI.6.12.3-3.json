@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.12.3-3",
  "rule-digest": "7d7972400137",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#EnterStatementNotProvided; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
  "test-ref": "conformance:cases/VI.6.12@1985-ENTER-STATEMENT/1985-SR-VI_6_12_3-3",
+ "notes": "§1985:VI.6.12.3 SR3: 'The sentence ENTER COBOL must follow the last other-language statement'. The antecedent cannot occur: every ENTER sentence, the other-language one and the ENTER COBOL return alike, is refused at 85 with COBOL7240 (kb/Work PB5308), so no other-language text is compiled in-line and none can run as COBOL; witness: the refusal 1985-SR-VI_6_12_3-3 (refuse-at 85, COBOL7240).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

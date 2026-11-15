@@ -213,19 +213,32 @@ internal sealed class MessageDefinitions
 
     /// <summary>A.1.2.3 GR5: "When a given level of the queue structure is specified all higher levels shall also be specified", so a level
     /// named below a blank one designates nothing, and neither does a blank queue. Null when the structure is unknown to the MCS.</summary>
-    internal QueueDefinition? FindQueue(string[] path)
+    internal QueueDefinition? FindQueue(string[] path) => Resolve(path, out var deepest) ? deepest : null;
+
+    /// <summary>The deepest level of <paramref name="path"/> the MCS knows, however much of the path below it does not designate a queue: the level a statement of
+    /// DISABLE INPUT or ENABLE INPUT judges condition 15 (already disabled or enabled) of, beside the condition 20 of the unknown levels below it (§1985:B.2.2). Null when not even
+    /// the first level is known. For a path that <see cref="FindQueue"/> resolves, the queue it returns.</summary>
+    internal QueueDefinition? FindQueuePrefix(string[] path)
     {
-        if (path.Length == 0 || path[0].Length == 0) return null;
-        QueueDefinition? node = null;
+        Resolve(path, out var deepest);
+        return deepest;
+    }
+
+    /// <summary>Walk <paramref name="path"/> down the queue hierarchy. <paramref name="deepest"/> is the last level found; the result is whether the whole path designated it.</summary>
+    private bool Resolve(string[] path, out QueueDefinition? deepest)
+    {
+        deepest = null;
+        if (path.Length == 0) return false;
         var level = _queues;
         for (int i = 0; i < path.Length; i++)
         {
             if (path[i].Length == 0)
-                return path.Skip(i).All(p => p.Length == 0) ? node : null;
-            if (!level.TryGetValue(path[i], out node)) return null;
+                return i > 0 && path.Skip(i).All(p => p.Length == 0);
+            if (!level.TryGetValue(path[i], out var node)) return false;
+            deepest = node;
             level = node.Children;
         }
-        return node;
+        return true;
     }
 }
 

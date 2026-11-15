@@ -429,7 +429,8 @@ The test is **incremental-friendly**: assertions 1–2 land as a ratchet (an all
 nodes convert); assertion 3 lands with the seam-proof (§3.2, §3.3). In CI it is a hard gate — a new node with a C#
 string field fails the build, exactly the "missing-arm-is-a-compile-error" culture extended to neutrality.
 
-**As built (kb/Work PB4266): `tests/WiseOwl.Cobol.Tests.Unit/Architecture/BackendContractDriftTests.cs`.**
+**As built (kb/Work PB4266): `tests/WiseOwl.Cobol.Tests.RepoDrift/Architecture/BackendContractDriftTests.cs`** (in the
+repository-drift assembly since kb/Work PB5230: it reads the architecture edges file's layers).
 - **The population is measured, not named.** A backend reaches a model type three ways: by holding a value (a field
   of a value it holds), by calling a member (what a method or property returns: `HostSurface.TypeOf` returns a
   `HostType`) and by naming a type outright (a static function or table, a constant, the generated visitor interface it

@@ -780,6 +780,17 @@ public sealed class DataItem
         "a level-66 entry is not a subordinate (it rides Renames66) and is part of no entry description")]
     public RenamesInfo? Renames { get; set; }
 
+    /// <summary>The item whose attributes and storage are this item's (kb/Work PB5477): the item itself, or — for a no-THROUGH
+    /// level-66 alias — the item it renames (§2023:13.18.45.4 GR1: "all of the data attributes of data-name-2 become the data
+    /// attributes of data-name-1 and the storage area occupied by data-name-2 becomes the storage area occupied by data-name-1";
+    /// §1985:VI.5.11.4 GR2). The model-layer reading of <see cref="Renames"/> a reference-resolution reader asks instead of
+    /// reading the descriptor itself (<c>RenamesPlaceBuilderDriftTests</c>).</summary>
+    public DataItem AttributeItem => Renames is { IsAlias: true, From: { } renamed } ? renamed : this;
+
+    /// <summary>True for a level-66 entry: it owns no field of its own name, so a reader that names a field cannot name it and
+    /// the entry's place is composed by the one item-to-place builder (kb/Work PB1380, PB5477).</summary>
+    public bool OwnsNoField => Renames is not null;
+
     /// <summary>The redefines class (shared-storage equivalence class) this item belongs to, or null if it stands
     /// alone. Every member of a class — the original + every redefiner — points to the SAME instance.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,

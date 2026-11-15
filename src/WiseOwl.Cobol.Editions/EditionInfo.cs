@@ -37,6 +37,22 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// programs.</summary>
     public bool ReplaceScopeEndsWithSeparatelyCompiledProgram => Year < 2002;
 
+    /// <summary>Whether text a replacement introduces is laid out in the lines of the fixed reference format (kb/Work
+    /// PB5382): at COBOL-85 every introduced line takes "the same character as the line on which the text being replaced
+    /// begins" in its indicator area (§1985:XII.3.4 GR11), and a literal too long for one line is continued onto a
+    /// continuation line, which a debugging line cannot be ("If replacement requires the continued literal to be continued
+    /// on a debugging line, the program is in error", the same rule; §1985:XII.2.4 GR9 for COPY). From 2002 the rule is the
+    /// debugging line alone — "If the text being replaced begins on a debugging line, the resultant text is on a debugging
+    /// line" (§2002:7.1.3.3 GR11) — and no continued-literal error remains.</summary>
+    public bool ReplacedTextIsLaidOutInFixedForm => Year < 2002;
+
+    /// <summary>Whether a COPY statement's text-name and library-name are USER-DEFINED WORDS (kb/Work PB5482): at COBOL-85 they
+    /// are, each in a disjoint set of its own, and "All user-defined words, except segment-numbers and level-numbers, can belong
+    /// to one and only one of these disjoint sets" (§1985:IV.4.2.2.1.1), so a data-name, an index-name or any other
+    /// user-defined word of the same source program shall not be spelled like one. From 2002 they are system-names, "instead of
+    /// user-defined words, and do not have to be different from user-defined words" (§2002:F.2, item 135).</summary>
+    public bool CopyNamesAreUserDefinedWords => Year < 2002;
+
     /// <summary>True when the targeted edition is at or after <paramref name="introducedIn"/> — the one
     /// predicate behind the grammar's <c>{isXXXX()}?</c> introduction gates and every version-varying bind
     /// decision.</summary>

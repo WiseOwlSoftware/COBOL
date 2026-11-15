@@ -46,11 +46,11 @@
        01  WS-I    PIC 99    VALUE 0.
        01  WS-LINE PIC X(12) VALUE SPACES.
        REPORT SECTION.
-       RD  R-A CODE IS "A-".
+       RD  R-A CODE "A-".
        01  DE-A TYPE DE LINE PLUS 1.
            02  COLUMN 1 PIC X(3) VALUE "AAA".
            02  COLUMN 5 PIC 9 SOURCE WS-N.
-       RD  R-B CODE IS "B-".
+       RD  R-B CODE "B-".
        01  DE-B TYPE DE LINE PLUS 1.
            02  COLUMN 1 PIC X(3) VALUE "BBB".
            02  COLUMN 5 PIC 9 SOURCE WS-N.

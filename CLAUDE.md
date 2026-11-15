@@ -26,7 +26,7 @@ commitments, the four required reviews) and does not restate them. Other documen
    regression NETS with known holes — never authority. **Where there are several implementation options, the precedence
    is: the ISO spec if it controls → otherwise GnuCOBOL → if GnuCOBOL has nothing, IBM Enterprise COBOL or Micro Focus**
    (`kb/Work/R13`). This settles implementor LATITUDE only — never GnuCOBOL's non-ISO extensions — and the choice is
-   documented in `docs/CONFORMANCE.md`. When a general-format DIAGRAM is load-bearing, render the PDF page
+   documented in `docs/conformance/` (one file per entry; `docs/CONFORMANCE.md` is its rendered view). When a general-format DIAGRAM is load-bearing, render the PDF page
    (`scripts/render-spec-page.py <page>`): the OCR'd diagrams were systematically lossy toward falsely-restrictive syntax.
    **A citation names its edition: `§<edition>:<locator>[ <rule>]`** — `§2023:13.18.35.4 GR1`, `§1985:VI.5.3.4 GR3`
    (kb/Work PB4887; the format and its one parser are `scripts/spec/citation.py`). A bare `§` is a section of a repository
@@ -133,11 +133,12 @@ Done = every edition's traceability inventory at zero GAP.
 ## Testing
 THE POPULATION IS THE PLAN (kb/Work PB4323). **The gate has ONE shape: `pwsh scripts/build-local.ps1 -Priority
 BelowNormal`** (`scripts/gate.py`), run at a branch's head before it lands. It decides a lane from the diff's paths:
-- **inert** (`docs/`, `kb/`, `DEVLOG/` and every `*.md`, except the files `inert_lane.py`'s `CLASSIFICATION.read` lists:
+- **inert** (`docs/`, `kb/`, `DEVLOG/` and every `*.md`, except the files `lane_classification.py`'s `CLASSIFICATION.read` lists:
   the ISO text, the oracle, and the data files under docs/ that compiler tests read): the tree audits, about 40 s;
 - **tooling** (`scripts/`, `.github/`, `tools/`, `.claude/`, any `*.py`/`*.ps1`/`*.sh`, except the tooling a compiler test
   or the build reads, `CODE_READS`): the audits and the self-tests whose recorded inputs it touches, with no build;
-- **code** (everything else): the build once and the WHOLE Unit, Conformance and Characterization populations on Windows.
+- **code** (everything else): the build once and, on Windows, the WHOLE population of every test target in
+  `scripts/build_targets.json` (each keyed by its declared inputs: one up to date at its key does not run).
 There is no impact map, no tier, no selected leg and no Linux half per change; the inner loop (`dotnet test --filter` by
 hand) claims nothing. **A branch lands through ONE script, `python scripts/orchestrator/enqueue.py land <branch>`**: it
 refuses a tip no GREEN record covers, merges `origin/main` in, stamps the DEVLOG entry, runs the landing checks, publishes

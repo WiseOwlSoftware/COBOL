@@ -151,6 +151,13 @@ internal static class UsageCollectionPass
         {
             P(n.Area);
             if (n.Into is { } into) P(into);
+            // ⛔ THE MCS'S CHARACTERS ARE STORED INTO AN ELEMENTARY RECEIVER AS THEY ARE (kb/Work PB5489): RECEIVE transfers the
+            // message "to the receiving character positions" (§1985:XIV.3.5.4 GR3) and the CD's area takes the image the MCS
+            // returns, none of it a numeric value, so `RECEIVE … INTO K-NUM` (or its reference-modified slice) over `PIC 9(4)
+            // VALUE 1234` with the message AB holds AB34, which no native numeric carrier does (it kept the digits: 0034).
+            // The item stores its character image, a character channel exactly as STRING's identifier-3 is.
+            Channel(n.Area);
+            Channel(n.Into);
             Op(n.Key);
             Op(n.Text);
             Op(n.IndicatorItem);
@@ -310,7 +317,16 @@ internal static class UsageCollectionPass
         public bool Visit(BoundContinueAfter n) => false;
         public bool Visit(BoundSendToServer n) { Op(n.From); return false; }   // the message image round trip (kb/Work PB4743)
         public bool Visit(BoundSendResponse n) { Op(n.From); return false; }
-        public bool Visit(BoundReceiveMessage n) { P(n.Into); return false; }
+        public bool Visit(BoundReceiveMessage n)
+        {
+            P(n.Into);
+            // ⛔ THE MESSAGE IS STORED INTO AN ELEMENTARY identifier-1 AS ITS CHARACTERS (kb/Work PB5527, the twin of PB5489's 1985 RECEIVE): "The content of
+            // identifier-1 is the content of the message" (§2023:14.9.31.4 GR1b), the sender's storage positions verbatim, none of it a numeric value, so
+            // `RECEIVE … GIVING K-NUM` over `PIC 9(4) VALUE 1234` with the message AB34 holds AB34, which no native numeric carrier does (it kept the
+            // digits: 0034). The item stores its character image, a character channel exactly as STRING's identifier-3 is.
+            Channel(n.Into);
+            return false;
+        }
         public bool Visit(BoundNextSentence n) => false;
         public bool Visit(BoundOpen n) => false;
         public bool Visit(BoundClose n) => false;

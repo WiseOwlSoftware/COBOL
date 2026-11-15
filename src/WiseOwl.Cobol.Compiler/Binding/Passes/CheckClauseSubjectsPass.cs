@@ -55,7 +55,11 @@ internal sealed class CheckClauseSubjectsPass : IBindPass
         {
             if (!DataBinder.HasNoSubordinates(item) || item.Pic is not { } pic) continue;
             string name = item.CobolName ?? "FILLER";
-            if (item.BlankWhenZero && DataBinder.BlankWhenZeroViolation(pic) is { } bwz)
+            // A PICTURE refused by its own rule leaves a recovery profile whose category is a storage placeholder, so the
+            // clause's subject question has no answer there and its error would name a category the item does not have
+            // (kb/Work PB5191: `PIC S999 BLANK WHEN ZERO` at 2002+ drew COBOL1934 and then "this item is of category
+            // alphanumeric"). The composition pass below still clears the clause.
+            if (item.BlankWhenZero && !pic.IsRecovery && DataBinder.BlankWhenZeroViolation(pic) is { } bwz)
             {
                 using var _ = binder.Edition.At(item);
                 binder.Edition.Error(DiagnosticCatalog.ClauseSubjectCategory, $"data item '{name}': {bwz}");

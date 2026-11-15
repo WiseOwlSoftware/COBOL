@@ -38,13 +38,12 @@ public sealed class SendingOperandDriftTests
     /// <summary>Rules that still write the set out, each for the reason the class summary records.</summary>
     private static readonly string[] Exempt = ["displayStatement"];
 
-    private static readonly string GrammarDir = Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar");
 
     /// <summary>rule-name → body, over every grammar file, comments stripped.</summary>
     private static Dictionary<string, string> GrammarRules()
     {
         var rules = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (string path in Directory.EnumerateFiles(Path.Combine(TestRepo.Root, GrammarDir), "*.g4",
+        foreach (string path in Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar"), "*.g4",
                      SearchOption.AllDirectories).Order(StringComparer.Ordinal))
             foreach (var (name, body) in Rules(File.ReadAllText(path)))
                 rules.TryAdd(name, body);

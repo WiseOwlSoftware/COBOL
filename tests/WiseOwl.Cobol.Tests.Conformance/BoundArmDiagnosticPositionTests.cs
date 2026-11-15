@@ -95,22 +95,33 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
             $"expected '({line},{column}): {severity} {code}'; got:\n" + string.Join("\n", all.DefaultIfEmpty("(none)")));
     }
 
-    // ── §2023:14.9.40.3 SR3 — a file SORT may not appear in an input or output procedure, at EVERY edition ─────────────────
+    // ── §2023:14.9.40.3 SR3 — a file SORT may not appear in an input or output procedure, from COBOL-2023 ──────────────────
 
+    [Theory]
+    [InlineData("sort-input")]
+    [InlineData("sort-output")]
+    [InlineData("merge-output")]
+    public void SortInASortOrMergeProcedure_IsRefusedAtTheStatement(string outer)
+    {
+        var (line, ok, lines) = Build(outer, Sort, 2023);
+        Assert.False(ok);
+        AssertAt(lines, line, 12, "error", "COBOL2700");
+    }
+
+    // Below 2023 the rule is a run-time one: a SORT "may appear anywhere in the procedure division except" the
+    // declarative portion (§2014:14.9.36.2 SR1, §2002:14.8.36.2 SR1, §1985:XI.4.4.3 SR1), and the procedure's range only
+    // "must not cause the execution of" one (§1985:XI.4.4.4 GR7), so the written SORT compiles (kb/Work PB5274).
     [Theory]
     [InlineData("sort-input", 85)]
     [InlineData("sort-input", 2002)]
     [InlineData("sort-input", 2014)]
-    [InlineData("sort-input", 2023)]
     [InlineData("sort-output", 85)]
-    [InlineData("sort-output", 2023)]
     [InlineData("merge-output", 85)]
-    [InlineData("merge-output", 2023)]
-    public void SortInASortOrMergeProcedure_IsRefusedAtTheStatement(string outer, int edition)
+    public void SortInASortOrMergeProcedure_IsAcceptedBelow2023(string outer, int edition)
     {
-        var (line, ok, lines) = Build(outer, Sort, edition);
-        Assert.False(ok);
-        AssertAt(lines, line, 12, "error", "COBOL2700");
+        var (_, ok, lines) = Build(outer, Sort, edition);
+        Assert.True(ok, string.Join("\n", lines));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL2700"));
     }
 
     [Fact] // the statement nested under an IF is positioned at ITS line, not the IF's

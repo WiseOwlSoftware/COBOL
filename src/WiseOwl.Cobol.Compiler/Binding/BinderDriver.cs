@@ -129,6 +129,7 @@ internal sealed class BinderDriver
             CompilationVariables = directives.CompilationVariables,
             SearchSpace = searchSpace,
             Sources = sources,
+            CopyNames = CopyNameCensus.Build(edition, units, u => (UnitFirstLine(sources.Of(u)), UnitLastLine(sources.Of(u)))),
         };
         _session = session;
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
@@ -566,6 +567,11 @@ internal sealed class BinderDriver
     /// descendant's line.</summary>
     private static int UnitFirstLine(Antlr4.Runtime.ParserRuleContext c) => FirstToken(c)?.Line ?? 0;
 
+    /// <summary>The line of a unit's last token (its END PROGRAM when it has one) — where its text ends, so a COPY statement written after it
+    /// belongs to the container (<see cref="CopyNameCensus"/>). A re-shaped contained program (<see cref="Reparent"/>) has no stop
+    /// token of its own and takes its last descendant's line.</summary>
+    private static int UnitLastLine(Antlr4.Runtime.ParserRuleContext c) => LastToken(c)?.Line ?? int.MaxValue;
+
     /// <summary>The first token of <paramref name="c"/>'s text — its own start token, or, for a re-shaped contained
     /// program (<see cref="Reparent"/>) that has none, the first token of its first descendant. The ONE reader of a
     /// unit's source position: the line (<see cref="UnitFirstLine"/>) and the character offset
@@ -578,6 +584,24 @@ internal sealed class BinderDriver
             var token = c.GetChild(i) switch
             {
                 Antlr4.Runtime.ParserRuleContext p => FirstToken(p),
+                Antlr4.Runtime.Tree.ITerminalNode t => t.Symbol,
+                _ => null,
+            };
+            if (token is not null) return token;
+        }
+
+        return null;
+    }
+
+    /// <summary>The mirror of <see cref="FirstToken"/>: <paramref name="c"/>'s own stop token, else the last token of its last descendant.</summary>
+    private static Antlr4.Runtime.IToken? LastToken(Antlr4.Runtime.ParserRuleContext c)
+    {
+        if (c.Stop is { } s) return s;
+        for (int i = c.ChildCount - 1; i >= 0; i--)
+        {
+            var token = c.GetChild(i) switch
+            {
+                Antlr4.Runtime.ParserRuleContext p => LastToken(p),
                 Antlr4.Runtime.Tree.ITerminalNode t => t.Symbol,
                 _ => null,
             };
@@ -604,6 +628,7 @@ internal sealed class BinderDriver
             OoClasses = session.OoClasses,
             // The unit's own §2023:8.3.2.2 census, the one its class-name references record into too (kb/Work PB3132).
             OwnWords = session.OoClasses.CensusOf(definition.identificationDivision()) ?? new(),
+            CopyWords = session.CopyNames.Of(unit),   // below COBOL-2002 a COPY statement's names are this program's user-defined words (kb/Work PB5482)
             RefModZeroLength = session.RefModZeroLength,
             CobolWords = session.CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§2023:7.3.10)
             Retypes = session.Retypes,         // the fragment re-parses read words as the tree does (kb/Work PB655)

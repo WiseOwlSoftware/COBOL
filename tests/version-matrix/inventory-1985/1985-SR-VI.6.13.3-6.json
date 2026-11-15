@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.13.3-6",
  "rule-digest": "570f3a39a632",
- "test-ref": "conformance:cases/VI.6.13@1985-EVALUATE-STATEMENT/1985-SR-VI_6_13_3-6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/EvaluateOperandCombinations.cs#IsPermitted; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenPairing; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#EvaluateRefusesLiteralSubjectLiteralObject",
+ "test-ref": "conformance:cases/VI.6.13@1985-EVALUATE-STATEMENT/1985-SR-VI_6_13_3-6; conformance:cases/VI.6.13@1985-EVALUATE-STATEMENT/pb5481_literal_subject_literal_object_85; conformance:cases/14.9.13-EVALUATE/pb5481_literal_subject_literal_object_2002",
+ "notes": "kb/Work PB5481 LANDED: the combination table is an edition fact. EvaluateOperandCombinations.IsPermitted takes the edition year; from 2002 it is Table 15/Table 16 (§2002:14.8.12.2 SR9, §2023:14.9.13.3 SR10), and below 2002 (DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject inactive) the literal subject x literal object cell is permitted, because 1985 prints no table: SR6a asks only that the object's operands be \"valid operands for comparison to the corresponding operand\" of the subject (a property of the operand pair), and GR1 gives each literal \"the value and class of the specified literal\"; the relation condition's \"at least one reference to a variable\" (VI.6.3.1.1) is not an EVALUATE rule. Reading B, as latitude, settled by GnuCOBOL 3.2 -std=cobol85 (CLAUDE.md rule 1); docs/CONFORMANCE.md section 3.12, VCR row 7.75. EvaluateBinder.ScreenPairing passes ctx.Edition.Edition.Year. Every other blank cell stays refused at every edition. Witnesses pb5481_literal_subject_literal_object_85 (SELECTED-1 to SELECTED-5, OTHER-6, OTHER-7) and the 2002, 2014 and 2023 refusal.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

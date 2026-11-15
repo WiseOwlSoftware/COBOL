@@ -931,7 +931,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     group whose claim meets a placed group's on any file both claim (collision) is absorbed into the first such group
     with room (clusters.notes_cap, kb/Work PB4396); past that it is the `overflow` only of a group it shares a MEMBER with
     (hold), and otherwise a group of its own beside them (multiple editors per file, kb/Work PB4452). The group's own work never
-    collides: a branch its pred already continues (`Group.continues`), or a dispatch of its own notes. Without `deps` and `busy` nothing here changes the fix lane's plan (test_plan_wave.py check 8 holds it
+    collides: a branch its pred already continues (`Group.continues`), or a dispatch of its own notes. Without `deps` and `busy` nothing here changes the fix lane's plan (check 8 of the plan_wave cases holds it
     to a golden).
 
     `carrier` (branch_carrier) names the DONE branch that contains a branch; `drain` plans the finishers of started

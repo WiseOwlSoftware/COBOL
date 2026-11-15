@@ -726,6 +726,16 @@ public static class HostFile
     internal static FileStream OpenTransient(string path, FileMode mode, FileAccess access) =>
         new(path, mode, access, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, FileOptions.None);
 
+    /// <summary>⛔ THE SEVENTH ROLE: the DEVICE of an X3.23-1985 RERUN clause's integer-1 RECORDS form (§1985:VII.2.12.4 GR1 b, GR2 d;
+    /// kb/Work PB5198) — a host file the program names by an implementor-name and no COBOL statement opens. A rerun point opens it,
+    /// appends one line and closes it, so the handle is short-lived and takes the end of the file as it stands at that open
+    /// (<see cref="FileMode.Append"/> makes the device on its first rerun point). It is <see cref="FileShare.ReadWrite"/> for the
+    /// reason of <see cref="OpenAuxiliary"/>: the path may be one a connector of THIS run unit holds (the program reads the device
+    /// back through a file of its own), and a share mode that refused it would manufacture a failure no statement asked for.
+    /// <see cref="FileOptions.None"/> and unbuffered, so the line is handed to the operating environment when it is written.</summary>
+    internal static FileStream OpenRerunDevice(string hostPath) =>
+        new(hostPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, bufferSize: 1, FileOptions.None);
+
     /// <summary>⛔ THE DIRECTORY SYNC (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2.5 R1 and R4, 2.2.2.6 (1) and (3),
     /// 2.2.2.7 (2); kb/Work PB3340, PB3492): make the creations and removals of names in <paramref name="directory"/> durable,
     /// so that a file created and synced is not absent after a power loss and a file removed does not return. .NET has no

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.12.3-1",
  "rule-digest": "d57eb850d782",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#EnterStatementNotProvided; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
  "test-ref": "conformance:cases/VI.6.12@1985-ENTER-STATEMENT/1985-SR-VI_6_12_3-1",
+ "notes": "§1985:VI.6.12.3 SR1: 'Language-name-1 is specified by the implementor.' WiseOwl specifies no language: the ENTER statement is not provided (§1985:I.1.5.2.5.5 leaves it to the implementor; GnuCOBOL refuses it, CLAUDE.md rule 1; docs/conformance/3.7.1). StatementBinder#BindEnter refuses every ENTER at 85 with COBOL7240, so ENTER FORTRAN SUBRTN. no longer compiles to nothing (kb/Work PB5308); witness: the refusal 1985-SR-VI_6_12_3-1 (refuse-at 85, COBOL7240) and the declined construct row enter-removed-2002.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

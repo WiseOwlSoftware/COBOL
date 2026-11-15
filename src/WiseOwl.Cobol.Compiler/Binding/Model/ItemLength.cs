@@ -57,7 +57,56 @@ internal static class ItemLength
     internal static int StandardDataFormatCharacters(DataItem item)
     {
         if (item.Pic is { } pic && !item.IsGroup)
-            return pic is { Category: PicCategory.Numeric, Usage: Usage.Binary or Usage.Packed or Usage.Comp5 } ? pic.Digits : item.ByteWidth;
+            return IsStoredAsDigits(pic) ? pic.Digits : item.ByteWidth;
         return item.Children.Where(child => child.RedefinesTarget is null).Sum(child => StandardDataFormatCharacters(child) * (child.Occurs ?? 1));
+    }
+
+    /// <summary>Whether an elementary item's storage is not its standard data format: a numeric item of usage binary, packed
+    /// decimal or COMP-5 is stored in a radix-2 or BCD form whose standard characters are its digits
+    /// (<see cref="StandardDataFormatCharacters"/>).</summary>
+    internal static bool IsStoredAsDigits(PicInfo pic) =>
+        pic is { Category: PicCategory.Numeric, Usage: Usage.Binary or Usage.Packed or Usage.Comp5 };
+
+    /// <summary>One part of <see cref="StandardLayout"/>: an elementary item or a group occurring <paramref name="Count"/> times,
+    /// <paramref name="Width"/> storage bytes apart from <paramref name="Offset"/> in the enclosing group; <paramref name="Converted"/> is
+    /// the elementary item whose storage is not its standard characters (null for an item stored as its own characters, and for
+    /// a run of such items merged into one part), <paramref name="Members"/> the parts of a group's one occurrence.</summary>
+    internal sealed record StandardPart(int Offset, int Width, DataItem? Converted, int Count, IReadOnlyList<StandardPart>? Members);
+
+    /// <summary>⛔ THE LAYOUT OF A FIXED GROUP IN STANDARD DATA FORMAT (§1985:IV.4.3.4; kb/Work PB5378), or null when the group's storage
+    /// image already IS its standard characters (no item of it is stored as binary or packed decimal) or has no fixed byte layout (a
+    /// variable-length group, one holding a USAGE BIT item). WiseOwl COBOL lays no SYNCHRONIZED padding, so each item follows the
+    /// last at the sum of the widths before it; a redefining entry is no part of the size
+    /// (<see cref="StandardDataFormatCharacters"/>). The runtime composes the characters from it
+    /// (<c>CobolStandardData.Image</c>).</summary>
+    internal static IReadOnlyList<StandardPart>? StandardLayout(DataItem group)
+    {
+        if (!group.IsGroup || DataItem.HasVariableLengthSubordinate(group) || group.HasBitDescendant) return null;
+        var parts = PartsOf(group);
+        return parts.Any(ConvertsSomething) ? parts : null;
+
+        static bool ConvertsSomething(StandardPart part) => part.Converted is not null || (part.Members?.Any(ConvertsSomething) ?? false);
+    }
+
+    private static List<StandardPart> PartsOf(DataItem group)
+    {
+        var parts = new List<StandardPart>();
+        int offset = 0;
+        foreach (var child in group.Children.Where(c => c.RedefinesTarget is null))
+        {
+            int count = child.Occurs ?? 1;
+            int width = child.ByteWidth;
+            if (child.IsGroup)
+                parts.Add(new StandardPart(offset, width, null, count, PartsOf(child)));
+            else if (child.Pic is { } pic && IsStoredAsDigits(pic))
+                parts.Add(new StandardPart(offset, width, child, count, null));
+            // An item stored as its own characters runs on from the plain run before it when no table sits between (the run's storage is contiguous).
+            else if (count == 1 && parts.Count > 0 && parts[^1] is { Converted: null, Members: null, Count: 1 } run && run.Offset + run.Width == offset)
+                parts[^1] = run with { Width = run.Width + width };
+            else
+                parts.Add(new StandardPart(offset, width, null, count, null));
+            offset += width * count;
+        }
+        return parts;
     }
 }

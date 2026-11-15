@@ -151,9 +151,13 @@ public sealed record BoundCallProgram(
 }
 
 /// <summary><c>CANCEL {literal|identifier}…</c> (ISO §2023:14.9.5): each target's next CALL finds its initial state
-/// (GR3); contained programs cascade in reverse source order (GR4); open files close implicitly (GR9).</summary>
+/// (GR3); contained programs cascade in reverse source order (GR4); open files close implicitly (GR9).
+/// <paramref name="RefusesEveryActiveProgram"/> is which edition's GR5 the statement obeys
+/// (<see cref="WiseOwl.Cobol.Runtime.DialectBehavior.CancelRefusesEveryActiveProgram"/>; kb/Work PB5241): from 2002 a CANCEL of
+/// any active program raises EC-PROGRAM-CANCEL-ACTIVE; at 85 only one of a program called and not exited does, and a
+/// CANCEL of the run unit's main program, never called, takes no action (§1985:X.5.3.4 GR8).</summary>
 public sealed record BoundCancel(
-    IReadOnlyList<(string? LiteralName, BoundOperand? DynamicName)> Targets) : BoundStatement;
+    IReadOnlyList<(string? LiteralName, BoundOperand? DynamicName)> Targets, bool RefusesEveryActiveProgram) : BoundStatement;
 
 /// <summary><c>EXIT PROGRAM [RAISING …]</c> (ISO §2023:14.9.14 Format 2): in a program NOT under the control of a
 /// calling runtime element it is equivalent to CONTINUE (GR2 — "no exception condition is raised even if the

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb482_sum_addend_written_reference_85
       *> rules: [SR-13.18.54.3-5, SR-13.18.54.3-7]
-      *> accept: [85]
+      *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

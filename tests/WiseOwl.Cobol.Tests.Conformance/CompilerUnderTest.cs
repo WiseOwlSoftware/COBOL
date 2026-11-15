@@ -12,16 +12,21 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 internal static class CutRunner
 {
     /// <summary>
-    /// Canonicalize a compiled program's stdout to the <b>NIST acceptance basis</b> — exactly the guard's
-    /// <c>guard_normalize_into</c> (<c>scripts/guard-verdict.sh</c>): drop CR, then strip trailing spaces
-    /// <i>per line</i>. The committed differential goldens (<c>tests/differential/**/*.out</c>) were recorded on this basis, so every
-    /// comparison against them goes through it. WiseOwl COBOL itself DISPLAYs the full field (ISO §2023:14.9.11.4 GR1);
-    /// a case whose meaning depends on <i>internal</i> trailing spaces (e.g. <c>DISPLAY WS-X "]"</c>) is pinned to
-    /// its spec-derived value, which keeps the spaces before the bracket.
+    /// Canonicalize a compiled program's console output for comparison: the host's newline (CR LF on Windows, LF on
+    /// Linux) becomes LF, each line loses its trailing spaces, and the trailing line ends go. Every other character
+    /// is what the program printed and stays — a lone CR, a form feed, NEL, LS and PS are not line ends, so a program
+    /// that printed one where the expected output holds a line end differs (kb/Work PB5460; <c>ReplaceLineEndings</c>,
+    /// which this used to call, reads all of them as line ends). The committed differential goldens
+    /// (<c>tests/differential/**/*.out</c>) and the conformance suite's expected outputs are compared on this basis;
+    /// <c>conformance-suite/harness/run.py</c>'s <c>normalize()</c> is the same rule, both held to
+    /// <c>conformance-suite/harness/normalization-fixture.json</c> (ConformanceSuiteRunnerDriftTests). WiseOwl COBOL
+    /// itself DISPLAYs the full field (ISO §2023:14.9.11.4 GR1); a case whose meaning depends on <i>internal</i>
+    /// trailing spaces (e.g. <c>DISPLAY WS-X "]"</c>) is pinned to its spec-derived value, which keeps the spaces
+    /// before the bracket. A NIST report is compared on its own basis, <see cref="NistRunner.Normalize"/>.
     /// </summary>
     public static string Normalize(string s)
     {
-        var lines = s.ReplaceLineEndings("\n").Split('\n').Select(line => line.TrimEnd(' '));
+        var lines = s.Replace("\r\n", "\n").Split('\n').Select(line => line.TrimEnd(' '));
         return string.Join("\n", lines).TrimEnd('\n');
     }
 

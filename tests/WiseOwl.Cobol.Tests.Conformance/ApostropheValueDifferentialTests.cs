@@ -9,10 +9,11 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// PHASE-05 Step 13 (exit criterion #6) — apostrophe-delimited literals, ISO/IEC 1989:2023 §2023:8.3.3.1: the
 /// quotation-mark and apostrophe forms are EQUAL-STANDING (a doubled OPENING delimiter is one embedded delimiter),
-/// in every edition. Each case compiles the SAME program twice — once with '-delimited literals, once with the
-/// "-delimited twin — and asserts byte-identical output. This locks the P5.1 <c>CobolLiteral</c> fix (the
-/// hard-coded '"'-only guards silently miscompiled apostrophe VALUE/ALL/REPLACING literals) with a regression
-/// golden across the full VALUE-init + figurative + INITIALIZE paths.
+/// in every edition that has the apostrophe form. Each case compiles the SAME program twice — once with '-delimited
+/// literals, once with the "-delimited twin — and asserts byte-identical output. This locks the P5.1 <c>CobolLiteral</c>
+/// fix (the hard-coded '"'-only guards silently miscompiled apostrophe VALUE/ALL/REPLACING literals) with a regression
+/// golden across the full VALUE-init + figurative + INITIALIZE paths. The programs compile at COBOL-2002, the edition
+/// that introduced the apostrophe as quotation symbol (§2002:F.2 item 3; below it the form is COBOL0900, kb/Work PB5160).
 /// </summary>
 public sealed class ApostropheValueDifferentialTests
 {
@@ -24,7 +25,7 @@ public sealed class ApostropheValueDifferentialTests
             string src = Path.Combine(dir, "prog.cob");
             src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(src, dll, DialectLevel: 85, SourceFormat: InitialReferenceFormat.Auto));
+            var r = CompiledProgramCache.Compile(new WiseOwl.Cobol.CompilerDriver.Options(src, dll, DialectLevel: 2002, SourceFormat: InitialReferenceFormat.Auto));
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             var (ok, stdout, detail) = CutRunner.Run(dll, dir);
             Assert.True(ok, detail);

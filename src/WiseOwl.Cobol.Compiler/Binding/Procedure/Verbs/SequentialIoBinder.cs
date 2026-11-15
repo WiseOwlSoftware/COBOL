@@ -265,7 +265,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // record's view (PlaceTable.RecordArea, §2023:13.18.33.4 GR3) exactly as the emitter's splice is.
         // A file with no usable record area leaves the move null and the phrase inert — the same reach the emitter's own
         // `area is not null` guard had, now decided once, at bind time.
-        BoundMove? intoMove = r.readInto()?.receivingIdentifier() is { } d && host.Expr.ResolveReceiving(d) is { } recv
+        // identifier-1 is identified after the record has been read (§2023:14.9.30.4 GR4 b); kb/Work PB5386): ResolveReceivingAtStore.
+        BoundMove? intoMove = r.readInto()?.receivingIdentifier() is { } d && host.Expr.ResolveReceivingAtStore(d) is { } recv
             && ctx.Refs.Places.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;

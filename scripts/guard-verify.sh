@@ -2,6 +2,8 @@
 # THE NIST GUARD'S SELF-TEST: the compiler-identity watchdog's self-test (scripts/guard-compiler.sh), then THE
 # EVIDENCE-RULE WITNESSES — synthetic runs through the REAL scripts/guard-run-group.sh, each built so that exactly one
 # evidence rule (or the run-directory isolation) decides its verdict. No corpus, no compiler.
+# Last, the PARITY WITNESS: guard_normalize_into against every case of tests/nist/normalization-cases.json, the
+# table its C# twin NistRunner.Normalize is held to as well (kb/Work PB5460).
 #   bash scripts/guard-verify.sh --self-test
 # Exit 0 iff every witness holds. scripts/self_tests.py discovers it (every gate and CI's audits run it), and
 # scripts/guard-fast.sh and scripts/battery.sh run it before they measure.
@@ -518,6 +520,47 @@ SHIM
     return $rc
 }
 
+# ── THE ACCEPTANCE BASIS IS ONE RULE IN TWO LANGUAGES (kb/Work PB5460). guard_normalize_into and its C# twin,
+#    NistRunner.Normalize, are each held to every case of tests/nist/normalization-cases.json (the C# arm by
+#    NistWrittenFilesTests). The two had disagreed on a form feed, so SQ101M was a false red here for nine nights
+#    while the in-process gate compared a page eject equal to a line advance. The library under test is overridable,
+#    like the group runner above, so the witness can be pointed at an OLD copy and shown to fail. ──
+VERDICT_LIB="${GUARD_VERDICT_LIB:-$ROOT/scripts/guard-verdict.sh}"
+normalization_parity() {
+    local d rc=0 py n=0 i name
+    d="$(mktemp -d -t guardparity.XXXXXX)"
+    trap 'rm -rf "$d"' RETURN
+    echo "=== acceptance-basis parity (tests/nist/normalization-cases.json through $VERDICT_LIB) ==="
+    py="$(. "$ROOT/scripts/python-resolve.sh" && printf '%s' "$PY")" || {
+        echo "  WITNESS FAILED: no Python interpreter to read the parity table (scripts/python-resolve.sh)"; return 1; }
+    # Each case's input and stated result as BYTES (UTF-8), one pair of files per case, and its name on a line of
+    # its own: the shell compares files, never text it would have to carry through a variable.
+    "$py" - "$ROOT/tests/nist/normalization-cases.json" "$d" <<'PY' > "$d/names.txt" || { echo "  WITNESS FAILED: the parity table could not be read"; return 1; }
+import json, sys
+cases = json.load(open(sys.argv[1], encoding="utf-8"))["cases"]
+for i, c in enumerate(cases):
+    open(f"{sys.argv[2]}/{i}.in", "wb").write(c["input"].encode("utf-8"))
+    open(f"{sys.argv[2]}/{i}.want", "wb").write(c["normalized"].encode("utf-8"))
+    print(c["name"])
+PY
+    i=0
+    while IFS= read -r name; do
+        name="${name%$'\r'}"                                    # Python on Windows ends its lines CR LF
+        if ( . "$VERDICT_LIB"; guard_normalize_into "$d/$i.in" "$d/$i.out" ) && cmp -s "$d/$i.want" "$d/$i.out"; then
+            n=$((n + 1))
+        else
+            echo "  WITNESS FAILED: guard_normalize_into, '$name' (bytes in hex)"
+            echo "      produced:       $(od -An -tx1 "$d/$i.out" 2>&1 | tr -s ' \n' ' ')"
+            echo "      the table says: $(od -An -tx1 "$d/$i.want" | tr -s ' \n' ' ')"
+            rc=1
+        fi
+        i=$((i + 1))
+    done < "$d/names.txt"
+    if [ "$i" -eq 0 ]; then echo "  WITNESS FAILED: the parity table holds no case"; rc=1; fi
+    [ "$rc" -eq 0 ] && echo "  ok: guard_normalize_into maps all $n parity cases to their stated results"
+    return $rc
+}
+
 W_RC=0
 # ⛔ WHICH COMPILER THE GUARD DRIVES IS PART OF WHAT ITS VERDICTS MEAN (kb/Work/PB750), so the identity
 # watchdog is proven able to REFUSE in the same seconds-long phase as the evidence rules. Both are instruments;
@@ -525,4 +568,5 @@ W_RC=0
 # battery greps.
 bash "$ROOT/scripts/guard-compiler.sh" --self-test || W_RC=1
 witnesses || W_RC=1
+normalization_parity || W_RC=1
 exit $W_RC

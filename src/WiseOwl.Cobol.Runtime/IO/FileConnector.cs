@@ -687,7 +687,7 @@ public abstract class FileConnector
         Status = status;
         PrevOpWasSuccessfulRead = true;
         LastReadUnsuccessful = false;
-        return status;
+        return RecordProcessed(status);
     }
 
     /// <summary>The file position indicator's "optional file not present" state (ISO §2023:9.1.13.2 item 5 /
@@ -871,7 +871,10 @@ public abstract class FileConnector
     {
         CurrentRecord = record;
         CurrentRecordExtents = extents;
-        LastReadLength = record.Length;
+        // A record longer than the RECORD IS VARYING maximum is delivered truncated on the right to it (§1985:VIII.4.5.4 GR16,
+        // §1985:IX.4.5.4 GR18, §1985:VII.4.4.4 GR13), so "the number of character positions in the record just read" that the
+        // DEPENDING ON item indicates (§1985:VII.3.8.4 GR11) is the delivered record's, never above the maximum (kb/Work PB5480).
+        LastReadLength = IsVarying && record.Length > VaryMax ? VaryMax : record.Length;
     }
 
     /// <summary>The EXTENT TABLE the current record was sent with (determination D-FRA (v); kb/Work PB1053) —
@@ -891,6 +894,20 @@ public abstract class FileConnector
 
     /// <summary>GR14/GR15's "maximum size specified by the record description entries".</summary>
     protected int MaxRecordSize => RecordMax > RecordWidth ? RecordMax : RecordWidth;
+
+    /// <summary>⛔ THE ONE TEST OF A READ'S RECORD LENGTH CONFLICT, FOR EVERY ORGANIZATION (kb/Work PB5480): true when the
+    /// <paramref name="length"/> of the record just read lies outside the minimum and maximum record size of THIS connector's
+    /// description — the RECORD IS VARYING bounds (<see cref="VaryMin"/>, <see cref="VaryMax"/>), else the record area's width
+    /// and the largest the description's records reach (<see cref="MaxRecordSize"/>). §1985:VIII.4.5.4 GR16 and §1985:IX.4.5.4 GR18:
+    /// "the READ statement is successful and an I-O status is set indicating a record length conflict has occurred", which
+    /// §1985:IX.1.3.4 GRL2.1 and §1985:VIII.1.3.4 GRL2.1 give as '04'; the same condition is §2023:14.9.30.4 GR14 and GR15
+    /// (<see cref="FileStatusCode.RecordLengthShortLong"/>). The size is the reading connector's own — the fixed file attribute
+    /// §1985:II.2.1 names, "the minimum and maximum logical record size" — and docs/CONFORMANCE.md DOC-A.1-129 holds that the
+    /// relative and indexed OPEN validates it against the physical file's meta; the READ asks it too because a ZERO-BYTE
+    /// file has no meta to validate against (<see cref="StoreFormat.Empty"/>), so a record another connector writes
+    /// later can be outside it.</summary>
+    protected bool RecordLengthConflicts(int length) =>
+        IsVarying ? length < VaryMin || length > VaryMax : length < RecordWidth || length > MaxRecordSize;
 
     // ── Record-lock identity (ISO §2023:9.1.16 — record locking applies to EVERY organization; the READ/REWRITE/
     //    WRITE/DELETE lock rules §2023:14.9.30 GR7–GR12 / §2023:14.9.35 GR11–GR12 / §2023:14.9.51 GR10–GR11 / §2023:14.9.10 GR6–GR7
@@ -1000,6 +1017,7 @@ public abstract class FileConnector
     /// race, and the last attempt's '30' stands.</para></summary>
     public string Open(FileOpenMode mode)
     {
+        bool wasOpen = IsOpen;   // an OPEN of an open file is unsuccessful ('41') and leaves it as it was (§2023:14.9.27.4 GR25)
         bool ownedWritesAdmitted = false;
         int pathChangedMeanwhile = 0;
         while (true)
@@ -1014,6 +1032,7 @@ public abstract class FileConnector
                     pathChangedMeanwhile++;
                     break;
                 default:
+                    if (IsOpen && !wasOpen) _recordsSinceOpen = 0;   // the integer-1 RECORDS count is of the records processed since the file's OPEN
                     return status;
             }
         }
@@ -1498,6 +1517,37 @@ public abstract class FileConnector
     /// <see cref="HostFile.InputOutputAreaBuffer"/> when its OPEN takes its streams, so it is read at every OPEN
     /// and never cached.</summary>
     public int InputOutputAreas { get; internal set; } = HostFile.ImplementorInputOutputAreas;
+
+    /// <summary>⛔ The X3.23-1985 RERUN clause's integer-1 RECORDS form for this file (§1985:VII.2.12.4 GR2 d), set by the
+    /// emitter right after registration for exactly the files an I-O-CONTROL RERUN clause names with that phrase
+    /// (the <see cref="InputOutputAreas"/> pattern; kb/Work PB5198), else null.</summary>
+    internal RerunRecordsPoint? RerunRecords { get; set; }
+
+    private long _recordsSinceOpen;
+
+    /// <summary>⛔ THE ONE COUNT OF A PROCESSED RECORD, asked at the terminal of every READ, WRITE, REWRITE and DELETE of
+    /// every organization (the READ terminals through <see cref="ReadSucceeded"/>, the others at their public entry
+    /// or their one success return), and the ONE WRITER of rerun information (§1985:VII.2.12.4 GR1 b, GR2 d: "the rerun
+    /// information is written on the device specified by implementor-name-1 … whenever integer-1 records of file-name-2
+    /// have been processed"). A statement that completed successfully (an I-O status of class '0', §2023:9.1.13.1) is a
+    /// record processed; the count is per OPEN. A device the host refuses to write (an I-O failure or an insufficient
+    /// authority) is the file's own I-O status '30', as a record the medium refuses is (§2023:9.1.13.6 item 1: "A permanent
+    /// error exists and no further information is available concerning the input-output operation"; item 6 b's '37' is
+    /// stated of OPEN and DELETE FILE alone): the rerun information that was promised is not on the device, and the program
+    /// is told. Returns <paramref name="status"/>, or the refusal.</summary>
+    private protected string RecordProcessed(string status)
+    {
+        if (RerunRecords is not { } point || status.Length == 0 || status[0] != '0') return status;
+        if (++_recordsSinceOpen % point.Every != 0) return status;
+        try
+        {
+            using var device = Medium.OpenRerunDevice(CobolFile.ResolveHostPath(point.Device));
+            device.Write(System.Text.Encoding.UTF8.GetBytes(point.Information(_recordsSinceOpen)));
+            device.Flush();
+            return status;
+        }
+        catch (Exception refused) when (refused is IOException or UnauthorizedAccessException) { return Status = FileStatusCode.PermanentError; }
+    }
 
     // ── Record-area shaping ──────────────────────────────────────────────────────────────────────────────────
 

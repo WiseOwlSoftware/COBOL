@@ -1,0 +1,46 @@
+{
+  "$comment": [
+    "THE ONE TABLE OF THE NIST ACCEPTANCE BASIS (kb/Work PB5460): the comparison normalization of a CCVS report, applied",
+    "identically to the golden and to what the program printed. The rule exists in two languages by nature:",
+    "scripts/guard-verdict.sh (guard_normalize_into, the CLI guard) and NistRunner.Normalize",
+    "(tests/WiseOwl.Cobol.Tests.Conformance/NistRunner.cs, the in-process gate). BOTH are held to every case below:",
+    "NistWrittenFilesTests.TheAcceptanceBasis_MapsEveryParityCaseToItsStatedResult (C#) and the parity witness of",
+    "scripts/guard-verify.sh --self-test (bash), so a change to either side that the other does not make fails a test.",
+    "",
+    "THE RULE. Lines end at LF. Every CR goes, with the spaces before it (CR LF golden against LF output, and the",
+    "OVERPRINT a WRITE ... ADVANCING 0 writes, `marker   \\rtext`, kb/Work PB1667, PB2509). The spaces before a FORM FEED",
+    "go (a record of a print stream is written whole, so its padding precedes the page eject an ADVANCING PAGE writes;",
+    "it strikes nothing), and the form feed STAYS: a page eject is not a line advance, so a runtime that wrote one for",
+    "the other differs. NEL, LS, PS and a vertical tab are characters, not line ends. Each line loses its trailing",
+    "spaces (spaces only), the COMPUTED= operand some CCVS programs print is masked, and trailing empty lines and the",
+    "final line end go."
+  ],
+  "cases": [
+    {"name": "empty", "input": "", "normalized": ""},
+    {"name": "only spaces", "input": "   ", "normalized": ""},
+    {"name": "no final line end", "input": "A", "normalized": "A"},
+    {"name": "lf, with a final line end", "input": "A\nB\n", "normalized": "A\nB"},
+    {"name": "cr lf: the cr goes with the spaces before it", "input": "A  \r\nB\r\n", "normalized": "A\nB"},
+    {"name": "an overprint: a lone cr goes with the spaces before it, never a line break", "input": "MARKER   \rtext   \r\nnext\r\n", "normalized": "MARKERtext\nnext"},
+    {"name": "a cr at the very end goes", "input": "a b\r", "normalized": "a b"},
+    {"name": "a form feed after a padded record: the padding goes", "input": "LAST LINE ON THIS PAGE     \f    TOP OF A NEW PAGE   \n", "normalized": "LAST LINE ON THIS PAGE\f    TOP OF A NEW PAGE"},
+    {"name": "a blank record written whole, then the page eject", "input": "        \f    TOP\n", "normalized": "\f    TOP"},
+    {"name": "a form feed is not a line break", "input": "A\fB", "normalized": "A\fB"},
+    {"name": "a form feed ending a line stays, the spaces around it go", "input": "A  \f  \nB", "normalized": "A\f\nB"},
+    {"name": "an overprint before a page eject", "input": "A  \r  \fB\n", "normalized": "A\fB"},
+    {"name": "cr lf after a form feed", "input": "A  \f\r\nB", "normalized": "A\f\nB"},
+    {"name": "two page ejects in a row", "input": "A \f \fB", "normalized": "A\f\fB"},
+    {"name": "nel, ls and ps are not line breaks", "input": "A \u0085B C D", "normalized": "A \u0085B C D"},
+    {"name": "a vertical tab is not a line break", "input": "A\u000bB", "normalized": "A\u000bB"},
+    {"name": "trailing spaces of each line go", "input": "A   \n  B  \n", "normalized": "A\n  B"},
+    {"name": "a trailing tab stays", "input": "A\t\nB", "normalized": "A\t\nB"},
+    {"name": "inner spaces stay", "input": "A  B \n", "normalized": "A  B"},
+    {"name": "trailing empty lines go", "input": "A\n\n\n", "normalized": "A"},
+    {"name": "a last line of spaces goes", "input": "A\n   ", "normalized": "A"},
+    {"name": "trailing lines of spaces go", "input": "A\n  \n \n", "normalized": "A"},
+    {"name": "leading empty lines stay", "input": "\n\nA", "normalized": "\n\nA"},
+    {"name": "an inner line of spaces becomes empty and stays", "input": "A\n   \nB", "normalized": "A\n\nB"},
+    {"name": "the COMPUTED= operand is masked", "input": " COMPUTED=  123456789  OK  \n", "normalized": " COMPUTED=  XXXXXXXXX  OK"},
+    {"name": "a COMPUTED= with no operand at a line's end keeps no padding", "input": "COMPUTED=  \n", "normalized": "COMPUTED="}
+  ]
+}

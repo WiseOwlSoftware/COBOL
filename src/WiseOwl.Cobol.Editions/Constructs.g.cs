@@ -9,6 +9,8 @@ namespace WiseOwl.Cobol.Editions;
 /// <see cref="ConstructRegistry.Check"/> call site so an unregistered id is a COMPILE error.</summary>
 public static class Constructs
 {
+    public const string AbbreviatedNotIsSimpleOperatorRemoved2014 = "abbreviated-not-is-simple-operator-removed-2014";
+    public const string AbbreviatedNotLogicalRemoved2002 = "abbreviated-not-logical-removed-2002";
     public const string AcceptFourDigitYear2002 = "accept-four-digit-year-2002";
     public const string AddressIdentifier2002 = "address-identifier-2002";
     public const string AlignedClause2002 = "aligned-clause-2002";
@@ -19,6 +21,7 @@ public static class Constructs
     public const string AlterRemoved2002 = "alter-removed-2002";
     public const string AlternateKeySuppressWhen2023 = "alternate-key-suppress-when-2023";
     public const string AnyLengthClause2002 = "any-length-clause-2002";
+    public const string ApostropheQuotationSymbol2002 = "apostrophe-quotation-symbol-2002";
     public const string ApplyCommitClause2023 = "apply-commit-clause-2023";
     public const string ArithmeticIntermediatePrecision2023 = "arithmetic-intermediate-precision-2023";
     public const string ArithmeticStandard2002 = "arithmetic-standard-2002";
@@ -112,6 +115,7 @@ public static class Constructs
     public const string Free2002 = "free-2002";
     public const string FromLiteral2002 = "from-literal-2002";
     public const string FunctionDefinition2002 = "function-definition-2002";
+    public const string FunctionEmptyArgumentList2002 = "function-empty-argument-list-2002";
     public const string FunctionPrototype2002 = "function-prototype-2002";
     public const string GobackBare2002 = "goback-bare-2002";
     public const string GobackReturning2002 = "goback-returning-2002";
@@ -213,18 +217,24 @@ public static class Constructs
     public const string ReplaceAlsoLast2002 = "replace-also-last-2002";
     public const string ReplaceAnywhere2002 = "replace-anywhere-2002";
     public const string ReplacingPartialWord2002 = "replacing-partial-word-2002";
+    public const string ReportCodeIs2002 = "report-code-is-2002";
     public const string ReportControlOperandForms2002 = "report-control-operand-forms-2002";
     public const string ReportFiller2002 = "report-filler-2002";
     public const string ReportGroupSign2002 = "report-group-sign-2002";
+    public const string ReportLineNextPage2002 = "report-line-next-page-2002";
     public const string ReportMultiColumn2002 = "report-multi-column-2002";
     public const string ReportMultiLine2002 = "report-multi-line-2002";
     public const string ReportMultiSource2002 = "report-multi-source-2002";
+    public const string ReportNextPageReset2002 = "report-next-page-reset-2002";
     public const string ReportOccurs2002 = "report-occurs-2002";
+    public const string ReportPageForms2002 = "report-page-forms-2002";
     public const string ReportPlusSymbol2002 = "report-plus-symbol-2002";
     public const string ReportPresentWhen2002 = "report-present-when-2002";
     public const string ReportSignWithoutSeparate2002 = "report-sign-without-separate-2002";
     public const string ReportSourceExpression2002 = "report-source-expression-2002";
     public const string ReportSourceRounded2002 = "report-source-rounded-2002";
+    public const string ReportSumForms2002 = "report-sum-forms-2002";
+    public const string ReportValueForms2002 = "report-value-forms-2002";
     public const string ReportVarying2002 = "report-varying-2002";
     public const string RepositoryClass2002 = "repository-class-2002";
     public const string RepositoryFunction2002 = "repository-function-2002";

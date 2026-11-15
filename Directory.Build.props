@@ -18,13 +18,33 @@
          public surface (src/WiseOwl.Cobol.Runtime/PublicAPI.Shipped.txt) or a codec's image layout changes incompatibly;
          RuntimeAbiPinDriftTests pins it beside the surface's hash in src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin, a file
          scripts/abi_pin.py writes (its bump command raises this number and measures; kb/Work PB3610). -->
-    <Version>26.0.0</Version>
+    <Version>28.0.0</Version>
   </PropertyGroup>
   <!-- The LICENSE file PackageLicenseFile names, packed at the package root. Items are evaluated after every property,
        so the project's own IsPackable (false in every test and tool project) is already set here. -->
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
+  <!-- THE PUBLISHED CONFORMANCE STATEMENT (kb/Work PB5431; DESIGN-orchestrator-loop.md section 16.8, step C). The
+       §2023:4.2.16 user documentation is the conformance statement, whose sources are docs/conformance/ (one file per
+       entry) and whose whole, docs/CONFORMANCE.md, is a gitignored view. Every package renders it at pack time and
+       carries it at docs/CONFORMANCE.md beside LICENSE, so the compiler and CLI messages that name that path name a file
+       every user installed. The render is the checkout's (scripts/spec/conformance_doc.py, the one renderer), and a
+       source out of shape fails the render and so the pack: a package never ships without its statement. Only a pack
+       runs the target (a project that is not packable is never packed). -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);CobolPackConformanceStatement</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+  <Target Name="CobolPackConformanceStatement">
+    <PropertyGroup>
+      <CobolConformanceStatement>$(MSBuildProjectDirectory)/$(IntermediateOutputPath)CONFORMANCE.md</CobolConformanceStatement>
+    </PropertyGroup>
+    <Exec Command="python &quot;$(MSBuildThisFileDirectory)scripts/spec/conformance_doc.py&quot; --out &quot;$(CobolConformanceStatement)&quot;"
+          StdOutEncoding="utf-8" StdErrEncoding="utf-8" />
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(CobolConformanceStatement)" PackagePath="docs/CONFORMANCE.md" />
+    </ItemGroup>
+  </Target>
   <!-- kb/Work PB985 (DESIGN-test-build-ci §3.12): a DEBUG build's bits must depend on its SOURCES, not on the commit
        it was built at. The SDK queries git and stamps the commit into AssemblyInformationalVersion ("1.0.0+<sha>")
        and into the Source Link map the PDB carries (whose checksum the assembly embeds), so every commit changed

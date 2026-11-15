@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.16.3-2",
  "rule-digest": "0dd7788f0d6b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ExceedsThreeSignificantDigits85",
+ "test-ref": "conformance:cases/XIII.3.15@1985-LINE-NUMBER-CLAUSE/pb5252_line_and_next_group_three_digits; conformance:cases/XIII.3.16@1985-NEXT-GROUP-CLAUSE/pb5252_next_group_plus_1000_refused_at_85",
+ "notes": "kb/Work PB5252 landed (the row kb/Work PB5079 named). §1985:XIII.3.16.3 SR2: \"Integer-1 and integer-2 must not exceed three significant digits in length.\" ReportSectionBinder.BindNextGroupClauses bounds the NEXT GROUP integer by ReportModel.VerticalLimit and, below COBOL-2002, by ExceedsThreeSignificantDigits85 (shared with the PAGE and LINE NUMBER screens), so NEXT GROUP PLUS 1000 in an unpaged report is refused (COBOL2284) and PLUS 0999 accepted. Witnesses: pb5252_line_and_next_group_three_digits and pb5252_next_group_plus_1000_refused_at_85.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

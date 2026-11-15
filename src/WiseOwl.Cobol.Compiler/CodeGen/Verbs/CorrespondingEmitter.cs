@@ -78,7 +78,7 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
         w.Line($"if ({pending} is not null) ExceptionState.DataIncompatibleError({pending});");
     }
 
-    /// <summary>Anchor each group operand ONCE before the first pair (§2023:14.7.6 — all item identification, including
+    /// <summary>Anchor each group operand ONCE before the first pair (none for a 1985 MOVE, whose binder hoists nothing: §1985:VI.6.19.4 GR1) (§2023:14.7.6 — all item identification, including
     /// the group operands' subscripts, is done at the START of the statement, not per implied statement): a
     /// <c>ref var</c> local aliases a member-path group (evaluating the ref-returning table-subscript accessor
     /// (<c>At</c>) exactly once, so the alias is a true lvalue the pair stores write through); a

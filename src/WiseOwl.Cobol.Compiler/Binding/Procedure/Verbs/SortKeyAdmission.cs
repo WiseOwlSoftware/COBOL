@@ -97,6 +97,14 @@ internal static class SortKeyAdmission
                 + (rules == SortKeyRules.TableSort ? "class boolean, object, or pointer" : "the class boolean, message-tag, object, or pointer")
                 + $"\" ({clause} c))";
 
+        // An index data item: a KEY phrase references its key explicitly, and no edition's list of the contexts an index
+        // data item may be referenced in names a sort or merge key (§2023:13.18.60.3 SR10; §1985:VI.5.14.3 SR5; kb/Work PB5188).
+        if (!key.IsGroup && IntrinsicArgumentRules.ClassOfItem(key) == CobolClass.Index)
+            return $"{verb} key '{name}' is an index data item: \"An index data item may be referenced explicitly only in "
+                + "a SEARCH or SET statement, a relation condition, an intrinsic function argument, an inline method "
+                + "invocation argument, the USING phrase of a procedure division header, or the USING phrase of a CALL or "
+                + "INVOKE statement\" (ISO §2023:13.18.60.3 SR10; " + clause + ")";
+
         // SR6 d) / SR14 d): the key's SHAPE — its length must not vary.
         string? shape = null;
         if (key.IsDynamicLength)

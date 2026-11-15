@@ -77,8 +77,8 @@ public sealed class StartTemporaryKeyAreaDriftTests
             StringComparison.Ordinal);
 
     /// <summary>True when the emitter hands <c>FileStartIndexed</c> the RECORD AREA (through
-    /// <c>PlaceTable.RecordArea</c> and the ONE <c>OperandText.RecordSendImage</c> channel) rather than a
-    /// rendering of the START operand.</summary>
+    /// <c>SequentialIoEmitter.RecordAreaSendImage</c>, the ONE whole-area image the keyed READ and DELETE take too, kb/Work
+    /// PB5217) rather than a rendering of the START operand.</summary>
     internal static bool EmitStartSendsTheRecordArea(string source)
     {
         int call = source.IndexOf("RuntimeApi.FileStartIndexed(", StringComparison.Ordinal);
@@ -88,8 +88,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
         string site = source[call..end];
         return !site.Contains("OperandText.AsStorageImage", StringComparison.Ordinal)
             && !site.Contains("OperandText.AsString", StringComparison.Ordinal)
-            && source.Contains("places.RecordArea(file) is { } ar", StringComparison.Ordinal)
-            && source.Contains("OperandText.RecordSendImage(ar)", StringComparison.Ordinal);
+            && source.Contains("string areaImage = SeqIo.RecordAreaSendImage(file)", StringComparison.Ordinal);
     }
 
     /// <summary>The body of the KEY-phrase START, matched by signature PREFIX so a later parameter rename cannot
@@ -126,7 +125,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
     public void EmitStart_SendsTheRecordArea_NotTheOperand()
     {
         Assert.True(EmitStartSendsTheRecordArea(KeyedIoEmitterSource()),
-            "KeyedIoEmitter.EmitStart must pass OperandText.RecordSendImage of PlaceTable.RecordArea(file) "
+            "KeyedIoEmitter.EmitStart must pass the whole record area, SequentialIoEmitter.RecordAreaSendImage(file) (kb/Work PB5217), "
             + "to RuntimeApi.FileStartIndexed. Sending OperandText.AsStorageImage(sta.Operand) makes the record-area "
             + "slice §2023:14.9.41.4 GR17 a) names unavailable to the connector at all (kb/Work PB355).");
     }

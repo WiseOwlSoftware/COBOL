@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-IX.4.5.3-5",
  "rule-digest": "17d8ef41b9ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+ "test-ref": "conformance:cases/IX.4.5@1985-READ-STATEMENT/1985-SR-IX_4_5_3-5; conformance:cases/14.9.30-READ/pb5102_dynamic_at_end_implies_next",
+ "notes": "§1985:IX.4.5.3 SR5: \"The NEXT phrase must be specified for files in dynamic access mode, when records are to be retrieved sequentially.\" The 1985 READ prints AT END in format 1 only (§1985:IX.4.5.2), format 1 being the sequential retrieval, so a READ of an indexed file in dynamic access mode that writes AT END and no NEXT is the retrieval the rule forbids. KeyedIoBinder.BindRead asks StatementValidation.CheckReadDynamicNextWritten (COBOL7144, Year below 2002), which refuses it; the bind continues as the implied NEXT of §2023:14.9.30.3 SR9, which 2002 and later keep. kb/Work PB5102.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

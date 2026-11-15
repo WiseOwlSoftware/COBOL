@@ -83,7 +83,6 @@ GRAMMAR_REL = "src/WiseOwl.Cobol.Frontend/Grammar"
 WORD_LISTS = frozenset({"§2023:8.9", "§2023:8.10"})
 #: A version predicate of the grammar: `{is2002()}?`, alone or in a disjunction (`{is2002() || retryPhraseAhead()}?`).
 _PREDICATE = re.compile(r"\{[^{}]*\bis(\d+)\(\)[^{}]*\}\?")
-_RULE = re.compile(r"(SR|GR|AR|RV)(\d+)")
 #: A citation of a clause's general format (`Format 2`), which names the clause's rule of the catalog kind FMT.
 _FORMAT = re.compile(r"Format\b")
 _FORMAT_KIND = "FMT"
@@ -108,6 +107,7 @@ HELD_OPEN: dict[str, str] = {f"constructs/{c}": FORMAT_ONLY for c in (
     "use-without-procedure-2002", "use-without-after-2002",  # optional words of §2023:14.9.49.2
     "file-control-entry-optional-2002",                      # the brackets of §2023:12.4.2 and §2023:12.4.4.2 (kb/Work PB5167)
     "rewrite-record-word-2002",                              # the optional word RECORD of §2023:14.9.35.2 (kb/Work PB5159)
+    "report-code-is-2002",                                   # the optional word IS of §2023:13.18.12.2 (kb/Work PB5242)
 )}
 _COMMENT = "//"
 
@@ -194,13 +194,17 @@ def document_year(rule: Row, ed: Edition) -> int:
 
 def named_rules(c: citation.Citation, rules: Iterable[Row], ed: Edition) -> list[str]:
     """The ids of `rules` (one held edition's catalog) that the citation `c` names: a clause every rule under it, a rule
-    designator the rule of that kind and ordinal there, a `Format n` the clause's FMT rule (the module docstring)."""
+    designator the rule of that kind, numbered list and ordinal there (`GR2` the second rule of the block's first list,
+    `GRL2.2` the second of its second: kb/Work PB4969, PB5123), a `Format n` the clause's FMT rule (the module
+    docstring). The designator is compared in the one writer's spelling, `citation.rule_designator`, with any glued
+    sub-item path (`GR6d.2`) read off its rule."""
     under = [r for r in rules if document_year(r, ed) == c.edition
              and (r["section"] == c.locator or r["section"].startswith(c.locator + "."))]
     if c.rule and _FORMAT.match(c.rule):
         return [r["rule-id"] for r in under if r["kind"] == _FORMAT_KIND]
-    m = _RULE.match(c.rule) if c.rule else None
-    return [r["rule-id"] for r in under if m is None or (r["kind"] == m[1] and r["ordinal"] == int(m[2]))]
+    m = (citation.SUBLIST_RULE.match(c.rule) or citation.NUMBERED_RULE.match(c.rule)) if c.rule else None
+    return [r["rule-id"] for r in under
+            if m is None or citation.rule_designator(r["kind"], r["ordinal"], r.get("sublist") or 1) == m[0]]
 
 
 def cited_rules(cites: Iterable[citation.Citation], rules: Iterable[Row], ed: Edition) -> list[str]:
@@ -438,6 +442,12 @@ def self_test() -> int:
        and cited_rules(citation.scan("§1989:A.2.7.3"), old, e85) == ["1989-AR-A.2.7.3-1"]
        and cited_rules(citation.scan("§1985:A.2.7.3"), old, e85) == [],
        "a clause names every rule under it, a designator its kind and ordinal, each in its own document's numbering")
+    lists = [{"rule-id": "1985-GR-IV.4.4.2-2", "section": "IV.4.4.2", "kind": "GR", "ordinal": 2, "sublist": 1},
+             {"rule-id": "1985-GR-IV.4.4.2-L2.2", "section": "IV.4.4.2", "kind": "GR", "ordinal": 2, "sublist": 2}]
+    ok(cited_rules(citation.scan("§1985:IV.4.4.2 GRL2.2"), lists, e85) == ["1985-GR-IV.4.4.2-L2.2"]
+       and cited_rules(citation.scan("§1985:IV.4.4.2 GR2"), lists, e85) == ["1985-GR-IV.4.4.2-2"],
+       "a restarted list's designator names its list: GRL2.2 the second list's rule, GR2 the first's alone (kb/Work "
+       "PB4969, PB5123: GRL2.2 used to name every rule of the clause)")
     ok(cited_rules(citation.scan("§2023:14.9.2 Format 1"), new, e23) == ["FMT-14.9.2.2"],
        "a Format n names the clause's general format, its FMT rule")
     ok(finds(gate(2002, None, "§2023:14.9.3.4 GR1")) == []

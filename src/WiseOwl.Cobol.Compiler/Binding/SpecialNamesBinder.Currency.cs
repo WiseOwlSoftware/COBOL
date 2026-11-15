@@ -238,18 +238,52 @@ public sealed partial class SpecialNamesBinder
         if (defined.Text == "$") Cfg.DollarSpecified = true;   // r25 — a clause named '$' as literal-7
     }
 
-    /// <summary>The ISO §2023:12.3.7.3 SR22/SR27 forbidden currency-symbol set: digits; A B C D E N P R S V X Z (either
-    /// case) or space; and <c>+ - , . * / ; ( ) " =</c>. The letter test goes through the item-43 equivalence
-    /// (<c>char.ToUpperInvariant</c>), so a non-COBOL character whose invariant upper case is one of those letters is
-    /// excluded with it — the "additional characters prohibited" of §2023:8.1.2 that Annex A.1 item 44 requires documented
-    /// (docs/CONFORMANCE.md DOC-A.1-44; kb/Work PB1397).</summary>
+    /// <summary>Report <paramref name="c"/> when the edition's forbidden currency-symbol set holds it
+    /// (<see cref="CurrencySymbolExclusion.For"/>, the one home of each edition's list; kb/Work PB5173).</summary>
     private void ValidateCurrencyChar(char c, string what)
     {
-        bool forbidden = char.IsAsciiDigit(c)
-            || char.ToUpperInvariant(c) is 'A' or 'B' or 'C' or 'D' or 'E' or 'N' or 'P' or 'R' or 'S' or 'V' or 'X' or 'Z'
-            || c is ' ' or '+' or '-' or ',' or '.' or '*' or '/' or ';' or '(' or ')' or '"' or '=';
-        if (forbidden)
-            Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"{what} '{c}': not a valid currency symbol — digits, the picture "
-                + "letters A B C D E N P R S V X Z, space, and + - , . * / ; ( ) \" = are excluded (ISO §2023:12.3.7.3 SR22/SR27)");
+        var exclusion = CurrencySymbolExclusion.For(Edition.DialectLevel);
+        if (exclusion.Excludes(c))
+            Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"{what} '{c}': not a valid currency symbol — digits, "
+                + $"{exclusion.LetterText}, space, and + - , . * / ; ( ) \" = are excluded ({exclusion.Citation})");
     }
+}
+
+/// <summary>⛔ THE FORBIDDEN CURRENCY-SYMBOL SET OF EACH EDITION, HELD ONCE (kb/Work PB5173). Two lists exist:
+/// <list type="bullet">
+///   <item>COBOL-85, §1985:VI.4.5.4 GR11: the digits; "the uppercase letters A, B, C, D, P, R, S, V, X, Z; the lowercase
+///     letters a through z; or the space"; and <c>* + - , . ; ( ) " =</c> and <c>/</c>. E and N are not picture symbols of
+///     the 1985 PICTURE clause, so they are legal currency symbols, and every lowercase letter is excluded.</item>
+///   <item>COBOL-2002 onward, §2023:12.3.7.3 SR22 (literal-7) and SR27 (literal-8; §2002:12.2.6.2 SR19 the same list): the
+///     digits; "A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents; or the space"; and the same special
+///     characters.</item>
+/// </list>
+/// The letter test goes through the item-43 equivalence (<c>char.ToUpperInvariant</c>), so a non-COBOL character whose
+/// invariant upper case is an excluded letter is excluded with it — the "additional characters prohibited" of §2023:8.1.2
+/// that Annex A.1 item 44 requires documented (docs/CONFORMANCE.md DOC-A.1-44; kb/Work PB1397).
+/// <c>CurrencySymbolExclusionDriftTests</c> pins each row's letters to its rule's text.</summary>
+internal sealed record CurrencySymbolExclusion(string UppercaseLetters, bool EveryLowercaseLetter, string Citation)
+{
+    /// <summary>The excluded special characters, the space among them: the same set in every edition.</summary>
+    internal const string SpecialCharacters = " +-,.*/;()\"=";
+
+    internal static readonly CurrencySymbolExclusion Cobol85 =
+        new("ABCDPRSVXZ", EveryLowercaseLetter: true, "ISO §1985:VI.4.5.4 GR11");
+
+    internal static readonly CurrencySymbolExclusion Cobol2002 =
+        new("ABCDENPRSVXZ", EveryLowercaseLetter: false, "ISO §2023:12.3.7.3 SR22/SR27");
+
+    /// <summary>The row of the edition <paramref name="year"/>: the 1985 list below COBOL-2002.</summary>
+    internal static CurrencySymbolExclusion For(int year) => year < 2002 ? Cobol85 : Cobol2002;
+
+    internal bool Excludes(char c) =>
+        char.IsAsciiDigit(c)
+        || SpecialCharacters.Contains(c)
+        || UppercaseLetters.Contains(char.ToUpperInvariant(c))
+        || EveryLowercaseLetter && char.IsAsciiLetterLower(c);
+
+    /// <summary>The letters of the row as its diagnostic names them.</summary>
+    internal string LetterText => EveryLowercaseLetter
+        ? $"the uppercase letters {string.Join(' ', UppercaseLetters.ToCharArray())}, the lowercase letters a through z"
+        : $"the picture letters {string.Join(' ', UppercaseLetters.ToCharArray())} (either case)";
 }

@@ -50,14 +50,15 @@ internal sealed class SetAlterBinder(BinderContext ctx)
                 {
                     if (entry.procedureName() is not { Length: >= 2 } names) continue;
                     ctx.CurrentSection = ctx.Table.ParaSections[i];
-                    // proc-1 names a PARAGRAPH (a section resolves to a multi-pc range and is excluded; the
-                    // sole-GO-TO shape check happens at the ALTER's own bind, where it can fail loud).
-                    // The QUIET resolution, deliberately: this is a PRESCAN, and the ALTER's own bind reports
-                    // the unresolvable name once, through the ONE operand resolution (kb/Work PB390).
-                    if (ctx.Table.ResolveProcedureQuiet(names[0]) is { IsParagraph: true } t)
+                    // proc-1 names a PARAGRAPH: the resolution says whether the name is a section's, never the shape of
+                    // its range, since a section of one paragraph is one pc too (kb/Work PB5195). The sole-GO-TO shape
+                    // check happens at the ALTER's own bind, where it can fail loud. The QUIET resolution, deliberately:
+                    // this is a PRESCAN, and the ALTER's own bind reports the unresolvable name once, through the ONE
+                    // operand resolution (kb/Work PB390).
+                    if (ctx.Table.ResolveProcedureQuiet(names[0]) is { IsSection: false, Range.IsEmpty: false } t)
                         // Method "P_<name>" → field "_alter_<name>" (D4); COBOL names cannot start with '_',
                         // so the field can never collide with a data item's emitted field.
-                        _alterSwFields.TryAdd(t.Start, "_alter_" + ctx.Table.Paragraphs[t.Start].Method[2..]);
+                        _alterSwFields.TryAdd(t.Range.Start, "_alter_" + ctx.Table.Paragraphs[t.Range.Start].Method[2..]);
                 }
         ctx.CurrentSection = saved;
     }
@@ -131,16 +132,19 @@ internal sealed class SetAlterBinder(BinderContext ctx)
                     + "[PROCEED TO] procedure-name-2 (X3.23-1985 ALTER statement)");
             // ⛔ BOTH ALTER OPERANDS ARE procedure-names AND GO THROUGH THE ONE RESOLUTION (kb/Work PB390):
             // an unresolvable name is reported at COMPILE time, not staged to a run-time abort blaming a gap in
-            // WiseOwl COBOL. proc-1 additionally has to be a PARAGRAPH (a section resolves to a multi-pc range and
-            // the ALTER shape rule is about a single GO TO sentence), so a RESOLVED section takes the shape arm
-            // below rather than the name arm — telling the user "that is a section" beats "unknown procedure".
+            // WiseOwl COBOL. proc-1 additionally has to be a PARAGRAPH: "Procedure-name-1 is the name of a paragraph
+            // that contains a single sentence consisting of a GO TO statement without the DEPENDING phrase"
+            // (§1985:VI.6.7.3 SR1). Whether the name is a section's is the resolution's own answer (IsSection), never
+            // the shape of its range: a section that holds one paragraph is one pc as well, and ALTER S7, S7 such a
+            // section, altered its paragraph's GO TO (kb/Work PB5195). A RESOLVED section takes the shape arm below
+            // rather than the name arm — telling the user "that is a section" beats "unknown procedure".
             if (ctx.Table.ResolveProcedureOperand(names[0], "ALTER") is not { } target) { bad = true; continue; }
-            if (!target.Range.IsParagraph || !AlterIsSoleGoToParagraph(target.Range.Start))
+            if (target.IsSection || target.Range.IsEmpty || !AlterIsSoleGoToParagraph(target.Range.Start))
             {
                 ctx.Validation.RejectStatementOperand($"ALTER '{ProcedureNameShape.AsWritten(names[0])}' — the procedure "
                     + "to be altered shall be a paragraph consisting of a single sentence that is one GO TO "
                     + "statement (ANSI X3.23-1985 ALTER syntax rule)"
-                    + (target.Range.IsParagraph ? "" : "; this name resolves to a SECTION"));
+                    + (target.IsSection ? "; this name resolves to a SECTION" : ""));
                 bad = true;
                 continue;
             }

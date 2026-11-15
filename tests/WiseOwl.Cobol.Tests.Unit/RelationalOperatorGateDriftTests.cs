@@ -30,7 +30,7 @@ public sealed class RelationalOperatorGateDriftTests
 
     private static readonly TreeScope Grammars = new(Under: ["src/WiseOwl.Cobol.Frontend/Grammar/"], Kinds: [".g4"]);
 
-    private static string Read(string repoRelative) => File.ReadAllText(TestRepo.At(repoRelative.Split('/')));
+    private static string Read(string repoRelative) => File.ReadAllText(TestRepo.Within("src/", repoRelative));
 
     /// <summary>No file but the gate body names the row: a second reader of <c>NotEqualOperator2014</c> would be a lane
     /// with its own copy of the rule, which is how the directive lane came to have none.</summary>

@@ -1,0 +1,12 @@
+{
+ "id": "apostrophe-quotation-symbol-2002",
+ "description": "The apostrophe as the quotation symbol of a literal's opening and closing delimiters (ISO §2023:8.3.5 SR5: 'Either an apostrophe or a quotation mark may be used as the quotation symbol character in opening and closing delimiters'; §2023:8.3.3.1: the paired quotation symbols 'may be either apostrophes or quotation marks'), in every format that delimits a literal: '...', X'...', N'...', NX'...', B'...', BX'...'. A COBOL-2002 introduction, and THE EDGE IS QUOTED: §2002:F.2 item 3, 'Apostrophe as quotation symbol. The apostrophe character as well as the quotation mark may be used in the opening and closing delimiters of alphanumeric, boolean, and national literals'; §1985:IV.4.2.2.2.1, 'A nonnumeric literal is a character-string delimited at the beginning and at the end by the separator quotation mark', and §1985:IV.4.2.1 SR5 makes the quotation mark the one literal separator. None of the 459 NIST CCVS-85 programs writes an apostrophe-delimited literal. Gated position-blind on the TOKEN by LiteralScreen.GateFormat through CobolLiteral.IsApostropheDelimited (kb/Work PB5160).",
+ "display": "the apostrophe-delimited literal",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.3.5 SR5; a COBOL-2002 introduction (§2002:F.2 item 3; §1985:IV.4.2.2.2.1)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "apostrophe as quotation symbol (2002 substantive change F.2 item 3); VCR row 7.72",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMAPOS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC XX VALUE 'AB'.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+}

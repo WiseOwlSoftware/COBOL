@@ -60,7 +60,9 @@ public sealed record BoundProgram(
 /// (DB101A "USE PROCEDURE NOT EXECUTED"); a USE procedure of another declarative section is a subject
 /// (§1985:XV.3.2.4 GR21). A SECTION subject (<paramref name="IsSection"/>) triggers at the section's first pc, named by the
 /// section; a paragraph subject at its own pc: one procedure-name is one trigger point, so several subjects share a pc
-/// (a section and its first paragraph). The data-name, ALL REFERENCES OF and cd-name
+/// (a section and its first paragraph). A section subject runs only when control reaches the section from OUTSIDE it (<paramref name="SubjectEndPc"/>
+/// is the section's last pc, -1 for a paragraph subject): a transfer from one of its own paragraphs, a loop back to its first paragraph,
+/// is no new execution of the section (§1985:XV.3.2.4 GR3 a; kb/Work PB5414). The data-name, ALL REFERENCES OF and cd-name
 /// targets are <see cref="BoundDebugTarget"/>s (docs/CONTROL_FLOW_DESIGN.md D20), and so is the file-name target.</summary>
 public sealed record BoundDebugSubject(
     int SubjectPc,
@@ -68,7 +70,8 @@ public sealed record BoundDebugSubject(
     int SourceLine,
     int SectionStartPc,
     int SectionEndPc,
-    bool IsSection = false);
+    bool IsSection = false,
+    int SubjectEndPc = -1);
 
 /// <summary>The kind of a <see cref="BoundDebugTarget"/> (X3.23-1985 USE FOR DEBUGGING general format).</summary>
 public enum DebugTargetKind
@@ -361,8 +364,10 @@ public sealed record BoundBinary(BoundExpr Left, char Op, BoundExpr Right) : Bou
 /// <summary>Arithmetic negation.</summary>
 public sealed record BoundNegate(BoundExpr Operand) : BoundExpr;
 
-/// <summary>Exponentiation (<c>base ** exp</c>).</summary>
-public sealed record BoundPower(BoundExpr Base, BoundExpr Exp) : BoundExpr;
+/// <summary>Exponentiation (<c>base ** exp</c>). <see cref="NegativeBaseRealRoots"/>: the COBOL-85 rule for a negative base is in
+/// force, §1985:VI.6.2.3 GR5c's size error only when no real number is the result, rather than the integer-exponent rule of
+/// §2023:8.8.1.2 GR6c (kb/Work PB5186, <c>DialectBehavior.NegativeBaseRequiresIntegerExponent</c>).</summary>
+public sealed record BoundPower(BoundExpr Base, BoundExpr Exp, bool NegativeBaseRealRoots) : BoundExpr;
 
 /// <summary>An INDEXED BY index-name read as its 1-based occurrence number (the C# <c>long</c> index field,
 /// DESIGN §3.5). Valid in SET senders, SEARCH, relation conditions, and subscripts (ISO §2023:13.18.38).</summary>
@@ -1396,33 +1401,46 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
 /// places (kb/Work PB337).</para>
 /// </summary>
 /// <param name="Statement">The phrase as the programmer wrote it, for every diagnostic.</param>
-/// <param name="MoveRuleCite">The general rule that makes the phrase a MOVE — §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4
-/// GR5 b), which are the same sentence twice.</param>
+/// <param name="MoveRule">The general rule that makes the phrase a MOVE — §2023:14.9.30.4 GR4 b) / §2023:14.9.34.4
+/// GR5 b), which are the same sentence twice; at COBOL-85 READ's GR8 b of its I-O module and RETURN's §1985:XI.4.3.4 GR6 b
+/// (kb/Work PB5352).</param>
 /// <param name="AdmitsRecordLessEntry">True when the verb's description entry may legally have no record
 /// description entry at all — an FD (§2023:13.4.5.3 SR3) but not an SD (§2023:13.4.6.3 SR2).</param>
-/// <param name="AdmissibilityCite">The verb's own admissibility rule — §2023:14.9.30.3 SR1 / §2023:14.9.34.3 SR2.</param>
-/// <param name="AdmissibilityArmA">That rule's arm a), quoted, because the two verbs word it differently and a
-/// diagnostic that paraphrases it sends the reader to the wrong sentence.</param>
+/// <param name="Admissibility">The verb's own admissibility rule — §2023:14.9.30.3 SR1 / §2023:14.9.34.3 SR2; at COBOL-85 a
+/// general rule, READ's GR7 of its I-O module and RETURN's §1985:XI.4.3.4 GR5 (kb/Work PB5352).</param>
+/// <param name="AdmissibilityArmA">That rule's arm a), quoted as the edition words it, because the two verbs word it differently
+/// and a diagnostic that paraphrases it sends the reader to the wrong sentence.</param>
+/// <param name="AdmissibilityArmB">Its arm b), what identifier-1 and every record-name shall describe, quoted as the edition
+/// words it.</param>
 /// <param name="StrongReceiverCite">The verb's strongly-typed-receiver rule — §2023:14.9.30.3 SR2 / §2023:14.9.34.3 SR3.</param>
 /// <param name="StrongReceiverCount">That rule's record-area count requirement, quoted.</param>
 /// <param name="EntryFace">How the description entry names itself in a message — "FD" / "SD".</param>
 /// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
-/// at the editions before COBOL-2023 (kb/Work PB5077).</param>
+/// at the editions before COBOL-2014 (kb/Work PB5077, PB5270).</param>
 public sealed record IntoPhraseRules(
     string Statement,
-    string MoveRuleCite,
+    EditionCite MoveRule,
     bool AdmitsRecordLessEntry,
-    string AdmissibilityCite,
-    string AdmissibilityArmA,
+    EditionCite Admissibility,
+    EditionCite AdmissibilityArmA,
+    EditionCite AdmissibilityArmB,
     string StrongReceiverCite,
     string StrongReceiverCount,
     string EntryFace,
     RecordAreaVerb AreaVerb)
 {
-    /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's INTO phrase carries — built once
-    /// per verb beside the two rows, exactly as <c>FromPhraseRules.Phrase</c> is. A phrase is a property of the
-    /// VERB, not of an occurrence of it, so both are singletons.</summary>
-    public ImplicitMovePhrase Phrase { get; } = new(Statement, MoveRuleCite);
+    /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's INTO phrase carries at
+    /// <paramref name="dialectLevel"/> for a file of <paramref name="organization"/>: the verb's phrase, citing the MOVE rule as the
+    /// edition numbers it (kb/Work PB5352), as <c>FromPhraseRules.PhraseAt</c> does.</summary>
+    public ImplicitMovePhrase PhraseAt(int dialectLevel, FileOrganization organization) =>
+        new(Statement, MoveRule.At(dialectLevel, organization));
+
+    /// <summary>Arm b) of the admissibility rule from COBOL-2002 (§2023:14.9.30.3 SR1 b, §2023:14.9.34.3 SR2 b).</summary>
+    private const string ArmB2023 =
+        "\"describe an alphanumeric group item or an elementary item of category alphanumeric or category national\"";
+
+    /// <summary>Arm b) in COBOL-85 (§1985:VII.4.4.4 GR7 b and its twins, §1985:XI.4.3.4 GR5 b).</summary>
+    private const string ArmB1985 = "\"describe a group item or an elementary alphanumeric item\"";
 
     /// <summary>The record-area COUNT this verb's admissibility arm a) and strong-receiver rule admit: 1, or
     /// 0 and 1 where the description entry may be record-less. Read by both rules, never re-derived.</summary>
@@ -1432,10 +1450,13 @@ public sealed record IntoPhraseRules(
     /// from the record area to the area specified by identifier-1 according to the rules for the MOVE statement
     /// without the CORRESPONDING phrase."</summary>
     public static readonly IntoPhraseRules Read = new(
-        "READ INTO", "ISO §2023:14.9.30.4 GR4 b)", AdmitsRecordLessEntry: true,
-        "ISO §2023:14.9.30.3 SR1",
-        "\"If no record description entry or only one record description is subordinate to the file description "
-        + "entry\"",
+        "READ INTO",
+        new("ISO §2023:14.9.30.4 GR4 b)", "§1985:VII.4.4.4 GR8b", "§1985:VIII.4.5.4 GR8b", "§1985:IX.4.5.4 GR8b"),
+        AdmitsRecordLessEntry: true,
+        new("ISO §2023:14.9.30.3 SR1", "§1985:VII.4.4.4 GR7", "§1985:VIII.4.5.4 GR7", "§1985:IX.4.5.4 GR7"),
+        new("\"If no record description entry or only one record description is subordinate to the file description "
+            + "entry\"", "\"If only one record description is subordinate to the file description entry\""),
+        new(ArmB2023, ArmB1985),
         "ISO §2023:14.9.30.3 SR2",
         "\"there shall be at most one record area subordinate to the FD for file-name-1\"",
         "FD", RecordAreaVerb.Read);
@@ -1443,9 +1464,12 @@ public sealed record IntoPhraseRules(
     /// <summary><c>RETURN … INTO</c>. ISO §2023:14.9.34.4 GR5 b) — the identical sentence, which is why the two
     /// phrases share one binder and one sender builder rather than one each.</summary>
     public static readonly IntoPhraseRules Return = new(
-        "RETURN INTO", "ISO §2023:14.9.34.4 GR5 b)", AdmitsRecordLessEntry: false,
-        "ISO §2023:14.9.34.3 SR2",
-        "\"If only one record description is subordinate to the sort-merge file description entry\"",
+        "RETURN INTO",
+        new("ISO §2023:14.9.34.4 GR5 b)", "§1985:XI.4.3.4 GR6b"),
+        AdmitsRecordLessEntry: false,
+        new("ISO §2023:14.9.34.3 SR2", "§1985:XI.4.3.4 GR5"),
+        new("\"If only one record description is subordinate to the sort-merge file description entry\""),
+        new(ArmB2023, ArmB1985),
         "ISO §2023:14.9.34.3 SR3",
         "\"there shall be exactly one record area subordinate to the SD for file-name-1\"",
         "SD", RecordAreaVerb.Return);
@@ -2070,7 +2094,8 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 /// <paramref name="AlsoVaried"/> is null there.</para>
 /// <para><paramref name="IndexBelowTableIsUnsuccessful"/> is Format 1's start test (<c>DialectBehavior.SearchIndexBelowTableUnsuccessful</c>, VCR row 7.56): from
 /// COBOL-2002 an index at or below zero is unsuccessful at once (§2023:14.9.37.4 GR4); at COBOL-85 only an index above the table is
-/// (§1985:VI.6.22.4 GR2), and an index below it starts the scan (kb/Work PB5121).</para>
+/// (§1985:VI.6.22.4 GR2a), and an index below it starts the scan (kb/Work PB5121); at COBOL-85 the advance test then judges the
+/// incremented index against both bounds (§1985:VI.6.22.4 GR2b, kb/Work PB5302).</para>
 /// <para><paramref name="Table"/> is identifier-1 as the statement wrote it: the WHOLE table under the enclosing occurrence the
 /// statement names (<c>PlaceBuilder.WholeTable</c>), the operand SEARCH explicitly references (X3.23-1985 USE FOR DEBUGGING general
 /// rule 5; kb/Work PB4855). The scan reads <paramref name="IndexField"/>, never it.</para>
@@ -2314,7 +2339,8 @@ public sealed record BoundInitiate(IReadOnlyList<ReportModel> Reports) : BoundSt
 /// <summary><c>GENERATE {detail | report-name}</c> (ISO §2023:14.9.16): detail reporting prints one instance of
 /// <paramref name="Detail"/> after control-break/page-fit processing (GR1); a null detail is SUMMARY reporting
 /// (GR2 — the report-name form, same processing with no detail printed). <paramref name="SummaryDetail"/> is the detail
-/// group a SUMMARY statement still subtotals for: §1985:XIII.3.20.4 GR11 processes "a GENERATE report-name statement" of a
+/// group a SUMMARY statement still subtotals for and processes without printing (its USE BEFORE REPORTING procedure runs,
+/// §1985:XIII.3.20.4 GR11 b), kb/Work PB5337): §1985:XIII.3.20.4 GR11 processes "a GENERATE report-name statement" of a
 /// report with exactly one detail group "as though a GENERATE data-name statement were being executed", its step a) being
 /// "any subtotalling that has been designated for the detail report group" (a SUM ... UPON that group), and §2023:14.9.16.4
 /// GR2 gives the report-name form "the same processing as for a GENERATE data-name statement for the same report, except
@@ -2407,13 +2433,55 @@ public interface IProfiledStatement
 /// step, so a statement without one binds byte-identically.</para></summary>
 public sealed record BoundActivationSite(BoundStatement Inner) : BoundStatement;
 
-/// <summary>One RECEIVING object property's accessors, bound to the moment its statement reaches the receiver
-/// (kb/Work PB2078): <paramref name="Open"/> is identifier-3's evaluation and the §2023:8.4.3.9.4 GR1 GET (the latter
-/// only when the statement also READS the property), run immediately before the receiver is accessed;
-/// <paramref name="Close"/> is the GR2 SET, run immediately after the receiver is stored — and not at all when that
-/// store raised a size error. <paramref name="Temp"/> is the property's compiler temporary, the item the
-/// statement's receiver <see cref="Place"/> denotes.</summary>
-public sealed record ReceiverBracket(DataItem Temp, IReadOnlyList<BoundStatement> Open, IReadOnlyList<BoundStatement> Close);
+/// <summary>The steps of ONE receiving operand that run when its statement reaches it, bound to that moment (kb/Work PB2078,
+/// PB5386): <paramref name="Open"/> runs immediately before the receiver is accessed, <paramref name="Close"/> immediately after
+/// it is stored — and not at all when that store raised a size error. Two kinds of receiver carry such steps
+/// (<paramref name="Receiver"/>):
+/// <list type="bullet">
+///   <item>an OBJECT PROPERTY: Open is identifier-3's evaluation and the §2023:8.4.3.9.4 GR1 GET (the latter only when the
+///     statement also READS the property), Close is the GR2 SET (<c>OoBinder.OoWrapPropertyOps</c>);</item>
+///   <item>a data item whose IDENTIFICATION evaluates something — a subscript or reference modifier lowered to a §2023:15.4
+///     temporary, a function activation in one: Open is that evaluation, and there is no Close
+///     (<c>ExpressionBinder.ResolveReceivingAtStore</c>). The statements that identify a receiver as it is stored —
+///     §2023:14.9.25.4 GR1 (MOVE), §2023:14.7.7 4) b) (the arithmetic statements), the INTO phrase of READ and RETURN
+///     (§2023:14.9.30.4 GR4 b), §2023:14.9.34.4 GR5 b), §1985:XI.4.3.4 GR6b) — would otherwise identify it before the statement
+///     ran, at the hoist every other operand's evaluation rides.</item>
+/// </list></summary>
+public sealed record ReceiverBracket(ReceiverBracketKey Receiver, IReadOnlyList<BoundStatement> Open, IReadOnlyList<BoundStatement> Close);
+
+/// <summary>Which receiving operand a <see cref="ReceiverBracket"/> belongs to — the question the emitter asks of each store
+/// (<see cref="Names"/>).</summary>
+public abstract record ReceiverBracketKey
+{
+    /// <summary>Is <paramref name="receiver"/>, the place a store is about to write, the operand this key names?</summary>
+    public abstract bool Names(Place receiver);
+
+    /// <summary>How the receiver names itself in the emitter's internal-error message.</summary>
+    public abstract string Face { get; }
+}
+
+/// <summary>An object property's receiver: <paramref name="Temp"/> is the property's compiler temporary, the item the
+/// statement's receiver <see cref="Place"/> denotes (whatever reference modification is written on it).</summary>
+public sealed record PropertyReceiverKey(DataItem Temp) : ReceiverBracketKey
+{
+    /// <inheritdoc/>
+    public override bool Names(Place receiver) => ReferenceEquals(Temp, receiver.Item);
+
+    /// <inheritdoc/>
+    public override string Face => $"the object-property receiver '{Temp.CobolName}'";
+}
+
+/// <summary>A written receiving data reference: <paramref name="Reference"/> is the place the receiving chokepoint resolved,
+/// compared by identity, because two references to one item (<c>MOVE X TO T (I), T (FUNCTION F (I))</c>) are identified
+/// apart.</summary>
+public sealed record WrittenReceiverKey(Place Reference) : ReceiverBracketKey
+{
+    /// <inheritdoc/>
+    public override bool Names(Place receiver) => ReferenceEquals(Reference, receiver);
+
+    /// <inheritdoc/>
+    public override string Face => $"the receiver '{Reference.Item.CobolName}'";
+}
 
 /// <summary>⛔ A STATEMENT WHOSE RECEIVING OBJECT PROPERTIES ARE ACCESSED ONE RECEIVER AT A TIME (kb/Work PB2078).
 /// ISO §2023:14.7.7 4) b) stores the intermediate result "in or combined with and then stored in each single resulting
@@ -2427,7 +2495,9 @@ public sealed record ReceiverBracket(DataItem Temp, IReadOnlyList<BoundStatement
 /// ACTIVATIONS: <c>EcBinder</c> stamps and queries them through this node exactly as through a
 /// <see cref="BoundSequence"/> step, and the emitters that loop over a statement's receivers
 /// (<c>ReceiverBracketEmitter.Receive</c>) place them. Created by <c>OoBinder.OoWrapPropertyOps</c> for the
-/// properties a binder CLAIMED as receivers of such a statement (<c>ProcedureBindState.ClaimInterleavedReceiver</c>); the
+/// properties a binder CLAIMED as receivers of such a statement (<c>ProcedureBindState.ClaimInterleavedReceiver</c>), and by
+/// <c>StatementBinder.BindStatement</c> for the data-item receivers whose identification the statement performs at their
+/// store (<c>ExpressionBinder.ResolveReceivingAtStore</c>, kb/Work PB5386); the
 /// emitter fails loudly when a claimed bracket is never placed, so a receiver loop that forgets <c>Receive</c> cannot
 /// silently drop a GET or a SET.</para></summary>
 public sealed record BoundReceiverBrackets(BoundStatement Inner, IReadOnlyList<ReceiverBracket> Brackets) : BoundStatement

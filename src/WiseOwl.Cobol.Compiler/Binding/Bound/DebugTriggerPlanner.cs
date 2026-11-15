@@ -58,7 +58,12 @@ internal static class DebugTriggerPlanner
                 break;
             case BoundEcChecked ec: foreach (var l in Leaves(ec.Inner)) yield return l; break;
             case BoundActivationSite site: foreach (var l in Leaves(site.Inner)) yield return l; break;
-            case BoundReceiverBrackets brackets: foreach (var l in Leaves(brackets.Inner)) yield return l; break;
+            case BoundReceiverBrackets brackets:
+                // A bracket's steps evaluate an operand of the statement at its receiver's store, as a hoisted step does before it
+                // (a receiver's identification, kb/Work PB5386): leaves of the statement, in the order the hoist would have them.
+                foreach (var step in brackets.AllSteps()) foreach (var l in Leaves(step)) yield return l;
+                foreach (var l in Leaves(brackets.Inner)) yield return l;
+                break;
             case BoundDebugTriggered debug: foreach (var l in Leaves(debug.Inner)) yield return l; break;
             default: yield return s; break;
         }

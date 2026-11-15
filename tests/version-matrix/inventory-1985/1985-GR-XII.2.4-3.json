@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XII.2.4-3",
  "rule-digest": "49f059344120",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
  "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-GR-XII_2_4-3",
+ "notes": "§1985:XII.2.4 GR3: without REPLACING \"the library text is copied unchanged\"; with it \"each properly matched occurrence of pseudo-text-1, identifier-1, word-1, and literal-1 in the library text is replaced\". ResolveOneCopy copies the library unchanged (witness 1985-GR-XII_2_4-9, p3a) and ApplyReplacements replaces every operand ParseReplacingOperands reads; at 85 OnNonPseudoTextOperand does not refuse the word, literal and identifier forms (witness 1985-GR-XII_2_4-3; p3d MOVE BY ADD, 1 BY 5, \"OLD\" BY \"NEW\" give oldNEW501; p3b T-E OF T-G (2), WS-S (2:3) and TBL (2) (1:1) as library text). But ReadOperand reads identifier-1/identifier-2 as a word, OF/IN qualifiers and ONE parenthesized group, so two identifier shapes §1985:IV.4.3.8.5.2 gives are refused: a subscripted and reference-modified identifier (Format 2: data-name, qualifiers, a subscript group, then a reference-modifier) and, from Amendment 1, a function-identifier (Format 1); §1985:IV.4.3.8.5.1 names \"a syntactically correct combination of qualifiers, subscripts, or reference modifiers\". Probes: a) p3c TBL (2) (1:1) refused; b) p3r: no operands, ==== and ==,== (SR3, SR9), COPY as word-1 or word-2 (SR6), a missing BY all refused, a repeated operand pair: first wins; c) p3e LEADING/TRAILING, p3f a literal text-name, p3g SUPPRESS refused COBOL0900; d) p3d numeric literal 01 not matched by 1, nonnumeric case kept; p3h FUNCTION UPPER-CASE (\"ab\") refused. kb/Work PB5469 holds the defect (code read: coderead-85/out-read4/rd-06.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

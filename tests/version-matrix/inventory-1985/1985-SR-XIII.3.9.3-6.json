@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.9.3-6",
  "rule-digest": "28b182b0d152",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats",
  "test-ref": "conformance:cases/XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/1985-SR-XIII_3_9_3-6",
+ "notes": "§1985:XIII.3.9.3 SR6: \"A format 2 entry must contain at least one optional clause\"; format 2's optional clauses are data-name-1 (SR2 calls it \"the data-name clause\"), LINE NUMBER and USAGE. ReportSectionBinder.ScreenReportEntryFormats, called only when Edition.DialectLevel < 2002, treats an entry below 01 with no PICTURE, no COLUMN and none of the format 3 clauses as format 2 and refuses it (COBOL2247) when it has no data-name, no LINE and no USAGE; 2002 and later drop the rule (REMOVED). Probes (classes b,c): at --std 85 a bare '05.' over a format 3 child is refused COBOL2247 (the witness), as is a second bare '05.' after a legal LINE group; '05 G1.', '05 LINE PLUS 1.', '05 DISPLAY.' and '05 USAGE IS DISPLAY.' each compile and print; '05 FILLER.' is refused both by SR6 and by the edition gate COBOL0900 (FILLER as a report entry name is 2002 syntax); at --std 2023 the bare '05.' compiles and prints HELLO.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
