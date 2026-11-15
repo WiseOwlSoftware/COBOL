@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-7",
+ "rule-digest": "68a1f7a2e12c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadKeyedShared; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#HolderOf",
+ "test-ref": "conformance:cases/14.8.29@2002-READ-STATEMENT/g2_read_self_lock_ignored",
+ "notes": "§2002:14.8.29.3 GR7: a record locked by the reading connector itself is read as if unlocked. Under AUTOMATIC MULTIPLE locking (§2002:12.3.4.8.3 GR4, GR7), F1 re-reads its own locked record with 00 while F2 still gets 51; g2_read_self_lock_ignored at --std 2002 matched."
+}

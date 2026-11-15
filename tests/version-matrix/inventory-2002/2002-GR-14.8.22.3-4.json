@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.22.3-4",
+ "rule-digest": "e6ceecb2575b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ReduceArgument",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv01-cd-identifier-2-and-single-identifier-args",
+ "notes": "§2002:14.8.22.3 GR4: a single identifier argument is an identifier, so a CD record item passed with no BY phrase is BY REFERENCE (§2002:14.8.22.2 SR14, SR6) and the method's update is seen (3=0008, 4=XYZ, 5=0009; an arithmetic expression would go BY CONTENT and leave 0007); the literal AB goes BY CONTENT (6=AB). --std 2002 output matched the derivation."
+}

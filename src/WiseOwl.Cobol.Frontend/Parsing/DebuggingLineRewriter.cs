@@ -194,8 +194,8 @@ public static class DebuggingLineRewriter
         => type is CobolLexer.PROGRAM or CobolLexer.FUNCTION or CobolLexer.CLASS or CobolLexer.INTERFACE or CobolLexer.METHOD;
 
     /// <summary>Whether the SOURCE-COMPUTER paragraph whose header word is <paramref name="visible"/>[<paramref name="at"/>]
-    /// holds <c>DEBUGGING MODE</c> (the <c>WITH</c> is optional in the clause, and the clause follows the computer-name;
-    /// kb/Work PB830). The paragraph ends at its period; the empty form
+    /// holds <c>DEBUGGING MODE</c> (the <c>WITH</c> is optional in the clause, and the clause follows the computer-name or,
+    /// from 2002, stands without one — §2002:12.2.4.1; kb/Work PB830, PB5609). The paragraph ends at its period; the empty form
     /// <c>SOURCE-COMPUTER. OBJECT-COMPUTER. …</c> (§2023:12.3.5.3 SR1 lets the second period go) ends at the next paragraph's
     /// header word.</summary>
     private static bool DeclaresMode(IList<IToken> tokens, List<int> visible, int at)

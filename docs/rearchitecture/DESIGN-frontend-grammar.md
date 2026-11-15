@@ -1029,7 +1029,7 @@ operand model: its concatenation IS this rule (kb/Work PB1627).
 is optional and the two clauses (`programCollatingSequenceClause | characterClassificationClause`) may follow the
 period in any order (each at most once, §2023:5.2.6.4 — a duplicate is COBOL2104, the one choice-indicator reader, counted by the `ClauseCardinalities` row described under PB3133 below, not by the binder). Two load-bearing
 decisions: (1) the X3.23-1985 clauses ISO 2002 deleted are MODELLED — `memorySizeClause` and `segmentLimitClause`
-are `objectComputerClause` alternatives, `debuggingModeClause` hangs off SOURCE-COMPUTER's name — and each is
+are `objectComputerClause` alternatives, `debuggingModeClause` follows SOURCE-COMPUTER's name or stands without it — and each is
 gated at its own node (`VisitMemorySizeClause` / `VisitSegmentLimitClause` / `VisitDebuggingModeClause`, the last one
 obsolete at 2002 and removed at 2014 — row `debugging-mode-removed-2014`, owner decision R61); both
 paragraphs end in the `unrecognizedClause` error production (§3.10; kb/Work PB830 replaced the `~DOT` sink that
@@ -1040,7 +1040,11 @@ claimed; it was parse-to-diagnose COBOL1518 until then — the LOCALE clause's s
 (CLASSIFICATION, and LOCALE / SYSTEM-DEFAULT / USER-DEFAULT in `localePhrase`) are `formatWord`s the §2023:8.9 funnel
 never meets, while a locale-name-1 reference stays a `cobolWord` (kb/Work PB764). The name-less clause form is the 2002 relaxation of the '85 required-name
 format (`computer-name-optional-2002`, `VisitObjectComputerParagraph`); `sourceComputerParagraph` is
-`((computerName debuggingModeClause? unrecognizedClause?)? DOT)?`.
+`SOURCE_COMPUTER DOT ((computerName debuggingModeClause? | debuggingModeClause) unrecognizedClause?)? DOT?`. The
+name-less WITH DEBUGGING MODE clause is the same 2002 relaxation (kb/Work PB5609): §1985:VI.4.3.2 nests the clause
+inside the required name's bracket, §2002:12.2.4.1 (rendered, PDF p212 / folio 190) prints `[ computer-name-1 ] [ WITH
+DEBUGGING MODE ]`, so `VisitSourceComputerParagraph` asks `computer-name-optional-2002` for a clause without a name,
+and the clause's own row (`debugging-mode-removed-2014`) still makes it obsolete at 2002 and removed at 2014.
 
 ### 3.4 Delete dead grammars; quarantine JSON/XML (D5)
 

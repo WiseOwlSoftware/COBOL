@@ -349,7 +349,9 @@ CLASSIFICATION = Classification(inert={
                                                    "read every held edition's catalog), Unit's EcRaiseSiteDriftTests, "
                                                    "and SuiteManifest's conformance-suite/harness/generate.py",
     "specs/ANSI_COBOL_1985.md": "RecordClauseRuleDriftTests (the Since column's 1985 side, kb/Work PB5196)",  # spec_pdf: names-the-file
-    "specs/ISO_COBOL_2002.md": "RecordClauseRuleDriftTests (the Since column's 2002 side, kb/Work PB5196)",  # spec_pdf: names-the-file
+    "specs/ISO_COBOL_2002.md": "RecordClauseRuleDriftTests (the Since column's 2002 side, kb/Work PB5196) and "  # spec_pdf: names-the-file
+                               "CompilerDirectiveWordsDriftTests (its 8.12 table, kb/Work PB5599)",
+    "specs/ISO_COBOL_2014.md": "CompilerDirectiveWordsDriftTests (its 8.12 table, kb/Work PB5599)",  # spec_pdf: names-the-file
     "specs/ISO_COBOL_2023.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "  # spec_pdf: names-the-file
                           "expected tables from it",
 }, tooling_under=("scripts/", ".github/", "tools/", ".claude/", ".gitattributes", "toolchain.env"),

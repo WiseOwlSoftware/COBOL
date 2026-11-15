@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.36.2-15",
+ "rule-digest": "148f9d3b4922",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/g2-sort-table-cd-occurs-key; conformance:cases/14.8.36@2002-SORT-STATEMENT/g2-sort-table-cd-no-key-anywhere; conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys",
+ "notes": "§2002:14.8.36.2 SR15 lets SORT omit KEY only when the table's OCCURS has a KEY; SORT of CD tables with ASCENDING/DESCENDING OCCURS keys at --std 2002 prints SORTED=ABC / SORTED=RQP as derived from §2002:14.8.36.3 GR20/GR18, and a KEY-less CD table is refused COBOL1757."
+}

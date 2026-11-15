@@ -2356,7 +2356,12 @@ test reads is the ISO text itself, the oracle (CLAUDE.md rule 1): a READ entry, 
 expected tables from it, and a change to it is a spec reconciliation that runs the whole population. Two sweeps moved to make
 `kb/` inert:
 - **The conflict-marker sweep**, which read EVERY tracked file, became an audit (`scripts/conflict_markers.py --check`), which
-  also closes the hole that it never ran in CI on a change whose matrix was skipped.
+  also closes the hole that it never ran in CI on a change whose matrix was skipped. Its sibling over the tree's NAMES,
+  `scripts/case_collisions.py --check` (the `CASE COLLISIONS` audit, kb/Work PB5694), refuses two tracked paths, or two
+  directories above them, that differ only in letter case. A case-insensitive checkout folds such a pair into one name and
+  Linux keeps two, so a reference spelled one way names different files on each. It reads the index (`git ls-files`), where
+  both spellings sit together even on a checkout that holds one, and CI's `audits` job runs it on the merged tree, where two
+  branches that each spelled a new directory their own way first meet.
 - **The register's cross-checks against the inventory** (every defective-verdict row claimed by a live note; every landed
   `kind: defect` note naming the rows it closed, or why none, and every row so named closed in the inventory) are
   `scripts/spec/work_inventory.py`, called by `work.py check`, so the register has ONE reader and the checks are audits: the

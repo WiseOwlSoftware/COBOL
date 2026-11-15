@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-15",
+ "rule-digest": "20d77d869df9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.8.44@2002-UNSTRING-STATEMENT/g2_unstring_overflow_conditions",
+ "notes": "§2002:14.8.44.3 GR15: a pointer of 0 or 11 on a 10-character sender overflows before any transfer (GR15a), 10 does not; two receivers with EF,G unexamined overflow (GR15b, P 07, T 02), while AB,CD, (trailing delimiter examined) and AB,CD do not and run NOT ON OVERFLOW. Matched at --std 2002 on the dc1f2dcce8 build."
+}

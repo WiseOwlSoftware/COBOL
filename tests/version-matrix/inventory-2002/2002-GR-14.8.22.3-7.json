@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-14.8.22.3-7",
+ "rule-digest": "ef1eeb4f0de8",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvokeCase",
+ "notes": "kb/Work PB5686: at --std 2002 (golden-2002-3 re-probe on main 63ab0c4ece, repro g2inv10-universal-name-binding.cob) an INVOKE through a universal reference skips a method found by name whose formal does not match (2023's §2023:9.3.6) and raises EC-OO-METHOD; §2002:9.3.5 binds by name and §2002:14.8.22.3 GR7c asks 14.7 conformance, so TG and TX must run and TS must raise EC-OO-UNIVERSAL."
+}
