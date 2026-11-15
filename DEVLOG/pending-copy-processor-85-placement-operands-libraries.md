@@ -37,3 +37,8 @@ while claiming 85, so it is now accepted from 2002.
 `SourceLineMapTests` case for the laid-out writer. The 1985 store records 1985-GR-XII.3.4-10, 1985-GR-XII.2.4-10,
 1985-GR-XII.2.4-9, 1985-GR-XII.2.4-11, 1985-FMT-XII.2.2, 1985-GR-XII.2.4-3, 1985-GR-XII.2.4-4 and 1985-SR-XII.2.3-1 move
 from PARTIAL to CONFORMS, and the 1985 GAP falls from 232 to 224. No diagnostic code was used. COBOL7132-7134 are returned.
+
+**Replayed onto main (wave 20262038).** The gate of the replay found one test PB5473's rule now refuses:
+`CopyNameUserWordTests.TheSameName_WrittenTwice_IsNoConflict` (PB5482, landed on main after this branch was cut) wrote
+`COPY PB5482NOP.` beside `COPY PB5482TXT OF PB5482LIB.` at 85, which §1985:XII.2.3 SR1 refuses. Its program now names the
+library on every COPY, which keeps what it tests: one text-name written twice and one library-name written three times.
