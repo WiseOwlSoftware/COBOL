@@ -52,10 +52,13 @@ assignClause
 
 // literal-1 is written as ANY literal token or concatenation expression here — the alphanumeric-only,
 // non-figurative, non-zero-length rule is §2023:12.4.5.2 SR4, screened BY NAME at bind (AssignTargetRule, kb/Work PB1078).
+// A NUMERIC literal is admitted too: the general formats print plain `literal-1`, and §1985:XI.2.3.3 (sort-merge) has no rule that
+// makes it nonnumeric as §1985:VII.2.3.3 SR3 does, so whether it is refused (COBOL2645) is the entry's, decided at bind (PB5587).
 // A grammar that admitted only STRINGLIT refused the hexadecimal-alphanumeric X"..." literal and a concatenation
 // expression (§2023:8.8.3.3 GR3 "may be used anywhere a literal of that class may be used") anonymously, and admitted ""
 assignTarget
     : cobolWord
+    | numericLiteral
     | nonNumericLiteral
     ;
 
