@@ -1,4 +1,4 @@
-## PB5606 and PB5640: the 2002 section list and the 2002 bit reference-modification length
+## Entry 3686 — 2026-11-15 08:29 PST — PB5606 and PB5640: the 2002 section list and the 2002 bit reference-modification length
 
 Two `--std 2002` under-rejections, both in the ADDRESS OF / CALL / INVOKE operand screens.
 
@@ -9,3 +9,4 @@ Two `--std 2002` under-rejections, both in the ADDRESS OF / CALL / INVOKE operan
 Rows closed (`record_verdicts --edition 2002`, GAP 2511 to 2508): 2002-SR-8.4.2.11.2-1, 2002-SR-13.16.47.2-7, 2002-SR-14.8.22.2-12.
 
 Review round 1: the FILE phrase (WRITE/REWRITE FILE FROM) keeps the whole reference modification at every edition (§2023:14.9.51.3 SR9 a, §2023:14.9.35.3 SR7 a), a new refusal with no golden. Added pb5640-write-file-bit-refmod-data-length and pb5640-rewrite-file-bit-refmod-data-length (refused 2002/2014/2023, COBOL7353) and pb5640-function-arg-bit-refmod-data-length (refused 2002/2014, COBOL2471, filed under 8.4.2.2@2002). No compiler change.
+
