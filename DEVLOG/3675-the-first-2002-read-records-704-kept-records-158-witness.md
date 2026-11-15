@@ -1,4 +1,4 @@
-## The first 2002 read records: 704 KEPT records, 158 witness bands widened to 2002, the 2002 GAP 3,284 to 2,582
+## Entry 3675 — 2026-11-15 03:47 PST — The first 2002 read records: 704 KEPT records, 158 witness bands widened to 2002, the 2002 GAP 3,284 to 2,582
 
 **What was read.** Readers decided 1,720 of the 3,298 rules of the 2002 inventory on the 2002 text at `--std 2002`, and
 a refuter attacked every SAME (op-20261114 read-2002). An answer pass then re-read 644 flagged rows flag by flag.
@@ -28,3 +28,4 @@ band is `2023` only. `lineage_reads.py --check` accepts them and the view does n
 own-verdict-from-pointer 55, refused-needs-accepting-case 35, refused-flag-unanswered 13, recorded-still-gap 2 and
 uninterpretable 1. kb/Work PB5649 files PB5597's three round-3 review leads on the evidence check: the "need not" grant,
 the "may ... only" prohibition, and the design doc's reason for trusting a committed band.
+
