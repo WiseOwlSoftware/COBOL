@@ -175,8 +175,9 @@ public sealed class ConditionalCompilationDefineTests
     }
 
     [Fact] // kb/Work PB1626 — a numeric spelling longer than the fixed-point literal capacity (§2023:8.3.3.3.2: 1 through 31 digits) is
-           // refused where the literal is evaluated, exactly as `>>DEFINE X AS <32 digits>` is: at the DEFINITION, naming the
-           // directive, and the name stays undefined (GnuCOBOL reports it at the use; the diagnostic's position is the only difference).
+           // refused as `>>DEFINE X AS <32 digits>` is: at the DEFINITION, and the name stays undefined (GnuCOBOL reports it at the
+           // use; the diagnostic's position is the only difference). Since kb/Work PB5529 the refusal is LiteralScreen's
+           // COBOL0801, asked of every literal, and no longer the evaluator's COBOL1619.
     public void Parameter_ThirtyTwoDigitValue_RefusedAtTheDefinition()
     {
         const string name = "CN-CC-TEST-TOOLONG";
@@ -184,8 +185,8 @@ public sealed class ConditionalCompilationDefineTests
         try
         {
             var (_, diags) = Run($">>DEFINE {name} AS PARAMETER\n");
-            var d = Assert.Single(diags.Diagnostics, x => x.Code == "COBOL1619");
-            Assert.Contains("32 digit positions", d.Message);
+            var d = Assert.Single(diags.Diagnostics, x => x.Code == "COBOL0801");
+            Assert.Contains("32 digits", d.Message);
         }
         finally { Environment.SetEnvironmentVariable(name, null); }
     }
