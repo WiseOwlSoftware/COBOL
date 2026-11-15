@@ -1064,7 +1064,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             BoundComputedOperand { Expr: BoundIntrinsicCall ic } => IntrinsicSig.ImplicitUsageOf(ic.ResultCategory),
             _ => null,
         };
-        bool function = op is BoundComputedOperand { Expr: BoundIntrinsicCall };
+        // A function the binder FOLDED (FUNCTION LENGTH (X5), a constant function) is still a function-identifier: the rule asks
+        // the operand as written, and a folded one is BoundNumericLiteral { FunctionValue: true } (kb/Work PB5476, PB1398), a
+        // numeric function by its type (§2023:15.2), so §1985:VI.6.3.1.2 GR5 refuses it as it refuses FUNCTION NUMVAL ("1").
+        bool function = op is BoundComputedOperand { Expr: BoundIntrinsicCall } or BoundNumericLiteral { FunctionValue: true };
         // The edition's rule set: §1985:VI.6.3.1.2 at COBOL-85, §2023:8.8.4.4.3 (worded so from the 2002 text) after.
         var rules = alt.RulesAt(ctx.Edition.DialectLevel);
         // §1985:VI.6.3.1.2's NUMERIC bar reads two more facts of the operand's own DESCRIPTION (kb/Work PB5122): an item
