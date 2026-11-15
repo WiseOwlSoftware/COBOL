@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_dns_a1_196_sync_file_record_stream
       *> rules: [DOC-A.1-196]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

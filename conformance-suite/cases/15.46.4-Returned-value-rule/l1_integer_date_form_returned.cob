@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_integer_date_form_returned
 *> rules: [RV-15.46.4-1, RV-15.47.4-1, FMT-15.46.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

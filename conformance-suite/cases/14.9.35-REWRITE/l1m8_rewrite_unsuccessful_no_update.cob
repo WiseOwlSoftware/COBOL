@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1m8_rewrite_unsuccessful_no_update
 *> rules: [GR-14.9.35.4-14]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

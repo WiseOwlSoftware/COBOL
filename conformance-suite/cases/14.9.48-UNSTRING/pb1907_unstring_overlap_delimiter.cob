@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1907_unstring_overlap_delimiter
       *> rules: [GR-14.9.48.4-18]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
