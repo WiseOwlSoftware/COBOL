@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb5575-ct-arith-32-digit-truncation
 *> rules: [2002-GR-7.2.5.2-1, 2002-SR-7.2.9.2-2, 2002-GR-7.2.9.3-3, 2002-GR-7.2.10.3-4, 2002-GR-7.2.13.3-2,
-*>   2002-GR-7.2.13.3-3, 2002-GR-13.9.3-3]
+*>    2002-GR-7.2.13.3-3, 2002-GR-13.9.3-3]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified
