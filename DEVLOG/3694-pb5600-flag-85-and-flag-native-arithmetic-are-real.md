@@ -1,4 +1,4 @@
-## PB5600: FLAG-85 and FLAG-NATIVE-ARITHMETIC are real directives with a warning mechanism
+## Entry 3694 — 2026-11-15 12:06 PST — PB5600: FLAG-85 and FLAG-NATIVE-ARITHMETIC are real directives with a warning mechanism
 
 At `--std 2002` the two directives were recognized and ignored: `>>FLAG-85 ALL ON JUNK` compiled clean and `>>FLAG-85 NUMVAL ON`
 flagged nothing (re-probed on the fresh Debug build before any change: A B rc 0, and `FUNCTION NUMVAL` printing 3 with no warning).
@@ -25,3 +25,4 @@ mode, fixed-form SR3). Rows closed (3, GAP 2497 to 2494): 2002-SR-7.2.2-3, 2002-
 
 Self-review found one defect of mine, a text-mode Python rewrite that left CRLF in eleven LF files (it surfaced as four
 DEFINE/PUSH tests failing on `\r\n` in a raw string); every touched file was converted back and the diff re-measured.
+
