@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.20.2-1",
+ "rule-digest": "1e6262d913b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindInitiate",
+ "test-ref": "conformance:cases/14.8.20@2002-INITIATE-STATEMENT/g2_initiate_active_state; conformance:cases/14.8.20@2002-INITIATE-STATEMENT/g2-initiate-not-a-report",
+ "notes": "§2002:14.8.20.2 SR1: at --std 2002, INITIATE of an RD name is accepted and runs, and INITIATE of a working-storage item is refused COBOL1757 at the INITIATE line."
+}

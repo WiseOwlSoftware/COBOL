@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.47.3-3",
+ "rule-digest": "1cc8a30332ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAsEntry",
+ "test-ref": "conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-group-usage-sign",
+ "notes": "§2002:13.16.47.3 GR3: SAME AS subjects in working storage, in a CD record and of a strongly-typed group member take the group USAGE BINARY, so each BYTE-LENGTH equals a PIC 9(4) BINARY control; the --std 2002 run printed X1-BINARY Y, C1-BINARY Y, P1-BINARY Y as derived."
+}

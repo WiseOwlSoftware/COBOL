@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.41.2-1",
+ "rule-digest": "43903b965471",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindSuppress; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#Declarative",
+ "test-ref": "conformance:cases/14.8.41@2002-SUPPRESS-STATEMENT/g2-suppress-in-use-before-reporting",
+ "notes": "§2002:14.8.41.2 SR1 places SUPPRESS in a USE BEFORE REPORTING procedure; written there it is accepted and inhibits the LINE-COUNTER change (§2002:14.8.41.3 GR3d): LC 0,1,1,2; --std 2002 run matched."
+}

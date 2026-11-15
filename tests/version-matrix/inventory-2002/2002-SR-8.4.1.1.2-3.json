@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.1.2-3",
+ "rule-digest": "c4be5f50238b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference",
+ "test-ref": "conformance:cases/8.4.1.1@2002-Qualification/g2-qual-cd-name-qualifier",
+ "notes": "§2002:8.4.1.1.2 SR3 'The words IN and OF are equivalent': A1 OF CDREC IN CDOUT and A1 IN CDREC OF CDOUT both print CDA (Q1, Q2), and the mixed condition-name qualifiers both test true (Q7, Q8); --std 2002 run matched the derived .out."
+}

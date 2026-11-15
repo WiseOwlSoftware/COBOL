@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-A.2.1.1",
+ "rule-digest": "b476d738b740",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindAcceptMessageCount; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#AcceptMessageCount",
+ "test-ref": "conformance:cases/A.2.1@2002-ACCEPT-MESSAGE-COUNT-STATEMENT/2002-FMT-A_2_1_1",
+ "notes": "Per §2002:A.2.1.1 (MESSAGE optional, rendered p.689) and §2002:A.2.1.3 GR1, ACCEPT CIN MESSAGE COUNT and ACCEPT CIN COUNT both compile and set status 00, count 2 for a 2-message queue and 0 for an empty one; the --std 2002 run of the pinned build printed exactly that."
+}

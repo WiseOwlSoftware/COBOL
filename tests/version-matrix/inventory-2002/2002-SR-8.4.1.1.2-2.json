@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.1.2-2",
+ "rule-digest": "007b37ad4caf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk",
+ "test-ref": "conformance:cases/8.4.1.1@2002-Qualification/g2-qual-cd-name-qualifier",
+ "notes": "§2002:8.4.1.1.2 SR2 with §2002:8.4.1.1.1 file-cd-report-qualifier: CD items qualified when not needed (B1 OF CDOUT, B1 IN CDREC) and by several unique sets (A1 IN CDOUT, A1 IN CDREC, A1 OF CDREC IN CDOUT) name one item, so Q1-Q3 CDA, Q4 BBB BBB BBB, Q6 CDABBB, condition-name A1-YES IN CDOUT Q7-Q9; --std 2002 run matched the derived .out."
+}

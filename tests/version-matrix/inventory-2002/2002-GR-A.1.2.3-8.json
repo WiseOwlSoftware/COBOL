@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.1.2.3-8",
+ "rule-digest": "df41ced208d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-GR-A_1_2_3-8",
+ "notes": "§2002:A.1.2.3 GR8: RECEIVE stores the MCS's completion date as YYMMDD (021231 and 030101 from the definitions), and ACCEPT MESSAGE COUNT, DISABLE INPUT and ENABLE INPUT leave the program's 111111. G2CD08 at --std 2002 matched the derived .out."
+}

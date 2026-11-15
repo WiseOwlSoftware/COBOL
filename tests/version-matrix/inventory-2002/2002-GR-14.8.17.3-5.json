@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.17.3-5",
+ "rule-digest": "63ea7b8197e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#InGlobalDeclarativeRangeTest; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#FlowGlobalGobackError",
+ "test-ref": "conformance:cases/14.8.17@2002-GOBACK-STATEMENT/g2_goback_global_declarative_range",
+ "notes": "§2002:14.8.17.3 GR5: a GOBACK in a non-GLOBAL declarative that a USE GLOBAL declarative of the same program PERFORMs sets EC-FLOW-GLOBAL-GOBACK. With checking on, its USE procedure runs (§2002:14.5.12.1.2 item 2) and ends the run with STOP RUN. The golden matched at --std 2002 (exit 0)."
+}

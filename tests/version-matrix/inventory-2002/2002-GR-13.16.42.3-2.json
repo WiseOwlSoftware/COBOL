@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.42.3-2",
+ "rule-digest": "a2e120fc819d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PlaceForItem; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#BuildBackingPath",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-record-storage",
+ "notes": "§2002:13.16.42.3 GR2 with §2002:A.1.2.2 SR9 and A.1.2.3 GR16: every redefining name, the implicitly redefining record CDREC2 (1235CD) and the CD field DC (1235) reference the one area; --std 2002 run matched the derived .out."
+}

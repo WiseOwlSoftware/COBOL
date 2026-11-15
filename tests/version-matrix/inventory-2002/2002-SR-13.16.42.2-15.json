@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-15",
+ "rule-digest": "747f34f75ddf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#StartBitOf; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-misaligned; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-record-storage",
+ "notes": "§2002:13.16.42.2 SR15: PIC X over an 8-bit BIT item starting mid-byte in a CD record drew COBOL2739 alone at --std 2002, and a 4-bit BIT item over a 4-bit BIT item at the same alignment was accepted and shared its bits (MATCH)."
+}

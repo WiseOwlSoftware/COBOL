@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.18.2-1",
+ "rule-digest": "741ba173830c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement",
+ "test-ref": "conformance:cases/14.8.18@2002-IF-STATEMENT/g2_if_statement_operands_and_nesting",
+ "notes": "§2002:14.8.18.2 SR1 over the 2002 statement sets: a conditional statement after imperatives is accepted and runs in both positions, CALL ... ON OVERFLOW and RECEIVE ... NO DATA as statement-1 (ended by ELSE) and CALL ... ON OVERFLOW as statement-2 (ended by END-IF). ENABLE, SEND, DISABLE and PURGE are accepted as imperatives. The golden matched at --std 2002."
+}

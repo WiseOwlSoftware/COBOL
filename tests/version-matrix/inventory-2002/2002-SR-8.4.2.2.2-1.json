@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.2.2-1",
+ "rule-digest": "77b9dde860c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationReceiveStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#receivingIdentifier",
+ "test-ref": "conformance:cases/8.4.2.2@2002-FUNCTION-IDENTIFIER/g2-function-receive-into-function",
+ "notes": "§2002:8.4.2.2.2 SR1 reaches RECEIVE ... INTO identifier-1, a receiving operand (§2002:A.2.5.3 GR3): RECEIVE CDIN MESSAGE INTO FUNCTION UPPER-CASE (W) is refused COBOL5506 at the RECEIVE line at --std 2002; INTO W compiles."
+}

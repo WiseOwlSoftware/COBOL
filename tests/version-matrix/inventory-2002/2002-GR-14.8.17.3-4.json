@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.17.3-4",
+ "rule-digest": "2cf69389ed6b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs",
+ "test-ref": "conformance:cases/14.8.17@2002-GOBACK-STATEMENT/g2_goback_in_method",
+ "notes": "§2002:14.8.17.3 GR4: a GOBACK in a method acts as EXIT METHOD with its RAISING phrase, so the method ends at the GOBACK and returns its RETURNING value (§2002:14.8.13.3 GR7), and RAISING EC-SIZE-OVERFLOW raises the condition in the invoker, whose USE runs and resumes (§2002:14.8.13.3 GR3a). The golden matched at --std 2002 (exit 0)."
+}

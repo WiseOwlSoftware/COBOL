@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.24.3-3",
+ "rule-digest": "1a84f06a8cab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#FieldNum; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#DeEdit; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#DeEditFloat",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov18_cd_de_editing",
+ "notes": "§2002:14.8.24.3 GR3: numeric-edited CD record items are de-edited into numeric and numeric-edited receivers (CD and WS) and moved unedited into alphanumeric ones; g2mov18's 7 derived lines matched at --std 2002."
+}
