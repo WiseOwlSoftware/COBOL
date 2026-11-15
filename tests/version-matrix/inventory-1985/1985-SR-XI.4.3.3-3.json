@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XI.4.3.3-3",
  "rule-digest": "730ddf8db5cf",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateReleaseReturnRange; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#WalkProgram; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureReach.cs#Closure; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureReach.cs#GoToTargetsIn; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReleaseReturnPlacement",
+ "test-ref": "conformance:cases/XI.4.3@1985-RETURN-STATEMENT/pb5104-return-of-file-no-sort-names-85",
+ "notes": "§1985:XI.4.3.3 SR3: \"A RETURN statement may only be used within the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\" WalkProgram calls GateReleaseReturnRange below 2002, which seeds ProcedureReach.Closure (followGoTo) with the output procedures of SORT and MERGE statements naming the file and reports COBOL7081 for a RETURN outside; it collects only statements at pc >= EntryPc, so a RETURN in the DECLARATIVES is never asked, even where no SORT or MERGE exists (no range at all), and Closure does not follow CALL (§1985:XI.4.4.4 GR10). Probes at 85 (b/c/e): the witness refused COBOL7081 (accepted at 2002); RETURN in an input procedure and in the main line after the SORT refused; RETURN reached by PERFORM from a MERGE output procedure (RETURN INTO, ran 'MMM','ZZZ','AAA'), by GO TO out of the output procedure ('AAA','BBB'), and in a later paragraph of the output section accepted. Defect: a declarative RETURN in a program with no SORT or MERGE compiles and at run time takes AT END silently. Side note: a refused MERGE adds a COBOL7081 on its legal RETURN (known, PB5496). kb/Work PB5572 holds the defect (code read: op-20261114/out-read6/rd-02.json; rerun op-20261114/records-read6/rerun-log.txt).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

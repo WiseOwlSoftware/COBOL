@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-8",
  "rule-digest": "12f6d5580e40",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddNamedDebugSubject; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#DebugAllProceduresConflict",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-8",
+ "notes": "§1985:XV.3.2.3 SR8: \"When the ALL PROCEDURES phrase is specified, procedure-name-1 must not be specified in any USE FOR DEBUGGING statement.\" FinalizeDebug computes the program's ALL PROCEDURES operand before the operand loop and passes it to AddNamedDebugSubject, which refuses (COBOL6947) every procedure-name subject when it is present, whatever the statement order. The witness pairs ALL PROCEDURES in D1 with ON P1 in D2. Probes at --std 85: ON P1 ALL PROCEDURES in one statement and a section-name in an earlier statement both refuse; ALL PROCEDURES with a data-name, ALL data-name or file-name operand (not procedure-name-1) compiles and runs. Read 6 (2026-11-14, records-read6): the row had no verdict and no test-ref although its witness existed; the reader read CONFORMS and an independent refuter UPHELD it (op-20261114/out-read6/rd-NN.json and rd-NN-refute.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
