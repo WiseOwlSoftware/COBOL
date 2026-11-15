@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.22.3-3",
+ "rule-digest": "032eec06bb82",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInstanceInvoke; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#AddSlot",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/pb5617-cd-implicit-field-by-reference-and-returning",
+ "notes": "Same text as the 2023 twin (see code-location); in 2002 identifier-3 and identifier-4 may also be an implicit field of an output CD (§2002:14.8.22.2 SR9, SR11). CommunicationSectionBinder.AddSlot gives each implicit CD field the PICTURE of its A.1.2.3 description, so the §2002:14.7.1.2.1 conformance test compares PIC 9(4) USAGE DISPLAY with PIC 9(4) USAGE DISPLAY (kb/Work PB5617). The golden passes TEXT LENGTH as an INVOKE RETURNING item, as an INVOKE USING argument and as a CALL BY REFERENCE argument."
+}

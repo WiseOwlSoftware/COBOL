@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.28.2-3",
+ "rule-digest": "f54f33436164",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/pb5604-output-cd-pointer-records",
+ "notes": "Same text as the 2023 twin (see code-location); in 2002 the operand may also be a level-1 POINTER, PROGRAM-POINTER or OBJECT REFERENCE record under an output CD (§2002:A.1.2.2 SR9, §2002:13.16.58.2 SR13). CommunicationSectionBinder.BindEntry no longer links such a record as an implicit redefinition of the CD area (it has no character image; FileModel.IsOutOfLineRecord, as for an FD), so it no longer reaches COBOL0899 (kb/Work PB5604). The golden runs ALLOCATE, SET, CALL, INVOKE and RAISE through such records."
+}
