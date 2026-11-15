@@ -39,8 +39,10 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
   nothing else on `docs/CONFORMANCE.md`.
 - **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch records-2002-reads-2 with
-  PB5675 and main 1d13746fce merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **GAP_TBD GAP**
-  (2,562 before the first 2002 golden-lane landing), ADJ_TBD, beside the 704 KEPT change records. The 2002 golden lane
+  main e870f98665 (PB5675) merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **1,694 GAP**
+  (2,074 on that main before this branch's 380 own verdicts from pointers; 2,562 before the first 2002 golden-lane
+  landing), 915 adjudicated: CONFORMS 838, DOCUMENTED-NON-SUPPORT 64, DIVERGES 11, PARTIAL 2, beside the 704 KEPT change
+  records. The 2002 golden lane
   (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; every one of the 1,528 unpaired 2002
   rules is now read (`tests/version-matrix/lineage-reads-2002/`, 125 slices), and an upheld SAME of one becomes its own
   verdict through `audit_batch.py own-verdict-batch` (DESIGN-spec-conformance-review.md section 10.6).

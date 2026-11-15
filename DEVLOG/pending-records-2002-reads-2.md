@@ -1,4 +1,4 @@
-## records-2002-reads-2: the unpaired 2002 reads imported; 398 own verdicts from pointers; GAP 2169 -> 1771
+## records-2002-reads-2: the unpaired 2002 reads imported; 380 own verdicts from pointers; 2002 GAP 2074 -> 1694
 
 The second records landing of the 2002 reads (kb/Work PB5597). The first imported the paired reads and wrote the KEPT
 change records. This one imports the reads of the 1,528 unpaired 2002 rules (slices `u-01`..`u-56`). It adds the
@@ -25,7 +25,16 @@ kept before the evidence check 807, refused `flag unanswered` 69, work `defect` 
 `own-verdict-from-pointer` 571, `undecided` 224, `uninterpretable` 15. `widen --apply`: proven and written 75, not proven
 25. The 25 are 24 accepted cases that FAIL at 2002 and one refusal test that is accepted there; each is a lead in the
 branch report. `own-verdict-batch`: 398 records (CONFORMS 334, DOCUMENTED-NON-SUPPORT 64), refused 148, recorded already
-25. `record_verdicts.py --edition 2002`: GAP 2169 -> 1771. A 15-record seeded spot check ran each first cited case at
+25. `record_verdicts.py --edition 2002`: GAP 2169 -> 1771 on the branch's base. Then branch review round 1: 11 CONFORMS
+general-format (FMT) records witnessed at 2002 by refusals alone were dropped and returned to the work list (a general
+format grants forms a refusal cannot show; the evidence table's FMT entry is kb/Work PB5740, open, with its measurement:
+12 1985 KEPT rows and 19 2002 declined facilities so witnessed), and 7 rows main's golden lane had recorded with
+witnesses of their own took main's record. PB5675 (one own-edition evidence rule) was merged: the own-verdict step now
+uses its candidate search (`Witnesses.search`) for the record's test-ref, so 62 records were rewritten to cite only
+their accepted cases, and the LINEAGE READS audit finds a stored own verdict from the tracked read records (every rule
+whose read decides `own-verdict-from-pointer`), whatever its notes say, and holds its own test-ref to PB5675's test
+(`Witnesses.own_problems`; a diagnosis cited beside an accepted case is no longer reported). On main e870f98665: 380
+own verdicts (CONFORMS 317, DOCUMENTED-NON-SUPPORT 63), 2002 GAP 2074 -> 1694. A 15-record seeded spot check ran each first cited case at
 `--std 2002`: 10 PASS, 5 refused with their expected diagnostic, none dropped. `change-batch` adds nothing new. Of the 69
 rows a flag leaves unanswered, 35 are KEPT records the first landing stored before the screen gained a trigger. They
 need an answer pass.

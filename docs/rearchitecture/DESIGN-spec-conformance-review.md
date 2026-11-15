@@ -1925,7 +1925,12 @@ refuses 69 `flag unanswered` and lists the work items `defect` 435, `needs-own-w
 and proves 75 of 100 candidate cases at 2002 (24 accepted cases FAIL there and one refusal test is accepted: leads).
 `own-verdict-batch` then writes 398 own verdicts (CONFORMS 334, DOCUMENTED-NON-SUPPORT 64) and refuses 148 (no own-edition
 witness 93, no register entry of its own 83, no 2002 licence 3, no code location 1; a row counted under each reason),
-with 25 recorded already; `record_verdicts.py --edition 2002` takes the 2002 GAP from 2,169 to 1,771. `change-batch` on
+with 25 recorded already; `record_verdicts.py --edition 2002` takes the 2002 GAP from 2,169 to 1,771. After review
+round 1 and the PB5675 merge (main e870f98665): the 11 CONFORMS general-format records whose every 2002 witness is a
+refusal are dropped (kb/Work PB5740: the evidence table counts FMT as a diagnosed kind, though a format grants forms),
+7 rows take main's golden-lane records, 62 test-refs are rewritten to what `Witnesses.search` finds (accepted cases
+only, where any exist); the decisions are unchanged (571 own-verdict rows: 423 recorded, 148 refused for the same
+reasons), and the branch lands 380 own verdicts (CONFORMS 317, DOCUMENTED-NON-SUPPORT 63): 2002 GAP 2,074 to 1,694. `change-batch` on
 the same run adds no record: its 669 KEPT records are all stored, and 35 of the first landing's stored records are among
 the 69 a flag now leaves unanswered (the screen gained a trigger since they were stored; `lineage_screen.py --check`
 lists them owed).
