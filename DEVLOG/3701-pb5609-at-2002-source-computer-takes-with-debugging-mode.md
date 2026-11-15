@@ -1,4 +1,4 @@
-## PB5609: at 2002, SOURCE-COMPUTER takes WITH DEBUGGING MODE without a computer-name
+## Entry 3701 — 2026-11-15 14:22 PST — PB5609: at 2002, SOURCE-COMPUTER takes WITH DEBUGGING MODE without a computer-name
 
 kb/Work PB5609 (wave 20262045, group H). The grammar nested the DEBUGGING MODE clause inside the computer-name, the 1985
 shape (`§1985:VI.4.3.2`: `[ computer-name [ WITH DEBUGGING MODE ] . ]`), at every edition. The 2002 format, rendered from
@@ -25,3 +25,4 @@ and `cases/12.2.2@2002-CONFIGURATION-SECTION/pb5609-method-debugging-mode-withou
 
 **Sibling sweep.** OBJECT-COMPUTER already takes clauses without a name (PB78); SPECIAL-NAMES has no name slot; no other
 rule hangs a clause off `computerName`.
+
