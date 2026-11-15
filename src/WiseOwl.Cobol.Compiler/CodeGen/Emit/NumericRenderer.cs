@@ -965,7 +965,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     /// <summary>The rounding a standard intermediate data item takes where §2002:8.8.1.3.1.3 rounds it to 31 digits — "as described
     /// for the ROUNDED phrase", so NEAREST-AWAY-FROM-ZERO — or, in 2014, the INTERMEDIATE ROUNDING mode in effect
-    /// (§2014:8.8.1.3.1.3.1 to .4, whose TRUNCATION text rounds "as described for the ROUNDED phrase" too).</summary>
+    /// (§2014:8.8.1.3.1.3.1 to .4; the TRUNCATION one, §2014:8.8.1.3.1.3.4, rounds "as described for the ROUNDED phrase" too).</summary>
     private string SidiRoundingMode => ctx.CurrentOptions.IntermediateRounding == CobolRounding.Truncation
         ? $"CobolRounding.{CobolRounding.NearestAwayFromZero}"
         : $"CobolRounding.{ctx.CurrentOptions.IntermediateRounding}";
