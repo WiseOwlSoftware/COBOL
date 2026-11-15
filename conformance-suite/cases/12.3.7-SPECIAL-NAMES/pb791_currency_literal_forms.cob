@@ -14,9 +14,11 @@
       *>   USD1.50 - the symbol is replaced by the whole STRING.
       *>   SR19 NOTE 1 (cite.py --check 12.3.7.3 "the limitations as to which characters are permitted in a currency
       *>   string at compile time do not apply to the alphanumeric or national characters represented by hexadecimal
-      *>   literals used as currency strings" (a NOTE first in the 2014 text, §2014:12.3.6.2 SR19, so this program is accepted from 2014 and refused at 2002 by §2002:12.2.6.2 SR20 b), kb/Work PB5595): X"2B" is the character '+', which SR23 b forbids in a currency string
+      *>   literals used as currency strings"): X"2B" is the character '+', which SR23 b forbids in a currency string
       *>   written as an ordinary literal, but a hexadecimal literal-7 is interpreted at runtime as written, so
       *>   PICTURE #9.99 edits 1.5 as +1.50. SR19 itself requires the PICTURE SYMBOL phrase for it (present).
+      *>   That NOTE is first in the 2014 text (§2014:12.3.6.2 SR19); §2002:12.2.6.2 SR20 b) refuses the '+' of a literal-7
+      *>   whatever its form (kb/Work PB5595), so this program is accepted from 2014.
       *> What each line proves:
       *>   E1 - the multi-character currency string of an ordinary literal.
       *>   E2 - the hexadecimal literal-7 is accepted and its decoded character is the currency string.
