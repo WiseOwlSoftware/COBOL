@@ -5,10 +5,13 @@ per position, by `ExpressionBinder.CheckLiteral`, for a procedure-division liter
 `FD F1 VALUE OF ID IS 1234567890123456789.` compiled clean at `--std 85`, and a 32-digit level-88 VALUE drew only the range
 check's COBOL1625.
 
-Fix: `LiteralScreen.Run` now asks it of every numeric-literal node, `numericLiteralCore` (a comma-decimal literal is three
-tokens, counted as one), `integerLiteral` and `signedIntegerLiteral` (an `integer-n` is a fixed-point integer literal,
-§2023:5.5 SR1); a floating-point literal is not its subject. The question is asked of the NODE and not of an INTEGERLIT
-token because a digits-only user-defined word lexes as INTEGERLIT too. The 31/18 split of the descriptor lives once, in
+Fix: `LiteralScreen.Run` now asks it of every `numericLiteralCore` node, the rule of every numeric literal slot (a
+comma-decimal literal is three tokens, counted as one); a floating-point literal is not its subject. It is asked of the
+NODE and not of an INTEGERLIT token because a digits-only user-defined word lexes as INTEGERLIT too, and the `integer-n`
+slots (`integerLiteral`) are left as they were: a DYNAMIC LENGTH LIMIT over the implementor maximum is legal and reported
+(COBOL2027, PB463), and the first gate showed this change refusing a 41-digit one. The directive lane's 32-digit
+PARAMETER value is now refused by the screen (COBOL0801) before the evaluator's own check (COBOL1619) is reached.
+The 31/18 split of the descriptor lives once, in
 `EditionInfo.DigitCapacityExcess`; `EditionContext.CheckDigitCapacity` keeps the PICTURE subject. The binder's call is deleted.
 Goldens: `pb5529_literal_capacity_value_clause` (19 and 31 digits, 2002+), `pb5529-value-of-19-digit-literal` (COBOL0802
 at 85), `pb5529-value-over-31-digits` (COBOL0801 at every edition). Left: the compile-time evaluator asks the same

@@ -125,25 +125,17 @@ public static class LiteralScreen
         _ => (null, null),
     };
 
-    /// <summary>The digits of the FIXED-POINT numeric literal <paramref name="node"/> is, or null when it is none: every grammar
-    /// node that IS a numeric literal as written — <c>numericLiteralCore</c> (the literal slots, the comma-decimal form
-    /// of three tokens included, so a literal is one count however many tokens it lexed as), and the two integer slots
-    /// <c>integerLiteral</c> / <c>signedIntegerLiteral</c> (an <c>integer-n</c> "refers to a fixed-point integer literal",
-    /// §2023:5.5 SR1). A floating-point literal is not the capacity's subject (§2023:8.3.3.3.3 has its own exponent range,
-    /// asked by the binder), and a bare INTEGERLIT TOKEN is not asked: a digits-only user-defined word (a paragraph-name,
-    /// a level-number) is one too, so the node, not the token, is the literal.</summary>
-    private static string? NumericLiteralOf(ParserRuleContext node)
-    {
-        switch (node)
-        {
-            case CobolParserCore.NumericLiteralCoreContext core:
-                return core.FLOATLIT() is not null || core.COMMA_FLOATLIT() is not null ? null : core.GetText();
-            case CobolParserCore.IntegerLiteralContext or CobolParserCore.SignedIntegerLiteralContext:
-                return node.GetText();
-            default:
-                return null;
-        }
-    }
+    /// <summary>The text of the FIXED-POINT numeric literal <paramref name="node"/> is, or null when it is none: the
+    /// grammar node <c>numericLiteralCore</c>, the one rule of every numeric LITERAL slot (a VALUE, a level-88 value, a
+    /// CONSTANT, a MOVE source, an operand, …) and the node of a comma-decimal literal, which lexes as three tokens, so a
+    /// literal is one count however many tokens it was. A floating-point literal is not the capacity's subject
+    /// (§2023:8.3.3.3.3 has its own exponent range, asked by the binder). Neither is a bare INTEGERLIT token, which a
+    /// digits-only user-defined word (a paragraph-name, a level-number) is too, nor the <c>integer-n</c> slots
+    /// (<c>integerLiteral</c>, <c>signedIntegerLiteral</c>): <c>DYNAMIC LENGTH LIMIT IS</c> over the implementor maximum
+    /// is legal and reported (COBOL2027, <c>DynamicLengthTests</c>; kb/Work PB463), whatever the digits it is written in.</summary>
+    private static string? NumericLiteralOf(ParserRuleContext node) =>
+        node is CobolParserCore.NumericLiteralCoreContext core && core.FLOATLIT() is null && core.COMMA_FLOATLIT() is null
+            ? core.GetText() : null;
 
     /// <summary>⛔ THE DIGIT CAPACITY OF A FIXED-POINT NUMERIC LITERAL, asked of the literal as written, whatever position
     /// it stands in (kb/Work PB5529): §2023:8.3.3.3.2, "The implementor shall allow for fixed-point numeric literals of 1
