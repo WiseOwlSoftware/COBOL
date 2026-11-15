@@ -836,6 +836,13 @@
  ],
  "derivations": [
   {
+   "key": "DRV-1985-GR-VI.3.4.4-1",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of source program listings is empty: the cobol command has no listing option, and a compilation writes only the assembly, its runtime configuration and the generated C# source, with diagnostics on standard error (section 7, A.1 item 117: the compiler never produces a source listing)",
+   "signature": "claude: 2026-11-14",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5373-class2.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-XIV.2.2.4-7",
    "arm": "undefined-in-rule",
    "names": "\"lacking an INITIAL clause, the results are undefined\"",
@@ -855,6 +862,13 @@
    "names": "\"referenced by identifier-1 is undefined\"",
    "signature": "claude: 2026-11-12",
    "refuter": "—"
+  },
+  {
+   "key": "DRV-1985-GR-XIV.3.6.4-16",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of communication devices that can present two characters at one position is empty: every device (a terminal, or a destination with no deliverTo, the closed set MessageDefinitions.Devices) is a line-structured file <name>.out to which McsStore.Transmit, its only writer, appends each complete message as a new line; nothing writes a carriage-return overstrike or repositions onto a used line, and ADVANCING and REPLACING LINE are ignored (section 3.3, \"Communication devices\")",
+   "signature": "claude: 2026-11-14",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5373-class2.jsonl"
   },
   {
    "key": "DRV-DOC-A.1-19",

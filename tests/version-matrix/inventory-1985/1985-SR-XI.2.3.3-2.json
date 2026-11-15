@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XI.2.3.3-2",
  "rule-digest": "c02dad6cf768",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#BeyondAssign; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FileControlFormatOnSortMerge",
+ "test-ref": "conformance:cases/XI.2.3@1985-FILE-CONTROL-ENTRY/1985-SR-XI_2_3_3-2",
+ "notes": "§1985:XI.2.3.3 SR2: \"Since file-name-1 represents a sort or merge file, only the ASSIGN clause is permitted to follow file-name-1 in the FILE-CONTROL paragraph.\" BindFileControl records OPTIONAL and every non-ASSIGN clause of an entry in FileModel.BeyondAssign; FileControlKeyRules.Screen, for a sort-merge file below DialectLevel 2002, reports COBOL1900 once per such clause in place of the 2023 Format-4 rows. Witness: an SD's entry adding ORGANIZATION IS SEQUENTIAL is refused at 85, accepted at 2023. Probes at 85 (b/c/e): OPTIONAL, FILE STATUS, ACCESS MODE, RESERVE, bare SEQUENTIAL, ORGANIZATION before ASSIGN, ORGANIZATION RELATIVE+RELATIVE KEY, INDEXED+RECORD KEY, PADDING CHARACTER, RECORD DELIMITER, LOCK MODE each refused COBOL1900 (one per clause, also for a MERGE file); ASSIGN USING refused COBOL0900; ASSIGN twice refused COBOL2423; ASSIGN TO literal and ASSIGN TO implementor-name DISK sorted and printed 'AAA'. At 2002 bare SEQUENTIAL is accepted. Read 6 (2026-11-14, records-read6): the row had no verdict and no test-ref although its witness existed; the reader read CONFORMS and an independent refuter UPHELD it (op-20261114/out-read6/rd-NN.json and rd-NN-refute.json).",
  "next": {
   "kind": "CHANGED",
   "to": [

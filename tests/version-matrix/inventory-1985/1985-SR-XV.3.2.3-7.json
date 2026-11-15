@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-7",
  "rule-digest": "aa84c80ca9e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddAllProceduresSubjects; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#DebugAllProceduresConflict",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-7",
+ "notes": "§1985:XV.3.2.3 SR7: \"The ALL PROCEDURES phrase can appear only once in a program.\" FinalizeDebug finds the first ALL PROCEDURES operand across every USE FOR DEBUGGING statement of the program before recording anything, expands only that one (AddAllProceduresSubjects) and refuses every other (COBOL6947). The witness writes the phrase twice in one statement. Probes at --std 85: in two statements and twice in one statement around an ALL W-X operand both refuse; ALL PROCEDURES once with a data-name and file-name operand compiles and fires; outer and contained programs each with one ALL PROCEDURES compile and run, so the count is per program. Read 6 (2026-11-14, records-read6): the row had no verdict and no test-ref although its witness existed; the reader read CONFORMS and an independent refuter UPHELD it (op-20261114/out-read6/rd-NN.json and rd-NN-refute.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

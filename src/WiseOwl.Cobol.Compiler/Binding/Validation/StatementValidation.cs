@@ -590,6 +590,19 @@ internal sealed class StatementValidation(DataBinder data)
                     + "Name the group itself, or MOVE the modified reference to a matching item.");
                 return false;
             }
+        // ⛔ THE 1985 TEXT FORBIDS WHAT THE LATER EDITIONS' VERB RULES DO NOT, FOR ALL THREE VERBS (kb/Work PB5105).
+        // §1985:VI.6.4.3 GR3 — "The description of D1 and D2 must not contain level-number 66, 77, or 88 or the USAGE
+        // IS INDEX clause" — governs MOVE, ADD and SUBTRACT CORRESPONDING alike, so it is asked of every row at COBOL-85
+        // and is the edition rule beside the per-verb rows, not a row's field. Level 77 and 88 never name a group, so
+        // what reaches here is a level-66 entry (the DENOTED item, as below) and a group whose own or inherited USAGE
+        // clause is INDEX (§2023:13.18.60.4 GR1 carries a group's USAGE to its elementary items).
+        if (data.Edition.DialectLevel < 2002 && Level85Forbidden(operand) is { } what)
+        {
+            data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                $"{rule.Verb} CORRESPONDING operand '{refText}' {what} — \"The description of D1 and D2 must not "
+                + "contain level-number 66, 77, or 88 or the USAGE IS INDEX clause\" (ISO §1985:VI.6.4.3 GR3)");
+            return false;
+        }
         // ⛔ "DESCRIBED WITH LEVEL-NUMBER 66" IS AN IDENTITY QUESTION, SO IT ASKS THE DENOTED ITEM (kb/Work PB966).
         // The non-THROUGH alias resolves to data-name-2's own place (§2023:13.18.45.4 GR1), whose Item is data-name-2 —
         // asked of Item, `ADD CORRESPONDING ALIAS-OF-GROUP TO G` passed SR6's "shall not be described with
@@ -619,6 +632,18 @@ internal sealed class StatementValidation(DataBinder data)
             : $"{rule.Verb} CORRESPONDING operand '{refText}' is {ItemCategory.Face(item)} — the operands shall "
               + $"be {ItemCategory.Spell(rule.Admitted)} (ISO {rule.Clause})");
         return false;
+    }
+
+    /// <summary>What in the operand's description §1985:VI.6.4.3 GR3 forbids, as a phrase for the message, or null.</summary>
+    private static string? Level85Forbidden(Place operand)
+    {
+        if (operand.DenotedItem?.Renames is not null) return "is described with level-number 66";
+        for (DataItem? d = operand.Item; d is not null; d = d.Parent)
+            if (d.OwnUsage is Usage.Index)
+                return ReferenceEquals(d, operand.Item)
+                    ? "is described with the USAGE IS INDEX clause"
+                    : $"is described with the USAGE IS INDEX clause (inherited from its group '{d.CobolName ?? "FILLER"}')";
+        return null;
     }
 
     /// <summary>⛔ THE ONE <c>record-name-1</c> OPERAND RULE, shared by the three statements whose general
