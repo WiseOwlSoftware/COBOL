@@ -1034,6 +1034,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             var (head, qualifier) = ReportGroupResolution.Parts(use.reportGroupReference());
             var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.State.Reports.Visible, head, qualifier,
                 $"declarative section '{sectionName}': USE BEFORE REPORTING", out _, out var group, ctx.Data);
+            if (match == ReportGroupResolution.Match.Ambiguous) return null;   // COBOL1920 is reported; no group to record (kb/Work PB5542)
             if (match == ReportGroupResolution.Match.None || group is null)
             {
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE BEFORE REPORTING "
