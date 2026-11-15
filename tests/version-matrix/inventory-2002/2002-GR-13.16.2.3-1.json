@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.2.3-1",
+ "rule-digest": "19286e982d55",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#BoundaryLength",
+ "test-ref": "conformance:cases/13.16.2@2002-ANY-LENGTH-CLAUSE/g2-any-length-zero-length-by-content; conformance:cases/14.8.44@2002-UNSTRING-STATEMENT/pb5621-unstring-any-length-variable-occurrence-2002",
+ "notes": "§2002:13.16.2.3 GR1: an ANY LENGTH formal is a zero-length item when its argument is one (a), and otherwise has the argument's length (b). g2-any-length-zero-length-by-content passes an OCCURS DEPENDING group BY CONTENT at N=0 and N=3 and the formal has lengths 0 and 3, because §2002:14.7.1.1 gives a variable-occurrence argument passed by content the length the OCCURS clause gives a sending item. Passed BY REFERENCE the same argument has its maximum length (§2002:14.7.1.1), which pb5621-unstring-any-length-variable-occurrence-2002's third leg pins (5). The DIVERGES record golden-2002-1 first wrote cited kb/Work PB5621, which main retired as the standard's rule, not a defect."
+}

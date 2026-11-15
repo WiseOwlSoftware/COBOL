@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-2",
+ "rule-digest": "72ad697c1994",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/DataEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InitializeEmitter.cs#EmitAction",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-file-table-initialize; conformance:cases/13.18.63-VALUE/pb576_file_section_value_initialize",
+ "notes": "§2002:13.16.61.3 GR2 (FORMATS 1 AND 2): file-section format 1 and format 2 VALUEs take effect at INITIALIZE ... ALL TO VALUE; a record set to zzzzz becomes ACCCE (last FROM wins, GR15) at --std 2002."
+}

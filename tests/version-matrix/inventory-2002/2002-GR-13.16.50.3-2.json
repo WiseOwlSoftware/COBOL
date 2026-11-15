@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.50.3-2",
+ "rule-digest": "695c01719bec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritSignWalk",
+ "test-ref": "conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-record-precedence",
+ "notes": "§2002:13.16.50.3 GR2 in a CD record: subordinate group G1 SIGN LEADING SEPARATE wins over the 01 TRAILING SEPARATE: S1 = \"-012\". Run with the pinned compiler (tree dc1f2dcce8) at --std 2002: output equals the derived golden."
+}

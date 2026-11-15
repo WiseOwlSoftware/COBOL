@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.62.2-3",
+ "rule-digest": "b66dbae09a0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
+ "test-ref": "conformance:cases/15.62@2002-RANDOM-FUNCTION/g2rnd01-random-reseed",
+ "notes": "§2002:15.62.2 AR3: a later RANDOM(7) after RANDOM(12345) restarts 7's sequence, so its three draws equal the first three (RESEED-7=SAME). The --std 2002 run matched."
+}

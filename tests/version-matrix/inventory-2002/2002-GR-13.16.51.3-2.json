@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.51.3-2",
+ "rule-digest": "094d29c3e448",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindReportGroupClauses; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportSourceClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#KeptOnProhibitedInexact; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitPresenting; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#UnderPresentingChecking; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#FieldComputeSource",
+ "test-ref": "conformance:cases/13.16.51@2002-SOURCE-CLAUSE/g2src01_source_cd_compute_and_operands",
+ "notes": "By §2002:13.16.51.3 GR2 and SR4/SR5, a SOURCE expression over CD record items is computed at each print, ROUNDED per §2002:14.6.3: CFR ROUNDED 002, CN*2+CFR ROUNDED 016 then 018, unrounded 015/017, 015.55/017.55. g2src01 at --std 2002 matched the derived output."
+}

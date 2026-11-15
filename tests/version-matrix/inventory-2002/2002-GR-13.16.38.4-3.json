@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-3",
+ "rule-digest": "9942ecb7111a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#TrySimpleInsertion; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditFormatSimpleInsertion",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-editing",
+ "notes": "§2002:13.16.38.4 GR3 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): B, 0, / and , occupy their own symbol positions: AE \"AB CD/E0F\", NE \"AB CD0E/F\", CM \"1,234\". The --std 2002 run of the pinned build (dc1f2dcce8) matched the derived .out."
+}

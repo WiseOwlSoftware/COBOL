@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.10.2-1",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.10@2002-ATAN-FUNCTION/g2-atan-class-numeric-operands",
+ "notes": "§2002:15.10.2 AR1 'Argument-1 shall be of class numeric' with §2002:15.2 type 9 'An arithmetic expression or a numeric data item shall be specified': seven class-numeric shapes (literal 1 and 0, S9 display -1, 9V9 0.5, PACKED-DECIMAL -2.00, expression W-ONE + W-HALF = 1.5, input-CD MESSAGE COUNT item = 3, an unsigned 6-digit integer by §2002:A.1.2.3 GR2k) must all be accepted. §2002:15.10.3 RV1 'the approximation of the arctangent of argument-1', COMPUTE ROUNDED into +9.9(6): atan(1)=0.785398163 -> +0.785398, atan(0) -> +0.000000, atan(-1) -> -0.785398, atan(0.5)=0.463647609 -> +0.463648, ... Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

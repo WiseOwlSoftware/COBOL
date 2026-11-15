@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-18",
+ "rule-digest": "6e87ecdee639",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#LinePresent; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RepetitionTest",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-report-suppress; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
+ "notes": "§2002:13.16.61.3 GR18: a format 4 VALUE prints whenever its item prints, and GROUP INDICATE and PRESENT WHEN suppress it ([GGG PPP 1], [        2], [    PPP 1]) at --std 2002; pb565 covers OCCURS DEPENDING."
+}

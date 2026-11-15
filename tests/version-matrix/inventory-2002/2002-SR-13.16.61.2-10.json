@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-10",
+ "rule-digest": "8feffabc975f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs#ScreenItemValuePlacement",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr10-f1-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr10-sub-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr10-f2-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr10-f2-ws; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr10-sub-ws; conformance:cases/13.18.44-REDEFINES/pb550-value-in-redefining-entry",
+ "notes": "§2002:13.16.61.2 SR10 (FORMATS 1 AND 2) forbids VALUE in or under a REDEFINES entry; five single-violation programs (format 1 and format 2, CD record and working-storage) are each refused COBOL2406 at --std 2002."
+}

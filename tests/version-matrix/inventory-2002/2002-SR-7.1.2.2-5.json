@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-5",
+ "rule-digest": "1d1d1ca39ad6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement",
+ "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-placement-debugging-mode; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-debugging-line-national-literal-refused",
+ "notes": "§2002:7.1.2.2 SR5 requires an alphanumeric literal-1; at --std 2002 a >>D-line COPY \"G2CPL2\" copies its text (FROMLIT), and a D-line COPY N\"G2CPL\" with no debugging mode is still processed (§2002:6.2.7) and draws COBOL2450."
+}

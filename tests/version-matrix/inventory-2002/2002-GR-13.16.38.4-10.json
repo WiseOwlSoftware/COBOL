@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-10",
+ "rule-digest": "4cded38bc74d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolLocaleEdit.cs#Format",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2pic01_cd_record_picture",
+ "notes": "Per §2002:13.16.38.4 GR10 BLANK WHEN ZERO beats locale editing: zero into a CD-record LOCALE item with BWZ is all 12 spaces while the same picture without BWZ gives 8 spaces + 0.00. The --std 2002 run matched."
+}

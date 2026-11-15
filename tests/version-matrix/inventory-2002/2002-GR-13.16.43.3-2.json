@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.43.3-2",
+ "rule-digest": "ff9e5d272a83",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/RedefinesModel.cs#RenamesSpanPart; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#PlaceForRenames; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteRenames; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-thru-cd-and-ws",
+ "notes": "§2002:13.16.43.3 GR2 makes a THROUGH alias an alphanumeric group from the first elementary item of data-name-2 to the last of data-name-3: under a CD record and in working storage G1 THRU G3 reads AB12BBBCCDD (11), A1 THRU B1 AB12BBB, B1 THRU C2 BBBCCDD, and MOVE 'XY' to the alias space-fills it without touching the next item. --std 2002 run of g2-renames-thru-cd-and-ws matched."
+}

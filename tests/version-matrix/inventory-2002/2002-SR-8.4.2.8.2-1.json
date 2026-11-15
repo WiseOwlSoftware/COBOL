@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.8.2-1",
+ "rule-digest": "137be14d97b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#InMethod",
+ "test-ref": "conformance:cases/8.4.2.8@2002-SELF-AND-SUPER/g2sas01_self_and_super_in_a_method_definition",
+ "notes": "§2002:8.4.2.8.2 SR1 grants SELF/SUPER inside a method definition; g2sas01 uses both in a method and at --std 2002 printed SELF-IS-C (§2002:8.4.2.8.3 GR1), SELF-CHILD (GR2, runtime-class resolution) and SUPER-PARENT (GR3), as derived."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-4",
+ "rule-digest": "78289b09f12b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-editing",
+ "notes": "§2002:13.16.38.4 GR4 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): The \".\" stands at its own position in each edited item: E1 9.99 -> \"1.50\", ZL zero -> \"   .00\", SA zero -> \"***.**\", PA -0.05 -> \"   -.05\". The --std 2002 run of the pinned build (dc1f2dcce8) matched the derived .out."
+}

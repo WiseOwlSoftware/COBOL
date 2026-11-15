@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.40.2-3",
+ "rule-digest": "b87ecd480eb3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.40@2002-LOCALE-COMPARE-FUNCTION/g2lc01-locale-compare",
+ "notes": "§2002:15.40.2 AR3 admits arguments of different classes: alphanumeric/alphabetic and national/alphanumeric/alphabetic pairs compile and compare ('<', '>', '=' by RV1 and RV2). The --std 2002 run matched the derived .out."
+}

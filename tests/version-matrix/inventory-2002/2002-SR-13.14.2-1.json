@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-1",
+ "rule-digest": "76c97ae15248",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-record-levels; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-level-50",
+ "notes": "Per §2002:13.14.2 SR1 levels 77 and 1-49 are written: 77 and 01/49 in working storage and 01/05/49 in a record after an output CD (§2002:A.1.1) compile and run, CDREC=[QP] G1=[Q] / W77=[W] W01=[V] as derived; level 50 in the CD record is refused (COBOL1746). Pinned build dc1f2dcce8 --std 2002 matched."
+}

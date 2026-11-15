@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.4.2-1",
+ "rule-digest": "43849fce9c1e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.3.4.4@2002-ACCESS-MODE-CLAUSE/g2acc01_merge_giving_random; conformance:cases/12.4.5-File-control/pb994-sort-using-random-access; conformance:cases/12.4.5-File-control/pb994-sort-giving-random-access; conformance:cases/12.4.5-File-control/pb994-merge-using-random-access",
+ "notes": "§2002:12.3.4.4.2 SR1 prohibits a RANDOM-access file in a SORT or MERGE USING/GIVING phrase; at --std 2002 all four arms are refused with COBOL1757 (g2acc01 MERGE GIVING at line 47; pb994 SORT USING, SORT GIVING, MERGE USING), and the SEQUENTIAL control of g2acc01 compiles clean."
+}

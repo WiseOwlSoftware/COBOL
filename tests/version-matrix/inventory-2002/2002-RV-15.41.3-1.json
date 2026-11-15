@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.41.3-1",
+ "rule-digest": "fbd7024abb73",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Facts",
+ "test-ref": "conformance:cases/15.41@2002-LOCALE-DATE-FUNCTION/g2002-locale-date-function",
+ "notes": "§2002:15.41.3 RV1 - RV1: named locale -> DATE-FR 19/08/2026, DATE-DE 19.08.2026, and NAMED-OVER-CUR 19.08.2026 while the current LC_TIME is FR; omitted -> the current locale: CUR-FR 19/08/2026 after SET LOCALE LC_TIME TO FR, CUR-KEEP still 19/08/2026 after only LC_COLLATE is switched to GER (§2002:14.5.6 r3, r8: LC_TIME of the current locale; an unswitched category keeps its locale), CUR-DE 19.08.2026 after SET LOCALE LC_TIME TO GER; XX (xx-NOWHERE) unavailable -> EC-LOCALE-MISSING set to exist, the checking-on declarative prints HANDLED-LOCALE-MISSING and RESUME AT NEXT STATEMENT reaches AFTER-MISSING. Expected lines derived from the 2002 text before the run; G2LDT01 at --std 2002 on the pinned build (tree dc1f2dcce8) printed exactly the derived .out."
+}

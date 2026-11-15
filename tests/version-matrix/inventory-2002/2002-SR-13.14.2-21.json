@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-21",
+ "rule-digest": "729eed24e9ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ConditionQualifierChainMatches; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ReportMisqualifiedCondition; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#MisqualifiedConditionText",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-condition-name-qualified",
+ "notes": "Per §2002:13.14.2 SR21 two same-named condition-names under B1 and B2 of an output-CD record are qualified by their conditional variables: B1 ONE / B2 NOT / Q ONE, and SET B1-ONE OF B2 TO TRUE gives CDREC=[11], as derived. Pinned build dc1f2dcce8 --std 2002 matched."
+}

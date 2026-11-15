@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-15",
+ "rule-digest": "6762c371d206",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#objectReferenceUsage; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindObjectRefDescriptor",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb496_active_class_positions; conformance:cases/9.3.6-Method-invocation/pb389_object_reference_descriptor; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-record-active-class",
+ "notes": "ACTIVE-CLASS is accepted and works in factory and instance working-storage and in method linkage and local-storage (pb496_active_class_positions, pb389_object_reference_descriptor, both run at --std 2002) and is refused COBOL1924 on a CD record, which lies in a program definition (§2002:13.16.58.2 SR15, §2002:A.1.1). G2USG03 at --std 2002 was refused COBOL1924 at the violating entry."
+}

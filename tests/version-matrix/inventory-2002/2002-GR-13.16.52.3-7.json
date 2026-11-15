@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.52.3-7",
+ "rule-digest": "0090a48bcc09",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Fires; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyRolled; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddGenerateTrigger; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveUponDetail",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum01_sum_cd_addends_timing; conformance:cases/13.18.54-SUM/pb1294_report_rolled_repeating; conformance:cases/13.18.54-SUM/pb1294_report_rolled_cross_report",
+ "notes": "By §2002:13.16.52.3 GR7, CD identifier addends add on every GENERATE (015) or only on UPON details (007), repeated operands and repeated UPON details add once per mention (030, 014), and a rolled addend adds when its group is processed (008). g2sum01 at --std 2002 matched, and pb1294_report_rolled_repeating covers b)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.14.2-1",
+ "rule-digest": "9f51c82096cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.14@2002-CHAR-NATIONAL-FUNCTION/g2-char-national-integer-argument",
+ "notes": "§2002:15.14.2 AR1 'Argument-1 shall be an integer' with §2002:15.2 type 5: 9(5) item, S9(5) COMP item, expression, integer function ORD(N\"Z\"), input-CD TEXT LENGTH item are accepted. §2002:15.57.3 RV2 gives the national ordinal and §2002:15.14.3 RV1 returns the national character at it, so each CHAR-NATIONAL(ORD(n)) = n compares equal (Y x5); the DIFF control (Z vs N\"Q\") is N. Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}
