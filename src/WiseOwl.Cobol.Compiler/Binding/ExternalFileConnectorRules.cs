@@ -38,6 +38,23 @@ using WiseOwl.Cobol.Runtime;
 /// </summary>
 internal static class ExternalFileConnectorRules
 {
+    /// <summary>⛔ A FACT OF THE ONE CONNECTOR, KNOWN TO EVERY DESCRIBER (kb/Work PB5570). An EXTERNAL file connector is ONE per
+    /// run unit (§2023:13.18.22.4 GR4a), so whether the program writes it with the ADVANCING phrase is a property of the
+    /// connector, not of the describer: when any unit of the group does, every describer registers it a print file
+    /// (<see cref="FileModel.WrittenWithAdvancing"/>), so a plain WRITE that runs before the unit that names the phrase is
+    /// first activated is still the §1985:VII.4.7.4 GR16 automatic advance (AFTER ADVANCING 1 LINE). A describer compiled
+    /// apart from the group is reached by the run time's own merge at its registration (<c>FileRegistry.Register</c>).</summary>
+    public static void ShareAdvancing(IReadOnlyList<BoundUnit> units)
+    {
+        foreach (var group in units.SelectMany(u => u.Data.Files.Declared)
+                     .Where(f => f is { IsExternal: true, ExternalName: not null })
+                     .GroupBy(f => f.ExternalName!, CobolNames.Comparer))
+        {
+            if (!group.Any(f => f.WrittenWithAdvancing)) continue;
+            foreach (var f in group) f.WrittenWithAdvancing = true;
+        }
+    }
+
     public static void Check(IReadOnlyList<BoundUnit> units, EditionContext edition)
     {
         var byExternalName = units.SelectMany(u => u.Data.Files.Declared)
