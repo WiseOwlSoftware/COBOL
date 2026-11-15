@@ -1,8 +1,0 @@
-{
- "rule-id": "2002-FMT-15.72.1",
- "rule-digest": "82f705c98980",
- "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
- "test-ref": "conformance:cases/15.89-TAN/l1-tan-two-arguments",
- "notes": "Own verdict from the read lineage-reads-2002/u-55.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.89.2, witnessed at 2002 by the cases test-ref names. The read: The 2002 general format of TAN is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused. Cited: §2002:15.72."
-}

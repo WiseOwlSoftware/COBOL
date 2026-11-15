@@ -3,6 +3,6 @@
  "rule-digest": "9d1f0b949ed8",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#propertyObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.PropertyObject.cs#OoBindPropertyObject; src/WiseOwl.Cobol.Compiler/Binding/ObjectPropertyResolver.cs#ResolveObjectProperty",
- "test-ref": "conformance:cases/11.7-METHOD-ID/pb1449_interface_property; conformance:cases/8.4.3.1-Identifier/pb1425_object_property_identifier; conformance:cases/8.4.3.9-Object-property/pb1425-property-object-null",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/pb1449_interface_property; conformance:cases/8.4.3.1-Identifier/pb1425_object_property_identifier",
  "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.4.3.9.2, witnessed at 2002 by the cases test-ref names. The read: Same diagram. 2002 prints class-name-1 where 2023 prints object-class-name-1: a rename of the metalanguage term (2023 keeps class-name for the class condition); both denote a class named in the REPOSITORY paragraph, so no program can tell them apart. Cited: §2002:8.4.2.9.2 SR1."
 }

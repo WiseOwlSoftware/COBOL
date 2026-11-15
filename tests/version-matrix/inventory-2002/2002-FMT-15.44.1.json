@@ -1,8 +1,0 @@
-{
- "rule-id": "2002-FMT-15.44.1",
- "rule-digest": "b89111e57845",
- "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FLOATLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FN_SIGNED_DECIMALLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SignedLiteralCanStart",
- "test-ref": "conformance:cases/15.56-LOG10/l1-log10-two-arguments",
- "notes": "Own verdict from the read lineage-reads-2002/u-54.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.56.2, witnessed at 2002 by the cases test-ref names. The read: The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.44 -> 15.56). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023. Cited: §2002:15.44."
-}

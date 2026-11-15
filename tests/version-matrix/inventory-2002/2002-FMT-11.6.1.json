@@ -3,6 +3,6 @@
  "rule-digest": "449cff65cab5",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
- "test-ref": "conformance:cases/11.7-METHOD-ID/oo_override_final; conformance:cases/11.7-METHOD-ID/oo_property_methods; conformance:cases/11.7-METHOD-ID/pb1449_interface_property; conformance:cases/11.7-METHOD-ID/pb1449-set-property-prototype-two-using",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/oo_override_final; conformance:cases/11.7-METHOD-ID/oo_property_methods; conformance:cases/11.7-METHOD-ID/pb1449_interface_property",
  "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-11.7.2, witnessed at 2002 by the cases test-ref names. The read: Identical format. Cited: §2002:11.6."
 }

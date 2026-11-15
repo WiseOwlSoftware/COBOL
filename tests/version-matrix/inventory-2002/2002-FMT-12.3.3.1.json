@@ -3,6 +3,6 @@
  "rule-digest": "65f14264c4ab",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inputOutputSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FILE_CONTROL",
- "test-ref": "conformance:cases/12.4.4-FILE-CONTROL/l1c10_file_control_no_entries; conformance:cases/12.4.4-FILE-CONTROL/l1c10_file_control_two_entries; conformance:cases/12.4.4-FILE-CONTROL/l1c10-file-control-no-period",
+ "test-ref": "conformance:cases/12.4.4-FILE-CONTROL/l1c10_file_control_no_entries; conformance:cases/12.4.4-FILE-CONTROL/l1c10_file_control_two_entries",
  "notes": "Own verdict from the read lineage-reads-2002/u-45.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.4.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; witnesses hold at 2002. Cited: §2002:12.3.3.1."
 }

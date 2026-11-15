@@ -1,8 +1,0 @@
-{
- "rule-id": "2002-FMT-7.2.18.1",
- "rule-digest": "4c46cb3a28b1",
- "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#FormatSegments",
- "test-ref": "conformance:cases/7.3-Compiler-directives/pb794-source-format-unknown; conformance:cases/7.3.24-SOURCE-FORMAT/pb794-source-format-literal",
- "notes": "Own verdict from the read lineage-reads-2002/u-45.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-7.3.24.2, witnessed at 2002 by the cases test-ref names. The read: Identical format, FORMAT and IS optional in both. Pointer refusal cases and the unit tests hold at 2002. Cited: §2002:7.2.18.2 GR1."
-}

@@ -1,8 +1,0 @@
-{
- "rule-id": "2002-FMT-12.3.4.9.1",
- "rule-digest": "10c8b0e8c1bd",
- "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationType; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
- "test-ref": "conformance:cases/12.4.5.10-ORGANIZATION/pb706-record-sequential-below-2023; conformance:cases/12.4.5.10-ORGANIZATION/pb688-line-sequential-below-2023",
- "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.5.10.2, witnessed at 2002 by the cases test-ref names. The read: 2002's SEQUENTIAL is 2023's RECORD SEQUENTIAL with the optional word RECORD omitted; the 2002 scope is a subset and the compiler gates the additions at 2002. Cited: §2002:12.3.4.9."
-}

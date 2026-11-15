@@ -3,6 +3,6 @@
  "rule-digest": "fc57624905b1",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckIntoReceiver; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#IntoPhraseRules; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#IsStrongGroup; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#StrongGroupRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality",
- "test-ref": "conformance:cases/14.9.30-READ/pb337_into_receiver_admissible_2002; conformance:cases/14.9.34-RETURN/pb337-return-into-strong-record-areas; conformance:cases/14.9.34-RETURN/pb348-return-into-strong-group",
+ "test-ref": "conformance:cases/14.9.30-READ/pb337_into_receiver_admissible_2002",
  "notes": "Own verdict from the read lineage-reads-2002/u-26.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.34.3-3, witnessed at 2002 by the cases test-ref names. The read: The words are identical apart from a missing space in the 2002 transcription, and the RETURN general format is identical. 'Strongly-typed group item' (TYPEDEF STRONG) exists in 2002. Both refusal tests run at 2002. Cited: §2002:14.8.32.2 SR4."
 }

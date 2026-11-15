@@ -3,6 +3,6 @@
  "rule-digest": "a61efabc0e14",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#selfAndSuper; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.OoIdentifier.cs#OoBindOoIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
- "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_predefined_object_operands; conformance:cases/8.4.3.1-Identifier/pb1425_qualified_super; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1425-super-operand; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1425-super-qualifier-not-inherited",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_predefined_object_operands; conformance:cases/8.4.3.1-Identifier/pb1425_qualified_super",
  "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.4.3.8.2, witnessed at 2002 by the cases test-ref names. The read: Same diagram. 2002 prints class-name-1 where 2023 prints object-class-name-1: a rename of the metalanguage term (2023 keeps class-name for the class condition); both denote a class named in the REPOSITORY paragraph, so no program can tell them apart. (2023 GR3 adds wording on SUPER method resolution; that is a GR, not this format.) Cited: §2002:8.4.2.8."
 }

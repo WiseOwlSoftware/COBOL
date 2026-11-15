@@ -3,6 +3,6 @@
  "rule-digest": "832b53edc74a",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#linkageSection; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindLinkage",
- "test-ref": "conformance:cases/13.7-Linkage-section/pb1252_linkage_section_four_entry_kinds; conformance:cases/13.7-Linkage-section/pb1252-linkage-entry-using-phrase",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb1252_linkage_section_four_entry_kinds",
  "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.7.2, witnessed at 2002 by the cases test-ref names. The read: Same as the local-storage format: 2023's type-declaration-entry is 2002's TYPEDEF record entry under its own name in the same format. Cited: §2002:13.6; §2002:13.10."
 }

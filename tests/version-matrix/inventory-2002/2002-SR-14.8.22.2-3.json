@@ -3,6 +3,6 @@
  "rule-digest": "709f27caafce",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindClassInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke",
- "test-ref": "conformance:cases/14.9.23-INVOKE/oo_factory; conformance:cases/14.9.23-INVOKE/pb1548-new-without-base; conformance:cases/14.9.23-INVOKE/pb1136-invoke-class-name-identifier-2",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/oo_factory",
  "notes": "Own verdict from the read lineage-reads-2002/u-24.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.23.3-3, witnessed at 2002 by the cases test-ref names. The read: General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is named object-class-name-1 in 2023. The only difference in words is class-name-1 / object-class-name-1, the renamed operand of the same format position; a 2002 class-name is an object-class-name in 2023. The rule has no data operand, so no CD record item or other 2002-only context reaches it. Cited: §2002:14.8.22.2 SR3."
 }

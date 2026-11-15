@@ -3,6 +3,6 @@
  "rule-digest": "d0cfb6e559ac",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#refModPart; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#refModSpec; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#RefModOf; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#ReadRefMod",
- "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1407_address_of_reference_modified; conformance:cases/8.4.3.1-Identifier/pb1407-ref-mod-leftmost-position-omitted; conformance:cases/8.4.3.1-Identifier/pb1407-address-of-ref-mod-leftmost-position-omitted",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1407_address_of_reference_modified",
  "notes": "Own verdict from the read lineage-reads-2002/u-05.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.4.3.1.3-4, witnessed at 2002 by the cases test-ref names. The read: Same words but the clause number; the reference-modification general format is identical in both editions. Every witness runs at --std 2002. Cited: §2002:8.4.2.1.2 SR4."
 }

@@ -3,6 +3,6 @@
  "rule-digest": "a616bb95760f",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unlockStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#BindUnlock; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnlockStatement",
- "test-ref": "conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/file_sharing; conformance:cases/14.9.6-CLOSE/file_sharing_seq; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate; conformance:cases/14.9.47-UNLOCK/pb236-unlock-undeclared-file-unreached",
+ "test-ref": "conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/file_sharing; conformance:cases/14.9.6-CLOSE/file_sharing_seq; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate",
  "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-14.9.47.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; the row's witnesses run at 2002. Cited: §2002:14.8.43.2 SR1."
 }

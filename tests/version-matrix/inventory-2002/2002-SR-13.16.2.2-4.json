@@ -3,6 +3,6 @@
  "rule-digest": "47cea51dfa3b",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#IsSingleInstance; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
- "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/pb1210_any_length_count_one_spellings; conformance:cases/13.18.2-ANY-LENGTH/any-length-bad-picture; conformance:cases/13.18.2-ANY-LENGTH/pb1210-any-length-constant-two-instances",
+ "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/pb1210_any_length_count_one_spellings",
  "notes": "Own verdict from the read lineage-reads-2002/u-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.2.3-1, witnessed at 2002 by the cases test-ref names. The read: 2023 splits one sentence into two and moves it to SR1; the requirement is the same. Linkage only. Cited: §2002:13.16.2.2 SR4."
 }

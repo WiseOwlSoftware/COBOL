@@ -3,6 +3,6 @@
  "rule-digest": "0cf9fe444d45",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#inlineMethodInvocation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#inlineInvocationSegment; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#argument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OoBindInlineInvocation; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#IsEmptyInlineArgumentList; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations",
- "test-ref": "conformance:cases/8.4.3.1-Identifier/pb428_inline_method_invocation; conformance:cases/8.4.3.4-Inline-method-invocation/pb1430_operator_separator_spaces; conformance:cases/8.4.3.1-Identifier/pb1430-inline-invocation-empty-arguments; conformance:cases/8.4.3.4-Inline-method-invocation/pb1430-invocation-operator-spacing",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb428_inline_method_invocation; conformance:cases/8.4.3.4-Inline-method-invocation/pb1430_operator_separator_spaces",
  "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.4.3.4.2, witnessed at 2002 by the cases test-ref names. The read: Identical but for the name class-name-1 vs object-class-name-1 (same referent); the row's goldens run at 2002. Cited: §2002:8.4.2.4."
 }

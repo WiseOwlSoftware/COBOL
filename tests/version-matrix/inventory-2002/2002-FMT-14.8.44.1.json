@@ -1,8 +1,0 @@
-{
- "rule-id": "2002-FMT-14.8.44.1",
- "rule-digest": "4de10e1b12e5",
- "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringIntoPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringDelimiterPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases",
- "test-ref": "conformance:cases/14.9.48-UNSTRING/pb1183-unstring-into-repeated",
- "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-14.9.48.2, witnessed at 2002 by the cases test-ref names. The read: Token-identical format; the row's witness runs at 2002 and the probe exercises every phrase. Cited: §2002:14.8.44.1."
-}

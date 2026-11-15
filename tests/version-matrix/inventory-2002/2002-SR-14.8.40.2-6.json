@@ -3,6 +3,6 @@
  "rule-digest": "a912e5061456",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
- "test-ref": "conformance:cases/14.9.2-ADD/pb392_corresponding_group_kinds; conformance:cases/14.9.2-ADD/pb392-subtract-corresponding-bit-group; conformance:cases/14.9.2-ADD/pb236-add-corr-elementary; conformance:cases/14.9.2-ADD/pb236-add-corr-level-66",
+ "test-ref": "conformance:cases/14.9.2-ADD/pb392_corresponding_group_kinds",
  "notes": "Own verdict from the read lineage-reads-2002/u-28.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.44.3-6, witnessed at 2002 by the cases test-ref names. The read: The 2002 list lacks only variable-length groups (a 2023 element): 2002 is a subset and every pointer witness behaves at 2002. Cited: §2002:14.8.40.2 SR6."
 }

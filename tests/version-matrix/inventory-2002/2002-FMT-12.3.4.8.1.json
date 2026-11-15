@@ -3,6 +3,6 @@
  "rule-digest": "cf309b1eec83",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#lockModeClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#lockOnPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#multipleKeyword; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapLockMode",
- "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/pb755_lock_on_multiple_records; conformance:cases/12.4.5.9-LOCK-MODE/pb695_lock_mode_optional_words; conformance:cases/12.4.5.9-LOCK-MODE/pb3794_multiple_data_item_lock_on_multiple; conformance:cases/12.4.5.9-LOCK-MODE/pb755-lock-on-omitted",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/pb755_lock_on_multiple_records; conformance:cases/12.4.5.9-LOCK-MODE/pb695_lock_mode_optional_words; conformance:cases/12.4.5.9-LOCK-MODE/pb3794_multiple_data_item_lock_on_multiple",
  "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.5.9.2, witnessed at 2002 by the cases test-ref names. The read: Identical format, no operand; the row's goldens run at 2002 and pass. Cited: §2002:12.3.4.8."
 }

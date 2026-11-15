@@ -3,6 +3,6 @@
  "rule-digest": "4d71c4967cb0",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands",
- "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal; conformance:cases/12.4.6.4-SAME/pb1087-same-one-file",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal",
  "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.6.4.2, witnessed at 2002 by the cases test-ref names. The read: Identical formats; operands are file-names (no subscript question). Cited: §2002:12.3.6.1; §2002:12.3.6."
 }

@@ -3,6 +3,6 @@
  "rule-digest": "52447777ed5f",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sortMergeDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection",
- "test-ref": "conformance:cases/13.4-File-section/l1c11_file_section_constant_typedef; conformance:cases/13.4-File-section/l1c11-file-section-entry-before-fd",
+ "test-ref": "conformance:cases/13.4-File-section/l1c11_file_section_constant_typedef",
  "notes": "Own verdict from the read lineage-reads-2002/u-45.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.4.2, witnessed at 2002 by the cases test-ref names. The read: 2002 lists constant-entry and record-description-entry; 2023 adds type-declaration-entry. In 2002 the same text (01 T TYPEDEF ...) is a record description entry whose TYPEDEF clause makes it a type declaration, so the 2023 witness's program is a 2002 program and it runs identically at 2002. Cited: §2002:13.3; §2002:13.16.56.3 GR1."
 }

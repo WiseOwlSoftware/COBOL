@@ -3,6 +3,6 @@
  "rule-digest": "03d62d7e33f6",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportCodeClauseRule; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause",
- "test-ref": "conformance:cases/13.18.12-CODE/pb1129_rd_code_literal; conformance:cases/13.18.12-CODE/pb1129-code-literal-numeric",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1129_rd_code_literal",
  "notes": "Own verdict from the read lineage-reads-2002/u-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.12.3-1, witnessed at 2002 by the cases test-ref names. The read: Only 'a' / 'an' differ; the CODE format and the RD are the same in both editions; no CD reach. Cited: §2002:13.16.12.2 SR1."
 }

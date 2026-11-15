@@ -3,6 +3,6 @@
  "rule-digest": "eeb33c441fca",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateBoolean; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalRelationOrBoolean",
- "test-ref": "conformance:cases/7.3.8-Constant-conditional-expression/l1c05_cce_boolean_expression; conformance:cases/7.3.8-Constant-conditional-expression/l1c05-cce-boolean-alnum-operand; conformance:cases/7.3.8-Constant-conditional-expression/l1c05-cce-boolean-numeric-operand",
+ "test-ref": "conformance:cases/7.3.8-Constant-conditional-expression/l1c05_cce_boolean_expression",
  "notes": "Own verdict from the read lineage-reads-2002/u-02.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-7.3.8.2-3, witnessed at 2002 by the cases test-ref names. The read: Only the clause number differs; 7.2.6 SR1 and 7.3.7.2 SR1 are word-identical. 2023 8.8.2 adds the shift operators, but a shift's second operand is an integer, which the 'all operands shall be boolean literals' clause excludes in both editions, so the requirement is equal; at 2002 the compiler refuses a shift anyway (bshift.cob). Lead outside this row: at --std 2023 the compiler ACCEPTS >>IF B\"10\" B-SHIFT-L 1 = B\"00\" (bshift.2023.log), which §2023:7.3.7.2 SR1 appears to forbid. Cited: §2002:7.2.6.1 SR1."
 }

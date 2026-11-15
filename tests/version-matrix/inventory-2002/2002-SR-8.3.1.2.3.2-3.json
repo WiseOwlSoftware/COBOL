@@ -3,6 +3,6 @@
  "rule-digest": "3fe449966823",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#RepertoireViolation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BOOL_BODY; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#Screen",
- "test-ref": "conformance:cases/8.3.3.4-Boolean-literals/w73a_prefix_literal_beside_named_item; conformance:cases/8.3.3.4-Boolean-literals/w73a-hex-boolean-literal-non-hex-digit",
+ "test-ref": "conformance:cases/8.3.3.4-Boolean-literals/w73a_prefix_literal_beside_named_item",
  "notes": "Own verdict from the read lineage-reads-2002/u-04.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.3.3.4.3-3, witnessed at 2002 by the cases test-ref names. The read: Same sentence; 2023 adds only a NOTE on zero length (a 2014 form). Same digit definition. Witness runs at 2002. Cited: §2002:8.3.1.2.3.2 SR3."
 }

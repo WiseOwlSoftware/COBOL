@@ -1,8 +1,0 @@
-{
- "rule-id": "2002-FMT-8.7.5.1",
- "rule-digest": "3153c00ba087",
- "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator",
- "test-ref": "conformance:cases/8.7.5-Relational-operators/pb1034-not-gteq; conformance:cases/8.7.5-Relational-operators/pb1034-not-lteq; conformance:cases/8.7.5-Relational-operators/pb1034-not-greater-or-equal-words; conformance:cases/8.7.5-Relational-operators/pb1034-not-less-or-equal-words; conformance:cases/8.7.5-Relational-operators/pb1034-equal-than; conformance:cases/8.7.5-Relational-operators/pb1034-abbreviated-not-gteq; conformance:cases/8.7.5-Relational-operators/pb1034-directive-not-gteq",
- "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.7.5.1, witnessed at 2002 by the cases test-ref names. The read: 2002 makes IS NOT GREATER/LESS/EQUAL simple operators; 2023 moves the NOT forms to Format 2 and adds <>. The operator set 2002 permits is a subset of 2023's; the reclassification matters only for the abbreviated combined relation, where 2002 GR2b gives the expansion 2023's example table gives, and the probe shows it at 2002. Cited: §2002:8.7.5.1 Format 1; §2002:8.7.5.2 SR1; §2002:8.8.4.2.4.3 GR2b."
-}
