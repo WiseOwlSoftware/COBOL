@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.33.2-11",
+ "rule-digest": "05bfa987cbcb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindFileFormat; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenReportFileReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#UnsupportedOrg",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/pb5579-rewrite-file-sort-merge-file; conformance:cases/14.9.35-REWRITE/pb5579-rewrite-file-report-file",
+ "notes": "§2002:3.1.1 requires the FILE phrase (Annex A.4.13); kb/Work PB5579 implements it (SequentialIoBinder.BindFileFormat -> MoveBinder.BindFilePhraseRecord), at --std 2002 and from it, and gates it at 85 (COBOL0900). SR11: a report file (COBOL2577) and a sort-merge file (COBOL1692) are refused."
+}

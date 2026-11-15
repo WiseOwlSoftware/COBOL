@@ -3805,21 +3805,34 @@ public static class DiagnosticCatalog
         + "2002, so there the word is a user-defined name.",
         "ISO §2023:4.2.7 / Annex A.4.1 / Annex A.4.8 items 1-2 / §2023:13.18.24 / §2023:13.18.51",
         Annex: DeclinedAnnex.A4);
-    public static readonly DiagnosticDescriptor WriteRewriteFileUnclaimed = new(
-        "COBOL1706", "a413-write-rewrite-file-unclaimed", EditionSeverity.Error,
-        "the FILE phrase of the WRITE statement (ISO §2023:14.9.51) and of the REWRITE statement (ISO §2023:14.9.35) — "
-        + "`WRITE FILE file-name-1 FROM …` / `REWRITE FILE file-name-1 RECORD FROM …` — are the two items of "
-        + "Annex A.4.13, an OPTIONAL language element (§2023:4.2.7) for which this implementation claims NO support "
-        + "(docs/CONFORMANCE.md §5, row A.4.13) — Annex A.4.1: an implementation shall accept the syntax for an "
-        + "optional element ONLY when support for it is claimed. The two STATEMENTS are mandatory and fully "
-        + "supported; only this one alternative of `{ record-name-1 | FILE file-name-1 }` is declined "
-        + "(A.4.1 NOTE 1: the higher-level cross-referenced construct is not optional), so plain "
-        + "`WRITE record-name-1` / `REWRITE record-name-1` are unaffected. Refused at EVERY edition and in "
-        + "BOTH printed formats (§2023:14.9.51.2 Format 1 sequential and Format 2 random): the declined phrase has "
-        + "its own implicit-record semantics (§2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9) that a whole-record-area write "
-        + "does not implement, so accepting it inert would be a wrong answer.",
-        "ISO §2023:4.2.7 / Annex A.4.1 / Annex A.4.13 items 1-2 / §2023:14.9.51 / §2023:14.9.35",
-        Annex: DeclinedAnnex.A4);
+    /// <summary>COBOL7351 — the FILE phrase of WRITE or REWRITE written without its FROM phrase (kb/Work PB5579).</summary>
+    public static readonly DiagnosticDescriptor FilePhraseRequiresFrom = new(
+        "COBOL7351", "write-rewrite-file-requires-from", EditionSeverity.Error,
+        "`WRITE FILE file-name-1` and `REWRITE FILE file-name-1` name no record, so what is released is the operand of "
+        + "the FROM phrase: \"If the FILE phrase is specified, the FROM phrase shall also be specified\" "
+        + "(§2023:14.9.51.3 SR7 and §2023:14.9.35.3 SR10; §2002:14.8.47.2 SR7 and §2002:14.8.33.2 SR10). A file whose "
+        + "description has no record description entries admits no other form (§2023:13.4.5.3 SR3 b)).",
+        "ISO §2023:14.9.51.3 SR7 / §2023:14.9.35.3 SR10");
+    /// <summary>COBOL7352 — the operand of a WRITE or REWRITE FROM phrase that the FILE phrase does not admit: a numeric
+    /// or figurative-constant literal-1, or an identifier-1 whose description holds a USAGE OBJECT REFERENCE item
+    /// (kb/Work PB5579).</summary>
+    public static readonly DiagnosticDescriptor FilePhraseOperand = new(
+        "COBOL7352", "write-rewrite-file-operand", EditionSeverity.Error,
+        "With the FILE phrase the FROM operand becomes the record, so it is restricted: literal-1 \"shall be an "
+        + "alphanumeric, boolean, or national literal and shall not be a figurative constant\" (§2023:14.9.51.3 SR7 b), "
+        + "§2023:14.9.35.3 SR10 b); §2002:14.8.47.2 SR7 b), §2002:14.8.33.2 SR10 b)), and \"the description of "
+        + "identifier-1, including its subordinate data items, shall not contain a data item described with a USAGE OBJECT "
+        + "REFERENCE clause\" (§2023:14.9.51.3 SR8, §2023:14.9.35.3 SR12; §2002:14.8.47.2 SR8, §2002:14.8.33.2 SR12).",
+        "ISO §2023:14.9.51.3 SR7 b) / SR8 and §2023:14.9.35.3 SR10 b) / SR12");
+    /// <summary>COBOL7353 — a bit data item as the FROM operand of a WRITE or REWRITE with the FILE phrase that is not
+    /// statically byte-aligned (kb/Work PB5579; the twin of COBOL1683, COBOL2453).</summary>
+    public static readonly DiagnosticDescriptor FilePhraseBitAlignment = new(
+        "COBOL7353", "write-rewrite-file-bit-alignment", EditionSeverity.Error,
+        "A bit data item that is the FROM operand of a WRITE or REWRITE statement with the FILE phrase shall be aligned on a "
+        + "byte boundary, and its subscripting and reference modification shall consist of only fixed-point numeric "
+        + "literals or arithmetic expressions of such literals without exponentiation (§2023:14.9.51.3 SR9, "
+        + "§2023:14.9.35.3 SR7; §2002:14.8.47.2 SR9, §2002:14.8.33.2 SR7): the record released is the bytes of that item.",
+        "ISO §2023:14.9.51.3 SR9 / §2023:14.9.35.3 SR7");
     // ── The A.4 DECLINED-OPTIONAL-ELEMENT band (§2023:4.2.7 / Annex A.4.1). ⛔ A DIFFERENT OBLIGATION FROM THE
     //    WAVE-H BAND ABOVE, and the severity difference is the whole point. §2023:4.2.6 ¶3 covers PROCESSOR-DEPENDENT
     //    elements (Annex A.3): we may accept them and must WARN — 1578 does exactly that. Annex A.4.1 covers
@@ -4162,7 +4175,7 @@ public static class DiagnosticCatalog
     /// area the program can never name; the standard gives that READ no meaning, because §2023:14.9.30.4 GR6 defines the
     /// implied record only for the INTO form. SR3 b), the WRITE/REWRITE half, needs no code of its own: the
     /// record-name-1 alternative cannot name a record-less file (§2023:14.9.51.3 SR5, §2023:14.9.35.3 SR1), and the
-    /// <c>FILE file-name-1</c> alternative is Annex A.4.13, declined by COBOL1706.</summary>
+    /// <c>FILE file-name-1</c> alternative (Annex A.4.13, claimed from 2002: kb/Work PB5579) is the one form such a file binds.</summary>
     public static readonly DiagnosticDescriptor RecordLessFdReadWithoutInto = new(
         "COBOL3983", "record-less-fd-read-without-into", EditionSeverity.Error,
         "ISO §2023:13.4.5.3 syntax rule 3 c): \"When no record description entries are specified: … c) an INTO phrase "
@@ -4347,8 +4360,8 @@ public static class DiagnosticCatalog
         + "DIFFERS: ISO §2023:14.9.32.3 syntax rule 2 (RELEASE) and §2023:14.9.51.3 syntax rule 4 (WRITE) each say \"If "
         + "identifier-1 is a function-identifier, it shall reference an alphanumeric or national function\", "
         + "while §2023:14.9.35.3 syntax rule 9 (REWRITE, the FILE phrase not specified) admits \"an alphanumeric, "
-        + "boolean, or national function\". The FILE-phrase readings (§2023:14.9.51.3 SR10, §2023:14.9.35.3 SR8) are not "
-        + "reachable: the FILE arm is Annex A.4.13 item 2 and is declined earlier, COBOL1706. The class is "
+        + "boolean, or national function\". The FILE-phrase readings (§2023:14.9.51.3 SR10, §2023:14.9.35.3 SR8) have the "
+        + "narrower set of an alphanumeric or national function for both verbs (kb/Work PB5579). The class is "
         + "the function's §2023:15.2 TYPE, so an integer function such as FUNCTION LENGTH is refused in every one of "
         + "these positions even though its value would move.",
         "ISO §2023:14.9.32.3 SR2 / §2023:14.9.51.3 SR4 / §2023:14.9.35.3 SR9");

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.3.5.2-4",
+ "rule-digest": "7fe715b3407d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#UnsupportedOrg; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeFile",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb5579-write-file-sort-merge-file",
+ "notes": "§2002:13.3.5.2 SR4: a record of a sort-merge file description in WRITE is refused (COBOL1692; WRITE RS FROM W10, kb/Work PB5579); FROM and INTO positions are the permitted ones."
+}

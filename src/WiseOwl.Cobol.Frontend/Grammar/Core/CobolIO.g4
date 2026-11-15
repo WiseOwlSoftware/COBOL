@@ -507,8 +507,7 @@ closeOption
 //
 // ⛔ THE FILE NAME IS BARE: BOTH FORMATS PRINT `READ file-name-1`, AND NO EDITION PRINTS `READ FILE file-name-1`.
 // The `{ record-name-1 | FILE file-name-1 }` choice belongs to WRITE (§2023:14.9.51.2) and REWRITE (§2023:14.9.35.2) alone,
-// where it is Annex A.4.13's declined element and SequentialIoBinder.DeclinedFilePhrase refuses it by name
-// (COBOL1706). This rule carried a copy of that two-arm head, `READ (fileName | FILE fileName)`, that nothing
+// (Annex A.4.13, SequentialIoBinder.BindFileFormat). This rule carried a copy of that two-arm head, `READ (fileName | FILE fileName)`, that nothing
 // refused, so `READ FILE F1` compiled clean at every --std and ran as a plain READ (kb/Work PB2728). Without the
 // arm, FILE (a reserved word, never a fileName) is a syntax error here: §2023:5.2.1 admits only the words a general
 // format prints, "in the sequence given in the general format", and neither READ format prints FILE.
@@ -592,11 +591,11 @@ readKey
 // copy, which is exactly CLAUDE.md rule 1's inherited-citation failure: never re-derived, and it propagated
 // into the A.4.13 module survey. Its REWRITE twin below carried the same defect.
 //
-// `FILE fileName` is a DISTINCT parse alternative because it is Annex A.4.13's optional element (item 2),
-// which this implementation does NOT claim — the binder needs to SEE the arm to refuse it by name
-// (SequentialIoBinder.DeclinedFilePhrase → COBOL1706). Both printed formats — Format 1 (sequential) and
+// `FILE fileName` is Annex A.4.13's element (item 2), claimed from COBOL-2002 (kb/Work PB5579): the binder
+// (SequentialIoBinder.BindFileFormat) takes the FROM operand as the implicit record, and the 1985 edition's refusal is the
+// parse-arm gate VersionConformancePass.VisitWriteStatement (COBOL0900). Both printed formats — Format 1 (sequential) and
 // Format 2 (random) — carry the same `{ record-name-1 | FILE file-name-1 }` choice, so ONE alternative
-// serves both and the sequential/keyed reroute below inherits the refusal.
+// serves both and the sequential/keyed reroute below inherits the one binding.
 
 writeStatement
     : WRITE (recordName | FILE fileName)

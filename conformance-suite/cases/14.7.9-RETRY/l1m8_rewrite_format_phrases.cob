@@ -19,9 +19,9 @@
       *>   INDICATORS (§2023:5.2.6.4): either phrase alone, both in EITHER
       *>   order, or neither. RETRY (§2023:14.7.9.2): "arithmetic-expression-1
       *>   TIMES | FOR arithmetic-expression-2 SECONDS | FOREVER", FOR
-      *>   optional. The FILE file-name-1 arm is declined (Annex A.4.13)
-      *>   and witnessed by conformance:negative/a413-rewrite-file-
-      *>   declined; this program covers the record-name-1 arm.
+      *>   optional. The FILE file-name-1 arm (Annex A.4.13) is
+      *>   witnessed by pb5579_rewrite_file; this program covers the
+      *>   record-name-1 arm.
       *> LOCK MODE IS MANUAL so the LOCK phrases are legal (§2023:14.9.35.3
       *>   SR4 bars them only under automatic locking, OK 4)).
       *> Semantics each leg pins (INDEXED, ACCESS DYNAMIC, keys K1..K5):

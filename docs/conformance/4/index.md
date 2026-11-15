@@ -21,7 +21,7 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
   and provide the functionality for an optional element **only when support for that language element is claimed
   by the implementor**". For a module, or the part of one, that §5 does not claim, accepting the syntax is itself the
   non-conformance — so those elements are refused by name with an **Error**: **COBOL1560 / 1707** (screen
-  handling, A.4.2), **1705** (FORMAT / SELECT WHEN, A.4.8), **1706** (WRITE / REWRITE FILE, A.4.13) and
+  handling, A.4.2), **1705** (FORMAT / SELECT WHEN, A.4.8) and
   **1708 / 1710** (VALIDATE's data-division clauses and every declined module's
   exception-names — the `declined-optional-element` suppress family). All of them emit through the ONE
   declined-element seam, `EditionContext.Declined`, whose refuse rule (`EditionContext.Refuses`) chooses the channel.

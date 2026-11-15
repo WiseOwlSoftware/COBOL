@@ -143,10 +143,10 @@
       "  · `sections`       — the rule's OWN clause, matched COMPONENT-WISE (see below). PB198's lesson: §8.8.1.4",
       "                       is TITLED for the declined mode and its rules never repeat the phrase.",
       "  · `pattern`        — the rule's TEXT (always case-insensitive in both engines; a data pattern must not",
-      "                       depend on an option the reader sets — A.4.13's arm turns on the capital F of",
-      "                       'File-name-1' and case-sensitively selects 11 rules instead of 12).",
+      "                       depend on an option the reader sets — A.4.13's arm (retired: A.4.13 is claimed, kb/Work PB5579) turned on the capital F of",
+      "                       'File-name-1' and case-sensitively selected 11 rules instead of 12).",
       "  · both together    — an AND-gate. `file-name-1` is STATEMENT-LOCAL: in §13.4.5.4 it is the file",
-      "                       description entry's own subject, so A.4.13's text ungated selects 176 rules, not 12.",
+      "                       description entry's own subject, so A.4.13's text ungated selected 176 rules, not 12.",
       "                       The same gate is the only way to reach a rule scoped by OPERAND NAME — §12.3.7.3's",
       "                       data-name-1/-2 ARE the CURSOR and CRT STATUS operands and nothing else, and the",
       "                       rules constraining them carry no screen vocabulary and sit in a shared clause.",
@@ -643,72 +643,6 @@
         }
       ],
       "excludes-patterns": []
-    },
-    "rewrite-write-file-only": {
-      "verdict": "DOCUMENTED-NON-SUPPORT",
-      "decision": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.13 | REWRITE FILE and WRITE FILE | Not claimed'. Licence: §4.2.7 for an OPTIONAL element; ratified by docs/COMPLETION_ROADMAP_COUNCIL.md §5 decision 3 (2026-07-03). ⚠ §4 has NO item for A.4.13 — its list stops at item 4 (screen) — so the §5 row is the whole of the user documentation. kb/Work PB282 owns the defect that both arms compile TODAY.",
-      "$selector": [
-        "A rule is SOLELY conditioned on A.4.13 when the ONLY thing it constrains is the FILE phrase of",
-        "REWRITE/WRITE. The optional element is a PHRASE, one alternative of `{ record-name-1 | FILE file-name-1 }`,",
-        "and A.4.1 NOTE 1 makes the two STATEMENTS the non-optional cross-referenced context — its own worked",
-        "example says 'only the lowest-level element (repetition of interface-name-2) … is optional'. A clause-wide",
-        "selector would flip 83 rules of two mandatory statements.",
-        "",
-        "⛔ SO THE ARM IS AN AND-GATE, AND THE SECTION HALF IS MANDATORY, NOT DECORATION. `file-name-1` is a",
-        "STATEMENT-LOCAL term whose meaning is fixed by the general format of the clause it sits in: in §13.4.5.4",
-        "the identical spelling is the file description entry's OWN subject ('A file description entry associates",
-        "file-name-1 with a file connector'). Ungated, the same pattern selects 176 rules instead of 12, sweeping in",
-        "DELETE, OPEN, CLOSE, READ, START, UNLOCK and every FD clause. This is the PB198 word-sense trap in its",
-        "sharpest form.",
-        "",
-        "⛔ THE PATTERN LEADS WITH (?i) AND THAT IS LOAD-BEARING, NOT TIDINESS. SR-14.9.35.3-11 begins 'File-name-1'",
-        "with a capital F. Case-sensitively the arm returns 11 rules and drops the one rule its second alternative",
-        "exists for. Both engines also apply IgnoreCase, but a predicate written as DATA must not depend on an",
-        "option the reader happens to set — that is PB194's drift reproducing at birth.",
-        "",
-        "TWO ALTERNATIVES. 'FILE phrase' is the ordinary form. The second — names file-name-1 and never names",
-        "record-name-1 — exists because SR-14.9.35.3-11 reads in full 'File-name-1 shall not reference a report file",
-        "or a sort-merge file description entry.' and never says 'FILE phrase'; §14.9.35.2's general format",
-        "introduces file-name-1 ONLY in the `FILE file-name-1` alternative, so with the phrase gone the rule has no",
-        "operand. It is the ONLY rule that alternative reaches alone (it also matches GR-14.9.35.4-9 and",
-        "GR-14.9.51.4-8, which say 'implicit-record-1' and are caught by the first alternative anyway).",
-        "",
-        "⚖ THE ASYMMETRIC TWIN, the pair to re-check first. REWRITE's SR-14.9.35.3-11 says 'File-name-1' and is IN;",
-        "WRITE's SR-14.9.51.3-12 says 'The file description entry associated with THE WRITE FILE shall not contain",
-        "the REPORT clause…' and is OUT, because §14.9.51.3 SR1 defines the write file as 'the file referenced by",
-        "file-name-1 OR by the file-name associated with record-name-1' — it governs the record-name arm too. The",
-        "asymmetry is the standard's own wording, not a reading. Harmless in the other direction: a REWRITE naming a",
-        "report file is already barred by §13.18.46.3 SR3, which is not in this set and keeps its own verdict.",
-        "",
-        "⛔ THE MIRROR ARMS ARE THE EXCLUSION, and dropping it is the failure this entry will attract.",
-        "SR-14.9.35.3-9 and SR-14.9.51.3-11 are conditioned on the FILE phrase being NOT specified — they govern",
-        "plain `REWRITE/WRITE record-name-1 FROM identifier-1`, fully supported surface. They match the pattern and",
-        "must be excluded by text. Without that one exclusion the selector reports 14 and silently declares two",
-        "supported rules unsupported.",
-        "",
-        "Rules that MENTION the module but keep their own verdict, because content survives: the SELECT WHEN family",
-        "(GR-13.18.51.4-1/-2/-5, DOC-A.1-173) also covers READ statements and belongs to A.4.8, as does",
-        "GR-13.18.13.4-4 (format-select-when-only's selection arm, which records the joint decline); SR-13.4.5.3-3's other two sub-items still bind; the two general-format",
-        "figures still carry the record-name-1 alternative; and every 'file-name-1 or the file-name associated with",
-        "record-name-1' rule is both arms at once. No EC- or §9.1.13 status rule is solely FILE-phrase conditioned.",
-        "",
-        "MEASURED 2026-09-02 against 4,311 rules: 83 in scope, 14 matched, 2 dropped by the exclusion, 12 selected.",
-        "ALL TWELVE are blank/GAP, so this entry adjudicates nothing already answered; its whole risk is foreclosing",
-        "a future adjudication, which is why the near-misses above are recorded rather than left implicit."
-      ],
-      "arms": [
-        {
-          "$arm": "AND-gate: inside REWRITE/WRITE, and about the FILE arm. Neither half works alone.",
-          "sections": [
-            "14.9.35",
-            "14.9.51"
-          ],
-          "pattern": "(?is)(?:\\bFILE\\s+phrase\\b|^(?!.*record-name-1).*\\bfile-name-1\\b)"
-        }
-      ],
-      "excludes-patterns": [
-        "\\bFILE\\s+phrase\\s+is\\s+not\\s+specified\\b"
-      ]
     },
     "validate-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
