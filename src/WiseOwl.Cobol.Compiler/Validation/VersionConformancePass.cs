@@ -156,10 +156,10 @@ internal sealed class VersionConformancePass
     /// (§1985:XI.4.4.4 GR7, GR10), so it is the execution model <see cref="ProcedureReach.Closure{TOrigin}"/> with a GO TO followed, seeded from the
     /// procedures of the statements that name this file — not the lexical span the "shall not appear in" rules of
     /// <see cref="GateSortMergeProcedures"/> ask. ⚖ A STATEMENT OF THE DECLARATIVES is in the range when it is one of "all statements in
-    /// declarative procedures that are executed as a result of" the range's statements (§1985:XI.4.4.4 GR7 for an input procedure, GR10 for an output one), a run-time fact wherever an
-    /// input (output) procedure for its file exists, so there it is not asked; where the program has NONE, the range is empty, no
-    /// declarative can run inside it, and the statement is outside every range at compile time, so it is refused like any other
-    /// (kb/Work PB5572). At COBOL-2002 and later the same misuse is the run-time exception EC-SORT-MERGE-RELEASE / EC-SORT-MERGE-RETURN
+    /// declarative procedures that are executed as a result of" the range's statements (§1985:XI.4.4.4 GR7 for an input procedure,
+    /// GR10 for an output one), a run-time fact wherever an input (output) procedure for its file exists, so there it is not asked;
+    /// where the program has NONE, the range is empty, no declarative can run inside it, and the statement is outside every range
+    /// at compile time, so it is refused like any other (kb/Work PB5572). At COBOL-2002 and later the same misuse is the run-time exception EC-SORT-MERGE-RELEASE / EC-SORT-MERGE-RETURN
     /// (kb/Work PB1036).</summary>
     private void GateReleaseReturnRange(BoundProgram prog)
     {
@@ -193,7 +193,7 @@ internal sealed class VersionConformancePass
                 ranges[(file, release)] = range = ProcedureReach.Closure(prog.Paragraphs,
                     (release ? inputs : outputs).Where(p => ReferenceEquals(p.File, file)).Select(p => (p.Range, p.File)), followGoTo: true);
             if (range.ContainsKey(pc)) continue;
-            if (pc < prog.EntryPc && range.Count > 0) continue;   // a declarative the range may execute: GR10's run-time fact
+            if (pc < prog.EntryPc && range.Count > 0) continue;   // a declarative the range may execute: GR7/GR10's run-time fact
             using var _ = _sink.At(node.At);
             string verb = release ? "RELEASE" : "RETURN";
             _sink.Report(new EditionDiagnostic(DiagnosticCatalog.ReleaseReturnPlacement.Code, EditionSeverity.Error,

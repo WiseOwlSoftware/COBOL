@@ -79,8 +79,9 @@ public static class Cobol85OperandForms
     /// <summary>Whether a written subscript has one of the X3.23-1985 forms (§1985:IV.4.3.8.2.2): integer-1, positive if
     /// signed (§1985:IV.4.3.8.2.3 SR6), or a data-name or index-name optionally followed by + or - an unsigned nonzero
     /// integer (§1985:III.2). The data-name is never <see cref="IsSubscripted">subscripted</see> (SR5: "Data-name-2 may be
-    /// qualified"), so <c>ELEM (IE (2))</c> is an arithmetic expression, the 2002 form (kb/Work PB5564). The SHAPE half: <c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c> asks the description half (SR5) of
-    /// the subscripts this passes, so neither reports a subscript the other has.</summary>
+    /// qualified"), so <c>ELEM (IE (2))</c> is an arithmetic expression, the 2002 form (kb/Work PB5564). The SHAPE half:
+    /// <c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c> asks the description half (SR5) of the subscripts this passes, so
+    /// neither reports a subscript the other has.</summary>
     public static bool IsSubscript(Core.SubscriptItemContext item)
     {
         if (item.functionArgument()?.arithmeticExpression() is not { } arith) return true;   // ALL / a non-arithmetic operand: another rule's
