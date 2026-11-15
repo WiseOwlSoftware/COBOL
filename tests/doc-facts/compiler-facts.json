@@ -50,6 +50,11 @@
       "changedIn": 2002
     },
     {
+      "id": "compile-time-arithmetic-is-standard-decimal",
+      "vcrRow": "7.77",
+      "changedIn": 2014
+    },
+    {
       "id": "compile-time-arithmetic-mode",
       "vcrRow": "12",
       "changedIn": 2023

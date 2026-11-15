@@ -45,7 +45,7 @@ using WiseOwl.Cobol.Runtime;
 /// operands SR1b — a constant-name operand substitutes its literal per §2023:13.10.3 SR2/GR1, with SR4/SR5 ruling
 /// out circularity — no division by zero SR1c, the final result truncated to its integer part §2023:7.3.6.3 GR3;
 /// intermediate results ride the edition's compile-time arithmetic mode, <see cref="CompileTimeArithmetic.For"/> —
-/// standard arithmetic at 2002/2014, the documented .NET <see cref="decimal"/> mode from 2023, kb/Work PB1592);
+/// standard arithmetic at 2002, standard-decimal at 2014, the documented .NET <see cref="decimal"/> mode from 2023, kb/Work PB1592);
 /// <b>AS LENGTH OF data-name-2</b> (GR6 — the value of the §2023:15.50 LENGTH function: <c>ItemLength.Positions</c>,
 /// THE §2023:15.50.4 r1/r2/r3 fold the FUNCTION LENGTH binder reads, which is maximum-allocation based so the GR6
 /// occurs-depending exception holds); <b>AS BYTE-LENGTH OF data-name-1</b> (GR5 — the value of the §2023:15.14
