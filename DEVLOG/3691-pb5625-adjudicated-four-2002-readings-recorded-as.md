@@ -1,4 +1,4 @@
-## PB5625 adjudicated: four 2002 readings recorded as conformance determinations, defect PB5674 and diagnostic defect PB5676 filed
+## Entry 3691 — 2026-11-15 11:11 PST — PB5625 adjudicated: four 2002 readings recorded as conformance determinations, defect PB5674 and diagnostic defect PB5676 filed
 
 **The adjudication.** kb/Work PB5625 held four open readings of the 2002 text. The lead session decided all four on 2026-11-15. Its adjudication and the later supplement for reading D are both copied unchanged into `kb/Work/PB5625/`. This landing puts all four on record and lands PB5625. No compiler source, test, golden or inventory record changes. Every citation written was run through `cite.py --check` and answered OK; the one quotation too short to check had its clause confirmed with `--find`.
 
@@ -13,3 +13,4 @@
 - U+0130 is one of the two letters the invariant table maps to itself (with U+0131). The determination now names both, for every edition.
 
 The reversed duplicate (U+0256, U+0189) on page 724 of the 2002 PDF is recorded as a defect in the 2002 text. The functions apply the forward pair (U+0189, U+0256). GnuCOBOL 3.2.0, measured, stores national data as UTF-16 bytes and cases only the basic Latin letters.
+
