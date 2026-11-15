@@ -926,8 +926,8 @@ public sealed class DebugFacilityTests
             M1.
                 MOVE "a1b2c3d4e5f6" TO TB.
                 MOVE "DDDCCCBBBAAA" TO RX.
-                DISPLAY "SORT E (I)".
-                SORT E (I) DESCENDING K.
+                DISPLAY "SORT E (I, ALL)".
+                SORT E (I, ALL) DESCENDING K.
                 DISPLAY TB.
                 DISPLAY "SORT S".
                 SORT S ASCENDING.
@@ -937,7 +937,7 @@ public sealed class DebugFacilityTests
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2002, permissive: true);
         Assert.True(ok, detail);
         var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n');
-        Assert.Equal(["SORT E (I)", "  DB1 K +0002 [     ] [fed ]", "  DB2 E +0002 [f6e5d4 ]", "  DB3 [2 ]", "a1b2c3f6e5d4",
+        Assert.Equal(["SORT E (I, ALL)", "  DB1 K +0002 [     ] [fed ]", "  DB2 E +0002 [f6e5d4 ]", "  DB3 [2 ]", "a1b2c3f6e5d4",
             "SORT S", "  DB4 [AAABBBCCCDDD ]", "AAABBBCCCDDD"], lines);
     }
 

@@ -696,15 +696,21 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// an implementation "include the ENTER statement or not", ISO 2023 has no ENTER and GnuCOBOL refuses it (CLAUDE.md
     /// rule 1), and no language-name is "specified by the implementor" (§1985:VI.6.12.3 SR1), so every ENTER is refused by
     /// name rather than compiled to nothing, which ran a program as if the other-language routine had run.
-    /// <para>From COBOL-2002 the edition gate refuses the statement as removed (<c>VersionConformancePass.VisitEnterStatement</c>,
-    /// COBOL0902); when that refusal is an error the binder adds none (kb/Work PB5538). A permissive edition only warns
-    /// there, so it still gets the binder's refusal: the statement is not provided at any edition.</para></summary>
-    private BoundRejected BindEnter(Core.EnterStatementContext enter) =>
-        ConstructRegistry.GateErrorCodeAt(data.Edition.Edition, Constructs.EnterRemoved2002) is { } gateCode
-            ? BoundRejected.ByEditionGate(gateCode)
+    /// <para>The ENTER statement's edition gate is asked HERE (the construct <c>enter-removed-2002</c>, kb/Work PB5538): the
+    /// statement is deleted from COBOL-2002 and the gate's error is the one report, so from 2002 the binder adds no COBOL7240
+    /// to it. Under <c>--permissive</c> the gate only warns, and the statement, which is not provided at any edition, still
+    /// draws the refusal.</para></summary>
+    private BoundRejected BindEnter(Core.EnterStatementContext enter)
+    {
+        const string where = "the ENTER statement";
+        bool gateRefuses = ConstructRegistry.GateErrorCodeAt(data.Edition.Edition, Constructs.EnterRemoved2002) is not null;
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition.Sink, Constructs.EnterRemoved2002, where);
+        return gateRefuses
+            ? BoundRejected.Reported(data.Edition)
             : BoundRejected.Report(data.Edition, DiagnosticCatalog.EnterStatementNotProvided,
                 $"ENTER {enter.enterOperand().GetText().ToUpperInvariant()}: this implementation does not provide the ENTER "
                 + "statement (§1985:I.1.5.2.5.5 leaves it to the implementor; no language-name is specified, §1985:VI.6.12.3 SR1)");
+    }
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {

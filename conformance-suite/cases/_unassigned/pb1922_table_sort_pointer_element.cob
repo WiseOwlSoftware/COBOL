@@ -28,7 +28,7 @@
       *>        the pointers at their old occurrences and print 1 AAAA, 2 BBBB, 3 CCCC).
       *>   2  DESCENDING over the same table: 3 AAAA, 2 CCCC, 1 BBBB.
       *>   3  a table inside ROW OCCURS 2 sorts one row: ROW(1) holds keys 2, 1 with pointers "AAAA", "BBBB", ROW(2) holds
-      *>        keys 4, 3 with pointers "CCCC", "DDDD". SORT E2(2) ASCENDING KEY EK2 sorts ROW(2) only (§2023:8.4.2.3.3 SR5 e):
+      *>        keys 4, 3 with pointers "CCCC", "DDDD". SORT E2(2, ALL) ASCENDING KEY EK2 sorts ROW(2) only (§2023:8.4.2.3.3 SR5 e):
       *>        ROW(1) stays 2 AAAA, 1 BBBB and ROW(2) reads 3 DDDD, 4 CCCC.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1922PT.
@@ -95,7 +95,7 @@
            SET ADDRESS OF W TO ADDRESS OF WS-D
            SET PT TO ADDRESS OF W
            SET EP2(2, 2) TO PT
-           SORT E2(2) ASCENDING KEY EK2
+           SORT E2(2, ALL) ASCENDING KEY EK2
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > 2
               PERFORM VARYING J FROM 1 BY 1 UNTIL J > 2
                  SET ADDRESS OF W TO EP2(I, J)

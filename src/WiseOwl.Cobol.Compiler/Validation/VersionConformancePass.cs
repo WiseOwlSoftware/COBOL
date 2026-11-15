@@ -1325,14 +1325,6 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>ENTER — the '85 other-language entry statement, deleted 2002. Not provided at 85 either: the binder
-        /// refuses it by name there (COBOL7240, kb/Work PB5308).</summary>
-        public override object? VisitEnterStatement(CobolParserCore.EnterStatementContext ctx)
-        {
-            _p.Check(Constructs.EnterRemoved2002, "the ENTER statement");
-            return base.VisitChildren(ctx);
-        }
-
         /// <summary>USE FOR DEBUGGING — the '85 debug facility's declarative, deleted 2002 with the whole
         /// facility. Sub-shape gate on the one useStatement rule (the STOP-literal pattern).</summary>
         public override object? VisitUseStatement(CobolParserCore.UseStatementContext ctx)
