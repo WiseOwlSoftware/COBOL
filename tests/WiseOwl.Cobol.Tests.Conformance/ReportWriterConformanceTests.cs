@@ -803,4 +803,91 @@ public sealed class ReportWriterConformanceTests
         Assert.DoesNotContain("COBOL2046", detail);
         Assert.Single(System.Text.RegularExpressions.Regex.Matches(detail, "COBOL[0-9]{4}"));
     }
+
+    /// <summary>Two reports that each describe a group named <c>DET</c>; <paramref name="firstDet"/> is the first report's
+    /// DET, so a binder that goes on with the first candidate of the ambiguity sees THAT group (kb/Work PB5542).</summary>
+    private static string TwoReportsSharingDet(string firstDet, string declaratives, string procedure) => $"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB5542T.
+                   ENVIRONMENT DIVISION.
+                   INPUT-OUTPUT SECTION.
+                   FILE-CONTROL.
+                       SELECT RPT-FILE ASSIGN TO PB5542E.
+                       SELECT RPT-FILE2 ASSIGN TO PB5542F.
+                   DATA DIVISION.
+                   FILE SECTION.
+                   FD  RPT-FILE
+                       RECORD CONTAINS 5 CHARACTERS
+                       REPORT IS RPT.
+                   FD  RPT-FILE2
+                       RECORD CONTAINS 5 CHARACTERS
+                       REPORT IS RPT2.
+                   WORKING-STORAGE SECTION.
+                   01  WS-AMT PIC 9(3) VALUE 5.
+                   REPORT SECTION.
+                   RD  RPT
+                       CONTROL IS FINAL.
+                   {firstDet}
+                   RD  RPT2
+                       CONTROL IS FINAL.
+                   01  DET TYPE IS DETAIL.
+                       05  LINE PLUS 1.
+                           10  COLUMN 1 PIC 9(3) SOURCE WS-AMT.
+                   PROCEDURE DIVISION.
+                   {declaratives}
+                   MAIN SECTION.
+                   MAIN-PARA.
+                       OPEN OUTPUT RPT-FILE RPT-FILE2.
+                       INITIATE RPT RPT2.
+                       {procedure}
+                       TERMINATE RPT RPT2.
+                       CLOSE RPT-FILE RPT-FILE2.
+                       STOP RUN.
+            """;
+
+    private const string DetailDet = """
+                   01  DET TYPE IS DETAIL.
+                       05  LINE PLUS 1.
+                           10  COLUMN 1 PIC 9(3) SOURCE WS-AMT.
+        """;
+
+    private const string FootingDet = """
+                   01  DET TYPE IS CONTROL FOOTING FINAL.
+                       05  LINE PLUS 1.
+                           10  COLUMN 1 PIC 9(3) SOURCE WS-AMT.
+        """;
+
+    [Theory]   // kb/Work PB5542: GENERATE of a name two reports share stops at the one COBOL1920; the first candidate here is a
+               // CONTROL FOOTING, so continuing on it cascaded the not-a-DETAIL refusal after the ambiguity.
+    [InlineData(85)]
+    [InlineData(2023)]
+    public void GenerateNonuniqueGroup_IsOneRefusal_NotACascade(int edition)
+    {
+        var (ok, _, detail) = new WiseOwlCobolCompiler(edition).CompileAndRun(
+            TwoReportsSharingDet(FootingDet, "", "GENERATE DET."));
+        Assert.False(ok);
+        Assert.Contains("COBOL1920", detail);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(detail, "COBOL[0-9]{4}"));
+    }
+
+    [Theory]   // kb/Work PB5542: two USE BEFORE REPORTING statements naming the shared DET are two ambiguous references, each
+               // ONE COBOL1920; recording the first candidate made the second an SR9 duplicate, a cascade COBOL1920 does not own.
+    [InlineData(85)]
+    [InlineData(2023)]
+    public void UseBeforeReportingNonuniqueGroup_IsOneRefusalPerStatement_NotACascade(int edition)
+    {
+        var (ok, _, detail) = new WiseOwlCobolCompiler(edition).CompileAndRun(TwoReportsSharingDet(DetailDet, """
+            DECLARATIVES.
+                   U1 SECTION. USE BEFORE REPORTING DET.
+                   U1-P.
+                       MOVE 1 TO WS-AMT.
+                   U2 SECTION. USE BEFORE REPORTING DET.
+                   U2-P.
+                       MOVE 2 TO WS-AMT.
+                   END DECLARATIVES.
+            """, "STOP RUN."));
+        Assert.False(ok);
+        var codes = System.Text.RegularExpressions.Regex.Matches(detail, "COBOL[0-9]{4}").Select(m => m.Value).Distinct().ToList();
+        Assert.Equal(["COBOL1920"], codes);
+    }
 }

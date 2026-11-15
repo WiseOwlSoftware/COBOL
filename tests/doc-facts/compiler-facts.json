@@ -41,91 +41,113 @@
   "dialectBehaviors": [
     {
       "id": "cancel-refuses-every-active-program",
-      "vcrRow": "7.66"
+      "vcrRow": "7.66",
+      "changedIn": 2002
     },
     {
       "id": "close-with-lock-locks-file-connector",
-      "vcrRow": "7.70"
+      "vcrRow": "7.70",
+      "changedIn": 2002
     },
     {
       "id": "compile-time-arithmetic-mode",
-      "vcrRow": "12"
+      "vcrRow": "12",
+      "changedIn": 2023
     },
     {
       "id": "control-footing-page-groups-see-prior-values",
-      "vcrRow": "7.54"
+      "vcrRow": "7.54",
+      "changedIn": 2002
     },
     {
       "id": "evaluate-objects-in-when-phrase-order",
-      "vcrRow": "7.69"
+      "vcrRow": "7.69",
+      "changedIn": 2002
     },
     {
       "id": "evaluate-refuses-literal-subject-literal-object",
-      "vcrRow": "7.75"
+      "vcrRow": "7.75",
+      "changedIn": 2002
     },
     {
       "id": "file-sharing-facility",
-      "vcrRow": "7.39"
+      "vcrRow": "7.39",
+      "changedIn": 2002
     },
     {
       "id": "group-indicate-consumed-by-issued-generate",
-      "vcrRow": "7.60"
+      "vcrRow": "7.60",
+      "changedIn": 2002
     },
     {
       "id": "indexed-duplicate-key-status-sequential-only",
-      "vcrRow": "7.55"
+      "vcrRow": "7.55",
+      "changedIn": 2002
     },
     {
       "id": "indexed-read-previous-after-open-at-end",
-      "vcrRow": "29"
+      "vcrRow": "29",
+      "changedIn": 2023
     },
     {
       "id": "inspect-before-from-first-eligible-position",
-      "vcrRow": "7.65"
+      "vcrRow": "7.65",
+      "changedIn": 2023
     },
     {
       "id": "inspect-format-3-length-identified-once",
-      "vcrRow": "7.57"
+      "vcrRow": "7.57",
+      "changedIn": 2002
     },
     {
       "id": "integer-date-form-bounded-9999",
-      "vcrRow": "7.61"
+      "vcrRow": "7.61",
+      "changedIn": 2002
     },
     {
       "id": "negative-base-requires-integer-exponent",
-      "vcrRow": "7.67"
+      "vcrRow": "7.67",
+      "changedIn": 2002
     },
     {
       "id": "numval-c-currency-content-rules",
-      "vcrRow": "7.62"
+      "vcrRow": "7.62",
+      "changedIn": 2002
     },
     {
       "id": "perform-varying-after-init-inner-first",
-      "vcrRow": "7.53"
+      "vcrRow": "7.53",
+      "changedIn": 2002
     },
     {
       "id": "record-contains-range-binds-record-size",
-      "vcrRow": "7.63"
+      "vcrRow": "7.63",
+      "changedIn": 2002
     },
     {
       "id": "relative-write-key-out-of-range-permanent-error",
-      "vcrRow": "7.64"
+      "vcrRow": "7.64",
+      "changedIn": 2014
     },
     {
       "id": "search-index-below-table-unsuccessful",
-      "vcrRow": "7.56"
+      "vcrRow": "7.56",
+      "changedIn": 2002
     },
     {
       "id": "sum-size-error-blanks-printable-item",
-      "vcrRow": "7.58"
+      "vcrRow": "7.58",
+      "changedIn": 2002
     },
     {
       "id": "terminate-discards-saved-next-group",
-      "vcrRow": "7.59"
+      "vcrRow": "7.59",
+      "changedIn": 2002
     },
     {
       "id": "unphrased-size-error-is-fatal",
-      "vcrRow": "7.71"
+      "vcrRow": "7.71",
+      "changedIn": 2002
     }
   ],
   "nonstandardExtensionIds": [
