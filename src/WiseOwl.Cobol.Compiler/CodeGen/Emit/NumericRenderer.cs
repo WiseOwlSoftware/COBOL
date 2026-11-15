@@ -1571,8 +1571,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // does not take the Widen funnel below (kb/Work PB2966, as CombineCore's SDIDI lane).
         if (StandardDecimal)
         {
-            string power = RuntimeApi.DecPow(DecOperand(b), DecOperand(e), IntermediateMode);
-            // §2002:8.8.1.3.6 / .7: standard arithmetic's exponentiation result is a standard intermediate data item, too.
+            string power = RuntimeApi.DecPow(DecOperand(b), DecOperand(e), IntermediateMode, StandardIntermediate);
+            // §2002:8.8.1.3.6: standard arithmetic's exponentiation result is a standard intermediate data item, too.
             return new NumX(StandardIntermediate ? RuntimeApi.DecToSidi(power, IntermediateMode) : power, 0, Dec: true);
         }
         // NATIVE: exponentiation is arithmetic — the unsigned-wide Widen funnel applies (kb/Work R10).

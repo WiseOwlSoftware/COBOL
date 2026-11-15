@@ -102,9 +102,20 @@ public sealed class StandardIntermediateDataItemTests
     }
 
     [Fact]
-    public void ToSidiRounded_UnderProhibitedRaisesTruncationForAnInexactValue()
+    public void ToSidiRounded_UnderProhibitedKeepsAnExactThirtyTwoDigitValue()
     {
-        Assert.True(Assert.Throws<CobolSizeError>(() =>
-            Digits("19999999999999999999999999999999", -31).ToSidiRounded(CobolRounding.Prohibited)).IsProhibitedInexact);
+        // §2014:8.8.1.3.1.3.3 lists no 31-digit rounding situation: a 32-digit value is exact in the item (PB5575 R2-1).
+        var value = Digits("19999999999999999999999999999999", -31);
+        Assert.Equal(value, value.ToSidiRounded(CobolRounding.Prohibited));
+    }
+
+    [Fact]
+    public void Pow_UnderStandardArithmeticIsTheEquivalentExpressionWithEveryMultiplicationTruncatedToThirtyTwoDigits()
+    {
+        // §2002:8.8.1.3.6 rule 2c: B ** 3 is ((B * B) * B), each multiplication truncated to 32 digits (§2002:8.8.1.3.4).
+        // By hand (decimal, precision 32, round-down): B*B = 96.636535477422589672232728616631; times B = 949.97467433864546250475409034044.
+        var b = Digits("9830388368595748906828836075983", -30);
+        var cube = CobolDec.Pow(b, new CobolDec(3, 0), CobolRounding.Truncation, standardIntermediate: true).ToSidi();
+        Assert.Equal(Digits("94997467433864546250475409034044", -29), cube);
     }
 }

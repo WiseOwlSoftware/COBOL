@@ -2564,7 +2564,7 @@ static WiseOwl.Cobol.Runtime.CobolDec.FromParsed(System.Int128 sig, int exp, Wis
 static WiseOwl.Cobol.Runtime.CobolDec.Mul(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.MulAtScale(System.Int128 a, int aScale, System.Int128 b, int bScale, int resultScale, WiseOwl.Cobol.Runtime.CobolRounding mode, bool checkedTransfer) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolDec.MulToOdd(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b) -> WiseOwl.Cobol.Runtime.CobolDec
-static WiseOwl.Cobol.Runtime.CobolDec.Pow(WiseOwl.Cobol.Runtime.CobolDec b, WiseOwl.Cobol.Runtime.CobolDec e, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolDec.Pow(WiseOwl.Cobol.Runtime.CobolDec b, WiseOwl.Cobol.Runtime.CobolDec e, WiseOwl.Cobol.Runtime.CobolRounding mode, bool standardIntermediate = false) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.QuotientAtScale(System.Int128 a, System.Int128 b, int exp, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolDec.QuotientHasRemainder(System.Int128 a, System.Int128 b, int exp) -> bool
 static WiseOwl.Cobol.Runtime.CobolDec.Sqrt(WiseOwl.Cobol.Runtime.CobolDec v, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec

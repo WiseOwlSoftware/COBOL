@@ -872,8 +872,8 @@ internal static class RuntimeApi
 
     /// <summary>SDIDI exponentiation (ISO §2023:8.8.1.5.4; P10 Step 12) — <c>CobolDec.Pow</c>. <paramref name="mode"/>
     /// is the pre-rendered INTERMEDIATE ROUNDING fragment (<c>CobolRounding.X</c>).</summary>
-    public static string DecPow(string baseOperand, string expOperand, string mode) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.Pow)}({baseOperand}, {expOperand}, {mode})";
+    public static string DecPow(string baseOperand, string expOperand, string mode, bool standardIntermediate = false) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.Pow)}({baseOperand}, {expOperand}, {mode}{(standardIntermediate ? ", standardIntermediate: true" : "")})";
 
     /// <summary>The FINAL TRANSFER of a native product past the Int128 carrier — <c>CobolDec.MulAtScale</c> (kb/Work PB1143,
     /// review finding N1): the exact product rounded once to <paramref name="resultScale"/> with <paramref name="mode"/>,
