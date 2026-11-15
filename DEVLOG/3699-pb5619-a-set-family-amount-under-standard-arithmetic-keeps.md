@@ -1,4 +1,4 @@
-## PB5619: a SET-family amount under standard arithmetic keeps its fraction and its magnitude
+## Entry 3699 — 2026-11-15 13:16 PST — PB5619: a SET-family amount under standard arithmetic keeps its fraction and its magnitude
 
 **The defect.** `SET pointer UP BY` under `ARITHMETIC IS STANDARD` (and every standard-decimal mode) rendered the amount as a
 standard intermediate (SDIDI) and then lowered it through `NumericRenderer.Landed`, which lands an SDIDI at a fixed working
