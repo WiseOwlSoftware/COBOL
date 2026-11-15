@@ -1,4 +1,4 @@
-## The 2023 MOVE GR1 row recorded DIVERGES for PB5678 (2023 GAP 0 → 1, a corrected record and no compiler regression); PB5694, one case directory and the CASE COLLISIONS audit
+## Entry 3703 — 2026-11-15 14:36 PST — The 2023 MOVE GR1 row recorded DIVERGES for PB5678 (2023 GAP 0 → 1, a corrected record and no compiler regression); PB5694, one case directory and the CASE COLLISIONS audit
 
 **The 2023 GAP now reads 1, and the compiler did not regress.** kb/Work PB5678, filed earlier today, reports that a MOVE
 of an alphanumeric-edited or national-edited sender to two or more receivers edits the sender a second time. The 2023
@@ -31,3 +31,4 @@ it. It is also a step of CI's `audits` job, which reads the merged tree where su
 equal, and it has no allow-list. Its self-test plants both spellings in a scratch index and must be RED. On
 d615406082's tree, the rule finds exactly this one pair among 41,590 paths. The audit is documented in
 DESIGN-test-build-ci.md, beside the conflict-marker sweep.
+
