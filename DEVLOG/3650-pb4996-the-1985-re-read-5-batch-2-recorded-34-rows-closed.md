@@ -1,4 +1,4 @@
-## PB4996: the 1985 re-read 5 batch 2 recorded, 34 rows closed CONFORMS and 2 new notes (1985 GAP 113 to 79)
+## Entry 3650 — 2026-11-14 21:33 PST — PB4996: the 1985 re-read 5 batch 2 recorded, 34 rows closed CONFORMS and 2 new notes (1985 GAP 113 to 79)
 
 Batch 2 re-read the other 46 rows of the 1985 inventory that read PARTIAL or DIVERGES while every note they named had landed, or while they named no note at all. The fix lane could not see them. It read them against main dc1f2dcce8 in 6 slices, and an independent refuter attacked every closing verdict. The merge split them into 34 upheld CONFORMS, 6 rows for the register (2 reader verdicts and 4 CONFORMS the refuters overturned) and 6 DOUBTFUL rows.
 
@@ -7,3 +7,4 @@ Batch 2 re-read the other 46 rows of the 1985 inventory that read PARTIAL or DIV
 I reran every register and held repro on the pinned compiler, and all of them reproduce. PB5108 got a dated file for the MULTIPLY and SUBTRACT identifier-1 rows, and batch 1's PB5565 got one for the relative PADDING CHARACTER row. Two new notes hold the new roots. PB5587: at 85 a sort-merge entry's ASSIGN TO SPACE, or a list of two operands, is refused by the 2023 rules, which the 1985 sort-merge entry does not carry. PB5588: at 85, `*>` inside a debugging section or a debugging line is refused COBOL0900, because PB5470's floating-comment gate runs before those lines become comment.
 
 Seven rows are recorded as nothing and held in `op-20261114/held-rs5b.json`. Five are the relative-file siblings of batch 1's held "is a mode declarative applicable" question, so one adjudication decides all eleven. One asks whether a STANDARD label may be none, so that VALUE OF has no effect. In the last, SET UP BY an index-name, the owner PB5421 landed after the pinned tree, so this read could not test the fix. The account, with five leads for a clerk to file, is `kb/Work/PB4996/2026-11-14-reread-5b.md`.
+
