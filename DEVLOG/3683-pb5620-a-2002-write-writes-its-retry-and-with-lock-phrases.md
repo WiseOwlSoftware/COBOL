@@ -1,4 +1,4 @@
-## PB5620: a 2002 WRITE writes its retry and WITH LOCK phrases after its END-OF-PAGE phrases
+## Entry 3683 — 2026-11-15 07:34 PST — PB5620: a 2002 WRITE writes its retry and WITH LOCK phrases after its END-OF-PAGE phrases
 
 At `--std 2002`, `WRITE P-REC AFTER ADVANCING 1 LINE AT END-OF-PAGE … NOT AT END-OF-PAGE … WITH LOCK` was
 `COBOL2269: unexpected 'WITH'` (re-probed on this branch's build: rc=65). The 2002 Format 1 (sequential) prints the
@@ -22,3 +22,4 @@ EOP on the overflow with LINAGE-COUNTER 1, the FILE form); negatives `pb5620-wri
 SR17), `pb5620-write-2002-order-no-linage` (COBOL0860, SR18), `pb5620-write-lock-after-invalid-key` (COBOL2987); the two
 construct rows run the version matrix. Rows 2002-SR-14.8.47.2-2, -17, -18 and -19 recorded CONFORMS (GAP 2511 → 2507).
 No diagnostic code allocated (COBOL7372–COBOL7374 returned): the refusals are the construct funnel's and COBOL2987.
+
