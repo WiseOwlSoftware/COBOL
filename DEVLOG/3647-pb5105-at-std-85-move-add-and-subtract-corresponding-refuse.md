@@ -1,4 +1,4 @@
-## PB5105 at --std 85 MOVE, ADD and SUBTRACT CORRESPONDING refuse a level-66 operand and a USAGE IS INDEX group
+## Entry 3647 — 2026-11-14 20:42 PST — PB5105 at --std 85 MOVE, ADD and SUBTRACT CORRESPONDING refuse a level-66 operand and a USAGE IS INDEX group
 
 **Re-probe.** The note's repro now stops earlier (COBOL1639: `RENAMES A THRU B` is ambiguous when G2 also has an `A`), so the probe was rewritten with qualified names (`RENAMES A OF G1 THRU B OF G1`). On that build, `MOVE CORRESPONDING R TO G2`, `MOVE CORRESPONDING G1 TO R3` and a `USAGE IS INDEX` group as either operand all compiled at `--std 85`, exit 0.
 
@@ -9,3 +9,4 @@
 **Goldens.** `1985-GR-VI_6_4_3-3` (MOVE with a level-66 sender and receiver) and `1985-GR-VI_6_4_3-3-usage-index` (ADD and SUBTRACT over a USAGE INDEX group), each refused at 85 with COBOL1757 and each with a legal control line.
 
 **Rows.** No inventory row (the inventory has no 1985 rows yet); `closes_rows: []` with its reason.
+
