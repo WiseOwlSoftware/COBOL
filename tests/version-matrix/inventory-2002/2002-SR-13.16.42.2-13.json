@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-13",
+ "rule-digest": "54732cc17abf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#Sr12Sr14Violation; src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#ScreenRedefinesClause",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-pointer-subject",
+ "notes": "§2002:13.16.42.2 SR13: a USAGE POINTER subject of a REDEFINES in a CD record drew COBOL1697 at --std 2002; the strongly-typed branch is formal at 2002 because §2002:13.14.2 SR13 bars TYPE beside REDEFINES."
+}

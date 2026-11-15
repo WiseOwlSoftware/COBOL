@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.50.3-6",
+ "rule-digest": "5b80db2a7d80",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
+ "test-ref": "conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-record",
+ "notes": "§2002:13.16.50.3 GR6: SIGN ... SEPARATE on the CD-record items LS1, TS1 and G1, and on the working-storage NN1 (national group) and SS (strong type), adds a non-digit position (LENGTH 4) holding + or -. The --std 2002 run printed SEP [-012][012-][-012] and POS [+012][012+], as derived."
+}

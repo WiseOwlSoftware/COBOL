@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-7",
+ "rule-digest": "d332037ff221",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#OpenLeadingAnchors",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-comparison-cycle",
+ "notes": "§2002:14.8.21.3 GR7: operands tried in source order at each position, advance by one on no match, resume right of a match, CHARACTERS an implied one-character operand; S='AABAXBAACABA' gives ALL A=07, LEADING A=02, AA/A=02/03, FIRST A AFTER B -> AABZXBAACABA. Matched at --std 2002 (pinned dc1f2dcce8)."
+}

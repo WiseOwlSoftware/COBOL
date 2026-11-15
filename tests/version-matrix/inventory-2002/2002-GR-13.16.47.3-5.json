@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.47.3-5",
+ "rule-digest": "5bd6ab75335d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveSign",
+ "test-ref": "conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-group-usage-sign",
+ "notes": "§2002:13.16.47.3 GR5: SAME AS subjects in working storage (alphanumeric, strongly-typed and national group sources) and in a CD record (alphanumeric group source, C2) inherit the SIGN ... SEPARATE clause. So, per §2002:13.16.50.3 GR6, each is 4 positions long. The --std 2002 run printed LEN 4 4 4 4, IMG [-012][-012] and X3-TRAILING Y, as derived. The national leg is in working storage only, per §2002:A NOTE \"Support for data of classes boolean and national and exception handling are intentionally omitted from the obsolete communications facility.\" (cite.py OK)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.2.3-5",
+ "rule-digest": "dc4033cd934b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMembers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CorrespondingEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace",
+ "test-ref": "conformance:cases/14.8.2@2002-ADD-STATEMENT/g2-add-corresponding-cd-group",
+ "notes": "§2002:14.8.2.3 GR5 with 14.6.5: ADD CORR pairs a CD-record group with a WS group by name and numeric class, each pair as a separate ADD (A1=011 022 XYZ 005, A2=021 042 030 040, per-pair size error SE then A3=990 064); the --std 2002 run on the pinned build dc1f2dcce8 matched."
+}

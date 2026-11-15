@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.2.2-7",
+ "rule-digest": "3d2aa1d68615",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.SubscriptSegments.cs#BindPositionTemporary",
+ "test-ref": "conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-all-condition-name",
+ "notes": "§2002:8.4.1.2.2 SR7 'ALL shall not be specified if qualified-condition-name-1 is specified': IF E-ONE (ALL) on a table-element conditional variable is refused COBOL2363 at --std 2002 (E-ONE (2) is accepted in a scratch control)."
+}

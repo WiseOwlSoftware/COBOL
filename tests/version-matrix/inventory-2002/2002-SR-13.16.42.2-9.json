@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-9",
+ "rule-digest": "428c714a3fbc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#StorageBitsOf",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-larger-subject; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-record-storage",
+ "notes": "§2002:13.16.42.2 SR9 with SR4: a REDEFINES in a CD record is never level 1, so a larger subject is always refused; X(4) over X(2) under an output CD drew COBOL1539 at --std 2002 and the equal/smaller forms ran in g2-redefines-cd-record-storage (MATCH)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.2-10",
+ "rule-digest": "36befef72ff7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.OoIdentifier.cs#OoBindSelfOperand; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#Positions",
+ "test-ref": "conformance:cases/15.2@2002-ARGUMENTS/g2-arg-object; conformance:cases/15.2@2002-ARGUMENTS/g2-arg-super-refused",
+ "notes": "§2002:15.2 AR10: LENGTH and BYTE-LENGTH of a USAGE OBJECT REFERENCE item and of SELF are accepted and positive (§2002:15.39.3 RV3, 15.12.3 RV1), and LENGTH(SUPER) is refused (also §2002:8.4.2.8.2 SR3). The --std 2002 run of g2-arg-object matched the derived .out, and g2-arg-super-refused was refused at 2002 with COBOL2900 at the LENGTH(SUPER) line."
+}

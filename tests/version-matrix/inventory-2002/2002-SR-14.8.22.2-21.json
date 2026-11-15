@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-21",
+ "rule-digest": "d8f56b598c8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindClassInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2-invoke-cd-receiving-operands; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2-invoke-returning-self",
+ "notes": "§2002:14.8.22.2 SR21 with SR11 and GR8: a CD record item receives the RETURNING result (A5=[RRRR]); RETURNING SELF is refused COBOL3978 (§2002:8.4.2.8.2 SR2). Matched at --std 2002 (pinned dc1f2dcce8)."
+}

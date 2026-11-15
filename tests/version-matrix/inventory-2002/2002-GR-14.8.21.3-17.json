@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-17",
+ "rule-digest": "35234ed96b7f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-replacing-overlap",
+ "notes": "§2002:14.8.21.3 GR17 leaves a REPLACING operand overlapping identifier-1 undefined (§2002:3.3); the case pins the documented choice D-INS3 (operands and image taken at the start, one store at the end). Matched at --std 2002 (pinned dc1f2dcce8)."
+}

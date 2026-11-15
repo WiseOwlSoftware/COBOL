@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.25.3-1",
+ "rule-digest": "c23478290ae3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Multiply",
+ "test-ref": "conformance:cases/14.8.25@2002-MULTIPLY-STATEMENT/g2mul11_native_product_operands",
+ "notes": "§2002:14.8.25.3 GR1 under the default native arithmetic (§2002:11.8.4.2 GR3): format 1 stores the product in each identifier-2, WS and communication-section operands alike; g2mul11 F1-F3 matched at --std 2002."
+}

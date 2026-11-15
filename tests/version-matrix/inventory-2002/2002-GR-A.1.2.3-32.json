@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.1.2.3-32",
+ "rule-digest": "07315ba8f26f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-GR-A_1_2_3-32",
+ "notes": "§2002:A.1.2.3 GR32: RECEIVE stores the positions filled (0005), and SEND transfers the leftmost text-length alphanumeric positions (ABC; 11 > 10 is 50). Corrected G2CD32 at --std 2002 matched the derived .out."
+}

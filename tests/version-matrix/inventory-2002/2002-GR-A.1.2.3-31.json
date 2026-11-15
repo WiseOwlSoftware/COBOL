@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.1.2.3-31",
+ "rule-digest": "082294912182",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Dialogue.LockedTerminalChanged",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-GR-A_1_2_3-31",
+ "notes": "§2002:A.1.2.3 GR31: after data-name-3 of an I-O CD is changed following the first statement, every statement is unsuccessful with Table A.1's unknown status (SEND 20; RECEIVE, ENABLE and DISABLE I-O TERMINAL 21; nothing sent). Corrected G2CD31 at --std 2002 matched the derived .out."
+}

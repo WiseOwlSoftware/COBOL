@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.2-3",
+ "rule-digest": "c4eaf92b5edd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#boolArgAhead",
+ "test-ref": "conformance:cases/15.2@2002-ARGUMENTS/g2-arg-boolean",
+ "notes": "§2002:15.2 AR3 admits a bit group item, a boolean expression or literal, or an elementary boolean item; INTEGER-OF-BOOLEAN of each (B-AND, B-OR, B-XOR, B-NOT, parentheses, right zero-extension) and LENGTH of the bit group give the derived values (§2002:15.35.3 RV1, 15.39.3 RV1, 8.8.2). The --std 2002 run of g2-arg-boolean matched the derived .out."
+}

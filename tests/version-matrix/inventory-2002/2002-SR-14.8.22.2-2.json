@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-2",
+ "rule-digest": "5050d18ef7f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoMethodNameOf",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2-invoke-cd-receiving-operands; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2-invoke-literal1-numeric",
+ "notes": "§2002:14.8.22.2 SR2: alphanumeric \"SETIT\" and national N\"GETIT\" literal-1 name the method (A1, A5=[RRRR]); numeric 123 is refused COBOL0823. Both matched at --std 2002 (pinned dc1f2dcce8)."
+}

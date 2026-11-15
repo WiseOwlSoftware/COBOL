@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.20.3-4",
+ "rule-digest": "fd644e9523b7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate",
+ "test-ref": "conformance:cases/14.8.20@2002-INITIATE-STATEMENT/g2_initiate_active_state",
+ "notes": "§2002:14.8.20.3 GR4 with §2002:13.7.3: after INITIATE, GENERATE raises nothing and a second INITIATE raises EC-REPORT-ACTIVE. After TERMINATE, GENERATE raises EC-REPORT-INACTIVE, and a new INITIATE succeeds and makes the report active again. The golden matched at --std 2002."
+}

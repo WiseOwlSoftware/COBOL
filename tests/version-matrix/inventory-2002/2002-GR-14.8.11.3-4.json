@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.11.3-4",
+ "rule-digest": "6f24c6e7221e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore",
+ "test-ref": "conformance:cases/14.8.11@2002-DIVIDE-STATEMENT/g2-divide-order-and-cd-operands",
+ "notes": "§2002:14.8.11.3 GR4: DIVIDE INTO determines the divisor first and identifies each identifier-2 as reached (F1 I=3 T3=45 T6=90), per-receiver size error (A=5 B=40), CD dividends (D4=012 003); the --std 2002 run on the pinned build dc1f2dcce8 matched."
+}

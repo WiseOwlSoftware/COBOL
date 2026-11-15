@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.50.3-5",
+ "rule-digest": "daf767c68e18",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#IsSignCharacter; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#ParseDisplay; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
+ "test-ref": "conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-record",
+ "notes": "§2002:13.16.50.3 GR5 a): SIGN LEADING / TRAILING without SEPARATE on S9(3) items of a CD record adds no position (LENGTH 3) and carries the sign in the leading / trailing digit (other digits 12 / 01 unchanged, that position differs between +12 and -12); the --std 2002 run matched; b) leaves the sign characters unpinned."
+}

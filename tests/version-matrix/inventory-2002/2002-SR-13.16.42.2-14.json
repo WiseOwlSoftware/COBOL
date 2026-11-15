@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-14",
+ "rule-digest": "572c645700e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#Sr12Sr14Violation; src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#ScreenRedefinesClause",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-pointer-object; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-strong-object",
+ "notes": "§2002:13.16.42.2 SR14: a USAGE POINTER data-name-2 and a strongly-typed data-name-2 in a CD record each drew COBOL1697 at --std 2002."
+}

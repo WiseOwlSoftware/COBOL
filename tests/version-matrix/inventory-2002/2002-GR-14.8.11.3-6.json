@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.11.3-6",
+ "rule-digest": "8833c1c0f07c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivideRemainder; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#CarriedSubsidiaryQuotient; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#FixedPointSubsidiary; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#NativeSubsidiaryQuotient",
+ "test-ref": "conformance:cases/14.8.11@2002-DIVIDE-STATEMENT/g2-divide-order-and-cd-operands",
+ "notes": "§2002:14.8.11.3 GR6 and GR7: remainder = dividend - subsidiary quotient * divisor, into identifier-4 identified after the quotient store, format 5 (F4 I=3 T3=02 T9=90) and format 4 (F4I I=3 T3=02 T9=90), CD quotient and remainder (D6=012 004); the --std 2002 run on the pinned build dc1f2dcce8 matched."
+}
