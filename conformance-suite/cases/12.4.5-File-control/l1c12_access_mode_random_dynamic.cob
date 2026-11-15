@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c12_access_mode_random_dynamic
       *> rules: [GR-12.4.5.5.3-3, GR-12.4.5.5.3-4, FMT-12.4.5.5.1]
-      *> accept: [2002]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
