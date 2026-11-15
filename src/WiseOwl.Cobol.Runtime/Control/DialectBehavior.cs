@@ -283,6 +283,16 @@ public enum DialectBehavior
     /// specified", so at <c>--std 2002</c> every such statement selects its entry by the conditions (kb/Work PB5578; VCR row 7.78). Both editions are
     /// QUOTED. The consumer is <c>SequentialIoEmitter</c>'s record-entry argument of the governed WRITE and REWRITE.</summary>
     SelectWhenOnlyForFilePhraseStatements = 23,
+    /// <summary>§2023:14.6.13.1.3 2) — "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply" —
+    /// precedes the declarative-then-terminate of item 5) and the run-unit termination of item 7), so a fatal exception condition a
+    /// SORT or MERGE raises itself (EC-SORT-MERGE-FILE-OPEN, -SEQUENCE, -RELEASE of the implicit USING release, an EC-LOCALE-* of a
+    /// locale-collated key) or the fatal I-O status of an implicit OPEN, READ, WRITE or CLOSE is the verb's to dispose of: the
+    /// declarative runs, the statement is terminated and the run unit continues. §2014:14.6.12.1.2 and §2002:14.5.12.1.2 have no such
+    /// item: "If execution of the declarative completes normally the execution of the run unit is terminated abnormally", and with
+    /// no applicable declarative the general fatal procedure applies as for every other statement (kb/Work PB5612; VCR row 7.80).
+    /// Both editions are QUOTED. The consumers are <c>EcEmitter.VerbDisposes</c> (the SORT/MERGE guard) and
+    /// <c>SortEmitter.EmitTransferUse</c> (the implicit transfers).</summary>
+    SortMergeStatementDisposesItsFatalConditions = 24,
 }
 
 /// <summary>
@@ -414,6 +424,11 @@ public static class DialectBehaviors
             "the SELECT WHEN clauses of the file section select a record description entry for a WRITE or REWRITE only when the "
             + "statement has the FILE phrase, from COBOL-2014; COBOL-2002 evaluates them for every WRITE and REWRITE of the file, "
             + "so a record-name-1 statement there is formatted by the entry the conditions select"),
+        new(DialectBehavior.SortMergeStatementDisposesItsFatalConditions, "sort-merge-disposes-its-fatal-conditions", 2023,
+            "7.80", "14.6.13.1.3 2)", "§2014:14.6.12.1.2 2)",
+            "a fatal exception condition raised by a SORT or MERGE statement itself, or by one of its implicit transfers, is "
+            + "disposed of by the verb's rules (the statement terminates, the run unit continues) only from COBOL-2023; "
+            + "COBOL-2002 and 2014 run the declarative and then terminate the run unit abnormally"),
     ];
 
     static DialectBehaviors()

@@ -1,8 +1,8 @@
 *>--- conformance-case
 *> id: pb993_sort_merge_transfer_termination
-*> rules: [GR-14.6.13.1.3-2, GR-14.9.24.4-1, GR-14.9.24.4-7,
-*>    GR-14.9.24.4-12, GR-14.9.40.4-12, GR-14.9.40.4-15]
-*> accept: [2002]
+*> rules: [GR-14.9.24.4-1, GR-14.9.24.4-7, GR-14.9.24.4-12,
+*>    GR-14.9.40.4-12, GR-14.9.40.4-15]
+*> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -18,9 +18,11 @@
       *> is transferred to the end of the statement that produced the fatal
       *> exception condition unless the rules for that statement define
       *> other behavior".  The statement is the SORT/MERGE - the as-if
-      *> statement is not one of the program's.  14.6.13.1.3 2) puts the
-      *> SORT/MERGE rules ahead of the run-unit termination of 5)/7), even
-      *> with checking enabled (leg 9).  A nonfatal status continues.
+      *> statement is not one of the program's.  A nonfatal status
+      *> continues.  Checking is off throughout: with EC-I-O checking
+      *> enabled the edition's fatal-exception procedure decides, and
+      *> that differs by edition (14.6.13.1.3 2) exists only from 2023;
+      *> kb/Work PB5612, golden pb5612_sort_io_status_fatal_by_edition).
       *> THE SPECIFIC RULES exercised here:
       *>   14.9.40.4 GR15 - "If a fatal exception condition exists for
       *>     file-name-3 as a result of the implicit OPEN during file
@@ -237,20 +239,6 @@
                USING SRC-A SRC-B GIVING GV-OUT.
            CLOSE GV-OTH.
            DISPLAY "L8-AFTER=" GV-ST.
-      *> LEG 9 - leg 2 with EC-I-O checking ENABLED.  An explicit I-O
-      *> statement's fatal status with no declarative would now terminate
-      *> the run unit (14.6.13.1.3 7)), but 2) comes first: "If the
-      *> executed statement is a MERGE or SORT statement, then the rules
-      *> for those statements apply" - the SORT is terminated and the run
-      *> unit continues.
-       >>TURN EC-I-O CHECKING ON
-       LEG-9.
-           MOVE "L9" TO LEG.
-           SORT SRT-FILE ON ASCENDING KEY SRT-REC
-               INPUT PROCEDURE IS FEED
-               GIVING BAD-N.
-       >>TURN EC-I-O CHECKING OFF
-           DISPLAY "L9-AFTER=" BN-ST.
            STOP RUN.
        FEED-SECT SECTION.
        FEED.

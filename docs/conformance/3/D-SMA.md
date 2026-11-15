@@ -31,7 +31,17 @@
   its own execution raises, such as an EC-LOCALE-* from a locale-collated key): §2023:14.6.13.1.3 2) hands it to the verb, and
   each verb rule says the statement terminates (MERGE GR6/GR7/GR12, SORT GR12 b)) or its results are undefined (SORT
   GR9, GR10, GR13). The applicable declarative runs, the statement is terminated, and the run unit continues — the
-  reading the implicit-transfer determination above applies to I-O statuses. A terminated statement performs none of
+  reading the implicit-transfer determination above applies to I-O statuses. **⛔ ONLY AT `--std 2023`** (kb/Work PB5612;
+  VCR row 7.80, `DialectBehavior.SortMergeStatementDisposesItsFatalConditions`): §2023:14.6.13.1.3 2) is new in 2023.
+  §2014:14.6.12.1.2 and §2002:14.5.12.1.2 have no item for a MERGE or SORT statement: a fatal exception condition with
+  checking enabled and an applicable declarative runs it and, "If execution of the declarative completes normally the
+  execution of the run unit is terminated abnormally" (item 2); with no declarative a `>>PROPAGATE ON` directive
+  propagates it (item 3) and otherwise the run unit is terminated abnormally (item 4). At `--std 2002` and `2014`
+  therefore the SORT/MERGE guard and the implicit-transfer hooks (`__IoCheckEc` without `__verbRule`) dispose of a
+  checked fatal condition as they do for every other statement; the verbs' own sentences (the statement terminates, the
+  results are undefined) say what the statement does, and the fatal exception procedure decides the run unit. With
+  checking off the edition-independent rules of this entry apply unchanged. Goldens `pb5612_*_by_edition`,
+  `pb5612_sort_file_open_fatal_2002`, `pb5612_sort_fatal_io_propagates_2002`. A terminated statement performs none of
   its remaining implicit functions (that determination's (d)), so the USING file of a MERGE terminated by -SEQUENCE is
   still open afterwards (the program's own CLOSE succeeds, golden leg G). The implicit USING release's size test (GR12
   b)) cannot fire from source: §2023:14.9.40.3 SR5 refuses, at compile time, a USING file that describes a record larger

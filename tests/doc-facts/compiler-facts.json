@@ -145,6 +145,11 @@
       "changedIn": 2014
     },
     {
+      "id": "sort-merge-disposes-its-fatal-conditions",
+      "vcrRow": "7.80",
+      "changedIn": 2023
+    },
+    {
       "id": "sum-size-error-blanks-printable-item",
       "vcrRow": "7.58",
       "changedIn": 2002

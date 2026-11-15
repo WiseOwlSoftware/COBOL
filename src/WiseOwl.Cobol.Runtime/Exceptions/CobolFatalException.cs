@@ -38,6 +38,7 @@ public class CobolFatalException(string ecName, string detail)
     /// rules for those statements apply", ahead of 5)'s and 7)'s run-unit termination, so the SORT/MERGE statement
     /// guard disposes of a condition carrying this mark by the verb's rule — the declarative runs, the statement is
     /// terminated — and re-throws any other: a condition raised by a statement of an input or output procedure
-    /// passes through the SORT's guard unmarked, because THAT statement was the one executed.</summary>
+    /// passes through the SORT's guard unmarked, because THAT statement was the one executed. Only from 2023: below it
+    /// the guard ignores the mark (kb/Work PB5612; <c>DialectBehavior.SortMergeStatementDisposesItsFatalConditions</c>).</summary>
     public bool RaisedBySortMerge { get; set; }
 }

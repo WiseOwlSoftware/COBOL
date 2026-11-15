@@ -71,13 +71,14 @@ public sealed class Item8RollbackSiteDriftTests
 
     /// <summary>§2023:14.6.13.1.3 item 2 (<i>"If the executed statement is a MERGE or SORT statement, then the rules for those
     /// statements apply."</i>): every hook the SORT/MERGE emitter writes for its implicit transfers says so with
-    /// <c>verbDisposes: true</c>, which is how <c>Item8Applies</c> leaves item 8 out of them.</summary>
+    /// <c>verbDisposes: EcEmitter.SortMergeDisposesFatalConditions(…)</c> (true from 2023, the edition that has item 2; kb/Work
+    /// PB5612), which is how <c>Item8Applies</c> leaves item 8 out of them.</summary>
     [Fact]
     public void EverySortMergeTransferHook_PassesVerbDisposes()
     {
         string sort = string.Join('\n', File.ReadAllLines(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "SortEmitter.cs")));
         var calls = UseHookCall.Matches(sort).Select(m => m.Groups[1].Value).ToList();
         Assert.True(calls.Count > 0, "the guard saw no EmitUseHook call in SortEmitter.cs: the emitter or the hook moved");
-        Assert.All(calls, args => Assert.Contains("verbDisposes: true", args, StringComparison.Ordinal));
+        Assert.All(calls, args => Assert.Contains("verbDisposes: EcEmitter.SortMergeDisposesFatalConditions(", args, StringComparison.Ordinal));
     }
 }
