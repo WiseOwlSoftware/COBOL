@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-6",
+ "rule-digest": "fc74f501e378",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#Access; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+ "test-ref": "conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_table21_seq_relative; conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_table21_indexed",
+ "notes": "§2002:14.8.26.3 GR6 Table 21: every X cell succeeds and every blank cell gets its §2002:9.1.12.6 status (47 READ/START, 48 WRITE, 49 REWRITE/DELETE; class digit 4 where 43 and 49 both apply in sequential access) for sequential, relative and indexed files in every access mode. Both cases matched at --std 2002."
+}

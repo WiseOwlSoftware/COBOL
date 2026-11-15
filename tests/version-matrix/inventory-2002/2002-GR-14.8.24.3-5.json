@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.24.3-5",
+ "rule-digest": "9dc24f990892",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#Kind; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CharacterContext; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#IsCharacterImageNumeric",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov13_figurative_category_numeric",
+ "notes": "§2002:14.8.24.3 GR5 Table 18: ZERO to numeric/numeric-edited is numeric; LOW-VALUE (made a digit by the program collating sequences) to numeric is alphanumeric whatever the usage and to numeric-edited national is national (555 vs 777); literals keep their categories; g2mov13's 7 derived lines matched at --std 2002."
+}

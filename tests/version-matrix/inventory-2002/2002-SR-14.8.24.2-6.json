@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.24.2-6",
+ "rule-digest": "f0a042e56a3b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ShapeRefusal",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov14_zero_to_cd_alphabetic; conformance:cases/14.9.25-MOVE/pb416-move-zero-to-alphabetic; conformance:cases/14.9.20-INITIALIZE/pb416-initialize-replacing-zero-to-alphabetic",
+ "notes": "§2002:14.8.24.2 SR6 prohibits ZERO to an alphabetic item; g2mov14 (ZERO to a PIC A item of an input CD record) is refused with COBOL0819 at the MOVE line at --std 2002 while the SPACE control runs; the WS and INITIALIZE legs are pb416's refusals at 2002."
+}

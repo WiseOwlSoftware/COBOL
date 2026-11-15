@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.2-1",
+ "rule-digest": "260b71f5ff3b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CobolClass",
+ "test-ref": "conformance:cases/15.2@2002-ARGUMENTS/g2-arg-alphabetic-alphanumeric",
+ "notes": "§2002:15.2 AR1 admits an alphabetic item or an alphabetic-only alphanumeric literal; UPPER-CASE, LENGTH, REVERSE, MAX, ORD-MAX and ORD-MIN of PIC A items and the literal \"abc\" give HELLO, 05 03, cba, olleh, WORLD and the collating-independent ORD-MAX+ORD-MIN=3 (§2002:15.78.3 RV1, 15.39.3 RV3, 15.65.3 RV1, 15.47.3 RV1, 15.58.3 RV1). The --std 2002 run of g2-arg-alphabetic-alphanumeric matched the derived .out."
+}

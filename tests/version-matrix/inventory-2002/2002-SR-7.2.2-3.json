@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.2-3",
+ "rule-digest": "71c715ed933c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirective.cs#FlagDirectiveLine",
+ "test-ref": "conformance:cases/7.2.11@2002-FLAG-85/pb5600-flag85-trailing-text; unit:Flag85DirectiveTests.FixedForm_DirectiveLine_FollowsSr3",
+ "notes": "§2002:7.2.2 SR3: a fixed-form directive sits in the program-text area and only space characters and an inline comment may follow it. A directive from column 1 is refused, an inline comment after one is accepted, and a word after the format of every directive whose operand has a general format is COBOL1911 / COBOL1622. kb/Work PB5600 closed the one gap: FLAG-85 and FLAG-NATIVE-ARITHMETIC carried a Text operand the catalog never checked, so `>>FLAG-85 ALL ON JUNK` was accepted; both are now stage-owned rows parsed by FlagDirectiveLine (COBOL1622). PAGE's comment-text-1 is the only Text row left, and its format prints the text."
+}

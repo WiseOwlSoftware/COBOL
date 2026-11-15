@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.2.2-4",
+ "rule-digest": "c8c488c4c055",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenIndexNameAssociation; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#BindIndexSegment",
+ "test-ref": "conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-index-cd-table; conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-index-cd-foreign-ws; conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-index-cd-foreign-cd",
+ "notes": "§2002:8.4.1.2.2 SR4 for a table in a CD record: CE(CX +/- 1) and E(GX, EX) with the hierarchy's own index-names print X1 BB CC AA / X2 BB / X3 RQ as derived (§2002:8.4.1.2.3 GR1c); CE(WX) and WE(CX) are refused COBOL1961 at --std 2002."
+}

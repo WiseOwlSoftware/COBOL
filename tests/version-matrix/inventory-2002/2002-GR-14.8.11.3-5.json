@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.11.3-5",
+ "rule-digest": "c1cf25fc7f9e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore",
+ "test-ref": "conformance:cases/14.8.11@2002-DIVIDE-STATEMENT/g2-divide-order-and-cd-operands",
+ "notes": "§2002:14.8.11.3 GR5: DIVIDE GIVING, format 3 (BY) and format 2 (INTO), stores the quotient in each identifier-3 per 14.6.6, only the overflowing Q2 unchanged (F2 12 0, F2I 12 0), CD quotient (D5=012); the --std 2002 run on the pinned build dc1f2dcce8 matched."
+}

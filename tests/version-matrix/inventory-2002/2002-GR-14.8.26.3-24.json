@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
  "test-ref": "conformance:cases/14.8.26@2002-OPEN-STATEMENT/pb5210_close_lock_locks_file_connector",
- "notes": "§2002:14.8.26.3 GR24: an OPEN of a file connector a previously-executed CLOSE WITH LOCK locked is unsuccessful with status 38. From 2002 FileRegistry.CloseWithLock locks the connector (its name, _locked; DialectBehavior.CloseWithLockLocksFileConnector) and SharedOpenAttempt answers 38 for it alone: after CLOSE S1 WITH LOCK an OPEN of S1 is 38 while a second SELECT of the same physical file opens it (00) and reads its record; at --std 85 the physical file is locked instead (kb/Work PB5210, §1985:II.2)."
+ "notes": "§2002:14.8.26.3 GR24: after CLOSE WITH LOCK, OPEN of the same connector is 38 in INPUT, EXTEND, I-O and OUTPUT for sequential, relative and indexed files, while another connector on the same physical file opens 00. The existing case (accept [2002]) matched its .out at --std 2002 on the pinned build."
 }

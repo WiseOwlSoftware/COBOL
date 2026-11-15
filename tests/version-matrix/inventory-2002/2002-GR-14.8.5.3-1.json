@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.5.3-1",
+ "rule-digest": "ab5359cea249",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+ "test-ref": "conformance:cases/14.8.5@2002-CANCEL-STATEMENT/g2-cancel-cd-identifier-initial-state",
+ "notes": "§2002:14.8.5.3 GR1: CANCEL identifies the program by the content of identifier-1 (a CD record item, a WS item) or by literal-1; each next CALL shows the located program initial (C=ORIG 008 1); the --std 2002 run on the pinned build dc1f2dcce8 matched."
+}

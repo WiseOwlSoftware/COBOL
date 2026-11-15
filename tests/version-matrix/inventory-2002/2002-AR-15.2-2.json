@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.2-2",
+ "rule-digest": "8bdc3da09361",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace",
+ "test-ref": "conformance:cases/15.2@2002-ARGUMENTS/g2-arg-alphabetic-alphanumeric",
+ "notes": "§2002:15.2 AR2 admits alphanumeric items and literals and treats a strongly-typed group as alphanumeric; LOWER-CASE of PIC X and of \"AB-1\", and LENGTH/UPPER-CASE/REVERSE of a TYPEDEF STRONG group holding \"aBc\", give abcd, ab-1, 03 ABC cBa (§2002:15.45.3 RV1, 15.39.3 RV3). The --std 2002 run of g2-arg-alphabetic-alphanumeric matched the derived .out."
+}

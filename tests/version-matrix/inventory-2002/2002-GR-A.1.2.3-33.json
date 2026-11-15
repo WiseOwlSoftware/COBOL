@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.1.2.3-33",
+ "rule-digest": "0862239b7667",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#PendingReceive.Next",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-GR-A_1_2_3-33",
+ "notes": "§2002:A.1.2.3 GR33: the END KEY is set only by RECEIVE: MESSAGE 3/2/0 and SEGMENT 3/2/1/0, with the first rule in the order winning (SEND keeps 9; then 2,1,2,3,0,2,0,1,2,1,3). G2CD33 at --std 2002 matched the derived .out."
+}

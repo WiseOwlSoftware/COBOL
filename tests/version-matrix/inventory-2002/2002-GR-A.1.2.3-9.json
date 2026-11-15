@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.1.2.3-9",
+ "rule-digest": "d914cadc3664",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-GR-A_1_2_3-8",
+ "notes": "§2002:A.1.2.3 GR9: RECEIVE stores the completion time as HHMMSSTT (23595999, 00000001) and no other statement updates it (11111111 kept). G2CD08 at --std 2002 matched the derived .out."
+}

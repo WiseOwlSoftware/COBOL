@@ -6,4 +6,4 @@
   the values at the start of the statement, a repeated from-set character maps by its first occurrence (GR23, `cite.py
   --check 14.9.22.4 "the first occurrence of the character is used for replacement"` → OK 23)), and the one store at
   the end is the only write (`CONVERTING X5 TO "WXYZ"` over `ABCA` gives `WXYW`). Already the behavior; GnuCOBOL 3.2
-  agrees on every probe; no code changed. Pinned by `conformance:cases/14.9.22-INSPECT/pb1907_inspect_converting_overlap`.
+  agrees on every probe; no code changed. Pinned by `conformance:cases/14.9.22-INSPECT/pb1907_inspect_converting_overlap`, and at 2002 by `conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-converting-overlap`.
