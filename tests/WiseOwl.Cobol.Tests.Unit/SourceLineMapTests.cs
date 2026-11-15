@@ -140,6 +140,29 @@ public sealed class SourceLineMapTests : IDisposable
         Assert.Equal("r.cob(1,14)", m.LocateAt(m.Text.Length - 1).ToString());   // the final '.' keeps its own column
     }
 
+    [Fact] // kb/Work PB5313: text a replacement places stands where it replaced, and is laid out where it was written
+    public void OriginWriter_LaidOutText_StandsAtThePointItReplaced_AndIsLaidOutWhereItWasWritten()
+    {
+        var statement = MappedText.Identity("REPLACE ==A== BY ==DISPLAY 1.\nP2.\n    DISPLAY 2.==.", "s.cob");
+        var source = MappedText.Identity("    XXX\n", "s.cob");
+        int written = statement.Text.IndexOf("DISPLAY", StringComparison.Ordinal);
+        var to = statement.Slice(written, statement.Text.IndexOf("==.", StringComparison.Ordinal) - written);
+        var w = new OriginWriter();
+        w.AppendSlice(source, 0, 4);
+        w.AppendLaidOut(to, source.PointAt(4));
+        w.AppendSlice(source, 7, 1);
+        var m = w.Finish();
+        Assert.Equal("    DISPLAY 1.\nP2.\n    DISPLAY 2.\n", m.Text);
+        var p2 = m.Lines[1].PointAt(0);
+        Assert.Equal(new SourceOrigin("s.cob", 1), p2.Origin);              // every line stands at XXX ...
+        Assert.Equal(4, p2.SourceColumn);
+        Assert.Equal(new SourcePoint(new SourceOrigin("s.cob", 2), 0), p2.LaidOutAt);   // ... and P2 is laid out on its own line
+        Assert.Equal(new SourcePoint(new SourceOrigin("s.cob", 3), 4), m.Lines[2].PointAt(4).LaidOutAt);
+        Assert.Equal(new SourcePoint(new SourceOrigin("s.cob", 1), 19), m.Lines[0].PointAt(4).LaidOutAt);
+        Assert.Null(m.Lines[0].PointAt(0).Layout);                          // the text before keeps its own place
+        Assert.Equal(m.Lines[1].PointAt(0).LaidOutAt, m.Slice(m.LineStart(1), 3).Lines[0].PointAt(0).LaidOutAt);   // a slice carries it
+    }
+
     /// <summary>⛔ No consumer can reach a column-less origin of a POSITION (kb/Work PB1801): MappedText answers a position
     /// with a full <see cref="SourceLocation"/> (or a <see cref="LineOrigin"/> to write at), never a bare
     /// <see cref="SourceOrigin"/>, so a diagnostic cannot again print the column of the resultant text.</summary>

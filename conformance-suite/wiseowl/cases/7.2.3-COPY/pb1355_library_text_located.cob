@@ -2,7 +2,8 @@
       *> id: pb1355_library_text_located
       *> rules: [SR-7.2.3.3-3, GR-7.2.3.4-1, GR-7.2.3.4-2, GR-7.2.3.4-3,
       *>    DOC-A.1-40]
-      *> accept: [85]
+      *> constructs: [copy-unqualified-text-name-2002]
+      *> accept: [2002, 2014, 2023]
       *> files: [pb1355a.cpy, pb1355a.cbl, pb1355lib/pb1355b.cpy,
       *>    pb1355b.cpy, pb1355lib/pb1355d.cbl, pb1355lib/pb1355d.cob]
       *> source-format: fixed
@@ -24,7 +25,12 @@
       *> The literal-1 leg (a name with a period, "pb1355c.txt") is
       *> pb1355_library_text_literal: a literal library-text name is a
       *> COBOL-2002 introduction (constructs row copy-literal-name-2002,
-      *> kb/Work PB1601), so this 85 program names its texts by word.
+      *> kb/Work PB1601), so this program names its texts by word.
+      *> It is not a COBOL-85 program: COPY pb1355a names no library
+      *> while pb1355lib is also available, which §1985:XII.2.3 SR1
+      *> forbids (constructs row copy-unqualified-text-name-2002,
+      *> kb/Work PB5473); 2002 lets the default library's text go
+      *> unqualified.
       *> EXPECTED OUTPUT, DERIVED (why each leg can fail):
       *>   [CPY] pb1355a.cpy and pb1355a.cbl both sit here; the name
       *>         is tried with .CPY .CBL .COB .cpy .cbl .cob in that
@@ -36,7 +42,7 @@
       *>         is tried before .COB/.cob, so the text is the .cbl one
       *>         (the old '' .cpy .cob .cbl order took the .cob: COB).
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. PB1355LOC85.
+       PROGRAM-ID. PB1355LOC.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        COPY pb1355a.

@@ -23,11 +23,6 @@ public sealed class ReferenceFormatMap
 
     private readonly int[] _directiveLines;
 
-    // Per 0-based physical line read in FIXED form: where its program text begins — the physical column of the first
-    // character of the program-text area that is not a space, and whether that is in area A (FixedFormLine.BeginsInAreaA);
-    // null for a line read in free form or one whose program-text area holds only spaces (kb/Work PB3147).
-    private readonly (int Column, bool InAreaA)?[] _textStarts;
-
     // Per 0-based physical line read in FIXED form: where its program text was cut at margin R, or null when it was not or
     // the file uses the positions past margin R for identification tags (kb/Work PB2555).
     private readonly MarginRCut?[] _cuts;
@@ -42,7 +37,6 @@ public sealed class ReferenceFormatMap
         _changes = changes;
         _directiveLines = directiveLines;
         var physicalText = new string[lines.Length];
-        _textStarts = new (int, bool)?[lines.Length];
         _cuts = new MarginRCut?[lines.Length];
         _columns = new ColumnMap?[lines.Length];
         int tagShaped = 0;   // the fixed-form lines that carry ONE word of identification-area width past margin R
@@ -52,10 +46,6 @@ public sealed class ReferenceFormatMap
             _columns[i] = lines[i].Columns;
             if (!At(i + 1).Fixed) continue;
             var fixedLine = new FixedFormLine(lines[i].Text);
-            int start = fixedLine.ProgramTextStart;
-            if (start >= 0)
-                _textStarts[i] = (PhysicalLine.ColumnOf(lines[i].Columns, fixedLine.ProgramTextIndex + start),
-                    fixedLine.BeginsInAreaA);
             _cuts[i] = CutOf(lines[i], fixedLine);
             if (_cuts[i] is { FitsIdentificationArea: true }) tagShaped++;
         }
@@ -95,25 +85,21 @@ public sealed class ReferenceFormatMap
     /// states each) from its 1-based physical line on (<paramref name="changes"/> ascending).
     /// <paramref name="directiveLines"/> are the lines of its written format directives (<see cref="DirectiveLines"/>) and
     /// <paramref name="lines"/> its physical lines, as the line-entry stage settled them (<see cref="PhysicalText"/>,
-    /// <see cref="PlacementAt"/>).</summary>
+    /// <see cref="AreaAt"/>).</summary>
     public static ReferenceFormatMap Create(bool initialFixed, bool detected, IEnumerable<(int FromLine, bool Fixed)> changes,
         IEnumerable<int> directiveLines, ReadOnlySpan<PhysicalLine> lines)
         => new([(1, initialFixed, detected), .. changes.Select(c => (c.FromLine, c.Fixed, false))], [.. directiveLines],
             lines);
 
-    /// <summary>Where the text at 0-based physical <paramref name="column"/> of 1-based physical <paramref name="line"/>
-    /// stands with respect to COBOL-85's areas (kb/Work PB3147): it BEGINS its fixed-form line, in area A or in area B,
-    /// or it follows other text of the line, in area A or in area B; <see cref="AreaPlacement.None"/> when the line was read in free form (which
-    /// has no areas, §2023:6.4.1) or is not a line of this text. The column is the one a source map names
-    /// (<see cref="Common.LineOrigin.Locate"/>), so a token's location answers the question directly.</summary>
-    public AreaPlacement PlacementAt(int line, int column)
+    /// <summary>The COBOL-85 area the text at 0-based physical <paramref name="column"/> of 1-based physical
+    /// <paramref name="line"/> stands in (kb/Work PB3147, PB5313): area A (positions 8–11) or area B (position 12 to
+    /// margin R), tabs expanded (<see cref="ProgramTextOffsetAt"/>); <see cref="FixedFormArea.None"/> when the line was
+    /// read in free form (which has no areas, §2023:6.4.1) or is not a line of this text. The column is the one a source
+    /// map names (<see cref="Common.SourcePoint"/>).</summary>
+    public FixedFormArea AreaAt(int line, int column)
     {
-        if (line < 1 || line > _textStarts.Length || !At(line).Fixed) return AreaPlacement.None;
-        return _textStarts[line - 1] is { } start && start.Column == column
-            ? start.InAreaA ? AreaPlacement.BeginsLineInAreaA : AreaPlacement.BeginsLineInAreaB
-            : FixedFormLine.IsAreaAOffset(ProgramTextOffsetAt(line, column))
-                ? AreaPlacement.WithinLineInAreaA
-                : AreaPlacement.WithinLineInAreaB;
+        if (line < 1 || line > _columns.Length || !At(line).Fixed) return FixedFormArea.None;
+        return FixedFormLine.IsAreaAOffset(ProgramTextOffsetAt(line, column)) ? FixedFormArea.A : FixedFormArea.B;
     }
 
     /// <summary>The 0-based offset into the program-text area (position 8 is offset 0) of the character at 0-based physical
