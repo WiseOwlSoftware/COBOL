@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-VIII.3.2.3-3",
  "rule-digest": "c6c7c72580e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#FileDescriptionRecordRequired",
+ "test-ref": "conformance:cases/VIII.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-SR-VIII_3_2_3-3",
+ "notes": "§1985:VIII.3.2.3 SR3 (relative I-O): \"One or more record description entries must follow the file description entry.\" BindFileSection calls MaterializeImpliedRecord for an FD with no level-01 record; below DialectLevel 2002 it reports COBOL1837 citing §1985:VIII.3.2.3 SR3 for FileOrganization.Relative before the 2002 permission (§2023:13.4.5.3 SR3) is reached. Witness: a relative FD with RECORD CONTAINS 10 and no record is refused at 85 (accepted at 2023). Probes at 85: (e) record-less relative FD at ACCESS SEQUENTIAL, RANDOM and DYNAMIC each refused with COBOL1837 VIII; a relative FD with two 01 records at DYNAMIC wrote and read key 2 and printed 'ABCDE'; (b) a record-less relative FD beside a record-less indexed FD reports each (VIII and IX); (c) at 2002 the record-less relative FD with RECORD CONTAINS is accepted while indexed stays refused (SR7). Read 6 (2026-11-14, records-read6): the row had no verdict and no test-ref although its witness existed; the reader read CONFORMS and an independent refuter UPHELD it (op-20261114/out-read6/rd-NN.json and rd-NN-refute.json).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.3.3.2",
  "rule-digest": "a8b4efb8ecfb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows",
  "test-ref": "conformance:cases/VII.3.3@1985-BLOCK-CONTAINS-CLAUSE/1985-FMT-VII_3_3_2",
+ "notes": "§1985:VII.3.3.2 prints BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS | CHARACTERS} (PDF p.397 rendered: CONTAINS and CHARACTERS are not underlined) and the clause has no syntax rule; §1985:VII.3.3.3 GR4 only says the integers \"refer to the minimum and maximum size of the physical record\". The grammar rule blockContainsClause admits that form, IntegerOperandPass.Slots holds both operands to nonzero integer literals (§1985 III integer convention), and BindBlockContainsClause asks the 2002 ordered-pair rule only at DialectLevel >= 2002. Witness: 2 TO 2 RECORDS writes and reads three records at 85. Probes at 85: (b/f) 20 TO 10 and 2 TO 2 accepted and ran (refused COBOL2009 at 2002); 0, 0 TO 10 refused COBOL2386; +2, -2, 2.5, 1E2, \"2\", ZERO, missing integer-2, no operand, RECORDS CHARACTERS together, clause twice (COBOL2423) refused; 18-digit operand refused at the documented limit (COBOL2427); BLOCK 2 and 80 CHARACTERS accepted; (e/a) relative RANDOM, indexed DYNAMIC (9 TO 4), a RECORD VARYING DEPENDING ON file with an ODO record, and a report file FD each ran; BLOCK on an SD refused COBOL1970. Read 6 (2026-11-14, records-read6): the row had no verdict and no test-ref although its witness existed; the reader read CONFORMS and an independent refuter UPHELD it (op-20261114/out-read6/rd-NN.json and rd-NN-refute.json).",
  "next": {
   "kind": "CHANGED",
   "to": [

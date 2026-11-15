@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.12.3-3",
  "rule-digest": "7d7972400137",
- "verdict": "CONFORMS",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#EnterStatementNotProvided; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
  "test-ref": "conformance:cases/VI.6.12@1985-ENTER-STATEMENT/1985-SR-VI_6_12_3-3",
- "notes": "§1985:VI.6.12.3 SR3: 'The sentence ENTER COBOL must follow the last other-language statement'. The antecedent cannot occur: every ENTER sentence, the other-language one and the ENTER COBOL return alike, is refused at 85 with COBOL7240 (kb/Work PB5308), so no other-language text is compiled in-line and none can run as COBOL; witness: the refusal 1985-SR-VI_6_12_3-3 (refuse-at 85, COBOL7240).",
+ "notes": "§1985:VI.6.12.3 SR3: \"The sentence ENTER COBOL must follow the last other-language statement\". WiseOwl does not provide the ENTER statement: §1985:I.1.5.2.5.5 \"An implementation of Standard COBOL may include the ENTER statement or not, at the option of the implementor\", and docs/conformance/3.7.1 records the decision. StatementBinder#BindEnter refuses every ENTER at 85 with COBOL7240 (kb/Work PB5308), the other-language sentence and ENTER COBOL alike; the witness is that refusal. Recorder's correction (records-read6, 2026-11-14): the row read CONFORMS on the reading that an ENTER is provided with no language, which the compiler's own refusal of ENTER COBOL. contradicts; kb/Work PB5373 class 3 decides that a rule whose subject is an element WiseOwl declines by a documented decision is DOCUMENTED-NON-SUPPORT witnessed by the element's named diagnostic, and records the ENTER rows \"with 1985-SR-VI.6.12.3-1 and -3 when PB5308 lands\" (it has). The read-6 refuter of the ENTER general rules (op-20261114/out-read6/rd-03-refute.json) found this CONFORMS wrong in category for -3 and the same for -1 under one consistent reading of §1985:I.1.5.2.5.5. Previous verdict: CONFORMS.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
