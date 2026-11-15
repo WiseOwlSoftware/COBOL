@@ -594,8 +594,9 @@ internal sealed class StatementValidation(DataBinder data)
         // §1985:VI.6.4.3 GR3 — "The description of D1 and D2 must not contain level-number 66, 77, or 88 or the USAGE
         // IS INDEX clause" — governs MOVE, ADD and SUBTRACT CORRESPONDING alike, so it is asked of every row at COBOL-85
         // and is the edition rule beside the per-verb rows, not a row's field. Level 77 and 88 never name a group, so
-        // what reaches here is a level-66 entry (the DENOTED item, as below) and a group whose own or inherited USAGE
-        // clause is INDEX (§2023:13.18.60.4 GR1 carries a group's USAGE to its elementary items).
+        // what reaches here is a level-66 entry (the DENOTED item, as below) and a group whose OWN entry
+        // carries the USAGE IS INDEX clause (a group's USAGE reaches its elementary items, not a subordinate group:
+        // §2023:13.18.60.4 GR1, kb/Work PB5630).
         if (data.Edition.DialectLevel < 2002 && Level85Forbidden(operand) is { } what)
         {
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
@@ -638,11 +639,9 @@ internal sealed class StatementValidation(DataBinder data)
     private static string? Level85Forbidden(Place operand)
     {
         if (operand.DenotedItem?.Renames is not null) return "is described with level-number 66";
-        for (DataItem? d = operand.Item; d is not null; d = d.Parent)
-            if (d.OwnUsage is Usage.Index)
-                return ReferenceEquals(d, operand.Item)
-                    ? "is described with the USAGE IS INDEX clause"
-                    : $"is described with the USAGE IS INDEX clause (inherited from its group '{d.CobolName ?? "FILLER"}')";
+        // The operand's OWN entry only (kb/Work PB5630): a group-level USAGE "applies to each elementary item in the
+        // group" (§1985:VI.5.14.4 GR1), not to a subordinate group, whose own entry carries no USAGE clause.
+        if (operand.Item.OwnUsage is Usage.Index) return "is described with the USAGE IS INDEX clause";
         return null;
     }
 
@@ -1311,9 +1310,15 @@ internal sealed class StatementValidation(DataBinder data)
                     Shape(d, s);
                     break;
                 // §2023:14.7.7 rule 2a/2b: a FLOATING-POINT literal is excluded from the composite — counting the
-                // E-form's characters here rejected legal `ADD 1.5E+3 TO <PIC 9(28)>` (kb/Work PB155).
-                case BoundNumLiteral lit when !WiseOwl.Cobol.Common.NumericLiteral.IsFloatingPointForm(lit.Text):
+                // E-form's characters here rejected legal `ADD 1.5E+3 TO <PIC 9(28)>` (kb/Work PB155). The exclusion is
+                // COBOL-2014's (§2014:14.7.6 rule 2, a floating-point literal among the operands rule 2b leaves out; the
+                // 2014 Annex lists it as the change from the previous standard): §2002:14.6.6 rule 2 excludes only intrinsic
+                // functions and the binary and floating-point usages, so at COBOL-2002 a floating-point literal counts,
+                // by the digits of its significand (kb/Work PB5642).
+                case BoundNumLiteral lit when data.Edition.DialectLevel < 2014
+                                              || !WiseOwl.Cobol.Common.NumericLiteral.IsFloatingPointForm(lit.Text):
                     string t = lit.Text.TrimStart('+', '-');
+                    if (t.IndexOfAny(['E', 'e']) is >= 0 and var exponentAt) t = t[..exponentAt];
                     int dot = t.IndexOf('.');
                     Shape(t.Count(char.IsAsciiDigit), dot < 0 ? 0 : t.Length - dot - 1);
                     break;

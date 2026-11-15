@@ -33,7 +33,7 @@
       *>        ASCENDING -> -001 +002 +003 (algebraic value, GR19 -> §2023:8.8.4.2.4 — never the packed bytes' order)
       *>        DESCENDING -> +003 +002 -001
       *>   5  a table nested in another table inside the view: ROW OCCURS 4 / E PIC X OCCURS 3 over "CBAFEDIHGLKJ":
-      *>        SORT E(3) ASCENDING touches ROW 3 only -> CBAFEDGHILKJ
+      *>        SORT E(3, ALL) ASCENDING touches ROW 3 only (§2002:14.8.36.2 SR13: ALL is the rightmost subscript) -> CBAFEDGHILKJ
       *>        SORT E(I + 1, ALL) DESCENDING with I = 2 -> ROW 3 again -> CBAFEDIHGLKJ
       *>   6  a record area shared by two 01s of an FD: B's table D2 over A's "3142"  -> A reads "1234"
       *>   7  a BASED record's table BE over BUF "7316", DESCENDING                  -> BUF reads "7631"
@@ -99,7 +99,7 @@
            MOVE PV(3) TO ED3
            DISPLAY "4b " ED1 ED2 ED3
            MOVE "CBAFEDIHGLKJ" TO RAW5
-           SORT E(3) ASCENDING
+           SORT E(3, ALL) ASCENDING
            DISPLAY "5a " RAW5
            SORT E(I + 1, ALL) DESCENDING
            DISPLAY "5b " RAW5

@@ -46,6 +46,7 @@ public sealed partial class FileControlBinder
     {
         var fs = program.dataDivision()?.fileSection();
         if (fs is null) return;
+        var firstDescription = FirstDescriptionPositions(fs);
         foreach (var fd in fs.fileDescriptionEntry())
         {
             using var _ = Edition.At(fd);
@@ -63,7 +64,7 @@ public sealed partial class FileControlBinder
                 file = new FileModel { CobolName = name, SelectName = name };
                 _host.State.Files.Declare(name, file);
             }
-            if (DescriptionRepeated(file, name, "file description entry")) continue;
+            if (DescriptionRepeated(firstDescription, fd.Start, name, "file description entry")) continue;
             file.HasFd = true;
             file.Records.AddRange(records);
             // §2023:13.18.33.4 GR3: "Multiple level 1 entries subordinate to a FD or SD entry represent implicit
@@ -163,7 +164,7 @@ public sealed partial class FileControlBinder
                 sdFile = new FileModel { CobolName = sdName, SelectName = sdName };
                 _host.State.Files.Declare(sdName, sdFile);
             }
-            if (DescriptionRepeated(sdFile, sdName, "sort-merge file description entry")) continue;
+            if (DescriptionRepeated(firstDescription, sd.Start, sdName, "sort-merge file description entry")) continue;
             sdFile.HasFd = true;
             sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§2023:13.4.6 SR3/SR4)
             // ⛔ The SD arm does NOT inherit §2023:13.4.5.3 SR3's permission to omit the record descriptions — that is a
@@ -191,20 +192,37 @@ public sealed partial class FileControlBinder
         }
     }
 
-    /// <summary>⛔ ISO §2023:8.4.2.1 — "<i>In order to use a resource, a statement shall contain a reference that uniquely
-    /// identifies that resource</i>": a file-name has no qualifier, so a SECOND file description entry or sort-merge file
-    /// description entry of one file-name (FD twice, SD twice, or an FD and an SD) leaves every reference to the file
-    /// ambiguous (kb/Work PB5541). It is refused under <c>COBOL4250</c>, the one refusal of a second declaration of a name
-    /// that cannot be qualified (<c>DataBinder.CheckUnqualifiableDeclaration</c>); the first description stands, and the
-    /// repeat is not attached (its records stay bound as storage, its clauses are not read). The SELECT half is
-    /// <c>COBOL2634</c>. Both arms of <see cref="BindFileSection"/> ask it before they attach.</summary>
-    private bool DescriptionRepeated(FileModel file, string name, string entry)
+    /// <summary>⛔ ISO §2023:8.4.2.1 — "<i>In order to use a resource, a statement shall contain a reference that
+    /// uniquely identifies that resource</i>": a file-name has no qualifier, so a SECOND file description entry or sort-merge file
+    /// description entry of one file-name (FD twice, SD twice, or an FD and an SD, in either order) leaves every reference to
+    /// the file ambiguous (kb/Work PB5541). It is refused under <c>COBOL4250</c>, the refusal of a second declaration of a name
+    /// that cannot be qualified; the entry FIRST IN SOURCE stands, whatever its kind (kb/Work PB5631: the FD loop runs before
+    /// the SD loop, so the position, not the order of binding, decides), and the repeat is not attached (its records stay bound
+    /// as storage, its clauses are not read). The SELECT half is <c>COBOL2634</c>. Both arms of
+    /// <see cref="BindFileSection"/> ask it before they attach.</summary>
+    private bool DescriptionRepeated(
+        Dictionary<string, int> firstDescription, Antlr4.Runtime.IToken entryStart, string name, string entry)
     {
-        if (!file.HasFd) return false;
+        if (firstDescription[name] == entryStart.StartIndex) return false;
         Edition.Error(DiagnosticCatalog.SpecialNameDeclaredTwice,
             $"the file-name '{name}' is described a second time by this {entry} — no qualifier can tell the two descriptions "
             + "apart, so no reference to the file could uniquely identify one (ISO §2023:8.4.2.1); the first stands");
         return true;
+    }
+
+    /// <summary>The source position of each file-name's first file description entry or sort-merge file description entry,
+    /// across both kinds (the entry at that position is the one that stands; see <see cref="DescriptionRepeated"/>).</summary>
+    private static Dictionary<string, int> FirstDescriptionPositions(Core.FileSectionContext fs)
+    {
+        var first = new Dictionary<string, int>(StringComparer.Ordinal);
+        void Note(string? name, Antlr4.Runtime.IToken start)
+        {
+            if (name is null) return;
+            if (!first.TryGetValue(name, out var at) || start.StartIndex < at) first[name] = start.StartIndex;
+        }
+        foreach (var fd in fs.fileDescriptionEntry()) Note(fd.fileName()?.GetText(), fd.Start);
+        foreach (var sd in fs.sortMergeDescriptionEntry()) Note(sd.fileName()?.GetText(), sd.Start);
+        return first;
     }
 
     /// <summary>Whether one written FD clause belongs in this entry, reporting it when it does not (kb/Work PB1238).

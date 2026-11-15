@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.11.2-4",
+ "rule-digest": "80766c84d7ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+ "test-ref": "conformance:cases/_unassigned/pb5642-composite-counts-float-literal-2002",
+ "notes": "DIVIDE reads the same CheckComposite as ADD (kb/Work PB5642): at COBOL-2002 a floating-point literal is counted in the composite of operands (§2002:14.6.6 rule 2 a)."
+}

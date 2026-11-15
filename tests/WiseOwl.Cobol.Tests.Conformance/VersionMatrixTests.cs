@@ -201,6 +201,12 @@ public abstract class VersionMatrixTestsBase<TSlot>
             {
                 EditionHarness.AssertHasDiagnostic(diagnostics, code);
             }
+            // ⛔ ONE STATEMENT, ONE ERROR (kb/Work PB5538): a declined row the edition then removes is refused by the
+            // gate from its removal on, and the binder's own decline must stay silent there, or the statement draws both.
+            if (c.Declined is { } declined && c.RemovedIn is { } removedIn && edition >= removedIn)
+            {
+                Assert.DoesNotContain(diagnostics, d => d.Contains(declined, StringComparison.Ordinal));
+            }
         }
     }
 

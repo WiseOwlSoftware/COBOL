@@ -695,11 +695,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>ENTER language-name-1 [routine-name-1] (§1985:VI.6.12.2): not provided (kb/Work PB5308). §1985:I.1.5.2.5.5 lets
     /// an implementation "include the ENTER statement or not", ISO 2023 has no ENTER and GnuCOBOL refuses it (CLAUDE.md
     /// rule 1), and no language-name is "specified by the implementor" (§1985:VI.6.12.3 SR1), so every ENTER is refused by
-    /// name rather than compiled to nothing, which ran a program as if the other-language routine had run.</summary>
+    /// name rather than compiled to nothing, which ran a program as if the other-language routine had run.
+    /// <para>From COBOL-2002 the edition gate refuses the statement as removed (<c>VersionConformancePass.VisitEnterStatement</c>,
+    /// COBOL0902); when that refusal is an error the binder adds none (kb/Work PB5538). A permissive edition only warns
+    /// there, so it still gets the binder's refusal: the statement is not provided at any edition.</para></summary>
     private BoundRejected BindEnter(Core.EnterStatementContext enter) =>
-        BoundRejected.Report(data.Edition, DiagnosticCatalog.EnterStatementNotProvided,
-            $"ENTER {enter.enterOperand().GetText().ToUpperInvariant()}: this implementation does not provide the ENTER "
-            + "statement (§1985:I.1.5.2.5.5 leaves it to the implementor; no language-name is specified, §1985:VI.6.12.3 SR1)");
+        ConstructRegistry.GateErrorCodeAt(data.Edition.Edition, Constructs.EnterRemoved2002) is { } gateCode
+            ? BoundRejected.ByEditionGate(gateCode)
+            : BoundRejected.Report(data.Edition, DiagnosticCatalog.EnterStatementNotProvided,
+                $"ENTER {enter.enterOperand().GetText().ToUpperInvariant()}: this implementation does not provide the ENTER "
+                + "statement (§1985:I.1.5.2.5.5 leaves it to the implementor; no language-name is specified, §1985:VI.6.12.3 SR1)");
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {

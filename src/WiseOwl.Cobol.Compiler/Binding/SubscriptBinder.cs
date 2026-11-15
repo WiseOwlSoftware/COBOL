@@ -114,7 +114,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         List<IndexUse> ixNames = [];
         int preOpMark = data.Procedure.PendingPreOps.Mark();   // the subscripts' own pre-ops (D18 temp stores, activations) start here
         int propertyMark = data.Procedure.PropertyOps.Mark();   // ... and their object-property references (the other pending list)
-        var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort);
+        var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort, out bool rightmostAllWritten);
         if (e is null) return refs.SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
         ScreenIndexNameAssociation(item, ixNames);   // §2023:8.4.2.3.3 SR4 (kb/Work PB459)
         if (!refs.Probing) ScreenCobol85SubscriptDataNames(subCtx);   // §1985:IV.4.3.8.2.3 SR5 (kb/Work PB5074)
@@ -124,6 +124,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                 TableSubject.Search => false,
                 _ => ScreenSubscriptArity(dref, item, e.Count),   // §2023:8.4.2.3.3 SR2/SR3 (kb/Work PB877)
             })
+            return RefResolution.Refused(DataBinder.WrittenText(dref));
+        if (subject is TableSubject.Sort && !rightmostAllWritten && ScreenTableSubjectRightmostAll(dref, item))
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         indexExprs = e;
         if (!refs.Probing) _enclosingCapture?.Offer(item, e, data.Procedure.PendingPreOps.Since(preOpMark), data.Procedure.PropertyOps.Since(propertyMark));
@@ -229,6 +231,23 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             + $"{(enclosing == 1 ? "" : "s")}, outermost first, and none for '{subject}' itself — the level the "
             + $"statement sorts; ALL may stand as the rightmost one; {written} written (ISO §2023:8.4.2.3.3 SR3, SR5 e), "
             + "SR6; §2023:14.9.40.3 SR13).");
+        return true;
+    }
+
+    /// <summary>⛔ §2002:14.8.36.2 SR13 — "If data-name-2 is subject to more than one level of OCCURS clauses, subscripts shall
+    /// be specified for all levels with the exception that the rightmost subscript shall be the word ALL": at COBOL-2002 a
+    /// table SORT subject of a nested table writes ALL as its rightmost subscript, where the later editions let the
+    /// subject omit its own level's subscript (§2023:8.4.2.3.3 SR5 e), kb/Work PB5641). Returns <see langword="true"/> when the
+    /// reference is rejected.</summary>
+    private bool ScreenTableSubjectRightmostAll(Core.DataReferenceContext dref, DataItem table)
+    {
+        if (data.Edition.DialectLevel >= 2014 || table.SubscriptArity < 2) return false;
+        if (refs.Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        if (!refs.Diagnosed.Add(dref)) return true;
+        data.Edition.Error(DiagnosticCatalog.TableSortSubjectRightmostAll,
+            $"'{DataBinder.WrittenText(dref)}': the table '{table.CobolName ?? table.ClrName}' is subject to {table.SubscriptArity} "
+            + "levels of OCCURS clauses, and at COBOL-2002 the SORT subject writes a subscript for every level with the word ALL "
+            + "as the rightmost (ISO §2002:14.8.36.2 SR13); write ALL where the sorted level's subscript goes.");
         return true;
     }
 
@@ -431,15 +450,20 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <summary>Bind each subscript of the written list to its typed <see cref="Position"/>, outermost first; a
     /// segment that cannot be bound yields null (→ the caller fails loud).</summary>
     private List<Position>? InterpretSubscripts(
-        Core.SubscriptPartContext ctx, List<IndexUse>? indexNames = null, bool admitRightmostAll = false)
+        Core.SubscriptPartContext ctx, List<IndexUse>? indexNames, bool admitRightmostAll, out bool rightmostAllWritten)
     {
+        rightmostAllWritten = false;
         var positions = new List<Position>();
         // kb/Work PB136 — declaration-informed '(' splitting, through the ONE predicate (kb/Work PB877): an
         // inline `IsTable` lambda stood here and answered only §2023:8.4.2.3.3 SR2's FIRST half, so a name SUBORDINATE
         // to an OCCURS — legally subscripted, and a legal arithmetic-expression-1 subscript under §2023:8.4.2.3.2 +
         // §2023:8.8.1.1 + §2023:8.4.3.1.2 Format 2 — had its own '(' split off as an EXTRA subscript.
         var segments = SegmentsOf(ctx, CannotBeSubscripted);
-        if (admitRightmostAll && segments.Count > 0 && IsAllSegment(segments[^1])) segments.RemoveAt(segments.Count - 1);
+        if (admitRightmostAll && segments.Count > 0 && IsAllSegment(segments[^1]))
+        {
+            segments.RemoveAt(segments.Count - 1);
+            rightmostAllWritten = true;
+        }
         foreach (var seg in segments)
         {
             if (BindPosition(seg, SegmentPosition.Subscript, indexNames) is not { } p) return null;

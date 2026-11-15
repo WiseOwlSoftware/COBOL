@@ -1229,6 +1229,13 @@ public sealed record BoundRejected : BoundStatement
         return new BoundRejected((string?)null);
     }
 
+    /// <summary>A refusal the EDITION GATE reports (kb/Work PB5538): the statement is a construct the targeted edition
+    /// refuses with <paramref name="gateCode"/> (<c>ConstructRegistry.GateErrorCodeAt</c>), and the version-conformance pass,
+    /// which walks the source after binding, draws that error. The binder adds none, so one statement draws one
+    /// diagnostic; the node still stops code generation, because the gate's error fails the compile first. Only a
+    /// binder that has its own refusal for the construct at another edition asks this.</summary>
+    public static BoundRejected ByEditionGate(string gateCode) => new(gateCode);
+
     /// <summary>Report <paramref name="message"/> under <paramref name="rule"/> and return the refusal node. A
     /// warning-severity descriptor is a programming error: a refusal that does not fail the compile would reach
     /// code generation with no meaning to emit.</summary>

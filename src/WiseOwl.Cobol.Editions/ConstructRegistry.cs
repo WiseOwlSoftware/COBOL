@@ -26,6 +26,21 @@ public static partial class ConstructRegistry
         (Find(id) ?? throw new ArgumentException($"unregistered construct id '{id}'", nameof(id)))
             .StatusAt(edition.Year) == ConstructAvailability.Available;
 
+    /// <summary>The code <see cref="Check"/> reports construct <paramref name="id"/> under at <paramref name="edition"/> when that
+    /// report is an ERROR, else null (in force, obsolete, or removed under a permissive edition, all of which report a warning
+    /// or nothing). The quiet twin for a binder that refuses a construct by its own rule and must not draw a second error
+    /// where the edition gate, which runs after binding, already will (kb/Work PB5538); it reads the same row and the same
+    /// severity policy as <see cref="Check"/>.</summary>
+    public static string? GateErrorCodeAt(EditionInfo edition, string id)
+    {
+        var c = Find(id) ?? throw new ArgumentException($"unregistered construct id '{id}'", nameof(id));
+        var verdict = c.StatusAt(edition.Year);
+        if (verdict == ConstructAvailability.Available || EditionSeverityPolicy.For(verdict, edition) != EditionSeverity.Error) return null;
+        return verdict == ConstructAvailability.NotYetIntroduced && c.RemovedIn is not null
+            ? EditionCodes.Introduction
+            : c.DiagnosticCode;
+    }
+
     /// <summary>
     /// THE gating entry point: evaluate <paramref name="id"/> at <paramref name="edition"/> and report the
     /// verdict to <paramref name="sink"/> at the severity <see cref="EditionSeverityPolicy"/> dictates —

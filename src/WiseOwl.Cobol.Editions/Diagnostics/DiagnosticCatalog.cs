@@ -3386,8 +3386,10 @@ public static class DiagnosticCatalog
     /// description entry (kb/Work PB5541; reported by <c>FileControlBinder.DescriptionRepeated</c>, the SELECT half being
     /// COBOL2634). §2023:8.4.2.1: "In order to use a resource, a statement shall contain a
     /// reference that uniquely identifies that resource" — and none of these has a qualifier to identify one of two.
-    /// Decided at the ONE declaration funnel (<c>DataBinder.DeclareUserWord</c>, <c>UserWordKinds.DeclaredUnqualifiable</c>),
-    /// so every declaring clause, and the next one added, is covered. The first declaration stands.</summary>
+    /// Every name but a file-name is decided at the ONE declaration funnel (<c>DataBinder.DeclareUserWord</c>,
+    /// <c>UserWordKinds.DeclaredUnqualifiable</c>), so every declaring clause, and the next one added, is covered; a
+    /// file-name's description entries are not declarations through it and are decided by
+    /// <c>FileControlBinder.DescriptionRepeated</c> (kb/Work PB5631). The first declaration in source stands.</summary>
     public static readonly DiagnosticDescriptor SpecialNameDeclaredTwice = new(
         "COBOL4250", "special-name-declared-twice", EditionSeverity.Error,
         "A name that cannot be qualified — an alphabet-name, class-name, locale-name, ordering-name, "
@@ -9695,10 +9697,22 @@ public static class DiagnosticCatalog
         + "(COBOL-2002 and later let an index-name be qualified, so two tables may each declare one spelling.)",
         "ISO §1985:VI.5.8.3 SR14");
 
+    /// <summary>COBOL7369 - at COBOL-2002 a Format-2 table SORT whose subject is subject to more than one level of OCCURS
+    /// writes ALL as its rightmost subscript (kb/Work PB5641). §2002:14.8.36.2 SR13: "subscripts shall be specified for all
+    /// levels with the exception that the rightmost subscript shall be the word ALL". COBOL-2014 and 2023 let the subject
+    /// omit its own level's subscript (§2023:8.4.2.3.3 SR5 e). Emitted by <c>SubscriptBinder.ScreenTableSubjectRightmostAll</c>.</summary>
+    public static readonly DiagnosticDescriptor TableSortSubjectRightmostAll = new(
+        "COBOL7369", "table-sort-subject-rightmost-all", EditionSeverity.Error,
+        "At COBOL-2002 a table SORT whose data-name-2 is subject to more than one level of OCCURS clauses writes subscripts "
+        + "for all levels, the rightmost being the word ALL. §2002:14.8.36.2 SR13: \"subscripts shall be specified for all "
+        + "levels with the exception that the rightmost subscript shall be the word ALL\". Write SORT E (2, ALL).",
+        "ISO §2002:14.8.36.2 SR13");
+
     /// <summary>COBOL7240 - the X3.23-1985 ENTER statement, which this implementation does not provide (kb/Work PB5308).
     /// §1985:I.1.5.2.5.5 leaves it to the implementor; ISO 2023 has no ENTER, so GnuCOBOL decides and it refuses the statement
     /// (CLAUDE.md rule 1; docs/conformance/3.7.1). Emitted by <c>StatementBinder.BindEnter</c> at COBOL-85, where the statement
-    /// parses (from 2002 it is COBOL0902, removed).</summary>
+    /// parses; from 2002 the edition gate refuses it as removed (COBOL0902) and the binder adds nothing, except under
+    /// <c>--permissive</c>, where that refusal is a warning (kb/Work PB5538).</summary>
     public static readonly DiagnosticDescriptor EnterStatementNotProvided = new(
         "COBOL7240", "enter-statement-not-provided", EditionSeverity.Error,
         "This implementation does not provide the ENTER statement. §1985:I.1.5.2.5.5: \"An implementation of Standard COBOL "
