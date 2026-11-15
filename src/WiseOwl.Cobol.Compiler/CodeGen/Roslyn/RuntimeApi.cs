@@ -872,8 +872,8 @@ internal static class RuntimeApi
 
     /// <summary>SDIDI exponentiation (ISO §2023:8.8.1.5.4; P10 Step 12) — <c>CobolDec.Pow</c>. <paramref name="mode"/>
     /// is the pre-rendered INTERMEDIATE ROUNDING fragment (<c>CobolRounding.X</c>).</summary>
-    public static string DecPow(string baseOperand, string expOperand, string mode) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.Pow)}({baseOperand}, {expOperand}, {mode})";
+    public static string DecPow(string baseOperand, string expOperand, string mode, bool standardIntermediate = false) =>
+        $"{nameof(CobolDec)}.{(standardIntermediate ? nameof(CobolDec.PowStandard) : nameof(CobolDec.Pow))}({baseOperand}, {expOperand}, {mode})";
 
     /// <summary>The FINAL TRANSFER of a native product past the Int128 carrier — <c>CobolDec.MulAtScale</c> (kb/Work PB1143,
     /// review finding N1): the exact product rounded once to <paramref name="resultScale"/> with <paramref name="mode"/>,
@@ -1146,6 +1146,16 @@ internal static class RuntimeApi
     /// <summary>The unsigned-wide twin of <see cref="DecLiftRounded"/> — <c>CobolDec.FromUnsigned</c>.</summary>
     public static string DecLiftRoundedUnsigned(string unsigned, int scale, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromUnsigned)}({unsigned}, {scale}, {modeExpr})";
+
+    /// <summary>A value as the standard intermediate data item of ARITHMETIC IS STANDARD holds it — <c>CobolDec.ToSidi</c>:
+    /// truncated to 32 significant digits, in the 10^-999 to 10^1000 - 10^968 range (§2002:8.8.1.3.1.1; kb/Work PB5575),
+    /// inexact being a size error under INTERMEDIATE ROUNDING IS PROHIBITED (<paramref name="modeExpr"/>).</summary>
+    public static string DecToSidi(string value, string modeExpr) => $"{value}.{nameof(CobolDec.ToSidi)}({modeExpr})";
+
+    /// <summary>A standard intermediate data item ROUNDED to 31 digits — <c>CobolDec.ToSidiRounded</c> — where the rounding rules
+    /// of standard arithmetic apply (§2002:8.8.1.3.1.3: a comparison, a function argument with no equivalent expression, a move
+    /// to a resultant without ROUNDED).</summary>
+    public static string DecToSidiRounded(string value, string modeExpr) => $"{value}.{nameof(CobolDec.ToSidiRounded)}({modeExpr})";
 
     /// <summary>The §2023:8.8.1.5.1 implementor-defined float→SDIDI conversion of a floating-point DATA ITEM's value -
     /// <c>CobolDec.FromBinary64</c>: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE

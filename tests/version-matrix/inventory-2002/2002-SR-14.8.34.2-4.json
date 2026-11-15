@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.34.2-4",
+ "rule-digest": "39301996432a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderNumericRelational",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation",
+ "notes": "§2002:14.8.34.2 SR4: a SEARCH WHEN condition is any conditional expression, evaluated as §2002:8.8.4 specifies; under ARITHMETIC IS STANDARD its arithmetic operands are standard intermediate data items compared at 31 digits. The witness WHEN 2 / 3 * 3 = ENT (IX) + 1 - 1 + 1 finds table element 1 (2.000... = 2), where 34 digits found none."
+}

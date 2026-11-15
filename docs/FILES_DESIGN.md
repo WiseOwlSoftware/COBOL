@@ -2752,16 +2752,19 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   carve-out from the legacy engine's `RelativeFileHandler`). The relative golden's SPARSE-file phase is what
   makes rule b) falsifiable: with the lowest record at RRN 5, OPEN's indicator of 1 names an empty slot, so
   PREVIOUS and NEXT can only name the same record if the rule ignores the direction.
-  ⚠ **The INDEXED leg IS gated, and the `<=2014` answer is the first existing record** (kb/Work PB344).
-  `IndexedConnector.SelectSequentialRecord` asks `DialectBehaviors.IsActive(IndexedReadPreviousAfterOpenAtEnd,
-  Edition)`; below 2023 the after-OPEN arm is DIRECTION-BLIND, so a READ PREVIOUS immediately after an OPEN
-  makes the same record NEXT does available. Annex E.2 item 22's justification is what states the prior rule —
-  *"the rule itself stated that the first record would be retrieved. The rule itself has been amended such that
-  an at end condition would occur"* — and the conflicting prior NOTE it also mentions states no requirement
-  (this standard is drafted to the ISO/IEC Directives Part 2), so rule-versus-note is not a normative
-  contradiction and no owner decision was needed. Asserted by
-  `conformance:{2002,2014,2023}/pb344_read_previous_indexed` (P1 differs by edition; P2/P3/P4 are the controls
-  that do not).
+  ⚠ **The INDEXED leg IS gated, and the `<=2014` answer is the ordinary comparison, not the first record**
+  (kb/Work PB344, corrected by kb/Work PB5639). `IndexedConnector.SelectSequentialRecord` asks
+  `DialectBehaviors.IsActive(IndexedReadPreviousAfterOpenAtEnd, Edition)`: at 2023 a PREVIOUS immediately after an
+  OPEN is the at end condition (rule d) 3). Below 2023 the after-OPEN PREVIOUS is §2002:14.8.29.3 GR18c2
+  (§2014:14.9.29.3 GR19c2) — "the first existing record in the physical file whose record number or key value is
+  less than or equal to the file position indicator" — and OPEN's indicator is "the characters that have the lowest
+  ordinal position in the collating sequence" (§2002:14.8.26.3 GR12), so the connector seeks the last key at most
+  that value (`IndexedConnector.LowestKey`: the key sequence's LOW-VALUE character over the key's length): at end
+  unless a record's key IS that lowest value, which the standard's own NOTE records ("normally get an at end
+  condition for indexed"). PB344 had derived the prior rule from Annex E.2 item 22's justification alone, before
+  the 2002 and 2014 text was held, and answered the first existing record. Asserted by
+  `conformance:{2002,2014,2023}/pb344_read_previous_indexed` (P5, the LOW-VALUES key, differs by edition; P1 is
+  at end at all three; P2/P3/P4 are the controls).
 - ⛔ **The OPEN-MODE USE-declarative tier is EDITION-INVARIANT — and that is a DETERMINATION, not an
   omission** (`VERSION_CHANGE_REFERENCE` rows 25 and 26; Annex E.2 item 19 a)/b); kb/Work PB344). §2023:14.9.49.4
   GR6 b)–e) selects a declarative by the file's open mode, and Annex E.2 item 19 records that the previous

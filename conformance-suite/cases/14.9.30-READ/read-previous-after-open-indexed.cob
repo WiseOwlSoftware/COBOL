@@ -8,12 +8,16 @@
       *> ISO 14.9.30.4 GR 21, the indexed-file block, rule d) 3: "If no
       *> such record is found or PREVIOUS is specified and the previous
       *> operation on the file was an OPEN statement, the at end
-      *> condition exists". That is the 2023 rule. Annex E.2 item 22
-      *> records the rule it amended: "the rule itself stated that the
-      *> first record would be retrieved". So P1 reads the lowest key
-      *> K002 at 2002 and 2014 (this test's .out) and is at end, status
-      *> 10, at 2023 (its .2023.out). P2, READ NEXT after the same OPEN,
-      *> reads K002 at every edition. READ PREVIOUS is a 2002 feature.
+      *> condition exists". That is the 2023 rule. At 2002 and 2014 the
+      *> rule is the ordinary comparison: §2002:14.8.29.3 GR18c2 selects
+      *> "the first existing record in the physical file whose record
+      *> number or key value is less than or equal to the file position
+      *> indicator", and OPEN set the indicator to "the characters that
+      *> have the lowest ordinal position in the collating sequence"
+      *> (§2002:14.8.26.3 GR12), so no key (K002 and K004 are above it)
+      *> is selected. So P1 is at end, status 10, at every edition.
+      *> P2, READ NEXT after the same OPEN, reads K002 at every
+      *> edition. READ PREVIOUS is a 2002 feature.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. CSRPOI.
        ENVIRONMENT DIVISION.

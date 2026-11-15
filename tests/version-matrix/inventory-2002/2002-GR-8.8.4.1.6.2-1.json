@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.4.1.6.2-1",
+ "rule-digest": "d78746cc5823",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderSign; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#SidiRounded",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation",
+ "notes": "§2002:8.8.4.1.6.2 GR1: an operand is positive if its value is greater than zero, negative if less, zero if equal to zero; under standard arithmetic the operand is a 32-digit item compared with zero. The witness IF B * 100 + 9 - B * 100 IS ZERO is true (the 33-digit sum is cut to 10^32, minus 10^32 is 0), where 34 digits gave 9."
+}

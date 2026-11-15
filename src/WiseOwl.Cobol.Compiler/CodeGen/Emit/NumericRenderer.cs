@@ -165,11 +165,20 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// it itself — at the receiver's final transfer, or by the former that owns it; <c>ExactWideSettlementDriftTests</c> pins each
     /// one to its settlement (kb/Work PB4599).</summary>
     public NumX Settle(NumX x, in ReceiverContext rcv, bool outermost) =>
-        !x.Wide && !x.Exact ? x
+        !x.Wide && !x.Exact ? SidiAtTransfer(x, rcv, outermost)
         : outermost && rcv.RoundsAtItsScale ? TransferWide(x, rcv.Scale, rcv.Rounding, LandingTaken(rcv))
         : outermost && rcv.LandsAsBinary64
             ? new NumX(RuntimeApi.ExactToBinary64(ExactOperand(x), rcv.Rounding, rcv.Single, LandingTaken(rcv)), 0, Real: true)
         : LowerWide(x);
+
+    /// <summary>§2002:8.8.1.3.1.3 situation 3 — a standard intermediate data item "being moved to a resultant-identifier for which the
+    /// ROUNDED phrase has not been specified" is rounded to 31 digits first (<see cref="SidiRounded"/>); with ROUNDED the receiver
+    /// rounds the whole 32-digit item itself (§2002:14.6.3). The rounded-or-not distinction is the receiver's mode: no ROUNDED phrase
+    /// is TRUNCATION (a ROUNDED MODE IS TRUNCATION phrase is read as none, the one place the two meet).</summary>
+    private NumX SidiAtTransfer(NumX x, in ReceiverContext rcv, bool outermost) =>
+        outermost && x.Dec && rcv.RoundsAtItsScale && rcv.Rounding == CobolRounding.Truncation
+            ? x with { Expr = SidiRounded(x, x.Expr) }
+            : x;
 
     /// <summary>⛔ THE TRANSFER OF AN EXACT WIDE VALUE INTO ONE FIXED-POINT RECEIVER (kb/Work PB1900, PB3953): the value moved to the
     /// receiver's <paramref name="toScale"/> and rounded ONCE with <paramref name="mode"/> (<c>CobolWide.ToUnscaled</c>), with the
@@ -849,6 +858,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             : $"CobolDec.{kernel}({left}, {right}, {IntermediateMode})";
         // Under STANDARD-DECIMAL no nested quotient reads a precision; a quotient here is a final transfer's (Divide owns
         // every nested one), so nothing above it reads its precision either.
+        // §2002:8.8.1.3.2/.4/.5 — each result is the exact result truncated to 32 digits, in the SIDI's range (StandardIntermediate).
+        if (StandardIntermediate) value = RuntimeApi.DecToSidi(value, IntermediateMode);
         if (StandardDecimal || op == "/") return new NumX(value, 0, Dec: true);
         if (a.RuntimePrecision || b.RuntimePrecision)
             return new NumX(value, 0, Dec: true, WithPrecision: RuntimeApi.DecWithPrecisionOperation(op[0],
@@ -935,7 +946,34 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // it out again and both had dropped ARITHMETIC IS STANDARD from it.
     internal bool StandardDecimal => ArithmeticModes.IsDecimalEngine(ctx.CurrentOptions.Arithmetic);
 
-    internal string IntermediateMode => $"CobolRounding.{ctx.CurrentOptions.IntermediateRounding}";
+    /// <summary>⛔ ARITHMETIC IS STANDARD — the 2002 mode, obsolete 2014, removed 2023 — is NOT the SDIDI's model that
+    /// <see cref="StandardDecimal"/> names, though it runs the same <c>CobolDec</c> carrier (kb/Work PB5575): its intermediate is
+    /// the STANDARD INTERMEDIATE DATA ITEM, "a precision of 32 decimal digits" in the range 10^-999 to 10^1000 - 10^968
+    /// (§2002:8.8.1.3.1.1; §2014:8.8.1.3.1.1), every operation's result the exact result TRUNCATED to 32 digits
+    /// (§2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5), and ROUNDED to 31 digits only where §2002:8.8.1.3.1.3 says (a
+    /// comparison, a function argument with no equivalent expression, a move to a resultant without ROUNDED). The decimal
+    /// engine's operations run at TRUNCATION and each result is cut by <c>CobolDec.ToSidi</c> (<see cref="DecBinary"/>);
+    /// <see cref="SidiRounded"/> is the 31-digit rounding.</summary>
+    internal bool StandardIntermediate => ctx.CurrentOptions.Arithmetic == ArithmeticMode.Standard;
+
+    /// <summary>The mode the decimal engine's own operations run at: the program's INTERMEDIATE ROUNDING, except under standard
+    /// arithmetic, whose operation results are TRUNCATED (§2002:8.8.1.3.2) — PROHIBITED excepted, which stays PROHIBITED so an
+    /// inexact result is the size error §2014:8.8.1.3.1.3.3 names.</summary>
+    internal string IntermediateMode => StandardIntermediate && ctx.CurrentOptions.IntermediateRounding != CobolRounding.Prohibited
+        ? $"CobolRounding.{CobolRounding.Truncation}"
+        : $"CobolRounding.{ctx.CurrentOptions.IntermediateRounding}";
+
+    /// <summary>The rounding a standard intermediate data item takes where §2002:8.8.1.3.1.3 rounds it to 31 digits — "as described
+    /// for the ROUNDED phrase", so NEAREST-AWAY-FROM-ZERO — or, in 2014, the INTERMEDIATE ROUNDING mode in effect
+    /// (§2014:8.8.1.3.1.3.1 to .4; the TRUNCATION one, §2014:8.8.1.3.1.3.4, rounds "as described for the ROUNDED phrase" too).</summary>
+    private string SidiRoundingMode => ctx.CurrentOptions.IntermediateRounding == CobolRounding.Truncation
+        ? $"CobolRounding.{CobolRounding.NearestAwayFromZero}"
+        : $"CobolRounding.{ctx.CurrentOptions.IntermediateRounding}";
+
+    /// <summary>The decimal text <paramref name="x"/> has where standard arithmetic ROUNDS a standard intermediate data item to
+    /// 31 digits (§2002:8.8.1.3.1.3): <paramref name="dec"/> itself for any other mode, and for an operand that is no arithmetic
+    /// result (a data item or literal of at most 31 digits is already within it).</summary>
+    internal string SidiRounded(NumX x, string dec) => StandardIntermediate && x.Dec ? RuntimeApi.DecToSidiRounded(dec, SidiRoundingMode) : dec;
 
     /// <summary>Render an operand in SDIDI form: an already-decimal intermediate passes through; a fixed-point
     /// value within <see cref="ExactLiftDigits"/> lifts EXACTLY via <c>CobolDec.From</c>, and one that may hold more (a 16-byte binary
@@ -970,9 +1008,17 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // the native Dec lane (the pb3018 golden pins the pair), where a DISPLAY item's exact bound (at most 31) never
     // rounds. DOC-A.1-82 carries the determination.
     public string DecOperand(NumX x) =>
-        !LiftRounds(x) ? DecOperandExact(x)
-        : x.U ? RuntimeApi.DecLiftRoundedUnsigned(x.Expr, x.Scale, IntermediateMode)
-        : RuntimeApi.DecLiftRounded(x.Expr, x.Scale, IntermediateMode);
+        !LiftRounds(x) ? SidiOperand(x, DecOperandExact(x))
+        : SidiOperand(x, x.U ? RuntimeApi.DecLiftRoundedUnsigned(x.Expr, x.Scale, IntermediateMode)
+        : RuntimeApi.DecLiftRounded(x.Expr, x.Scale, IntermediateMode));
+
+    /// <summary>An operand "not already contained in a standard intermediate data item" is "converted into" one
+    /// (§2002:8.8.1.3.1 r1): a fixed-point operand of more than 32 digits, or of a bound the compiler cannot prove, is cut to its 32
+    /// digits. An operand already a decimal intermediate (an operation's result), a float (native arithmetic's, §2014:8.8.1.3) and
+    /// one of at most 32 digits pass as they are.</summary>
+    private string SidiOperand(NumX x, string dec) =>
+        StandardIntermediate && !x.Dec && !x.Real && !(x.Digits >= 1 && x.Digits <= CobolDec.SidiDigits)
+            ? RuntimeApi.DecToSidi(dec, IntermediateMode) : dec;
 
     /// <summary>Does lifting <paramref name="x"/> into the SDIDI ROUND it (§2023:8.8.1.5.2 r1)? The ONE answer to that
     /// question: <see cref="DecOperand"/> acts on it and the intrinsic renderer asks it of a function's argument
@@ -1524,7 +1570,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // runtime implementation is CobolDec.Pow. An UNSIGNED-WIDE operand is lifted by DecOperand's rounding twin and
         // does not take the Widen funnel below (kb/Work PB2966, as CombineCore's SDIDI lane).
         if (StandardDecimal)
-            return new NumX(RuntimeApi.DecPow(DecOperand(b), DecOperand(e), IntermediateMode), 0, Dec: true);
+        {
+            string power = RuntimeApi.DecPow(DecOperand(b), DecOperand(e), IntermediateMode, StandardIntermediate);
+            // §2002:8.8.1.3.6: standard arithmetic's exponentiation result is a standard intermediate data item, too.
+            return new NumX(StandardIntermediate ? RuntimeApi.DecToSidi(power, IntermediateMode) : power, 0, Dec: true);
+        }
         // NATIVE: exponentiation is arithmetic — the unsigned-wide Widen funnel applies (kb/Work R10).
         b = DeU(b);
         e = DeU(e);
