@@ -36,3 +36,9 @@ refusals. `1985-FMT-XIII.3.20.2` PARTIAL to CONFORMS. The 1985 GAP moves 63 to 6
 the report gate reuses the reference reader the UNSTRING gate uses rather than a second refmod predicate. Duplication: none
 added. Performance: parse-arm checks over the suffixes of one reference, no allocation on a hot path. No new diagnostic code
 (COBOL7324-7326 returned).
+
+**Gate.** The first full gate was RED on one case, three tests: `8.4.3.1-Identifier/pb1455_qualified_subscripted_subscript`,
+accepted at 85, writes `X (E OF T OF G (2))`, a subscripted subscript, so PB5564 now refuses it at 85, as §1985:IV.4.3.8.2.3
+SR5 requires. It moves to accept 2002 with the same output (the change's edition-gate sweep). Run 000003-20261115T072658Z:
+`=== BUILD-LOCAL GATE: GREEN — Conformance 25,187/25,187 ran · Unit 40,785/40,785 ran · RepoDrift 177/177 ran ·
+Characterization up to date ... ===`.
