@@ -23,6 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// asserts the traceability inventory and the table name the same set of rules, so a rule screened here without a
 /// row (or a row claimed there without an implementation) is red.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class FileControlKeyRuleDriftTests
 {
     // ⛔ THE SPEC READER IS SHARED, NOT COPIED (kb/Work PB721). These three operations — normalize, take a
