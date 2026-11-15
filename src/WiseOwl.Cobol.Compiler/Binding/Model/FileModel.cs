@@ -173,7 +173,7 @@ public sealed class RecordKey
     public IReadOnlyList<int> OccurrenceOf(int segment) => _segmentSubscripts[segment];
 
     /// <summary>True when this is the data-name-1 key of exactly <paramref name="item"/> at exactly the occurrence
-    /// <paramref name="occurrence"/> selects — the identity §2002:14.8.29.3 SR10 and §2002:14.8.37.2 SR6 a) ask of an operand,
+    /// <paramref name="occurrence"/> selects — the identity §2002:14.8.29.2 SR10 and §2002:14.8.37.2 SR6 a) ask of an operand,
     /// where <c>K(1)</c> and <c>K(2)</c> are two different keys.</summary>
     public bool Names(DataItem item, IReadOnlyList<int> occurrence) =>
         !IsSourceForm && ReferenceEquals(Segments[0], item) && Subscripts.SequenceEqual(occurrence);
