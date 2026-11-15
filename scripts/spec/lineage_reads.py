@@ -323,11 +323,13 @@ def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, out: pathlib.Path) -> list[str]:
+def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, out: pathlib.Path,
+                   rules: set[str] | None = None) -> list[str]:
     """Copy every slice of `reads` (`<slice>-read.json`, with its `<slice>-refute.json` when it exists, and the slice's
     `asked`/<slice>.json when `asked` is given) into the read record `out`/<slice>.json, verbatim, with the digest of each
     source. Whichever slices exist are imported; a refute with no read is refused. Nothing is written unless every slice
-    normalizes (`normal_slice`): the errors are listed by slice and rule. Returns the slices written or rewritten."""
+    normalizes (`normal_slice`) and, given the edition's catalog `rules`, reads only its rules: the errors are listed by
+    slice and rule. Returns the slices written or rewritten."""
     if not reads.is_dir():
         raise SystemExit(f"{TOOL}: {reads} is not a directory of read files")
     names = sorted(p.name[:-len("-read.json")] for p in reads.glob("*-read.json"))
@@ -356,9 +358,12 @@ def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, o
                "slice": name, "edition": year, "asked": loaded.get("asked"), "read": loaded["read"],
                "refute": loaded.get("refute"), "imported": {k: digest(b) for k, b in sorted(raw.items())}}
         try:
-            normal_slice(name, doc)
+            s = normal_slice(name, doc)
         except RecordError as e:
             errs.append(str(e))
+            continue
+        if rules is not None and (unknown := sorted(rid for rid in s.reads if rid not in rules)):
+            errs += [f"{name}: {rid}: no rule of the {year} catalog" for rid in unknown]
             continue
         docs[name] = doc
     if errs:

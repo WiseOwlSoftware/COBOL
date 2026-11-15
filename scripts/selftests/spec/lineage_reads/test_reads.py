@@ -115,6 +115,12 @@ def case_02_the_import_writes_the_durable_records_verbatim_or_nothing(expect):
     expect("a malformed slice refuses the whole import, naming slice and rule, and writes nothing",
            F.raises(lambda: R.import_records(2002, src, asked, out), "q-02", "2002-GR-1.1.3-3")
            and sorted(p.name for p in out.iterdir()) == before)
+    (src / "q-02-read.json").write_text(json.dumps({"slice": "q-02", "cases": [F.read("2002-GR-9.9.9-9")]}),
+                                        encoding="utf-8")
+    expect("a read of a rule the edition's catalog does not hold refuses the import, and writes nothing",
+           raises_unknown := F.raises(lambda: R.import_records(2002, src, asked, out, {"2002-GR-1.1.3-1", "2002-GR-1.1.3-2"}),
+                                      "q-02", "2002-GR-9.9.9-9", "no rule of the 2002 catalog"))
+    expect("(nothing written)", raises_unknown and sorted(p.name for p in out.iterdir()) == before)
     (src / "q-02-read.json").unlink()
     (src / "q-03-refute.json").write_text("{}", encoding="utf-8")
     expect("a refuter record with no reader's record is refused", F.raises(lambda: R.import_records(2002, src, asked, out),

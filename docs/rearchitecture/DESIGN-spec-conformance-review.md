@@ -1798,10 +1798,10 @@ the edition. A later change that narrows a witness's band, or rewrites a read un
 before the own-edition rule existed, the schema names no `own-edition-evidence`, and `lineage_reads.py own-edition
 --edition 1985 --out FILE` measures the stored records against the rule without changing them.
 
-**Measured on 2026-11-15** (56 slices read, 1,399 rules; the reads still being written are imported when they change):
-kept before the evidence check 272; refused 597 (`flag unanswered` 313, `no refuter record` 284); work items 530
-(`needs-own-witness` 288, `defect` 187, `undecided` 54, `uninterpretable` 1). `change-batch` on that run writes 197 KEPT
-records and refuses 388 alone (a flag unanswered 313, no witness at 2002 159, a record counted under each reason it has);
-`record_verdicts.py --edition 2002 --dry-run` accepts all 197 (GAP 3,297 to 3,101). Of the 75 rows refused only for their
-evidence, `widen` finds 58 widenable (63 cases to widen, 6 refusal entries) and 17 that need a witness of their own. 1985:
-of 1,373 stored KEPT records, 887 have a witness at 85 for at least one target and 671 for every target; 486 have none.
+**Measured on 2026-11-15** (all 63 slices read, 1,570 rules): kept before the evidence check 291; refused 664 (`flag
+unanswered` 531, `no refuter record` 133); work items 615 (`needs-own-witness` 320, `defect` 207, `undecided` 87,
+`uninterpretable` 1). `change-batch` on that run writes 215 KEPT records and refuses 607 alone (a flag unanswered 531, no
+witness at 2002 250, a record counted under each reason it has); `record_verdicts.py --edition 2002 --dry-run` accepts all
+215 (GAP 3,297 to 3,083). Of the 76 rows refused only for their evidence, `widen` finds 58 widenable (63 cases to widen, 6
+refusal entries) and 18 that need a witness of their own. 1985: of 1,373 stored KEPT records, 887 have a witness at 85 for
+at least one target and 671 for every target; 486 have none.

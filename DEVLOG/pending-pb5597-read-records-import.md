@@ -17,13 +17,13 @@ red gate (R2-1). The JSON backspace in the communication-reach pattern is now `\
 parameter is refused at load (R2-3). Answers travel into the change, and one bad row no longer refuses its whole batch
 (R2-4).
 
-**Measured (dry runs: no 2002 record is written).** The import read 56 slices covering 1,399 rules. Before the evidence
-check, 272 rules would be kept. 597 were refused: 313 because a flag is unanswered and 284 because no refuter record
-exists. 530 became work items: 288 needs-own-witness, 187 defect, 54 undecided and 1 uninterpretable. `change-batch`
-wrote 197 KEPT records and refused 388, and `record_verdicts.py --edition 2002 --dry-run` accepted all 197 (GAP 3,297 to
-3,101). Of the 75 rows refused only for their evidence, `widen` found 58 widenable and 17 that need their own witness.
-For 1985, 887 of the 1,373 stored KEPT records have a witness at 85 for at least one target, and 486 have none.
+**Measured (dry runs: no 2002 record is written).** The import read all 63 slices, covering 1,570 rules. Before the
+evidence check, 291 rules would be kept. 664 were refused: 531 because a flag is unanswered and 133 because no refuter
+record exists. 615 became work items: 320 needs-own-witness, 207 defect, 87 undecided and 1 uninterpretable.
+`change-batch` wrote 215 KEPT records and refused 607, and `record_verdicts.py --edition 2002 --dry-run` accepted all 215
+(GAP 3,297 to 3,083). Of the 76 rows refused only for their evidence, `widen` found 58 widenable and 18 that need their own
+witness. For 1985, 887 of the 1,373 stored KEPT records have a witness at 85 for at least one target, and 486 have none.
 
 **Not done.** The real import, the band widening and the 2002 records are the records worker's. So are the re-read of the
-313 rows whose screen flags their slices never asked and the 284 SAME reads with no refuter. 1985's state rules and records
+531 rows whose screen flags their slices never asked and the 133 SAME reads with no refuter. 1985's state rules and records
 are unchanged.

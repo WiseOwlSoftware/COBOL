@@ -1284,13 +1284,12 @@ def import_reads(year: int, reads: pathlib.Path, asked: pathlib.Path | None, rec
     ed = edition(year)
     if ed.next_held is None:
         raise SystemExit(f"{TOOL}: import-reads --edition {year}: the newest held edition has no change records")
-    written = lineage_reads.import_records(year, reads, asked, record)
-    slices = lineage_reads.load(year, record)
-    screen = lineage_screen.committed(year)
-    decisions = lineage_reads.decide(ed, slices, screen, None)
     by_rule = {r["id"]: r for r in ed.rules()}
-    if unknown := sorted(rid for s in slices for rid in s.reads if rid not in by_rule):
-        raise SystemExit(f"{TOOL}: {len(unknown)} read rule(s) are no rule of the {year} catalog: {unknown[:5]}")
+    written = lineage_reads.import_records(year, reads, asked, record, set(by_rule))
+    slices = lineage_reads.load(year, record)
+    if unknown := sorted(rid for s in slices for rid in s.reads if rid not in by_rule):   # an earlier import's record
+        raise SystemExit(f"{TOOL}: {len(unknown)} read rule(s) of {record} are no rule of the {year} catalog: {unknown[:5]}")
+    decisions = lineage_reads.decide(ed, slices, lineage_screen.committed(year), None)
     state.mkdir(parents=True)
     write_atomic(state / READS, json.dumps({"edition": year, "record": str(record.resolve()),
                                             "slices": sorted(s.name for s in slices)}, indent=1) + "\n")
