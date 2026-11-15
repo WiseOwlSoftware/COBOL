@@ -1,4 +1,4 @@
-## The second 2002 read report files 8 defect notes and one adjudication
+## Entry 3664 — 2026-11-15 01:16 PST — The second 2002 read report files 8 defect notes and one adjudication
 
 **What was read.** The second pass of the 2002 read (readers and refuters q-21..q-44, 48 files under `E:/COBOL-coord/scratch/op-20261114/read-2002/out`) found 140 defect cases: 8 new groups, 6 extensions of open notes, 3 owner-decision facilities extended, 2 conditional items and 4 dropped groups. Only `kb/Work/` and this entry change.
 
@@ -20,3 +20,4 @@
 **Dropped.** The VALIDATE, FORMAT/SELECT WHEN and WRITE/REWRITE FILE rows (under the owner-decision notes), four cases that repeat the mechanisms of PB5578, PB5579, PB5602 and PB5604, eight refuter cases upheld with the compiler outcome right, and a CD TYPEDEF lead whose refusal is correct because a type declaration has no storage.
 
 **Correction to the first report's notes.** The `Sites` blocks of PB5598-PB5615 as landed in #1692 cut each path at its first dot after `src/WiseOwl` and printed the rest outside the code span. They are regenerated here with the whole path.
+
