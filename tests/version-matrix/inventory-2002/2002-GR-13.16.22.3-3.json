@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.22.3-3",
+ "rule-digest": "44d6e4aa39da",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ExternalRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#InternalRecord",
+ "test-ref": "conformance:cases/13.18.24-FORMAT-clause/format_roundtrip_character_numeric; conformance:wiseowl/cases/13.18.24-FORMAT-clause/format_record_with_variable_table_unsupported",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.22.3 GR3: the elementary entries of the selected record are the items formatted; a record holding an OCCURS DEPENDING ON or a dynamic table has no fixed layout and is refused, COBOL7344."
+}

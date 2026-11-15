@@ -70,11 +70,11 @@ internal static class ExternalFileConnectorRules
             var conns = group.ToList();
             foreach (var f in conns)
             {
-                if (is2023 && f.FileStatusName is not null && f.FileStatusItem?.ExternalItemIdentity() is null)
+                if (is2023 && f.FileStatusName is not null && f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts) is null)
                     NotExternal(edition, externalName, f.ClauseOrEntryAt(f.FileStatusAt), "FILE STATUS", f.FileStatusName,
                         newIn2023, "ISO §2023:14.8.4.2; Annex E.2 item 9");
                 if (f.Organization == FileOrganization.Relative && f.RelativeKeyName is not null
-                    && f.RelativeKeyItem?.ExternalItemIdentity() is null)
+                    && f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts) is null)
                     NotExternal(edition, externalName, f.ClauseOrEntryAt(f.RelativeKeyAt), "RELATIVE KEY", f.RelativeKeyName,
                         EditionSeverity.Error, "ISO " + Cite(edition, "§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)"));
                 if (f.Padding is { DataName: { } pad, Item: not null } p && p.Item.ExternalItemIdentity() is null)
@@ -98,7 +98,7 @@ internal static class ExternalFileConnectorRules
             // FILE STATUS (VCR 18, new in 2023): if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming
             // the same corresponding external data item (§2023:12.4.5.3 GR1 i)).
             if (is2023 && conns.Any(f => f.FileStatusName is not null))
-                SameItem(edition, conns, f => f.FileStatusItem, f => f.ClauseOrEntryAt(f.FileStatusAt),
+                SameItem(edition, conns, f => f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts), f => f.ClauseOrEntryAt(f.FileStatusAt),
                     DiagnosticCatalog.ExternalFileStatusConsistency, newIn2023,
                     $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
                     + "specify FILE STATUS naming the same corresponding external data item "
@@ -107,7 +107,7 @@ internal static class ExternalFileConnectorRules
 
             // RELATIVE KEY: for an external RELATIVE file, every corresponding SELECT names the same external data item.
             if (conns.Any(f => f.Organization == FileOrganization.Relative) && conns.Any(f => f.RelativeKeyName is not null))
-                SameItem(edition, conns, f => f.RelativeKeyItem, f => f.ClauseOrEntryAt(f.RelativeKeyAt),
+                SameItem(edition, conns, f => f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts), f => f.ClauseOrEntryAt(f.RelativeKeyAt),
                     DiagnosticCatalog.ExternalRelativeKeyConsistency, EditionSeverity.Error,
                     $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
                     + "shall specify RELATIVE KEY naming the same external data item (ISO "
@@ -133,7 +133,31 @@ internal static class ExternalFileConnectorRules
                 }
             }
             if (edition.DialectLevel < 2002) CheckFileDescriptions(edition, externalName, conns);
+            else CheckFormat(edition, externalName, conns);
         }
+    }
+
+    /// <summary>The FORMAT clause's rule for an external file connector (ISO §2023:13.18.24.4 GR12; ISO/IEC 1989:2002 §13.16.22.3 GR12): "If the
+    /// associated file connector is an external file connector, all file description entries in the run unit that are associated with that file
+    /// connector shall specify the same FORMAT clause." An entry that writes none disagrees with one that writes it; the clauses agree when
+    /// they select the same kinds of data item (BIT, CHARACTER and NUMERIC in any order, §2023:5.2.6.4). Reported at the first entry that
+    /// differs from the first describer's, as the entry identity's segments are (COBOL6847; kb/Work PB5578).</summary>
+    private static void CheckFormat(EditionContext edition, string externalName, List<FileModel> conns)
+    {
+        var first = conns[0];
+        foreach (var f in conns.Skip(1))
+        {
+            if (f.Format == first.Format) continue;
+            using (edition.At(f.ClauseOrEntryAt(f.Format is null ? default : f.FormatAt)))
+                edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
+                    $"external file '{externalName}': this file description entry and the first one in the run unit that describes the file connector "
+                    + $"differ in their FORMAT clause ({Describe(f.Format)} against {Describe(first.Format)}) — the entries of an external file connector "
+                    + $"specify the same FORMAT clause ({RecordFormatCitations.FormatGeneral(edition.DialectLevel, "GR12")})");
+            return;   // one report per connector: the first entry that differs
+        }
+
+        static string Describe(WiseOwl.Cobol.Runtime.IO.RecordFormatKinds? kinds) =>
+            kinds is null ? "none" : "FORMAT " + string.Join(" ", kinds.Value.ToString().Split(", ").Select(k => k.ToUpperInvariant()));
     }
 
     /// <summary>The X3.23-1985 agreement rules of the file DESCRIPTION entries (<see cref="FileDescriptionIdentity"/>, kb/Work PB5300), asked in the same pass
@@ -183,11 +207,11 @@ internal static class ExternalFileConnectorRules
 
     /// <summary>"If any specifies it, all shall, naming the same item": report the first describer that names no external
     /// item, else the first whose item differs from the first describer's.</summary>
-    private static void SameItem(EditionContext edition, List<FileModel> conns, Func<FileModel, DataItem?> item,
+    private static void SameItem(EditionContext edition, List<FileModel> conns, Func<FileModel, string?> identity,
         Func<FileModel, Editions.DiagnosticCursor> at, DiagnosticDescriptor code, EditionSeverity severity, string message,
         string cite, string externalName)
     {
-        var ids = conns.Select(f => item(f)?.ExternalItemIdentity()).ToList();
+        var ids = conns.Select(identity).ToList();
         if (!ids.Any(id => id is null) && ids.Distinct(StringComparer.Ordinal).Count() <= 1) return;
         int odd = ids.FindIndex(id => id is null);
         if (odd < 0) odd = ids.FindIndex(id => !string.Equals(id, ids[0], StringComparison.Ordinal));

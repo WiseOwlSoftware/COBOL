@@ -99,7 +99,7 @@
  ],
  "counts": {
   "pairs": 1770,
-  "marked": 1220,
+  "marked": 1230,
   "ambiguous": 2,
   "normalized": 38,
   "absent-from-2014": 29,
@@ -107,7 +107,7 @@
   "definition-dropped": 359,
   "cross-reference": 28,
   "pending-clause": 621,
-  "behaviour-switch": 166,
+  "behaviour-switch": 194,
   "held": 6,
   "band-formats": 84,
   "clause-identity": 1767,
@@ -3880,7 +3880,10 @@
    "2002-GR-13.16.38.4-9",
    "2002-GR-14.8.27.3-5",
    "2002-GR-14.8.30.3-5",
+   "2002-GR-14.8.33.3-1",
    "2002-GR-14.8.33.3-11",
+   "2002-GR-14.8.33.3-17",
+   "2002-GR-14.8.33.3-3",
    "2002-GR-14.8.35.3-24",
    "2002-GR-8.3.1.2.1.3-2",
    "2002-SR-11.2.2-9",
@@ -3892,6 +3895,8 @@
    "2002-SR-13.16.36.2-17",
    "2002-SR-14.8.27.2-12",
    "2002-SR-14.8.27.2-4",
+   "2002-SR-14.8.33.2-2",
+   "2002-SR-14.8.33.2-5",
    "2002-SR-14.8.35.2-22",
    "2002-SR-14.8.35.2-25",
    "2002-SR-14.8.35.2-8",
@@ -3939,7 +3944,7 @@
    "behaviour-switch": {
     "DIFFERENT": 0,
     "DOUBTFUL": 0,
-    "SAME": 0
+    "SAME": 6
    },
    "held": {
     "DIFFERENT": 0,
@@ -5039,6 +5044,7 @@
    "pending-clause": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)"
   },
   "2002-GR-13.16.49.3-3": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements",
    "communication-reach": "clause 13.16.49 is reached by the 2002 communication section (Annex A, the CD entry)"
   },
   "2002-GR-13.16.5.3-3": {
@@ -5662,31 +5668,54 @@
   "2002-GR-14.8.32.3-4": {
    "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)"
   },
+  "2002-GR-14.8.33.3-1": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
   "2002-GR-14.8.33.3-11": {
-   "absent-from-2014": "its whole text is not in the 2014 transcription"
+   "absent-from-2014": "its whole text is not in the 2014 transcription",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
+  "2002-GR-14.8.33.3-12": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
+  "2002-GR-14.8.33.3-17": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.33.3-19": {
-   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)"
+   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.33.3-2": {
-   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)"
+   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.33.3-20": {
    "definition-changed": "dynamic access",
-   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)"
+   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.33.3-21": {
-   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)"
+   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.33.3-22": {
-   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)"
+   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.33.3-24": {
    "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed), §2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements",
    "deferral": "the rules for "
   },
+  "2002-GR-14.8.33.3-3": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
+  "2002-GR-14.8.33.3-5": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
   "2002-GR-14.8.33.3-7": {
-   "definition-dropped": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)"
+   "definition-dropped": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.34.3-2": {
    "cross-reference": "8.8.4",
@@ -5958,75 +5987,75 @@
   },
   "2002-GR-14.8.47.3-1": {
    "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-14": {
    "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-16": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-17": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-18": {
    "definition-changed": "extend mode",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-19": {
    "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-2": {
    "definition-changed": "output file",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-20": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-22": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-26": {
    "definition-changed": "extend mode",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error",
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements",
    "deferral": "the rules for "
   },
   "2002-GR-14.8.47.3-27": {
    "definition-changed": "extend mode",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-28": {
    "definition-changed": "runtime element",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-30": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-32": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-33": {
    "definition-changed": "runtime element",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-34": {
    "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-35": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-4": {
    "definition-dropped": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-7": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.47.3-9": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-GR-14.8.5.3-12": {
    "definition-changed": "zero-length item",
@@ -7204,21 +7233,27 @@
    "definition-dropped": "object reference (newer: 9.3.2)"
   },
   "2002-SR-13.16.49.2-1": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements",
    "communication-reach": "clause 13.16.49 is reached by the 2002 communication section (Annex A, the CD entry)"
   },
   "2002-SR-13.16.49.2-2": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements",
    "communication-reach": "clause 13.16.49 is reached by the 2002 communication section (Annex A, the CD entry)"
   },
   "2002-SR-13.16.49.2-3": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements",
    "communication-reach": "clause 13.16.49 is reached by the 2002 communication section (Annex A, the CD entry)"
   },
   "2002-SR-13.16.49.2-4": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements",
    "communication-reach": "clause 13.16.49 is reached by the 2002 communication section (Annex A, the CD entry)"
   },
   "2002-SR-13.16.49.2-5": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements",
    "communication-reach": "clause 13.16.49 is reached by the 2002 communication section (Annex A, the CD entry)"
   },
   "2002-SR-13.16.49.2-6": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements",
    "communication-reach": "clause 13.16.49 is reached by the 2002 communication section (Annex A, the CD entry)"
   },
   "2002-SR-13.16.5.2-1": {
@@ -7735,15 +7770,33 @@
   "2002-SR-14.8.32.2-3": {
    "definition-changed": "alphanumeric group item"
   },
+  "2002-SR-14.8.33.2-10": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
   "2002-SR-14.8.33.2-11": {
-   "definition-dropped": "report (newer: 13.18.46.2)"
+   "definition-dropped": "report (newer: 13.18.46.2)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.33.2-12": {
-   "definition-dropped": "object reference (newer: 9.3.2)"
+   "definition-dropped": "object reference (newer: 9.3.2)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
+  "2002-SR-14.8.33.2-2": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.33.2-3": {
    "definition-dropped": "relative organization (newer: D.2.2.2)",
-   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)"
+   "pending-clause": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
+  "2002-SR-14.8.33.2-4": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
+  "2002-SR-14.8.33.2-5": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
+  },
+  "2002-SR-14.8.33.2-6": {
+   "behaviour-switch": "select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.34.2-3": {
    "definition-changed": "index"
@@ -7922,57 +7975,57 @@
    "definition-dropped": "report (newer: 13.18.46.2)"
   },
   "2002-SR-14.8.47.2-1": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-12": {
    "definition-dropped": "report (newer: 13.18.46.2)",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-13": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-14": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-15": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-16": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-17": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-18": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-19": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-2": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-20": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-21": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-3": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-5": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-6": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-7": {
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-14.8.47.2-8": {
    "definition-dropped": "object reference (newer: 9.3.2)",
-   "behaviour-switch": "relative-write-key-out-of-range-permanent-error"
+   "behaviour-switch": "relative-write-key-out-of-range-permanent-error, select-when-only-for-file-phrase-statements"
   },
   "2002-SR-6.1.2.1-1": {
    "pending-clause": "§2002:6 (changed, undecided)",

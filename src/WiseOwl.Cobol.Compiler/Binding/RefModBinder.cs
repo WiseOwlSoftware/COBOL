@@ -176,8 +176,9 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// does not admit it (the CALLER rejects that at bind with COBOL1647 — this is the backstop).</para>
     /// <para>SR1 and the view read the PLACE's item, as <see cref="Resolve"/> does — a no-THROUGH level-66 alias is
     /// described by data-name-2 (§2023:13.18.45.4 GR1), never by its own entry (kb/Work PB1380).</para></summary>
-    public Place? ResolveItemRefMod(DataItem item, int start, int? length, bool allowZeroLength = false) =>
-        refs.Places.PlaceForItem(item, []) is { } inner && RefModExclusion(inner.Item) is null
+    public Place? ResolveItemRefMod(DataItem item, IReadOnlyList<int> subscripts, int start, int? length, bool allowZeroLength = false) =>
+        refs.Places.ResolveOccurrence(item, subscripts) is { } inner
+            && RefModExclusion(inner.Item) is null
             ? RefModView(inner.Item, inner, new RefModSpec(new PositionConstant(start), length is { } l ? new PositionConstant(l) : null, allowZeroLength))
             : null;
 
@@ -349,24 +350,45 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     {
         int refMods = 0, subscripts = 0;
         Core.RefModPartContext? first = null;
+        // ⛔ THE SUBSCRIPTS' VALUES ARE READ HERE TOO, in written order (kb/Work PB5602): a clause that admits a
+        // subscripted data-name-n (COBOL-2002, §2002:5.1.3 "including qualification and subscription if needed") fixes the
+        // item at compile time, so it reads each subscript as the INTEGER LITERAL it must be — the same lexical reading
+        // the reference modification's positions get — and a subscript that is not one (a data-name, an expression, ALL)
+        // comes back as NonLiteral for the CLAUSE's own rule to refuse.
+        List<int>? values = null;
+        bool subscriptNonLiteral = false;
+        void ReadSubscripts(Core.SubscriptPartContext part)
+        {
+            subscripts++;
+            values ??= [];
+            if (part.subscriptList() is not { } list) { subscriptNonLiteral = true; return; }
+            foreach (var item in list.subscriptItem())
+            {
+                if (item.functionArgument() is { } arg && !WritesFigurativeZero(arg)
+                    && WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(arg.GetText(), out int v, out _))
+                    values.Add(v);   // a literal beyond the host range saturates, and no OCCURS count reaches it: the range screen refuses it
+                else subscriptNonLiteral = true;
+            }
+        }
         foreach (var suffix in dref.dataReferenceSuffix())
         {
             // A qualification carries its OWN (subscriptPart | refModPart)* tail — `C IN G (1:3)` hangs the
             // ref-mod off the qualification, not off the base word.
             if (suffix.qualification() is { } q)
             {
-                subscripts += q.subscriptPart().Length;
+                foreach (var sp in q.subscriptPart()) ReadSubscripts(sp);
                 foreach (var rp in q.refModPart()) { refMods++; first ??= rp; }
             }
             else if (suffix.refModPart() is { } rmp) { refMods++; first ??= rmp; }
-            else if (suffix.subscriptPart() is not null) subscripts++;
+            else if (suffix.subscriptPart() is { } subscriptPart) ReadSubscripts(subscriptPart);
         }
-        if (refMods != 1) return new RefModSuffixes(refMods, subscripts, null, null, false);
+        var written = new WrittenSubscripts(values ?? [], subscriptNonLiteral);
+        if (refMods != 1) return new RefModSuffixes(refMods, subscripts, null, null, false, written);
 
         var (start, length, ok, beyond) = ReadLiteralPositions(first!);
         return ok && beyond
-            ? new RefModSuffixes(refMods, subscripts, null, null, false, BeyondHostLimit: true)
-            : new RefModSuffixes(refMods, subscripts, ok ? start : null, ok ? length : null, !ok);
+            ? new RefModSuffixes(refMods, subscripts, null, null, false, written, BeyondHostLimit: true)
+            : new RefModSuffixes(refMods, subscripts, ok ? start : null, ok ? length : null, !ok, written);
     }
 
     /// <summary>A <c>refModPart</c> as integer literals: each position shall be ONE integer literal (§2023:13.18.16.3 SR4
@@ -410,5 +432,16 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
 /// clause that lays the slice out (the CONTROL prior-value copy, §2023:13.18.16.4 GR3) reports COBOL2427 through
 /// <see cref="WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage"/> rather than allocate a saturated
 /// bound.</param>
+/// <param name="Subscript">The written subscripts' values, read lexically (kb/Work PB5602).</param>
 internal readonly record struct RefModSuffixes(
-    int RefMods, int Subscripts, int? Start, int? Length, bool NonLiteral, bool BeyondHostLimit = false);
+    int RefMods, int Subscripts, int? Start, int? Length, bool NonLiteral, WrittenSubscripts Subscript,
+    bool BeyondHostLimit = false);
+
+/// <summary>The subscripts one data reference writes, in written order, as the integer literals a data-division clause
+/// requires of them (kb/Work PB5602).</summary>
+/// <param name="Values">The integer-literal subscripts, in written order (every subscript that WAS one).</param>
+/// <param name="NonLiteral">A subscript is written that is not ONE integer literal — a data-name, an arithmetic expression,
+/// ALL, or the figurative ZERO.</param>
+internal readonly record struct WrittenSubscripts(IReadOnlyList<int> Values, bool NonLiteral)
+{
+}

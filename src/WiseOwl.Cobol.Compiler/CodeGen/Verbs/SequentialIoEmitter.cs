@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Runtime.IO;
 
 namespace WiseOwl.Cobol.CodeGen;
 
@@ -26,6 +27,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
 
     /// <summary>The USE FOR DEBUGGING trigger emitter — property-wired by <see cref="UnitEmitters"/> (docs/CONTROL_FLOW_DESIGN.md D20).</summary>
     internal DebugTriggerEmitter Debug { get; set; } = null!;
+
+    /// <summary>The condition renderer — property-wired by <see cref="UnitEmitters"/>: the SELECT WHEN selector registered with a file
+    /// (<see cref="EmitRecordFormatRegistration"/>) compiles the level-88 entries the clauses name, in the code that runs them.</summary>
+    internal ConditionRenderer Cond { get; set; } = null!;
 
     /// <summary>The declarative hook after a verb's FILE STATUS store (GR6 — after the standard status routine,
     /// BEFORE the statement's phrase branches). A statement with ENABLED EC-I-O checking for this file (>>TURN,
@@ -408,6 +413,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             int recordMax = file.RecordMax > file.RecordWidth ? file.RecordMax : 0;
             w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", ctx.Data.DialectLevel, vary, CsLiteral(file.SelectName), recordMax, file.WrittenWithAdvancing)};");
             EmitAreaRegistrations(w, file);
+            EmitRecordFormatRegistration(w, file);
             EmitSharingRegistration(w, file);
         }
     }
@@ -532,6 +538,83 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             w.Line($"{RuntimeApi.FileRegisterReserve(FileKeyExpr(file), areas)};");
     }
 
+    /// <summary>⛔ THE FILE'S RECORD FORMAT, told to the connector (ISO §2023:13.18.24 FORMAT clause, §2023:13.18.51 SELECT WHEN clause; ISO/IEC
+    /// 1989:2002 §2002:13.16.22, §2002:13.16.49): the FORMAT clause's kinds, one <c>RecordPlan</c> per record description entry in the order written (the
+    /// order SELECT WHEN GR3 evaluates), the byte offset of the conditional variable all the clauses share (SR4), and the CODE-SET alphabet,
+    /// which a file translated item by item carries here and not in <see cref="EmitCodeSetRegistration"/>'s whole-record conversion. A file
+    /// with several record description entries then registers the SELECT WHEN selector: the entries' conditions compiled, in order, over the
+    /// internal image the runtime hands it — stored into the file's record area, which every record description of the file overlays
+    /// (§2023:13.18.33.4 GR3) and which the READ or WRITE that follows replaces or sends anyway. Emitted ONLY for such a file, so every other
+    /// program's registration is unchanged byte for byte.</summary>
+    internal void EmitRecordFormatRegistration(CodeWriter w, FileModel file)
+    {
+        if (!file.TranslatesByRecord) return;
+        var records = file.WrittenRecords.ToList();
+        string plans = string.Join(", ", records.Select(r => RenderPlan(RecordPlans.Of(r), FileModel.IsNationalRecord(r))));
+        var kinds = file.Format ?? RecordFormatKinds.None;
+        string kindsExpr = kinds is RecordFormatKinds.None ? "RecordFormatKinds.None"
+            : string.Join(" | ", new[] { (RecordFormatKinds.Bit, "Bit"), (RecordFormatKinds.Character, "Character"), (RecordFormatKinds.Numeric, "Numeric") }
+                .Where(k => kinds.HasFlag(k.Item1)).Select(k => $"RecordFormatKinds.{k.Item2}"));
+        var selecting = records.Select(r => r.SelectWhen).ToList();
+        int selector = records.Count > 1
+            ? selecting.Select((sw, i) => sw?.Condition is { } c ? RecordLayout.OffsetInRecord(Root(c.Parent), c.Parent) : null).First(o => o is not null) ?? 0
+            : -1;
+        string codeSet = file.CodeSetCorrespondence is { } map
+            ? "new char[] { " + string.Join(", ", map.Select(c => $"(char){(int)c}")) + " }"
+            : "null";
+        string key = FileKeyExpr(file);
+        w.Line($"{RuntimeApi.FileRegisterRecordFormat(key, $"new {nameof(RecordFormat)}({kindsExpr}, new {nameof(RecordPlan)}[] {{ {plans} }}, {selector}, {codeSet})")};");
+        if (records.Count <= 1) return;
+        var area = places.RecordArea(file);
+        w.Line($"{RuntimeApi.FileRegisterRecordSelector(key, "(string __sw) =>")}");
+        w.Line("{");
+        w.Indent();
+        if (area is not null) EmitImageInto(area, "__sw", storesIntoOwnItem: false);
+        for (int i = 0; i < records.Count; i++)
+        {
+            if (selecting[i] is not { } sw) continue;
+            if (sw.IsOther) { w.Line($"return {i};   // SELECT WHEN OTHER (§2023:13.18.51.4 GR3: always true)"); break; }
+            if (sw.Condition is not { } cond || places.Of(cond.Parent) is not { } parent) continue;
+            w.Line($"if ({Cond.Render(new BoundCondition88(parent, cond))}) return {i};   // SELECT WHEN {sw.ConditionName} of '{records[i].CobolName}'");
+        }
+        w.Line($"return {nameof(RecordFormat)}.{nameof(RecordFormat.NoSelection)};   // no record description entry selected: I-O status 45 (§2023:13.18.51.4 GR4)");
+        w.Outdent();
+        w.Line("});");
+    }
+
+    /// <summary>The index, among the file's written record description entries, of the one a WRITE or REWRITE of record-name-1 names, or null when the
+    /// statement selects its entry by the SELECT WHEN conditions: the FILE phrase's statement always does (§2023:13.18.51.4 GR2: the clauses have effect
+    /// for "REWRITE statements with the FILE phrase, and WRITE statements with the FILE phrase"), and so does every statement at <c>--std 2002</c>
+    /// (§2002:13.16.49.3 GR1: "evaluated for READ, REWRITE, and WRITE statements associated with that file"), which
+    /// <see cref="DialectBehavior.SelectWhenOnlyForFilePhraseStatements"/> separates. A file with one entry has nothing to select (kb/Work PB5578).</summary>
+    private string? NamedRecordEntry(FileModel file, Place record, bool filePhrase)
+    {
+        if (filePhrase || !file.TranslatesByRecord) return null;
+        if (!DialectBehaviors.IsActive(DialectBehavior.SelectWhenOnlyForFilePhraseStatements, ctx.Data.DialectLevel)) return null;
+        var records = file.WrittenRecords.ToList();
+        if (records.Count < 2) return null;
+        int index = records.IndexOf(Root(record.Item));
+        return index < 0 ? null : index.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static DataItem Root(DataItem item)
+    {
+        while (item.Parent is { } parent) item = parent;
+        return item;
+    }
+
+    /// <summary>One record description entry's plan as the runtime's <c>RecordPlan</c> constructor call.</summary>
+    private string RenderPlan(RecordPlanModel plan, bool national) =>
+        $"new {nameof(RecordPlan)}({plan.Width}, " + string.Join(", ", plan.Steps.Select(RenderStep)) + ")" + (national ? " { National = true }" : "");
+
+    private string RenderStep(PlanStep step)
+    {
+        string profile = step.Pic is { } pic && step.Kind is RecordStepKind.Zoned or RecordStepKind.NationalNumeric or RecordStepKind.Numeric or RecordStepKind.Float
+            ? $", {step.Pic!.ProfileInitializer(ctx.SignEncoding)}" : "";
+        string bits = step.Bits is { } b ? $"{(profile.Length == 0 ? ", default" : "")}, Bits: new int[] {{ {string.Join(", ", b)} }}" : "";
+        return $"new {nameof(RecordStep)}({nameof(RecordStepKind)}.{step.Kind}, {step.Offset}, {step.Length}{profile}{bits})";
+    }
+
     /// <summary>§2023:13.18.13.4 GR2's on-medium coded character set, told to the connector: the GR7 c / GR7 i
     /// correspondence the CODE-SET clause's alphabet defines, as a char[] literal indexed by medium code unit — one
     /// entry per character of the set (<c>CodedCharacterSet.MediumCorrespondence</c>). Emitted ONLY when the set
@@ -539,7 +622,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// all), so every other program's registration is unchanged byte for byte.</summary>
     private static void EmitCodeSetRegistration(CodeWriter w, FileModel file)
     {
-        if (file.CodeSetCorrespondence is not { } map) return;
+        if (file.CodeSetCorrespondence is not { } map || file.TranslatesByRecord) return;   // a file translated by record plan carries its alphabet in the plan's format (EmitRecordFormatRegistration)
         string literal = "new char[] { " + string.Join(", ", map.Select(c => $"(char){(int)c}")) + " }";
         w.Line($"{RuntimeApi.FileRegisterCodeSet(FileKeyExpr(file), literal)};");
     }
@@ -854,7 +937,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // §2023:14.9.51.4 GR21 / GR22 key the line sequential strip, fill and character set on RECORD-NAME-1's category,
         // so the statement carries it (kb/Work PB1191). The image sent is record-name-1's own on a line sequential
         // file (FileModel.TransfersPastRecord is false for it), so the category is the Place's.
-        w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount, LinageArg(wr.File), AdvanceArg(wr), OperandText.RecordSendExtents(wr.Record), FileModel.IsNationalRecord(wr.Record.Item))};");
+        w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount, LinageArg(wr.File), AdvanceArg(wr), OperandText.RecordSendExtents(wr.Record), FileModel.IsNationalRecord(wr.Record.Item), NamedRecordEntry(wr.File, wr.Record, wr.FilePhrase))};");
         EndReleasedRecord(wr.File, wr.Record, released, lenArg, RuntimeApi.FileStatus(name));
         // The §2023:9.1.14 status SNAPSHOT for a --permissive INVALID KEY phrase (kb/Work PB691). Taken HERE, before
         // the FILE STATUS store and the USE hook, for the same reason the end-of-page flag is read in the `if`
@@ -1102,7 +1185,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // clause: held in a local so the statement and the store after it see the SAME record (kb/Work PB1195).
         string? released = BeginReleasedRecord(rw.File, rw.Record, ref image);
         // §2023:14.9.35.4 GR17 c)'s space fill keys on record-name-1's category, carried by the statement (kb/Work PB1191).
-        w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, rwLenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount, OperandText.RecordSendExtents(rw.Record), FileModel.IsNationalRecord(rw.Record.Item))};");
+        w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, rwLenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount, OperandText.RecordSendExtents(rw.Record), FileModel.IsNationalRecord(rw.Record.Item), NamedRecordEntry(rw.File, rw.Record, rw.FilePhrase))};");
         EndReleasedRecord(rw.File, rw.Record, released, rwLenArg, RuntimeApi.FileStatus(FileKeyExpr(rw.File)));
         // The §2023:9.1.14 status snapshot for a --permissive INVALID KEY phrase, taken before the status store and
         // the USE hook — the WRITE arm above carries the full reasoning (kb/Work PB691).
@@ -1410,7 +1493,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // An INHERITED GLOBAL file stores into the OWNER's status item (§2023:12.4.5.8.4 GR1 NOTE 1 - the item is updated by
         // contained-program references to the global file-name even though it is a LOCAL name of the owner): the item
         // is one of the file's clause operands, which the contained unit's table holds like every other (kb/Work PB4454).
-        Place? place = file.FileStatusItem is { } own ? places.Of(own) : null;
+        Place? place = places.FileStatusOf(file);
         if (file.FileStatusItem is not { } item || place is null)
         {
             // §1.4 loud-guard doctrine: a DECLARED FILE STATUS name that did not resolve is never silent.

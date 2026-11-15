@@ -181,6 +181,9 @@
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::ClauseDataNameSubscripted": [
+      "WiseOwl.Cobol.Binding.FileControlBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::ClauseResolutionForest": [
       "WiseOwl.Cobol.Binding.Passes.CheckStrongTypeDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
@@ -343,6 +346,7 @@
       "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
+      "WiseOwl.Cobol.Binding.Passes.ResolveRecordFormatPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveTableValuesPass",
       "WiseOwl.Cobol.Binding.Passes.SynthesizeImpliedPicturesPass",
@@ -695,6 +699,10 @@
     "WiseOwl.Cobol.Binding.DataBinder::ScreenImmediateMemberLevel": [
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::ScreenOperandOccurrence": [
+      "WiseOwl.Cobol.Binding.FileControlBinder",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::ScreenPictureDigitCapacity": [
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
@@ -765,6 +773,7 @@
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PlaceTablePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
+      "WiseOwl.Cobol.Binding.Passes.ResolveRecordFormatPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Passes.RouteStaticUnitStoragePass",
       "WiseOwl.Cobol.Binding.Passes.StorageFormPass",

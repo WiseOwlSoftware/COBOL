@@ -486,9 +486,10 @@ HEADING_ALIASES = {"closed": "landed", "fixed": "landed", "done": "landed"}
 
 
 #: A traceability-inventory rule-id, by SHAPE only — `AR-15.7.3-1`, `SR-13.18.40.3-22`, `FMT-14.9.32.2`,
-#: `GR-9.3.6-L4.1`. Whether the id names a row that EXISTS, and whether that row's verdict resolves, is
-#: `work_inventory.py`'s question (see :func:`closes_rows_shape`).
-RULE_ID_SHAPE = re.compile(r"\A[A-Z]{2,4}-[0-9A-Za-z.]+(?:-[0-9A-Za-z.]+)?\Z")
+#: `GR-9.3.6-L4.1`, and a row of an OLDER held edition, which opens with its year (`2002-GR-13.16.22.3-5`,
+#: `1985-GR-VI.6.18.4-3`; DESIGN-spec-conformance-review.md section 10.2). Whether the id names a row that EXISTS, and
+#: whether that row's verdict resolves, is `work_inventory.py`'s question (see :func:`closes_rows_shape`).
+RULE_ID_SHAPE = re.compile(r"\A(?:[0-9]{4}-)?[A-Z]{2,4}-[0-9A-Za-z.]+(?:-[0-9A-Za-z.]+)?\Z")
 
 
 #: What each frontmatter error code of `parse_frontmatter` (`_errors`) means for the person fixing the note.

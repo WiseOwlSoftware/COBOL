@@ -102,6 +102,41 @@ public abstract record Place
     /// keep switching on the decorated place — this is for the storage-form switch only.</para></summary>
     public Place Undecorated => this is PlaceDecorator d ? d.Inner.Undecorated : this;
 
+    /// <summary>⛔ THE OCCURRENCE A REFERENCE'S INTEGER-LITERAL SUBSCRIPTS SELECT, outermost table level first (kb/Work PB5602): the
+    /// identity a COBOL-2002 clause operand's <c>K(2)</c> is compared against — a READ or START KEY operand against the RECORD KEY
+    /// clause's (§2002:14.8.29.2 SR10, §2002:14.8.37.2 SR6), a START operand against the RELATIVE KEY clause's (SR5). Empty for an
+    /// item no OCCURS clause governs. Null when a table level is subscripted by anything but a constant, or the reference is not
+    /// a member access: it names no ONE occurrence the compiler can compare.</summary>
+    public IReadOnlyList<int>? ConstantOccurrence()
+    {
+        var occurrence = new List<int>();
+        switch (Undecorated)
+        {
+            case MemberPlace member:
+                foreach (var segment in member.Path.Segments)
+                    switch (segment)
+                    {
+                        case FixedTableSegment { OneBasedIndex: PositionConstant constant }:
+                            occurrence.Add(checked((int)constant.Value));
+                            break;
+                        case FixedTableSegment or DynTableSegment or CellTableSegment:
+                            return null;
+                    }
+                break;
+            // A member of a REDEFINES class is a window: its subscripts are the terms of its offset (classOffset + Σ (index − 1) × stride).
+            case RedefViewPlace { Offset: PositionOffset offset }:
+                foreach (var term in offset.Terms)
+                    if (term.Index is PositionConstant constant) occurrence.Add(checked((int)constant.Value));
+                    else return null;
+                break;
+            case RedefViewPlace:
+                break;
+            default:
+                return Item.IsTableElement ? null : [];
+        }
+        return occurrence.Count == Item.SubscriptArity ? occurrence : null;
+    }
+
     /// <summary>⛔ <b>DOES THE OPERAND THIS PLACE REFERENCES HAVE A CHARACTER IMAGE?</b> (kb/Work PB189) — the
     /// capability question asked of the REFERENCED OPERAND, never of the declaring entry. The two differ for
     /// exactly one shape: a subscripted element of a DYNAMIC-capacity table. The dynamic axis belongs to the

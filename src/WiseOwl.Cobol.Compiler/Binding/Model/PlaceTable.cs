@@ -45,6 +45,23 @@ internal sealed class PlaceTable
                 $"no Place was built for data item '{item.CobolName ?? item.ClrName}' when binding finished — the pass that "
                 + "fills the PlaceTable did not see it (kb/Work PB2375)");
 
+    /// <summary>⛔ THE PLACE OF A DATA-NAME-n CLAUSE OPERAND AS WRITTEN (kb/Work PB5602): <paramref name="item"/> with the
+    /// integer-literal <paramref name="subscripts"/> the clause wrote on it, outermost first — a COBOL-2002 clause operand
+    /// <c>K(2)</c> is ONE occurrence, fixed when the program is compiled. No subscript is the item's own place
+    /// (<see cref="Of"/>). Null when the item has none (a table element, a view the builder does not place), or the count is
+    /// not the item's arity: the caller has screened that (<c>DataBinder.ScreenOperandOccurrence</c>).</summary>
+    public Place? OccurrenceOf(DataItem item, IReadOnlyList<int> subscripts) =>
+        subscripts.Count == 0 ? Of(item) : _builder.ResolveOccurrence(item, subscripts);
+
+    /// <summary>The place a file's FILE STATUS clause names — the item with the subscripts the clause wrote on it
+    /// (<see cref="OccurrenceOf"/>; COBOL-2002, kb/Work PB5602) — or null when the file has no resolved FILE STATUS item.</summary>
+    public Place? FileStatusOf(FileModel file) =>
+        file.FileStatusItem is { } item ? OccurrenceOf(item, file.FileStatusSubscripts) : null;
+
+    /// <summary>The place a file's RELATIVE KEY clause names, as <see cref="FileStatusOf"/> reads FILE STATUS.</summary>
+    public Place? RelativeKeyOf(FileModel file) =>
+        file.RelativeKeyItem is { } item ? OccurrenceOf(item, file.RelativeKeySubscripts) : null;
+
     /// <summary>⛔ THE ONE RESOLUTION OF AN FD/SD's RECORD AREA (kb/Work PB355). ISO §2023:13.18.33.4 GR3 — "Multiple level 1
     /// entries subordinate to a FD or SD entry represent implicit redefinitions of the same area" — so the area is ONE
     /// place, and it is the LARGEST description's view (<see cref="FileModel.AreaRecord"/>). Null only for a file whose

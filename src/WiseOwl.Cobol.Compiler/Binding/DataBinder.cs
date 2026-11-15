@@ -1050,6 +1050,30 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal (string Base, IReadOnlyList<string> Quals) ClauseDataName(Core.DataReferenceContext dref, string clauseFace)
     {
         if (ScreenClauseOperandShape(dref, clauseFace)) return KeyReference(dref);
+        return RefuseClauseOperand(dref);
+    }
+
+    /// <summary>⛔ THE CAPTURE OF A data-name-n OPERAND WHOSE COBOL-2002 RULE SAYS ONLY "MAY BE QUALIFIED" (kb/Work PB5602):
+    /// <see cref="ClauseDataName"/>, except that at an edition that reads data-name-n as a user-defined word "including
+    /// qualification and subscription if needed" (<see cref="EditionInfo.SubscriptedClauseOperands"/>, §2002:5.1.3) a SUBSCRIPT written
+    /// on the operand is kept — as the integer literals the clause needs (COBOL7354 when it is anything else) — and not
+    /// refused. The caller screens them against the item they select from once the operand resolves
+    /// (<see cref="ScreenOperandOccurrence"/>). The other editions refuse a subscript exactly as <see cref="ClauseDataName"/>
+    /// does, and the subscripts come back empty.</summary>
+    internal (string Base, IReadOnlyList<string> Quals, IReadOnlyList<int> Subscripts) ClauseDataNameSubscripted(
+        Core.DataReferenceContext dref, string clauseFace)
+    {
+        if (!ScreenClauseOperandShape(dref, clauseFace, admitsSubscript2002: true))
+        {
+            var (written, none) = RefuseClauseOperand(dref);
+            return (written, none, []);
+        }
+        var (word, quals) = KeyReference(dref);
+        return (word, quals, Edition.SubscriptedClauseOperands ? RefModBinder.ReadOperandSuffixes(dref).Subscript.Values : []);
+    }
+
+    private (string Base, IReadOnlyList<string> Quals) RefuseClauseOperand(Core.DataReferenceContext dref)
+    {
         // REFUSED. The operand is recorded AS WRITTEN — never reduced to a word the programmer did not use as a
         // data-name, which is the mis-report PB489 measured (`LINAGE IS LINAGE-COUNTER OF LPF LINES` named the
         // FILE) — and registered so its post-build resolution stays SILENT: the refusal is the cause and the
@@ -1098,8 +1122,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>LINAGE IS T-LINES (2) LINES</c> dropped the subscript and crashed the same way (kb/Work PB489). The
     /// key clauses' own silent drop of a subscript or ref-mod (kb/Work PB205) is the same sentence and ends
     /// here too.</para></summary>
-    private bool ScreenClauseOperandShape(Core.DataReferenceContext dref, string clauseFace) =>
-        ScreenDataNameShape(dref, clauseFace, Edition, NotSubjectToOccurs);
+    private bool ScreenClauseOperandShape(Core.DataReferenceContext dref, string clauseFace, bool admitsSubscript2002 = false) =>
+        ScreenDataNameShape(dref, clauseFace, Edition, NotSubjectToOccurs, admitsSubscript2002);
 
     /// <summary>The subscript sentence of every caller whose own rule forbids an operand <i>"subject to any OCCURS
     /// clauses"</i> — the file clauses (§2023:13.18.34.3 SR1, §2023:12.4.5.12.3 SR1, §2023:12.4.5.6.3 SR1, §2023:12.4.5.13.3 SR1) and the
@@ -1120,7 +1144,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// table SORT key and a REDEFINES data-name-2 may, they are only not WRITTEN subscripted), so one fixed sentence
     /// was false for two of the four callers (kb/Work PB1281).</para></summary>
     internal static bool ScreenDataNameShape(Core.DataReferenceContext dref, string clauseFace, EditionContext edition,
-        string subscriptRule)
+        string subscriptRule, bool admitsSubscript2002 = false)
     {
         using var _ = edition.At(dref);
         string? register =
@@ -1151,6 +1175,22 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // and the sentence was false; the reader that knows both carriers is the only one that can say which.
         var sfx = RefModBinder.ReadOperandSuffixes(dref);
         bool subscripted = sfx.Subscripts > 0, refModified = sfx.RefMods > 0;
+        // ⛔ COBOL-2002 PRINTS A SUBSCRIPTED data-name-n WHERE THE CLAUSE'S OWN RULE SAYS ONLY "MAY BE QUALIFIED"
+        // (kb/Work PB5602): §2002:5.1.3 lists "User-defined word, including qualification and subscription if needed" as the
+        // operand a data-name-n stands for, and the rule that took the subscript away is the 2014 text's ("Data-name-1 shall
+        // not be subscripted", §2014:13.18.16.2 SR3). A caller whose 2002 rule is that sentence says so
+        // (admitsSubscript2002); the subscript is then screened for the form the clause needs, and the item it selects
+        // after resolution (ScreenOperandOccurrence).
+        if (subscripted && admitsSubscript2002 && edition.SubscriptedClauseOperands)
+        {
+            if (sfx.Subscript.NonLiteral)
+                edition.Error(DiagnosticCatalog.ClauseOperandSubscriptNotLiteral,
+                    $"{clauseFace} '{WrittenText(dref)}': the subscript is not an integer literal; the clause identifies one data "
+                    + "item, fixed when the program is compiled (ISO §2002:5.1.3: at COBOL-2002 the clause's data-name-n may be "
+                    + "subscripted, and each subscript shall be an integer literal)");
+            if (refModified) ReportReferenceModified(dref, clauseFace, edition);
+            return !sfx.Subscript.NonLiteral && !refModified;
+        }
         if (subscripted)
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
                 $"{clauseFace} '{WrittenText(dref)}' is written with a subscript; the clause's general format prints "
@@ -1160,6 +1200,49 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         else if (refModified)
             ReportReferenceModified(dref, clauseFace, edition);
         return !subscripted && !refModified;
+    }
+
+    /// <summary>⛔ THE SUBSCRIPTS OF A data-name-n CLAUSE OPERAND, SCREENED AGAINST THE ITEM THEY SELECT FROM (kb/Work PB5602),
+    /// asked once the operand has resolved to <paramref name="item"/>: §2002:8.4.1.2.2 SR2 (a subscript only on a table
+    /// element), SR3 (one subscript for each OCCURS clause, outermost first) and §2002:8.4.1.2.3 GR2 (the occurrence number
+    /// lies between 1 and the OCCURS clause's maximum). An operand written WITHOUT a subscript that names a table element
+    /// is §2002:8.4.1.2.2 SR5's omitted-subscript reference, which none of the clauses that call this lists as an exception.
+    /// Reports and returns false; the cursor is the caller's.</summary>
+    internal static bool ScreenOperandOccurrence(DataItem item, IReadOnlyList<int> subscripts, string face, string written,
+        EditionContext edition)
+    {
+        int arity = item.SubscriptArity;
+        if (subscripts.Count == 0 && arity == 0) return true;
+        if (subscripts.Count > 0 && arity == 0)
+        {
+            edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
+                $"{face} '{written}': '{item.CobolName}' is not a table element, so it takes no subscript "
+                + "(ISO §2002:8.4.1.2.2 SR2)");
+            return false;
+        }
+        if (subscripts.Count != arity)
+        {
+            edition.Error(subscripts.Count == 0 ? DiagnosticCatalog.TableElementNotSubscripted : DiagnosticCatalog.SubscriptCountMismatch,
+                $"{face} '{written}': '{item.CobolName}' is a table element described under {arity} OCCURS "
+                + $"clause{(arity == 1 ? "" : "s")}, and the reference writes {subscripts.Count} subscript"
+                + $"{(subscripts.Count == 1 ? "" : "s")}; each table element reference shall be subscripted, one subscript "
+                + "for each OCCURS clause, outermost first (ISO §2002:8.4.1.2.2 SR3, SR5)");
+            return false;
+        }
+        var levels = item.SubscriptLevels();
+        for (int i = 0; i < levels.Count; i++)
+        {
+            int max = levels[i].Occurs ?? 0;
+            if (subscripts[i] >= 1 && subscripts[i] <= max) continue;
+            edition.Error(DiagnosticCatalog.ClauseOperandSubscriptOutOfRange,
+                $"{face} '{written}': subscript {subscripts[i]} selects no occurrence of '{levels[i].CobolName ?? levels[i].ClrName}', "
+                + (max == 0
+                    ? "a dynamic-capacity table, whose occurrences have no location fixed when the program is compiled"
+                    : $"which has occurrences 1 through {max}")
+                + " (ISO §2002:8.4.1.2.3 GR2)");
+            return false;
+        }
+        return true;
     }
 
     /// <summary>ISO §2023:8.4.3.3.3's NOTE as a screen of its own, for the one data-name-n operand that LEGITIMATELY
@@ -3675,6 +3758,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         string? sameAsName = null;     // SAME AS data-name-1 — the entry this one copies, expanded post-build (§2023:13.18.49)
         IReadOnlyList<string> sameAsQuals = [];   // the SAME AS target's OF/IN qualifiers
         bool isAligned = false;        // ALIGNED (ISO §2023:13.18.1 — bit alignment at the first bit of the first available byte)
+        SelectWhenSpec? selectWhen = null;   // SELECT WHEN (ISO §2023:13.18.51 — the record description entry's selection condition)
 
         // The §2023:13.16.2 Format-1 clause slots this entry WRITES (kb/Work PB487). ⛔ THE operand of every §2023:13.16.3
         // permitted-set rule below — SR12, SR13, SR17, SR18 are all "…in the same data description entry…" rules
@@ -3819,15 +3903,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // and its COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitPropertyClause (14g.2) —
                 // so the storage-clause loop needs no branch for it.
                 else if (clause.Context.selectWhenClause() is { } sw)
-                    // SELECT WHEN clause (ISO §2023:13.18.51) — Annex A.4.8 item 2), DECLINED (CONFORMANCE.md §5).
-                    // Reported HERE, in BindEntry, because BindEntry is the ONE path every data description
-                    // entry of every section reaches (BindEntries feeds it for file / working-storage /
-                    // local-storage / linkage alike), so the refusal cannot be dodged by moving the record —
-                    // and §2023:13.18.51.3 SR1 admits the clause in all four of those sections. Never bound: an
-                    // inert SELECT WHEN would silently select the wrong record description entry
-                    // (§2023:13.18.51.4 GR1/GR2).
-                    Edition.Declined(DiagnosticCatalog.FormatSelectWhenUnclaimed,
-                        $"the SELECT WHEN clause on '{cobolName ?? "FILLER"}' ({Spelled(sw)})");
+                    // SELECT WHEN clause (ISO §2023:13.18.51; ISO/IEC 1989:2002 §13.16.49). Recorded ON THE ENTRY and screened, with the
+                    // file's other records, by ResolveRecordFormatPass — SR2 - SR6 ask about the file's whole record list and its
+                    // level-88 entries, which do not all exist while this entry binds. BindEntry is the ONE path every data description
+                    // entry of every section reaches, so SR1's level screen is made here, once: "only at the 01 level of a record
+                    // description entry in the file, linkage, local-storage, or working-storage section" (a 77 is not a record).
+                    selectWhen = new SelectWhenSpec { ConditionName = sw.OTHER() is not null ? null : sw.conditionName().GetText(), At = Edition.Cursor };
                 else if (clause.Context.alignedClause() is not null)
                     // ALIGNED (ISO §2023:13.18.1; kb/Work PB487). The COBOL-2002 introduction gate is
                     // VersionConformancePass ParseArm.VisitAlignedClause; §2023:13.18.1.3 SR1 (a bit group item or an
@@ -4386,6 +4467,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // becomes a bit group by INHERITANCE too (§2023:13.16.4 GR1), which is not settled until UsageInheritancePass
         // has run. Exactly the placement argument CheckUsageDeclarations records for §2023:13.18.60.3 SR14.
         item.IsAligned = isAligned;
+        if (selectWhen is not null) BindSelectWhen(item, selectWhen);
 
         // ANY LENGTH declaration-shape validation (ISO §2023:13.18.2; the COBOL1542 SR band — the 08xx declaration
         // band is exhausted, the 1521 precedent). Violations clear the flag so the item binds as ordinary storage

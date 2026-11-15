@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.6.2-7",
+ "rule-digest": "227d9861d196",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveFileCollating",
+ "test-ref": "conformance:cases/12.3.4.6@2002-COLLATING-SEQUENCE-CLAUSE/pb5602-collating-key-subscripted-2002",
+ "notes": "§2002:12.3.4.6.2 SR7: a key is named in at most one COLLATING SEQUENCE clause. ResolveFileCollating registers each named RecordKey once per clause (ConstructOperandRegister); a subscripted operand is the key RecordKey.Names selects, so K(1) and K(2) are two keys (kb/Work PB5602)."
+}

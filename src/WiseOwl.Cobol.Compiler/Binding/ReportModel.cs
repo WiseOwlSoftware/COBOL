@@ -273,8 +273,14 @@ public sealed class ReportControlModel
 /// operand is not reference-modified.</param>
 /// <param name="RefModLength">Its length integer literal; null both when there is no ref-mod and for
 /// §2023:8.4.3.3.2's omitted, bracketed length (the slice then runs to the rightmost position, §2023:8.4.3.3.4 GR5c).</param>
+/// <param name="Subscripts">The integer-literal subscripts written on the operand, in written order (outermost table level
+/// first); empty when none. COBOL-2002 admits them (§2002:5.1.3, §2002:13.16.15.2 SR3 "may be qualified" with the operand's
+/// subscription), 2014 and later refuse them (§2014:13.18.16.2 SR3; kb/Work PB5602), so a non-empty list is a 2002 operand.</param>
+/// <param name="SubscriptRefused">A subscript was written and refused at capture (not an integer literal): the operand is
+/// recorded without it, and the post-build subscript screens stay silent so the refusal is the one verdict.</param>
 public sealed record ReportControlRef(
-    string Name, IReadOnlyList<string> Qualifiers, int? RefModStart, int? RefModLength)
+    string Name, IReadOnlyList<string> Qualifiers, IReadOnlyList<int> Subscripts, int? RefModStart, int? RefModLength,
+    bool SubscriptRefused = false)
 {
     /// <summary>The identity ISO §2023:13.18.57.3 SR10 requires — "the same as one of the operands of the CONTROL
     /// clause" — which §2023:13.18.54.3 SR8 asks of its own operand in its own words ("Data-name-3 or FINAL shall be
@@ -285,7 +291,7 @@ public sealed record ReportControlRef(
     {
         if (!CobolNames.Same(Name, other.Name)) return false;
         if (RefModStart != other.RefModStart || RefModLength != other.RefModLength) return false;
-        if (Qualifiers.Count != other.Qualifiers.Count) return false;
+        if (Qualifiers.Count != other.Qualifiers.Count || !Subscripts.SequenceEqual(other.Subscripts)) return false;
         for (int i = 0; i < Qualifiers.Count; i++)
             if (!CobolNames.Same(Qualifiers[i], other.Qualifiers[i])) return false;
         return true;
@@ -296,6 +302,7 @@ public sealed record ReportControlRef(
     {
         var sb = new System.Text.StringBuilder(Name);
         foreach (var q in Qualifiers) sb.Append(" OF ").Append(q);
+        if (Subscripts.Count > 0) sb.Append('(').AppendJoin(", ", Subscripts).Append(')');
         if (RefModStart is { } s) sb.Append('(').Append(s).Append(':').Append(RefModLength?.ToString() ?? "").Append(')');
         return sb.ToString();
     }

@@ -314,13 +314,13 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             string? slots = null;
             if (places.RecordArea(sdFile) is { } sdArea && HoldsSlots(sdArea.Item))
             {
-                w.Line(PlaceRenderer.WriteRecordAreaImage(sdArea, RuntimeApi.SortFillTo(tmp, $"{sdWidth}", input.ShortRecordFillNational),
+                w.Line(PlaceRenderer.WriteRecordAreaImage(sdArea, RuntimeApi.SortFillTo(tmp, $"{sdWidth}", RuntimeApi.ShortRecordFillNational(input, f, tmp)),
                     $"USING record of '{input.CobolName}' into SD record"));
                 slots = PlaceRenderer.GroupLeaves(sdArea);
             }
             w.Line(varying is not null
                 ? $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.FileCurrentRecord(f), RuntimeApi.FileLastReadLength(f), min, max, RuntimeApi.FileCurrentRecordExtents(f))};"
-                : $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.SortFillTo(tmp, $"{sdWidth}", input.ShortRecordFillNational), RuntimeApi.FileLastReadLength(f), min, max, slots: slots)};");
+                : $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.SortFillTo(tmp, $"{sdWidth}", RuntimeApi.ShortRecordFillNational(input, f, tmp)), RuntimeApi.FileLastReadLength(f), min, max, slots: slots)};");
         }
         // ⛔ TWO as-if statements, TWO statuses, TWO hooks (kb/Work PB837). The loop above exits ONLY on an
         // unsuccessful retrieval, so the connector's status here IS that retrieval's — the as-if READ of
@@ -343,8 +343,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// relative file with no RELATIVE KEY clause (optional for sequential access).</summary>
     private void EmitRelativeKeyStore(FileModel file)
     {
-        if (file.Organization == FileOrganization.Relative && file.RelativeKeyItem is { } rk
-            && places.Of(rk) is { } rkPlace)
+        if (file.Organization == FileOrganization.Relative && places.RelativeKeyOf(file) is { } rkPlace)
             arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(FileKeyExpr(file)), 0), CobolRounding.Truncation);
     }
 
@@ -400,7 +399,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             if (rn is not null)
             {
                 w.Line($"{rn}++;   // GR15 b) — the n-th record returned is relative record n");
-                if (output.RelativeKeyItem is { } rkn && places.Of(rkn) is { } rknPlace)
+                if (places.RelativeKeyOf(output) is { } rknPlace)
                     arith.StoreArith(rknPlace, new NumX(rn, 0), CobolRounding.Truncation);
                 w.Line($"{RuntimeApi.FileSetRelativeKey(f, rn)};");
             }
@@ -419,7 +418,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // file has no fixed length to fill to; a LINE SEQUENTIAL file's records are written without trailing
             // spaces (§2023:14.9.51.4 GR21), so the connector's own fit-and-trim owns its shape.
             if (!output.RecordSizeVaries && output.Organization != FileOrganization.LineSequential)
-                w.Line($"{tmp} = {RuntimeApi.SortFillTo(tmp, $"{output.RecordWidth}", output.ShortRecordFillNational, RuntimeApi.SortLastReturnedExtents(sdLit))};   // GR16 / MERGE GR13 — the short-record fill");
+                w.Line($"{tmp} = {RuntimeApi.SortFillTo(tmp, $"{output.RecordWidth}", RuntimeApi.ShortRecordFillNational(output, f, tmp), RuntimeApi.SortLastReturnedExtents(sdLit))};   // GR16 / MERGE GR13 — the short-record fill");
             // The returned record is written with the extent table it was released with (D-FRA (v); kb/Work PB1053).
             w.Line($"string {ws} = {RuntimeApi.FileWriteShared(f, tmp, "-1", "FileRecordLock.None", "FileRetryKind.None", "0", seqIo.LinageArg(output), areaExtents: RuntimeApi.SortLastReturnedExtents(sdLit), nationalRecord: output.RecordAreaIsNational)};   // implicit WRITE without optional phrases (GR15b); no record-name-1 exists, so the GIVING area's own category (§2023:14.9.30.4 GR15; kb/Work PB1191)");
             // ⛔ EACH as-if WRITE owes its OWN status store and its OWN hook (kb/Work PB837, the GIVING twin of the

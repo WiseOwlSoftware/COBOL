@@ -455,6 +455,13 @@ public sealed class DataItem
         return CobolNames.UpperFold(string.Join(".", path));
     }
 
+    /// <summary>The identity of ONE OCCURRENCE of this item, for a COBOL-2002 clause operand written with integer-literal
+    /// subscripts (<c>RELATIVE KEY IS RK(2)</c>, §2002:5.1.3; kb/Work PB5602): <see cref="ExternalItemIdentity()"/> and the
+    /// occurrence the subscripts select, so two occurrences of one external table are two items. No subscripts is the item's
+    /// own identity.</summary>
+    public string? ExternalItemIdentity(IReadOnlyList<int> occurrence) =>
+        ExternalItemIdentity() is { } id ? occurrence.Count == 0 ? id : $"{id}({string.Join(",", occurrence)})" : null;
+
     /// <summary>True when this level-01 entry carries a CONSTANT RECORD clause (ISO §2023:13.18.15) — a STRUCTURED
     /// CONSTANT: its content is that of an INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT (§2023:13.18.15.4 GR1),
     /// which is NOT the ordinary initial state — a VALUE-less numeric-edited item holds its edited zero, no OPTIONS
@@ -860,6 +867,14 @@ public sealed class DataItem
     [DescriptionCopy(DescriptionCopyKind.Alignment,
         "ALIGNED (ISO §2023:13.18.1) is the OTHER alignment clause — the same §2023:13.18.57.4 GR1 'alignment' exclusion as SYNCHRONIZED, and §2023:13.18.49.4 GR1 excludes neither. §2023:13.18.1.3 SR1 admits it on a bit group or an elementary bit item, so a TYPEDEF member can carry it")]
     public bool IsAligned { get; set; }
+
+    /// <summary>The SELECT WHEN clause (ISO §2023:13.18.51; ISO/IEC 1989:2002 §13.16.49) of a 01-level record description entry, or null:
+    /// the condition under which the entry is selected for a record of its file (§2023:13.18.51.4 GR3). Set by
+    /// <c>DataBinder.BindEntry</c> where SR1 admits it (level 01); read by <c>ResolveRecordFormatPass</c>, which resolves the condition-name
+    /// and screens SR2 - SR6, and by the file's record plans (<c>RecordPlans</c>).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "SELECT WHEN is named in BOTH GR-1 exclusion lists (ISO §2023:13.18.57.4 GR1, §2023:13.18.49.4 GR1): the record description entry it selects is the one that WRITES it, never a copy of its description")]
+    public SelectWhenSpec? SelectWhen { get; set; }
 
     /// <summary>The subject of a TYPE clause whose type-name describes a GROUP item — ISO §2023:13.18.57.4 GR2 d): "the
     /// subject of the entry is aligned as though it were a level 1 item" (kb/Work PB1569). Set by

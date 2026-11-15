@@ -276,6 +276,13 @@ public enum DialectBehavior
     /// implementor-defined (<see cref="CompileTimeArithmeticImplementorDefined"/>). The consumer is
     /// <c>CompileTimeArithmetic.For</c>.</summary>
     CompileTimeArithmeticIsStandardDecimal = 22,
+    /// <summary>§2014:13.18.51.3 GR2 and §2023:13.18.51.4 GR2 — "SELECT WHEN clauses of record description entries specified in the file section have no
+    /// effect for statements other than READ statements, REWRITE statements with the FILE phrase, and WRITE statements with the FILE phrase", so a
+    /// WRITE or REWRITE that names record-name-1 is formatted and converted by the record description entry it names. §2002:13.16.49.3 GR1 says instead
+    /// that the clauses "are evaluated for READ, REWRITE, and WRITE statements associated with that file when a CODE-SET clause or FORMAT clause is
+    /// specified", so at <c>--std 2002</c> every such statement selects its entry by the conditions (kb/Work PB5578; VCR row 7.78). Both editions are
+    /// QUOTED. The consumer is <c>SequentialIoEmitter</c>'s record-entry argument of the governed WRITE and REWRITE.</summary>
+    SelectWhenOnlyForFilePhraseStatements = 23,
 }
 
 /// <summary>
@@ -402,6 +409,11 @@ public static class DialectBehaviors
             "compile-time arithmetic expressions are evaluated as if ARITHMETIC IS STANDARD-DECIMAL (34 digits) only from "
             + "COBOL-2014; COBOL-2002 prescribes standard arithmetic, whose intermediate data item holds 32 digits and "
             + "truncates each operation's result to them"),
+        new(DialectBehavior.SelectWhenOnlyForFilePhraseStatements, "select-when-only-for-file-phrase-statements", 2014,
+            "7.78", "§2014:13.18.51.3 GR2", "§2002:13.16.49.3 GR1",
+            "the SELECT WHEN clauses of the file section select a record description entry for a WRITE or REWRITE only when the "
+            + "statement has the FILE phrase, from COBOL-2014; COBOL-2002 evaluates them for every WRITE and REWRITE of the file, "
+            + "so a record-name-1 statement there is formatted by the entry the conditions select"),
     ];
 
     static DialectBehaviors()

@@ -3791,20 +3791,15 @@ public static class DiagnosticCatalog
     //    clause: the module is the unit §2023:4.2.7 makes the implementor document and Annex A.4 makes optional, so
     //    a user who reads CONFORMANCE.md §5 finds exactly one row per code. The `seen` half of the message is
     //    composed at the site and names WHICH element of the module was written.
-    public static readonly DiagnosticDescriptor FormatSelectWhenUnclaimed = new(
-        "COBOL1705", "a48-format-select-when-unclaimed", EditionSeverity.Error,
-        "the FORMAT clause (ISO §2023:13.18.24) and the SELECT WHEN clause (ISO §2023:13.18.51) are the two items of "
-        + "Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) for which this implementation claims NO support "
-        + "(docs/CONFORMANCE.md §5, row A.4.8) — Annex A.4.1: an implementation shall accept the syntax for an "
-        + "optional element ONLY when support for it is claimed, so the clause is refused rather than accepted "
-        + "inert. Refused at EVERY edition: an inert FORMAT changes which bytes reach the medium "
-        + "(§2023:13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry "
-        + "(§2023:13.18.51.4 GR1) with an I-O status 45 path (§2023:9.1.13.7 rule 5) — a wrong answer, not a missing "
-        + "facility, which is why this is an Error and not the COBOL1578/1580 accept-inert band. "
-        + "At --std 85 the FORMAT clause additionally cannot be written at all: §2023:8.9 reserves FORMAT only from "
-        + "2002, so there the word is a user-defined name.",
-        "ISO §2023:4.2.7 / Annex A.4.1 / Annex A.4.8 items 1-2 / §2023:13.18.24 / §2023:13.18.51",
-        Annex: DeclinedAnnex.A4);
+    // ⛔ COBOL1705 ("a48-format-select-when-unclaimed") is RETIRED — NEVER REALLOCATE IT. It refused the FORMAT clause and the SELECT WHEN
+    //    clause, Annex A.4.8's two items, at every edition while this implementation claimed no support for the module. ISO/IEC 1989:2002
+    //    REQUIRES both (§2002:3.1 makes the communication facility the one optional element of the standard; §2002:13.16.22 and
+    //    §2002:13.16.49 are ordinary clauses), so the refusal was a rejection of legal source at 2002 and 2014 — and the clauses are now
+    //    implemented at every edition they exist in (kb/Work PB5578): FormatClauseViolation (COBOL7342) and SelectWhenClauseViolation
+    //    (COBOL7343) report their syntax rules. The COBOL1954 and COBOL1518 precedent applies: a retired code stays retired.
+    // ⛔ COBOL1706 ("a413-write-rewrite-file-unclaimed") is RETIRED — NEVER REALLOCATE IT. It refused the FILE phrase of WRITE and REWRITE,
+    //    Annex A.4.13's two items; the phrase is implemented at every edition it exists in (kb/Work PB5579), with FilePhraseRequiresFrom
+    //    (COBOL7351), FilePhraseOperand (COBOL7352) and FilePhraseBitAlignment (COBOL7353) reporting its syntax rules.
     /// <summary>COBOL7351 — the FILE phrase of WRITE or REWRITE written without its FROM phrase (kb/Work PB5579).</summary>
     public static readonly DiagnosticDescriptor FilePhraseRequiresFrom = new(
         "COBOL7351", "write-rewrite-file-requires-from", EditionSeverity.Error,
@@ -9673,6 +9668,39 @@ public static class DiagnosticCatalog
         + "no statement references is refused too.",
         "ISO §2023:8.4.2.1; ISO §1985:IV.4.3.8.1 SR4");
 
+    /// <summary>COBOL7354 — a subscript written on a data-name-n clause operand is not one integer literal (kb/Work PB5602).
+    /// COBOL-2002 reads a clause's data-name-n as "a user-defined word, including qualification and subscription if needed"
+    /// (§2002:5.1.3), so <c>RECORD KEY IS K(2)</c> and <c>CONTROL IS T-C(1)</c> are legal there; the clause then names ONE data
+    /// item whose place is fixed when the program is compiled (a record key's "relative location within a record shall be the
+    /// same as that used when the file was created", §2002:12.3.4.12.3 GR3; a control's prior control "having the same data
+    /// description as the corresponding data item", §2002:13.16.15.3 GR3), so each subscript is an integer literal — the form
+    /// a reference modifier's positions already take in the same clause (§2002:13.16.15.2 SR4). The choice is the
+    /// implementor's (docs/conformance/3/D-CLAUSE-SUBSCRIPT.md). 2014 and later forbid the subscript outright
+    /// (§2014:13.18.16.2 SR3; COBOL2024).</summary>
+    public static readonly DiagnosticDescriptor ClauseOperandSubscriptNotLiteral = new(
+        "COBOL7354", "clause-operand-subscript-not-literal", EditionSeverity.Error,
+        "A subscript written on a clause's data-name-n operand is not an integer literal. COBOL-2002 admits a subscripted "
+        + "data-name-n (§2002:5.1.3 \"including qualification and subscription if needed\"), and the clause then identifies one "
+        + "data item whose location is fixed when the program is compiled — a record key's location shall be the same as when the "
+        + "file was created (§2002:12.3.4.12.3 GR3), a control's prior control has the same data description as its data item "
+        + "(§2002:13.16.15.3 GR3). Write each subscript as an integer literal. This is an implementor choice, recorded in "
+        + "docs/conformance/3/D-CLAUSE-SUBSCRIPT.md.",
+        "ISO §2002:5.1.3; ISO §2002:12.3.4.12.3 GR3; ISO §2002:13.16.15.3 GR3");
+
+    /// <summary>COBOL7355 — an integer-literal subscript on a data-name-n clause operand selects no occurrence (kb/Work PB5602):
+    /// below one, above the OCCURS clause's maximum, or on a dynamic-capacity table, whose occurrences have no compile-time
+    /// location. §2002:8.4.1.2.3 GR2: "The lowest possible occurrence number represented by a subscript is 1 … The highest
+    /// permissible occurrence number for any given dimension of the table is the maximum number of occurrences of the item as
+    /// specified in the associated OCCURS clause." A subscript in an executed statement raises EC-BOUND-SUBSCRIPT at run time;
+    /// a clause operand names its item at compile time, so the violation is a compile-time error.</summary>
+    public static readonly DiagnosticDescriptor ClauseOperandSubscriptOutOfRange = new(
+        "COBOL7355", "clause-operand-subscript-out-of-range", EditionSeverity.Error,
+        "An integer-literal subscript on a clause's data-name-n operand selects no occurrence of the table. §2002:8.4.1.2.3 GR2: "
+        + "the lowest occurrence number is 1 and the highest is the maximum number of occurrences specified in the associated "
+        + "OCCURS clause. A dynamic-capacity table has no fixed maximum, so the location of one of its occurrences is not known "
+        + "when the program is compiled.",
+        "ISO §2002:8.4.1.2.3 GR2");
+
     /// <summary>COBOL6863 — two INDEXED BY declarations of one program spell the same index-name, at a dialect that requires it
     /// unique (kb/Work PB5073). §1985:VI.5.8.3 SR14: "Index-name-1 must be a unique word within the program." COBOL-2002 and
     /// later qualify an index-name like a data-name, so the rule is the 1985 dialect's alone.</summary>
@@ -9742,6 +9770,54 @@ public static class DiagnosticCatalog
         + "relation condition, the USING phrase of a Procedure Division header, or the USING phrase of a CALL "
         + "statement.\" An intrinsic function argument is none of them at COBOL-85 (§2002:13.16.58.2 SR9 adds it).",
         "ISO §1985:VI.5.14.3 SR5");
+
+
+    /// <summary>COBOL7342 — an FD FORMAT clause (or the data description of a WRITE / REWRITE FROM operand) breaks one of the clause's
+    /// syntax rules (kb/Work PB5578). §2023:13.18.24.3 SR1: "If more than one record description entry is associated with a file
+    /// description entry in which the FORMAT clause is specified, each of these record description entries shall contain a SELECT WHEN
+    /// clause." SR2: "The REDEFINES clause and the RENAMES clause shall not be specified in a record description entry associated with
+    /// a file description entry in which a FORMAT clause is specified". SR3: "Data items of class index, message-tag, object, and
+    /// pointer shall not be specified". §2023:13.4.5.3 SR6: "If the FORMAT clause is specified, variable-length records shall be
+    /// specified for the file." The message names the rule and the edition's own number for it.</summary>
+    public static readonly DiagnosticDescriptor FormatClauseViolation = new(
+        "COBOL7342", "format-clause-violation", EditionSeverity.Error,
+        "A FORMAT clause breaks one of its syntax rules: more than one record description entry, not all of which carry a SELECT WHEN "
+        + "clause (SR1); a REDEFINES or RENAMES clause in an associated record description entry, or in the data description entry of the "
+        + "identifier of a WRITE or REWRITE FROM phrase (SR2); a data item of class index, message-tag, object or pointer in one (SR3); "
+        + "records that are not variable-length (the file description entry's SR); or a record the FORMAT clause has no external "
+        + "form for. The message names the rule, as the edition being compiled numbers it.",
+        "ISO §2023:13.18.24.3 SR1 - SR3; §2023:13.4.5.3 SR6; ISO/IEC 1989:2002 §13.16.22.2");
+
+    /// <summary>COBOL7343 — a SELECT WHEN clause breaks one of its syntax rules (kb/Work PB5578). §2023:13.18.51.3 SR1: "A SELECT WHEN
+    /// clause may be specified only at the 01 level of a record description entry"; SR2: "If a SELECT WHEN clause is specified for any
+    /// record description entry associated with a given file-name, then a SELECT WHEN clause shall be specified for all record
+    /// description entries associated with that file-name"; SR3: "A given condition-name-1 shall be specified in the SELECT WHEN clause
+    /// of only one record description entry"; SR4: all instances of condition-name-1 "shall be associated with a conditional variable
+    /// defined at the same position in the record, with the same usage, and with the same size"; SR5: with a FORMAT clause "the conditional
+    /// variable associated with condition-name-1 shall be the first elementary data item in the record description entry"; SR6: "The
+    /// OTHER phrase may be specified only in the last record description entry associated with a given file." A condition-name that
+    /// names no level-88 entry of the file's records is reported here too.</summary>
+    public static readonly DiagnosticDescriptor SelectWhenClauseViolation = new(
+        "COBOL7343", "select-when-clause-violation", EditionSeverity.Error,
+        "A SELECT WHEN clause breaks one of its syntax rules: it is not at the 01 level of a record description entry (SR1); some record "
+        + "description entries of its file carry one and some do not (SR2); one condition-name is in the clauses of two entries (SR3); the "
+        + "condition-names' conditional variables are not at one position, usage and size (SR4), or with a FORMAT clause not the first "
+        + "elementary data item (SR5); OTHER is not in the last entry (SR6); or its condition-name names no level-88 entry of a record of "
+        + "the file. The message names the rule, as the edition being compiled numbers it.",
+        "ISO §2023:13.18.51.3 SR1 - SR6; ISO/IEC 1989:2002 §13.16.49.2");
+
+    /// <summary>COBOL7344 — a FORMAT clause or the SELECT WHEN clauses of a CODE-SET file over a record description this implementation
+    /// has no layout for (kb/Work PB5578): a record description entry holding a table whose occurrences depend on a data item or are
+    /// dynamic (§2023:13.18.38 OCCURS DEPENDING ON), or a file description entry with no record description entry, whose formatting
+    /// would be that of the READ INTO or WRITE FROM operand (§2023:13.18.24.4 GR2 c). The decision and what lifts it are recorded in
+    /// kb/Work/PB5578.</summary>
+    public static readonly DiagnosticDescriptor RecordFormatLayoutUnsupported = new(
+        "COBOL7344", "record-format-layout-unsupported", EditionSeverity.Error,
+        "A FORMAT clause (or the SELECT WHEN clauses of a CODE-SET file) is written over a record this implementation does not translate: "
+        + "a record description entry holding a table whose size depends on a data item (OCCURS DEPENDING ON) or is dynamic, whose items "
+        + "have no fixed place in the record, or a file description entry with no record description entry, whose items would be those "
+        + "of the READ INTO or WRITE FROM operand (§2023:13.18.24.4 GR2 c). The record must be described with a fixed layout.",
+        "ISO §2023:13.18.24.4 GR3, GR2 c; ISO/IEC 1989:2002 §13.16.22.3");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
