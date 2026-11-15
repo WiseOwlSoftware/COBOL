@@ -1727,8 +1727,6 @@ internal static class IntrinsicArgumentRules
                 + $"by the literal {d.Text}, which does not always "
                 + "result in an integer value — ISO §2023:15.3 type 6 admits an arithmetic expression only when it "
                 + "ALWAYS results in one";
-        // A root POWER over a bare data item whose exponent can be negative or not an integer (kb/Work PB5208).
-        if (expr is BoundPower pw && PowerWitness(pw) is { } powerWhy) return powerWhy;
         // An additive spine (+, −, unary −) carrying a scale>0 item PURELY as its own leaves, with a net
         // coefficient the item's granularity does not cancel (10^scale ∤ net): value every other leaf at any
         // constant and step the item by 10^(−scale) — consecutive results are less than 1 apart, so a
@@ -1758,56 +1756,110 @@ internal static class IntrinsicArgumentRules
         // and cannot prove integral (a numeric function, a quotient over an item) clears RestIntegral: FAIL OPEN.
         // ⛔ The claim is "never" only when every term was read for EVERY valuation: a FUNCTION ABS of a sum is read as the sum on the
         // valuations where the items are not negative (spine.AbsOfSum), and the message then says so (kb/Work PB4796 review R2-2).
-        if (spine.RestIntegral && !spine.Constant.IsInteger)
+        if (spine.RestIntegral && spine.PowerTerms == 0 && !spine.Constant.IsInteger)
             return $"is an arithmetic expression whose literal terms sum to {spine.Constant} and whose "
                 + (spine.AbsOfSum ? "other terms always sum to an integer wherever the items are not negative, so its value is not an integer there"
                     : spine.SawSignedAbs ? "other terms always sum to an integer, so its value is never an integer"
                     : "every other term is an integer, so its value is never an integer")
                 + " — ISO §2023:15.3 type 6 admits an arithmetic expression only when it ALWAYS results in an integer value";
+        // THE POWER WITNESS (kb/Work PB5208, PB5345): exactly one power term with a witness valuation, and every other term an integer
+        // for EVERY valuation (an integral constant, items whose net coefficient the granularity cancels - ItemWitness found none -, nothing
+        // opaque but the power's own items), so the sum is a non-integer plus an integer at the witness. A signed ABS reads two ways: fail open.
+        if (spine is { PowerTerms: 1, RestIntegral: true, SawSignedAbs: false, AbsOfSum: false } && spine.Constant.IsInteger
+            && spine.Net.Values.All(term => term.Coeff == 0)) return spine.PowerWhy;
         return null;
     }
 
-    /// <summary>⛔ THE POWER ARM OF THE TYPE 6 SCREEN (kb/Work PB5208; §2023:15.3 type 6 and §1989:A.2.2 AR4: "An arithmetic
+    /// <summary>⛔ THE POWER ARM OF THE TYPE 6 SCREEN (kb/Work PB5208, PB5345; §2023:15.3 type 6 and §1989:A.2.2 AR4: "An arithmetic
     /// expression which will always result in an integer value must be specified"). <see cref="ProvablyIntegral"/> already knows a
     /// power is integral when its exponent is a non-negative integer literal; this is the other half, the shapes with a WITNESS
-    /// valuation, so the screen refuses them as it refuses <c>N / 2</c> instead of failing open. The base is a bare numeric data
-    /// item (through negations, |−X| ** e = |X| ** e up to sign): a numeric item of scale s can hold v = 3 × 10^(−s), and
+    /// valuation, so the screen refuses them as it refuses <c>N / 2</c> instead of failing open. <see cref="CollectAdditive"/> reaches
+    /// it, so a power at the root, under a negation, or one term of a sum whose other terms are all integral is read here. A BASE is
+    /// one of two shapes (through negations, |−X| ** e = |X| ** e up to sign):
     /// <list type="bullet">
-    /// <item>a literal exponent that is a negative integer −k gives v^(−k) = 10^(sk) / 3^k, never an integer, since 3^k does not
-    /// divide a power of ten;</item>
-    /// <item>a literal exponent that is not an integer, p/q in lowest terms with q &gt; 1, gives a v^(p/q) whose q-th power
-    /// 3^p × 10^(−sp) has a power of 3 that q does not divide, so it is not even rational;</item>
-    /// <item>an exponent that is itself a numeric data item (a different one; the same item would tie the two valuations) can be
-    /// negative when it is signed or written under an odd number of negations, and can be a non-integer when its description
-    /// admits one: −1 × 10^(−s′) or 1 × 10^(−s′) is then one of the two cases above.</item>
+    /// <item>a bare numeric data item: it can hold v = 3 × 10^(−s). A literal exponent that is a negative integer −k gives
+    /// v^(−k) = 10^(sk) / 3^k, never an integer, since 3^k does not divide a power of ten; a literal exponent that is not an integer,
+    /// p/q in lowest terms with q &gt; 1, gives a v^(p/q) whose q-th power 3^p × 10^(−sp) has a power of 3 that q does not divide, so it
+    /// is not even rational;</item>
+    /// <item>an integer literal c with |c| ≥ 2: c ** −m (m ≠ 0) is 1 / c^m, never an integer, and c ** t for a positive t below 1
+    /// lies between 1 and c, an integer only when c is a perfect power of the matching degree (<see cref="IsPerfectPower"/>).</item>
     /// </list>
-    /// Every other power fails OPEN (a base that is an expression, <c>(N − N + 1) ** −1</c> being 1; a literal base, whose
-    /// value can make an item exponent's every power integral), as the quotient arm does beyond a bare item and a literal.</summary>
+    /// An EXPONENT that is a numeric data item can be negative when it is signed or written under an odd number of negations, and a
+    /// non-integer when its description admits one. When it is the SAME item as the base item, base and exponent move together:
+    /// v = 2 under a negated exponent, or v = −2 of a signed item, is (±2) ** −2 = ±1/4, and an item with fraction digits at
+    /// v = 10^(−s) is v ** v, strictly between 0 and 1.
+    /// <para>⛔ THE FAIL-OPEN SHAPES ARE RECORDED, NOT FORGOTTEN (the power-shape table of <c>IntrinsicTypeSixPowerShapesDriftTests</c>): a
+    /// base that is an expression (<c>(N − N + 1) ** −1</c> is 1), a power under a product (<c>(N ** −1) * 2520</c> is an integer
+    /// for every 1-digit N), a literal base whose fraction exponent item holds only integer roots, a tied negated base at a fraction (no
+    /// real value) and a sum of two powers (<c>N ** −1 − N ** −1</c> is 0).</para></summary>
     private static string? PowerWitness(BoundPower pw)
     {
-        if (BareNumericItem(pw.Base) is not { Place.Item: { } baseItem }) return null;
+        DataItem? baseItem = BareNumericItem(pw.Base)?.Place.Item;
+        System.Numerics.BigInteger? literalBase = baseItem is null && ExactValue(pw.Base) is { IsInteger: true } bv
+            && System.Numerics.BigInteger.Abs(bv.Numerator) >= 2 ? bv.Numerator : null;
+        if (baseItem is null && literalBase is null) return null;
+        string subject = baseItem is not null ? $"the data item '{baseItem.CobolName}'" : $"the literal {literalBase}";
         string why;
         if (ExactValue(pw.Exp) is { } e)
         {
-            if (e.IsInteger && e.Sign >= 0) return null;                  // ProvablyIntegral's arm: N ** 2 is always an integer
+            // A literal base to a literal exponent is a constant: the fold values it and the constant witness reads the value.
+            if (literalBase is not null || e.IsInteger && e.Sign >= 0) return null;   // ProvablyIntegral's arm: N ** 2 is always an integer
             why = e.IsInteger ? $"to the negative power {e}" : $"to the power {e}, which is not an integer";
         }
         else
         {
-            BoundExpr x = pw.Exp;
-            bool negated = false;
-            while (x is BoundNegate n) { negated = !negated; x = n.Operand; }
-            if (x is not BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } ep } expItem }
-                || ReferenceEquals(expItem, baseItem))
+            if (!TryBareNumericItem(pw.Exp, out var expRef, out bool negated)
+                || expRef.Place.DescribedItem is not { IsGroup: false, Pic: { Category: PicCategory.Numeric } ep } expItem)
                 return null;
             bool canBeNegative = ep.Signed || negated, canBeFraction = AdmitsNonIntegralValue(ep);
-            if (!canBeNegative && !canBeFraction) return null;            // an unsigned integer exponent: N ** M is always an integer
-            why = canBeNegative
-                ? $"to the power of the {(ep.Signed ? "signed" : "negated")} data item '{expItem.CobolName}'"
-                : $"to the power of the data item '{expItem.CobolName}', which has digits to the right of the decimal point";
+            // The item holds a value of magnitude 2 (or 2 × 10^k under P scaling): it has a digit position left of the radix point.
+            bool holdsInteger = ep.IsFloat || ep.Digits - ep.Scale >= 1;
+            string signWord = ep.Signed ? "signed" : "negated";
+            if (baseItem is not null && ReferenceEquals(expItem, baseItem))
+            {
+                // A negated BASE at a fraction is a negative number to a fractional power, which is no real value: fail open.
+                TryBareNumericItem(pw.Base, out _, out bool baseNegated);
+                if (canBeNegative && holdsInteger) why = $"to the power of itself, which at the value that makes the exponent −2 ({signWord}) is ±1/4";
+                else if (!negated && !baseNegated && canBeFraction) why = "to the power of itself, which has digits to the right of the decimal point";
+                else return null;
+            }
+            else if (literalBase is { } c)
+            {
+                if (canBeNegative && (c.Sign > 0 || holdsInteger))
+                    why = $"to the power of the {signWord} data item '{expItem.CobolName}'";
+                else if (c.Sign > 0 && !negated && canBeFraction && (ep.IsFloat || !IsPerfectPower(c, ep.Scale)))
+                    why = $"to the power of the data item '{expItem.CobolName}', which has digits to the right of the decimal point";
+                else return null;
+            }
+            else
+            {
+                if (!canBeNegative && !canBeFraction) return null;            // an unsigned integer exponent: N ** M is always an integer
+                why = canBeNegative
+                    ? $"to the power of the {signWord} data item '{expItem.CobolName}'"
+                    : $"to the power of the data item '{expItem.CobolName}', which has digits to the right of the decimal point";
+            }
         }
-        return $"raises the data item '{baseItem.CobolName}' {why}, so its value is not always an integer — ISO "
+        return $"raises {subject} {why}, so its value is not always an integer — ISO "
             + "§2023:15.3 type 6 admits an arithmetic expression only when it ALWAYS results in an integer value";
+    }
+
+    /// <summary>Is <paramref name="c"/> (at least 2) the 10^<paramref name="scale"/>-th power of an integer, so that an exponent item
+    /// whose least positive value is 10^(−scale) gives <c>c ** t</c> an integer at t = 10^(−scale)? <paramref name="scale"/> is
+    /// positive: the caller asks it of an item with fraction digits. A c below 2 ** 10^scale has a root between 1 and 2.</summary>
+    private static bool IsPerfectPower(System.Numerics.BigInteger c, int scale)
+    {
+        long bits = (long)c.GetBitLength();
+        if (Math.Pow(10, scale) >= bits) return false;   // c < 2 ** 10^scale
+        int degree = (int)Math.Pow(10, scale);
+        System.Numerics.BigInteger lo = 2, hi = System.Numerics.BigInteger.One << (int)(bits / degree + 1);
+        while (lo <= hi)
+        {
+            var mid = (lo + hi) / 2;
+            int cmp = System.Numerics.BigInteger.Pow(mid, degree).CompareTo(c);
+            if (cmp == 0) return true;
+            if (cmp < 0) lo = mid + 1; else hi = mid - 1;
+        }
+        return false;
     }
 
     /// <summary>The §2023:15.3 type 6 item witness over a walked spine: the first item whose net coefficient its granularity does
@@ -1853,6 +1905,10 @@ internal static class IntrinsicArgumentRules
         public bool SawSignedAbs;
         /// <summary>A FUNCTION ABS of a sum was read as the sum, which holds where the items are not negative only.</summary>
         public bool AbsOfSum;
+        /// <summary>The witness text of a power term (<see cref="PowerWitness"/>) and how many such terms the spine has. One term over an
+        /// otherwise integral sum is a witness (a non-integer plus an integer is no integer); two may cancel (<c>N ** -1 - N ** -1</c>).</summary>
+        public string? PowerWhy;
+        public int PowerTerms;
     }
 
     /// <summary>Walk an additive spine, accumulating the signed leaf count of every item whose DESCRIPTION
@@ -1882,6 +1938,16 @@ internal static class IntrinsicArgumentRules
             // and the valuations it holds on; the leaf arm then counts the items and the witness argument stands.
             case BoundIntrinsicCall call when ReadCall(call, spine) is var (term, negated) && term is not null:
                 CollectAdditive(term, negated ? -sign : sign, spine); break;
+            // A POWER WITH A WITNESS is a term whose own value is not always an integer (kb/Work PB5345): it is neither a constant nor an
+            // item of the Net, and the verdict on it waits for the other terms (the end of NotAlwaysIntegral).
+            case BoundPower pw when ExactValue(pw) is null && PowerWitness(pw) is { } powerWhy:
+                spine.PowerWhy ??= powerWhy;
+                spine.PowerTerms++;
+                // The items beneath it move with the power, so a leaf of the same item elsewhere is no free step (the default arm's reason).
+                foreach (var it in NonIntegralItemsBeneath(pw))
+                    spine.Net[it.Item] = spine.Net.TryGetValue(it.Item, out var prior)
+                        ? (prior.Coeff, it.Scale, it.Float, true) : (0, it.Scale, it.Float, true);
+                break;
             default:
                 if (ExactValue(e) is { } constant)
                     spine.Constant += sign < 0 ? -constant : constant;
@@ -1949,10 +2015,15 @@ internal static class IntrinsicArgumentRules
     };
 
     /// <summary>The numeric data item an expression is, through negations (|- X| = |X|); null for anything else.</summary>
-    private static BoundNumRef? BareNumericItem(BoundExpr x)
+    private static BoundNumRef? BareNumericItem(BoundExpr x) => TryBareNumericItem(x, out var item, out _) ? item : null;
+
+    /// <summary><see cref="BareNumericItem"/> with the PARITY of the negations it looked through: <paramref name="negated"/> is true under an odd number.</summary>
+    private static bool TryBareNumericItem(BoundExpr x, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out BoundNumRef? item, out bool negated)
     {
-        while (x is BoundNegate n) x = n.Operand;
-        return x is BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic.Category: PicCategory.Numeric } } r ? r : null;
+        negated = false;
+        while (x is BoundNegate n) { negated = !negated; x = n.Operand; }
+        item = x as BoundNumRef;
+        return x is BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic.Category: PicCategory.Numeric } };
     }
 
     /// <summary>Is the sum a plain sum of items and exact constants that is not negative when every item is not negative: a
