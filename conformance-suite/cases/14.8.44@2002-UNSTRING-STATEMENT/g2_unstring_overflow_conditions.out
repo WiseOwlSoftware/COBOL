@@ -1,0 +1,6 @@
+A0 OVF 00 00 [####]
+A11 OVF 11 00 [####]
+A10 NOOVF 11 01 [G   ]
+B OVF 07 02 [AB  ][CD  ]
+B2 NOOVF 07 02 [AB  ][CD  ]
+B3 NOOVF 06 02 [AB  ][CD  ]

@@ -1,0 +1,11 @@
+P1
+MA-IN A
+MB B
+MB A
+MA-OUT A
+P2
+F-IN
+MB F
+F-OUT
+R=7
+P3

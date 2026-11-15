@@ -1,0 +1,9 @@
+DECL-OA
+R1 EO-OA [EXCEPTION-OBJECT               ]
+DECL-H [EC-USER-G2H                    ]
+N2 EO-NULL
+N1
+DECL-OA2
+R2 EO-OA2
+R3
+D=2 H=1
