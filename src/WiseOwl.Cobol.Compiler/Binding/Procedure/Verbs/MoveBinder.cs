@@ -535,8 +535,8 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             if (BitLayout.IsBitItem(sender.Item))
                 host.Params.ScreenBitAlignment(sender, DiagnosticCatalog.FilePhraseBitAlignment, rules.Statement,
                     "§2023:14.9.51.3 SR9, §2023:14.9.35.3 SR7");
-            // A reference-modified operand is "a unique data item" of a run-time length (§2023:8.4.3.3.4 GR6): held once.
-            if (sender is not RefModPlace) return sender;
+            // A reference-modified operand is "a unique data item" of a run-time length (§2023:8.4.3.3.4 GR6), so it denotes no item and is held once.
+            if (sender.DenotedItem is not null) return sender;
         }
         Place? held = source switch
         {
