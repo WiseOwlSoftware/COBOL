@@ -77,6 +77,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // another BY REFERENCE argument could re-aim them mid-call; each variable index is hoisted into a
         // statement-local evaluated here, once.
         c = HoistOnceOnlyIdentification(c);
+        // §2023:14.9.4.4 GR12 + GR3a (kb/Work PB5623): RETURNING identifier-3 is an ordinary reference, not an argument, so when it is
+        // (part of) a formal parameter whose argument was omitted the reference raises EC-PROGRAM-ARG-OMITTED right here, in this
+        // CALL's own checking scope; the activated program's delivery of the result is outside it.
+        if (c.Returning is { } returned && PlaceRenderer.RootGuard(returned) is { } omittedGuard)
+            w.Line(PlaceRenderer.OmittedReferenceRaise(omittedGuard));
         // ⛔ kb/Work PB2078: the same identification for an object-property receiver -- its object, and the GET of a BY
         // REFERENCE argument -- here; its SET runs at the return (Settle below), before either EXCEPTION phrase reads it.
         var receivers = BoundCallProgram.Receivers(c.Args, c.Returning).ToList();
