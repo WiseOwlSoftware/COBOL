@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-VII.4.7.4-15",
  "rule-digest": "494c6579b8dd",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory",
+ "test-ref": "unit:CloseTable14Tests.Category_PlacesEverySupportedConnectorKind",
+ "notes": "kb/Work R43 (owner, 2026-09-24) item 3: a rule whose trigger can only arise through an unsupported capability (multi-reel files) closes as DOCUMENTED-NON-SUPPORT, CONTINGENT: re-adjudicate if the capability is ever added. §1985:VII.4.7.4 GR15: \"If the end of reel/unit is recognized and the externally defined boundaries of the file have not been exceeded, the following operations are executed\". WiseOwl COBOL provides no reel or unit medium; the witness pins that every connector kind reports a non-unit or mass-storage category, so no WRITE can recognize an end of reel/unit. Recorded as its 2023 successor GR-14.9.51.4-24 is (records-read6, 2026-11-14): the PB5373 class-2 derivation proposed for it was OVERTURNED-NEEDS-TEST by the orchestrator's refuter pass (adjudication/pb5373-class2/refute.jsonl), which named this disposition and witness; the witness ran green at this branch's head (dotnet test --filter CloseTable14Tests.Category_PlacesEverySupportedConnectorKind: Passed 1 of 1).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

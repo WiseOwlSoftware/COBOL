@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-VI.3.4.4-1",
  "rule-digest": "2bd41ece235d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dateCompiledParagraph",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.3.4.4-1",
+ "notes": "kb/Work PB5373 class 5 (to class 2: no listing), recorded 2026-11-14 (records-read6). §1985:VI.3.4.4 GR1: \"The paragraph-name DATE-COMPILED causes the current date to be inserted during program compilation\", and §1985:VI.3.4.1 places the date in \"the Identification Division source program listing\". Closed on the argued arm unpopulatable-antecedent (DRV-1985-GR-VI.3.4.4-1, signed claude: 2026-11-14 by the operator session): WiseOwl COBOL produces no source listing (DOC-A.1-117), the closed set that closes the 2023 listing-only rows (DRV-GR-7.3.18.3-2 and its neighbours). The refuter UPHELD it (adjudication/pb5373-class2/refute.jsonl; probe dc.cob: DATE-COMPILED. ZZQQ-MARKER-TEXT. compiles and runs, the marker reaches no output). Recorder's decision on the refuter's question: a derivation, not DOCUMENTED-NON-SUPPORT. kb/Work R43 item 3 is for a trigger that only an UNSUPPORTED capability raises, witnessed by the test that proves the construct refused or warned; DATE-COMPILED is accepted and nothing about it is declined, the listing is absent by an A.1 determination, and PB5373 class 5 sends exactly this case to the unpopulatable-antecedent arm. CONTINGENT on DOC-A.1-117.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

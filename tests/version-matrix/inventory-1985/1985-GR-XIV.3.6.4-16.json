@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-16",
  "rule-digest": "e9122e5d432b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/McsStore.cs#Transmit; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIV.3.6.4-16",
+ "notes": "kb/Work PB5373 class 2, recorded 2026-11-14 (records-read6). §1985:XIV.3.6.4 GR16 applies to a device that superimposes and \"permits the choice of either the second or subsequent characters appearing superimposed\". Closed on the argued arm unpopulatable-antecedent (docs/CONFORMANCE.md section 8, DRV-1985-GR-XIV.3.6.4-16, signed claude: 2026-11-14 by the operator session, Claude Mythos 5.2): no WiseOwl device can present two characters at one position (section 3.3 \"Communication devices\"; McsStore.Transmit appends each complete message as a line of <name>.out and is the only device writer). The orchestrator's cobol-refuter pass UPHELD it (adjudication/pb5373-class2/refute.jsonl; probe send2/snd.cob: every message on its own line, ADVANCING and REPLACING LINE ignored). CONTINGENT on that device model.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
