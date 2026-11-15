@@ -1,4 +1,4 @@
-## PB5591: the held 1985 rows recorded, "applicable" for a mode USE procedure decided as latitude (1985 GAP 63 to 42)
+## Entry 3659 — 2026-11-14 23:31 PST — PB5591: the held 1985 rows recorded, "applicable" for a mode USE procedure decided as latitude (1985 GAP 63 to 42)
 
 The final adjudication of the held 1985 rows (`op-20261114/held-adjudicated.json`) decided 20 rows. This landing records them through `record_verdicts.py --edition 1985` together with the two rows whose tests records-read6 owed: 22 rows CONFORMS, "GAP : 63 → 42".
 
@@ -21,3 +21,4 @@ New notes:
 - PB5594: GnuCOBOL accepts any VALUE OF implementor-name too; what it refuses is a second entry.
 
 A dated file on kb/Work PB4950 lists the 50 "X3.23-1985" citations in the diagnostic catalog, COBOL6335's among them. The account is `kb/Work/PB4996/2026-11-14-held-adjudicated.md`.
+
