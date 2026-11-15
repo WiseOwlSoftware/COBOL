@@ -26,7 +26,7 @@ public sealed class ContainedGlobalStorageClaimTests
                DATA DIVISION.
                WORKING-STORAGE SECTION.
                01 R1.
-                  05 X PIC X(4) VALUE "LOCL".
+                  05 Y PIC X(4) VALUE "LOCL".
                01 R2 GLOBAL.
                   05 X PIC X(4) VALUE "GLOB".
                PROCEDURE DIVISION.
@@ -50,7 +50,7 @@ public sealed class ContainedGlobalStorageClaimTests
         """;
 
     [Theory]
-    [InlineData("X")]          // unqualified: R2's X is the only one visible in CGSC-IN (R1 is the container's local)
+    [InlineData("X")]          // unqualified: R2's X is the only X (R1 is the container's local, and names no X: a GLOBAL item's subordinate name is no other item's, §2023:8.4.2.1)
     [InlineData("X OF R2")]    // qualified through the one §2023:8.4.2.2 machinery
     [InlineData("R2")]         // the GLOBAL record itself
     public void AddressOfAContainersGlobal_IsTheContainersCell(string head)
