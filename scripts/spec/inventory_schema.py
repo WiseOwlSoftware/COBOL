@@ -148,6 +148,10 @@ class Edition:
     #: and its GAP count, but the older editions' change records bridge over it, as over an edition not held, until the
     #: adjudication that writes their records into it links it (DESIGN-spec-conformance-review.md section 10.2).
     linked: bool = True
+    #: Do this older edition's KEPT records close only on evidence produced at the edition (kb/Work PB5597: the schema's
+    #: `own-edition-evidence`)? The change-record writer refuses a KEPT record into a rule with no suite witness that runs
+    #: here, and the LINEAGE READS audit re-checks the stored ones (lineage_reads.py).
+    own_evidence: bool = False
 
     @property
     def held(self) -> bool:
@@ -191,6 +195,11 @@ def editions_of(raw: dict[str, Any]) -> tuple[Edition, ...]:
         raise SystemExit(f"{SCHEMA_REL}: editions.of must name each edition once, oldest first (got {years})")
     if unheld := [e["year"] for e in entries if "linked" in e and "store" not in e]:
         raise SystemExit(f"{SCHEMA_REL}: editions {unheld} say whether they are linked, but are not held")
+    if stray := [e["year"] for e in entries if "own-edition-evidence" in e and (
+            "store" not in e or e["own-edition-evidence"] is not True
+            or e["year"] == max(x["year"] for x in entries if "store" in x))]:
+        raise SystemExit(f"{SCHEMA_REL}: editions {stray} name own-edition-evidence, which only a held older edition "
+                         "states, as true (kb/Work PB5597)")
     held = [e["year"] for e in entries if "store" in e]
     linked = [e["year"] for e in entries if "store" in e and e.get("linked", True)]
     if held and held[-1] not in linked:
@@ -202,7 +211,8 @@ def editions_of(raw: dict[str, Any]) -> tuple[Edition, ...]:
         nxt = next((y for y in linked if y > e["year"]), None)
         out.append(Edition(e["year"], e["spelling"], e.get("catalog"), e.get("locator"), e.get("store"),
                            e.get("legacy-file"), tuple(e.get("adjudicated", ())), nxt,
-                           nxt is not None and any(e["year"] < y < nxt for y in years), e.get("linked", True)))
+                           nxt is not None and any(e["year"] < y < nxt for y in years), e.get("linked", True),
+                           e.get("own-edition-evidence", False)))
     return tuple(out)
 
 

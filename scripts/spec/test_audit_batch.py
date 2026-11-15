@@ -359,22 +359,90 @@ def main() -> int:
             check(f"change-batch --edition {year} with no --state is refused by name, and writes nothing: a record "
                   "follows only from a read decision (kb/Work PB5589)",
                   isinstance(code, str) and "needs --state" in code and not stateless.exists())
+        import lineage_reads  # noqa: PLC0415  (the read records, kb/Work PB5597)
         import lineage_screen  # noqa: PLC0415  (the flags a decision answers)
-        flagged = {"marks": {"2002-GR-1.1.3-1": {"band-formats": "band-formats [1, 2] against [[1]]"}}}
+        detail = "band-formats [1, 2] against [[1]]"
+        flagged = {"marks": {"2002-GR-1.1.3-1": {"band-formats": detail}}}
         rec = {"rule-id": "2002-GR-1.1.3-1", "next": {"kind": "KEPT", "to": ["GR-1.1.3-1"], "source": "a read"}}
+        said = {"flag": detail, "answer": "the 2002 rule governs format 1 alone, as its counterpart does"}
         check("a record for a flagged pair whose decision answers no flag is refused, by rule and trigger; one that "
-              "answers it stands; an answer to a trigger that flags nothing is refused (kb/Work PB5589)",
+              "answers it, for the flag's detail, stands; an answer to a trigger that flags nothing is refused "
+              "(kb/Work PB5589, PB5597)",
               len(lineage_screen.unanswered([rec], flagged)) == 1 and "band-formats" in lineage_screen.unanswered([rec], flagged)[0]
-              and lineage_screen.unanswered([{**rec, "next": {**rec["next"], "answers": {
-                  "band-formats": "the 2002 rule governs format 1 alone, as its counterpart does"}}}], flagged) == []
+              and lineage_screen.unanswered([{**rec, "next": {**rec["next"], "answers": {"band-formats": said}}}],
+                                            flagged) == []
               and len(lineage_screen.unanswered([{**rec, "rule-id": "2002-GR-9.9.3-1", "next": {**rec["next"], "answers": {
-                  "band-formats": "x y z"}}}], flagged)) == 1
+                  "band-formats": said}}}], flagged)) == 1
               and lineage_screen.unanswered([rec], None) == [])
         carried = A.change_records(inventory_schema.edition(2002), {"2002-GR-1.1.3-1": {"change": A.change_of(
-            {"verdict": "KEPT", "rules_2023": ["GR-1.1.3-1"], "reason": "", "answers": {"deferral": "it names GR-2"}})}},
+            {"verdict": "KEPT", "rules_2023": ["GR-1.1.3-1"], "reason": "", "answers": {"deferral": said}})}},
             "a read")
         check("a decision's answers travel from the adjudication into the change record the writer writes",
-              carried[0]["next"].get("answers") == {"deferral": "it names GR-2"})
+              carried[0]["next"].get("answers") == {"deferral": said})
+
+        # THE IMPORT (kb/Work PB5597): a fleet's read and refute files become the tracked read records and a run whose
+        # map and verify passes are the reads'; change-batch writes what may be KEPT and refuses each other record ALONE.
+        screen = lineage_screen.committed(2002)
+        marks = screen["marks"]
+        pairs = json.loads(lineage.candidates_path(2002).read_text(encoding="utf-8"))["pairs"]
+        clean = [p for p in pairs if p["rule-id"] not in marks and len(p["to"]) == 1]
+        dirty = [p for p in pairs if p["rule-id"] in marks and len(p["to"]) == 1]
+        (u, v, x, d), (f, g) = clean[:4], dirty[:2]
+
+        cited_2002 = {r["id"]: r["citation"] for r in inventory_schema.edition(2002).rules()}
+
+        def a_read(p: dict, verdict: str = "SAME", **kw: object) -> dict:
+            return {"rule-id": p["rule-id"], "to": p["to"], "verdict": verdict, "reason": f"planted {verdict}",
+                    "citations": [{"cite": cited_2002[p["rule-id"]], "check": "OK"}], "probe": None, **kw}
+
+        reads = root / "reads"
+        reads.mkdir()
+        answered = {f"{n}: {dt}": f"planted: the 2002 rule still states it ({n})" for n, dt in marks[f["rule-id"]].items()}
+        (reads / "p-01-read.json").write_text(json.dumps({"slice": "p-01", "cases": [
+            a_read(u), a_read(v), a_read(x), a_read(f, **{"flags-answered": answered}), a_read(g),
+            a_read(d, "DIFFERENT", probe="d.cob", **{"compiler-at-2002": "correct: d.cob"})]}), encoding="utf-8", newline="\n")
+        (reads / "p-01-refute.json").write_text(json.dumps({"slice": "p-01", "disputed-different": [], "cases": [
+            {"rule-id": p["rule-id"], "verdict": "UPHELD", "reason": "planted", "citations": [], "class": None,
+             "probe": None} for p in (u, v, f, g)]}), encoding="utf-8", newline="\n")
+        imported, records = root / "imported", root / "records"
+        code, out = run(["import-reads", "--edition", "2002", "--reads", str(reads), "--record", str(records),
+                         "--state", str(imported)], fake)
+        decisions = json.loads((imported / "reads-decisions.json").read_text(encoding="utf-8"))
+        check("import-reads writes the read record, a run whose map pass is each reader's answer and whose verify pass is "
+              "each refuter's, and every rule's decision: kept, refused by reason, and the work items",
+              code == 0 and (records / "p-01.json").exists() and json.loads((imported / A.READS).read_text())["edition"] == 2002
+              and len(A.Pass(imported, "map").answers()) == 6 and len(A.Pass(imported, "verify").answers()) == 4
+              and decisions["summary"]["work"] == {lineage_reads.NEEDS_OWN_WITNESS: 1}
+              and decisions["summary"]["refused-by-reason"] == {lineage_reads.FLAG_UNANSWERED: 1, lineage_reads.NO_REFUTER: 1})
+        for cmd in (["plan", "--pass", "verify"], ["submit", "--pass", "map", *key, "--max-usd", "1", "--canary", "1"]):
+            code, out = run([cmd[0], "--state", str(imported), *cmd[1:]], fake)
+            check(f"an imported run's passes are the reads': `{cmd[0]}` is refused and no batch is made",
+                  isinstance(code, str) and "imported from reads" in code)
+        witnessed = {p["to"][0]: ("2002", "2023") for p in (u, f, g)} | {v["to"][0]: ("2023",)}
+        planted_w = lineage_reads.Witnesses(
+            {f"cases/X/{t}": lineage_reads.CaseInfo(f"cases/X/{t}", root, e, e, (), (t,), None) for t, e in witnessed.items()},
+            {t: [f"conformance:cases/X/{t}"] for t in witnessed}, {t: ["2002", "2014", "2023"] for t in witnessed})
+        real_witnesses = A.witnesses_of
+        A.witnesses_of = lambda newer: planted_w
+        try:
+            batch = root / "from-reads.json"
+            code, out = run(["change-batch", "--edition", "2002", "--state", str(imported), "--out", str(batch)], fake)
+        finally:
+            A.witnesses_of = real_witnesses
+        written = {r["rule-id"]: r for r in json.loads(batch.read_text(encoding="utf-8"))["records"]}
+        refused = {r["rule-id"]: r["reasons"] for r in
+                   json.loads(batch.with_name(batch.stem + ".refused.json").read_text(encoding="utf-8"))["refused"]}
+        check("change-batch writes a KEPT record for each SAME its refuter upheld, every flag answered for its detail and "
+              "witnessed at 2002, its source the read record and its answers keyed by the flag (kb/Work PB5597)",
+              code == 0 and set(written) == {u["rule-id"], f["rule-id"]}
+              and written[u["rule-id"]]["next"]["source"] == "lineage-reads-2002/p-01.json"
+              and written[f["rule-id"]]["next"]["answers"] == {
+                  n: {"flag": dt, "answer": f"planted: the 2002 rule still states it ({n})"} for n, dt in marks[f["rule-id"]].items()}
+              and not lineage_screen.unanswered(written.values(), screen))
+        check("R2-4: a record with a flag unanswered, and one with no witness at its own edition, are each refused ALONE, "
+              "with why, and the rest are written; a SAME with no refuter record and a DIFFERENT write nothing",
+              set(refused) == {v["rule-id"], g["rule-id"]} and "no own-edition witness" in refused[v["rule-id"]][0]
+              and "lineage screen" in refused[g["rule-id"]][0] and x["rule-id"] not in written and d["rule-id"] not in written)
         planted = {"1985-SR-VI.5.8.3-1": {"disposition": A.CARRIES, "rules_2023": ["SR-13.18.38.3-1"],
                                           "change": {"kind": "KEPT", "to": ["SR-13.18.38.3-1"]}},
                    "1985-SR-VI.5.8.3-2": {"disposition": A.DISPUTED, "rules_2023": ["SR-13.18.38.3-1"], "contested": True},

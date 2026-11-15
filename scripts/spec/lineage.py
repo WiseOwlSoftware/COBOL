@@ -54,6 +54,18 @@ def chained(row: dict[str, Any], schema: Schema) -> bool:
     return (row.get("next") or {}).get("kind") == schema.next.chained.name
 
 
+#: An answer to a flag of the lineage screen (kb/Work PB5597, branch review R2-2 of PB5589): the flag's detail as the
+#: screen gave it when the decision was read, and why the decision holds. Keyed to the flag's CONTENT, so a later,
+#: different question under the same trigger (another pending clause, another behaviour) is unanswered until read.
+ANSWER_KEYS = ("flag", "answer")
+
+
+def answer_shaped(v: Any) -> bool:
+    """Is `v` one answer: exactly `flag` and `answer`, each a non-empty string?"""
+    return (isinstance(v, dict) and sorted(v) == sorted(ANSWER_KEYS) and
+            all(isinstance(v[k], str) and v[k].strip() for k in ANSWER_KEYS))
+
+
 def next_errors(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> list[str]:
     """Why `row`'s `next` is not a legal change record of edition `ed` (the schema's `next`) — empty when it is, or when
     the row has none yet. `targets` are the next held edition's rows by id."""
@@ -86,10 +98,10 @@ def next_errors(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[
     if not (nxt.get("source") or "").strip():
         errs.append("next.source names the audit run or the adjudication that decided it")
     if "answers" in nxt and not (isinstance(nxt["answers"], dict) and nxt["answers"]
-                                 and all(isinstance(k, str) and isinstance(v, str) and v.strip()
-                                         for k, v in nxt["answers"].items())):
-        errs.append("next.answers maps each flag of the lineage screen (a trigger's name) to why the decision holds, "
-                    "every answer a non-empty sentence, and is omitted when the pair is flagged by none (kb/Work PB5589)")
+                                 and all(isinstance(k, str) and answer_shaped(v) for k, v in nxt["answers"].items())):
+        errs.append("next.answers maps each flag of the lineage screen (a trigger's name) to the flag it answers and why "
+                    "the decision holds ({\"flag\": the flag's detail, \"answer\": a non-empty sentence}: a changed flag "
+                    "needs a new answer, kb/Work PB5597), and is omitted when the pair is flagged by none (kb/Work PB5589)")
     if kind is None:
         return errs
     if kind.to and not to:
@@ -262,9 +274,14 @@ def self_test() -> int:
     ok(any("is not one of" in e for e in errs(row(kind="DEPRECATED"))), "a kind the schema does not name is refused")
     ok(any("unknown key" in e for e in errs(row(evidence="§2023:13.18.38.3 SR1"))),
        "a record carrying a key the schema does not name (its evidence is read from the catalogs) is refused")
-    ok(errs(row(answers={"band-formats": "the 2002 rule governs format 1 only, as the 2023 rule does"})) == []
-       and all(any("next.answers" in e for e in errs(row(answers=bad))) for bad in ({}, {"band-formats": " "}, ["x"])),
-       "a record's answers to the lineage screen's flags are a non-empty map of trigger to a sentence (kb/Work PB5589)")
+    ok(errs(row(answers={"band-formats": {"flag": "formats [1, 2] against [1]",
+                                          "answer": "the 2002 rule governs format 1 only, as the 2023 rule does"}})) == []
+       and all(any("next.answers" in e for e in errs(row(answers=bad))) for bad in (
+           {}, {"band-formats": " "}, ["x"], {"band-formats": "a bare sentence answers no named flag"},
+           {"band-formats": {"flag": "", "answer": "x"}}, {"band-formats": {"flag": "d", "answer": " "}},
+           {"band-formats": {"flag": "d", "answer": "x", "extra": 1}})),
+       "a record's answers to the lineage screen's flags map each trigger to the flag's detail and a sentence "
+       "(kb/Work PB5589, PB5597)")
     ok(any("holds no verdict" in e for e in errs(dict(row(), verdict="CONFORMS"))),
        "a KEPT rule holding a verdict of its own is refused: the chain's newest rule holds it")
     moved = {**targets, "SR-13.18.38.3-1": dict(targets["SR-13.18.38.3-1"], **{"rule-digest": "d-other"})}
