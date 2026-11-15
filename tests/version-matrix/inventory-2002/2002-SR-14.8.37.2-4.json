@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.37.2-4",
+ "rule-digest": "68275fab65f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+ "test-ref": "conformance:cases/14.8.37@2002-START-STATEMENT/g2-start-qualified-key",
+ "notes": "§2002:14.8.37.2 SR4 allows a qualified data-name-1 or record-key-name-1. START IF1 KEY IS EQUAL TO K OF R (another K holds 'A') positions at B2; START IF2 KEY IS EQUAL TO KN OF IF2 (SOURCE IS K1 K2; IF3 has another KN) positions at 2YB; START RF1 KEY IS EQUAL TO RK OF RKG (another RK holds 3) positions at record 2; all status 00, as derived. The --std 2002 run matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.5.3-6",
+ "rule-digest": "2f08ceff0665",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+ "test-ref": "conformance:cases/14.8.5@2002-CANCEL-STATEMENT/g2can05_call_on_overflow_after_cancel",
+ "notes": "§2002:14.8.5.3 GR6: after CANCEL the relationship is re-established only by a CALL referencing the program; g2can05 at --std 2002 re-establishes it with the 2002-only CALL ... ON OVERFLOW (C=1 initial, then C=2 last-used, ON OVERFLOW ignored per §2002:14.8.4.3 GR3h; a CALL of another program establishes nothing), output C=1 C=2 C=1 C=2 OVF C=1 matched."
+}

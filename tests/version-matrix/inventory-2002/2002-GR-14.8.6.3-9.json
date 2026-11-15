@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.6.3-9",
+ "rule-digest": "bcf1983b2cf3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo07_with_lock_releases_locks; conformance:cases/14.9.6-CLOSE/pb235_close_unit_locks",
+ "notes": "§2002:14.8.6.3 GR9 (with §2002:9.1.15 and §2002:9.1.14): every CLOSE releases the connector's file lock and record locks; 2002 has no APPLY COMMIT exemption. g2clo07 pins the 2002-only CLOSE WITH LOCK (B's READ 51 then 00, Y's OPEN 61 then 00, own re-OPEN 38); pb235 (accept 2002) pins the plain CLOSE. Both matched at --std 2002."
+}

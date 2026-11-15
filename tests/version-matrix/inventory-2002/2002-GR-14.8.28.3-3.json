@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.28.3-3",
+ "rule-digest": "b580ce734341",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaise; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaiseObject; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SetObject",
+ "test-ref": "conformance:cases/14.8.28@2002-RAISE-STATEMENT/g2rai01_raise_object_and_name",
+ "notes": "§2002:14.8.28.3 GR3 (CONTINUE per §2002:14.8.8.3 GR1): with no applicable declarative, a non-fatal named RAISE (a) and an object RAISE (b) pass control to the next statement; a named RAISE that has a USE runs its declarative instead. g2rai01 lines N1, DECL-H and R3, and the final 'D=2 H=1', matched at --std 2002."
+}

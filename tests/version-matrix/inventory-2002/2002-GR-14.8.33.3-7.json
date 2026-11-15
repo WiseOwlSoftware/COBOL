@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-7",
+ "rule-digest": "69989ed266d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/g2rw07_from_move_then_rewrite",
+ "notes": "§2002:14.8.33.3 GR7: SPACE is one alphanumeric space character, space-filled by the implicit MOVE (§2002:14.8.24.3 GR4 a, GR2); g2rw07 at --std 2002 reads back [     ] for an X(5) record and for a group record, as derived."
+}
