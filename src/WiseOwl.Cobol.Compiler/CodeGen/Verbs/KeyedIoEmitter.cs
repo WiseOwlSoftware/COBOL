@@ -85,21 +85,25 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §2023:14.9.30.4 GR15 + §2023:13.18.13.4 GR2
     }
 
+    /// <summary>One ALTERNATE RECORD KEY's arguments to <see cref="RuntimeApi.FileAddAlternateKey"/> and the byte windows behind <c>Key</c>.</summary>
+    private readonly record struct AlternateRegistration(string Key, string Duplicates, string Collation, string Suppress,
+        List<(int Offset, int Width, string Layout)> Windows);
+
     /// <summary>Each ALTERNATE RECORD KEY clause's registration arguments, as <see cref="RuntimeApi.FileAddAlternateKey"/> takes them, in
     /// declaration order; null for a key with no locatable window.</summary>
-    private List<(string Key, string Duplicates, string Collation, string Suppress)?> AlternateRegistrations(FileModel file)
+    private List<AlternateRegistration?> AlternateRegistrations(FileModel file)
     {
-        var list = new List<(string, string, string, string)?>(file.AlternateKeys.Count);
+        var list = new List<AlternateRegistration?>(file.AlternateKeys.Count);
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var (alt, dups, suppress, _) = file.AlternateKeys[i];
-            if (KeySegments(alt, file.FixedFormRecords) is not { } altKey) { list.Add(null); continue; }
+            if (KeyWindows(alt, file.FixedFormRecords) is not { } windows) { list.Add(null); continue; }
             var altCollation = i < file.AlternateKeyCollations.Count ? file.AlternateKeyCollations[i] : null;
             // §2023:12.4.5.6.4 GR6 — the key suppression value, already sized to the key (FileControlBinder.KeySuppressionOf);
             // the connector compares key IMAGES, so a national key's value rides the ONE national serializer.
             string sup = suppress is not { } s ? "null"
                 : s.National ? RuntimeApi.NatBytes(CsLiteral(s.Value)) : CsLiteral(s.Value);
-            list.Add((altKey, dups ? "true" : "false", CollationLit(altCollation), sup));
+            list.Add(new AlternateRegistration(RuntimeApi.KeySegments(windows), dups ? "true" : "false", CollationLit(altCollation), sup, windows));
         }
         return list;
     }
@@ -109,15 +113,38 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// <c>FixedFileAttributes.Conflicts</c> compares it positionally, so every description of one physical file must register the
     /// same keys in the same order whatever order its clauses were written in (§2023:12.4.5.3 GR1 k) / §1985:IX.2.3.3 SR1 leave the
     /// clause order out of the specification) and whether or not its entry is EXTERNAL (one external connector is shared by every
-    /// describer, and the verbs name a key by this index). The order is the registration arguments themselves (key windows,
-    /// DUPLICATES, collation, suppression value) sorted ordinally, so it derives from the physical key descriptors alone, never from a
-    /// data-name or a clause position; equal descriptors keep declaration order and a key with no locatable window goes last.</summary>
+    /// describer, and the verbs name a key by this index). The order is the keys' own physical descriptors: the byte windows
+    /// numerically (so the usual entry, whose keys are written in record order, keeps its clause order), then DUPLICATES, collation
+    /// and suppression value; never a data-name or a clause position. Equal descriptors keep declaration order and a key with no
+    /// locatable window goes last.</summary>
     private int ConnectorKeyIndex(FileModel file, int clauseIndex)
     {
         if (clauseIndex < 0 || file.Organization != FileOrganization.Indexed) return clauseIndex;
         var registrations = AlternateRegistrations(file);
-        string Descriptor(int i) => registrations[i] is { } a ? $"0|{a.Key}|{a.Duplicates}|{a.Collation}|{a.Suppress}" : "1";
-        return Enumerable.Range(0, registrations.Count).OrderBy(Descriptor, StringComparer.Ordinal).ToList().IndexOf(clauseIndex);
+        return Enumerable.Range(0, registrations.Count)
+            .OrderBy(i => registrations[i], KeyDescriptorOrder.Instance)
+            .ToList().IndexOf(clauseIndex);
+    }
+
+    private sealed class KeyDescriptorOrder : IComparer<AlternateRegistration?>
+    {
+        public static readonly KeyDescriptorOrder Instance = new();
+
+        public int Compare(AlternateRegistration? x, AlternateRegistration? y)
+        {
+            if (x is not { } a || y is not { } b) return (x is null ? 1 : 0) - (y is null ? 1 : 0);
+            for (int i = 0; i < Math.Min(a.Windows.Count, b.Windows.Count); i++)
+            {
+                int c = a.Windows[i].Offset.CompareTo(b.Windows[i].Offset);
+                if (c == 0) c = a.Windows[i].Width.CompareTo(b.Windows[i].Width);
+                if (c == 0) c = string.CompareOrdinal(a.Windows[i].Layout, b.Windows[i].Layout);
+                if (c != 0) return c;
+            }
+            int n = a.Windows.Count.CompareTo(b.Windows.Count);
+            if (n == 0) n = string.CompareOrdinal(a.Duplicates, b.Duplicates);
+            if (n == 0) n = string.CompareOrdinal(a.Collation, b.Collation);
+            return n != 0 ? n : string.CompareOrdinal(a.Suppress, b.Suppress);
+        }
     }
 
     /// <summary>A record key's byte windows as the connector takes them (<see cref="RuntimeApi.KeySegments"/>): one
@@ -127,7 +154,11 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// <para>⛔ EACH WINDOW IS IN BYTES (kb/Work PB327): §2023:12.4.5.12.4 GR4 states key correspondence over "the
     /// identical BYTE POSITIONS", and <see cref="KeyWindow"/>'s offset is a byte offset — so the WIDTH is the item's
     /// byte extent too, which for a national item (PIC N(n)) is 2n, not n (§2023:13.18.60.4 GR8; D-N1).</para></summary>
-    private string? KeySegments(Binding.Model.RecordKey key, bool fixedForm)
+    private string? KeySegments(Binding.Model.RecordKey key, bool fixedForm) =>
+        KeyWindows(key, fixedForm) is { } windows ? RuntimeApi.KeySegments(windows) : null;
+
+    /// <summary>The byte windows <see cref="KeySegments"/> renders; null when any segment has no locatable window.</summary>
+    private List<(int Offset, int Width, string Layout)>? KeyWindows(Binding.Model.RecordKey key, bool fixedForm)
     {
         var windows = new List<(int Offset, int Width, string Layout)>(key.Segments.Count);
         foreach (var segment in key.Segments)
@@ -135,7 +166,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             if (KeyWindow(segment, fixedForm) is not var (off, layout)) return null;
             windows.Add((off, segment.ByteWidth, layout));
         }
-        return RuntimeApi.KeySegments(windows);
+        return windows;
     }
 
     /// <summary>A record key's registration window (§2023:12.4.5.12 / §2023:12.4.5.6): its byte offset and, when a
