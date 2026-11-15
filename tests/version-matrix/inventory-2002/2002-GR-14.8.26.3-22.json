@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.26.3-22",
  "rule-digest": "14b4d331e670",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb316_open_group_scope; conformance:cases/14.9.27-OPEN/pb322_default_sharing_by_open_mode; conformance:cases/14.9.27-OPEN/pb322_clauseless_reader_sees_record_lock",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

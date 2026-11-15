@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.42.3-3",
  "rule-digest": "a4dc6df17e36",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb1187_terminate_restore_last_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

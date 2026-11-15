@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-12.2.5.2-1",
  "rule-digest": "ce36947e08d3",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb1082-pcs-undeclared-alphabet; conformance:cases/12.3.6-OBJECT-COMPUTER/pb1082-pcs-class-name-is-no-alphabet",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

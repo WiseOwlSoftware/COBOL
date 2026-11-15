@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.29.2-10",
  "rule-digest": "7d5bb3b1b30a",
+ "test-ref": "conformance:cases/14.9.30-READ/pb331_read_lock_brackets; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

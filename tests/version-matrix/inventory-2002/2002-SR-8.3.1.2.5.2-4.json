@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.3.1.2.5.2-4",
  "rule-digest": "a2c7659f11e5",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb110_symbolic_and_class_in",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

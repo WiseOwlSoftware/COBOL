@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-X.5.4.3-2",
  "rule-digest": "8cd2de8b7bc3",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb404-exit-program-in-global-declarative",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

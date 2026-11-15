@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.3.14.3-2",
  "rule-digest": "b65945bd500b",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb485-level-66-report-group",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

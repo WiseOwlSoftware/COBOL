@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.33.2-4",
  "rule-digest": "bb8e9d349065",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/pb1193-rewrite-global-record-local-fd",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-11.9.3-6",
  "rule-digest": "16df9ec28fe8",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb894_program_prototype_2002",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

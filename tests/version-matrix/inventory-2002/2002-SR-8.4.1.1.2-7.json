@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.1.1.2-7",
  "rule-digest": "d7c03492728d",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1456-counter-qualified-by-report-group; conformance:cases/8.4.2.2-Qualification/pb1049-unqualified-counter-two-reports",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.5.1-3",
  "rule-digest": "7d7eda754ed3",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb873_signed_argument_image_carried_formal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

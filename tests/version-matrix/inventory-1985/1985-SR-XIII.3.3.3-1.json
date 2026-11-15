@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.3.3.3-1",
  "rule-digest": "7bae887e23be",
+ "test-ref": "conformance:cases/13.18.46-REPORT/pb1285-report-clause-undefined-name",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

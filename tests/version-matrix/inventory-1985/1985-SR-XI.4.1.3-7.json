@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XI.4.1.3-7",
  "rule-digest": "b3fe434357e7",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb1139-merge-file-repeated; conformance:cases/14.9.24-MERGE/pb1139-merge-file-in-using-and-giving",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

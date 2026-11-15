@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.5.3-10",
  "rule-digest": "f2982f8000fe",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/l1c19_native_collating_default",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

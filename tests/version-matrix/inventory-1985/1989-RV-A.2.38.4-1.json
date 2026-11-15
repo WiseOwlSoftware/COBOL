@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.38.4-1",
  "rule-digest": "63e72422136d",
+ "test-ref": "conformance:cases/15.78.4-Returned-value-rule/pb190_reverse_argument_shapes",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

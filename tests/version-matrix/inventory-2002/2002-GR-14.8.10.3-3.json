@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.10.3-3",
  "rule-digest": "74efc3b18257",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/ca3_figurative_display_pcs; conformance:cases/14.9.11-DISPLAY/pb243_display_all_literal_kinds",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

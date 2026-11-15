@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.2.2.2.2-2",
  "rule-digest": "63dd359f8108",
+ "test-ref": "conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445_signed_literal_forms; conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1445_signed_literal_leftmost_sign; conformance:cases/8.3.3.6-Figurative-constant-values/pb3962_figurative_zero_before_a_signed_literal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

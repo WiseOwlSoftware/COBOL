@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-AR-15.35.2-1",
  "rule-digest": "bf4560fdac57",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/intrinsics_boolean_conv",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

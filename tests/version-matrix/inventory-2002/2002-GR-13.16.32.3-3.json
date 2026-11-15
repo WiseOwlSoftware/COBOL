@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.32.3-3",
  "rule-digest": "699e8f90c7d9",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary; conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary_85; conformance:cases/9.1.13.11-Implementor-defined-condition-with-unsuccessful-completion/pb526_linage_ec_condition; conformance:cases/13.18.34-LINAGE/pb526_linage_ec_condition_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

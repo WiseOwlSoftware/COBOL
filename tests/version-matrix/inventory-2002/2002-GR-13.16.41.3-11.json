@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.41.3-11",
  "rule-digest": "6d3a9f136570",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

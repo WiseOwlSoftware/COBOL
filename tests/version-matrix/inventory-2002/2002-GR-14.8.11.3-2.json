@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.11.3-2",
  "rule-digest": "a2bc5bbc299f",
+ "test-ref": "conformance:cases/14.9.2-ADD/pb45_function_in_sending_operands; conformance:cases/14.9.12-DIVIDE/pb2144_divide_phrase_sending_operands",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

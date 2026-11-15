@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.2.8.2-7",
  "rule-digest": "ec8e1219657a",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_predefined_object_operands",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.45.2-2",
  "rule-digest": "15ee19507191",
+ "test-ref": "conformance:cases/14.9.49-USE/l1-use-format1-names-sort-file; conformance:cases/14.9.49-USE/l1-use-format3-names-sort-file",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

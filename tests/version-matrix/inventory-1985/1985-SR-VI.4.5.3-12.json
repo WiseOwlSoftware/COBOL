@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.4.5.3-12",
  "rule-digest": "e43248ea6e43",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-figurative-literal-7-bare",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-DOC-B.1-59",
  "rule-digest": "daceb9949177",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c11_sharing_not_fixed_attribute",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

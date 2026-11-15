@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIII.3.5.6-1",
  "rule-digest": "0bc4fa5e8a9d",
+ "test-ref": "conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1153_counter_register_character_image; conformance:cases/8.4.2.2-Qualification/pb1456_other_report_counters_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

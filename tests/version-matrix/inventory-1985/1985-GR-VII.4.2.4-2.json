@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.4.2.4-2",
  "rule-digest": "bc108bccfa72",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb141_close_forms",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

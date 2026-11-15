@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-XIII.4.7.2",
  "rule-digest": "65b27eda1505",
+ "test-ref": "conformance:cases/14.9.46-TERMINATE/l1c33_terminate_multi_order_no_close",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-DOC-B.1-38",
  "rule-digest": "ac4305287372",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb547_redefines_national_view_of_wide_character; conformance:cases/A.1-Implementor-defined-language-element-list/pb547_redefines_binary_and_bit_views_of_wide_character",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

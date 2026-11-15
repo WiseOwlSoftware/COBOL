@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.13.2-15",
  "rule-digest": "d4a9753242f3",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb853-report-justified-without-column",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

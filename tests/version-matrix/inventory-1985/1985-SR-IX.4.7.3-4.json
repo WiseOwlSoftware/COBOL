@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IX.4.7.3-4",
  "rule-digest": "36cf79a672c1",
+ "test-ref": "conformance:cases/14.9.41-START/pb354-start-operand-outside-record; conformance:cases/14.9.41-START/pb354-start-operand-class-mismatch; conformance:cases/14.9.41-START/pb354-start-operand-too-long; conformance:cases/14.9.41-START/pb850-start-operand-alphanumeric-edited",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

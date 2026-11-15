@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.34.2-8",
  "rule-digest": "8d95256b6c5b",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445-search-all-sending-is-key; conformance:cases/14.9.37-SEARCH/pb445-search-all-sending-uses-index",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

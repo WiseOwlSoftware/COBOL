@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.10.2-4",
  "rule-digest": "6d311a146838",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-after-match-text-on-line",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

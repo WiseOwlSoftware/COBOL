@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.13.2-7",
  "rule-digest": "3b26943bcb86",
+ "test-ref": "conformance:cases/7.3.16-IF/pb1363-if-opened-in-library-text; conformance:cases/7.3.16-IF/pb1363-else-without-if; conformance:cases/7.3.16-IF/pb1363-else-twice; conformance:cases/7.3.16-IF/pb1363-if-not-closed",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.1.3.5-2",
  "rule-digest": "9066b13af819",
+ "test-ref": "conformance:cases/9.1.13.4-At-end-condition-with-unsuccessful-completion/pb336_optional_absent_read_46_85; conformance:cases/14.9.30-READ/pb810_read_46_takes_no_at_end",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

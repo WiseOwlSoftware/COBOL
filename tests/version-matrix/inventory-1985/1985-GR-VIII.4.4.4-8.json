@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.4.4.4-8",
  "rule-digest": "346e7c4cc88f",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/open_fixed_attribute_conflict",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

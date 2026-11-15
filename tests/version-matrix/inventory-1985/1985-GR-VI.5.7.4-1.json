@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.7.4-1",
  "rule-digest": "138dfbc21ac7",
+ "test-ref": "conformance:cases/13.18.33-Level-number/pb1246_level_hierarchy_legal; conformance:cases/8.5.1.3.2-Level-numbers/pb485_level_number_legal_forms",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

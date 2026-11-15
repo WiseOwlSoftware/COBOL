@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.4.9.4-12",
  "rule-digest": "1ff34bc8a911",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37_indexed_dup_prime_key",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

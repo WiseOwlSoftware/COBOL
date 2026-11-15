@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.12.2-5",
  "rule-digest": "930f22b098ae",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/pb398_evaluate_partial_expression; conformance:cases/14.9.13-EVALUATE/pb843_evaluate_symbol_decided_objects",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

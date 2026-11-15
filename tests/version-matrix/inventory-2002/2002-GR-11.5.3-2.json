@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-11.5.3-2",
  "rule-digest": "94bb97b2909c",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/l1p5_interface_inherits_multiple",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

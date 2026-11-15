@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.40.2-2",
  "rule-digest": "eb366234533c",
+ "test-ref": "conformance:cases/13.18.42-PROPERTY/pb1273-property-under-occurs",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

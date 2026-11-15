@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.34.2-7",
  "rule-digest": "be9870a5d426",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445-search-all-condition-name-multivalue; conformance:cases/14.9.37-SEARCH/pb445-search-all-condition-name-not-key; conformance:cases/14.9.37-SEARCH/pb445-search-all-condition-name-index-plus",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

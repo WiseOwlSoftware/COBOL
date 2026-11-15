@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IX.2.5.3-5",
  "rule-digest": "c9b952b3315f",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1025-alternate-key-beyond-minimum",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

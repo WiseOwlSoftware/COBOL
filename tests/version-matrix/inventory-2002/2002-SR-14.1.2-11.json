@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.1.2-11",
  "rule-digest": "51870388b15e",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22-method-prototype-statement",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

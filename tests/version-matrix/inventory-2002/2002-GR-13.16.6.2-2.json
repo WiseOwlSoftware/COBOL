@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.6.2-2",
  "rule-digest": "6b4dc2e46984",
+ "test-ref": "conformance:wiseowl/cases/13.18.6-BELL/a42-screen-bell",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XI.3.2.3-1",
  "rule-digest": "285ad2ccf64c",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb829-sd-unrecognized-clause",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.3.1.2.3.2-2",
  "rule-digest": "91afd79ef573",
+ "test-ref": "conformance:cases/8.3.3.4-Boolean-literals/w73a-boolean-literal-non-boolean-character",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

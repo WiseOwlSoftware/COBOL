@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.14.3-1",
  "rule-digest": "8bc1c4007618",
+ "test-ref": "conformance:cases/14.9.15-FREE/l1c10_free_multi_operand_arms",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

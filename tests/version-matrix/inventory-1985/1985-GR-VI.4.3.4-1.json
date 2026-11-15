@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.4.3.4-1",
  "rule-digest": "192cf1fb4323",
+ "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb1088_dbg_contained",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

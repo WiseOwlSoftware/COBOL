@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.14.3-7",
  "rule-digest": "2d0d656e194a",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

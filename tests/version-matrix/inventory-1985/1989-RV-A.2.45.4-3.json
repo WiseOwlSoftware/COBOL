@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.45.4-3",
  "rule-digest": "1f476edca2c2",
+ "test-ref": "conformance:cases/15.98.4-Returned-value-rules/pb257_variance_eae_native; conformance:cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

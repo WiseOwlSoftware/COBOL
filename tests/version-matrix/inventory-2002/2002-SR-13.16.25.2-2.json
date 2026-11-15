@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.25.2-2",
  "rule-digest": "7c5cdc7c8b97",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/pb1242-same-record-area-global-fd; conformance:cases/13.18.27-GLOBAL/pb1242-same-record-area-global-record",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

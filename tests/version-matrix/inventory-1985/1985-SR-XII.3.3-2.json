@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XII.3.3-2",
  "rule-digest": "f5130cbbc6ac",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1357-replace-also-below-2002; conformance:cases/7.2.3-COPY/pb1670-replacing-partial-word-below-2002; conformance:cases/8.3.5-Separators/w73a_separator_context_conforming",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

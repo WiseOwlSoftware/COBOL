@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.2.2.2.3-7",
  "rule-digest": "9b97ec27bb3a",
+ "test-ref": "conformance:wiseowl/cases/8.3.3.6-Figurative-constant-values/pb732_value_symbolic_character",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

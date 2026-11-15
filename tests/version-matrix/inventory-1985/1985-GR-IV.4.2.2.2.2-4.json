@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.2.2.2.2-4",
  "rule-digest": "8b790e2028b1",
+ "test-ref": "conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/pb1446_comma_point_literal_value_and_size",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

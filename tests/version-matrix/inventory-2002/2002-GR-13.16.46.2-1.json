@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.46.2-1",
  "rule-digest": "f11f4aca5c26",
+ "test-ref": "conformance:wiseowl/cases/13.18.48-REVERSE-VIDEO/a42-screen-reverse-video",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

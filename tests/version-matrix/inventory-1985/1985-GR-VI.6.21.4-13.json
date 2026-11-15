@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.21.4-13",
  "rule-digest": "1e24fad40719",
+ "test-ref": "conformance:cases/8.4.4-Condition-name/pb390_procedure_and_condition_operands; conformance:cases/14.9.17-GO-TO/pb3491_go_to_depending_out_of_perform_range",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

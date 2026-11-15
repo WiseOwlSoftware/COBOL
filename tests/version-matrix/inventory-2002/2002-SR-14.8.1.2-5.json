@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.1.2-5",
  "rule-digest": "9ec9812fd5ce",
+ "test-ref": "conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-positioned",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

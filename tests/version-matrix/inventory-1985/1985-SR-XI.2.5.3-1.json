@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XI.2.5.3-1",
  "rule-digest": "1adc55b08f7f",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-file-not-in-file-control",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

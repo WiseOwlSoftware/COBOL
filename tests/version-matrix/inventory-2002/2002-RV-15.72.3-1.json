@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.72.3-1",
  "rule-digest": "aae9e187b859",
+ "test-ref": "conformance:cases/15.89.4-Returned-value-rule/pb253_prose_float_standard_container; conformance:cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range; conformance:cases/15.20.4-Returned-value-rule/pb1041_exp_and_wide_exact_argument",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IX.2.4.3-1",
  "rule-digest": "a2cabc116575",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb994-sort-using-random-access; conformance:cases/12.4.5-File-control/pb994-sort-giving-random-access; conformance:cases/12.4.5-File-control/pb994-merge-using-random-access",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

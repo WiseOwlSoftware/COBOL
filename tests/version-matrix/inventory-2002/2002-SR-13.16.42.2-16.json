@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.42.2-16",
  "rule-digest": "3bb39d340d72",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/l1c24-redefines-any-length-target",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

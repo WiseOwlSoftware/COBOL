@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.44.2-2",
  "rule-digest": "e7a35cf4e042",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb88-unstring-sender-numeric; conformance:cases/14.9.48-UNSTRING/pb664-unstring-sender-pointer; conformance:cases/14.9.48-UNSTRING/pb3665-unstring-length-function-delimiter",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

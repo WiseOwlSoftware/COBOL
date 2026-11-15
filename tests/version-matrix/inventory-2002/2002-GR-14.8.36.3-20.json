@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.36.3-20",
  "rule-digest": "d511448fe6c1",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb846_sort_table_occurs_keys",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

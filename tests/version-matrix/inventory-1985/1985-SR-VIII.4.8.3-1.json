@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VIII.4.8.3-1",
  "rule-digest": "8d997c87799f",
+ "test-ref": "conformance:cases/14.9.49-USE/pb361-use-outside-declaratives",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

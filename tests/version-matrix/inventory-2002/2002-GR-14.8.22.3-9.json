@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.22.3-9",
  "rule-digest": "f733d4900cb8",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

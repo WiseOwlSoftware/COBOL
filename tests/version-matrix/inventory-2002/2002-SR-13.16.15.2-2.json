@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.15.2-2",
  "rule-digest": "0c0b43559109",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb205-control-operand-report-section",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

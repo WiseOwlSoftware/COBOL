@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.11.2-3",
  "rule-digest": "3509352ffb92",
+ "test-ref": "conformance:cases/14.9.2-ADD/pb155-add-string-literal; conformance:cases/14.9.12-DIVIDE/pb155-divide-figurative",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

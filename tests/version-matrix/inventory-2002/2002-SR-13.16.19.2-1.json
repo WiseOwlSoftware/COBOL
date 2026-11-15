@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.19.2-1",
  "rule-digest": "01047f56fd02",
+ "test-ref": "conformance:wiseowl/cases/13.18.21-ERASE/a42-screen-erase",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

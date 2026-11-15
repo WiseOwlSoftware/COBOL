@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.33.3-2",
  "rule-digest": "893af88a882e",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1188_report_nonfatal_raise",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

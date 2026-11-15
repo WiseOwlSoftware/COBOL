@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.1-1",
  "rule-digest": "13d250da5b1b",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb919-index-name-ambiguous",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

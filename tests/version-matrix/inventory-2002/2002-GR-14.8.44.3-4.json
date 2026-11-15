@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.44.3-4",
  "rule-digest": "3393f71c9567",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb979_unstring_any_length_national",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

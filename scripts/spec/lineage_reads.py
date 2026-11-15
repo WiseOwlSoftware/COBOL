@@ -9,7 +9,7 @@ review.md section 10.6).
                                                     # the tracked read records and an audit run's state (audit_batch.py)
     python scripts/spec/lineage_reads.py --check [YEAR]                 # the gate's LINEAGE READS audit
     python scripts/spec/lineage_reads.py widen --edition YEAR --state DIR --out PLAN [--apply --compiler EXE]
-    python scripts/spec/lineage_reads.py own-edition --edition YEAR --out FILE   # the stored KEPT records' witnesses
+    python scripts/spec/lineage_reads.py witness-batch --edition YEAR --out BATCH  # the stored KEPT rows' own witnesses
 
 THE OWNER'S RULE (2026-11-14): "2002 spec covers 2002 rules. It should not matter to the 2002 rules whether or not 2023
 removes/adds/changes a clause." An older rule is judged on its own edition's text at its own `--std`; the next edition's
@@ -34,7 +34,10 @@ WHAT MAY BECOME A KEPT RECORD (`decide`, which the writer `audit_batch.change_ba
   3. the evidence is at the row's OWN edition: every next-edition rule the record carries into has a conformance-suite
      case among its witnesses that runs at the edition (the generator places it there: its `accept` or its flag's `at`
      names the edition, and every rule it cites has the edition in its band), so the gate's run of that edition's suite
-     passes it (`Witnesses`, `NO_OWN_WITNESS`). `widen` widens the witnesses that can run there.
+     passes it (`Witnesses.search`, `NO_OWN_WITNESS`), and the cases found are written as the row's OWN `test-ref`
+     (kb/Work PB5675: one rule at every older edition, no edition key). `widen` widens the witnesses that can run there.
+     At 1985 the pairing (word-identical text) is empty, so no new 1985 record is KEPT: 1985 is the earliest edition,
+     and its rows are recorded with their own verdicts, each with a test-ref that runs at 85.
 WHAT THE OTHER VERDICTS BECOME (`decide`'s work items, never a kept record): a DIFFERENT, or a SAME the refuter overturned,
 is `needs-own-witness` when its reader or refuter showed the compiler correct at the edition (the probe is the candidate
 witness), `defect` when it showed it wrong (the records worker matches it to a kb/Work note), `undecided` when nobody
@@ -44,9 +47,10 @@ it is a view of the read records, not a register (CLAUDE.md rule 8). `record_ver
 once a witness or a note exists.
 
 THE AUDIT (`--check`, the gate's LINEAGE READS): every read record loads and normalizes; every stored change record whose
-source names a read record is that record's decision (the read SAME, the refuter UPHELD, the same `to`), and every rule it
-carries into still has a witness at the edition. A later change that narrows a witness's band, or rewrites a read,
-turns it red. (A flag the screen raises AFTER a record is stored is the screen's change, listed as owed by
+source names a read record is that record's decision (the read SAME, the refuter UPHELD, the same `to`); and, at every
+older held edition, every KEPT row's own witness (its `test-ref`) is a suite case that runs at the edition, of the kind
+its rule needs (`Witnesses.own_problems`, which reads no target). A later change that narrows a witness's band, moves
+it, or rewrites a read, turns it red, naming the row and the case; a KEPT row with no witness of its own is a GAP. (A flag the screen raises AFTER a record is stored is the screen's change, listed as owed by
 lineage_screen.py --check, never red: kb/Work PB5597, branch review R2-1 of PB5589.)
 """
 from __future__ import annotations
@@ -65,6 +69,7 @@ from typing import Any, Iterable
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import inventory_schema  # noqa: E402  (the editions, the repository root, the test-ref forms)
 import inventory_view  # noqa: E402  (each edition's rows: the next edition's witnesses, the stored records)
+import lineage  # noqa: E402  (the candidate pairing's file, the form of a suite witness)
 import lineage_screen  # noqa: E402  (the flags a decision answers)
 from inventory_schema import Edition, edition  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -82,7 +87,7 @@ COMPILER = re.compile(r"\A\s*(correct|wrong|not probed)\b", re.I)
 #: Why a SAME read upheld by its refuter is still refused a kept record.
 NO_REFUTER, FLAG_UNANSWERED, NO_OWN_WITNESS = "no refuter record", "flag unanswered", "no own-edition witness"
 #: ... and why a read's targets cannot be a KEPT record's (kb/Work PB5597, branch review R1-1, R1-2).
-NO_LICENCE, NOT_THE_PAIRING = "no 2002 licence stated", "targets are not the pairing's"
+NO_LICENCE, NOT_THE_PAIRING = "no own-edition licence stated", "targets are not the pairing's"
 #: The work items of the reads that are not kept. A SAME for a rule with no candidate pair (its `to` a nearest-rule
 #: POINTER, or empty) is never a KEPT record: the row is recorded with its own verdict, citing the pointer's witness
 #: once that runs at the edition (`OWN_VERDICT_FROM_POINTER`).
@@ -501,7 +506,6 @@ class Lineage:
 
     @classmethod
     def of(cls, ed: Edition) -> "Lineage":
-        import lineage  # noqa: PLC0415  (the candidate pairing's file)
         rules = ed.rules()
         kinds = {r["id"]: r["kind"] for r in rules}
         pairs = {p["rule-id"]: tuple(p["to"]) for p in
@@ -545,22 +549,15 @@ def uncommitted(repo: pathlib.Path = REPO) -> set[str]:
     return out
 
 
-class Witnesses:
-    """The next edition's rules' conformance-suite witnesses and where each runs. A case runs at an edition when its header
-    names it (the generator places it in that edition's manifest only then, and refuses it there when a rule it cites does
-    not exist at the edition: `generate.check_cases`); the gate runs every case of every edition's manifest, so a case
-    that runs at the edition on a green tree passes there."""
-
-    def __init__(self, cases: dict[str, CaseInfo], refs: dict[str, list[str]], bands: dict[str, list[str]],
-                 verdicts: dict[str, str] | None = None):
-        self.cases, self.refs, self.bands, self.verdicts = cases, refs, bands, verdicts or {}
-        #: (the generator module, its inputs): what `entries` builds manifest entries with; None for planted witnesses.
-        self.generator: tuple[Any, Any] | None = None
+@dataclasses.dataclass(frozen=True)
+class Suite:
+    """The conformance suite as the generator reads it: every case by its test-ref key, and the generator with its inputs.
+    Read once (`read`: about 25 s, the headers of every case) and shared by every edition's `Witnesses`."""
+    cases: dict[str, CaseInfo]
+    generator: tuple[Any, Any] | None
 
     @classmethod
-    def of(cls, newer: int) -> "Witnesses":
-        """The repository's: the generator's reading of every case (both trees), and the test-refs and bands of the rows
-        of the edition `newer` (the next held edition the records carry into)."""
+    def read(cls) -> "Suite":
         g = _generator()
         inputs, _problems = g.repository_inputs()
         reader = g.Reader(g.SUITE, inputs)
@@ -578,12 +575,32 @@ class Witnesses:
                                   tuple(c.accept), at, tuple(c.rules), c.control, refuse_at, sidecar,
                                   refusal["expect"] if refusal else "", c.source_format,
                                   not any(f.relative_to(REPO).as_posix() in dirty for f in files), c)
+        return cls(cases, (g, inputs))
+
+
+class Witnesses:
+    """The next edition's rules' conformance-suite witnesses and where each runs. A case runs at an edition when its header
+    names it (the generator places it in that edition's manifest only then, and refuses it there when a rule it cites does
+    not exist at the edition: `generate.check_cases`); the gate runs every case of every edition's manifest, so a case
+    that runs at the edition on a green tree passes there."""
+
+    def __init__(self, cases: dict[str, CaseInfo], refs: dict[str, list[str]], bands: dict[str, list[str]],
+                 verdicts: dict[str, str] | None = None):
+        self.cases, self.refs, self.bands, self.verdicts = cases, refs, bands, verdicts or {}
+        #: (the generator module, its inputs): what `entries` builds manifest entries with; None for planted witnesses.
+        self.generator: tuple[Any, Any] | None = None
+
+    @classmethod
+    def of(cls, newer: int, suite: "Suite | None" = None) -> "Witnesses":
+        """The repository's: the generator's reading of every case (both trees; `suite` when it was read already), and
+        the test-refs and bands of the rows of the edition `newer` (the next held edition the records carry into)."""
+        suite = suite or Suite.read()
         schema = inventory_schema.load_schema()
         rows = inventory_view.inventory(newer, schema)
         refs = {r["rule-id"]: schema.split(r.get("test-ref", "") or "", schema.test_ref_sep) for r in rows}
         bands = {r["rule-id"]: schema.split(r.get("editions", "") or "", schema.editions_sep) for r in rows}
-        out = cls(cases, refs, bands, {r["rule-id"]: r.get("verdict") or "" for r in rows})
-        out.generator = (g, inputs)
+        out = cls(suite.cases, refs, bands, {r["rule-id"]: r.get("verdict") or "" for r in rows})
+        out.generator = suite.generator
         return out
 
     def entries(self, keys: Iterable[str], sp: str) -> tuple[dict[str, list[dict[str, Any]]], dict[str, str]]:
@@ -621,7 +638,7 @@ class Witnesses:
 
     def suite_cases(self, rule: str) -> list[str]:
         """The keys of the conformance-suite cases the rule's test-ref names (`conformance:<key>`), in its order."""
-        return [ref.partition(":")[2].strip() for ref in self.refs.get(rule, []) if ref.partition(":")[0] == "conformance"]
+        return [ref.partition(":")[2].strip() for ref in self.refs.get(rule, []) if ref.partition(":")[0] == lineage.SUITE_FORM]
 
     def at(self, rule: str, spelling: str) -> list[str]:
         """The rule's suite witnesses that run at the edition spelled `spelling`, of any kind, in the COMMITTED tree."""
@@ -634,48 +651,81 @@ class Witnesses:
         return [k for k in self.suite_cases(rule) if k in self.cases and self.cases[k].committed
                 and spelling in self.cases[k].accept]
 
-    def evidence(self, ed: Edition, diagnosable: bool, to: Iterable[str], licence: str | None,
-                 table: EvidenceTable) -> list[tuple[str, str]]:
-        """Why each rule of `to` has no witness at `ed` of the kind the older rule needs (review R1-1): a case accepted
-        there always is; a diagnosis there only when the rule is `diagnosable` (`EvidenceTable.diagnosable`: a diagnosed
-        kind granting no form), or for a declined facility whose read states a licence `licence_problem` accepts.
-        Empty when the evidence is at the row's own edition."""
-        sp, out = ed.spelling, []
+    def search(self, ed: Edition, diagnosable: bool, to: Iterable[str], licence: str | None,
+               table: EvidenceTable) -> tuple[list[str], list[tuple[str, str]]]:
+        """THE CANDIDATE SEARCH of the writer (kb/Work PB5675): through the cases of each rule of `to`, the committed
+        cases that witness the older rule at `ed`, by `witnesses_at` (review R1-1: an accepted case always; a diagnosis
+        only for a `diagnosable` rule or a declined facility with a licence), and why each rule of `to` that has none
+        lacks one. A target is a POINTER to candidate cases here and nowhere else: the cases found become the row's own
+        `test-ref`, and the audit checks them with no target (`own_problems`)."""
+        sp, found, out = ed.spelling, [], []
         for t in to:
-            if self.accepted_at(t, sp):
+            if acc := self.accepted_at(t, sp):
+                found += acc
                 continue
             diagnoses = self.at(t, sp)
             if diagnoses and diagnosable:
+                found += diagnoses
                 continue
             if diagnoses and self.verdicts.get(t) == table.declined:
                 if why := licence_problem(ed, licence):
                     out.append((NO_LICENCE, f"{t} is {table.declined} and only a diagnosis at {sp} shows the decline; "
                                             f"licence-{ed.year}: {why}"))
+                else:
+                    found += diagnoses
                 continue
             out.append((NO_OWN_WITNESS, f"{t}: no conformance-suite case runs and passes at {sp}" + (
                 " (only a diagnosis, which witnesses no rule that grants a form or states a behaviour)" if diagnoses else "")))
+        return list(dict.fromkeys(found)), out
+
+    def own_problems(self, ed: Edition, refs: Iterable[str], diagnosable: bool, licence: str | None) -> list[str]:
+        """THE AUDIT'S EVIDENCE TEST of a stored chained row (kb/Work PB5675): why each test-ref the row carries of its
+        own is no witness at `ed` of the kind its rule needs. It reads the row's own references, the suite and the
+        row's rule, never a target: each names a conformance-suite case (`lineage.SUITE_FORM`) that runs at the edition,
+        ACCEPTED there, or only diagnosed there for a `diagnosable` rule or a read whose `licence` `licence_problem`
+        accepts (the declined facility the writer found it through). Empty when every one witnesses."""
+        sp, out = ed.spelling, []
+        for ref in refs:
+            form, _, key = ref.partition(":")
+            c = self.cases.get(key.strip()) if form == lineage.SUITE_FORM else None
+            if form != lineage.SUITE_FORM:
+                out.append(f"{ref}: a {form} test runs at no older edition")
+            elif c is None:
+                out.append(f"{ref}: names no conformance-suite case")
+            elif sp in c.accept:
+                continue
+            elif sp not in c.runs:
+                out.append(f"{ref}: does not run at {sp} (it runs at {list(c.runs)})")
+            elif not diagnosable and (why := licence_problem(ed, licence)):
+                out.append(f"{ref}: only a diagnosis at {sp}, which witnesses no rule that grants a form or states a "
+                           f"behaviour, and no licence to decline it ({why})")
         return out
 
-    def missing(self, ed: Edition, to: Iterable[str], diagnosable: bool, table: EvidenceTable,
-                licence: str | None = None) -> list[str]:
-        """The rules of `to` lacking own-edition evidence (`evidence`), by id."""
-        return [d.split(" ", 1)[0].rstrip(":") for _r, d in self.evidence(ed, diagnosable, to, licence, table)]
 
-
-def kept_problems(ed: Edition, rid: str, to: Iterable[str], licence: str | None, lin: Lineage,
-                  w: Witnesses | None) -> list[tuple[str, str]]:
-    """THE ONE CHECK of a KEPT record's targets (the writer, the import's decisions and the audit share it): they are
-    exactly the candidate pairing's for the rule (review R1-2), and, for an edition whose records close on own-edition
-    evidence and with `w`, each has a witness at the edition of the kind the rule needs (review R1-1)."""
-    out = []
+def pairing_problems(rid: str, to: Iterable[str], lin: Lineage) -> list[tuple[str, str]]:
+    """Why a NEW KEPT record's targets are not the candidate pairing's for the rule (review R1-2); empty when they are. The
+    writer asks it of a new record, never the audit of a stored one (kb/Work PB5675): the pairing is word-identical
+    text, so an edition whose wording differs (1985 pairs 0 of 2,274 rules) records its rows with their own verdicts."""
     want = lin.pairs.get(rid)
     if want is None:
-        out.append((NOT_THE_PAIRING, f"{rid} has no candidate pair: a KEPT record carries only a pairing's targets"))
-    elif sorted(want) != sorted(to):
-        out.append((NOT_THE_PAIRING, f"the read carries into {sorted(to)}, the pairing into {sorted(want)}"))
-    if ed.own_evidence and w is not None:
-        out += w.evidence(ed, lin.diagnosable(rid), to, licence, lin.table)
-    return out
+        return [(NOT_THE_PAIRING, f"{rid} has no candidate pair: a KEPT record carries only a pairing's targets")]
+    if sorted(want) != sorted(to):
+        return [(NOT_THE_PAIRING, f"the read carries into {sorted(to)}, the pairing into {sorted(want)}")]
+    return []
+
+
+def kept_witnesses(ed: Edition, rid: str, to: Iterable[str], licence: str | None, lin: Lineage,
+                   w: Witnesses | None) -> tuple[list[str], list[tuple[str, str]]]:
+    """THE WHOLE TEST OF A NEW KEPT RECORD, at every older edition (kb/Work PB5675; the writer and the import's decisions
+    share it): its targets are the pairing's (`pairing_problems`), and, with `w`, the candidate search finds a witness at
+    the edition of the kind the rule needs for each (`Witnesses.search`). The cases found (as `conformance:` test-refs)
+    are what the writer records as the row's own witness; the problems refuse the record."""
+    to = list(to)
+    out = pairing_problems(rid, to, lin)
+    if w is None:
+        return [], out
+    found, missing = w.search(ed, lin.diagnosable(rid), to, licence, lin.table)
+    return [f"{lineage.SUITE_FORM}:{k}" for k in found], out + missing
 
 
 # -- what a read becomes ------------------------------------------------------------------------------------------------
@@ -742,9 +792,8 @@ def work_of(judgment: Judgment | None, probe: str | None, who: str) -> tuple[str
 
 def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
            witnesses: Witnesses | None, lin: Lineage) -> list[Decision]:
-    """Each read rule's `Decision` (module docstring). The evidence is checked for an edition whose records close on
-    own-edition evidence (`Edition.own_evidence`) when `witnesses` is given; None leaves it to the writer (the audit
-    run's import). `screen` is the edition's committed lineage screen; `lin` the catalog's kinds and the pairing. A SAME
+    """Each read rule's `Decision` (module docstring). The own-edition evidence (`kept_witnesses`, at every edition) is
+    checked when `witnesses` is given; None leaves it to the writer (the audit run's import). `screen` is the edition's committed lineage screen; `lin` the catalog's kinds and the pairing. A SAME
     of a rule with no candidate pair is the `OWN_VERDICT_FROM_POINTER` work item, never a KEPT record."""
     flags = (screen or {}).get("marks", {})
     out = []
@@ -774,7 +823,7 @@ def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
             else:
                 answers, unanswered = answers_for(r, s.asked.get(rid, {}), flags.get(rid, {}))
                 refused = [(FLAG_UNANSWERED, u) for u in unanswered]
-                refused += kept_problems(ed, rid, r.to, r.licence, lin, witnesses)
+                refused += kept_witnesses(ed, rid, r.to, r.licence, lin, witnesses)[1]
                 out.append(Decision(**base, answers=answers, refused=tuple(refused)))
     return out
 
@@ -831,7 +880,7 @@ def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses, lin: Lineag
         if d.work or not d.refused or any(r != NO_OWN_WITNESS for r, _ in d.refused):
             continue
         kind = lin.kinds.get(d.rule_id, "")
-        lacking = [t for t in d.to if w.evidence(ed, lin.diagnosable(d.rule_id), [t], None, lin.table)]
+        lacking = [t for t in d.to if w.search(ed, lin.diagnosable(d.rule_id), [t], None, lin.table)[1]]
         per_rule, helps = {}, {}
         for t in lacking:
             ks = w.suite_cases(t)
@@ -1019,13 +1068,21 @@ def refused_at(c: CaseInfo, spelling: str, compiler: pathlib.Path, scratch: path
 
 # -- the audit ----------------------------------------------------------------------------------------------------------
 
+def licences(slices: Iterable[Slice]) -> dict[str, str | None]:
+    """Each read rule's stated `licence-<year>` (None when its read states none), by rule id."""
+    return {rid: r.licence for s in slices for rid, r in s.reads.items()}
+
+
 def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slice], w: Witnesses | None,
-                  lin: Lineage) -> list[str]:
+                  lin: Lineage, schema: inventory_schema.Schema | None = None) -> list[str]:
     """Why a STORED change record of `ed` does not stand. One whose source names a read record is that record's decision:
     the record (whose digests `load` verified against its content) holds a read of the rule, the read is a SAME its
-    refuter UPHELD, and the record is KEPT. For an edition whose records close on own-edition evidence, every stored KEPT
-    record, whatever its source, also passes `kept_problems`: the pairing's targets, each witnessed at the edition (with
-    `w`) by a case of the kind the rule needs."""
+    refuter UPHELD, the record is KEPT and carries into the read's rules. And at EVERY older edition (kb/Work PB5675: one
+    rule, no edition key), every stored KEPT row's OWN witnesses (its `test-ref`, with `w`) are conformance-suite cases
+    that run at the edition, of the kind its rule needs (`Witnesses.own_problems`; the licence is the read's when the
+    record came from one). A KEPT row with no witness of its own is no error here: its state is GAP (`lineage.state_of`).
+    A witness whose band is later narrowed past the edition, or that moves, turns the audit red, naming row and case."""
+    schema = schema or inventory_schema.load_schema()
     by_slice = {s.name: s for s in slices}
     prefix = f"lineage-reads-{ed.year}/"
     errs = []
@@ -1053,30 +1110,34 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
                 errs.append(f"{rid}: it carries into {nxt.get('to')}, its read into {list(read.to)}")
                 continue
             licence = read.licence
-        if nxt["kind"] == KEPT and ed.own_evidence:
-            errs += [f"{rid}: {why}: {d}" for why, d in kept_problems(ed, rid, nxt.get("to") or [], licence, lin, w)]
+        if nxt["kind"] == KEPT and w is not None:
+            errs += [f"{rid}: {NO_OWN_WITNESS}: {why}" for why in w.own_problems(
+                ed, lineage.own_witness_refs(r, schema), lin.diagnosable(rid), licence)]
     return errs
 
 
-def read_years(repo: pathlib.Path = REPO) -> list[int]:
-    """The held editions this audit holds: those with read records, and those whose records close on own-edition evidence."""
-    return [e.year for e in inventory_schema.load_schema().all_editions
-            if e.held and not e.newest and (reads_dir(e.year, repo).is_dir() or e.own_evidence)]
+def older_years() -> list[int]:
+    """Every held edition older than the newest: each one's chained rows close by the one own-edition rule."""
+    return [e.year for e in inventory_schema.load_schema().all_editions if e.held and not e.newest]
 
 
 def check(years: list[int]) -> int:
+    """THE GATE'S LINEAGE READS AUDIT over `years`: one reading of the suite shared by every edition."""
     red = []
+    schema = inventory_schema.load_schema()
+    suite = Suite.read()
     for y in years:
         ed = edition(y)
         slices = load(y)
-        rows = inventory_view.inventory(y)
+        rows = inventory_view.inventory(y, schema)
         from_reads = [r for r in rows if ((r.get("next") or {}).get("source") or "").startswith(f"lineage-reads-{y}/")]
         kept = [r for r in rows if (r.get("next") or {}).get("kind") == KEPT]
-        w = Witnesses.of(ed.next_held) if ed.own_evidence and kept else None
-        errs = stored_errors(ed, rows, slices, w, Lineage.of(ed))
+        witnessed = [r for r in kept if lineage.own_witness_refs(r, schema)]
+        errs = stored_errors(ed, rows, slices, Witnesses.of(ed.next_held, suite), Lineage.of(ed), schema)
         print(f"{y}: {len(slices)} read record(s), {sum(len(s.reads) for s in slices)} rule(s) read, each record's "
-              f"digests verified; {len(from_reads)} stored record(s) from reads; {len(kept)} KEPT record(s)"
-              + (", each held to the pairing and a witness at its own edition" if ed.own_evidence else ""))
+              f"digests verified; {len(from_reads)} stored record(s) from reads; {len(kept)} KEPT record(s), "
+              f"{len(witnessed)} with a witness of their own, each held to a case that runs at {ed.spelling} of the kind "
+              f"its rule needs; {len(kept) - len(witnessed)} without one (GAP)")
         for e in errs:
             print(f"  ⛔ {e}")
         if errs:
@@ -1087,34 +1148,50 @@ def check(years: list[int]) -> int:
 
 # -- the command line -----------------------------------------------------------------------------------------------------
 
-def own_edition(year: int, out: pathlib.Path) -> int:
-    """The stored KEPT records of `year` measured against the own-edition evidence rule, the kind the rule needs
-    included (a measurement: it changes nothing): how many carry into rules of which at least one, and each, has such a
-    witness at the edition."""
+def witness_batch(year: int, out: pathlib.Path) -> int:
+    """`witness-batch` (kb/Work PB5675): a record_verdicts batch giving each stored KEPT row of `year` that carries no
+    witness of its own the cases the candidate search finds at the edition (`Witnesses.search`, the read's licence where
+    the record came from one), when it finds one of the kind the rule needs for EVERY rule the record carries into. Each
+    record is witness-only (`{"rule-id", "test-ref"}`): it adds that field and restates nothing, so the batch is
+    deterministic and a second run, once applied, writes no record. It prints how many rows have such a witness for
+    every rule, for some and for none: the rows it leaves stay GAP until a witness of their own exists."""
     ed = edition(year)
-    w = Witnesses.of(ed.next_held)
-    lin = Lineage.of(ed)
-    rows = [r for r in inventory_view.inventory(year) if (r.get("next") or {}).get("kind") == KEPT]
-
-    def lacking(r: dict[str, Any]) -> list[str]:
-        return w.missing(ed, r["next"]["to"], lin.diagnosable(r["rule-id"]), lin.table)
-
-    some = [r["rule-id"] for r in rows if len(lacking(r)) < len(r["next"]["to"])]
-    every = [r["rule-id"] for r in rows if not lacking(r)]
-    none = sorted(set(r["rule-id"] for r in rows) - set(some))
-    doc = {"edition": year, "kept": len(rows), "some-target-witnessed": len(some), "every-target-witnessed": len(every),
-           "none": len(none), "rules-with-none": none, "rules-some-not-every": sorted(set(some) - set(every))}
-    out.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8", newline="\n")
-    print(f"{year}: {len(rows)} stored KEPT record(s); a witness of the kind the rule needs at {ed.spelling} for at least "
-          f"one target: {len(some)}; for every target: {len(every)}; for none: {len(none)} -> {out}")
+    if ed.newest:
+        raise SystemExit(f"{TOOL}: witness-batch --edition {year}: the newest edition has no chained rows")
+    schema = inventory_schema.load_schema()
+    w, lin = Witnesses.of(ed.next_held), Lineage.of(ed)
+    lic = licences(load(year))
+    prefix = f"lineage-reads-{year}/"
+    kept = [r for r in inventory_view.inventory(year, schema) if (r.get("next") or {}).get("kind") == KEPT]
+    bare = [r for r in kept if not lineage.own_witness_refs(r, schema)]
+    records, some, none = [], 0, 0
+    for r in bare:
+        to = r["next"].get("to") or []
+        src = r["next"].get("source") or ""
+        found, missing = w.search(ed, lin.diagnosable(r["rule-id"]), to,
+                                  lic.get(r["rule-id"]) if src.startswith(prefix) else None, lin.table)
+        if not missing and found:
+            records.append({"rule-id": r["rule-id"],
+                            "test-ref": schema.test_ref_sep.join(f"{lineage.SUITE_FORM}:{k}" for k in found)})
+        elif len(missing) < len(to):
+            some += 1
+        else:
+            none += 1
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({"batch": f"own-edition-witnesses-{year}", "records": records}, indent=1,
+                              ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    print(f"witness-batch {year}: {len(kept)} stored KEPT row(s), {len(kept) - len(bare)} with a witness of their own; "
+          f"of the {len(bare)} without one, a witness at {ed.spelling} of the kind the rule needs for every rule it "
+          f"carries into: {len(records)} (written -> {out}); for some: {some}; for none: {none}\n"
+          f"  apply: python scripts/spec/record_verdicts.py --edition {year} {out}")
     return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="The read records of an older edition's rules (kb/Work PB5597).")
     ap.add_argument("--check", type=int, nargs="?", const=0, metavar="YEAR",
-                    help="every read record interprets and every stored record from a read stands; with no YEAR every "
-                         "held edition with read records: the gate's LINEAGE READS audit")
+                    help="every read record interprets, every stored record from a read stands and every KEPT row's own "
+                         "witness runs at its edition; with no YEAR every older held edition: the gate's LINEAGE READS audit")
     sub = ap.add_subparsers(dest="cmd")
     wd = sub.add_parser("widen", help="plan (and with --apply, make) the band widening of the kept rows' witnesses")
     wd.add_argument("--edition", type=int, required=True)
@@ -1123,12 +1200,12 @@ def main(argv: list[str] | None = None) -> int:
     wd.add_argument("--apply", action="store_true", help="edit the suite's case headers, keeping what passes at the edition")
     wd.add_argument("--compiler", help="with --apply: the cobol executable the harness runs")
     wd.add_argument("--scratch", help="with --apply: an EMPTY scratch directory for the generated suites and the run")
-    oe = sub.add_parser("own-edition", help="measure the stored KEPT records' witnesses at their own edition")
-    oe.add_argument("--edition", type=int, required=True)
-    oe.add_argument("--out", required=True)
+    wb = sub.add_parser("witness-batch", help="the record_verdicts batch of the stored KEPT rows' own-edition witnesses")
+    wb.add_argument("--edition", type=int, required=True)
+    wb.add_argument("--out", required=True)
     a = ap.parse_args(argv)
-    if a.cmd == "own-edition":
-        return own_edition(a.edition, pathlib.Path(a.out))
+    if a.cmd == "witness-batch":
+        return witness_batch(a.edition, pathlib.Path(a.out))
     if a.cmd == "widen":
         ed = edition(a.edition)
         state = json.loads((pathlib.Path(a.state) / "reads.json").read_text(encoding="utf-8"))
@@ -1150,7 +1227,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.check is None:
         ap.print_help()
         return 2
-    return check([a.check] if a.check else read_years())
+    return check([a.check] if a.check else older_years())
 
 
 if __name__ == "__main__":

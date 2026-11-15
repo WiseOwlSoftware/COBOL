@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.4.2-1",
  "rule-digest": "beb8e06dd183",
+ "test-ref": "conformance:cases/13.5-Working-storage-section/pb1308_method_storage_is_local_or_object",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

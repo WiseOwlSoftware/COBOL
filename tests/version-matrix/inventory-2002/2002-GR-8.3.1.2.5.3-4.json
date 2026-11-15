@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-8.3.1.2.5.3-4",
  "rule-digest": "59f97a57f930",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_code_values",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

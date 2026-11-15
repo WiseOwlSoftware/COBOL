@@ -38,6 +38,8 @@ by `SpecTraceabilityInventoryDriftTests`, which names every restored reference t
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import pathlib
 import subprocess
@@ -45,7 +47,7 @@ import sys
 from collections import Counter
 from typing import Any, NamedTuple
 
-from inventory_schema import (NEWEST, REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, SCHEMA_REL, Schema, StatementLoss,
+from inventory_schema import (HELD, NEWEST, REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, SCHEMA_REL, Schema, StatementLoss,
                               Tree, WitnessLoss, load_schema, statement_losses, statement_text,
                               witness_losses, witness_shape_error)
 from inventory_store import history_pathspecs
@@ -188,14 +190,27 @@ def default_base(repo: pathlib.Path = REPO) -> str:
     raise SystemExit("⛔ no base: neither origin/main nor main is a ref here — pass --base REF")
 
 
-def check(base: str, schema) -> int:
-    before = inventory_at(base)
-    if before is None:
-        print(f"⛔ {NEWEST.store} does not exist at {base} — nothing to compare against")
-        return 2
-    after = inventory()
-    losses, vanished = compare_revisions(before, after, base, None, schema)
-    erased = compare_statements(before, after, schema)
+def check(base: str, schema, at: Any = inventory_at, now: Any = inventory) -> int:
+    """THE GATE'S WITNESS LOSS AUDIT: every HELD edition's rows at `base` (`at(base, year)`) against the working tree's
+    (`now(year)`; the self-test plants both). kb/Work PB5675: an older edition's chained row closes on a witness of its
+    own, its `test-ref`, so losing it is the same loss as a newest row's. An older edition whose store `base` does not
+    hold yet has nothing to lose and is said so."""
+    losses: list[WitnessLoss] = []
+    vanished: list[str] = []
+    erased: list[StatementLoss] = []
+    for year in sorted(HELD, reverse=True):
+        before = at(base, year)
+        if before is None:
+            if year == NEWEST.year:
+                print(f"⛔ {NEWEST.store} does not exist at {base} — nothing to compare against")
+                return 2
+            print(f"  ⓘ the {year} store does not exist at {base[:12]}: nothing of it to lose")
+            continue
+        after = now(year)
+        got, gone = compare_revisions(before, after, base, None, schema)
+        losses += got
+        vanished += gone
+        erased += compare_statements(before, after, schema)
     unexcused = [l for l in losses if not l.excused]
     retired = [l for l in losses if l.retired]
     resited = [l for l in losses if l.resited and not l.retired]
@@ -405,6 +420,20 @@ def self_test(schema) -> int:
     losses, vanished = compare([row], [], schema)
     verify("a vanished row is reported apart, never as a witness loss",
            not losses and vanished == [row["rule-id"]])
+    # kb/Work PB5675: an OLDER edition's chained row closes on a witness of its own, so the audit compares every held
+    # edition. Planted: each edition's rows as the base holds them, and the head the same but for one older row's witness.
+    older = min(HELD)
+    kept = {"rule-id": f"{older}-SELF-TEST-1", "test-ref": "unit:SelfTest.Planted", "notes": "",
+            "next": {"kind": "KEPT", "to": ["X"], "source": "self-test"}}
+    base_rows = {y: ([kept] if y == older else [row]) for y in HELD}
+    head_rows = {**base_rows, older: [{**kept, "test-ref": ""}]}
+    with contextlib.redirect_stdout(io.StringIO()) as seen:
+        red = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: head_rows[y])
+    verify(f"an older ({older}) row's own witness, lost between base and head, turns WITNESS LOSS red",
+           red == 1 and f"LOST     {kept['rule-id']} test-ref" in seen.getvalue(), "" if red == 1 else seen.getvalue()[-200:])
+    with contextlib.redirect_stdout(io.StringIO()):
+        green = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: base_rows[y])
+    verify("and the same rows unchanged are green", green == 0)
 
     # A RE-SPELLING (kb/Work PB3177): the same test file, moved, cited under its new name.
     moved_to = "conformance:cases/0-SELF-TEST/self_test_moved"
@@ -642,9 +671,15 @@ def self_test(schema) -> int:
 
     verify("writer at 1985: a witness-only record is accepted on a CHANGED row and on a REMOVED row with no verdict",
            not errors85(changed85) and not errors85(removed85), f": {errors85(changed85)} {errors85(removed85)}")
-    verify("writer at 1985: ... and refused on a KEPT row, whose test is its chain's",
-           any("KEPT rule holds no verdict of its own" in e and "test-ref" in e for e in errors85(kept85)),
-           f": {errors85(kept85)}")
+    verify("writer at 1985: ... and accepted on a KEPT row as its own-edition witness (kb/Work PB5675), but a unit test, "
+           "which runs at no older edition, is refused there",
+           not errors85(kept85) and any("run at no older edition" in e for e in validate(
+               [(pathlib.Path("self-test"), 0, {**witness85, "test-ref": "unit:SelfTest.Planted"})], schema,
+               {rid85: "GR"}, {rid85: kept85}, ed85, targets85)), f": {errors85(kept85)}")
+    verify("writer at 1985: ... and a KEPT row holding a verdict of its own is refused (the chain's newest rule holds it)",
+           any("KEPT rule holds no verdict of its own" in e for e in validate(
+               [(pathlib.Path("self-test"), 0, {**witness85, "verdict": "CONFORMS"})], schema, {rid85: "GR"},
+               {rid85: kept85}, ed85, targets85)))
     verify("writer at 1985: ... and refused on a row with no change record (nothing adjudicated to join)",
            any("needs a row that is already adjudicated" in e for e in errors85({**changed85, "next": {}})))
     read85 = {**changed85, "verdict": "CONFORMS", "code-location": "src/Planted.cs#PlantedSymbol", "notes": "Read."}

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.21.2-6",
  "rule-digest": "97162f64a6a7",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb3233-inspect-figurative-literal1-size; conformance:cases/14.9.22-INSPECT/pb3233-inspect-symbolic-literal1-size",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

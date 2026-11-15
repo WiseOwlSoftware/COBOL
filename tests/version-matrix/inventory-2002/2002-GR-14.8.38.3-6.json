@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.38.3-6",
  "rule-digest": "96880ca6de96",
+ "test-ref": "conformance:cases/14.9.42-STOP/l1c30_stop_run_from_called_program",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.26.3-2",
  "rule-digest": "5bf79201b988",
+ "test-ref": "conformance:cases/14.9.44-SUBTRACT/l1-subtract-sr3-literal1-nonnumeric; conformance:cases/14.9.44-SUBTRACT/l1-subtract-sr3-literal2-nonnumeric",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

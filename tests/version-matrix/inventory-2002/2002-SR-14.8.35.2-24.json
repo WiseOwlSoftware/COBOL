@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.35.2-24",
  "rule-digest": "7583957543c1",
+ "test-ref": "conformance:cases/14.9.39-SET/pb64t1-set-locale-user-default-source",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

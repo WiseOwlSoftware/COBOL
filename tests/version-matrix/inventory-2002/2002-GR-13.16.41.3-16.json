@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.41.3-16",
  "rule-digest": "49f6bbfd2769",
+ "test-ref": "conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_2002; conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_2023",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

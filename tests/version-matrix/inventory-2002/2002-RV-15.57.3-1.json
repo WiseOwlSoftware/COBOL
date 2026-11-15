@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.57.3-1",
  "rule-digest": "041fe403c311",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb3_ord_collating_tail; conformance:cases/12.3.7-SPECIAL-NAMES/ca26_char_unicode_pcs",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

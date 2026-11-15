@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.41.2-8",
  "rule-digest": "718a5d40d7f3",
+ "test-ref": "conformance:cases/13.18.43-RECORD/pb721-record-contains-inverted-range; conformance:cases/13.18.43-RECORD/pb5196-record-contains-equal-bounds-2002",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

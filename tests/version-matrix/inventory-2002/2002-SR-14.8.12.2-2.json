@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.12.2-2",
  "rule-digest": "573a3230520f",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/pb399-evaluate-more-objects-than-subjects; conformance:cases/14.9.13-EVALUATE/pb399-evaluate-fewer-objects-than-subjects",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

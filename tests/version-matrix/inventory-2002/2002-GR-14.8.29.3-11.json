@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.29.3-11",
  "rule-digest": "e201453f681d",
+ "test-ref": "conformance:cases/14.9.6-CLOSE/file_sharing_seq",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.25.3-1",
  "rule-digest": "c211fa13c822",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb1180-string-all-figurative-sender",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

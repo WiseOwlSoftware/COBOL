@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.36.2-12",
  "rule-digest": "0dc882c3d9bf",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb994-sort-using-random-access",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

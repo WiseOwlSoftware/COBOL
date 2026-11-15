@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-AR-15.62.2-4",
  "rule-digest": "0225aa1e4349",
+ "test-ref": "conformance:cases/15.75.3-Argument-rules/l1_random_unseeded_first_reference",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

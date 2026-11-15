@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-12.3.4.2-2",
  "rule-digest": "0acd4d779c28",
+ "test-ref": "conformance:cases/12.4.5-File-control/w73b_pb1077_select_scope_per_program",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

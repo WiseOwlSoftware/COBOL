@@ -1214,9 +1214,12 @@ def change_batch(a: argparse.Namespace) -> int:
     A record follows only from a decision of a read (kb/Work PB5589: two blind samples proved a script cannot decide that
     two editions' identical words state one requirement), so the command without `--state` is refused by name. A record for
     a pair the edition's lineage screen flags (lineage_screen.py) stands only when its decision answers each flag by the
-    trigger's name for the flag's detail (`next.answers`), and, for an edition whose schema entry names
-    `own-edition-evidence` (2002), a KEPT record only when every rule it carries into has a conformance-suite witness
-    that runs at the record's OWN edition (lineage_reads.Witnesses; owner 2026-11-14: "2002 spec covers 2002 rules").
+    trigger's name for the flag's detail (`next.answers`), and, at EVERY older edition (kb/Work PB5675), a KEPT record
+    only when it passes the whole test of a new KEPT record (`lineage_reads.kept_witnesses`: the pairing's targets, each
+    with a conformance-suite witness that runs at the record's OWN edition, of the kind the rule needs; owner
+    2026-11-14: "2002 spec covers 2002 rules", 2026-11-15: "the same argument ... applies equally to the 1985 rules").
+    The cases found are written as the row's own `test-ref`, its witness. At 1985 the pairing is empty, so every KEPT
+    record is refused there: 1985 is the earliest edition, and its rows are recorded with their own verdicts.
     Each record that fails either is REFUSED ALONE, never the batch (kb/Work PB5597, branch
     review R2-4 of PB5589): it is left out, listed with every reason in `<out>.refused.json`, and the rest are written."""
     if not a.state:
@@ -1231,20 +1234,24 @@ def change_batch(a: argparse.Namespace) -> int:
     records = change_records(ed, dispositions(state), a.source or f"audit-{a.edition}/{state.name}", held)
     screen = lineage_screen.committed(a.edition)
     chained = change_kinds().chained.name
-    holds = ed.own_evidence and any(r["next"]["kind"] == chained for r in records)
-    w = witnesses_of(ed.next_held) if holds else None
+    holds = any(r["next"]["kind"] == chained for r in records)
     if holds:
-        import lineage_reads  # noqa: PLC0415  (the one check of a KEPT record's targets)
+        import lineage_reads  # noqa: PLC0415  (the one test of a new KEPT record)
+        w = witnesses_of(ed.next_held)
         lin = lineage_reads.Lineage.of(ed)
         imported = json.loads((state / READS).read_text(encoding="utf-8")) if (state / READS).exists() else None
-        licences = {rid: r.licence for s in lineage_reads.load(a.edition, pathlib.Path(imported["record"]))
-                    for rid, r in s.reads.items()} if imported else {}
+        licences = lineage_reads.licences(lineage_reads.load(a.edition, pathlib.Path(imported["record"]))) \
+            if imported else {}
+        sep = load_schema().test_ref_sep
     kept, refused = [], []
     for r in records:
         why = lineage_screen.unanswered([r], screen)
-        if r["next"]["kind"] == chained and holds:
-            why += [f"{r['rule-id']}: {reason}: {detail}" for reason, detail in lineage_reads.kept_problems(
-                ed, r["rule-id"], r["next"]["to"], licences.get(r["rule-id"]), lin, w)]
+        if r["next"]["kind"] == chained:
+            found, problems = lineage_reads.kept_witnesses(ed, r["rule-id"], r["next"]["to"],
+                                                           licences.get(r["rule-id"]), lin, w)
+            why += [f"{r['rule-id']}: {reason}: {detail}" for reason, detail in problems]
+            if not why:
+                r = {**r, "test-ref": sep.join(found)}
         (refused if why else kept).append({"rule-id": r["rule-id"], "reasons": why} if why else r)
     out = pathlib.Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)

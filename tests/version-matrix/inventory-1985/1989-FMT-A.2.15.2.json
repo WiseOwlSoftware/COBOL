@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.15.2",
  "rule-digest": "0baaf26f4e1d",
+ "test-ref": "conformance:cases/15.44.3-Argument-rule/l1_integer_floor_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

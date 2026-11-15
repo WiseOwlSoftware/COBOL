@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.4.6.4-3",
  "rule-digest": "587d12b27161",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c25_rewrite_length_differs",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.23.3-5",
  "rule-digest": "67f68e51141b",
+ "test-ref": "conformance:cases/12.3-Configuration-section/nested_special_names_inheritance",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

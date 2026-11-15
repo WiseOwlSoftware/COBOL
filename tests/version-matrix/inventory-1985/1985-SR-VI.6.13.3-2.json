@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.13.3-2",
  "rule-digest": "c311cebe7d6d",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/pb396_required_imperative_85; conformance:cases/14.9.13-EVALUATE/pb2722_evaluate_object_not_ownership; conformance:cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms; conformance:cases/14.9.13-EVALUATE/pb400_evaluate_signed_literal_operand",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

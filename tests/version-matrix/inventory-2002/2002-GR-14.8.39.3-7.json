@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.39.3-7",
  "rule-digest": "189aa1412ff1",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb1179_string_into_national_receiver",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.29.2-7",
  "rule-digest": "ddf6eb4f81d8",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

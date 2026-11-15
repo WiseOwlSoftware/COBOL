@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.3.1.1.2-L2.2",
  "rule-digest": "86aa2b738bcd",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb297_figurative_refmod_relation; conformance:cases/8.8.4.2-Simple-relation-conditions/pb1470_relation_of_two_literals_runs",
  "next": {
   "kind": "KEPT",
   "to": [

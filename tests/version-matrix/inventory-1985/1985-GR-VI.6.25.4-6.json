@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.25.4-6",
  "rule-digest": "957381c37f43",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb664_string_operand_screen",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

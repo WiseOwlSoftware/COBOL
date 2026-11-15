@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.44.3-14",
  "rule-digest": "27e0c2bbd4fc",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_tallying_accessed",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

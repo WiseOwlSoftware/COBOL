@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.8.3-4",
  "rule-digest": "ee1a94862917",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb885-occurs-key-subscripted",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

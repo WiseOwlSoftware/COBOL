@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.3.4.9.2-4",
  "rule-digest": "402e6b44c3ea",
+ "test-ref": "conformance:wiseowl/cases/12.4.5.10-ORGANIZATION/pb1098_organization_permanence_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.21.2-5",
  "rule-digest": "c2061e01a511",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1127-inspect-index-item-tally-counter",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

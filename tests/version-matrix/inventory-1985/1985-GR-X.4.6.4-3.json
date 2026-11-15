@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.4.6.4-3",
  "rule-digest": "ee070baade5a",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/pb1523_global_fd_records_and_redefiners",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

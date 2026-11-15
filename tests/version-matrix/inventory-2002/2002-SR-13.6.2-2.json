@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.6.2-2",
  "rule-digest": "9a14571ce031",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb1115_prototype_group_description",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

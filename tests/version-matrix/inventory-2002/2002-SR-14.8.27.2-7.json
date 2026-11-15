@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.27.2-7",
  "rule-digest": "47f8927a38ba",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb432-varying-operand-rules",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.4.4.4-3",
  "rule-digest": "43d7874a6b90",
+ "test-ref": "conformance:cases/9.1.13.4-At-end-condition-with-unsuccessful-completion/pb336_optional_absent_read_46_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

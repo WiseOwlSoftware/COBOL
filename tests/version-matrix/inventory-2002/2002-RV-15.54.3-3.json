@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.54.3-3",
  "rule-digest": "52cfff92b3e2",
+ "test-ref": "conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

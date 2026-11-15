@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.3.4.9.2-1",
  "rule-digest": "9fbca6b4cf54",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/open_fixed_attribute_conflict; conformance:wiseowl/cases/12.4.5.10-ORGANIZATION/pb1098_organization_permanence_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

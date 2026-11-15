@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.2.2.2-5",
  "rule-digest": "3f331a4aaf0a",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/func-omitted-arg",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

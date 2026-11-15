@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.5.3-4",
  "rule-digest": "4f6ec8615492",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb77_move_past_the_carrier",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

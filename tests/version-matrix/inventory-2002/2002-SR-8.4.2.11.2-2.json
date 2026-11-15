@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.2.11.2-2",
  "rule-digest": "36230e5b2faf",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/pb665_restricted_pointer_conforming",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

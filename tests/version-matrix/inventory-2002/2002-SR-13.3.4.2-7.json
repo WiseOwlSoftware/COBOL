@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.3.4.2-7",
  "rule-digest": "f62781c2bcd6",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1171-report-fd-record-entry",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

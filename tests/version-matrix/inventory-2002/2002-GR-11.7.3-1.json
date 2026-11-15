@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-11.7.3-1",
  "rule-digest": "136fbf638ec1",
+ "test-ref": "conformance:cases/11.8-OBJECT/oo_interface",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

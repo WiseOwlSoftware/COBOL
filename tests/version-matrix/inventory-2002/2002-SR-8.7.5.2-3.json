@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.7.5.2-3",
  "rule-digest": "7ad72fc55013",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/l1_perform_until_condition_forms",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

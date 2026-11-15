@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.4.2-21",
  "rule-digest": "c6fa66d05ea5",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb133_omitted_args",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

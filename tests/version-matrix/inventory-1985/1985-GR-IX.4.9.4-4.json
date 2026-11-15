@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.4.9.4-4",
  "rule-digest": "8f3a0a9b0dd7",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37_write_same_record_area",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

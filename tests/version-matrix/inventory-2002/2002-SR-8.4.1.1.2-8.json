@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.1.1.2-8",
  "rule-digest": "560a5326eadc",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1456_counter_in_source_expression",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

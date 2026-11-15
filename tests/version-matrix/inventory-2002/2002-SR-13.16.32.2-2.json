@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.32.2-2",
  "rule-digest": "31edcc600bdb",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb524-linage-footing-beyond-page",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

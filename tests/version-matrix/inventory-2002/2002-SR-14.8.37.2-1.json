@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.37.2-1",
  "rule-digest": "0693044bde66",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

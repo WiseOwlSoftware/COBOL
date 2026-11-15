@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.27.3-6",
  "rule-digest": "cd31cd0f85a7",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2002",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

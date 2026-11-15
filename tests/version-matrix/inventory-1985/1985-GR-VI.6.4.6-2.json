@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.4.6-2",
  "rule-digest": "ef0ce39d159d",
+ "test-ref": "conformance:cases/14.7.7-Arithmetic-statements/l1c04_arith_multiple_receivers; conformance:cases/14.7.7-Arithmetic-statements/pb5386_arith_receiver_identified_at_store",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

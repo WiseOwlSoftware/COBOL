@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.25.2-4",
  "rule-digest": "2ba710c1eb78",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/pb1045_global_constant_beside_class",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

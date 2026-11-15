@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.27.4-6",
  "rule-digest": "84b2a2bf28be",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb979_unstring_receiver_size",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

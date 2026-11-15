@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIII.3.2.4-4",
  "rule-digest": "f8d052abfd75",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1238_fd_formats_admitted; conformance:cases/13.18.12-CODE/pb1050_reports_share_file",
  "next": {
   "kind": "KEPT",
   "to": [

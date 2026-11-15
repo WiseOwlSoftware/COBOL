@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.36.2-22",
  "rule-digest": "94295967908d",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

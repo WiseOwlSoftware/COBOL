@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.15.6-2",
  "rule-digest": "cd9ee9dfb674",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb550_redefines_value_placement",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

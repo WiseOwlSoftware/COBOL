@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VII.4.7.3-9",
  "rule-digest": "6778bc3fb757",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37_write_eop_spelling",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.2.3.4-5",
  "rule-digest": "65d40aa9946c",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb829_assign_device_class; conformance:cases/12.4.5-File-control/pb4236_assign_clause_forms; conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85; conformance:cases/12.4.5-File-control/pb773_legal_file_control_entries_85; conformance:cases/12.4.5.14-RESERVE/l1c24_reserve_clause_forms",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

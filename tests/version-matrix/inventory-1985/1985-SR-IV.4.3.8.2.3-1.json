@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.2.3-1",
  "rule-digest": "d87d97051762",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb877-subscript-on-non-table-item",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.31.2-5",
  "rule-digest": "ac32669d889e",
+ "test-ref": "conformance:cases/13.16-Data-description/pb485-level-78-working-storage; conformance:cases/13.18.33-Level-number/pb485-level-50-linkage; conformance:cases/13.18.33-Level-number/pb485-level-number-unparseable",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.2-10",
  "rule-digest": "a242996b78c2",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb807-display-directive-concatenation",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.16.2",
  "rule-digest": "db2082e08c65",
+ "test-ref": "conformance:cases/15.46-INTEGER-OF-DATE/l1-integer-of-date-arity2",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

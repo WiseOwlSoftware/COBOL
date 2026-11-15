@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-11.7.2-1",
  "rule-digest": "5082aca9004a",
+ "test-ref": "conformance:cases/11.8-OBJECT/l1c19-object-implements-not-in-class-repository",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.14.3-9",
  "rule-digest": "b8159e65c90e",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb951_relative_sign_synonyms; conformance:cases/13.18.14-COLUMN/pb1220_column_alignment",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

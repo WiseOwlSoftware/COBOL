@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-AR-15.62.2-5",
  "rule-digest": "5029887bb43b",
+ "test-ref": "conformance:cases/15.75.3-Argument-rules/pb1_intrinsic_formats",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

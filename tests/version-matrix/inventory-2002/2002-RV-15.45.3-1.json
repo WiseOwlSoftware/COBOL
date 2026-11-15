@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.45.3-1",
  "rule-digest": "60643c1ac2cf",
+ "test-ref": "conformance:cases/15.49.3-Argument-rule/pb19_argument_class_batch5; conformance:cases/15.57.4-Returned-value-rules/pb25_figurative_intrinsic_argument",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

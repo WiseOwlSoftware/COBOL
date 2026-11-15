@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-XIII.3.14.2",
  "rule-digest": "7450378d05c8",
+ "test-ref": "conformance:cases/13.18.33-Level-number/pb1246_level_hierarchy_legal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

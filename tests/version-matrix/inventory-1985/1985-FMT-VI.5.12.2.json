@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VI.5.12.2",
  "rule-digest": "c33a102180bb",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb486-sign-written-twice; conformance:cases/13.16-Data-description/pb917-data-usage-twice; conformance:cases/13.18.52-SIGN/pb917-report-group-picture-twice",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

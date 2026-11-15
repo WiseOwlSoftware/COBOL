@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.9.3-1",
  "rule-digest": "c9245598c740",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record; conformance:cases/14.9.10-DELETE/w73b_pb1194_mutation_open_mode_first",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

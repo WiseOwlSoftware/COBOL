@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.11.3-4",
  "rule-digest": "957122158ce4",
+ "test-ref": "conformance:cases/13.18.45-RENAMES/pb93-renames-undefined-operand; conformance:cases/13.18.45-RENAMES/pb1283_renames_legal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

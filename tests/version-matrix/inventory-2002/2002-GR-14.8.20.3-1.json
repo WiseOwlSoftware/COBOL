@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.20.3-1",
  "rule-digest": "87891f7e9b5f",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

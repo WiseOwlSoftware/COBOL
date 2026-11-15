@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.35.3-10",
  "rule-digest": "61bbb1cff0ae",
+ "test-ref": "conformance:wiseowl/cases/14.9.39-SET/a42-set-attribute",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-7.2.10.3-7",
  "rule-digest": "2b22c006b3a2",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_alnum_equality",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

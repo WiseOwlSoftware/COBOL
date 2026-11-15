@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.1.2-6",
  "rule-digest": "80838502a74a",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb1145-function-returning-is-a-formal; conformance:cases/14.2-Procedure-division-structure/pb1145-method-header-redefines-formal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

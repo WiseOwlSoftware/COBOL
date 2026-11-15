@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.34.3-2",
  "rule-digest": "0dabea49d206",
+ "test-ref": "conformance:cases/15.74.3-Argument-rules/pb1000_present_value_rate_near_minus_one",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

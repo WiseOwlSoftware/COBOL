@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.14.3-2",
  "rule-digest": "97ca3b779217",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1_char_national_also_positions",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

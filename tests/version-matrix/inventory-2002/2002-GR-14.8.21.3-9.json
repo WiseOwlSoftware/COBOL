@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.21.3-9",
  "rule-digest": "13dd72ee0afb",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1125_inspect_tallying_next_counter_extent",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

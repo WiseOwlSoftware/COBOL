@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.3.5.3-1",
  "rule-digest": "c34797798733",
+ "test-ref": "conformance:cases/13.14-Report-description/pb1285-report-in-two-clauses; conformance:cases/13.14-Report-description/pb1285-report-in-no-clause",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

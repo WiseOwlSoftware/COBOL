@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.4.3-2",
  "rule-digest": "e96289b894cb",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb201-refmod-group-bound; conformance:cases/8.4.3.3-Reference-modification/pb170-refmod-alphanumeric-bound; conformance:cases/8.4.3.3-Reference-modification/pb170-refmod-index-name",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

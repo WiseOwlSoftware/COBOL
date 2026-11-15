@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.13.2-7",
  "rule-digest": "aac821d02822",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb403_exit_placement_context_2002",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.3.3-4",
  "rule-digest": "2c95506613d4",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/allocate_initialized; conformance:cases/14.9.3-ALLOCATE/pb231_based_bit_leaf; conformance:cases/14.9.3-ALLOCATE/pb231_based_national_leaf; conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf; conformance:cases/14.9.3-ALLOCATE/pointer_alloc",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

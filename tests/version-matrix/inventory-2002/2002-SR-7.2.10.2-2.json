@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.10.2-2",
  "rule-digest": "8dd21c3e4732",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb1360-evaluate-operand-continued",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

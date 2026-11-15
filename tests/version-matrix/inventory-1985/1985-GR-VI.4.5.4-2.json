@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.4.5.4-2",
  "rule-digest": "acea022dcd4c",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

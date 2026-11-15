@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.1.2.2-8",
  "rule-digest": "fa54e30d14ec",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb1474_report_subscripts_legal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.37.2-5",
  "rule-digest": "665c7b30b171",
+ "test-ref": "conformance:cases/13.18.39-PAGE/pb1270-page-limit-over-9999",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

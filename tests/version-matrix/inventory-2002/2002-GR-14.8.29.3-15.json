@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.29.3-15",
  "rule-digest": "77376040909b",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb338_read_lock_limit_position; conformance:cases/14.9.30-READ/pb359_unsuccessful_read_start_position",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

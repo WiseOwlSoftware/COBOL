@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.29.3-5",
  "rule-digest": "bf57de434ded",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_2023",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

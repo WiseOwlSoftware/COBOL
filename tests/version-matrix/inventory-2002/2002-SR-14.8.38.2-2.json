@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.38.2-2",
  "rule-digest": "90f5b63441ea",
+ "test-ref": "conformance:cases/14.9.18-GOBACK/pb411-status-strongly-typed-group; conformance:cases/14.9.42-STOP/pb217-status-bit-group; conformance:cases/14.9.42-STOP/pb169-status-index-name",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

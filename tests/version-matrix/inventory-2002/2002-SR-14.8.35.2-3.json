@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.35.2-3",
  "rule-digest": "026b3ac9a17d",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

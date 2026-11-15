@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XI.4.4.3-10",
  "rule-digest": "dbb3519c53a1",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb995_sort_merge_record_size_ranges",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

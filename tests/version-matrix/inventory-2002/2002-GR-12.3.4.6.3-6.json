@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.3.4.6.3-6",
  "rule-digest": "c4879d71df13",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb703_collating_key_named_twice",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.14.4-1",
  "rule-digest": "f0b96e0cd5b3",
+ "test-ref": "conformance:cases/15.36.4-Returned-value-rule/l1_factorial_eae_native",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

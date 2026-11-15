@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.3.4.3-3",
  "rule-digest": "d86ef8cd8f63",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb746_assign_using_2002",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

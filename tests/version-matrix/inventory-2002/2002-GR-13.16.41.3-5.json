@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.41.3-5",
  "rule-digest": "1f023b9e2598",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes; conformance:cases/13.18.43-RECORD/pb322_release_short_record_fixed_sd",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-10.6.2-6",
  "rule-digest": "6370e1ae1ea2",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988_end_markers",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

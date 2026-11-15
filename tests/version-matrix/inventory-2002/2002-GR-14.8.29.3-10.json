@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.29.3-10",
  "rule-digest": "7fc0689f69d1",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/pb338_read_releases_prior_lock",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

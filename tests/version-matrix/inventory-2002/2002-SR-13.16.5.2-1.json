@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.5.2-1",
  "rule-digest": "c732f44ff623",
+ "test-ref": "conformance:cases/13.18.5-BASED/pb1212_composed_entry_class_rules_legal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

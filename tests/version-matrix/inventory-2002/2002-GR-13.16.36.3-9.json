@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.36.3-9",
  "rule-digest": "d5e58f031103",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/l1c20_odo_record_varying_no_depending",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

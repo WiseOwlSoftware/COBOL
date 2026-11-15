@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VII.3.7.2",
  "rule-digest": "40c137b203fa",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb489_linage_qualified_operands",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.3.7.4-6",
  "rule-digest": "901e62fcf12b",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb526_linage_ec_condition_85; conformance:cases/13.18.34-LINAGE/pb489_linage_qualified_operands; conformance:cases/13.18.34-LINAGE/pb686_linage_gr26_boundary_85; conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.4.5.4-14",
  "rule-digest": "6c20b1ad603e",
+ "test-ref": "conformance:cases/14.9.30-READ/pb2693_dup_orders_survive_close; conformance:cases/14.9.51-WRITE/l1c38_write_alt_key_dup_order",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

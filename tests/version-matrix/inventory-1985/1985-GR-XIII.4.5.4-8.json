@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIII.4.5.4-8",
  "rule-digest": "f64eddcbab42",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind_85; conformance:cases/9.1.13.2-Successful-completion/pb141_close_forms; conformance:cases/9.1.13.2-Successful-completion/pb1515_io_status_07_open_close_only; conformance:cases/9.1.13.2-Successful-completion/pb1515_io_status_07_keyed_organizations",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

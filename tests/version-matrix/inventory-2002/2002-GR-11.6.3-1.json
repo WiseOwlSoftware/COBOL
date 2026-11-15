@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-11.6.3-1",
  "rule-digest": "2965d0d14286",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/oo_property_methods",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-DOC-B.1-48",
  "rule-digest": "1b825756d8aa",
+ "test-ref": "conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2103_function_word_in_repository",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

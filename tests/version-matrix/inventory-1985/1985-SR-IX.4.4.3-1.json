@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IX.4.4.3-1",
  "rule-digest": "60fa72b84a00",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb318-open-extend-access-linage",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.10.2-1",
  "rule-digest": "d94a1a883775",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/directive_expressions",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.4.2.4-1",
  "rule-digest": "b4152c377ea4",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_close_status",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

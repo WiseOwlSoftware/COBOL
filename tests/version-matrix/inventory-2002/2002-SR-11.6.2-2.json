@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-11.6.2-2",
  "rule-digest": "7deb1760a24e",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/l1m7-method-prototype-override",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.2.3.2-1",
  "rule-digest": "c6f61375a219",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb1507-end-function-closes-program; conformance:cases/10.7-End-markers/pb988-function-definition-85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

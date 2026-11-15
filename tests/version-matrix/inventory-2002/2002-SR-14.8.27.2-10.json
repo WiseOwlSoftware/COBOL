@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.27.2-10",
  "rule-digest": "a46721c7731b",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/l1_perform_varying_six_after",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

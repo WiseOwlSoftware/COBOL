@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.3.7.3-3",
  "rule-digest": "cc18c1bc911f",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb177-control-occurs-depending",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

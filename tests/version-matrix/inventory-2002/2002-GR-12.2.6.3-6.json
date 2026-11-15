@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.6.3-6",
  "rule-digest": "0caaa152f1b7",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1c01_native_ordinal_positions_wide",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

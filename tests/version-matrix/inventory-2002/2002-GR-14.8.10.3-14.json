@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.10.3-14",
  "rule-digest": "eeed9335183e",
+ "test-ref": "conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal; conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-positioned",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

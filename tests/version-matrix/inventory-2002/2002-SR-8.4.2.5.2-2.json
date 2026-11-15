@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.2.5.2-2",
  "rule-digest": "7c8a46d9d1de",
+ "test-ref": "conformance:cases/8.4.3.5-Object-view/pb1425-object-view-receiving; conformance:cases/8.4.3.5-Object-view/pb1551-object-view-initialize; conformance:cases/8.4.3.5-Object-view/pb1551-invoke-by-reference-view",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

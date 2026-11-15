@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.16.3-2",
  "rule-digest": "2ad89c3e3a07",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb395_goto_depending_incompatible; conformance:cases/14.7.9-RETRY/pb1033_integer_operand_full_value",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

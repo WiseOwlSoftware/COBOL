@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.80.2-2",
  "rule-digest": "d1fed63a4f40",
+ "test-ref": "conformance:cases/15.99.3-Returned-value-rules/pb120_when_compiled_contained",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

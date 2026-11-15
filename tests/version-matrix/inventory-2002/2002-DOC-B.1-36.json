@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-DOC-B.1-36",
  "rule-digest": "2aeafe303c2b",
+ "test-ref": "conformance:wiseowl/cases/12.3.7-SPECIAL-NAMES/a42-special-names-crt-status",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

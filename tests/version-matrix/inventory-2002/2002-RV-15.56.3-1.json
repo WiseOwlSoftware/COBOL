@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.56.3-1",
  "rule-digest": "682976f36569",
+ "test-ref": "conformance:cases/15.69.3-Argument-rules/numvalf_decimal_comma_and_spaces",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

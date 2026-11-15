@@ -20,9 +20,10 @@ The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In s
   REMOVED.
 - A verdict is held once per chain, on the chain's newest row: a row whose record is of the chained kind (KEPT) carries
   none of the schema's `next.verdict-fields` (`next_errors` refuses them), and its state is its chain's at its own edition
-  (`state_of`): every `to` row is OK, and every `to` row's `editions` band includes the older edition, which is what
-  places the chain's test there. A CHANGED or REMOVED row, and a row not yet classified, is judged on its own fields by
-  `Schema.state_for`.
+  (`state_of`): every `to` row is OK, and every `to` row's `editions` band includes the older edition; AND it carries a
+  witness of its own, a conformance-suite `test-ref` that runs at its edition (kb/Work PB5675: one rule for every older
+  edition, the LINEAGE READS audit checking each such case). A CHANGED or REMOVED row, and a row not yet classified, is
+  judged on its own fields by `Schema.state_for`.
 
 Each edition (its catalog, the catalog key that locates a rule, its store and the adjudicated fields the store holds)
 is the schema's `editions.of`, read as `inventory_schema.Edition`; this module is the one reader of the change record's
@@ -52,6 +53,16 @@ from standard_streams import ensure_utf8  # noqa: E402
 def chained(row: dict[str, Any], schema: Schema) -> bool:
     """Is `row`'s change record of the chained kind (KEPT), whose verdict is its chain's newest row's?"""
     return (row.get("next") or {}).get("kind") == schema.next.chained.name
+
+
+#: The `test-ref` form of a conformance-suite case (`conformance:<key>`): the only witness that runs at an older edition
+#: (a unit or C# test runs at no `--std`), so the only form a chained row's own witness takes (kb/Work PB5675).
+SUITE_FORM = "conformance"
+
+
+def own_witness_refs(row: dict[str, Any], schema: Schema) -> list[str]:
+    """The test-refs `row` carries of its own, in its order."""
+    return schema.split(row.get("test-ref", "") or "", schema.test_ref_sep)
 
 
 #: An answer to a flag of the lineage screen (kb/Work PB5597, branch review R2-2 of PB5589): the flag's detail as the
@@ -114,6 +125,9 @@ def next_errors(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[
         errs.append("next.reason is empty: a record that states no reason omits the key (one stored form)")
     if kind.chained and (own := [f for f in shape.verdict_fields if row.get(f)]):
         errs.append(f"a {kind.name} rule holds no verdict of its own (its chain's newest rule does), but it carries {own}")
+    if kind.chained and (other := [r for r in own_witness_refs(row, schema) if r.partition(":")[0] != SUITE_FORM]):
+        errs.append(f"a {kind.name} rule's own witness is a conformance-suite case that runs at its edition "
+                    f"(`{SUITE_FORM}:<key>`); {other} run at no older edition (kb/Work PB5675)")
     return errs
 
 
@@ -150,20 +164,39 @@ def stale_targets(nxt: dict[str, Any], to: list[str], targets: dict[str, dict[st
     return errs
 
 
-def state_of(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> str:
-    """`row`'s state at its own edition: a chained (KEPT) row's is its chain's, every other row's is its own
-    (`Schema.state_for`). `targets` are the next held edition's rows by id, each with its own state."""
-    if not chained(row, schema):
-        return schema.state_for(row)
-    band = ed.spelling
+def chain_closed(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> bool:
+    """Is the chain of the chained (KEPT) `row` closed at its edition: it carries into at least one rule, and every rule
+    it carries into is OK at the next held edition with a band that names `ed`?"""
     to = row["next"].get("to") or []
     for t in to:
         target = targets.get(t)
         if target is None or target.get("state") != "OK":
-            return "GAP"
-        if "editions" in target and band not in schema.split(target.get("editions", "") or "", schema.editions_sep):
-            return "GAP"
-    return "OK" if to else "GAP"
+            return False
+        if "editions" in target and ed.spelling not in schema.split(target.get("editions", "") or "", schema.editions_sep):
+            return False
+    return bool(to)
+
+
+def state_of(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> str:
+    """`row`'s state at its own edition: a chained (KEPT) row's is its chain's (`chain_closed`) AND its own witness, every
+    other row's is its own (`Schema.state_for`). `targets` are the next held edition's rows by id, each with its own state.
+
+    ⛔ ONE RULE FOR EVERY OLDER EDITION (kb/Work PB5675; owner 2026-11-14: "2002 spec covers 2002 rules", 2026-11-15: "the
+    same argument for the 2002 rules applies equally to the 1985 rules"). The chain says the requirement is the same; it
+    does not show the compiler meets it at the older `--std`. So a chained row closes only when it carries a spec-derived
+    test-ref of its OWN (`Schema.has_spec_derived_test`, the predicate a newest row closes on), which the LINEAGE READS
+    audit holds to a conformance-suite case that runs at this edition and is of the kind the row's rule needs
+    (`lineage_reads.stored_errors`). Nothing here reads the direction or the target of the pointer for the evidence:
+    `to` decides only whether the chain's verdict stands."""
+    if not chained(row, schema):
+        return schema.state_for(row)
+    return "OK" if chain_closed(row, ed, schema, targets) and schema.has_spec_derived_test(row) else "GAP"
+
+
+def unwitnessed(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> bool:
+    """Is `row` a GAP only for want of its own-edition witness: chained, its chain closed, no own spec-derived test-ref?
+    The views count these apart from the rows nobody adjudicated (kb/Work PB5675)."""
+    return chained(row, schema) and chain_closed(row, ed, schema, targets) and not schema.has_spec_derived_test(row)
 
 
 def new_rules(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, dict[str, Any]]) -> list[str]:
@@ -318,10 +351,21 @@ def self_test() -> int:
     except SystemExit:
         ok(old.state_for({"rule-id": "x", "verdict": ""}) == "GAP",
            "a schema before the change record loads, and asking it for `next` is refused")
-    ok(state_of(row(), ed, schema, targets) == "OK", "a KEPT row is OK when its chain's row is OK and its band includes 85")
-    ok(state_of(row(to=["SR-13.18.38.3-2"]), ed, schema, targets) == "GAP",
+    witness = "conformance:cases/13.18.38-X/planted"
+
+    def own(r: dict[str, Any]) -> dict[str, Any]:
+        return dict(r, **{"test-ref": witness})
+
+    ok(state_of(own(row()), ed, schema, targets) == "OK",
+       "a KEPT row is OK when its chain's row is OK, its band includes 85 and it carries a witness of its own")
+    ok(state_of(row(), ed, schema, targets) == "GAP" and unwitnessed(row(), ed, schema, targets)
+       and not unwitnessed(own(row()), ed, schema, targets),
+       "kb/Work PB5675: a KEPT row whose chain is closed but which carries no witness of its own is a GAP, counted as such")
+    ok(errs(own(row())) == [] and any("run at no older edition" in e for e in errs(dict(row(), **{"test-ref": "unit:T.M"}))),
+       "a KEPT row's own witness is a conformance-suite case; a unit test runs at no older edition and is refused")
+    ok(state_of(own(row(to=["SR-13.18.38.3-2"])), ed, schema, targets) == "GAP",
        "a KEPT row whose chain's test is not placed at 85 (the band starts at 2002) is a GAP")
-    ok(state_of(row(to=["SR-13.18.38.3-1", "GR-14.9.21.4-2"]), ed, schema, targets) == "GAP",
+    ok(state_of(own(row(to=["SR-13.18.38.3-1", "GR-14.9.21.4-2"])), ed, schema, targets) == "GAP",
        "a KEPT row into two rules is a GAP while either is")
     ok(state_of({"rule-id": "x", "verdict": ""}, ed, schema, targets) == "GAP", "an unclassified row with no verdict is a GAP")
     ok(new_rules(ed, [row()], targets) == ["SR-13.18.38.3-2", "GR-14.9.21.4-2"],
@@ -358,9 +402,20 @@ def self_test() -> int:
               "next": {"kind": "KEPT", "edition": 2027, "to": ["SR-1"], "digests": {"SR-1": "d27"}, "bridge": False,
                        "source": "planted"}}
     t27 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023,2027", "rule-digest": "d27"}}
-    ok(next_errors(kept23, e23, s_held, t27) == [] and state_of(kept23, e23, s_held, t27) == "OK"
-       and state_of(kept23, e23, s_held, {"SR-1": dict(t27["SR-1"], editions="2027")}) == "GAP",
+    ok(next_errors(own(kept23), e23, s_held, t27) == [] and state_of(own(kept23), e23, s_held, t27) == "OK"
+       and state_of(own(kept23), e23, s_held, {"SR-1": dict(t27["SR-1"], editions="2027")}) == "GAP",
        "a 2023 row KEPT into 2027 is judged by its chain at its own spelling, 2023")
+    # kb/Work PB5675, outcome 6: the own-edition rule names no edition. A synthetic older edition (2023 once 2027 is held)
+    # gets it by construction, with no key of its own; and no `editions.of` entry may carry a key that would say otherwise.
+    ok(state_of(kept23, e23, s_held, t27) == "GAP" and unwitnessed(kept23, e23, s_held, t27),
+       "a synthetic older edition's KEPT row with no witness of its own is a GAP, by the one rule (no edition key)")
+    from inventory_schema import edition_key_errors  # noqa: PLC0415
+    switched = copy.deepcopy(held)
+    switched["editions"]["of"] = [dict(e, **{"evidence-switch": True}) if e["year"] == 2023 else e
+                                  for e in switched["editions"]["of"]]
+    ok(edition_key_errors(raw) == [] and len(errs_sw := edition_key_errors(switched)) == 1
+       and "evidence-switch" in errs_sw[0] and "2023" in errs_sw[0],
+       "an edition entry carrying an evidence switch (or any key no edition has) is named by the INVENTORY VIEW audit")
 
     # kb/Work PB5256: a held edition no record names yet (`linked: false`) has its rows, and the lineage bridges over it;
     # linking it is the one change that routes the older edition's records into it.

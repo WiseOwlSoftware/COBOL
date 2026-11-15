@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.21.3-4",
  "rule-digest": "8e83507b30dc",
+ "test-ref": "conformance:cases/5.5-Integer-operands/pb86-perform-times-non-integer-item; conformance:cases/14.9.28-PERFORM/pb212-perform-varying-alphanumeric; conformance:cases/13.18.60-USAGE/pb215-perform-varying-target-index-data-item; conformance:cases/14.9.28-PERFORM/pb215-perform-varying-target-alphanumeric; conformance:cases/14.9.28-PERFORM/pb215-perform-varying-index-data-item",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

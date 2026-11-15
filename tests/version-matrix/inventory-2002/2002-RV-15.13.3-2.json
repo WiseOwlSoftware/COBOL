@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.13.3-2",
  "rule-digest": "0d528dce6a2b",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb59_char_representative",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

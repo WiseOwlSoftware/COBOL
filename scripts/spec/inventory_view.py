@@ -47,7 +47,8 @@ from typing import Any, NamedTuple
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import lineage  # noqa: E402  (an older edition's change record and its state)
 from inventory_schema import (HELD, NEWEST, REGISTER_EXTRACT_REL, REPO, SCHEMA_REL, WORKING_TREE, Edition,  # noqa: E402
-                              NotReadAhead, Schema, Tree, edition, load_schema, read_view_ahead, refuter_files)
+                              NotReadAhead, Schema, Tree, edition, edition_key_errors, load_schema, read_view_ahead,
+                              refuter_files)
 from inventory_store import STORE_KEYS, inventory_dir, read_store, store_at  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -230,7 +231,7 @@ def check() -> int:
     question, `edition_gates.check`: this module is in the conformance-suite generator's import closure, and the
     reconciliation ledgers' reader is not.)"""
     schema = load_schema()
-    findings: list[str] = []
+    findings: list[str] = edition_key_errors(WORKING_TREE.json(SCHEMA_REL))
     for year in sorted(HELD, reverse=True):
         ed = schema.edition(year)
         v = view(year, schema)
@@ -264,6 +265,35 @@ def gaps(rows: list[Row]) -> int:
     return sum(1 for r in rows if r["state"] == "GAP")
 
 
+#: The causes `gap_causes` counts a GAP row under, in the order the views print them.
+UNWITNESSED, UNADJUDICATED, OPEN = "inherited, no own-edition witness", "never adjudicated", "open"
+
+
+def gap_causes(ed: Edition, rows: list[Row], schema: Schema, views: dict[int, list[Row]]) -> dict[str, int]:
+    """`rows`' GAP rows (edition `ed`'s) by cause (kb/Work PB5675): a chained row whose chain is closed but which carries
+    no witness of its own at `ed` (`lineage.unwitnessed`); a row with no verdict and no change record; every other GAP.
+    `views` are the held editions' rows by year (`edition_views`), for the next held edition's states."""
+    targets = {} if ed.newest else {r["rule-id"]: r for r in views[ed.next_held]}
+    out = dict.fromkeys((UNWITNESSED, UNADJUDICATED, OPEN), 0)
+    for r in rows:
+        if r["state"] != "GAP":
+            continue
+        if not ed.newest and lineage.unwitnessed(r, ed, schema, targets):
+            out[UNWITNESSED] += 1
+        elif not r.get("verdict") and not r.get("next"):
+            out[UNADJUDICATED] += 1
+        else:
+            out[OPEN] += 1
+    return out
+
+
+def gap_text(ed: Edition, rows: list[Row], schema: Schema, views: dict[int, list[Row]]) -> str:
+    """`rows`' GAP count with its causes, as every per-edition report prints it: `835 GAP (803 inherited, no own-edition
+    witness · 32 never adjudicated)`, each cause with none left out."""
+    causes = {k: v for k, v in gap_causes(ed, rows, schema, views).items() if v}
+    return f"{gaps(rows)} GAP" + (f" ({' · '.join(f'{v} {k}' for k, v in causes.items())})" if causes else "")
+
+
 def edition_views(schema: Schema | None = None) -> dict[int, list[Row]]:
     """Every held edition's rows by year, newest first: each older edition's state is its chain's, evaluated at its own
     edition (DESIGN-spec-conformance-review.md section 10.2, kb/Work PB4994). The one read behind every per-edition report."""
@@ -284,9 +314,10 @@ def lower_bound(ed: Edition, tree: Tree = WORKING_TREE) -> str:
 def summary() -> list[str]:
     """The session probe's lines: each held edition's rules and GAP count side by side (the burn-down metric), then each
     edition's adjudicated verdicts, and the CONFORMS rows a spec-derived test would close."""
-    views = edition_views()
     schema = load_schema()
-    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules{lower_bound(schema.edition(year))} · {gaps(rows)} GAP"
+    views = edition_views(schema)
+    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules{lower_bound(schema.edition(year))} · "
+                                      f"{gap_text(schema.edition(year), rows, schema, views)}"
                                       for year, rows in views.items()) + " (v1.0 = zero GAP)"]
     for year, rows in views.items():
         adjudicated = [r for r in rows if r["verdict"]]

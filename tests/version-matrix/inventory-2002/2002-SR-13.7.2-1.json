@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.7.2-1",
  "rule-digest": "77f2790105b1",
+ "test-ref": "conformance:cases/13.8-Report-section/l1m8_report_section_placements",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

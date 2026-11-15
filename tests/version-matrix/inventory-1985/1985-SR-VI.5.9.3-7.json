@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.9.3-7",
  "rule-digest": "18de4f70c8ea",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

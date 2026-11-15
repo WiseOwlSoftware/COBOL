@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.2.9.2-2",
  "rule-digest": "1e09a74064cf",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/l1c20-property-of-universal-reference; conformance:cases/8.4.3.9-Object-property/pb1425-property-object-null",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

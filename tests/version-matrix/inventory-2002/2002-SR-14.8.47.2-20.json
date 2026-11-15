@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.47.2-20",
  "rule-digest": "b017efc722cd",
+ "test-ref": "conformance:cases/13.18.27-GLOBAL/pb1193-write-global-record-local-fd",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

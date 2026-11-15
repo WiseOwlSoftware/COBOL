@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XI.2.5.3-4",
  "rule-digest": "a9ca6099b23d",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-sort-file-file-area; conformance:cases/12.4.6.4-SAME/pb1087-same-sort-file-two-record-areas",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

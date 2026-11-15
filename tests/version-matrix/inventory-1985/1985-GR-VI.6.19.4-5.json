@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.19.4-5",
  "rule-digest": "7056d0d6937a",
+ "test-ref": "conformance:cases/14.9.25-MOVE/pb430_gr4_no_conversion; conformance:cases/13.18.45-RENAMES/pb3563_renames_thru_numeric_leaf_characters; conformance:cases/13.18.38-OCCURS/pb202_odo_refmod_group_direction",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

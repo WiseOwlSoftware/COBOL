@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.43.3-3",
  "rule-digest": "f35b29da4287",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb345_record_less_fd_area_2023; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

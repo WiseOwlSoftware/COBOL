@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.13.2-1",
  "rule-digest": "457d9e854da7",
+ "test-ref": "conformance:cases/7.3.16-IF/l1c13-if-directive-cce-split; conformance:cases/7.3.16-IF/l1c13-if-directive-mid-line",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

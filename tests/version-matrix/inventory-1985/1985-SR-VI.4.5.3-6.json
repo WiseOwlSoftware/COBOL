@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.4.5.3-6",
  "rule-digest": "23829a739c59",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1c30_thru_through_equivalent",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.3.7.4-1",
  "rule-digest": "c2839f72c106",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

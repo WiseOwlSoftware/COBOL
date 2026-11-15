@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.4.8.4-3",
  "rule-digest": "bd301715e55f",
+ "test-ref": "conformance:cases/14.9.49-USE/pb362_declaratives_reference_boundary",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
