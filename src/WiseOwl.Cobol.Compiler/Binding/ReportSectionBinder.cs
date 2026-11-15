@@ -4453,7 +4453,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (_d.QualifiedCandidates(operand.Name, operand.Qualifiers, Model.Scope.Program).Single is not { } named) return -1;
         for (int i = 0; i < model.Controls.Count; i++)
             if (model.Controls[i] is { Item: { } item, Operand: { } c } && ReferenceEquals(item, named)
-                && c.RefModStart == operand.RefModStart && c.RefModLength == operand.RefModLength)
+                && c.RefModStart == operand.RefModStart && c.RefModLength == operand.RefModLength
+                && c.Subscripts.SequenceEqual(operand.Subscripts))
                 return i;
         return -1;
     }

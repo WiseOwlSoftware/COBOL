@@ -43,3 +43,5 @@ by COBOL2270 and the START on `IX-ELEM (1)` is a legal generic key there (§2002
 **Rows**: twelve 2002 rows recorded CONFORMS by one `record_verdicts` batch (GAP 3297 to 3285); `2002-GR-13.16.55.3-6/-7` now run but their verdicts are not about the subscript and stay open.
 The first gate run (000002) was RED on the 2002 arms of seven refusal goldens and on the backend contract (a text-returning member on `FileModel`); both are fixed in this change.
 The line-endings audit refused the first gate (a helper script wrote CRLF); every writer in this change states `newline=`.
+
+**Review round 1 (R1-1).** ControlLevelOf's second step (the operand's item by reference identity plus equal ref-mod) ignored the written subscripts, so at 2002 `TYPE CONTROL FOOTING T-C(2)` under `CONTROL IS T-C(1)` bound to T-C(1)'s level instead of being refused (§2002:13.16.55.2 SR10). The step now also requires equal Subscripts (RESET ON shares the lookup); golden pb5602-control-footing-other-occurrence refuses it with COBOL0899 at 2002.
